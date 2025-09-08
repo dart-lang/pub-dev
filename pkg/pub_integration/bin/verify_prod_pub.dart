@@ -63,9 +63,15 @@ Future<void> main(List<String> arguments) async {
     await verifyPub(
       pubHostedUrl: pubHostedUrl,
       adminUser: await _initializeUser(
-          browser, pubHostedUrl, _argsWithPrefix(argv, 'user-a-')),
+        browser,
+        pubHostedUrl,
+        _argsWithPrefix(argv, 'user-a-'),
+      ),
       invitedUser: await _initializeUser(
-          browser, pubHostedUrl, _argsWithPrefix(argv, 'user-b-')),
+        browser,
+        pubHostedUrl,
+        _argsWithPrefix(argv, 'user-b-'),
+      ),
       expectLiveSite: expectLiveSite,
     );
   } finally {
@@ -92,8 +98,9 @@ Future<TestUser> _initializeUser(
 ) async {
   final email = map['email']!;
   final apiAccessToken = await _callback(map['api-access-token-callback']!);
-  final credentialsJsonContent =
-      await _callback(map['client-credentials-json-callback']!);
+  final credentialsJsonContent = await _callback(
+    map['client-credentials-json-callback']!,
+  );
   final cookiesString = await _callback(map['browser-cookies-callback']!);
   List<CookieParam>? cookies;
   if (cookiesString.trim().isNotEmpty) {
@@ -112,26 +119,28 @@ Future<TestUser> _initializeUser(
     browserApi: PubApiClient(
       pubHostedUrl,
       client: http_retry.RetryClient(
-        createHttpClientWithHeaders(
-          {'Authorization': 'Bearer $apiAccessToken'},
-        ),
+        createHttpClientWithHeaders({
+          'Authorization': 'Bearer $apiAccessToken',
+        }),
       ),
     ),
     serverApi: PubApiClient(
       pubHostedUrl,
       client: http_retry.RetryClient(
-        createHttpClientWithHeaders(
-          {'Authorization': 'Bearer $apiAccessToken'},
-        ),
+        createHttpClientWithHeaders({
+          'Authorization': 'Bearer $apiAccessToken',
+        }),
       ),
     ),
     withBrowserPage: <T>(Future<T> Function(Page) fn) async {
-      return await session.withPage<T>(fn: (page) async {
-        if (cookies != null && cookies.isNotEmpty) {
-          await page.setCookies(cookies);
-        }
-        return await fn(page);
-      });
+      return await session.withPage<T>(
+        fn: (page) async {
+          if (cookies != null && cookies.isNotEmpty) {
+            await page.setCookies(cookies);
+          }
+          return await fn(page);
+        },
+      );
     },
     readLatestEmail: () async => await _callback(map['last-email-callback']!),
     createCredentials: () =>
@@ -142,10 +151,7 @@ Future<TestUser> _initializeUser(
 Future<String> _callback(String command) async {
   print('... $command');
   final parts = command.split(' ');
-  final pr = await Process.run(
-    parts.first,
-    parts.skip(1).toList(),
-  );
+  final pr = await Process.run(parts.first, parts.skip(1).toList());
   if (pr.exitCode != 0) {
     throw Exception('Unexpected exit code: ${pr.exitCode}\n${pr.stderr}');
   }

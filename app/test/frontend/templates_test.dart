@@ -55,9 +55,14 @@ final _regenerateGoldens = false;
 void main() {
   group('templates', () {
     Future<PackagePageData> loadPackagePageDataByName(
-            String name, String versionName, String? assetKind) async =>
-        loadPackagePageData((await packageBackend.lookupPackage(name))!,
-            versionName, assetKind);
+      String name,
+      String versionName,
+      String? assetKind,
+    ) async => loadPackagePageData(
+      (await packageBackend.lookupPackage(name))!,
+      versionName,
+      assetKind,
+    );
 
     void expectGoldenFile(
       String content,
@@ -84,10 +89,14 @@ void main() {
           replacedContent = replacedContent
               .replaceAll(shortDateFormat.format(value), '%%$key-date%%')
               .replaceAll(value.toIso8601String(), '%%$key-timestamp%%')
-              .replaceAll(value.toIso8601String().replaceAll(':', r'\u003a'),
-                  '%%$key-escaped-timestamp%%')
-              .replaceAll(RegExp(r'data-timestamp="\d+"'),
-                  'data-timestamp="%%millis%%"')
+              .replaceAll(
+                value.toIso8601String().replaceAll(':', r'\u003a'),
+                '%%$key-escaped-timestamp%%',
+              )
+              .replaceAll(
+                RegExp(r'data-timestamp="\d+"'),
+                'data-timestamp="%%millis%%"',
+              )
               .replaceAll(formatXAgo(age), '%%x-ago%%');
         }
       });
@@ -95,23 +104,37 @@ void main() {
         replacedContent = replacedContent.replaceAll(value, '%%$key%%');
       });
       replacedContent = replacedContent
-          .replaceAll('Pana <code>$panaVersion</code>,',
-              'Pana <code>%%pana-version%%</code>,')
-          .replaceAll('Dart <code>$toolStableDartSdkVersion</code>',
-              'Dart <code>%%stable-dart-version%%</code>')
           .replaceAll(
-              '/static/hash-${staticFileCache.etag}/', '/static/hash-%%etag%%/')
-          .replaceAll(RegExp('data-downloads-chart-points=".*?"'),
-              'data-downloads-chart-points="%%downloads-chart-points%%"')
-          .replaceAll(RegExp('data-weekly-sparkline-points=".*?"'),
-              'data-weekly-sparkline-points="%%sparkline-points%%"');
+            'Pana <code>$panaVersion</code>,',
+            'Pana <code>%%pana-version%%</code>,',
+          )
+          .replaceAll(
+            'Dart <code>$toolStableDartSdkVersion</code>',
+            'Dart <code>%%stable-dart-version%%</code>',
+          )
+          .replaceAll(
+            '/static/hash-${staticFileCache.etag}/',
+            '/static/hash-%%etag%%/',
+          )
+          .replaceAll(
+            RegExp('data-downloads-chart-points=".*?"'),
+            'data-downloads-chart-points="%%downloads-chart-points%%"',
+          )
+          .replaceAll(
+            RegExp('data-weekly-sparkline-points=".*?"'),
+            'data-weekly-sparkline-points="%%sparkline-points%%"',
+          );
       final csrfToken = requestContext.sessionData?.csrfToken;
       if (csrfToken != null) {
-        replacedContent =
-            replacedContent.replaceAll(csrfToken, '%%csrf-token%%');
+        replacedContent = replacedContent.replaceAll(
+          csrfToken,
+          '%%csrf-token%%',
+        );
       }
-      final xmlContent =
-          prettyPrintHtml(replacedContent, isFragment: isFragment);
+      final xmlContent = prettyPrintHtml(
+        replacedContent,
+        isFragment: isFragment,
+      );
 
       if (_regenerateGoldens) {
         File('$goldenDir/$fileName').writeAsStringSync(xmlContent);
@@ -125,18 +148,23 @@ void main() {
       'landing page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final html = renderLandingPage(ffPackages: [
-          (await scoreCardBackend.getPackageView('flutter_titanium'))!,
-        ], mostPopularPackages: [
-          (await scoreCardBackend.getPackageView('neon'))!,
-          (await scoreCardBackend.getPackageView('oxygen'))!,
-        ], topPoWVideos: [
-          PkgOfWeekVideo(
+        final html = renderLandingPage(
+          ffPackages: [
+            (await scoreCardBackend.getPackageView('flutter_titanium'))!,
+          ],
+          mostPopularPackages: [
+            (await scoreCardBackend.getPackageView('neon'))!,
+            (await scoreCardBackend.getPackageView('oxygen'))!,
+          ],
+          topPoWVideos: [
+            PkgOfWeekVideo(
               videoId: 'video-id',
               title: 'POW Title',
               description: 'POW description',
-              thumbnailUrl: 'http://youtube.com/image/thumbnail?i=123&s=4'),
-        ]);
+              thumbnailUrl: 'http://youtube.com/image/thumbnail?i=123&s=4',
+            ),
+          ],
+        );
         expectGoldenFile(html, 'landing_page.html');
       },
     );
@@ -152,9 +180,7 @@ void main() {
             versions: [
               GeneratedTestVersion(
                 version: '1.2.0',
-                template: TestArchiveTemplate(
-                  markdownSamples: true,
-                ),
+                template: TestArchiveTemplate(markdownSamples: true),
               ),
             ],
           ),
@@ -166,10 +192,14 @@ void main() {
           () => loadPackagePageDataByName('oxygen', '1.2.0', AssetKind.readme),
         );
         final html = renderPkgShowPage(data);
-        expectGoldenFile(html, 'pkg_show_page.html', timestamps: {
-          'published': data.package.created,
-          'updated': data.version.created,
-        });
+        expectGoldenFile(
+          html,
+          'pkg_show_page.html',
+          timestamps: {
+            'published': data.package.created,
+            'updated': data.version.created,
+          },
+        );
       },
     );
 
@@ -178,12 +208,19 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final data = await loadPackagePageDataByName(
-            'oxygen', '1.2.0', AssetKind.changelog);
+          'oxygen',
+          '1.2.0',
+          AssetKind.changelog,
+        );
         final html = renderPkgChangelogPage(data);
-        expectGoldenFile(html, 'pkg_changelog_page.html', timestamps: {
-          'published': data.package.created,
-          'updated': data.version.created,
-        });
+        expectGoldenFile(
+          html,
+          'pkg_changelog_page.html',
+          timestamps: {
+            'published': data.package.created,
+            'updated': data.version.created,
+          },
+        );
       },
     );
 
@@ -192,12 +229,19 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final data = await loadPackagePageDataByName(
-            'oxygen', '1.2.0', AssetKind.example);
+          'oxygen',
+          '1.2.0',
+          AssetKind.example,
+        );
         final html = renderPkgExamplePage(data);
-        expectGoldenFile(html, 'pkg_example_page.html', timestamps: {
-          'published': data.package.created,
-          'updated': data.version.created,
-        });
+        expectGoldenFile(
+          html,
+          'pkg_example_page.html',
+          timestamps: {
+            'published': data.package.created,
+            'updated': data.version.created,
+          },
+        );
       },
     );
 
@@ -207,22 +251,33 @@ void main() {
       fn: () async {
         final data = await loadPackagePageDataByName('oxygen', '1.2.0', null);
         final html = renderPkgInstallPage(data);
-        expectGoldenFile(html, 'pkg_install_page.html', timestamps: {
-          'published': data.package.created,
-          'updated': data.version.created,
-        });
+        expectGoldenFile(
+          html,
+          'pkg_install_page.html',
+          timestamps: {
+            'published': data.package.created,
+            'updated': data.version.created,
+          },
+        );
       },
     );
 
-    testWithProfile('package score page', processJobsWithFakeRunners: true,
-        fn: () async {
-      final data = await loadPackagePageDataByName('oxygen', '1.2.0', null);
-      final html = renderPkgScorePage(data);
-      expectGoldenFile(html, 'pkg_score_page.html', timestamps: {
-        'published': data.package.created,
-        'updated': data.version.created,
-      });
-    });
+    testWithProfile(
+      'package score page',
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data = await loadPackagePageDataByName('oxygen', '1.2.0', null);
+        final html = renderPkgScorePage(data);
+        expectGoldenFile(
+          html,
+          'pkg_score_page.html',
+          timestamps: {
+            'published': data.package.created,
+            'updated': data.version.created,
+          },
+        );
+      },
+    );
 
     testWithProfile(
       'package score page with downloads chart div with data',
@@ -239,15 +294,24 @@ void main() {
           '6.1.0': 2,
         };
         await downloadCountsBackend.updateDownloadCounts(
-            'oxygen', versionsCounts, date);
+          'oxygen',
+          versionsCounts,
+          date,
+        );
         final data = await loadPackagePageDataByName(
-            'oxygen', '1.2.0', AssetKind.changelog);
+          'oxygen',
+          '1.2.0',
+          AssetKind.changelog,
+        );
         final html = renderPkgScorePage(data);
-        expectGoldenFile(html, 'pkg_score_page_with_downloads_chart.html',
-            timestamps: {
-              'published': data.package.created,
-              'updated': data.version.created,
-            });
+        expectGoldenFile(
+          html,
+          'pkg_score_page_with_downloads_chart.html',
+          timestamps: {
+            'published': data.package.created,
+            'updated': data.version.created,
+          },
+        );
       },
     );
 
@@ -256,12 +320,19 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final data = await loadPackagePageDataByName(
-            'oxygen', '1.2.0', AssetKind.readme);
+          'oxygen',
+          '1.2.0',
+          AssetKind.readme,
+        );
         final html = renderPkgShowPage(data);
-        expectGoldenFile(html, 'pkg_show_version_page.html', timestamps: {
-          'published': data.package.created,
-          'updated': data.version.created,
-        });
+        expectGoldenFile(
+          html,
+          'pkg_show_version_page.html',
+          timestamps: {
+            'published': data.package.created,
+            'updated': data.version.created,
+          },
+        );
       },
     );
 
@@ -272,111 +343,157 @@ void main() {
         final data = await withFakeAuthRequestContext(
           adminAtPubDevEmail,
           () => loadPackagePageDataByName(
-              'flutter_titanium', '1.10.0', AssetKind.readme),
+            'flutter_titanium',
+            '1.10.0',
+            AssetKind.readme,
+          ),
         );
         final html = renderPkgShowPage(data);
-        expectGoldenFile(html, 'pkg_show_page_flutter_plugin.html',
-            timestamps: {
-              'published': data.package.created,
-              'updated': data.version.created,
-            });
+        expectGoldenFile(
+          html,
+          'pkg_show_page_flutter_plugin.html',
+          timestamps: {
+            'published': data.package.created,
+            'updated': data.version.created,
+          },
+        );
       },
     );
 
-    testWithProfile('package show page with discontinued version',
-        testProfile: TestProfile(
-          generatedPackages: [
-            GeneratedTestPackage(name: 'other'),
-            GeneratedTestPackage(
-              name: 'pkg',
-              versions: [GeneratedTestVersion(version: '1.0.0')],
-              isDiscontinued: true,
-              replacedBy: 'other',
-            ),
-          ],
-          defaultUser: 'admin@pub.dev',
-        ),
-        processJobsWithFakeRunners: true, fn: () async {
-      final data =
-          await loadPackagePageDataByName('pkg', '1.0.0', AssetKind.readme);
-      final html = renderPkgShowPage(data);
-      expectGoldenFile(html, 'pkg_show_page_discontinued.html', timestamps: {
-        'published': data.package.created,
-        'updated': data.version.created,
-      });
-    });
+    testWithProfile(
+      'package show page with discontinued version',
+      testProfile: TestProfile(
+        generatedPackages: [
+          GeneratedTestPackage(name: 'other'),
+          GeneratedTestPackage(
+            name: 'pkg',
+            versions: [GeneratedTestVersion(version: '1.0.0')],
+            isDiscontinued: true,
+            replacedBy: 'other',
+          ),
+        ],
+        defaultUser: 'admin@pub.dev',
+      ),
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data = await loadPackagePageDataByName(
+          'pkg',
+          '1.0.0',
+          AssetKind.readme,
+        );
+        final html = renderPkgShowPage(data);
+        expectGoldenFile(
+          html,
+          'pkg_show_page_discontinued.html',
+          timestamps: {
+            'published': data.package.created,
+            'updated': data.version.created,
+          },
+        );
+      },
+    );
 
-    testWithProfile('package show page with retracted version',
-        testProfile: TestProfile(
-          generatedPackages: [
-            GeneratedTestPackage(
-              name: 'pkg',
-              versions: [
-                GeneratedTestVersion(version: '1.0.0'),
-                GeneratedTestVersion(version: '2.0.0'),
-              ],
-              retractedVersions: ['1.0.0'],
-            ),
-          ],
-          defaultUser: 'admin@pub.dev',
-        ),
-        processJobsWithFakeRunners: true, fn: () async {
-      final data =
-          await loadPackagePageDataByName('pkg', '1.0.0', AssetKind.readme);
-      final html = renderPkgShowPage(data);
-      expectGoldenFile(html, 'pkg_show_page_retracted.html', timestamps: {
-        'published': data.package.created,
-        'updated': data.version.created,
-      });
+    testWithProfile(
+      'package show page with retracted version',
+      testProfile: TestProfile(
+        generatedPackages: [
+          GeneratedTestPackage(
+            name: 'pkg',
+            versions: [
+              GeneratedTestVersion(version: '1.0.0'),
+              GeneratedTestVersion(version: '2.0.0'),
+            ],
+            retractedVersions: ['1.0.0'],
+          ),
+        ],
+        defaultUser: 'admin@pub.dev',
+      ),
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data = await loadPackagePageDataByName(
+          'pkg',
+          '1.0.0',
+          AssetKind.readme,
+        );
+        final html = renderPkgShowPage(data);
+        expectGoldenFile(
+          html,
+          'pkg_show_page_retracted.html',
+          timestamps: {
+            'published': data.package.created,
+            'updated': data.version.created,
+          },
+        );
 
-      final data2 =
-          await loadPackagePageDataByName('pkg', '2.0.0', AssetKind.readme);
-      final html2 = renderPkgShowPage(data2);
-      expectGoldenFile(
-          html2, 'pkg_show_page_retracted_non_retracted_version.html',
+        final data2 = await loadPackagePageDataByName(
+          'pkg',
+          '2.0.0',
+          AssetKind.readme,
+        );
+        final html2 = renderPkgShowPage(data2);
+        expectGoldenFile(
+          html2,
+          'pkg_show_page_retracted_non_retracted_version.html',
           timestamps: {
             'published': data2.package.created,
             'updated': data2.version.created,
-          });
-    });
+          },
+        );
+      },
+    );
 
-    testWithProfile('package show page with non-retracted version',
-        testProfile: TestProfile(
-          generatedPackages: [
-            GeneratedTestPackage(
-              name: 'pkg',
-              versions: [
-                GeneratedTestVersion(version: '1.0.0'),
-                GeneratedTestVersion(version: '2.0.0'),
-              ],
-              retractedVersions: ['1.0.0'],
-            ),
-          ],
-          defaultUser: 'admin@pub.dev',
-        ),
-        processJobsWithFakeRunners: true, fn: () async {
-      final data2 =
-          await loadPackagePageDataByName('pkg', '2.0.0', AssetKind.readme);
-      final html2 = renderPkgShowPage(data2);
-      expectGoldenFile(
-          html2, 'pkg_show_page_retracted_non_retracted_version.html',
+    testWithProfile(
+      'package show page with non-retracted version',
+      testProfile: TestProfile(
+        generatedPackages: [
+          GeneratedTestPackage(
+            name: 'pkg',
+            versions: [
+              GeneratedTestVersion(version: '1.0.0'),
+              GeneratedTestVersion(version: '2.0.0'),
+            ],
+            retractedVersions: ['1.0.0'],
+          ),
+        ],
+        defaultUser: 'admin@pub.dev',
+      ),
+      processJobsWithFakeRunners: true,
+      fn: () async {
+        final data2 = await loadPackagePageDataByName(
+          'pkg',
+          '2.0.0',
+          AssetKind.readme,
+        );
+        final html2 = renderPkgShowPage(data2);
+        expectGoldenFile(
+          html2,
+          'pkg_show_page_retracted_non_retracted_version.html',
           timestamps: {
             'published': data2.package.created,
             'updated': data2.version.created,
-          });
-    });
+          },
+        );
+      },
+    );
 
     // package analysis was intentionally left out for this template
     testWithProfile(
       'package show page with publisher',
       fn: () async {
-        final data =
-            await loadPackagePageDataByName('neon', '1.0.0', AssetKind.readme);
+        final data = await loadPackagePageDataByName(
+          'neon',
+          '1.0.0',
+          AssetKind.readme,
+        );
         final html = renderPkgShowPage(data);
-        expectGoldenFile(html, 'pkg_show_page_publisher.html', timestamps: {
-          'published': data.package.created,
-          'updated': data.package.lastVersionPublished,
-        });
+        expectGoldenFile(
+          html,
+          'pkg_show_page_publisher.html',
+          timestamps: {
+            'published': data.package.created,
+            'updated': data.package.lastVersionPublished,
+          },
+        );
       },
       processJobsWithFakeRunners: true,
     );
@@ -384,39 +501,44 @@ void main() {
     scopedTest('no content for analysis tab', () async {
       // no content
       expect(
-          scoreTabNode(
-            package: 'pkg',
-            version: '1.1.1',
-            card: null,
-            likeCount: 4,
-            usesFlutter: false,
-            isLatestStable: false,
-          ).toString(),
-          '<i>Awaiting analysis to complete.</i>');
+        scoreTabNode(
+          package: 'pkg',
+          version: '1.1.1',
+          card: null,
+          likeCount: 4,
+          usesFlutter: false,
+          isLatestStable: false,
+        ).toString(),
+        '<i>Awaiting analysis to complete.</i>',
+      );
     });
 
     testWithProfile(
       'package admin page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        await withFakeAuthRequestContext(
-          adminAtPubDevEmail,
-          () async {
-            final data = await loadPackagePageDataByName(
-                'oxygen', '1.2.0', AssetKind.readme);
-            final html = renderPkgAdminPage(
-              data,
-              ['example.com'],
-              await accountBackend.lookupUsersByEmail('admin@pub.dev'),
-              ['2.0.0'],
-              ['1.0.0'],
-            );
-            expectGoldenFile(html, 'pkg_admin_page.html', timestamps: {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
+          final data = await loadPackagePageDataByName(
+            'oxygen',
+            '1.2.0',
+            AssetKind.readme,
+          );
+          final html = renderPkgAdminPage(
+            data,
+            ['example.com'],
+            await accountBackend.lookupUsersByEmail('admin@pub.dev'),
+            ['2.0.0'],
+            ['1.0.0'],
+          );
+          expectGoldenFile(
+            html,
+            'pkg_admin_page.html',
+            timestamps: {
               'published': data.package.created,
               'updated': data.version.created,
-            });
-          },
-        );
+            },
+          );
+        });
       },
     );
 
@@ -432,24 +554,31 @@ void main() {
           // extra records to trigger the 2-month separator
           final mockPresent = clock.now();
           activities.records.insert(
-              0,
-              AuditLogRecord()
-                ..created = mockPresent
-                ..expires = mockPresent.add(Duration(days: 61))
-                ..summary = 'recent action');
+            0,
+            AuditLogRecord()
+              ..created = mockPresent
+              ..expires = mockPresent.add(Duration(days: 61))
+              ..summary = 'recent action',
+          );
 
           final mockPast = data.package.created!.subtract(Duration(days: 75));
-          activities.records.add(AuditLogRecord()
-            ..created = mockPast
-            ..expires = auditLogRecordExpiresInFarFuture
-            ..summary = 'old action');
+          activities.records.add(
+            AuditLogRecord()
+              ..created = mockPast
+              ..expires = auditLogRecordExpiresInFarFuture
+              ..summary = 'old action',
+          );
 
           final html = renderPkgActivityLogPage(data, activities);
-          expectGoldenFile(html, 'pkg_activity_log_page.html', timestamps: {
-            'published': data.package.created,
-            'updated': data.version.created,
-            ..._activityLogTimestamps(activities),
-          });
+          expectGoldenFile(
+            html,
+            'pkg_activity_log_page.html',
+            timestamps: {
+              'published': data.package.created,
+              'updated': data.version.created,
+              ..._activityLogTimestamps(activities),
+            },
+          );
         });
       },
     );
@@ -460,8 +589,9 @@ void main() {
       fn: () async {
         final searchForm = SearchForm(query: 'sdk:dart');
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
-        final titanium =
-            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
+        final titanium = (await scoreCardBackend.getPackageView(
+          'flutter_titanium',
+        ))!;
         final String html = renderPkgIndexPage(
           SearchResultPage(
             searchForm,
@@ -481,10 +611,14 @@ void main() {
           PageLinks.empty(),
           searchForm: searchForm,
         );
-        expectGoldenFile(html, 'pkg_index_page.html', timestamps: {
-          'oxygen-created': oxygen.created,
-          'titanium-created': titanium.created,
-        });
+        expectGoldenFile(
+          html,
+          'pkg_index_page.html',
+          timestamps: {
+            'oxygen-created': oxygen.created,
+            'titanium-created': titanium.created,
+          },
+        );
       },
     );
 
@@ -494,8 +628,9 @@ void main() {
       fn: () async {
         final searchForm = SearchForm(query: 'foobar', order: SearchOrder.top);
         final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
-        final titanium =
-            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
+        final titanium = (await scoreCardBackend.getPackageView(
+          'flutter_titanium',
+        ))!;
         final String html = renderPkgIndexPage(
           SearchResultPage(
             searchForm,
@@ -513,10 +648,14 @@ void main() {
           PageLinks(searchForm, 50),
           searchForm: searchForm,
         );
-        expectGoldenFile(html, 'search_page.html', timestamps: {
-          'oxygen-created': oxygen.created,
-          'titanium-created': titanium.created,
-        });
+        expectGoldenFile(
+          html,
+          'search_page.html',
+          timestamps: {
+            'oxygen-created': oxygen.created,
+            'titanium-created': titanium.created,
+          },
+        );
       },
     );
 
@@ -527,16 +666,21 @@ void main() {
         final data = await loadPackagePageDataByName('oxygen', '1.2.0', null);
         final rs = await issueGet('/packages/oxygen/versions');
         final html = await rs.readAsString();
-        expectGoldenFile(html, 'pkg_versions_page.html', timestamps: {
-          'version-created': data.version.created,
-          'package-created': data.package.created,
-        });
+        expectGoldenFile(
+          html,
+          'pkg_versions_page.html',
+          timestamps: {
+            'version-created': data.version.created,
+            'package-created': data.package.created,
+          },
+        );
       },
     );
 
-    testWithProfile('publisher list page', fn: () async {
-      final html = renderPublisherListPage(
-        [
+    testWithProfile(
+      'publisher list page',
+      fn: () async {
+        final html = renderPublisherListPage([
           PublisherSummary(
             publisherId: 'example.com',
             created: DateTime(2019, 09, 13),
@@ -545,28 +689,30 @@ void main() {
             publisherId: 'other-domain.com',
             created: DateTime(2019, 09, 19),
           ),
-        ],
-      );
-      expectGoldenFile(
-        html,
-        'publisher_list_page.html',
-        timestamps: {
-          'example-created': DateTime(2019, 09, 13),
-          'other-created': DateTime(2019, 09, 19),
-        },
-      );
-    });
+        ]);
+        expectGoldenFile(
+          html,
+          'publisher_list_page.html',
+          timestamps: {
+            'example-created': DateTime(2019, 09, 13),
+            'other-created': DateTime(2019, 09, 19),
+          },
+        );
+      },
+    );
 
     testWithProfile(
       'publisher packages page',
       processJobsWithFakeRunners: true,
       fn: () async {
         final searchForm = SearchForm();
-        final publisher =
-            (await publisherBackend.lookupPublisher('example.com'))!;
+        final publisher = (await publisherBackend.lookupPublisher(
+          'example.com',
+        ))!;
         final neon = (await scoreCardBackend.getPackageView('neon'))!;
-        final titanium =
-            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
+        final titanium = (await scoreCardBackend.getPackageView(
+          'flutter_titanium',
+        ))!;
         final html = renderPublisherPackagesPage(
           publisher: publisher,
           kind: PublisherPackagesPageKind.listed,
@@ -581,12 +727,16 @@ void main() {
           isAdmin: true,
           messageFromBackend: null,
         );
-        expectGoldenFile(html, 'publisher_packages_page.html', timestamps: {
-          'neon-created': neon.created,
-          'titanium-created': titanium.created,
-          'publisher-created': publisher.created,
-          'publisher-updated': publisher.updated,
-        });
+        expectGoldenFile(
+          html,
+          'publisher_packages_page.html',
+          timestamps: {
+            'neon-created': neon.created,
+            'titanium-created': titanium.created,
+            'publisher-created': publisher.created,
+            'publisher-updated': publisher.updated,
+          },
+        );
       },
     );
 
@@ -595,11 +745,13 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final searchForm = SearchForm();
-        final publisher =
-            (await publisherBackend.lookupPublisher('example.com'))!;
+        final publisher = (await publisherBackend.lookupPublisher(
+          'example.com',
+        ))!;
         final neon = (await scoreCardBackend.getPackageView('neon'))!;
-        final titanium =
-            (await scoreCardBackend.getPackageView('flutter_titanium'))!;
+        final titanium = (await scoreCardBackend.getPackageView(
+          'flutter_titanium',
+        ))!;
         final html = renderPublisherPackagesPage(
           publisher: publisher,
           kind: PublisherPackagesPageKind.unlisted,
@@ -614,13 +766,16 @@ void main() {
           isAdmin: true,
           messageFromBackend: null,
         );
-        expectGoldenFile(html, 'publisher_unlisted_packages_page.html',
-            timestamps: {
-              'neon-created': neon.created,
-              'titanium-created': titanium.created,
-              'publisher-created': publisher.created,
-              'publisher-updated': publisher.updated,
-            });
+        expectGoldenFile(
+          html,
+          'publisher_unlisted_packages_page.html',
+          timestamps: {
+            'neon-created': neon.created,
+            'titanium-created': titanium.created,
+            'publisher-created': publisher.created,
+            'publisher-updated': publisher.updated,
+          },
+        );
       },
     );
 
@@ -628,10 +783,12 @@ void main() {
       'publisher admin page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final publisher =
-            (await publisherBackend.lookupPublisher('example.com'))!;
-        final members =
-            await publisherBackend.listPublisherMembers('example.com');
+        final publisher = (await publisherBackend.lookupPublisher(
+          'example.com',
+        ))!;
+        final members = await publisherBackend.listPublisherMembers(
+          'example.com',
+        );
         final html = renderPublisherAdminPage(
           publisher: publisher,
           members: members,
@@ -645,7 +802,9 @@ void main() {
           },
           replacements: {
             ...Map.fromIterables(
-                members.map((m) => m.email), members.map((m) => m.userId)),
+              members.map((m) => m.email),
+              members.map((m) => m.userId),
+            ),
           },
         );
       },
@@ -655,20 +814,26 @@ void main() {
       'publisher activity log page',
       processJobsWithFakeRunners: true,
       fn: () async {
-        final publisher =
-            (await publisherBackend.lookupPublisher('example.com'))!;
-        final activities =
-            await auditBackend.listRecordsForPublisher('example.com');
+        final publisher = (await publisherBackend.lookupPublisher(
+          'example.com',
+        ))!;
+        final activities = await auditBackend.listRecordsForPublisher(
+          'example.com',
+        );
         expect(activities.records, isNotEmpty);
         final html = renderPublisherActivityLogPage(
           publisher: publisher,
           activities: activities,
         );
-        expectGoldenFile(html, 'publisher_activity_log_page.html', timestamps: {
-          'publisher-created': publisher.created,
-          'publisher-updated': publisher.updated,
-          ..._activityLogTimestamps(activities),
-        });
+        expectGoldenFile(
+          html,
+          'publisher_activity_log_page.html',
+          timestamps: {
+            'publisher-created': publisher.created,
+            'publisher-updated': publisher.updated,
+            ..._activityLogTimestamps(activities),
+          },
+        );
       },
     );
 
@@ -688,189 +853,250 @@ void main() {
             startPackage: 'oxygen',
             nextPackage: 'package_after_neon',
           );
-          expectGoldenFile(html, 'my_packages.html', timestamps: {
-            'oxygen-created': oxygen.created,
-            'neon-created': neon.created,
-          });
+          expectGoldenFile(
+            html,
+            'my_packages.html',
+            timestamps: {
+              'oxygen-created': oxygen.created,
+              'neon-created': neon.created,
+            },
+          );
         });
       },
     );
 
-    testWithProfile('/my-liked-packages page', fn: () async {
-      await withFakeAuthRequestContext(userAtPubDevEmail, () async {
-        final authenticatedUser = await requireAuthenticatedWebUser();
-        final user = authenticatedUser.user;
-        final liked1 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
-        final liked2 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
-        final html = renderMyLikedPackagesPage(
-          user: user,
-          userSessionData: requestContext.sessionData!,
-          likes: [
-            LikeData(package: 'super_package', created: liked1),
-            LikeData(package: 'another_package', created: liked2)
-          ],
-        );
-        expectGoldenFile(html, 'my_liked_packages.html', timestamps: {
-          'user-created': user.created,
-          'liked1': liked1,
-          'liked2': liked2,
+    testWithProfile(
+      '/my-liked-packages page',
+      fn: () async {
+        await withFakeAuthRequestContext(userAtPubDevEmail, () async {
+          final authenticatedUser = await requireAuthenticatedWebUser();
+          final user = authenticatedUser.user;
+          final liked1 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
+          final liked2 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
+          final html = renderMyLikedPackagesPage(
+            user: user,
+            userSessionData: requestContext.sessionData!,
+            likes: [
+              LikeData(package: 'super_package', created: liked1),
+              LikeData(package: 'another_package', created: liked2),
+            ],
+          );
+          expectGoldenFile(
+            html,
+            'my_liked_packages.html',
+            timestamps: {
+              'user-created': user.created,
+              'liked1': liked1,
+              'liked2': liked2,
+            },
+          );
         });
-      });
-    });
+      },
+    );
 
-    testWithProfile('/my-publishers page', fn: () async {
-      await withFakeAuthRequestContext(userAtPubDevEmail, () async {
-        final authenticatedUser = await requireAuthenticatedWebUser();
-        final user = authenticatedUser.user;
-        final publisherCreated = DateTime(2021, 07, 01, 16, 05);
-        final html = renderAccountPublishersPage(
-          user: user,
-          userSessionData: requestContext.sessionData!,
-          publishers: [
-            PublisherSummary(
-              publisherId: 'example.com',
-              created: publisherCreated,
-            ),
-          ],
-        );
-        expectGoldenFile(html, 'my_publishers.html', timestamps: {
-          'user-created': user.created,
-          'publisher-created': publisherCreated,
+    testWithProfile(
+      '/my-publishers page',
+      fn: () async {
+        await withFakeAuthRequestContext(userAtPubDevEmail, () async {
+          final authenticatedUser = await requireAuthenticatedWebUser();
+          final user = authenticatedUser.user;
+          final publisherCreated = DateTime(2021, 07, 01, 16, 05);
+          final html = renderAccountPublishersPage(
+            user: user,
+            userSessionData: requestContext.sessionData!,
+            publishers: [
+              PublisherSummary(
+                publisherId: 'example.com',
+                created: publisherCreated,
+              ),
+            ],
+          );
+          expectGoldenFile(
+            html,
+            'my_publishers.html',
+            timestamps: {
+              'user-created': user.created,
+              'publisher-created': publisherCreated,
+            },
+          );
         });
-      });
-    });
+      },
+    );
 
-    testWithProfile('/my-activity-log page', fn: () async {
-      await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
-        final authenticatedUser = await requireAuthenticatedWebUser();
-        final user = authenticatedUser.user;
-        final activities = await auditBackend.listRecordsForUserId(user.userId);
-        expect(activities.records, isNotEmpty);
-        final html = renderAccountMyActivityPage(
-          user: user,
-          userSessionData: requestContext.sessionData!,
-          activities: activities,
-        );
-        expectGoldenFile(html, 'my_activity_log_page.html', timestamps: {
-          'user-created': user.created,
-          ..._activityLogTimestamps(activities),
+    testWithProfile(
+      '/my-activity-log page',
+      fn: () async {
+        await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
+          final authenticatedUser = await requireAuthenticatedWebUser();
+          final user = authenticatedUser.user;
+          final activities = await auditBackend.listRecordsForUserId(
+            user.userId,
+          );
+          expect(activities.records, isNotEmpty);
+          final html = renderAccountMyActivityPage(
+            user: user,
+            userSessionData: requestContext.sessionData!,
+            activities: activities,
+          );
+          expectGoldenFile(
+            html,
+            'my_activity_log_page.html',
+            timestamps: {
+              'user-created': user.created,
+              ..._activityLogTimestamps(activities),
+            },
+          );
         });
-      });
-    });
+      },
+    );
 
-    testWithProfile('create publisher page', fn: () async {
-      final html = renderCreatePublisherPage(domain: null);
-      expectGoldenFile(html, 'create_publisher_page.html');
-    });
+    testWithProfile(
+      'create publisher page',
+      fn: () async {
+        final html = renderCreatePublisherPage(domain: null);
+        expectGoldenFile(html, 'create_publisher_page.html');
+      },
+    );
 
-    testWithProfile('consent page', fn: () async {
-      final html = renderConsentPage(
-        consentId: '1234-5678',
-        title: 'Invite for something',
-        descriptionHtml: '<b>Warning!</b> And text...',
-      );
-      expectGoldenFile(html, 'consent_page.html');
-    });
+    testWithProfile(
+      'consent page',
+      fn: () async {
+        final html = renderConsentPage(
+          consentId: '1234-5678',
+          title: 'Invite for something',
+          descriptionHtml: '<b>Warning!</b> And text...',
+        );
+        expectGoldenFile(html, 'consent_page.html');
+      },
+    );
 
-    testWithProfile('consent - package uploader invite (anonymous)',
-        fn: () async {
-      final html = renderPackageUploaderInvite(
-        invitingUserEmail: 'admin@pub.dev',
-        packageName: 'example_pkg',
-        currentUserEmail: null,
-      );
-      expectGoldenFile(
-        html,
-        'consent_package_uploader_anonymous.html',
-        isFragment: true,
-      );
-    });
+    testWithProfile(
+      'consent - package uploader invite (anonymous)',
+      fn: () async {
+        final html = renderPackageUploaderInvite(
+          invitingUserEmail: 'admin@pub.dev',
+          packageName: 'example_pkg',
+          currentUserEmail: null,
+        );
+        expectGoldenFile(
+          html,
+          'consent_package_uploader_anonymous.html',
+          isFragment: true,
+        );
+      },
+    );
 
-    testWithProfile('consent - package uploader invite (authenticated)',
-        fn: () async {
-      final html = renderPackageUploaderInvite(
-        invitingUserEmail: 'admin@pub.dev',
-        packageName: 'example_pkg',
-        currentUserEmail: 'user@pub.dev',
-      );
-      expectGoldenFile(
-        html,
-        'consent_package_uploader_authenticated.html',
-        isFragment: true,
-      );
-    });
+    testWithProfile(
+      'consent - package uploader invite (authenticated)',
+      fn: () async {
+        final html = renderPackageUploaderInvite(
+          invitingUserEmail: 'admin@pub.dev',
+          packageName: 'example_pkg',
+          currentUserEmail: 'user@pub.dev',
+        );
+        expectGoldenFile(
+          html,
+          'consent_package_uploader_authenticated.html',
+          isFragment: true,
+        );
+      },
+    );
 
-    testWithProfile('consent - publisher contact invite', fn: () async {
-      final html = renderPublisherContactInvite(
-        invitingUserEmail: 'admin@pub.dev',
-        contactEmail: 'hello@example.com',
-        publisherId: 'dart.dev',
-      );
-      expectGoldenFile(
-        html,
-        'consent_publisher_contact_invite.html',
-        isFragment: true,
-      );
-    });
+    testWithProfile(
+      'consent - publisher contact invite',
+      fn: () async {
+        final html = renderPublisherContactInvite(
+          invitingUserEmail: 'admin@pub.dev',
+          contactEmail: 'hello@example.com',
+          publisherId: 'dart.dev',
+        );
+        expectGoldenFile(
+          html,
+          'consent_publisher_contact_invite.html',
+          isFragment: true,
+        );
+      },
+    );
 
-    testWithProfile('consent - publisher member invite', fn: () async {
-      final html = renderPublisherMemberInvite(
-        invitingUserEmail: 'admin@pub.dev',
-        publisherId: 'dart.dev',
-      );
-      expectGoldenFile(
-        html,
-        'consent_publisher_member_invite.html',
-        isFragment: true,
-      );
-    });
+    testWithProfile(
+      'consent - publisher member invite',
+      fn: () async {
+        final html = renderPublisherMemberInvite(
+          invitingUserEmail: 'admin@pub.dev',
+          publisherId: 'dart.dev',
+        );
+        expectGoldenFile(
+          html,
+          'consent_publisher_member_invite.html',
+          isFragment: true,
+        );
+      },
+    );
 
-    testWithProfile('authorized page', fn: () async {
-      final String html = renderAuthorizedPage();
-      expectGoldenFile(html, 'authorized_page.html');
-    });
+    testWithProfile(
+      'authorized page',
+      fn: () async {
+        final String html = renderAuthorizedPage();
+        expectGoldenFile(html, 'authorized_page.html');
+      },
+    );
 
-    testWithProfile('error page', fn: () async {
-      final String html = renderErrorPage('error_title', 'error_message');
-      expectGoldenFile(html, 'error_page.html');
-    });
+    testWithProfile(
+      'error page',
+      fn: () async {
+        final String html = renderErrorPage('error_title', 'error_message');
+        expectGoldenFile(html, 'error_page.html');
+      },
+    );
 
-    testWithProfile('help page', fn: () async {
-      final html = renderHelpPage();
-      expectGoldenFile(html!, 'help_page.html');
-    });
+    testWithProfile(
+      'help page',
+      fn: () async {
+        final html = renderHelpPage();
+        expectGoldenFile(html!, 'help_page.html');
+      },
+    );
 
-    testWithProfile('topics page', fn: () async {
-      final html = renderTopicsPage({
-        'ui': 5,
-        'network': 7,
-        'http': 4,
-        'widget': 1,
-      });
-      expectGoldenFile(html, 'topics_page.html');
-    });
+    testWithProfile(
+      'topics page',
+      fn: () async {
+        final html = renderTopicsPage({
+          'ui': 5,
+          'network': 7,
+          'http': 4,
+          'widget': 1,
+        });
+        expectGoldenFile(html, 'topics_page.html');
+      },
+    );
 
-    testWithProfile('report page', fn: () async {
-      final html = renderReportPage(
-        sessionData: null,
-        subject: ModerationSubject.package('oxygen'),
-        url: 'https://pub.dev/packages/oxygen/example',
-        caseId: null,
-        onSuccessGotoUrl: 'https://pub.dev/report?feedback=report-submitted',
-      );
-      expectGoldenFile(html, 'report_page.html');
-    });
+    testWithProfile(
+      'report page',
+      fn: () async {
+        final html = renderReportPage(
+          sessionData: null,
+          subject: ModerationSubject.package('oxygen'),
+          url: 'https://pub.dev/packages/oxygen/example',
+          caseId: null,
+          onSuccessGotoUrl: 'https://pub.dev/report?feedback=report-submitted',
+        );
+        expectGoldenFile(html, 'report_page.html');
+      },
+    );
 
-    testWithProfile('report page - appeal', fn: () async {
-      final html = renderReportPage(
-        sessionData: null,
-        subject: ModerationSubject.package('oxygen'),
-        url: null,
-        caseId: 'fake-case-id',
-        onSuccessGotoUrl: 'https://pub.dev/report?feedback=appeal-submitted',
-      );
-      expectGoldenFile(html, 'report_page_appeal.html');
-    });
+    testWithProfile(
+      'report page - appeal',
+      fn: () async {
+        final html = renderReportPage(
+          sessionData: null,
+          subject: ModerationSubject.package('oxygen'),
+          url: null,
+          caseId: 'fake-case-id',
+          onSuccessGotoUrl: 'https://pub.dev/report?feedback=appeal-submitted',
+        );
+        expectGoldenFile(html, 'report_page_appeal.html');
+      },
+    );
 
     scopedTest('pagination: single page', () {
       final html = paginationNode(PageLinks.empty()).toString();
@@ -878,8 +1104,9 @@ void main() {
     });
 
     scopedTest('pagination: in the middle', () {
-      final html = paginationNode(PageLinks(SearchForm(currentPage: 10), 299))
-          .toString();
+      final html = paginationNode(
+        PageLinks(SearchForm(currentPage: 10), 299),
+      ).toString();
       expectGoldenFile(html, 'pagination_middle.html', isFragment: true);
     });
 
@@ -889,8 +1116,9 @@ void main() {
     });
 
     scopedTest('pagination: at last page', () {
-      final html =
-          paginationNode(PageLinks(SearchForm(currentPage: 10), 91)).toString();
+      final html = paginationNode(
+        PageLinks(SearchForm(currentPage: 10), 91),
+      ).toString();
       expectGoldenFile(html, 'pagination_last.html', isFragment: true);
     });
   });
@@ -942,15 +1170,19 @@ void main() {
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE - 1', () {
       final links = PageLinks(
-          SearchForm(currentPage: 2), page2Offset + resultsPerPage - 1);
+        SearchForm(currentPage: 2),
+        page2Offset + resultsPerPage - 1,
+      );
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
     });
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE', () {
-      final links =
-          PageLinks(SearchForm(currentPage: 2), page2Offset + resultsPerPage);
+      final links = PageLinks(
+        SearchForm(currentPage: 2),
+        page2Offset + resultsPerPage,
+      );
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 2);
@@ -958,7 +1190,9 @@ void main() {
 
     test('page=2 + PageLinks.RESULTS_PER_PAGE + 1', () {
       final links = PageLinks(
-          SearchForm(currentPage: 2), page2Offset + resultsPerPage + 1);
+        SearchForm(currentPage: 2),
+        page2Offset + resultsPerPage + 1,
+      );
       expect(links.currentPage, 2);
       expect(links.leftmostPage, 1);
       expect(links.rightmostPage, 3);

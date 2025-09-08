@@ -71,15 +71,21 @@ final class InstalledSdk {
     final v = await File(p.join(path, 'version')).readAsString();
     Version? embeddedDartSdkVersion;
     if (kind == 'flutter') {
-      final embeddedFile =
-          File(p.join(path, 'bin', 'cache', 'dart-sdk', 'version'));
+      final embeddedFile = File(
+        p.join(path, 'bin', 'cache', 'dart-sdk', 'version'),
+      );
       if (await embeddedFile.exists()) {
         final embeddedValue = await embeddedFile.readAsString();
-        embeddedDartSdkVersion =
-            Version.parse(embeddedValue.split(' ').first.trim());
+        embeddedDartSdkVersion = Version.parse(
+          embeddedValue.split(' ').first.trim(),
+        );
       }
     }
     return InstalledSdk(
-        kind, path, Version.parse(v.trim()), embeddedDartSdkVersion);
+      kind,
+      path,
+      Version.parse(v.trim()),
+      embeddedDartSdkVersion,
+    );
   }
 }

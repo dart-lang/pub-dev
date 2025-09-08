@@ -129,9 +129,7 @@ class ModerationCase extends db.ExpandoModel<String> {
   }
 
   /// Generates a short case id like `<yyyy><mm><dd>I0123456789`.
-  static String generateCaseId({
-    DateTime? now,
-  }) {
+  static String generateCaseId({DateTime? now}) {
     now ??= clock.now();
     return '${now.toIso8601String().split('T').first.replaceAll('-', '')}'
         'I'
@@ -143,7 +141,8 @@ class ModerationCase extends db.ExpandoModel<String> {
       return ModerationActionLog(entries: []);
     }
     return ModerationActionLog.fromJson(
-        json.decode(actionLogField!) as Map<String, Object?>);
+      json.decode(actionLogField!) as Map<String, Object?>,
+    );
   }
 
   void setActionLog(ModerationActionLog value) {
@@ -157,12 +156,14 @@ class ModerationCase extends db.ExpandoModel<String> {
     String? note,
   ) {
     final log = getActionLog();
-    log.entries.add(ModerationActionLogEntry(
-      timestamp: clock.now().toUtc(),
-      subject: subject,
-      moderationAction: moderationAction,
-      note: note,
-    ));
+    log.entries.add(
+      ModerationActionLogEntry(
+        timestamp: clock.now().toUtc(),
+        subject: subject,
+        moderationAction: moderationAction,
+        note: note,
+      ),
+    );
     setActionLog(log);
   }
 
@@ -220,10 +221,7 @@ abstract class ModerationKind {
   static const notification = 'notification';
   static const appeal = 'appeal';
 
-  static const _values = [
-    notification,
-    appeal,
-  ];
+  static const _values = [notification, appeal];
   static bool isValidKind(String value) => _values.contains(value);
 }
 
@@ -244,10 +242,7 @@ abstract class ModerationStatus {
     moderationUpheld,
     moderationReverted,
   ];
-  static const _values = [
-    pending,
-    ...resolveValues,
-  ];
+  static const _values = [pending, ...resolveValues];
 
   static bool isValidStatus(String value) => _values.contains(value);
   static bool wasModerationApplied(String value) =>
@@ -260,10 +255,7 @@ abstract class ModerationGrounds {
   static const illegal = 'illegal';
   static const policy = 'policy';
 
-  static final resolveValues = [
-    illegal,
-    policy,
-  ];
+  static final resolveValues = [illegal, policy];
 }
 
 abstract class ModerationViolation {
@@ -414,11 +406,7 @@ class ModerationSubject {
         );
       case ModerationSubjectKind.user:
         final email = parts[1];
-        return ModerationSubject._(
-          kind: kind,
-          localName: email,
-          email: email,
-        );
+        return ModerationSubject._(kind: kind, localName: email, email: email);
       default:
         return null;
     }
@@ -454,9 +442,7 @@ class ModerationSubjectKind {
 class ModerationActionLog {
   final List<ModerationActionLogEntry> entries;
 
-  ModerationActionLog({
-    required this.entries,
-  });
+  ModerationActionLog({required this.entries});
 
   factory ModerationActionLog.fromJson(Map<String, Object?> json) =>
       _$ModerationActionLogFromJson(json);
@@ -466,10 +452,7 @@ class ModerationActionLog {
   bool get isNotEmpty => entries.isNotEmpty;
 }
 
-enum ModerationAction {
-  apply,
-  revert,
-}
+enum ModerationAction { apply, revert }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class ModerationActionLogEntry {

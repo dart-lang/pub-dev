@@ -48,23 +48,28 @@ class TrackedPackage {
   });
 
   factory TrackedPackage.fromPackage(Package p) => TrackedPackage(
-        package: p.name!,
-        updated: p.updated!,
-        latestVersion: p.latestVersion!,
-        lastPublished: p.lastVersionPublished!,
-        isVisible: p.isVisible && !isSdkPackage(p.name!),
-      );
+    package: p.name!,
+    updated: p.updated!,
+    latestVersion: p.latestVersion!,
+    lastPublished: p.lastVersionPublished!,
+    isVisible: p.isVisible && !isSdkPackage(p.name!),
+  );
 
   @visibleForTesting
   TrackedPackage.simple(this.package)
-      : latestVersion = '1.0.0',
-        updated = clock.now(),
-        lastPublished = clock.now(),
-        isVisible = true;
+    : latestVersion = '1.0.0',
+      updated = clock.now(),
+      lastPublished = clock.now(),
+      isVisible = true;
 
   @override
-  late final int hashCode =
-      Object.hash(package, updated, latestVersion, lastPublished, isVisible);
+  late final int hashCode = Object.hash(
+    package,
+    updated,
+    latestVersion,
+    lastPublished,
+    isVisible,
+  );
 
   @override
   bool operator ==(Object other) {
@@ -195,8 +200,9 @@ class NameTracker {
       }
 
       _data._lastStartedTs = start;
-      _logger
-          .info('Recent packages scanned in ${clock.now().difference(start)}.');
+      _logger.info(
+        'Recent packages scanned in ${clock.now().difference(start)}.',
+      );
     } finally {
       final c = _ongoingRecentScan;
       if (c != null && !c.isCompleted) {
@@ -214,7 +220,10 @@ class NameTracker {
         await _scanRecentPackages();
       } catch (e, st) {
         _logger.warning(
-            'Failed to update name tracker with recent packages.', e, st);
+          'Failed to update name tracker with recent packages.',
+          e,
+          st,
+        );
       }
     });
     _reloadTimer ??= Timer.periodic(_reloadInterval, (_) async {
@@ -292,18 +301,18 @@ class _Data {
   /// Returns the cached list of packages ordered by descending last published date.
   /// Only the visible packages are present.
   List<TrackedPackage> get visiblePackagesOrderedByLastPublished {
-    return _packagesOrderedByLastPublishedDesc ??= _packages.values
-        .where((p) => p.isVisible)
-        .toList()
-      ..sort((a, b) => -a.lastPublished.compareTo(b.lastPublished));
+    return _packagesOrderedByLastPublishedDesc ??=
+        _packages.values.where((p) => p.isVisible).toList()
+          ..sort((a, b) => -a.lastPublished.compareTo(b.lastPublished));
   }
 
   List<String> get visiblePackageNames {
-    return _visiblePackageNames ??= _packages.values
-        .where((t) => t.isVisible)
-        .map((t) => t.package)
-        .toList()
-      ..sort();
+    return _visiblePackageNames ??=
+        _packages.values
+            .where((t) => t.isVisible)
+            .map((t) => t.package)
+            .toList()
+          ..sort();
   }
 
   /// Whether the package was already added to the tracker.

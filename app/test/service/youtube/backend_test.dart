@@ -11,33 +11,42 @@ import 'package:test/test.dart';
 import '../../shared/test_services.dart';
 
 void main() {
-  testWithProfile('when a key is specified, it has items', fn: () async {
-    if (envConfig.youtubeApiKey != null) {
-      final videos = youtubeBackend.getTopPackageOfWeekVideos(count: 100);
-      expect(videos, hasLength(greaterThan(5)));
-      // Guard against bad pagination / duplicate ids.
-      final videoIds = videos.map((e) => e.videoId).toList();
-      expect(videoIds.toSet().length, videoIds.length);
-    }
-  });
+  testWithProfile(
+    'when a key is specified, it has items',
+    fn: () async {
+      if (envConfig.youtubeApiKey != null) {
+        final videos = youtubeBackend.getTopPackageOfWeekVideos(count: 100);
+        expect(videos, hasLength(greaterThan(5)));
+        // Guard against bad pagination / duplicate ids.
+        final videoIds = videos.map((e) => e.videoId).toList();
+        expect(videoIds.toSet().length, videoIds.length);
+      }
+    },
+  );
 
-  testWithProfile('randomization', fn: () async {
-    youtubeBackend.setPackageOfWeekVideos(List<PkgOfWeekVideo>.generate(
-      10,
-      (index) => PkgOfWeekVideo(
-        videoId: 'v$index',
-        title: 'title',
-        description: 'description',
-        thumbnailUrl: 'https://youtube.com/thumbnailUrl',
-      ),
-    ));
-    final selected = youtubeBackend.getTopPackageOfWeekVideos();
-    expect(selected[0].videoId, 'v0');
-    expect(int.parse(selected[1].videoId.substring(1)), lessThan(4));
-    expect(
+  testWithProfile(
+    'randomization',
+    fn: () async {
+      youtubeBackend.setPackageOfWeekVideos(
+        List<PkgOfWeekVideo>.generate(
+          10,
+          (index) => PkgOfWeekVideo(
+            videoId: 'v$index',
+            title: 'title',
+            description: 'description',
+            thumbnailUrl: 'https://youtube.com/thumbnailUrl',
+          ),
+        ),
+      );
+      final selected = youtubeBackend.getTopPackageOfWeekVideos();
+      expect(selected[0].videoId, 'v0');
+      expect(int.parse(selected[1].videoId.substring(1)), lessThan(4));
+      expect(
         selected.map((s) => int.parse(s.videoId.substring(1))).toSet().length,
-        4);
-  });
+        4,
+      );
+    },
+  );
 
   test('selectRandomVideos', () {
     final items = <int>[0, 1, 2, 3, 4, 5, 6, 7, 9, 10];

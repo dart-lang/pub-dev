@@ -50,8 +50,10 @@ void main() {
           audience: 'fake-client-audience',
         ),
       );
-      expect(r.summary,
-          'Package `pkg` version `1.0.0` was published by `user@pub.dev`.');
+      expect(
+        r.summary,
+        'Package `pkg` version `1.0.0` was published by `user@pub.dev`.',
+      );
       expect(r.data, {
         'package': 'pkg',
         'version': '1.0.0',
@@ -129,9 +131,10 @@ void main() {
         ),
       );
       expect(
-          r.summary,
-          'Package `pkg` version `1.2.0` was published by '
-          'Google Cloud service account: `account@example.com`.');
+        r.summary,
+        'Package `pkg` version `1.2.0` was published by '
+        'Google Cloud service account: `account@example.com`.',
+      );
       expect(r.data, {
         'package': 'pkg',
         'version': '1.2.0',

@@ -47,10 +47,11 @@ class Handler {
 
 /// Find members of a class annotated with [EndPoint].
 List<ExecutableElement> _getAnnotatedElementsOrderBySourceOffset(
-    ClassElement cls) {
+  ClassElement cls,
+) {
   return <ExecutableElement>[
     ...cls.methods.where(_endPointType.hasAnnotationOfExact),
-    ...cls.accessors.where(_endPointType.hasAnnotationOfExact)
+    ...cls.accessors.where(_endPointType.hasAnnotationOfExact),
   ]..sort((a, b) => (a.nameOffset).compareTo(b.nameOffset));
 }
 
@@ -70,11 +71,17 @@ abstract class EndPointGenerator extends g.Generator {
       log.info('found EndPoint annotations in ${cls.name}');
 
       classes[cls] = elements
-          .map((e) => _endPointType.annotationsOfExact(e).map((a) => Handler(
-                a.getField('verb')!.toStringValue()!,
-                a.getField('route')!.toStringValue()!,
-                e,
-              )))
+          .map(
+            (e) => _endPointType
+                .annotationsOfExact(e)
+                .map(
+                  (a) => Handler(
+                    a.getField('verb')!.toStringValue()!,
+                    a.getField('route')!.toStringValue()!,
+                    e,
+                  ),
+                ),
+          )
           .expand((i) => i)
           .toList();
     }

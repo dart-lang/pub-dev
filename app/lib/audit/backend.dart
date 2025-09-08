@@ -36,14 +36,18 @@ class AuditBackend {
     String value,
     DateTime? before,
   ) async {
-    assert(propertyName == 'users' ||
-        propertyName == 'packages' ||
-        propertyName == 'packageVersions' ||
-        propertyName == 'publishers');
+    assert(
+      propertyName == 'users' ||
+          propertyName == 'packages' ||
+          propertyName == 'packageVersions' ||
+          propertyName == 'publishers',
+    );
     final query = _db.query<AuditLogRecord>()
       ..filter('$propertyName =', value)
       ..filter(
-          'created <=', before ?? clock.now().toUtc().add(Duration(minutes: 5)))
+        'created <=',
+        before ?? clock.now().toUtc().add(Duration(minutes: 5)),
+      )
       ..order('-created')
       ..limit(_maxAuditLogBatchSize);
     // TODO: consider using repeated queries to filter already expired records,
@@ -107,8 +111,11 @@ class AuditBackend {
 
   @visibleForTesting
   String nextTimestamp(DateTime last, DateTime next) {
-    final nextDayStart =
-        DateTime.utc(next.year, next.month, next.day).add(Duration(days: 1));
+    final nextDayStart = DateTime.utc(
+      next.year,
+      next.month,
+      next.day,
+    ).add(Duration(days: 1));
     return nextDayStart.isBefore(last) && nextDayStart.isAfter(next)
         ? nextDayStart.toIso8601String().split('T').first
         : next.toIso8601String();
@@ -126,12 +133,19 @@ class AuditBackend {
     if (param.length == 10) {
       final m = _shortBeforeFormat.matchAsPrefix(param);
       if (m != null) {
-        final parsed = DateTime.utc(int.parse(m.group(1)!),
-            int.parse(m.group(2)!), int.parse(m.group(3)!));
+        final parsed = DateTime.utc(
+          int.parse(m.group(1)!),
+          int.parse(m.group(2)!),
+          int.parse(m.group(3)!),
+        );
         InvalidInputException.check(
-            parsed.year >= 2000, '`before` is too far in the past.');
+          parsed.year >= 2000,
+          '`before` is too far in the past.',
+        );
         InvalidInputException.check(
-            parsed.isBefore(now), '`before` is in the future.');
+          parsed.isBefore(now),
+          '`before` is in the future.',
+        );
         return parsed;
       }
     }

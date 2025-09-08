@@ -19,8 +19,10 @@ class LocalServerState {
   Future<void> loadIfExists(String path) async {
     final file = File(path);
     if (file.existsSync()) {
-      final lines =
-          file.openRead().transform(utf8.decoder).transform(LineSplitter());
+      final lines = file
+          .openRead()
+          .transform(utf8.decoder)
+          .transform(LineSplitter());
       var marker = 'start';
       await for (final line in lines) {
         if (line.startsWith('{"marker":')) {

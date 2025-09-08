@@ -67,9 +67,7 @@ void create(HTMLElement element, Map<String, String> options) {
     try {
       data = await _CompletionWidget._completionDataFromUri(srcUri);
     } on Exception catch (e) {
-      throw Exception(
-        'Unable to load autocompletion-src="$src", error: $e',
-      );
+      throw Exception('Unable to load autocompletion-src="$src", error: $e');
     }
 
     // Create and style the dropdown element
@@ -81,11 +79,7 @@ void create(HTMLElement element, Map<String, String> options) {
       dropdown.classList.add(completionClass);
     }
 
-    _CompletionWidget._(
-      input: input,
-      dropdown: dropdown,
-      data: data,
-    );
+    _CompletionWidget._(input: input, dropdown: dropdown, data: data);
     // Append dropdown to body
     document.body!.append(dropdown);
   });
@@ -143,18 +137,17 @@ final class _State {
     Suggestions? suggestions,
     int? selectedIndex,
     bool? isTrimmed,
-  }) =>
-      _State(
-        inactive: inactive ?? this.inactive,
-        closed: closed ?? this.closed,
-        forced: forced ?? this.forced,
-        triggered: triggered ?? this.triggered,
-        text: text ?? this.text,
-        caret: caret ?? this.caret,
-        suggestions: suggestions ?? this.suggestions,
-        selectedIndex: selectedIndex ?? this.selectedIndex,
-        isTrimmed: isTrimmed ?? this.isTrimmed,
-      );
+  }) => _State(
+    inactive: inactive ?? this.inactive,
+    closed: closed ?? this.closed,
+    forced: forced ?? this.forced,
+    triggered: triggered ?? this.triggered,
+    text: text ?? this.text,
+    caret: caret ?? this.caret,
+    suggestions: suggestions ?? this.suggestions,
+    selectedIndex: selectedIndex ?? this.selectedIndex,
+    isTrimmed: isTrimmed ?? this.isTrimmed,
+  );
 
   @override
   String toString() =>
@@ -218,11 +211,7 @@ final class _CompletionWidget {
       delta = state.text.substring(caret, state.caret);
     }
     final crossedWordBoundary = delta.contains(_whitespace);
-    final (:trigger, :suggestions, :isTrimmed) = suggest(
-      data,
-      text,
-      caret,
-    );
+    final (:trigger, :suggestions, :isTrimmed) = suggest(data, text, caret);
     state = _State(
       forced: !crossedWordBoundary && state.forced && suggestions.isNotEmpty,
       triggered: trigger,
@@ -264,10 +253,12 @@ final class _CompletionWidget {
     if (changed) {
       dropdown.children.toList().forEach((e) => e.remove());
       for (final (i, s) in state.suggestions.indexed) {
-        dropdown.appendChild(HTMLDivElement()
-          ..setHTMLUnsafe(s.html.toJS)
-          ..setAttribute('data-completion-option-index', i.toString())
-          ..classList.add(optionClass));
+        dropdown.appendChild(
+          HTMLDivElement()
+            ..setHTMLUnsafe(s.html.toJS)
+            ..setAttribute('data-completion-option-index', i.toString())
+            ..classList.add(optionClass),
+        );
       }
       if (state.isTrimmed) {
         dropdown.appendChild(HTMLDivElement()..textContent = '[...]');
@@ -276,8 +267,10 @@ final class _CompletionWidget {
     _renderedSuggestions = state.suggestions;
 
     final inputBoundingRect = input.getBoundingClientRect();
-    final caretOffset =
-        getTextWidth(state.text.substring(0, state.caret), input);
+    final caretOffset = getTextWidth(
+      state.text.substring(0, state.caret),
+      input,
+    );
 
     // Update dropdown position
     dropdown.style
@@ -291,8 +284,8 @@ final class _CompletionWidget {
           dropdown.children.item(state.selectedIndex) as HTMLDivElement;
       if (!selected.classList.contains(selectedOptionClass)) {
         dropdown.children.toList().forEach(
-              (c) => c.classList.remove(selectedOptionClass),
-            );
+          (c) => c.classList.remove(selectedOptionClass),
+        );
         selected
           ..classList.add(selectedOptionClass)
           ..scrollIntoView(ScrollIntoViewOptions(block: 'nearest'));
@@ -347,10 +340,7 @@ final class _CompletionWidget {
 
     // Ctrl+Space always triggers forced completion.
     if (event.code == 'Space' && ctrlOrMeta && !shiftOrAlt) {
-      state = state.update(
-        closed: false,
-        forced: true,
-      );
+      state = state.update(closed: false, forced: true);
       event.preventDefault();
       update();
       return;
@@ -368,28 +358,21 @@ final class _CompletionWidget {
 
     // 'Escape' (without modifiers) will close completion
     if (event.code == 'Escape') {
-      state = state.update(
-        closed: true,
-        forced: false,
-      );
+      state = state.update(closed: true, forced: false);
       event.preventDefault();
       update();
       return;
     }
     if (event.code == 'ArrowUp') {
       final N = state.suggestions.length;
-      state = state.update(
-        selectedIndex: (state.selectedIndex + N - 1) % N,
-      );
+      state = state.update(selectedIndex: (state.selectedIndex + N - 1) % N);
       event.preventDefault();
       update();
       return;
     }
     if (event.code == 'ArrowDown') {
       final N = state.suggestions.length;
-      state = state.update(
-        selectedIndex: (state.selectedIndex + 1) % N,
-      );
+      state = state.update(selectedIndex: (state.selectedIndex + 1) % N);
       event.preventDefault();
       update();
       return;
@@ -404,12 +387,7 @@ final class _CompletionWidget {
   /// Apply the selected suggestion
   void applySelectedSuggestion() {
     final selected = state.suggestions[state.selectedIndex];
-    input.setRangeText(
-      selected.value,
-      selected.start,
-      selected.end,
-      'end',
-    );
+    input.setRangeText(selected.value, selected.start, selected.end, 'end');
     // reset state and track state again, to be certain
     state = _State();
     trackState();
@@ -448,9 +426,9 @@ final class _CompletionWidget {
   static Future<CompletionData> _completionDataFromUri(Uri src) async {
     await http.loadLibrary();
     final root = jsonDecode(
-      await http.read(src, headers: {
-        'Accept': 'application/json',
-      }).timeout(Duration(seconds: 30)),
+      await http
+          .read(src, headers: {'Accept': 'application/json'})
+          .timeout(Duration(seconds: 30)),
     );
     return CompletionData.fromJson(root as Map<String, Object?>);
   }

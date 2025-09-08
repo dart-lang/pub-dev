@@ -20,11 +20,10 @@ times will have no effect, it will always set `pendingAt` to the same value.
 
 This is intended for debugging, or solving one-off issues.
 ''',
-  options: {
-    'package': 'Name of package whose priority should be bumped',
-  },
+  options: {'package': 'Name of package whose priority should be bumped'},
   invoke: (options) async {
-    final package = options['package'] ??
+    final package =
+        options['package'] ??
         (throw InvalidInputException('Needs a package name'));
     InvalidInputException.checkPackageName(package);
     // Make sure package exists.

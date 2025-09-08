@@ -81,10 +81,12 @@ class PublisherBackend {
       final publishers = await query
           .run()
           .where((p) => !p.isUnlisted)
-          .map((p) => PublisherSummary(
-                publisherId: p.publisherId,
-                created: p.created!,
-              ))
+          .map(
+            (p) => PublisherSummary(
+              publisherId: p.publisherId,
+              created: p.created!,
+            ),
+          )
           .toList();
       sw.stop();
       if (sw.elapsed.inSeconds > 10) {
@@ -112,16 +114,19 @@ class PublisherBackend {
         // - search using this for query parameters
         _logger.shout('A user has more than 100 publishers.');
       }
-      final publishers =
-          (await _db.lookup<Publisher>(publisherKeys)).nonNulls.toList();
+      final publishers = (await _db.lookup<Publisher>(
+        publisherKeys,
+      )).nonNulls.toList();
       publishers.sort((a, b) => a.publisherId.compareTo(b.publisherId));
       return PublisherPage(
         publishers: publishers
             .where((p) => p.isVisible)
-            .map((p) => PublisherSummary(
-                  publisherId: p.publisherId,
-                  created: p.created!,
-                ))
+            .map(
+              (p) => PublisherSummary(
+                publisherId: p.publisherId,
+                created: p.created!,
+              ),
+            )
             .toList(),
       );
     }))!;
@@ -129,7 +134,9 @@ class PublisherBackend {
 
   /// Loads the [PublisherMember] instance for [userId] (or returns null if it does not exists).
   Future<PublisherMember?> getPublisherMember(
-      Publisher publisher, String userId) async {
+    Publisher publisher,
+    String userId,
+  ) async {
     ArgumentError.checkNotNull(userId, 'userId');
     final mKey = publisher.key.append(PublisherMember, id: userId);
     return await _db.lookupOrNull<PublisherMember>(mKey);
@@ -160,8 +167,9 @@ class PublisherBackend {
       maximum: maxPublisherIdLength, // Some upper limit for sanity.
     );
     String? accessToken;
-    final session = await accountBackend
-        .lookupValidUserSession(requestContext.sessionData!.sessionId);
+    final session = await accountBackend.lookupValidUserSession(
+      requestContext.sessionData!.sessionId,
+    );
     final grantedScopes =
         session?.grantedScopes?.split(' ') ?? const <String>[];
     if (grantedScopes.contains(webmasterScope)) {
@@ -173,10 +181,7 @@ class PublisherBackend {
       ).toString();
       final locationUrl = Uri(
         path: '/sign-in',
-        queryParameters: {
-          'go': goUrl,
-          'scope': webmasterScope,
-        },
+        queryParameters: {'go': goUrl, 'scope': webmasterScope},
       ).toString();
       throw ScopeNeededException(
         message: 'Please authorize access to Google Search Console.',
@@ -221,24 +226,26 @@ class PublisherBackend {
       }
 
       // Create publisher
-      tx.queueMutations(inserts: [
-        Publisher.init(
-          parentKey: _db.emptyKey,
-          publisherId: publisherId,
-          contactEmail: user.email,
-        ),
-        PublisherMember()
-          ..parentKey = _db.emptyKey.append(Publisher, id: publisherId)
-          ..id = user.userId
-          ..userId = user.userId
-          ..created = now
-          ..updated = now
-          ..role = PublisherMemberRole.admin,
-        await AuditLogRecord.publisherCreated(
-          user: user,
-          publisherId: publisherId,
-        ),
-      ]);
+      tx.queueMutations(
+        inserts: [
+          Publisher.init(
+            parentKey: _db.emptyKey,
+            publisherId: publisherId,
+            contactEmail: user.email,
+          ),
+          PublisherMember()
+            ..parentKey = _db.emptyKey.append(Publisher, id: publisherId)
+            ..id = user.userId
+            ..userId = user.userId
+            ..created = now
+            ..updated = now
+            ..role = PublisherMemberRole.admin,
+          await AuditLogRecord.publisherCreated(
+            user: user,
+            publisherId: publisherId,
+          ),
+        ],
+      );
     });
     await purgeAccountCache(userId: user.userId);
     await cache.allPublishersPage().purge();
@@ -263,7 +270,9 @@ class PublisherBackend {
   ///
   /// Handles: `PUT /api/publishers/<publisherId>`
   Future<api.PublisherInfo> updatePublisher(
-      String publisherId, api.UpdatePublisherRequest update) async {
+    String publisherId,
+    api.UpdatePublisherRequest update,
+  ) async {
     checkPublisherIdParam(publisherId);
     // limit length, if not null
     if (update.description != null) {
@@ -300,25 +309,35 @@ class PublisherBackend {
         final isValid = parsedUrl != null && parsedUrl.isAbsolute;
         InvalidInputException.check(isValid, 'Not a valid URL.');
         InvalidInputException.check(
-            parsedUrl!.scheme == 'https', '"scheme" must be `https`');
+          parsedUrl!.scheme == 'https',
+          '"scheme" must be `https`',
+        );
 
-        InvalidInputException.check(parsedUrl.toString() == update.websiteUrl,
-            'The parsed URL does not match its original form.');
+        InvalidInputException.check(
+          parsedUrl.toString() == update.websiteUrl,
+          'The parsed URL does not match its original form.',
+        );
       }
 
       // If contactEmail has changed, check that it's one of the admin's, and
       // if it matches an admin, set it directly, otherwise send an invite.
       if (update.contactEmail != null &&
           update.contactEmail != p.contactEmail) {
-        InvalidInputException.checkStringLength(update.contactEmail, 'email',
-            maximum: 4096);
-        InvalidInputException.check(isValidEmail(update.contactEmail!),
-            'Invalid email: `${update.contactEmail}`');
+        InvalidInputException.checkStringLength(
+          update.contactEmail,
+          'email',
+          maximum: 4096,
+        );
+        InvalidInputException.check(
+          isValidEmail(update.contactEmail!),
+          'Invalid email: `${update.contactEmail}`',
+        );
 
         bool contactEmailMatchedAdmin = false;
 
-        final usersByEmail =
-            await accountBackend.lookupUsersByEmail(update.contactEmail!);
+        final usersByEmail = await accountBackend.lookupUsersByEmail(
+          update.contactEmail!,
+        );
         if (usersByEmail.isNotEmpty) {
           for (final user in usersByEmail) {
             if (await isMemberAdmin(p, user.userId)) {
@@ -342,10 +361,12 @@ class PublisherBackend {
       p.updated = clock.now().toUtc();
 
       tx.insert(p);
-      tx.insert(await AuditLogRecord.publisherUpdated(
-        user: user,
-        publisherId: publisherId,
-      ));
+      tx.insert(
+        await AuditLogRecord.publisherUpdated(
+          user: user,
+          publisherId: publisherId,
+        ),
+      );
       return p;
     });
 
@@ -366,7 +387,9 @@ class PublisherBackend {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     InvalidInputException.check(
-        isValidEmail(contactEmail), 'Invalid email: `$contactEmail`');
+      isValidEmail(contactEmail),
+      'Invalid email: `$contactEmail`',
+    );
 
     await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
@@ -374,11 +397,13 @@ class PublisherBackend {
       p.contactEmail = contactEmail;
       p.updated = clock.now().toUtc();
       tx.insert(p);
-      tx.insert(await AuditLogRecord.publisherContactInviteAccepted(
-        user: user,
-        publisherId: publisherId,
-        contactEmail: contactEmail,
-      ));
+      tx.insert(
+        await AuditLogRecord.publisherContactInviteAccepted(
+          user: user,
+          publisherId: publisherId,
+          contactEmail: contactEmail,
+        ),
+      );
     });
   }
 
@@ -402,25 +427,38 @@ class PublisherBackend {
   /// Verifies if the publisher member invite is valid and throws if the invited
   /// email is already a member.
   Future<void> verifyPublisherMemberInvite(
-      String publisherId, api.InviteMemberRequest invite) async {
+    String publisherId,
+    api.InviteMemberRequest invite,
+  ) async {
     InvalidInputException.checkNotNull(invite.email, 'email');
-    InvalidInputException.checkStringLength(invite.email, 'email',
-        maximum: 4096);
+    InvalidInputException.checkStringLength(
+      invite.email,
+      'email',
+      maximum: 4096,
+    );
     InvalidInputException.check(
-        isValidEmail(invite.email), 'Invalid email: `${invite.email}`');
+      isValidEmail(invite.email),
+      'Invalid email: `${invite.email}`',
+    );
 
     final usersByEmail = await accountBackend.lookupUsersByEmail(invite.email);
     if (usersByEmail.isNotEmpty) {
-      final maybeMembers = await _db.lookup<PublisherMember>(usersByEmail
-          .map((u) => _db.emptyKey
-              .append(Publisher, id: publisherId)
-              .append(PublisherMember, id: u.userId))
-          .toList());
+      final maybeMembers = await _db.lookup<PublisherMember>(
+        usersByEmail
+            .map(
+              (u) => _db.emptyKey
+                  .append(Publisher, id: publisherId)
+                  .append(PublisherMember, id: u.userId),
+            )
+            .toList(),
+      );
       for (final m in maybeMembers) {
         if (m == null) continue;
         final email = await accountBackend.getEmailOfUserId(m.userId!);
         InvalidInputException.check(
-            email != invite.email, 'User is already a member.');
+          email != invite.email,
+          'User is already a member.',
+        );
       }
     }
   }
@@ -466,7 +504,9 @@ class PublisherBackend {
 
   /// Returns the membership info of a user.
   Future<api.PublisherMember> publisherMemberInfo(
-      String publisherId, String userId) async {
+    String publisherId,
+    String userId,
+  ) async {
     checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedWebUser();
     final p = await requirePublisherAdmin(publisherId, user.userId);
@@ -499,7 +539,10 @@ class PublisherBackend {
       }
       // role needs to be from the allowed set of values
       InvalidInputException.checkAnyOf(
-          update.role, 'role', PublisherMemberRole.values);
+        update.role,
+        'role',
+        PublisherMemberRole.values,
+      );
       await withRetryTransaction(_db, (tx) async {
         final current = await tx.lookupValue<PublisherMember>(key);
         // fall back to current role if role is not updated
@@ -558,19 +601,21 @@ class PublisherBackend {
       final member = await tx.lookupOrNull<PublisherMember>(key);
       if (member != null) return;
       final now = clock.now().toUtc();
-      tx.queueMutations(inserts: [
-        PublisherMember()
-          ..parentKey = key.parent
-          ..id = userId
-          ..userId = userId
-          ..created = now
-          ..updated = now
-          ..role = PublisherMemberRole.admin,
-        await AuditLogRecord.publisherMemberInviteAccepted(
-          user: user!,
-          publisherId: publisherId,
-        ),
-      ]);
+      tx.queueMutations(
+        inserts: [
+          PublisherMember()
+            ..parentKey = key.parent
+            ..id = userId
+            ..userId = userId
+            ..created = now
+            ..updated = now
+            ..role = PublisherMemberRole.admin,
+          await AuditLogRecord.publisherMemberInviteAccepted(
+            user: user!,
+            publisherId: publisherId,
+          ),
+        ],
+      );
     });
     await purgePublisherCache(publisherId: publisherId);
     await purgeAccountCache(userId: userId);
@@ -586,10 +631,10 @@ class PublisherBackend {
 }
 
 api.PublisherInfo _asPublisherInfo(Publisher p) => api.PublisherInfo(
-      description: p.description,
-      websiteUrl: p.websiteUrl,
-      contactEmail: p.contactEmail,
-    );
+  description: p.description,
+  websiteUrl: p.websiteUrl,
+  contactEmail: p.contactEmail,
+);
 
 /// Loads [publisherId], returns its [Publisher] instance, and also checks if
 /// [userId] is an admin of the publisher.
@@ -597,7 +642,9 @@ api.PublisherInfo _asPublisherInfo(Publisher p) => api.PublisherInfo(
 /// Throws AuthenticationException if the user is provided.
 /// Throws AuthorizationException if the user is not an admin for the publisher.
 Future<Publisher> requirePublisherAdmin(
-    String? publisherId, String userId) async {
+  String? publisherId,
+  String userId,
+) async {
   ArgumentError.checkNotNull(userId, 'userId');
   ArgumentError.checkNotNull(publisherId, 'publisherId');
   final p = await publisherBackend.lookupPublisher(publisherId!);
@@ -608,12 +655,14 @@ Future<Publisher> requirePublisherAdmin(
     throw NotFoundException('Publisher $publisherId does not exists.');
   }
 
-  final member = await publisherBackend._db
-      .lookupOrNull<PublisherMember>(p.key.append(PublisherMember, id: userId));
+  final member = await publisherBackend._db.lookupOrNull<PublisherMember>(
+    p.key.append(PublisherMember, id: userId),
+  );
 
   if (member == null || member.role != PublisherMemberRole.admin) {
     _logger.info(
-        'Unauthorized access of Publisher($publisherId) from User($userId).');
+      'Unauthorized access of Publisher($publisherId) from User($userId).',
+    );
     throw AuthorizationException.userIsNotAdminForPublisher(publisherId);
   }
   return p;
@@ -635,9 +684,17 @@ String _publisherWebsite(String domain) => 'https://$domain/';
 void checkPublisherIdParam(String publisherId) {
   InvalidInputException.checkNotNull(publisherId, 'package');
   InvalidInputException.check(
-      publisherId.trim() == publisherId, 'Invalid publisherId.');
+    publisherId.trim() == publisherId,
+    'Invalid publisherId.',
+  );
   InvalidInputException.check(
-      publisherId.contains('.'), 'Invalid publisherId.');
-  InvalidInputException.checkStringLength(publisherId, 'publisherId',
-      minimum: 3, maximum: 64);
+    publisherId.contains('.'),
+    'Invalid publisherId.',
+  );
+  InvalidInputException.checkStringLength(
+    publisherId,
+    'publisherId',
+    minimum: 3,
+    maximum: 64,
+  );
 }

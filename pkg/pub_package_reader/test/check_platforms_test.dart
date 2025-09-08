@@ -18,11 +18,13 @@ void main() {
 }
 
 List<String> _check(Map content) {
-  return checkPlatforms(json.encode({
-    'name': 'example',
-    'environment': {'sdk': '>=2.14.0 <3.0.0'},
-    ...content,
-  })).map((e) => e.message).toList();
+  return checkPlatforms(
+    json.encode({
+      'name': 'example',
+      'environment': {'sdk': '>=2.14.0 <3.0.0'},
+      ...content,
+    }),
+  ).map((e) => e.message).toList();
 }
 
 void _platforms() {
@@ -39,18 +41,13 @@ void _platforms() {
   });
 
   test('unexpected platforms value', () {
-    expect(
-      _check({'platforms': []}),
-      ['Unsupported platforms value: `[]`.'],
-    );
+    expect(_check({'platforms': []}), ['Unsupported platforms value: `[]`.']);
   });
 
   test('unexpected platform key', () {
     expect(
       _check({
-        'platforms': {
-          'c64': null,
-        }
+        'platforms': {'c64': null},
       }),
       ['Unsupported platform key: `c64`.'],
     );
@@ -61,24 +58,26 @@ void _basePlatformTests(String platform) {
   group('base $platform config', () {
     test('key present with null content', () {
       expect(
-          _check({
-            'platforms': {platform: null}
-          }),
-          isEmpty);
+        _check({
+          'platforms': {platform: null},
+        }),
+        isEmpty,
+      );
     });
 
     test('key present with empty content', () {
       expect(
-          _check({
-            'platforms': {platform: {}}
-          }),
-          isEmpty);
+        _check({
+          'platforms': {platform: {}},
+        }),
+        isEmpty,
+      );
     });
 
     test('key present with `true`', () {
       expect(
         _check({
-          'platforms': {platform: true}
+          'platforms': {platform: true},
         }),
         ['Unsupported platform config for `$platform`: `true`.'],
       );
@@ -87,7 +86,7 @@ void _basePlatformTests(String platform) {
     test('key present with `false`', () {
       expect(
         _check({
-          'platforms': {platform: false}
+          'platforms': {platform: false},
         }),
         ['Unsupported platform config for `$platform`: `false`.'],
       );
@@ -97,8 +96,8 @@ void _basePlatformTests(String platform) {
       expect(
         _check({
           'platforms': {
-            platform: {'unexpected': 'value'}
-          }
+            platform: {'unexpected': 'value'},
+          },
         }),
         ['Unsupported platform config for `$platform`: `{unexpected: value}`.'],
       );

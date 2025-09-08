@@ -69,7 +69,8 @@ class YoutubeBackend {
     }
     final now = clock.now().toUtc();
     random ??= math.Random(
-        now.year * 1000 + now.month * 100 + now.day * 10 + now.hour);
+      now.year * 1000 + now.month * 100 + now.day * 10 + now.hour,
+    );
     return selectRandomVideos(random, _packageOfWeekVideoList.value!, count);
   }
 
@@ -88,8 +89,9 @@ List<T> selectRandomVideos<T>(math.Random random, List<T> source, int count) {
     if (selected.isEmpty) {
       selected.add(selectable.removeAt(0));
     } else if (selected.length == 1) {
-      final s =
-          selectable.removeAt(random.nextInt(math.min(3, selectable.length)));
+      final s = selectable.removeAt(
+        random.nextInt(math.min(3, selectable.length)),
+      );
       selected.add(s);
     } else {
       selected.add(selectable.removeAt(random.nextInt(selectable.length)));
@@ -113,7 +115,8 @@ class _PkgOfWeekVideoFetcher {
   }
 
   Future<List<PkgOfWeekVideo>> _fetchVideoList() async {
-    final apiKey = envConfig.youtubeApiKey ??
+    final apiKey =
+        envConfig.youtubeApiKey ??
         await secretBackend.lookup(SecretKey.youtubeApiKey);
     if (apiKey == null || apiKey.isEmpty) return <PkgOfWeekVideo>[];
 
@@ -127,7 +130,9 @@ class _PkgOfWeekVideoFetcher {
       final videoIds = <String>{};
       while (videos.length < 50) {
         // get page from cache or from Youtube API
-        final rs = await cache.youtubePlaylistItems(nextPageToken ?? '').get(
+        final rs = await cache
+            .youtubePlaylistItems(nextPageToken ?? '')
+            .get(
               () async => await youtube.playlistItems.list(
                 ['snippet', 'contentDetails'],
                 playlistId: powPlaylistId,
@@ -146,7 +151,8 @@ class _PkgOfWeekVideoFetcher {
             if (thumbnails == null) {
               continue;
             }
-            final thumbnail = thumbnails.high ??
+            final thumbnail =
+                thumbnails.high ??
                 thumbnails.default_ ??
                 thumbnails.maxres ??
                 thumbnails.standard ??
@@ -156,17 +162,25 @@ class _PkgOfWeekVideoFetcher {
               continue;
             }
             videoIds.add(videoId);
-            videos.add(PkgOfWeekVideo(
-              videoId: videoId,
-              title: i.snippet?.title ?? '',
-              description:
-                  (i.snippet?.description ?? '').trim().split('\n').first,
-              thumbnailUrl: thumbnailUrl,
-            ));
+            videos.add(
+              PkgOfWeekVideo(
+                videoId: videoId,
+                title: i.snippet?.title ?? '',
+                description: (i.snippet?.description ?? '')
+                    .trim()
+                    .split('\n')
+                    .first,
+                thumbnailUrl: thumbnailUrl,
+              ),
+            );
           } catch (e, st) {
             // this item will be skipped, the rest of the list may be displayed
             _logger.pubNoticeShout(
-                'youtube', 'Processing Youtube PlaylistItem failed.', e, st);
+              'youtube',
+              'Processing Youtube PlaylistItem failed.',
+              e,
+              st,
+            );
           }
         }
 
@@ -197,12 +211,9 @@ class PkgOfWeekVideo {
   });
 
   String get videoUrl => Uri(
-        scheme: 'https',
-        host: 'youtube.com',
-        path: '/watch',
-        queryParameters: {
-          'v': videoId,
-          'list': powPlaylistId,
-        },
-      ).toString();
+    scheme: 'https',
+    host: 'youtube.com',
+    path: '/watch',
+    queryParameters: {'v': videoId, 'list': powPlaylistId},
+  ).toString();
 }

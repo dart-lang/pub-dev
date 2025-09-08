@@ -41,7 +41,7 @@ void main() {
       (counts: l2, versionRange: '>=6.2.0-0 <6.3.0'),
       (counts: l1, versionRange: '>=6.3.0-0 <6.4.0'),
       (counts: l1, versionRange: '>=6.4.0-0 <6.5.0'),
-      (counts: l1, versionRange: '>=6.6.0-0 <6.7.0')
+      (counts: l1, versionRange: '>=6.6.0-0 <6.7.0'),
     ];
 
     final majorRangeDownloads = [
@@ -49,7 +49,7 @@ void main() {
       (counts: l1, versionRange: '>=2.0.0-0 <3.0.0'),
       (counts: l1, versionRange: '>=3.0.0-0 <4.0.0'),
       (counts: l1, versionRange: '>=4.0.0-0 <5.0.0'),
-      (counts: l3, versionRange: '>=6.0.0-0 <7.0.0')
+      (counts: l3, versionRange: '>=6.0.0-0 <7.0.0'),
     ];
 
     final w1 = prepareWeekLists(totals, majorRangeDownloads, 52).weekLists;
@@ -163,11 +163,15 @@ void main() {
       final pointCloseToLine = (1.0, 1.1);
       expect(isPointOnPathWithTolerance(path, pointCloseToLine, 0.2), isTrue);
       expect(
-          isPointOnPathWithTolerance(path, pointCloseToLine, 0.001), isFalse);
+        isPointOnPathWithTolerance(path, pointCloseToLine, 0.001),
+        isFalse,
+      );
 
       final pointFurtherFromLine = (1.0, 1.5);
       expect(
-          isPointOnPathWithTolerance(path, pointFurtherFromLine, 0.1), isFalse);
+        isPointOnPathWithTolerance(path, pointFurtherFromLine, 0.1),
+        isFalse,
+      );
     });
 
     test('Path with fewer than 2 points', () {
@@ -206,7 +210,7 @@ void main() {
         (0.0, 4.0),
         (2.0, 2.0),
         (4.0, 4.0),
-        (4.0, 0.0)
+        (4.0, 0.0),
       ];
       final insidePoint = (1.0, 1.0);
       final outsidePoint = (2.0, 3.0);
@@ -220,8 +224,10 @@ void main() {
       expect(isPointInPolygon(complexPolygon, vertexPoint), isTrue);
       expect(isPointInPolygon(complexPolygon, edgePoint), isTrue);
       expect(isPointInPolygon(complexPolygon, edgePoint2), isTrue);
-      expect(isPointInPolygon(complexPolygon, outsidePointOnEdgeExtension),
-          isFalse);
+      expect(
+        isPointInPolygon(complexPolygon, outsidePointOnEdgeExtension),
+        isFalse,
+      );
     });
   });
 }

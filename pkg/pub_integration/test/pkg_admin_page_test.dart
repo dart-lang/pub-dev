@@ -14,72 +14,79 @@ import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group(
-    'package admin page',
-    () {
-      late final TestContextProvider fakeTestScenario;
-      final httpClient = http.Client();
+  group('package admin page', () {
+    late final TestContextProvider fakeTestScenario;
+    final httpClient = http.Client();
 
-      setUpAll(() async {
-        fakeTestScenario = await TestContextProvider.start();
+    setUpAll(() async {
+      fakeTestScenario = await TestContextProvider.start();
+    });
+
+    tearDownAll(() async {
+      await fakeTestScenario.close();
+      httpClient.close();
+    });
+
+    test('bulk tests', () async {
+      final origin = fakeTestScenario.pubHostedUrl;
+      // init server data
+      await httpClient.post(
+        Uri.parse('$origin/fake-test-profile'),
+        body: json.encode({
+          'testProfile': {
+            'defaultUser': 'admin@pub.dev',
+            'generatedPackages': [
+              {'name': 'test_pkg'},
+            ],
+          },
+        }),
+      );
+
+      final user = await fakeTestScenario.createTestUser(
+        email: 'admin@pub.dev',
+      );
+
+      final githubRepository =
+          Platform.environment['GITHUB_REPOSITORY'] ?? 'dart-lang/pub-dev';
+
+      // github publishing
+      await user.withBrowserPage((page) async {
+        await page.gotoOrigin('/packages/test_pkg/admin');
+        await page.takeScreenshots(
+          prefix: 'package-page/admin-page',
+          selector: 'body',
+        );
+
+        await page.waitAndClick('#-pkg-admin-automated-github-enabled');
+        await page.waitForLayout([
+          '#-pkg-admin-automated-github-repository',
+          '#-pkg-admin-automated-github-tagpattern',
+        ]);
+        await page.waitFocusAndType(
+          '#-pkg-admin-automated-github-repository',
+          githubRepository,
+        );
+        await page.waitAndClick(
+          '#-pkg-admin-automated-button',
+          waitForOneResponse: true,
+        );
+        await page.waitAndClickOnDialogOk();
+        await page.reload();
+        final value = await page.propertyValue(
+          '#-pkg-admin-automated-github-repository',
+          'value',
+        );
+        expect(value, githubRepository);
       });
 
-      tearDownAll(() async {
-        await fakeTestScenario.close();
-        httpClient.close();
+      // visit activity log page
+      await user.withBrowserPage((page) async {
+        await page.gotoOrigin('/packages/test_pkg/activity-log');
+        await page.takeScreenshots(
+          prefix: 'package-page/activity-log-page',
+          selector: 'body',
+        );
       });
-
-      test('bulk tests', () async {
-        final origin = fakeTestScenario.pubHostedUrl;
-        // init server data
-        await httpClient.post(Uri.parse('$origin/fake-test-profile'),
-            body: json.encode({
-              'testProfile': {
-                'defaultUser': 'admin@pub.dev',
-                'generatedPackages': [
-                  {
-                    'name': 'test_pkg',
-                  },
-                ],
-              },
-            }));
-
-        final user =
-            await fakeTestScenario.createTestUser(email: 'admin@pub.dev');
-
-        final githubRepository =
-            Platform.environment['GITHUB_REPOSITORY'] ?? 'dart-lang/pub-dev';
-
-        // github publishing
-        await user.withBrowserPage((page) async {
-          await page.gotoOrigin('/packages/test_pkg/admin');
-          await page.takeScreenshots(
-              prefix: 'package-page/admin-page', selector: 'body');
-
-          await page.waitAndClick('#-pkg-admin-automated-github-enabled');
-          await page.waitForLayout([
-            '#-pkg-admin-automated-github-repository',
-            '#-pkg-admin-automated-github-tagpattern',
-          ]);
-          await page.waitFocusAndType(
-              '#-pkg-admin-automated-github-repository', githubRepository);
-          await page.waitAndClick('#-pkg-admin-automated-button',
-              waitForOneResponse: true);
-          await page.waitAndClickOnDialogOk();
-          await page.reload();
-          final value = await page.propertyValue(
-              '#-pkg-admin-automated-github-repository', 'value');
-          expect(value, githubRepository);
-        });
-
-        // visit activity log page
-        await user.withBrowserPage((page) async {
-          await page.gotoOrigin('/packages/test_pkg/activity-log');
-          await page.takeScreenshots(
-              prefix: 'package-page/activity-log-page', selector: 'body');
-        });
-      });
-    },
-    timeout: Timeout.factor(testTimeoutFactor),
-  );
+    });
+  }, timeout: Timeout.factor(testTimeoutFactor));
 }

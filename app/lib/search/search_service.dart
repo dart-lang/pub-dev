@@ -39,12 +39,12 @@ class IndexInfo {
   });
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'isReady': isReady,
-        'packageCount': packageCount,
-        'lastUpdated': lastUpdated?.toIso8601String(),
-        if (lastUpdated != null)
-          'lastUpdateDelta': clock.now().difference(lastUpdated!).toString(),
-      };
+    'isReady': isReady,
+    'packageCount': packageCount,
+    'lastUpdated': lastUpdated?.toIso8601String(),
+    if (lastUpdated != null)
+      'lastUpdateDelta': clock.now().difference(lastUpdated!).toString(),
+  };
 
   factory IndexInfo.fromJson(Map<String, dynamic> map) {
     final lastUpdated = map['lastUpdated'] as String?;
@@ -122,15 +122,15 @@ class PackageDocument {
     this.apiDocPages = const [],
     DateTime? timestamp,
     this.sourceUpdated,
-  })  : created = created ?? clock.now(),
-        updated = updated ?? clock.now(),
-        downloadCount = downloadCount ?? 0,
-        trendScore = trendScore ?? 0,
-        likeCount = likeCount ?? 0,
-        grantedPoints = grantedPoints ?? 0,
-        maxPoints = maxPoints ?? 0,
-        tags = tags ?? const <String>[],
-        timestamp = timestamp ?? clock.now();
+  }) : created = created ?? clock.now(),
+       updated = updated ?? clock.now(),
+       downloadCount = downloadCount ?? 0,
+       trendScore = trendScore ?? 0,
+       likeCount = likeCount ?? 0,
+       grantedPoints = grantedPoints ?? 0,
+       maxPoints = maxPoints ?? 0,
+       tags = tags ?? const <String>[],
+       timestamp = timestamp ?? clock.now();
 
   factory PackageDocument.fromJson(Map<String, dynamic> json) =>
       _$PackageDocumentFromJson(json);
@@ -146,10 +146,7 @@ class ApiDocPage {
   final String relativePath;
   final List<String>? symbols;
 
-  ApiDocPage({
-    required this.relativePath,
-    this.symbols,
-  });
+  ApiDocPage({required this.relativePath, this.symbols});
 
   factory ApiDocPage.fromJson(Map<String, dynamic> json) =>
       _$ApiDocPageFromJson(json);
@@ -174,21 +171,21 @@ class ServiceSearchQuery {
   }) {
     final q = query?.trimToNull();
     final tags = tagsPredicate?.toQueryParameters();
-    return ServiceSearchQuery(SearchRequestData(
-      query: q,
-      tags: tags,
-      publisherId: publisherId,
-      minPoints: minPoints,
-      order: order,
-      offset: offset,
-      limit: limit,
-      textMatchExtent: textMatchExtent,
-    ));
+    return ServiceSearchQuery(
+      SearchRequestData(
+        query: q,
+        tags: tags,
+        publisherId: publisherId,
+        minPoints: minPoints,
+        order: order,
+        offset: offset,
+        limit: limit,
+        textMatchExtent: textMatchExtent,
+      ),
+    );
   }
 
-  ServiceSearchQuery change({
-    TextMatchExtent? textMatchExtent,
-  }) {
+  ServiceSearchQuery change({TextMatchExtent? textMatchExtent}) {
     return ServiceSearchQuery(_data.replace(textMatchExtent: textMatchExtent));
   }
 
@@ -285,23 +282,23 @@ class PackageSearchResult {
     List<PackageHit>? packageHits,
     this.errorMessage,
     this.statusCode,
-  })  : packageHits = packageHits ?? <PackageHit>[],
-        sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[];
+  }) : packageHits = packageHits ?? <PackageHit>[],
+       sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[];
 
   factory PackageSearchResult.empty() => PackageSearchResult(
-        timestamp: clock.now(),
-        totalCount: 0,
-        packageHits: [],
-      );
+    timestamp: clock.now(),
+    totalCount: 0,
+    packageHits: [],
+  );
 
   PackageSearchResult.error({
     required this.errorMessage,
     required this.statusCode,
-  })  : timestamp = clock.now().toUtc(),
-        totalCount = 0,
-        nameMatches = null,
-        sdkLibraryHits = <SdkLibraryHit>[],
-        packageHits = <PackageHit>[];
+  }) : timestamp = clock.now().toUtc(),
+       totalCount = 0,
+       nameMatches = null,
+       sdkLibraryHits = <SdkLibraryHit>[],
+       packageHits = <PackageHit>[];
 
   factory PackageSearchResult.fromJson(Map<String, dynamic> json) =>
       _$PackageSearchResultFromJson(json);
@@ -312,9 +309,7 @@ class PackageSearchResult {
 
   bool get isEmpty => packageHits.isEmpty && sdkLibraryHits.isEmpty;
 
-  PackageSearchResult change({
-    List<SdkLibraryHit>? sdkLibraryHits,
-  }) {
+  PackageSearchResult change({List<SdkLibraryHit>? sdkLibraryHits}) {
     return PackageSearchResult(
       timestamp: timestamp,
       totalCount: totalCount,
@@ -357,11 +352,7 @@ class PackageHit {
   final double? score;
   final List<ApiPageRef>? apiPages;
 
-  PackageHit({
-    required this.package,
-    this.score,
-    this.apiPages,
-  });
+  PackageHit({required this.package, this.score, this.apiPages});
 
   factory PackageHit.fromJson(Map<String, dynamic> json) =>
       _$PackageHitFromJson(json);
@@ -409,22 +400,28 @@ abstract class DependencyTypes {
 
 extension SearchFormExt on SearchForm {
   ServiceSearchQuery toServiceQuery() {
-    final prohibitLegacy = !parsedQuery.tagsPredicate.anyTag((tag) =>
-        tag == PackageVersionTags.isLegacy ||
-        tag == PackageVersionTags.showLegacy ||
-        tag == PackageTags.isUnlisted ||
-        tag == PackageTags.showUnlisted ||
-        tag == PackageTags.showHidden);
-    final prohibitDiscontinued = !parsedQuery.tagsPredicate.anyTag((tag) =>
-        tag == PackageTags.isDiscontinued ||
-        tag == PackageTags.showDiscontinued ||
-        tag == PackageTags.isUnlisted ||
-        tag == PackageTags.showUnlisted ||
-        tag == PackageTags.showHidden);
-    final prohibitUnlisted = !parsedQuery.tagsPredicate.anyTag((tag) =>
-        tag == PackageTags.isUnlisted ||
-        tag == PackageTags.showUnlisted ||
-        tag == PackageTags.showHidden);
+    final prohibitLegacy = !parsedQuery.tagsPredicate.anyTag(
+      (tag) =>
+          tag == PackageVersionTags.isLegacy ||
+          tag == PackageVersionTags.showLegacy ||
+          tag == PackageTags.isUnlisted ||
+          tag == PackageTags.showUnlisted ||
+          tag == PackageTags.showHidden,
+    );
+    final prohibitDiscontinued = !parsedQuery.tagsPredicate.anyTag(
+      (tag) =>
+          tag == PackageTags.isDiscontinued ||
+          tag == PackageTags.showDiscontinued ||
+          tag == PackageTags.isUnlisted ||
+          tag == PackageTags.showUnlisted ||
+          tag == PackageTags.showHidden,
+    );
+    final prohibitUnlisted = !parsedQuery.tagsPredicate.anyTag(
+      (tag) =>
+          tag == PackageTags.isUnlisted ||
+          tag == PackageTags.showUnlisted ||
+          tag == PackageTags.showHidden,
+    );
     final tagsPredicate = TagsPredicate(
       prohibitedTags: [
         if (prohibitDiscontinued) PackageTags.isDiscontinued,

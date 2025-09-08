@@ -15,41 +15,44 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex(documents: [
-        PackageDocument(
-          package: 'foo',
-          version: '1.0.0',
-          description: compactDescription('Yet another web framework.'),
-          apiDocPages: [
-            ApiDocPage(
-              relativePath: 'generator.html',
-              symbols: [
-                'generateWebPage',
-                'WebPageGenerator',
-              ],
-            ),
-          ],
-        ),
-        PackageDocument(
-          package: 'other_with_api',
-          version: '2.0.0',
-          description: compactDescription('Unrelated package'),
-          apiDocPages: [
-            ApiDocPage(relativePath: 'main.html', symbols: ['foo']),
-            ApiDocPage(relativePath: 'serve.html', symbols: ['serveWebPages']),
-          ],
-        ),
-        PackageDocument(
-          package: 'other_without_api',
-          version: '2.0.0',
-          description: compactDescription('Unrelated package'),
-        ),
-      ]);
+      index = InMemoryPackageIndex(
+        documents: [
+          PackageDocument(
+            package: 'foo',
+            version: '1.0.0',
+            description: compactDescription('Yet another web framework.'),
+            apiDocPages: [
+              ApiDocPage(
+                relativePath: 'generator.html',
+                symbols: ['generateWebPage', 'WebPageGenerator'],
+              ),
+            ],
+          ),
+          PackageDocument(
+            package: 'other_with_api',
+            version: '2.0.0',
+            description: compactDescription('Unrelated package'),
+            apiDocPages: [
+              ApiDocPage(relativePath: 'main.html', symbols: ['foo']),
+              ApiDocPage(
+                relativePath: 'serve.html',
+                symbols: ['serveWebPages'],
+              ),
+            ],
+          ),
+          PackageDocument(
+            package: 'other_without_api',
+            version: '2.0.0',
+            description: compactDescription('Unrelated package'),
+          ),
+        ],
+      );
     });
 
     test('foo', () async {
       final PackageSearchResult result = index.search(
-          ServiceSearchQuery.parse(query: 'foo', order: SearchOrder.text));
+        ServiceSearchQuery.parse(query: 'foo', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
@@ -70,7 +73,8 @@ void main() {
 
     test('serve', () async {
       final PackageSearchResult result = index.search(
-          ServiceSearchQuery.parse(query: 'serve', order: SearchOrder.text));
+        ServiceSearchQuery.parse(query: 'serve', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -89,8 +93,12 @@ void main() {
     });
 
     test('page generator', () async {
-      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
-          query: 'page generator', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(
+        ServiceSearchQuery.parse(
+          query: 'page generator',
+          order: SearchOrder.text,
+        ),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -110,7 +118,8 @@ void main() {
 
     test('web page', () async {
       final PackageSearchResult result = index.search(
-          ServiceSearchQuery.parse(query: 'web page', order: SearchOrder.text));
+        ServiceSearchQuery.parse(query: 'web page', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,

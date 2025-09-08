@@ -14,27 +14,28 @@ import '../../frontend/handlers/_utils.dart';
 import '../../shared/test_services.dart';
 
 void main() {
-  testWithProfile('succesful topics upload', fn: () async {
-    await countTopics();
+  testWithProfile(
+    'succesful topics upload',
+    fn: () async {
+      await countTopics();
 
-    final data = await storageService
-        .bucket(activeConfiguration.reportsBucketName!)
-        .read(topicsJsonFileName)
-        .transform(utf8.decoder)
-        .transform(json.decoder)
-        .single;
+      final data = await storageService
+          .bucket(activeConfiguration.reportsBucketName!)
+          .read(topicsJsonFileName)
+          .transform(utf8.decoder)
+          .transform(json.decoder)
+          .single;
 
-    // The default test profile has 3 packages that all get tagged with
-    // the topic 'chemical-element'.
-    expect(data, {'chemical-element': 3});
+      // The default test profile has 3 packages that all get tagged with
+      // the topic 'chemical-element'.
+      expect(data, {'chemical-element': 3});
 
-    await expectHtmlResponse(
-      await issueGet('/topics'),
-      present: [
-        'chemical-element',
-      ],
-    );
-  });
+      await expectHtmlResponse(
+        await issueGet('/topics'),
+        present: ['chemical-element'],
+      );
+    },
+  );
 
   test('isValidTopicFormat', () {
     expect(isValidTopicFormat('widget'), isTrue);

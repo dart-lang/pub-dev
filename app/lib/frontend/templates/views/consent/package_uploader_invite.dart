@@ -12,30 +12,36 @@ d.Node packageUploaderInviteNode({
   required String? currentUserEmail,
 }) {
   return d.fragment([
-    d.p(children: [
-      d.code(text: invitingUserEmail),
-      d.text(' has invited you to be an uploader of the package '),
-      d.a(
-        href: urls.pkgPageUrl(packageName),
-        target: '_blank',
-        rel: 'noopener noreferrer',
-        child: d.code(text: packageName),
-      ),
-      d.text('.'),
-    ]),
+    d.p(
+      children: [
+        d.code(text: invitingUserEmail),
+        d.text(' has invited you to be an uploader of the package '),
+        d.a(
+          href: urls.pkgPageUrl(packageName),
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          child: d.code(text: packageName),
+        ),
+        d.text('.'),
+      ],
+    ),
     d.p(text: 'Accepting a package uploader invitation means:'),
     d.ul(
       children: [
-        d.li(children: [
-          d.text('you will be able to publish new versions of package '),
-          d.code(text: packageName),
-          d.text(', and,'),
-        ]),
-        d.li(children: [
-          d.text('perform administrative actions for package '),
-          d.code(text: packageName),
-          d.text('.'),
-        ]),
+        d.li(
+          children: [
+            d.text('you will be able to publish new versions of package '),
+            d.code(text: packageName),
+            d.text(', and,'),
+          ],
+        ),
+        d.li(
+          children: [
+            d.text('perform administrative actions for package '),
+            d.code(text: packageName),
+            d.text('.'),
+          ],
+        ),
       ],
     ),
   ]);

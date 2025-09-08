@@ -21,9 +21,7 @@ Future<void> main(List<String> args) async {
   }
   Payload payload;
   try {
-    payload = Payload.fromJson(
-      json.decode(args.first) as Map<String, dynamic>,
-    );
+    payload = Payload.fromJson(json.decode(args.first) as Map<String, dynamic>);
   } on FormatException {
     _printUsage();
     exit(1);
@@ -93,19 +91,22 @@ void _setupLogging(Map<String, String> labels) {
 
     // Truncated messages over 64kb
     if (message.length > 64 * 1024) {
-      message = message.substring(0, 32 * 1024) +
+      message =
+          message.substring(0, 32 * 1024) +
           '...\n[truncated due to size]\n...' +
           message.substring(message.length - 16 * 1024);
     }
 
-    print(jsonEncode({
-      'severity': level.name.toUpperCase(),
-      'message': message,
-      'logging.googleapis.com/labels': {
-        'logger': record.loggerName,
-        ...labels,
-      },
-      'time': record.time.toUtc().toIso8601String(),
-    }));
+    print(
+      jsonEncode({
+        'severity': level.name.toUpperCase(),
+        'message': message,
+        'logging.googleapis.com/labels': {
+          'logger': record.loggerName,
+          ...labels,
+        },
+        'time': record.time.toUtc().toIso8601String(),
+      }),
+    );
   });
 }

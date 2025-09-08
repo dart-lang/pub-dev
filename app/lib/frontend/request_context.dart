@@ -57,22 +57,24 @@ class RequestContext {
     this.csrfToken,
     this.sessionData,
     ClientSessionCookieStatus? clientSessionCookieStatus,
-  })  : experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty,
-        clientSessionCookieStatus =
-            clientSessionCookieStatus ?? ClientSessionCookieStatus.missing();
+  }) : experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty,
+       clientSessionCookieStatus =
+           clientSessionCookieStatus ?? ClientSessionCookieStatus.missing();
 
   late final _isAuthenticated = sessionData?.isAuthenticated ?? false;
   bool get isNotAuthenticated => !_isAuthenticated;
-  late final authenticatedUserId =
-      _isAuthenticated ? sessionData?.userId : null;
+  late final authenticatedUserId = _isAuthenticated
+      ? sessionData?.userId
+      : null;
 }
 
 Future<RequestContext> buildRequestContext({
   required shelf.Request request,
 }) async {
   final cookies = parseCookieHeader(request.headers[HttpHeaders.cookieHeader]);
-  var experimentalFlags =
-      ExperimentalFlags.parseFromCookie(cookies[experimentalCookieName]);
+  var experimentalFlags = ExperimentalFlags.parseFromCookie(
+    cookies[experimentalCookieName],
+  );
   if (activeConfiguration.isFakeOrTest &&
       request.requestedUri.queryParameters['force-experimental-dark'] == '1') {
     experimentalFlags = experimentalFlags.addAll(['dark', 'dark-as-default']);
@@ -88,25 +90,27 @@ Future<RequestContext> buildRequestContext({
   SessionData? sessionData;
   final clientSessionCookieStatus = parseClientSessionCookies(cookies);
   if (clientSessionCookieStatus.isPresent) {
-    sessionData = await accountBackend
-        .getSessionData(clientSessionCookieStatus.sessionId!);
+    sessionData = await accountBackend.getSessionData(
+      clientSessionCookieStatus.sessionId!,
+    );
   }
 
   final csrfToken = request.headers[csrfTokenHeaderName]?.trim();
 
   final indentJson = request.requestedUri.queryParameters.containsKey('pretty');
 
-  final enableRobots = !experimentalFlags.isEmpty ||
+  final enableRobots =
+      !experimentalFlags.isEmpty ||
       (!activeConfiguration.blockRobots && isPrimaryHost);
   final uiCacheEnabled =
       // don't cache on non-primary domains
       isPrimaryHost &&
-          // don't cache if experimental cookie is enabled
-          experimentalFlags.isEmpty &&
-          // don't cache if client session is active
-          !clientSessionCookieStatus.isPresent &&
-          // sanity check, this should be covered by client session cookie
-          (csrfToken?.isNotEmpty ?? false);
+      // don't cache if experimental cookie is enabled
+      experimentalFlags.isEmpty &&
+      // don't cache if client session is active
+      !clientSessionCookieStatus.isPresent &&
+      // sanity check, this should be covered by client session cookie
+      (csrfToken?.isNotEmpty ?? false);
   return RequestContext(
     indentJson: indentJson,
     blockRobots: !enableRobots,

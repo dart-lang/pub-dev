@@ -23,7 +23,9 @@ import 'models.dart';
 /// The resulting list contains all the resolved versions (may be more packages
 /// than the profile originally specified).
 Future<List<ResolvedVersion>> resolveVersions(
-    http.Client client, TestProfile profile) async {
+  http.Client client,
+  TestProfile profile,
+) async {
   if (profile.importedPackages.isEmpty) {
     return [];
   }
@@ -33,11 +35,13 @@ Future<List<ResolvedVersion>> resolveVersions(
 
     final toolEnv = await ToolEnvironment.create(
       dartSdkConfig: SdkConfig(
-        rootPath: activeConfiguration.tools?.previewDartSdkPath ??
+        rootPath:
+            activeConfiguration.tools?.previewDartSdkPath ??
             activeConfiguration.tools?.stableDartSdkPath,
       ),
       flutterSdkConfig: SdkConfig(
-        rootPath: activeConfiguration.tools?.previewFlutterSdkPath ??
+        rootPath:
+            activeConfiguration.tools?.previewFlutterSdkPath ??
             activeConfiguration.tools?.stableFlutterSdkPath,
       ),
       pubCacheDir: pubCacheDir.path,
@@ -52,23 +56,27 @@ Future<List<ResolvedVersion>> resolveVersions(
         await dummyDir.create();
 
         final pubspecFile = File(p.join(dummyDir.path, 'pubspec.yaml'));
-        await pubspecFile.writeAsString(_generateDummyPubspec(
-          package.name,
-          version.version,
-          minSdkVersion: toolEnv.runtimeInfo.sdkVersion,
-        ));
+        await pubspecFile.writeAsString(
+          _generateDummyPubspec(
+            package.name,
+            version.version,
+            minSdkVersion: toolEnv.runtimeInfo.sdkVersion,
+          ),
+        );
 
         final pr = await toolEnv.runUpgrade(dummyDir.path, false);
         if (pr.exitCode != 0) {
           throw Exception(
-              'dart pub get on `${package.name} $version` exited with ${pr.exitCode}.\n${pr.stderr}');
+            'dart pub get on `${package.name} $version` exited with ${pr.exitCode}.\n${pr.stderr}',
+          );
         }
 
         await dummyDir.delete(recursive: true);
       }
     }
-    final pubHostedDir =
-        Directory(p.join(pubCacheDir.path, 'hosted', 'pub.dev'));
+    final pubHostedDir = Directory(
+      p.join(pubCacheDir.path, 'hosted', 'pub.dev'),
+    );
     final dirs = await pubHostedDir.list().toList();
     final versions = <ResolvedVersion>[];
     for (final dir in dirs.whereType<Directory>()) {
@@ -78,16 +86,19 @@ Future<List<ResolvedVersion>> resolveVersions(
       final package = parts.first;
       final version = parts.last;
 
-      final rs = await client.get(Uri.parse(
-          '${urls.siteRoot}/api/packages/$package/versions/$version'));
+      final rs = await client.get(
+        Uri.parse('${urls.siteRoot}/api/packages/$package/versions/$version'),
+      );
       final map = json.decode(rs.body) as Map<String, dynamic>;
       final info = package_api.VersionInfo.fromJson(map);
 
-      versions.add(ResolvedVersion(
-        package: package,
-        version: version,
-        created: info.published,
-      ));
+      versions.add(
+        ResolvedVersion(
+          package: package,
+          version: version,
+          created: info.published,
+        ),
+      );
     }
     return versions;
   });
@@ -99,15 +110,9 @@ String _generateDummyPubspec(
   String? minSdkVersion,
 }) {
   minSdkVersion ??= Platform.version.split(' ').first;
-  return json.encode(
-    {
-      'name': '____dummy____',
-      'environment': {
-        'sdk': '^$minSdkVersion',
-      },
-      'dependencies': {
-        package: version,
-      },
-    },
-  );
+  return json.encode({
+    'name': '____dummy____',
+    'environment': {'sdk': '^$minSdkVersion'},
+    'dependencies': {package: version},
+  });
 }

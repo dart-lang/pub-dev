@@ -22,9 +22,7 @@ void main() {
           generatedPackages: [
             GeneratedTestPackage(
               name: 'oxygen',
-              versions: [
-                GeneratedTestVersion(version: '1.0.0'),
-              ],
+              versions: [GeneratedTestVersion(version: '1.0.0')],
             ),
           ],
           defaultUser: adminAtPubDevEmail,
@@ -32,39 +30,36 @@ void main() {
         processJobsWithFakeRunners: true,
         runtimeVersions: ['2023.08.24'],
         () async {
-          final card =
-              await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
+          final card = await scoreCardBackend.getScoreCardData(
+            'oxygen',
+            '1.0.0',
+          );
           expect(card.runtimeVersion, '2023.08.24');
         },
       );
 
-      await env.run(
-        runtimeVersions: ['2023.08.25', '2023.08.24'],
-        () async {
-          // fallback into accepted runtime works
-          final card =
-              await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
-          expect(card.runtimeVersion, '2023.08.24');
-        },
-      );
+      await env.run(runtimeVersions: ['2023.08.25', '2023.08.24'], () async {
+        // fallback into accepted runtime works
+        final card = await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
+        expect(card.runtimeVersion, '2023.08.24');
+      });
 
-      await env.run(
-        runtimeVersions: ['2023.08.26', '2023.08.23'],
-        () async {
-          // fallback into non-accepted runtime doesn't work
-          final card =
-              await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
-          expect(card.runtimeVersion, '2023.08.26');
-        },
-      );
+      await env.run(runtimeVersions: ['2023.08.26', '2023.08.23'], () async {
+        // fallback into non-accepted runtime doesn't work
+        final card = await scoreCardBackend.getScoreCardData('oxygen', '1.0.0');
+        expect(card.runtimeVersion, '2023.08.26');
+      });
     });
   });
 
   group('latest analyzed version', () {
-    testWithProfile('no analysis yet', fn: () async {
-      expect(await taskBackend.latestFinishedVersion('oxygen'), isNull);
-      expect(await taskBackend.latestFinishedVersion('neon'), isNull);
-    });
+    testWithProfile(
+      'no analysis yet',
+      fn: () async {
+        expect(await taskBackend.latestFinishedVersion('oxygen'), isNull);
+        expect(await taskBackend.latestFinishedVersion('neon'), isNull);
+      },
+    );
 
     testWithProfile(
       'with current analysis',
@@ -79,13 +74,10 @@ void main() {
       'runtime version fallback',
       fn: () async {
         final currentRVs = acceptedRuntimeVersions;
-        await withRuntimeVersions(
-          ['2099.12.31', ...currentRVs],
-          () async {
-            expect(await taskBackend.latestFinishedVersion('oxygen'), '1.2.0');
-            expect(await taskBackend.latestFinishedVersion('neon'), '1.0.0');
-          },
-        );
+        await withRuntimeVersions(['2099.12.31', ...currentRVs], () async {
+          expect(await taskBackend.latestFinishedVersion('oxygen'), '1.2.0');
+          expect(await taskBackend.latestFinishedVersion('neon'), '1.0.0');
+        });
       },
       processJobsWithFakeRunners: true,
     );
@@ -97,9 +89,10 @@ void main() {
         await importProfile(
           profile: TestProfile(
             generatedPackages: [
-              GeneratedTestPackage(name: 'oxygen', versions: [
-                GeneratedTestVersion(version: '9.0.0'),
-              ]),
+              GeneratedTestPackage(
+                name: 'oxygen',
+                versions: [GeneratedTestVersion(version: '9.0.0')],
+              ),
             ],
             defaultUser: adminAtPubDevEmail,
           ),

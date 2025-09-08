@@ -35,7 +35,8 @@ double computeRelativeGrowthRate(List<int> downloads) {
   // is the newest point in time. By reversing, we pass the data in
   // chronological order.
   return calculateLinearRegressionSlope(
-      safeLogTransform(analysisData).reversed.toList());
+    safeLogTransform(analysisData).reversed.toList(),
+  );
 }
 
 /// Computes the slope of the best-fit line for a given list of data points

@@ -64,7 +64,8 @@ void _initGenericForm() {
             }
 
             // We shall display a minimal feedback the message is omitted.
-            final message = result['message']?.toString() ??
+            final message =
+                result['message']?.toString() ??
                 'Success. The page will reload.';
             await modalMessage('Success', text(message));
 
@@ -96,11 +97,13 @@ class _PkgAdminWidget {
     if (!pageData.isPackagePage) return;
     _setupAutomatedPublishing();
     _setPublisherInput = document.getElementById('-admin-set-publisher-input');
-    _setPublisherButton =
-        document.getElementById('-admin-set-publisher-button');
+    _setPublisherButton = document.getElementById(
+      '-admin-set-publisher-button',
+    );
     _setPublisherButton?.onClick.listen((_) => _setPublisher());
-    _discontinuedCheckbox = document
-        .getElementById('-admin-is-discontinued-checkbox') as InputElement?;
+    _discontinuedCheckbox =
+        document.getElementById('-admin-is-discontinued-checkbox')
+            as InputElement?;
     _discontinuedCheckbox?.onChange.listen((_) => _toggleDiscontinued());
     _replacedByInput =
         document.getElementById('-package-replaced-by') as InputElement?;
@@ -109,36 +112,46 @@ class _PkgAdminWidget {
     _unlistedCheckbox =
         document.getElementById('-admin-is-unlisted-checkbox') as InputElement?;
     _unlistedCheckbox?.onChange.listen((_) => _toggleUnlisted());
-    _inviteUploaderButton =
-        document.getElementById('-pkg-admin-invite-uploader-button');
-    _inviteUploaderContent =
-        document.getElementById('-pkg-admin-invite-uploader-content');
+    _inviteUploaderButton = document.getElementById(
+      '-pkg-admin-invite-uploader-button',
+    );
+    _inviteUploaderContent = document.getElementById(
+      '-pkg-admin-invite-uploader-content',
+    );
     _inviteUploaderButton?.onClick.listen((_) => _inviteUploader());
-    _inviteUploaderInput = document
-        .getElementById('-pkg-admin-invite-uploader-input') as InputElement?;
-    _retractPackageVersionInput =
-        document.getElementById('-admin-retract-package-version-input');
-    _retractPackageVersionButton =
-        document.getElementById('-admin-retract-package-version-button');
+    _inviteUploaderInput =
+        document.getElementById('-pkg-admin-invite-uploader-input')
+            as InputElement?;
+    _retractPackageVersionInput = document.getElementById(
+      '-admin-retract-package-version-input',
+    );
+    _retractPackageVersionButton = document.getElementById(
+      '-admin-retract-package-version-button',
+    );
     _retractPackageVersionButton?.onClick.listen((_) => _setRetracted());
-    _restoreRetractPackageVersionInput =
-        document.getElementById('-admin-restore-retract-package-version-input');
-    _restoreRetractPackageVersionButton = document
-        .getElementById('-admin-restore-retract-package-version-button');
-    _restoreRetractPackageVersionButton?.onClick
-        .listen((_) => _restoreRetracted());
+    _restoreRetractPackageVersionInput = document.getElementById(
+      '-admin-restore-retract-package-version-input',
+    );
+    _restoreRetractPackageVersionButton = document.getElementById(
+      '-admin-restore-retract-package-version-button',
+    );
+    _restoreRetractPackageVersionButton?.onClick.listen(
+      (_) => _restoreRetracted(),
+    );
     _inviteUploaderContent
       ?..classes.remove('modal-content-hidden')
       ..remove();
-    for (final btn
-        in document.querySelectorAll('.-pub-remove-uploader-button')) {
+    for (final btn in document.querySelectorAll(
+      '.-pub-remove-uploader-button',
+    )) {
       btn.onClick.listen((_) => _removeUploader(btn.dataset['email']!));
     }
   }
 
   void _setupAutomatedPublishing() {
-    final githubEnabledCheckbox = document
-        .getElementById('-pkg-admin-automated-github-enabled') as InputElement?;
+    final githubEnabledCheckbox =
+        document.getElementById('-pkg-admin-automated-github-enabled')
+            as InputElement?;
     final githubRepositoryInput =
         document.getElementById('-pkg-admin-automated-github-repository')
             as InputElement?;
@@ -148,8 +161,11 @@ class _PkgAdminWidget {
     final githubIsPushEventsCheckbox =
         document.getElementById('-pkg-admin-automated-github-push-events')
             as InputElement?;
-    final githubIsWorkflowDispatchEventsCheckbox = document.getElementById(
-        '-pkg-admin-automated-github-workflowdispatch-events') as InputElement?;
+    final githubIsWorkflowDispatchEventsCheckbox =
+        document.getElementById(
+              '-pkg-admin-automated-github-workflowdispatch-events',
+            )
+            as InputElement?;
     final githubRequireEnvironmentCheckbox =
         document.getElementById('-pkg-admin-automated-github-requireenv')
             as InputElement?;
@@ -157,8 +173,9 @@ class _PkgAdminWidget {
         document.getElementById('-pkg-admin-automated-github-environment')
             as InputElement?;
 
-    final gcpEnabledCheckbox = document
-        .getElementById('-pkg-admin-automated-gcp-enabled') as InputElement?;
+    final gcpEnabledCheckbox =
+        document.getElementById('-pkg-admin-automated-gcp-enabled')
+            as InputElement?;
     final gcpServiceAccountEmailInput =
         document.getElementById('-pkg-admin-automated-gcp-serviceaccountemail')
             as InputElement?;
@@ -170,7 +187,8 @@ class _PkgAdminWidget {
     updateButton.onClick.listen((event) async {
       await api_client.rpc<void>(
         confirmQuestion: await markdown(
-            'Are you sure you want to update the automated publishing config?'),
+          'Are you sure you want to update the automated publishing config?',
+        ),
         fn: () async {
           await api_client.client.setAutomatedPublishing(
             pageData.pkgData!.package,
@@ -214,14 +232,18 @@ class _PkgAdminWidget {
     final email = _inviteUploaderInput!.value!.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
       await modalMessage(
-          'Input validation', text('Please specify a valid e-mail.'));
+        'Input validation',
+        text('Please specify a valid e-mail.'),
+      );
       return false;
     }
 
     await api_client.rpc<void>(
       fn: () async {
         await api_client.client.invitePackageUploader(
-            pageData.pkgData!.package, InviteUploaderRequest(email: email));
+          pageData.pkgData!.package,
+          InviteUploaderRequest(email: email),
+        );
       },
       successMessage: await markdown('`$email` was invited.'),
       onSuccess: (_) {
@@ -234,7 +256,8 @@ class _PkgAdminWidget {
   Future<void> _removeUploader(String email) async {
     await api_client.rpc<void>(
       confirmQuestion: await markdown(
-          'Are you sure you want to remove uploader `$email` from this package?'),
+        'Are you sure you want to remove uploader `$email` from this package?',
+      ),
       fn: () async {
         await api_client.client.removeUploaderFromUI(
           pageData.pkgData!.package,
@@ -242,7 +265,8 @@ class _PkgAdminWidget {
         );
       },
       successMessage: await markdown(
-          'Uploader `$email` removed from this package. The page will reload.'),
+        'Uploader `$email` removed from this package. The page will reload.',
+      ),
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -251,17 +275,18 @@ class _PkgAdminWidget {
     final oldValue = _discontinuedCheckbox!.defaultChecked ?? false;
     final newValue = await api_client.rpc<bool>(
       confirmQuestion: text(
-          'Are you sure you want change the "discontinued" status of the package?'),
+        'Are you sure you want change the "discontinued" status of the package?',
+      ),
       fn: () async {
         final rs = await api_client.client.setPackageOptions(
-            pageData.pkgData!.package,
-            PkgOptions(
-              isDiscontinued: !oldValue,
-            ));
+          pageData.pkgData!.package,
+          PkgOptions(isDiscontinued: !oldValue),
+        );
         return rs.isDiscontinued;
       },
-      successMessage:
-          text('"discontinued" status changed. The page will reload.'),
+      successMessage: text(
+        '"discontinued" status changed. The page will reload.',
+      ),
       onSuccess: (_) => window.location.reload(),
       onError: (err) => null,
     );
@@ -273,18 +298,18 @@ class _PkgAdminWidget {
   Future<void> _updateReplacedBy() async {
     await api_client.rpc<bool?>(
       confirmQuestion: text(
-          'Are you sure you want change the "suggested replacement" field of the package?'),
+        'Are you sure you want change the "suggested replacement" field of the package?',
+      ),
       fn: () async {
         final rs = await api_client.client.setPackageOptions(
-            pageData.pkgData!.package,
-            PkgOptions(
-              isDiscontinued: true,
-              replacedBy: _replacedByInput?.value,
-            ));
+          pageData.pkgData!.package,
+          PkgOptions(isDiscontinued: true, replacedBy: _replacedByInput?.value),
+        );
         return rs.isDiscontinued;
       },
-      successMessage:
-          text('"suggested replacement" field changed. The page will reload.'),
+      successMessage: text(
+        '"suggested replacement" field changed. The page will reload.',
+      ),
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -293,13 +318,13 @@ class _PkgAdminWidget {
     final oldValue = _unlistedCheckbox!.defaultChecked ?? false;
     final newValue = await api_client.rpc(
       confirmQuestion: text(
-          'Are you sure you want change the "unlisted" status of the package?'),
+        'Are you sure you want change the "unlisted" status of the package?',
+      ),
       fn: () async {
         final rs = await api_client.client.setPackageOptions(
-            pageData.pkgData!.package,
-            PkgOptions(
-              isUnlisted: !oldValue,
-            ));
+          pageData.pkgData!.package,
+          PkgOptions(isUnlisted: !oldValue),
+        );
         return rs.isUnlisted;
       },
       successMessage: text('"unlisted" status changed.'),
@@ -323,10 +348,14 @@ class _PkgAdminWidget {
 
     await api_client.rpc<void>(
       confirmQuestion: await markdown(
-          'Are you sure you want to retract the package version `$version`?'),
+        'Are you sure you want to retract the package version `$version`?',
+      ),
       fn: () async {
-        await api_client.client.setVersionOptions(pageData.pkgData!.package,
-            version, VersionOptions(isRetracted: true));
+        await api_client.client.setVersionOptions(
+          pageData.pkgData!.package,
+          version,
+          VersionOptions(isRetracted: true),
+        );
       },
       successMessage: text('Retraction completed. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
@@ -336,7 +365,7 @@ class _PkgAdminWidget {
   Future<void> _restoreRetracted() async {
     final version =
         materialDropdownSelected(_restoreRetractPackageVersionInput)?.trim() ??
-            '';
+        '';
     if (version.isEmpty) {
       await _validateVersionSelection();
       return;
@@ -344,11 +373,15 @@ class _PkgAdminWidget {
 
     await api_client.rpc<void>(
       confirmQuestion: await markdown(
-          'Are you sure you want to restore package version `$version`?'),
+        'Are you sure you want to restore package version `$version`?',
+      ),
       fn: () async {
         print('before setVersionOption');
-        await api_client.client.setVersionOptions(pageData.pkgData!.package,
-            version, VersionOptions(isRetracted: false));
+        await api_client.client.setVersionOptions(
+          pageData.pkgData!.package,
+          version,
+          VersionOptions(isRetracted: false),
+        );
       },
       successMessage: text('Restoring complete. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
@@ -356,10 +389,7 @@ class _PkgAdminWidget {
   }
 
   Future<void> _validateVersionSelection() async {
-    await modalMessage(
-      'Input validation',
-      text('Please select a version.'),
-    );
+    await modalMessage('Input validation', text('Please select a version.'));
   }
 
   Future<void> _setPublisher() async {
@@ -375,14 +405,18 @@ class _PkgAdminWidget {
 
     await api_client.rpc<void>(
       confirmQuestion: await markdown(
-          'Are you sure you want to transfer the package to publisher `$publisherId`?'),
+        'Are you sure you want to transfer the package to publisher `$publisherId`?',
+      ),
       fn: () async {
         final payload = PackagePublisherInfo(publisherId: publisherId);
-        await api_client.client
-            .setPackagePublisher(pageData.pkgData!.package, payload);
+        await api_client.client.setPackagePublisher(
+          pageData.pkgData!.package,
+          payload,
+        );
       },
       successMessage: text(
-          'Transfer completed. Caches and search index will update in the next 15-20 minutes. The page will reload.'),
+        'Transfer completed. Caches and search index will update in the next 15-20 minutes. The page will reload.',
+      ),
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -416,13 +450,15 @@ class _CreatePublisherWidget {
 
     await api_client.rpc<void>(
       confirmQuestion: await markdown(
-          'Are you sure you want to create publisher for `$publisherId`?'),
+        'Are you sure you want to create publisher for `$publisherId`?',
+      ),
       fn: () async {
         await api_client.client.createPublisher(publisherId);
       },
       successMessage: text(
-          'Publisher created. You can now transfer packages to this publisher. '
-          'The page will reload.'),
+        'Publisher created. You can now transfer packages to this publisher. '
+        'The page will reload.',
+      ),
       onSuccess: (_) {
         window.location.pathname = '/publishers/$publisherId/admin';
       },
@@ -462,17 +498,17 @@ class _PublisherAdminWidget {
       _addMemberContent!.classes.remove('modal-content-hidden');
     }
     for (final btn in document.querySelectorAll('.-pub-remove-user-button')) {
-      btn.onClick.listen((_) => _removeMember(
-            btn.dataset['user-id']!,
-            btn.dataset['email']!,
-          ));
+      btn.onClick.listen(
+        (_) => _removeMember(btn.dataset['user-id']!, btn.dataset['email']!),
+      );
     }
   }
 
   Future<void> _updatePublisher() async {
     String? confirmQuestion;
     if (_originalContactEmail != _contactEmailInput!.value) {
-      confirmQuestion = 'You are changing the contact email of the publisher. '
+      confirmQuestion =
+          'You are changing the contact email of the publisher. '
           'Changing it to an admin member email happens immediately, for other '
           'addresses we will send a confirmation request.';
     }
@@ -484,8 +520,10 @@ class _PublisherAdminWidget {
           websiteUrl: _websiteUrlInput!.value,
           contactEmail: _contactEmailInput!.value,
         );
-        await api_client.client
-            .updatePublisher(pageData.publisher!.publisherId, payload);
+        await api_client.client.updatePublisher(
+          pageData.publisher!.publisherId,
+          payload,
+        );
       },
       successMessage: text('Publisher was updated. The page will reload.'),
       onSuccess: (_) => window.location.reload(),
@@ -506,14 +544,18 @@ class _PublisherAdminWidget {
     final email = _inviteMemberInput!.value!.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
       await modalMessage(
-          'Input validation', text('Please specify a valid e-mail.'));
+        'Input validation',
+        text('Please specify a valid e-mail.'),
+      );
       return false;
     }
 
     await api_client.rpc<void>(
       fn: () async {
         await api_client.client.invitePublisherMember(
-            pageData.publisher!.publisherId, InviteMemberRequest(email: email));
+          pageData.publisher!.publisherId,
+          InviteMemberRequest(email: email),
+        );
       },
       successMessage: await markdown('`$email` was invited.'),
       onSuccess: (_) {
@@ -526,13 +568,17 @@ class _PublisherAdminWidget {
   Future<void> _removeMember(String userId, String email) async {
     await api_client.rpc<void>(
       confirmQuestion: await markdown(
-          'Are you sure you want to remove `$email` from this publisher?'),
+        'Are you sure you want to remove `$email` from this publisher?',
+      ),
       fn: () async {
-        await api_client.client
-            .removePublisherMember(pageData.publisher!.publisherId, userId);
+        await api_client.client.removePublisherMember(
+          pageData.publisher!.publisherId,
+          userId,
+        );
       },
       successMessage: await markdown(
-          '`$email` removed from this publisher. The page will reload.'),
+        '`$email` removed from this publisher. The page will reload.',
+      ),
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -563,8 +609,10 @@ class _ConsentWidget {
     await api_client.rpc(
       confirmQuestion: text('Are you sure you want to accept?'),
       fn: () async {
-        final rs = await api_client.client
-            .resolveConsent(pageData.consentId!, ConsentResult(granted: true));
+        final rs = await api_client.client.resolveConsent(
+          pageData.consentId!,
+          ConsentResult(granted: true),
+        );
         return rs.granted;
       },
       successMessage: text('Consent accepted.'),
@@ -576,8 +624,10 @@ class _ConsentWidget {
     await api_client.rpc(
       confirmQuestion: text('Are you sure you want to reject?'),
       fn: () async {
-        final rs = await api_client.client
-            .resolveConsent(pageData.consentId!, ConsentResult(granted: false));
+        final rs = await api_client.client.resolveConsent(
+          pageData.consentId!,
+          ConsentResult(granted: false),
+        );
         return rs.granted;
       },
       successMessage: text('Consent rejected.'),

@@ -64,9 +64,6 @@ String removeDecimalZeros(String number) {
       suffix: 'k',
     );
   } else {
-    return (
-      value: value.toString(),
-      suffix: '',
-    );
+    return (value: value.toString(), suffix: '');
   }
 }

@@ -81,23 +81,24 @@ class GitHubJwtPayload {
   };
 
   GitHubJwtPayload._(Map<String, dynamic> map)
-      : repository = parseAsString(map, 'repository'),
-        repositoryOwner = parseAsString(map, 'repository_owner'),
-        repositoryId = parseAsString(map, 'repository_id'),
-        repositoryOwnerId = parseAsString(map, 'repository_owner_id'),
-        eventName = parseAsString(map, 'event_name'),
-        ref = parseAsString(map, 'ref'),
-        refType = parseAsString(map, 'ref_type'),
-        actor = parseAsStringOrNull(map, 'actor'),
-        environment = parseAsStringOrNull(map, 'environment'),
-        sha = parseAsStringOrNull(map, 'sha'),
-        runId = parseAsStringOrNull(map, 'run_id');
+    : repository = parseAsString(map, 'repository'),
+      repositoryOwner = parseAsString(map, 'repository_owner'),
+      repositoryId = parseAsString(map, 'repository_id'),
+      repositoryOwnerId = parseAsString(map, 'repository_owner_id'),
+      eventName = parseAsString(map, 'event_name'),
+      ref = parseAsString(map, 'ref'),
+      refType = parseAsString(map, 'ref_type'),
+      actor = parseAsStringOrNull(map, 'actor'),
+      environment = parseAsStringOrNull(map, 'environment'),
+      sha = parseAsStringOrNull(map, 'sha'),
+      runId = parseAsStringOrNull(map, 'run_id');
 
   factory GitHubJwtPayload(JwtPayload payload) {
     final missing = requiredClaims.difference(payload.keys.toSet()).sorted();
     if (missing.isNotEmpty) {
       throw FormatException(
-          'JWT from GitHub is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.');
+        'JWT from GitHub is missing following claims: ${missing.map((k) => '`$k`').join(', ')}.',
+      );
     }
     return GitHubJwtPayload._(payload);
   }

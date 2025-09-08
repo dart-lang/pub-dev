@@ -14,10 +14,7 @@ final _none = <String>["'none'"];
 final defaultContentSecurityPolicySerialized = _serializeCSP(null);
 
 final _defaultContentSecurityPolicyMap = <String, List<String>>{
-  'default-src': <String>[
-    "'self'",
-    'https:',
-  ],
+  'default-src': <String>["'self'", 'https:'],
   'font-src': <String>[
     "'self'",
     'data:',
@@ -71,10 +68,14 @@ String _serializeCSP(Map<String, String>? extraValues) {
     ..._defaultContentSecurityPolicyMap.keys,
     ...?extraValues?.keys,
   };
-  return keys.map((key) {
-    final list = _defaultContentSecurityPolicyMap[key];
-    final extra = extraValues == null ? null : extraValues[key];
-    final extraStr = (extra == null || extra.trim().isEmpty) ? '' : ' $extra';
-    return '$key ${list!.join(' ')}$extraStr';
-  }).join(';');
+  return keys
+      .map((key) {
+        final list = _defaultContentSecurityPolicyMap[key];
+        final extra = extraValues == null ? null : extraValues[key];
+        final extraStr = (extra == null || extra.trim().isEmpty)
+            ? ''
+            : ' $extra';
+        return '$key ${list!.join(' ')}$extraStr';
+      })
+      .join(';');
 }

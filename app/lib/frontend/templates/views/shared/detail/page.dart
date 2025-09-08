@@ -17,11 +17,7 @@ d.Node detailPageNode({
   final hasInfoBox = infoBoxNode != null;
   return d.fragment([
     d.div(
-      classes: [
-        'detail-wrapper',
-        '-active',
-        if (hasInfoBox) '-has-info-box',
-      ],
+      classes: ['detail-wrapper', '-active', if (hasInfoBox) '-has-info-box'],
       children: [
         headerNode,
         if (hasInfoBox)
@@ -77,10 +73,7 @@ d.Node detailPageNode({
           d.div(classes: ['detail-info-box'], child: infoBoxNode),
           d.p(
             classes: ['detail-lead-back'],
-            child: d.a(
-              classes: ['detail-metadata-toggle'],
-              text: 'Back',
-            ),
+            child: d.a(classes: ['detail-metadata-toggle'], text: 'Back'),
           ),
         ],
       ),

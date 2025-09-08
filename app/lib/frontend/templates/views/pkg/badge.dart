@@ -11,17 +11,10 @@ d.Node packageBadgeNode({
   String? color,
 }) {
   return d.span(
-    classes: [
-      'package-badge',
-      if (color != null) 'package-badge-$color',
-    ],
+    classes: ['package-badge', if (color != null) 'package-badge-$color'],
     attributes: title != null ? <String, String>{'title': title} : null,
     children: [
-      if (icon != null)
-        d.img(
-          classes: ['package-badge-icon'],
-          image: icon,
-        ),
+      if (icon != null) d.img(classes: ['package-badge-icon'], image: icon),
       d.text(label),
     ],
   );

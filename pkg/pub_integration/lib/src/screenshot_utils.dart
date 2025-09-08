@@ -81,8 +81,10 @@ extension ScreenshotElementHandleExt on ElementHandle {
           ...bodyClasses.where((c) => !c.endsWith('-theme')),
           '$theme-theme',
         ];
-        await body.evaluate('(el, v) => el.setAttribute("class", v)',
-            args: [newClasses.join(' ')]);
+        await body.evaluate(
+          '(el, v) => el.setAttribute("class", v)',
+          args: [newClasses.join(' ')],
+        );
 
         // The presence of the element is verified, continue only if screenshots are enabled.
         if (!_isScreenshotDirSet) continue;
@@ -96,8 +98,10 @@ extension ScreenshotElementHandleExt on ElementHandle {
     }
 
     // restore the original body class attributes
-    await body.evaluate('(el, v) => el.setAttribute("class", v)',
-        args: [bodyClassAttr]);
+    await body.evaluate(
+      '(el, v) => el.setAttribute("class", v)',
+      args: [bodyClassAttr],
+    );
   }
 
   Future<void> _writeScreenshotToFile(String path) async {

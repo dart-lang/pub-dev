@@ -98,9 +98,9 @@ void main() {
         ),
       );
       expect(
-          nameTracker
-              .visiblePackagesOrderedByLastPublished.single.latestVersion,
-          '2.0.0');
+        nameTracker.visiblePackagesOrderedByLastPublished.single.latestVersion,
+        '2.0.0',
+      );
     });
 
     test('later time does override the entry', () {
@@ -165,7 +165,9 @@ void main() {
         expect(await tracker.accept('aa_ab_bb'), 'aaa_bbb');
 
         await accountBackend.withBearerToken(
-            siteAdminToken, () => adminBackend.removePackage('aaa_bbb'));
+          siteAdminToken,
+          () => adminBackend.removePackage('aaa_bbb'),
+        );
         await tracker.reloadFromDatastore();
 
         // same package name is rejected

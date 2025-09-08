@@ -30,7 +30,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
     'version': 'The version to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
-    'note': 'Optional note to store (internal).'
+    'note': 'Optional note to store (internal).',
   },
   invoke: (options) async {
     final caseId = options['case'];
@@ -40,8 +40,8 @@ Set the moderated flag on a package version (updating the flag and the timestamp
     final state = options['state'];
     final note = options['note'];
 
-    final refCase =
-        await adminBackend.loadAndVerifyModerationCaseForAdminAction(caseId);
+    final refCase = await adminBackend
+        .loadAndVerifyModerationCaseForAdminAction(caseId);
 
     return await adminMarkPackageVersionVisibility(
       package,
@@ -72,6 +72,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
 Future<Map<String, dynamic>> adminMarkPackageVersionVisibility(
   String? package,
   String? version, {
+
   /// `true`, `false` or `null`
   required String? state,
 
@@ -80,7 +81,8 @@ Future<Map<String, dynamic>> adminMarkPackageVersionVisibility(
     TransactionWrapper tx,
     PackageVersion v,
     bool valueToSet,
-  ) whenUpdating,
+  )
+  whenUpdating,
 
   /// The debug information to return.
   required Map Function(PackageVersion v) valueFn,
@@ -116,9 +118,11 @@ Future<Map<String, dynamic>> adminMarkPackageVersionVisibility(
   PackageVersion? pv2;
   if (valueToSet != null) {
     final currentDartSdk = await getCachedDartSdkVersion(
-        lastKnownStable: toolStableDartSdkVersion);
+      lastKnownStable: toolStableDartSdkVersion,
+    );
     final currentFlutterSdk = await getCachedFlutterSdkVersion(
-        lastKnownStable: toolStableFlutterSdkVersion);
+      lastKnownStable: toolStableFlutterSdkVersion,
+    );
     pv2 = await withRetryTransaction(dbService, (tx) async {
       final v = await tx.lookupValue<PackageVersion>(pv.key);
       await whenUpdating(tx, v, valueToSet!);

@@ -60,13 +60,18 @@ Future<void> main(List<String> args, var message) async {
             final info = await searchIndex.indexInfo();
             return ReplyMessage.result(info.toJson());
           } else if (payload is String) {
-            final q = ServiceSearchQuery(SearchRequestData.fromJson(
-                json.decode(payload) as Map<String, dynamic>));
+            final q = ServiceSearchQuery(
+              SearchRequestData.fromJson(
+                json.decode(payload) as Map<String, dynamic>,
+              ),
+            );
             final rs = await searchIndex.search(q);
             return ReplyMessage.result(json.encode(rs.toJson()));
           } else {
             _logger.pubNoticeShout(
-                'unknown-isolate-message', 'Unrecognized payload: $payload');
+              'unknown-isolate-message',
+              'Unrecognized payload: $payload',
+            );
             return ReplyMessage.error('Unrecognized payload: $payload');
           }
         },
@@ -121,11 +126,7 @@ class IsolateSearchIndex implements SearchIndex {
     } catch (e, st) {
       _logger.warning('Failed to get index info.', e, st);
     }
-    return IndexInfo(
-      isReady: false,
-      packageCount: 0,
-      lastUpdated: null,
-    );
+    return IndexInfo(isReady: false, packageCount: 0, lastUpdated: null);
   }
 
   @override
@@ -136,7 +137,8 @@ class IsolateSearchIndex implements SearchIndex {
         timeout: Duration(minutes: 1),
       );
       return PackageSearchResult.fromJson(
-          json.decode(rs as String) as Map<String, dynamic>);
+        json.decode(rs as String) as Map<String, dynamic>,
+      );
     } catch (e, st) {
       _logger.warning('Failed to search index.', e, st);
     }
@@ -165,9 +167,9 @@ class LatencyAwareSearchIndex implements SearchIndex {
   Future<PackageSearchResult> search(ServiceSearchQuery query) async {
     final sw = Stopwatch()..start();
     try {
-      return await _delegate.search(query.change(
-        textMatchExtent: _selectTextMatchExtent(),
-      ));
+      return await _delegate.search(
+        query.change(textMatchExtent: _selectTextMatchExtent()),
+      );
     } finally {
       sw.stop();
       final elapsed = sw.elapsed;
@@ -179,7 +181,8 @@ class LatencyAwareSearchIndex implements SearchIndex {
       //       - readmes after 6 minutes,
       //       - everything after 7 minutes.
       _latencyTracker.observe(
-          elapsed.inMinutes >= 1 ? const Duration(minutes: 1) : elapsed);
+        elapsed.inMinutes >= 1 ? const Duration(minutes: 1) : elapsed,
+      );
     }
   }
 

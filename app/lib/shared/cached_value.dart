@@ -52,11 +52,11 @@ class CachedValue<T> {
     required Duration interval,
     required UpdateFn<T> updateFn,
     Duration? timeout,
-  })  : _name = name,
-        _maxAge = maxAge,
-        _interval = interval,
-        _updateFn = updateFn,
-        _timeout = timeout ?? interval ~/ 2;
+  }) : _name = name,
+       _maxAge = maxAge,
+       _interval = interval,
+       _updateFn = updateFn,
+       _timeout = timeout ?? interval ~/ 2;
 
   DateTime get lastUpdated => _lastUpdated;
   Duration get age => clock.now().difference(_lastUpdated);
@@ -114,10 +114,18 @@ class CachedValue<T> {
     } catch (e, st) {
       if (age <= _maxAge) {
         _logger.pubNoticeWarning(
-            'cached_value', 'Updating cached `$_name` value failed.', e, st);
+          'cached_value',
+          'Updating cached `$_name` value failed.',
+          e,
+          st,
+        );
       } else {
         _logger.pubNoticeShout(
-            'cached_value', 'Updating cached `$_name` value failed.', e, st);
+          'cached_value',
+          'Updating cached `$_name` value failed.',
+          e,
+          st,
+        );
       }
     } finally {
       final c = _ongoingCompleter;

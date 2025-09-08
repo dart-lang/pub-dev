@@ -60,10 +60,7 @@ final class VersionTokenPair {
   final String token;
 
   // json_serializable boiler-plate
-  VersionTokenPair({
-    required this.version,
-    required this.token,
-  });
+  VersionTokenPair({required this.version, required this.token});
   factory VersionTokenPair.fromJson(Map<String, dynamic> json) =>
       _$VersionTokenPairFromJson(json);
   Map<String, dynamic> toJson() => _$VersionTokenPairToJson(this);

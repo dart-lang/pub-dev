@@ -34,8 +34,9 @@ Iterable<String> prepareRanges(List<VersionRangeCount> rangeDownloads) {
   for (int week = 0; week < displayLength; week++) {
     final weekList = <int>[];
     if (showOther) {
-      weekList.add(totals[week] -
-          rangeDownloads.fold(0, (sum, d) => sum + d.counts[week]));
+      weekList.add(
+        totals[week] - rangeDownloads.fold(0, (sum, d) => sum + d.counts[week]),
+      );
     }
     rangeDownloads.forEach((d) => weekList.add(d.counts[week]));
     result.add(weekList);
@@ -53,9 +54,14 @@ Iterable<String> prepareRanges(List<VersionRangeCount> rangeDownloads) {
 /// be within the thwo endpoints, `(double.maxFinite, double.maxFinite)`
 /// is returned.
 (num, num) closestPointOnLine(
-    (num, num) startPoint, (num, num) endPoint, (num, num) point) {
-  final directionVector =
-      (endPoint.$1 - startPoint.$1, endPoint.$2 - startPoint.$2);
+  (num, num) startPoint,
+  (num, num) endPoint,
+  (num, num) point,
+) {
+  final directionVector = (
+    endPoint.$1 - startPoint.$1,
+    endPoint.$2 - startPoint.$2,
+  );
 
   if (directionVector.$1 == 0 && directionVector.$2 == 0) {
     return startPoint;
@@ -64,7 +70,8 @@ Iterable<String> prepareRanges(List<VersionRangeCount> rangeDownloads) {
   final v = (point.$1 - startPoint.$1, point.$2 - startPoint.$2);
 
   // The dot product ((v · d) / (d · d))
-  final t = ((v.$1 * directionVector.$1 + v.$2 * directionVector.$2) /
+  final t =
+      ((v.$1 * directionVector.$1 + v.$2 * directionVector.$2) /
       (directionVector.$1 * directionVector.$1 +
           directionVector.$2 * directionVector.$2));
 
@@ -77,7 +84,7 @@ Iterable<String> prepareRanges(List<VersionRangeCount> rangeDownloads) {
   final projectionVOntoD = (t * directionVector.$1, t * directionVector.$2);
   final closestPoint = (
     startPoint.$1 + projectionVOntoD.$1,
-    startPoint.$2 + projectionVOntoD.$2
+    startPoint.$2 + projectionVOntoD.$2,
   );
   return (closestPoint.$1, closestPoint.$2);
 }
@@ -92,7 +99,9 @@ double distance((num, num) point, (double, double) point2) {
 /// Finds the closest point on [path] (a series of points defining the line
 /// segments) to a given [point].
 (num, num) closestPointOnPath(
-    List<(double, double)> path, (double, double) point) {
+  List<(double, double)> path,
+  (double, double) point,
+) {
   if (path.length < 2) {
     return (double.maxFinite, double.maxFinite);
   }
@@ -112,7 +121,10 @@ double distance((num, num) point, (double, double) point2) {
 /// Determines if a given [point] is within a specified [tolerance] distance of
 /// a [path] defined by a series of points.
 bool isPointOnPathWithTolerance(
-    List<(double, double)> path, (double, double) point, double tolerance) {
+  List<(double, double)> path,
+  (double, double) point,
+  double tolerance,
+) {
   if (path.length < 2) {
     // Not enough points to define a line segment.
     return false;

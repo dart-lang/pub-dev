@@ -51,10 +51,14 @@ void main() {
 
     test('check the length of the version', () {
       expect(
-          validatePackageVersion(Version.parse(
-              '1.0.0-longandboringprereleasestringthatnobodywantstoread'
-              'longandboringprereleasestringthatnobodywantstoread')),
-          isNotEmpty);
+        validatePackageVersion(
+          Version.parse(
+            '1.0.0-longandboringprereleasestringthatnobodywantstoread'
+            'longandboringprereleasestringthatnobodywantstoread',
+          ),
+        ),
+        isNotEmpty,
+      );
     });
   });
 
@@ -98,24 +102,31 @@ void main() {
     });
 
     test('emoji', () {
-      expect(validateDescription('A fancy description with emoji character 📁'),
-          isNotEmpty);
+      expect(
+        validateDescription('A fancy description with emoji character 📁'),
+        isNotEmpty,
+      );
     });
 
     test('valid text', () {
       expect(
-          validateDescription(
-              'Evaluate the health and quality of a Dart package'),
-          isEmpty);
+        validateDescription(
+          'Evaluate the health and quality of a Dart package',
+        ),
+        isEmpty,
+      );
     });
   });
 
   group('Zalgo text', () {
     test('allows CJK', () {
       expect(
-          validateZalgo('field',
-              '文字 Chinese (Hanzi), 漢字 Japanese (Kanji), 漢字 Korean (Hanja)'),
-          isEmpty);
+        validateZalgo(
+          'field',
+          '文字 Chinese (Hanzi), 漢字 Japanese (Kanji), 漢字 Korean (Hanja)',
+        ),
+        isEmpty,
+      );
     });
 
     test('blocks Zalgo', () {
@@ -127,10 +138,12 @@ void main() {
     test('accepted ranges', () {
       void isAccepted(String range) {
         expect(
-          checkSdkVersionRange(Pubspec.fromJson({
-            'name': 'x',
-            'environment': {'sdk': range},
-          })),
+          checkSdkVersionRange(
+            Pubspec.fromJson({
+              'name': 'x',
+              'environment': {'sdk': range},
+            }),
+          ),
           isEmpty,
           reason: range,
         );
@@ -150,10 +163,12 @@ void main() {
     test('rejected ranges', () {
       void isRejected(String? range) {
         expect(
-          checkSdkVersionRange(Pubspec.fromJson({
-            'name': 'x',
-            if (range != null) 'environment': {'sdk': range},
-          })),
+          checkSdkVersionRange(
+            Pubspec.fromJson({
+              'name': 'x',
+              if (range != null) 'environment': {'sdk': range},
+            }),
+          ),
           isNotEmpty,
           reason: range,
         );
@@ -183,15 +198,21 @@ void main() {
     });
 
     test('bad url is reported', () {
-      expect(syntaxCheckUrl('://::::/::/', 'homepage').single.message,
-          'Unable to parse homepage URL: ://::::/::/');
+      expect(
+        syntaxCheckUrl('://::::/::/', 'homepage').single.message,
+        'Unable to parse homepage URL: ://::::/::/',
+      );
     });
 
     test('example urls that are accepted', () {
       expect(
-          syntaxCheckUrl('http://github.com/user/repo/', 'homepage'), isEmpty);
+        syntaxCheckUrl('http://github.com/user/repo/', 'homepage'),
+        isEmpty,
+      );
       expect(
-          syntaxCheckUrl('https://github.com/user/repo/', 'homepage'), isEmpty);
+        syntaxCheckUrl('https://github.com/user/repo/', 'homepage'),
+        isEmpty,
+      );
       expect(syntaxCheckUrl('http://some.domain.com', 'homepage'), isEmpty);
     });
 
@@ -250,8 +271,10 @@ environment:
 
   group('too many dependencies', () {
     test('allow the limit', () {
-      final dependencies =
-          List.generate(100, (i) => '  dep$i: ^1.0.$i').join('\n');
+      final dependencies = List.generate(
+        100,
+        (i) => '  dep$i: ^1.0.$i',
+      ).join('\n');
       final pubspec = Pubspec.parse('''
 name: test_pkg
 version: 1.0.0-dev.1
@@ -262,8 +285,10 @@ $dependencies
     });
 
     test('forbid too many dependencies', () {
-      final dependencies =
-          List.generate(101, (i) => '  dep$i: ^1.0.$i').join('\n');
+      final dependencies = List.generate(
+        101,
+        (i) => '  dep$i: ^1.0.$i',
+      ).join('\n');
       final pubspec = Pubspec.parse('''
 name: test_pkg
 version: 1.0.0-dev.1
@@ -275,12 +300,7 @@ $dependencies
   });
 
   group('forbid invalid dependency names', () {
-    final names = [
-      'a.',
-      'a-b',
-      'a/',
-      '0a',
-    ];
+    final names = ['a.', 'a-b', 'a/', '0a'];
 
     test('normal dependencies are restricted', () {
       for (final name in names) {
@@ -637,8 +657,9 @@ dev_dependencies:
 
     test('generic TODO', () {
       expect(
-          requireNonEmptyLicense('LICENSE', 'TODO: Add your license here.\n'),
-          isNotEmpty);
+        requireNonEmptyLicense('LICENSE', 'TODO: Add your license here.\n'),
+        isNotEmpty,
+      );
     });
 
     test('valid-looking license', () {
@@ -711,9 +732,9 @@ dev_dependencies:
       ''');
       // both files will emit 1 issue about being a duplicate
       expect(
-        checkScreenshots(pubspec, ['b.jpg'])
-            .map((e) => e.message)
-            .every((e) => e.contains('only once')),
+        checkScreenshots(pubspec, [
+          'b.jpg',
+        ]).map((e) => e.message).every((e) => e.contains('only once')),
         isTrue,
       );
     });
@@ -765,10 +786,7 @@ dev_dependencies:
         - path: b.jpg
           description: z͎͗ͣḁ̵̑l̉̃ͦg̐̓̒o͓̔ͥ
       ''');
-      expect(
-        checkScreenshots(pubspec, ['b.jpg']),
-        isNotEmpty,
-      );
+      expect(checkScreenshots(pubspec, ['b.jpg']), isNotEmpty);
     });
 
     test('OK', () {
@@ -778,10 +796,7 @@ dev_dependencies:
         - path: b.jpg
           description: reasonable description
       ''');
-      expect(
-        checkScreenshots(pubspec, ['b.jpg']),
-        isEmpty,
-      );
+      expect(checkScreenshots(pubspec, ['b.jpg']), isEmpty);
     });
   });
 
@@ -799,7 +814,9 @@ dev_dependencies:
       expect(checkFunding('funding: [1]'), isNotEmpty);
       expect(checkFunding('funding: [" "]'), isNotEmpty);
       expect(
-          checkFunding('funding: ["http://example.com/fund-me"]'), isNotEmpty);
+        checkFunding('funding: ["http://example.com/fund-me"]'),
+        isNotEmpty,
+      );
     });
 
     test('too long url value', () {
@@ -821,9 +838,9 @@ dev_dependencies:
       topics:
       ''';
       expect(
-        checkTopics(pubspec)
-            .map((e) => e.message)
-            .every((e) => e.contains('only a list')),
+        checkTopics(
+          pubspec,
+        ).map((e) => e.message).every((e) => e.contains('only a list')),
         isTrue,
       );
     });
@@ -840,9 +857,9 @@ dev_dependencies:
         - client
       ''';
       expect(
-        checkTopics(pubspec)
-            .map((e) => e.message)
-            .every((e) => e.contains('at most 5')),
+        checkTopics(
+          pubspec,
+        ).map((e) => e.message).every((e) => e.contains('at most 5')),
         isTrue,
       );
     });
@@ -855,9 +872,9 @@ dev_dependencies:
         - b: widget
       ''';
       expect(
-        checkTopics(pubspec)
-            .map((e) => e.message)
-            .every((e) => e.contains('only strings')),
+        checkTopics(
+          pubspec,
+        ).map((e) => e.message).every((e) => e.contains('only strings')),
         isTrue,
       );
     });
@@ -871,9 +888,9 @@ dev_dependencies:
         - b
       ''';
       expect(
-        checkTopics(pubspec)
-            .map((e) => e.message)
-            .every((e) => e.contains('too short')),
+        checkTopics(
+          pubspec,
+        ).map((e) => e.message).every((e) => e.contains('too short')),
         isTrue,
       );
     });
@@ -887,9 +904,9 @@ dev_dependencies:
         - thisisindeedaverylongnamefortopic
       ''';
       expect(
-        checkTopics(pubspec)
-            .map((e) => e.message)
-            .every((e) => e.contains('too long')),
+        checkTopics(
+          pubspec,
+        ).map((e) => e.message).every((e) => e.contains('too long')),
         isTrue,
       );
     });
@@ -903,9 +920,9 @@ dev_dependencies:
         - button
       ''';
       expect(
-        checkTopics(pubspec)
-            .map((e) => e.message)
-            .every((e) => e.contains('present once')),
+        checkTopics(
+          pubspec,
+        ).map((e) => e.message).every((e) => e.contains('present once')),
         isTrue,
       );
     });
@@ -917,9 +934,9 @@ dev_dependencies:
         - -button
       ''';
       expect(
-        checkTopics(pubspec)
-            .map((e) => e.message)
-            .every((e) => e.contains('must consist')),
+        checkTopics(
+          pubspec,
+        ).map((e) => e.message).every((e) => e.contains('must consist')),
         isTrue,
       );
     });
@@ -931,9 +948,9 @@ dev_dependencies:
         - 1button
       ''';
       expect(
-        checkTopics(pubspec)
-            .map((e) => e.message)
-            .every((e) => e.contains('must consist')),
+        checkTopics(
+          pubspec,
+        ).map((e) => e.message).every((e) => e.contains('must consist')),
         isTrue,
       );
     });
@@ -945,9 +962,9 @@ dev_dependencies:
         - button-
       ''';
       expect(
-        checkTopics(pubspec)
-            .map((e) => e.message)
-            .every((e) => e.contains('must consist')),
+        checkTopics(
+          pubspec,
+        ).map((e) => e.message).every((e) => e.contains('must consist')),
         isTrue,
       );
     });
@@ -959,9 +976,9 @@ dev_dependencies:
         - but--ton
       ''';
       expect(
-        checkTopics(pubspec)
-            .map((e) => e.message)
-            .every((e) => e.contains('must consist')),
+        checkTopics(
+          pubspec,
+        ).map((e) => e.message).every((e) => e.contains('must consist')),
         isTrue,
       );
     });
@@ -973,9 +990,9 @@ dev_dependencies:
         - copyWith
       ''';
       expect(
-        checkTopics(pubspec)
-            .map((e) => e.message)
-            .every((e) => e.contains('must consist')),
+        checkTopics(
+          pubspec,
+        ).map((e) => e.message).every((e) => e.contains('must consist')),
         isTrue,
       );
     });
@@ -987,45 +1004,31 @@ dev_dependencies:
         - but-ton
         - widget
       ''';
-      expect(
-        checkTopics(pubspec),
-        isEmpty,
-      );
+      expect(checkTopics(pubspec), isEmpty);
     });
   });
 
   group('hooks', () {
     test('allowed', () {
       expect(
-        checkHooks(Version.parse('3.6.0'), {
-          'hook/build.dart',
-          'lib/x.dart',
-        }),
+        checkHooks(Version.parse('3.6.0'), {'hook/build.dart', 'lib/x.dart'}),
         isEmpty,
       );
 
-      expect(
-        checkHooks(Version.parse('3.6.0'), {
-          'hook/README.md',
-        }),
-        isEmpty,
-      );
+      expect(checkHooks(Version.parse('3.6.0'), {'hook/README.md'}), isEmpty);
     });
 
     test('prevented', () {
       expect(
-        checkHooks(Version.parse('3.6.0'), {
-          'hook/x.dart',
-        }).single.message,
+        checkHooks(Version.parse('3.6.0'), {'hook/x.dart'}).single.message,
         contains('`hook/x.dart` is not allowed'),
       );
 
       expect(
-        checkHooks(Version.parse('3.5.0'), {
-          'hook/build.dart',
-        }).single.message,
+        checkHooks(Version.parse('3.5.0'), {'hook/build.dart'}).single.message,
         contains(
-            '`hook/build.dart` is allowed only with a minimum SDK constraint of'),
+          '`hook/build.dart` is allowed only with a minimum SDK constraint of',
+        ),
       );
     });
   });

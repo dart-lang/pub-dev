@@ -10,8 +10,9 @@ void main() {
     test('partial token lookup', () {
       final index = TokenIndex.fromMap({'x': 'SomeCamelCasedWord and others'});
       expect(index.lookupTokens('word').tokenWeights, {'word': 1.0});
-      expect(index.lookupTokens('OtherCased').tokenWeights,
-          {'cased': closeTo(0.70, 0.01)});
+      expect(index.lookupTokens('OtherCased').tokenWeights, {
+        'cased': closeTo(0.70, 0.01),
+      });
       expect(index.lookupTokens('SomethingElse').tokenWeights, {});
       // do not return `cased` here:
       expect(index.lookupTokens('SomethingElse OtherCased').tokenWeights, {});
@@ -47,9 +48,7 @@ void main() {
         'queue_lower': queueText.toLowerCase(),
         'unmodifiable': 'CustomUnmodifiableMapBase',
       });
-      expect(index.search('queue'), {
-        'queue': closeTo(0.53, 0.01),
-      });
+      expect(index.search('queue'), {'queue': closeTo(0.53, 0.01)});
       expect(index.search('unmodifiabl'), {}); // no partial matches
       expect(index.search('unmodifiable'), {
         'unmodifiable': closeTo(0.68, 0.01),
@@ -63,9 +62,7 @@ void main() {
         'uri://teamspeak': 'teamspeak',
       });
 
-      expect(index.search('riak'), {
-        'uri://riak_client': closeTo(0.99, 0.01),
-      });
+      expect(index.search('riak'), {'uri://riak_client': closeTo(0.99, 0.01)});
 
       expect(index.search('riak client'), {
         'uri://riak_client': closeTo(0.98, 0.01),
@@ -73,8 +70,9 @@ void main() {
     });
 
     test('Do not overweight partial matches', () {
-      final index =
-          TokenIndex.fromMap({'flutter_qr_reader': 'flutter_qr_reader'});
+      final index = TokenIndex.fromMap({
+        'flutter_qr_reader': 'flutter_qr_reader',
+      });
       final data = index.search('ByteDataReader');
       // The partial match should not return more than 0.65 as score.
       expect(data, {'flutter_qr_reader': lessThan(0.65)});
@@ -98,11 +96,12 @@ void main() {
       // location should be the top value, everything else should be lower
       final locationValue = match['location'];
       expect(
-          match.keys
-              .where((k) => k != 'location')
-              .map((k) => match[k])
-              .every((v) => v! < locationValue!),
-          isTrue);
+        match.keys
+            .where((k) => k != 'location')
+            .map((k) => match[k])
+            .every((v) => v! < locationValue!),
+        isTrue,
+      );
     });
   });
 

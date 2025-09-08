@@ -77,210 +77,222 @@ void main() {
       await tempDir.delete(recursive: true);
     });
 
-    scopedTest(
-      'run dartdoc',
-      () async {
-        registerStaticFileCacheForTest(StaticFileCache.forTests());
-        final pr = await toolEnv.dartdoc(pkgDir, docDir, usesFlutter: false);
-        expect(pr.exitCode, 0);
+    scopedTest('run dartdoc', () async {
+      registerStaticFileCacheForTest(StaticFileCache.forTests());
+      final pr = await toolEnv.dartdoc(pkgDir, docDir, usesFlutter: false);
+      expect(pr.exitCode, 0);
 
-        final processedFiles = <String>{};
-        final files = await Directory(docDir)
-            .list(recursive: true)
-            .whereType<File>()
-            .toList();
-        for (final file in files) {
-          if (file.path.endsWith('-sidebar.html')) {
-            continue;
-          }
-          if (file.path.endsWith('-library.html')) {
-            continue;
-          }
-          if (file.path.endsWith('/search.html')) {
-            continue;
-          }
-          if (file.path.endsWith('.html')) {
-            final relativePath = p.relative(file.path, from: docDir);
-            processedFiles.add(relativePath);
-
-            var fileContent = (await file.readAsString());
-            // remove comments early on
-            fileContent = fileContent.replaceAll(RegExp(r'\<!--.*?-->'), '');
-            final fileXmlDoc =
-                html_parser.parse(fileContent).toXml() as XmlDocument;
-            final fileXmlRoot = fileXmlDoc.rootElement;
-
-            // rewrite static asset scripts
-            for (final script in fileXmlRoot.findAllElements('script')) {
-              final src = script.getAttribute('src');
-              if (src != null && src.contains('static-assets/')) {
-                final lastPart =
-                    src.split('static-assets/')[1].split('?').first;
-                script.setAttribute(
-                    'src',
-                    staticUrls.getAssetUrl(
-                        p.join('/static/dartdoc/resources', lastPart)));
-              }
-            }
-            // rewrite static asset links
-            for (final link in fileXmlRoot.findAllElements('link')) {
-              final href = link.getAttribute('href');
-              if (href != null && href.contains('static-assets/')) {
-                final lastPart =
-                    href.split('static-assets/')[1].split('?').first;
-                link.setAttribute(
-                    'href',
-                    staticUrls.getAssetUrl(
-                        p.join('/static/dartdoc/resources', lastPart)));
-                if (lastPart.endsWith('.css')) {
-                  link.setAttribute('type', 'text/css');
-                }
-              }
-            }
-
-            final page = DartDocPage.parse(fileContent);
-            final renderedNode = page.render(
-              DartDocPageOptions(
-                package: 'oxygen',
-                version: '1.0.0',
-                urlSegment: '1.0.0',
-                isLatestStable: true,
-                path: relativePath,
-              ),
-            );
-            final renderedXmlDoc = html_parser
-                .parse(renderedNode.toString())
-                .toXml() as XmlDocument;
-
-            // remove nodes that are the same in both XML
-            _removeSharedXmlNodes(fileXmlRoot, renderedXmlDoc);
-
-            // cleanup <head> differences
-            for (final link in ['/styles.css', '/github.css', '/favicon.png']) {
-              fileXmlRoot.descendantElements
-                  .where((e) =>
-                      e.localName == 'link' &&
-                      e.getAttribute('href')!.endsWith(link))
-                  .firstOrNull
-                  ?.remove();
-            }
-            fileXmlRoot.descendantElements
-                .firstWhereOrNull((e) => e.getAttribute('name') == 'generator')
-                ?.remove();
-            final renderedHead = renderedXmlDoc.descendantElements
-                .firstWhere((e) => e.localName == 'head');
-            renderedHead.childElements
-                .firstWhereOrNull((e) => e.getAttribute('content') == 'noindex')
-                ?.remove();
-            // TODO: review if all of these can be ignored
-            expect(renderedHead.children, hasLength(lessThanOrEqualTo(14)));
-            for (final c in [...renderedHead.childElements]) {
-              c.remove();
-            }
-
-            // removing extra <noscript>
-            final firstNoScript = renderedXmlDoc.descendantElements
-                .firstWhere((e) => e.localName == 'noscript');
-            expect(firstNoScript.toXmlString(),
-                contains('https://www.googletagmanager.com/'));
-            firstNoScript.remove();
-
-            // removing extra dark-theme initializer script
-            renderedXmlDoc.descendantElements
-                .where((e) =>
-                    e.localName == 'script' &&
-                    e.getAttribute('src')!.endsWith('/dark-init.js'))
-                .single
-                .remove();
-
-            // removing extra logo
-            final firstLogo = renderedXmlDoc.descendantElements.firstWhere(
-                (e) =>
-                    e.localName == 'img' &&
-                    (e.getAttribute('src') ?? '').endsWith('/dart-logo.svg'));
-            (firstLogo.parent as XmlElement).remove();
-
-            // removing .self-name
-            final fileFirstName = fileXmlRoot.descendantElements
-                .firstWhereOrNull((e) =>
-                    e.localName == 'div' &&
-                    e.getAttribute('class') == 'self-name');
-            if (fileFirstName != null) {
-              fileFirstName.remove();
-              renderedXmlDoc.descendantElements
-                  .firstWhere((e) =>
-                      e.localName == 'div' &&
-                      e.getAttribute('class') == 'self-name')
-                  .remove();
-            }
-
-            // removing breadcrumbs two times
-            for (var i = 0; i < 2; i++) {
-              final fileFirstBreadcrumbs = fileXmlRoot.descendantElements
-                  .firstWhere((e) =>
-                      e.localName == 'ol' &&
-                      (e.getAttribute('class') ?? '')
-                          .startsWith('breadcrumbs '));
-              expect(fileFirstBreadcrumbs.childElements, hasLength(1));
-              final renderedFirstBreadcrumbs = renderedXmlDoc.descendantElements
-                  .firstWhere((e) =>
-                      e.localName == 'ol' &&
-                      (e.getAttribute('class') ?? '')
-                          .startsWith('breadcrumbs '));
-              expect(renderedFirstBreadcrumbs.childElements, hasLength(2));
-              fileFirstBreadcrumbs.remove();
-              renderedFirstBreadcrumbs.remove();
-            }
-
-            // main content section -> div
-            final fileMainContentDiv = fileXmlRoot.descendantElements
-                .firstWhere(
-                    (e) => e.getAttribute('id') == 'dartdoc-main-content');
-            for (final c in [...fileMainContentDiv.childElements]) {
-              // add extra class
-              if (c.getAttribute('class') == 'desc markdown') {
-                c.setAttribute('class', 'desc markdown markdown-body');
-              }
-              // remove search form
-              c.descendantElements
-                  .firstWhereOrNull((e) => e.localName == 'form')
-                  ?.remove();
-              // replace node with <div> clone
-              c.replace(c.renameAndClone('div'));
-            }
-
-            // final cleanup
-            _removeSharedXmlNodes(fileXmlRoot, renderedXmlDoc);
-
-            expect(
-              renderedXmlDoc
-                  .toXmlString(
-                    pretty: true,
-                    indent: '  ',
-                    sortAttributes: (a, b) =>
-                        a.localName.compareTo(b.localName),
-                  )
-                  .replaceFirst('<html lang="en"/>', '<html lang="en"></html>'),
-              fileXmlDoc.toXmlString(
-                pretty: true,
-                indent: '  ',
-                sortAttributes: (a, b) => a.localName.compareTo(b.localName),
-              ),
-            );
-          }
+      final processedFiles = <String>{};
+      final files = await Directory(
+        docDir,
+      ).list(recursive: true).whereType<File>().toList();
+      for (final file in files) {
+        if (file.path.endsWith('-sidebar.html')) {
+          continue;
         }
-        expect(processedFiles, {
-          'oxygen/index.html',
-          'oxygen/multiply.html',
-          'oxygen/Oxygen-class.html',
-          'oxygen/Oxygen/x.html',
-          'oxygen/Oxygen/Oxygen.html',
-          'index.html',
-          '__404error.html',
-        });
-      },
-      timeout: Timeout.factor(4),
-    );
+        if (file.path.endsWith('-library.html')) {
+          continue;
+        }
+        if (file.path.endsWith('/search.html')) {
+          continue;
+        }
+        if (file.path.endsWith('.html')) {
+          final relativePath = p.relative(file.path, from: docDir);
+          processedFiles.add(relativePath);
+
+          var fileContent = (await file.readAsString());
+          // remove comments early on
+          fileContent = fileContent.replaceAll(RegExp(r'\<!--.*?-->'), '');
+          final fileXmlDoc =
+              html_parser.parse(fileContent).toXml() as XmlDocument;
+          final fileXmlRoot = fileXmlDoc.rootElement;
+
+          // rewrite static asset scripts
+          for (final script in fileXmlRoot.findAllElements('script')) {
+            final src = script.getAttribute('src');
+            if (src != null && src.contains('static-assets/')) {
+              final lastPart = src.split('static-assets/')[1].split('?').first;
+              script.setAttribute(
+                'src',
+                staticUrls.getAssetUrl(
+                  p.join('/static/dartdoc/resources', lastPart),
+                ),
+              );
+            }
+          }
+          // rewrite static asset links
+          for (final link in fileXmlRoot.findAllElements('link')) {
+            final href = link.getAttribute('href');
+            if (href != null && href.contains('static-assets/')) {
+              final lastPart = href.split('static-assets/')[1].split('?').first;
+              link.setAttribute(
+                'href',
+                staticUrls.getAssetUrl(
+                  p.join('/static/dartdoc/resources', lastPart),
+                ),
+              );
+              if (lastPart.endsWith('.css')) {
+                link.setAttribute('type', 'text/css');
+              }
+            }
+          }
+
+          final page = DartDocPage.parse(fileContent);
+          final renderedNode = page.render(
+            DartDocPageOptions(
+              package: 'oxygen',
+              version: '1.0.0',
+              urlSegment: '1.0.0',
+              isLatestStable: true,
+              path: relativePath,
+            ),
+          );
+          final renderedXmlDoc =
+              html_parser.parse(renderedNode.toString()).toXml() as XmlDocument;
+
+          // remove nodes that are the same in both XML
+          _removeSharedXmlNodes(fileXmlRoot, renderedXmlDoc);
+
+          // cleanup <head> differences
+          for (final link in ['/styles.css', '/github.css', '/favicon.png']) {
+            fileXmlRoot.descendantElements
+                .where(
+                  (e) =>
+                      e.localName == 'link' &&
+                      e.getAttribute('href')!.endsWith(link),
+                )
+                .firstOrNull
+                ?.remove();
+          }
+          fileXmlRoot.descendantElements
+              .firstWhereOrNull((e) => e.getAttribute('name') == 'generator')
+              ?.remove();
+          final renderedHead = renderedXmlDoc.descendantElements.firstWhere(
+            (e) => e.localName == 'head',
+          );
+          renderedHead.childElements
+              .firstWhereOrNull((e) => e.getAttribute('content') == 'noindex')
+              ?.remove();
+          // TODO: review if all of these can be ignored
+          expect(renderedHead.children, hasLength(lessThanOrEqualTo(14)));
+          for (final c in [...renderedHead.childElements]) {
+            c.remove();
+          }
+
+          // removing extra <noscript>
+          final firstNoScript = renderedXmlDoc.descendantElements.firstWhere(
+            (e) => e.localName == 'noscript',
+          );
+          expect(
+            firstNoScript.toXmlString(),
+            contains('https://www.googletagmanager.com/'),
+          );
+          firstNoScript.remove();
+
+          // removing extra dark-theme initializer script
+          renderedXmlDoc.descendantElements
+              .where(
+                (e) =>
+                    e.localName == 'script' &&
+                    e.getAttribute('src')!.endsWith('/dark-init.js'),
+              )
+              .single
+              .remove();
+
+          // removing extra logo
+          final firstLogo = renderedXmlDoc.descendantElements.firstWhere(
+            (e) =>
+                e.localName == 'img' &&
+                (e.getAttribute('src') ?? '').endsWith('/dart-logo.svg'),
+          );
+          (firstLogo.parent as XmlElement).remove();
+
+          // removing .self-name
+          final fileFirstName = fileXmlRoot.descendantElements.firstWhereOrNull(
+            (e) =>
+                e.localName == 'div' && e.getAttribute('class') == 'self-name',
+          );
+          if (fileFirstName != null) {
+            fileFirstName.remove();
+            renderedXmlDoc.descendantElements
+                .firstWhere(
+                  (e) =>
+                      e.localName == 'div' &&
+                      e.getAttribute('class') == 'self-name',
+                )
+                .remove();
+          }
+
+          // removing breadcrumbs two times
+          for (var i = 0; i < 2; i++) {
+            final fileFirstBreadcrumbs = fileXmlRoot.descendantElements
+                .firstWhere(
+                  (e) =>
+                      e.localName == 'ol' &&
+                      (e.getAttribute('class') ?? '').startsWith(
+                        'breadcrumbs ',
+                      ),
+                );
+            expect(fileFirstBreadcrumbs.childElements, hasLength(1));
+            final renderedFirstBreadcrumbs = renderedXmlDoc.descendantElements
+                .firstWhere(
+                  (e) =>
+                      e.localName == 'ol' &&
+                      (e.getAttribute('class') ?? '').startsWith(
+                        'breadcrumbs ',
+                      ),
+                );
+            expect(renderedFirstBreadcrumbs.childElements, hasLength(2));
+            fileFirstBreadcrumbs.remove();
+            renderedFirstBreadcrumbs.remove();
+          }
+
+          // main content section -> div
+          final fileMainContentDiv = fileXmlRoot.descendantElements.firstWhere(
+            (e) => e.getAttribute('id') == 'dartdoc-main-content',
+          );
+          for (final c in [...fileMainContentDiv.childElements]) {
+            // add extra class
+            if (c.getAttribute('class') == 'desc markdown') {
+              c.setAttribute('class', 'desc markdown markdown-body');
+            }
+            // remove search form
+            c.descendantElements
+                .firstWhereOrNull((e) => e.localName == 'form')
+                ?.remove();
+            // replace node with <div> clone
+            c.replace(c.renameAndClone('div'));
+          }
+
+          // final cleanup
+          _removeSharedXmlNodes(fileXmlRoot, renderedXmlDoc);
+
+          expect(
+            renderedXmlDoc
+                .toXmlString(
+                  pretty: true,
+                  indent: '  ',
+                  sortAttributes: (a, b) => a.localName.compareTo(b.localName),
+                )
+                .replaceFirst('<html lang="en"/>', '<html lang="en"></html>'),
+            fileXmlDoc.toXmlString(
+              pretty: true,
+              indent: '  ',
+              sortAttributes: (a, b) => a.localName.compareTo(b.localName),
+            ),
+          );
+        }
+      }
+      expect(processedFiles, {
+        'oxygen/index.html',
+        'oxygen/multiply.html',
+        'oxygen/Oxygen-class.html',
+        'oxygen/Oxygen/x.html',
+        'oxygen/Oxygen/Oxygen.html',
+        'index.html',
+        '__404error.html',
+      });
+    }, timeout: Timeout.factor(4));
   });
 }
 
@@ -314,7 +326,8 @@ void _removeSharedXmlNodes(XmlElement a, XmlDocument b) {
         .findAllElements(ae.name.local)
         .where((be) => be.path() == apath)
         .firstWhereOrNull(
-            (be) => ae.equalsAsSimpleElement(be) || ae.equalsAsString(be));
+          (be) => ae.equalsAsSimpleElement(be) || ae.equalsAsString(be),
+        );
     if (firstMatch != null) {
       ae.remove();
       firstMatch.remove();

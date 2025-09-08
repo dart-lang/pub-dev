@@ -46,9 +46,11 @@ extension WindowExt on Window {
   /// repaint so the user can draw an animation frame.
   Future<void> get animationFrame {
     final completer = Completer.sync();
-    requestAnimationFrame((() {
-      completer.complete();
-    }).toJSCaptureThis);
+    requestAnimationFrame(
+      (() {
+        completer.complete();
+      }).toJSCaptureThis,
+    );
     return completer.future;
   }
 }

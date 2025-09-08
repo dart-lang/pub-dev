@@ -23,8 +23,11 @@ void main() {
 
     Future<String> download(String package, String version) async {
       final file = File(p.join(tempDir.path, '$package-$version.tar.gz'));
-      final rs = await get(Uri.parse(
-          'https://pub.dartlang.org/packages/$package/versions/$version.tar.gz'));
+      final rs = await get(
+        Uri.parse(
+          'https://pub.dartlang.org/packages/$package/versions/$version.tar.gz',
+        ),
+      );
       await file.writeAsBytes(rs.bodyBytes);
       return file.path;
     }
@@ -40,11 +43,15 @@ void main() {
         expect(summary.issues, isEmpty);
         expect(summary.pubspecContent, contains('pana'));
         expect(summary.readmePath, 'README.md');
-        expect(summary.readmeContent,
-            contains('image links in markdown content are insecure'));
+        expect(
+          summary.readmeContent,
+          contains('image links in markdown content are insecure'),
+        );
         expect(summary.changelogPath, 'CHANGELOG.md');
-        expect(summary.changelogContent,
-            contains('penalize outdated package constraints'));
+        expect(
+          summary.changelogContent,
+          contains('penalize outdated package constraints'),
+        );
         expect(summary.examplePath, isNull);
         expect(summary.exampleContent, isNull);
         expect(summary.libraries, <String>['models.dart', 'pana.dart']);
@@ -54,8 +61,10 @@ void main() {
       verify(await summarizePackageArchive(path));
 
       await expandWithBytes(path, <int>[1]);
-      expect((await summarizePackageArchive(path)).issues.single.message,
-          'Failed to scan tar archive.');
+      expect(
+        (await summarizePackageArchive(path)).issues.single.message,
+        'Failed to scan tar archive.',
+      );
     });
 
     test('maxContentLength', () async {
@@ -69,11 +78,12 @@ void main() {
 
       await expandWithBytes(path, <int>[1]);
       expect(
-          (await summarizePackageArchive(path, maxContentLength: 16))
-              .issues
-              .single
-              .message,
-          'Failed to scan tar archive.');
+        (await summarizePackageArchive(
+          path,
+          maxContentLength: 16,
+        )).issues.single.message,
+        'Failed to scan tar archive.',
+      );
     });
   });
 }

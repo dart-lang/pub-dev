@@ -14,16 +14,19 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex(documents: [
-        PackageDocument(package: 'jsontool'),
-        PackageDocument(package: 'json2entity'),
-        PackageDocument(package: 'json_to_model'),
-      ]);
+      index = InMemoryPackageIndex(
+        documents: [
+          PackageDocument(package: 'jsontool'),
+          PackageDocument(package: 'json2entity'),
+          PackageDocument(package: 'json_to_model'),
+        ],
+      );
     });
 
     test('json_tool', () async {
-      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
-          query: 'json_tool', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(
+        ServiceSearchQuery.parse(query: 'json_tool', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -39,30 +42,33 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex(documents: [
-        PackageDocument(
-          package: 'jsontool',
-          description:
-              'Low-level tools for working with JSON without creating intermediate objects.',
-        ),
-        PackageDocument(
-          package: 'json2entity',
-          description:
-              'A tool for converting JSON strings into dart entity classes. Support json_serializable.',
-        ),
-        PackageDocument(
-          package: 'json_to_model',
-          description:
-              'Generate model class from Json file. partly inspired by json_model.',
-          readme:
-              'Command line tool for generating Dart models (json_serializable) from Json file.',
-        ),
-      ]);
+      index = InMemoryPackageIndex(
+        documents: [
+          PackageDocument(
+            package: 'jsontool',
+            description:
+                'Low-level tools for working with JSON without creating intermediate objects.',
+          ),
+          PackageDocument(
+            package: 'json2entity',
+            description:
+                'A tool for converting JSON strings into dart entity classes. Support json_serializable.',
+          ),
+          PackageDocument(
+            package: 'json_to_model',
+            description:
+                'Generate model class from Json file. partly inspired by json_model.',
+            readme:
+                'Command line tool for generating Dart models (json_serializable) from Json file.',
+          ),
+        ],
+      );
     });
 
     test('json_tool', () async {
-      final PackageSearchResult result = index.search(ServiceSearchQuery.parse(
-          query: 'json_tool', order: SearchOrder.text));
+      final PackageSearchResult result = index.search(
+        ServiceSearchQuery.parse(query: 'json_tool', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 3,

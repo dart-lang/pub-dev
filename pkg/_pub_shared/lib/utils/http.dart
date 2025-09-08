@@ -135,7 +135,7 @@ class UnexpectedStatusException implements Exception {
   final String message;
 
   UnexpectedStatusException(this.statusCode, Uri uri)
-      : message = 'Unexpected status code for $uri: $statusCode.';
+    : message = 'Unexpected status code for $uri: $statusCode.';
 
   @override
   String toString() => 'UnexpectedStatusException: $message';

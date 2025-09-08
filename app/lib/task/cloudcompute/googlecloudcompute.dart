@@ -127,11 +127,7 @@ CloudCompute createGoogleCloudCompute({
     );
   }
   if (cosImage.isEmpty) {
-    throw ArgumentError.value(
-      cosImage,
-      'cosImage',
-      'must be non-empty',
-    );
+    throw ArgumentError.value(cosImage, 'cosImage', 'must be non-empty');
   }
 
   return _GoogleCloudCompute(
@@ -154,9 +150,7 @@ CloudCompute createGoogleCloudCompute({
 /// This ignores the `poolLabel` and deletes all instances that has labels
 /// indicating they were part of such a pool. This should cleanup any old
 /// instances that were left behind by an old pool.
-Future<void> deleteAbandonedInstances({
-  required String project,
-}) async {
+Future<void> deleteAbandonedInstances({required String project}) async {
   final api = ComputeApi(cloudComputeClient);
 
   // Beware filters documented in the GCE API reference are not necessarily
@@ -164,10 +158,7 @@ Future<void> deleteAbandonedInstances({
   //
   // This filters to instances that have specified "owner" label and has some
   // "pool" label.
-  final filter = [
-    'labels.owner = "pub-dev"',
-    'labels.pool : *',
-  ].join(' AND ');
+  final filter = ['labels.owner = "pub-dev"', 'labels.pool : *'].join(' AND ');
 
   // Remark: We could have more concurrency here, but listing all instances
   //         shouldn't take too long, and very few of the instances should be
@@ -175,13 +166,15 @@ Future<void> deleteAbandonedInstances({
   for (final zone in _googleCloudZones) {
     String? nextPageToken;
     do {
-      final response = await _retry(() => api.instances.list(
-            project,
-            zone,
-            maxResults: 500,
-            filter: filter,
-            pageToken: nextPageToken,
-          ));
+      final response = await _retry(
+        () => api.instances.list(
+          project,
+          zone,
+          maxResults: 500,
+          filter: filter,
+          pageToken: nextPageToken,
+        ),
+      );
       nextPageToken = response.nextPageToken;
 
       // For each instance, delete it if it's older than 3 days
@@ -193,14 +186,18 @@ Future<void> deleteAbandonedInstances({
           continue;
         }
         try {
-          _log.warning('Deleting abandoned instance: ${instance.name} '
-              'created at ${instance.creationTimestamp}.');
-          await _retryWithRequestId((rId) => api.instances.delete(
-                project,
-                zone,
-                instance.name!,
-                requestId: rId,
-              ));
+          _log.warning(
+            'Deleting abandoned instance: ${instance.name} '
+            'created at ${instance.creationTimestamp}.',
+          );
+          await _retryWithRequestId(
+            (rId) => api.instances.delete(
+              project,
+              zone,
+              instance.name!,
+              requestId: rId,
+            ),
+          );
           // Note. that instances.delete() technically returns a custom long-running
           // operation, we have no reasonable action to take if deletion fails.
           // Presumably, the instance would show up in listings again and eventually
@@ -234,12 +231,7 @@ final class _GoogleCloudInstance extends CloudInstance {
   @override
   final InstanceState state;
 
-  _GoogleCloudInstance(
-    this.zone,
-    this.instanceName,
-    this.created,
-    this.state,
-  );
+  _GoogleCloudInstance(this.zone, this.instanceName, this.created, this.state);
 
   @override
   String toString() {
@@ -378,11 +370,17 @@ final class _GoogleCloudCompute extends CloudCompute {
     }
     if (instanceName.isEmpty || instanceName.length > 63) {
       throw ArgumentError.value(
-          instanceName, 'instanceName', 'must have a length between 1 and 63');
+        instanceName,
+        'instanceName',
+        'must have a length between 1 and 63',
+      );
     }
     if (!_validInstanceNamePattern.hasMatch(instanceName)) {
-      throw ArgumentError.value(instanceName, 'instanceName',
-          'must match pattern: $_validInstanceNamePattern');
+      throw ArgumentError.value(
+        instanceName,
+        'instanceName',
+        'must match pattern: $_validInstanceNamePattern',
+      );
     }
     // Max argument string size on Linux is MAX_ARG_STRLEN = 131072
     // In addition the maximum meta-data size supported by GCE is 256KiB
@@ -420,7 +418,8 @@ final class _GoogleCloudCompute extends CloudCompute {
     // than `systemctl enable..`.
     //
     // See: https://cloudinit.readthedocs.io/en/latest/
-    final cloudConfig = '''
+    final cloudConfig =
+        '''
 #cloud-config
 users:
 - name: worker
@@ -517,19 +516,18 @@ runcmd:
     );
 
     _log.info('Creating instance: ${instance.name}');
-    final pendingInstancePlaceHolder =
-        _PendingGoogleCloudInstance(zone, instanceName);
+    final pendingInstancePlaceHolder = _PendingGoogleCloudInstance(
+      zone,
+      instanceName,
+    );
     _pendingInstances.add(pendingInstancePlaceHolder);
     try {
       // https://cloud.google.com/container-optimized-os/docs/how-to/create-configure-instance#creating_an_instance
-      var op = await _retryWithRequestId((rId) => _api.instances
-          .insert(
-            instance,
-            _project,
-            zone,
-            requestId: rId,
-          )
-          .timeout(Duration(minutes: 5)));
+      var op = await _retryWithRequestId(
+        (rId) => _api.instances
+            .insert(instance, _project, zone, requestId: rId)
+            .timeout(Duration(minutes: 5)),
+      );
 
       void logWarningsThrowErrors() {
         // Log warnings if there is any
@@ -554,10 +552,12 @@ runcmd:
         final opErrors = op.error?.errors ?? [];
         if (opErrors.isNotEmpty) {
           if (opErrors.length > 1) {
-            throw ApiRequestError('Multiple errors creating instance, '
-                    'api.instances.insert(name=${instance.name}), '
-                    'errors: \n' +
-                opErrors.map((e) => '${e.code}: ${e.message}').join('\n'));
+            throw ApiRequestError(
+              'Multiple errors creating instance, '
+                      'api.instances.insert(name=${instance.name}), '
+                      'errors: \n' +
+                  opErrors.map((e) => '${e.code}: ${e.message}').join('\n'),
+            );
           }
 
           final error = opErrors.first;
@@ -593,13 +593,11 @@ runcmd:
 
       while (op.status != 'DONE') {
         final start = clock.now();
-        op = await _retry(() => _api.zoneOperations
-            .wait(
-              _project,
-              zone,
-              op.name!,
-            )
-            .timeout(Duration(minutes: 3)));
+        op = await _retry(
+          () => _api.zoneOperations
+              .wait(_project, zone, op.name!)
+              .timeout(Duration(minutes: 3)),
+        );
         logWarningsThrowErrors();
 
         if (op.status != 'DONE') {
@@ -627,12 +625,10 @@ runcmd:
   @override
   Future<void> delete(String zone, String instanceName) async {
     try {
-      await _retryWithRequestId((rId) => _api.instances.delete(
-            _project,
-            zone,
-            instanceName,
-            requestId: rId,
-          ));
+      await _retryWithRequestId(
+        (rId) =>
+            _api.instances.delete(_project, zone, instanceName, requestId: rId),
+      );
       // Note. that instances.delete() technically returns a custom long-running
       // operation, we have no reasonable action to take if deletion fails.
       // Presumably, the instance would show up in listings again and eventually
@@ -660,45 +656,53 @@ runcmd:
 
     scheduleMicrotask(() async {
       try {
-        await Future.wait(_zones.map((zone) async {
-          var response = await _retry(() => _api.instances.list(
+        await Future.wait(
+          _zones.map((zone) async {
+            var response = await _retry(
+              () => _api.instances.list(
                 _project,
                 zone,
                 maxResults: 500,
                 filter: filter,
                 // TODO: Specify $fields, to avoid fetching unnecessary information
-              ));
+              ),
+            );
 
-          final wrap = (Instance item) => _wrapInstance(item, zone);
-          final pendingInZone = _pendingInstances
-              .where((instance) => instance.zone == zone)
-              .toSet();
+            final wrap = (Instance item) => _wrapInstance(item, zone);
+            final pendingInZone = _pendingInstances
+                .where((instance) => instance.zone == zone)
+                .toSet();
 
-          for (final instance in (response.items ?? []).map(wrap)) {
-            c.add(instance);
-            pendingInZone
-                .removeWhere((i) => i.instanceName == instance.instanceName);
-          }
+            for (final instance in (response.items ?? []).map(wrap)) {
+              c.add(instance);
+              pendingInZone.removeWhere(
+                (i) => i.instanceName == instance.instanceName,
+              );
+            }
 
-          while ((response.nextPageToken ?? '').isNotEmpty) {
-            response = await _retry(() => _api.instances.list(
+            while ((response.nextPageToken ?? '').isNotEmpty) {
+              response = await _retry(
+                () => _api.instances.list(
                   _project,
                   zone,
                   maxResults: 500,
                   filter: filter,
                   pageToken: response.nextPageToken,
-                ));
-            for (final instance in (response.items ?? []).map(wrap)) {
-              c.add(instance);
-              pendingInZone
-                  .removeWhere((i) => i.instanceName == instance.instanceName);
+                ),
+              );
+              for (final instance in (response.items ?? []).map(wrap)) {
+                c.add(instance);
+                pendingInZone.removeWhere(
+                  (i) => i.instanceName == instance.instanceName,
+                );
+              }
             }
-          }
 
-          // For each of the pending instances in current zone, where name has
-          // not been reported, return the fake pending instance.
-          pendingInZone.forEach(c.add);
-        }));
+            // For each of the pending instances in current zone, where name has
+            // not been reported, return the fake pending instance.
+            pendingInZone.forEach(c.add);
+          }),
+        );
       } catch (e, st) {
         c.addError(e, st);
       } finally {
@@ -736,8 +740,10 @@ runcmd:
         // Unless this happens frequently, it's probably not so bad to always
         // just treat the instance as dead, and wait for clean-up process to
         // kill it.
-        _log.severe('Unhandled instance.status="${instance.status}", '
-            'reason: ${instance.statusMessage}');
+        _log.severe(
+          'Unhandled instance.status="${instance.status}", '
+          'reason: ${instance.statusMessage}',
+        );
         state = InstanceState.terminated;
     }
     return _wrapInstanceWithState(instance, zone, created, state);
@@ -748,13 +754,7 @@ runcmd:
     String zone,
     DateTime created,
     InstanceState state,
-  ) =>
-      _GoogleCloudInstance(
-        zone,
-        instance.name ?? '',
-        created,
-        state,
-      );
+  ) => _GoogleCloudInstance(zone, instance.name ?? '', created, state);
 }
 
 /// Utility method for parsing `instance.creationTimestamp`.

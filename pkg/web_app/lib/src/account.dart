@@ -68,9 +68,11 @@ void _initSessionMonitor() {
         final div = DivElement()
           ..classes.add('-pub-session-warning')
           ..innerText = displayMessage
-          ..append(ButtonElement()
-            ..text = 'X'
-            ..onClick.listen((_) => removeLast()));
+          ..append(
+            ButtonElement()
+              ..text = 'X'
+              ..onClick.listen((_) => removeLast()),
+          );
         document.body!.append(div);
         lastDiv = div;
       }

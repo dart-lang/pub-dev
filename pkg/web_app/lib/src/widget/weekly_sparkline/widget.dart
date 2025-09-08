@@ -31,25 +31,31 @@ void create(HTMLElement element, Map<String, String> options) {
   element.append(chartSubText);
 
   List<({DateTime date, int downloads})> prepareDataForSparkline(
-      String dataPoints) {
+    String dataPoints,
+  ) {
     final decoded = decodeIntsFromLittleEndianBase64String(dataPoints);
     final newestDate = DateTime.fromMillisecondsSinceEpoch(decoded[0] * 1000);
     final weeklyDownloads = decoded.sublist(1);
     // TODO(https://github.com/dart-lang/pub-dev/issues/8251): Update this to 52.
     final dataListLength = min(47, weeklyDownloads.length);
     return List.generate(
-        weeklyDownloads.length,
-        (i) => (
-              date: newestDate.copyWith(day: newestDate.day - 7 * i),
-              downloads: weeklyDownloads[i]
-            )).sublist(0, dataListLength).reversed.toList();
+      weeklyDownloads.length,
+      (i) => (
+        date: newestDate.copyWith(day: newestDate.day - 7 * i),
+        downloads: weeklyDownloads[i],
+      ),
+    ).sublist(0, dataListLength).reversed.toList();
   }
 
   drawChart(svg, toolTip, chartSubText, prepareDataForSparkline(dataPoints));
 }
 
-void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
-    List<({DateTime date, int downloads})> data) {
+void drawChart(
+  Element svg,
+  HTMLDivElement toolTip,
+  HTMLDivElement chartSubText,
+  List<({DateTime date, int downloads})> data,
+) {
   final height = 80;
   final width = 190;
   final padding = 4;
@@ -69,7 +75,8 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
 
   (double, double) computeCoordinates(DateTime date, int downloads) {
     final duration = date.difference(firstDate);
-    final x = padding +
+    final x =
+        padding +
         drawingWidth * duration.inMilliseconds / xAxisSpan.inMilliseconds;
     final y = height - drawingHeight * (downloads / maxDownloads);
     return (x, y);
@@ -126,7 +133,9 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
   final area = SVGPathElement();
   area.setAttribute('class', 'weekly-sparkline-area');
   area.setAttribute(
-      'd', '$line  L${drawingWidth + padding} $height L$padding $height Z');
+    'd',
+    '$line  L${drawingWidth + padding} $height L$padding $height Z',
+  );
 
   chart.append(area);
   chart.append(sparkline);
@@ -139,20 +148,22 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
   chart.onMouseMove.listen((e) {
     sparklineCursor.setAttribute('style', 'opacity:1');
     toolTip.setAttribute(
-        'style',
-        'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;'
-            'left:${e.x}px;');
+      'style',
+      'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;'
+          'left:${e.x}px;',
+    );
 
     final s =
         (e.x - (chart.getBoundingClientRect().x + padding)) / drawingWidth;
     final selectedDayIndex =
         lowerBoundBy<({DateTime date, int downloads}), double>(
-            data,
-            (e) =>
-                e.date.difference(firstDate).inMilliseconds /
-                xAxisSpan.inMilliseconds,
-            (a, b) => a.compareTo(b),
-            s);
+          data,
+          (e) =>
+              e.date.difference(firstDate).inMilliseconds /
+              xAxisSpan.inMilliseconds,
+          (a, b) => a.compareTo(b),
+          s,
+        );
     final selectedDay = data[selectedDayIndex];
     if (selectedDay.date == lastSelectedDay) return;
 
@@ -181,8 +192,12 @@ void drawChart(Element svg, HTMLDivElement toolTip, HTMLDivElement chartSubText,
   chart.onMouseLeave.listen(hideSparklineCursor);
 }
 
-int lowerBoundBy<E, K>(List<E> sortedList, K Function(E element) keyOf,
-    int Function(K, K) compare, K value) {
+int lowerBoundBy<E, K>(
+  List<E> sortedList,
+  K Function(E element) keyOf,
+  int Function(K, K) compare,
+  K value,
+) {
   var min = 0;
   var max = sortedList.length - 1;
   final key = value;

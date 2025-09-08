@@ -91,9 +91,7 @@ Future<void> main(List<String> args) async {
       pkgDownloadDir.path,
       '--no-resolve',
     ],
-    environment: {
-      'PUB_HOSTED_URL': pubHostedUrl,
-    },
+    environment: {'PUB_HOSTED_URL': pubHostedUrl},
     throwOnError: true,
     retryOptions: RetryOptions(maxAttempts: 3),
   );
@@ -115,8 +113,9 @@ Future<void> main(List<String> args) async {
 
   //final dartdocOutputDir =
   //    await Directory(p.join(outputFolder, 'doc')).create();
-  final resourcesOutputDir =
-      await Directory(p.join(outputFolder, 'resources')).create();
+  final resourcesOutputDir = await Directory(
+    p.join(outputFolder, 'resources'),
+  ).create();
   final pana = PackageAnalyzer(toolEnv);
   var summary = await pana.inspectDir(
     pkgDir.path,
@@ -132,8 +131,9 @@ Future<void> main(List<String> args) async {
   );
 
   // sanity check on pana report size
-  final reportSize =
-      gzip.encode(utf8.encode(json.encode(summary.toJson()))).length;
+  final reportSize = gzip
+      .encode(utf8.encode(json.encode(summary.toJson())))
+      .length;
   if (reportSize > _reportSizeDropThreshold) {
     summary = Summary(
       createdAt: summary.createdAt,
@@ -147,9 +147,10 @@ Future<void> main(List<String> args) async {
             grantedPoints: summary.report?.grantedPoints ?? 0,
             maxPoints: summary.report?.maxPoints ?? 0,
             status: ReportStatus.partial,
-            summary: 'The `pana` report exceeded size limit. '
+            summary:
+                'The `pana` report exceeded size limit. '
                 'Please review pana logs or contact the site admins.',
-          )
+          ),
         ],
       ),
     );
@@ -166,7 +167,8 @@ Future<void> main(List<String> args) async {
   final cutoffTimestamp = startedTimestamp.add(_totalTimeout * 0.5);
   if (cutoffTimestamp.isBefore(clock.now())) {
     _log.warning(
-        'Cut-off timestamp reached, skipping dartdoc post-processing.');
+      'Cut-off timestamp reached, skipping dartdoc post-processing.',
+    );
     return;
   }
   await postProcessDartdoc(
@@ -180,8 +182,9 @@ Future<void> main(List<String> args) async {
 }
 
 final _workerConfigDirectory = Directory('/home/worker/config');
-final _workerConfigPath =
-    _workerConfigDirectory.existsSync() ? _workerConfigDirectory.path : null;
+final _workerConfigPath = _workerConfigDirectory.existsSync()
+    ? _workerConfigDirectory.path
+    : null;
 final _isInsideDocker = _workerConfigPath != null;
 String? _configHomePath(String sdk, String kind) {
   if (!_isInsideDocker) {
@@ -193,7 +196,7 @@ String? _configHomePath(String sdk, String kind) {
 }
 
 Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
-    _detectSdks(String pkgDir) async {
+_detectSdks(String pkgDir) async {
   // Load the pubspec so we detect which SDK to use for analysis
   final pubspecFile = File(p.join(pkgDir, 'pubspec.yaml'));
   final pubspec = Pubspec.parseYaml(await pubspecFile.readAsString());
@@ -215,10 +218,10 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
   // Choose stable Dart and Flutter SDKs for analysis
   final installedDartSdk =
       dartSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
-          dartSdks.firstOrNull;
+      dartSdks.firstOrNull;
   final installedFlutterSdk =
       flutterSdks.firstWhereOrNull((sdk) => !sdk.version.isPreRelease) ??
-          flutterSdks.firstOrNull;
+      flutterSdks.firstOrNull;
 
   bool matchesSdks({
     required Version? dart,
@@ -232,21 +235,26 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
 
     // Dart SDK
     if (!sdkMatchesConstraint(
-        sdkVersion: dart, constraint: pubspec.dartSdkConstraint)) {
+      sdkVersion: dart,
+      constraint: pubspec.dartSdkConstraint,
+    )) {
       return false;
     }
 
     // Flutter SDK
     if (!sdkMatchesConstraint(
-        sdkVersion: flutter, constraint: pubspec.flutterSdkConstraint)) {
+      sdkVersion: flutter,
+      constraint: pubspec.flutterSdkConstraint,
+    )) {
       return false;
     }
 
     // Dart SDK inside the Flutter SDK
     if (flutterDartSdk != null &&
         !sdkMatchesConstraint(
-            sdkVersion: flutterDartSdk,
-            constraint: pubspec.dartSdkConstraint)) {
+          sdkVersion: flutterDartSdk,
+          constraint: pubspec.dartSdkConstraint,
+        )) {
       return false;
     }
 
@@ -276,7 +284,8 @@ Future<({String configKind, String? dartSdkPath, String? flutterSdkPath})>
   // fall back to the latest dev/master branch (last item always present and matching)
   final latestSdkBundles = await _detectSdkBundles();
   for (final bundle in latestSdkBundles) {
-    final matchesBundle = bundle.configKind == 'master' ||
+    final matchesBundle =
+        bundle.configKind == 'master' ||
         matchesSdks(
           dart: bundle.semanticDartVersion,
           flutter: bundle.semanticFlutterVersion,
@@ -326,34 +335,26 @@ Future<String?> _installSdk({
   if (await sdkDir.exists()) {
     return sdkPath;
   }
-  await RetryOptions(maxAttempts: 3).retry(
-    () async {
-      try {
-        final configHomePath = _configHomePath(sdkKind, configKind);
-        await runConstrained(
-          [
-            'tool/setup-$sdkKind.sh',
-            sdkPath,
-            version,
-            channel,
-          ],
-          workingDirectory: '/home/worker/pub-dev',
-          environment: {
-            if (configHomePath != null) 'XDG_CONFIG_HOME': configHomePath,
-            'PUB_HOSTED_URL': 'https://pub.dev',
-          },
-          timeout: const Duration(minutes: 5),
-          throwOnError: true,
-        );
-      } catch (_) {
-        // on any failure clearing the target directory
-        if (await sdkDir.exists()) {
-          await sdkDir.delete(recursive: true);
-        }
+  await RetryOptions(maxAttempts: 3).retry(() async {
+    try {
+      final configHomePath = _configHomePath(sdkKind, configKind);
+      await runConstrained(
+        ['tool/setup-$sdkKind.sh', sdkPath, version, channel],
+        workingDirectory: '/home/worker/pub-dev',
+        environment: {
+          if (configHomePath != null) 'XDG_CONFIG_HOME': configHomePath,
+          'PUB_HOSTED_URL': 'https://pub.dev',
+        },
+        timeout: const Duration(minutes: 5),
+        throwOnError: true,
+      );
+    } catch (_) {
+      // on any failure clearing the target directory
+      if (await sdkDir.exists()) {
+        await sdkDir.delete(recursive: true);
       }
-    },
-    retryIf: (_) => true,
-  );
+    }
+  }, retryIf: (_) => true);
   return sdkPath;
 }
 
@@ -381,8 +382,9 @@ Future<List<_SdkBundle>> _detectSdkBundles() async {
   final latestStableFlutterSdkVersion = flutterArchive?.latestStable?.version;
   final latestBetaFlutterSdkVersion = flutterArchive?.latestBeta?.version;
 
-  final latestStableDartSdk =
-      await fetchLatestDartSdkVersion(channel: 'stable');
+  final latestStableDartSdk = await fetchLatestDartSdkVersion(
+    channel: 'stable',
+  );
   final latestStableDartSdkVersion = latestStableDartSdk?.version;
 
   final latestBetaDartSdk = await fetchLatestDartSdkVersion(channel: 'beta');

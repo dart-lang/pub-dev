@@ -25,8 +25,8 @@ class CachedSdkVersion {
   final DateTime expires;
 
   CachedSdkVersion(this.version, this.published, {DateTime? expires})
-      : semanticVersion = Version.parse(version),
-        expires = expires ?? clock.now().add(_defaultMaxAge);
+    : semanticVersion = Version.parse(version),
+      expires = expires ?? clock.now().add(_defaultMaxAge);
 
   bool get isExpired => clock.now().isAfter(expires);
 }
@@ -65,7 +65,9 @@ Future<CachedSdkVersion> getCachedFlutterSdkVersion({
   final stable = archive?.latestStable;
   if (stable != null && stable.version != null) {
     return _flutter = CachedSdkVersion(
-        stable.cleanVersion, stable.releaseDate ?? clock.now());
+      stable.cleanVersion,
+      stable.releaseDate ?? clock.now(),
+    );
   }
 
   // If there exists a cached value, extend it.

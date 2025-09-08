@@ -35,17 +35,21 @@ void main() {
     var hasVersionChange = false;
 
     void check(String version, String label, {bool isRuntimeVersion = false}) {
-      expect(lines.where((l) => l.contains(version) && l.contains(label)),
-          isNotEmpty,
-          reason: '$label should be present');
+      expect(
+        lines.where((l) => l.contains(version) && l.contains(label)),
+        isNotEmpty,
+        reason: '$label should be present',
+      );
       if (!isRuntimeVersion) {
-        hasVersionChange |=
-            nextRelease.any((l) => l.contains(version) && l.contains(label));
+        hasVersionChange |= nextRelease.any(
+          (l) => l.contains(version) && l.contains(label),
+        );
       } else if (hasVersionChange) {
         expect(
-            nextRelease.where((l) => l.contains(version) && l.contains(label)),
-            isNotEmpty,
-            reason: 'Missing runtimeVersion upgrade.');
+          nextRelease.where((l) => l.contains(version) && l.contains(label)),
+          isNotEmpty,
+          reason: 'Missing runtimeVersion upgrade.',
+        );
       }
     }
 
@@ -57,15 +61,17 @@ void main() {
     check(runtimeVersion, 'runtimeVersion', isRuntimeVersion: true);
   });
 
-  scopedTest('accepted runtime versions should be lexicographically ordered',
-      () {
-    for (final version in acceptedRuntimeVersions) {
-      expect(runtimeVersionPattern.hasMatch(version), isTrue);
-    }
-    final sorted = [...acceptedRuntimeVersions]
-      ..sort((a, b) => -a.compareTo(b));
-    expect(acceptedRuntimeVersions, sorted);
-  });
+  scopedTest(
+    'accepted runtime versions should be lexicographically ordered',
+    () {
+      for (final version in acceptedRuntimeVersions) {
+        expect(runtimeVersionPattern.hasMatch(version), isTrue);
+      }
+      final sorted = [...acceptedRuntimeVersions]
+        ..sort((a, b) => -a.compareTo(b));
+      expect(acceptedRuntimeVersions, sorted);
+    },
+  );
 
   scopedTest('No more than 5 accepted runtimeVersions', () {
     expect(acceptedRuntimeVersions, hasLength(lessThan(6)));
@@ -83,26 +89,33 @@ void main() {
   test('Dart SDK versions should match Dockerfile.worker', () async {
     final dockerfileContent = await File('../Dockerfile.worker').readAsString();
     expect(
-        dockerfileContent.contains(
-                'tool/setup-dart.sh /home/worker/dart/stable stable/raw/hash/') ||
-            dockerfileContent.contains(
-                'tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion'),
-        isTrue);
+      dockerfileContent.contains(
+            'tool/setup-dart.sh /home/worker/dart/stable stable/raw/hash/',
+          ) ||
+          dockerfileContent.contains(
+            'tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion',
+          ),
+      isTrue,
+    );
   });
 
   test('Flutter SDK versions should match Dockerfile.worker', () async {
     final dockerfileContent = await File('../Dockerfile.worker').readAsString();
     expect(
-        dockerfileContent,
-        contains(
-            'tool/setup-flutter.sh /home/worker/flutter/stable $toolStableFlutterSdkVersion'));
+      dockerfileContent,
+      contains(
+        'tool/setup-flutter.sh /home/worker/flutter/stable $toolStableFlutterSdkVersion',
+      ),
+    );
   });
 
   test('analyzer version should match resolved pana version', () async {
-    final String lockContent = await File(p.join(
-            p.dirname(p.dirname(Isolate.packageConfigSync!.toFilePath())),
-            'pubspec.lock'))
-        .readAsString();
+    final String lockContent = await File(
+      p.join(
+        p.dirname(p.dirname(Isolate.packageConfigSync!.toFilePath())),
+        'pubspec.lock',
+      ),
+    ).readAsString();
     final lock = loadYaml(lockContent) as Map;
     expect(lock['packages']['pana']['version'], panaVersion);
   });
@@ -110,33 +123,31 @@ void main() {
   test('Flutter is using a released version from any channel.', () async {
     final flutterArchive = await fetchFlutterArchive();
     expect(
-        flutterArchive!.releases!
-            .any((fr) => fr.version == toolStableFlutterSdkVersion),
-        isTrue);
+      flutterArchive!.releases!.any(
+        (fr) => fr.version == toolStableFlutterSdkVersion,
+      ),
+      isTrue,
+    );
   });
 
-  test(
-    'Flutter is using the latest stable',
-    () async {
-      final flutterArchive = await fetchFlutterArchive();
-      final currentStable = flutterArchive!.releases!.firstWhereOrNull(
-        (r) => r.hash == flutterArchive.currentRelease!.stable,
-      )!;
-      expect(
-        toolStableFlutterSdkVersion,
-        equals(currentStable.version),
-        reason: '''Expected flutterVersion to be current stable
+  test('Flutter is using the latest stable', () async {
+    final flutterArchive = await fetchFlutterArchive();
+    final currentStable = flutterArchive!.releases!.firstWhereOrNull(
+      (r) => r.hash == flutterArchive.currentRelease!.stable,
+    )!;
+    expect(
+      toolStableFlutterSdkVersion,
+      equals(currentStable.version),
+      reason: '''Expected flutterVersion to be current stable
 Please update flutterVersion in app/lib/shared/versions.dart
 and do not format to also bump the runtimeVersion.''',
-      );
-    },
-    tags: ['sanity'],
-  );
+    );
+  }, tags: ['sanity']);
 
   test('dartdoc version should match pkg/pub_worker', () async {
-    final content =
-        await File('../pkg/pub_worker/lib/src/bin/pana_wrapper.dart')
-            .readAsString();
+    final content = await File(
+      '../pkg/pub_worker/lib/src/bin/pana_wrapper.dart',
+    ).readAsString();
     expect(content, contains("const _dartdocVersion = '$dartdocVersion';"));
   });
 

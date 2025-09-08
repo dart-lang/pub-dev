@@ -80,16 +80,15 @@ Node element(
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      tag,
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  tag,
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a DOM Text node using the default [DomContext].
 Node text(String value) => dom.text(value);
@@ -124,6 +123,7 @@ Node xAgoTimestamp(DateTime timestamp, {String? datePrefix}) {
 /// Creates a DOM node with markdown content using the default [DomContext].
 Node markdown(
   String text, {
+
   /// When set, the markdown output is pruned more heavily than usual, like:
   ///  - generated hash IDs are removed
   ///  - relative URLs of links and images are removed (and replaced with their text content)
@@ -137,12 +137,7 @@ Node markdown(
       disableHashIds: strictPruning,
       urlResolverFn: strictPruning
           ? null
-          : (
-              url, {
-              String? relativeFrom,
-              bool? isEmbeddedObject,
-            }) =>
-              url,
+          : (url, {String? relativeFrom, bool? isEmbeddedObject}) => url,
     ),
   );
 }
@@ -175,13 +170,12 @@ Node ldJson(Map<String, dynamic> content) {
   void write(dynamic value) {
     if (value is String) {
       sb.write('"');
-      sb.write(value.replaceAllMapped(
-        _ldJsonEscapedCharactersRegExp,
-        (m) {
+      sb.write(
+        value.replaceAllMapped(_ldJsonEscapedCharactersRegExp, (m) {
           final code = m[0]!.codeUnitAt(0);
           return r'\u' + code.toRadixString(16).padLeft(4, '0');
-        },
-      ));
+        }),
+      );
       sb.write('"');
     } else if (value is List) {
       sb.write('[');
@@ -204,7 +198,8 @@ Node ldJson(Map<String, dynamic> content) {
       sb.write(json.encode(value));
     } else {
       throw ArgumentError(
-          'Value `$value` could not be translated to JSON, unexpected type: `${value.runtimeType}`.');
+        'Value `$value` could not be translated to JSON, unexpected type: `${value.runtimeType}`.',
+      );
     }
   }
 
@@ -255,16 +250,15 @@ Node b({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'b',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'b',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<br>` Element using the default [DomContext].
 Node br() => element('br');
@@ -278,19 +272,15 @@ Node button({
   Node? child,
   String? text,
   String? ariaLabel,
-}) =>
-    dom.element(
-      'button',
-      id: id,
-      classes: classes,
-      attributes: {
-        if (ariaLabel != null) 'aria-label': ariaLabel,
-        ...?attributes,
-      },
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'button',
+  id: id,
+  classes: classes,
+  attributes: {if (ariaLabel != null) 'aria-label': ariaLabel, ...?attributes},
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<code>` Element using the default [DomContext].
 Node code({
@@ -300,16 +290,15 @@ Node code({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'code',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'code',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<details>` Element using the default [DomContext].
 Node details({
@@ -345,16 +334,15 @@ Node div({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'div',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'div',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates an `<form>` Element using the default [DomContext].
 Node form({
@@ -390,16 +378,15 @@ Node h1({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'h1',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'h1',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<h1>` Element using the default [DomContext].
 Node h2({
@@ -409,16 +396,15 @@ Node h2({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'h2',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'h2',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<h1>` Element using the default [DomContext].
 Node h3({
@@ -428,16 +414,15 @@ Node h3({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'h3',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'h3',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates an `<i>` Element using the default [DomContext].
 Node i({
@@ -491,8 +476,8 @@ class Image {
     required this.src,
     required this.width,
     required this.height,
-  })  : alt = '',
-        role = 'presentation';
+  }) : alt = '',
+       role = 'presentation';
 }
 
 /// Creates an `<img>` Element using the default [DomContext].
@@ -567,16 +552,15 @@ Node label({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'label',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'label',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<li>` Element using the default [DomContext].
 Node li({
@@ -586,16 +570,15 @@ Node li({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'li',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'li',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<link>` Element using the default [DomContext].
 Node link({
@@ -610,23 +593,22 @@ Node link({
   String? title,
   String? href,
   String? as,
-}) =>
-    dom.element(
-      'link',
-      id: id,
-      classes: classes,
-      attributes: <String, String>{
-        if (rel != null) 'rel': rel,
-        if (type != null) 'type': type,
-        if (title != null) 'title': title,
-        if (href != null) 'href': href,
-        if (as != null) 'as': as,
-        ...?attributes,
-      },
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'link',
+  id: id,
+  classes: classes,
+  attributes: <String, String>{
+    if (rel != null) 'rel': rel,
+    if (type != null) 'type': type,
+    if (title != null) 'title': title,
+    if (href != null) 'href': href,
+    if (as != null) 'as': as,
+    ...?attributes,
+  },
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<meta>` Element using the default [DomContext].
 Node meta({
@@ -643,25 +625,24 @@ Node meta({
   String? content,
   String? rel,
   String? href,
-}) =>
-    dom.element(
-      'meta',
-      id: id,
-      classes: classes,
-      attributes: <String, String>{
-        if (httpEquiv != null) 'http-equiv': httpEquiv,
-        if (name != null) 'name': name,
-        if (property != null) 'property': property,
-        if (charset != null) 'charset': charset,
-        if (content != null) 'content': content,
-        if (rel != null) 'rel': rel,
-        if (href != null) 'href': href,
-        ...?attributes,
-      },
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'meta',
+  id: id,
+  classes: classes,
+  attributes: <String, String>{
+    if (httpEquiv != null) 'http-equiv': httpEquiv,
+    if (name != null) 'name': name,
+    if (property != null) 'property': property,
+    if (charset != null) 'charset': charset,
+    if (content != null) 'content': content,
+    if (rel != null) 'rel': rel,
+    if (href != null) 'href': href,
+    ...?attributes,
+  },
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<nav>` Element using the default [DomContext].
 Node nav({
@@ -671,16 +652,15 @@ Node nav({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'nav',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'nav',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates an `<option>` Element using the default [DomContext].
 Node option({
@@ -718,16 +698,15 @@ Node p({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'p',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'p',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<pre>` Element using the default [DomContext].
 Node pre({
@@ -737,16 +716,15 @@ Node pre({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'pre',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'pre',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<script>` Element using the default [DomContext].
 Node script({
@@ -761,23 +739,22 @@ Node script({
   bool async = false,
   bool defer = false,
   String? onload,
-}) =>
-    dom.element(
-      'script',
-      id: id,
-      classes: classes,
-      attributes: <String, String>{
-        if (type != null) 'type': type,
-        if (src != null) 'src': src,
-        if (async) 'async': 'async',
-        if (defer) 'defer': 'defer',
-        if (onload != null) 'onload': onload,
-        ...?attributes,
-      },
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'script',
+  id: id,
+  classes: classes,
+  attributes: <String, String>{
+    if (type != null) 'type': type,
+    if (src != null) 'src': src,
+    if (async) 'async': 'async',
+    if (defer) 'defer': 'defer',
+    if (onload != null) 'onload': onload,
+    ...?attributes,
+  },
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates an `<select>` Element using the default [DomContext].
 Node select({
@@ -807,16 +784,15 @@ Node span({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'span',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'span',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<strong>` Element using the default [DomContext].
 Node strong({
@@ -826,16 +802,15 @@ Node strong({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'strong',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'strong',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<table>` Element using the default [DomContext].
 Node table({
@@ -844,17 +819,16 @@ Node table({
   Map<String, String>? attributes,
   Iterable<Node>? head,
   Iterable<Node>? body,
-}) =>
-    dom.element(
-      'table',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: [
-        if (head != null) dom.element('thead', children: head),
-        if (body != null) dom.element('tbody', children: body),
-      ],
-    );
+}) => dom.element(
+  'table',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: [
+    if (head != null) dom.element('thead', children: head),
+    if (body != null) dom.element('tbody', children: body),
+  ],
+);
 
 /// Creates a `<td>` Element using the default [DomContext].
 Node td({
@@ -864,16 +838,15 @@ Node td({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'td',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'td',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<th>` Element using the default [DomContext].
 Node th({
@@ -883,16 +856,15 @@ Node th({
   Iterable<Node>? children,
   Node? child,
   String? text,
-}) =>
-    dom.element(
-      'th',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-      child: child,
-      text: text,
-    );
+}) => dom.element(
+  'th',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+  child: child,
+  text: text,
+);
 
 /// Creates a `<tr>` Element using the default [DomContext].
 Node tr({
@@ -900,14 +872,13 @@ Node tr({
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
-}) =>
-    dom.element(
-      'tr',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-    );
+}) => dom.element(
+  'tr',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+);
 
 /// Creates a `<ul>` Element using the default [DomContext].
 Node ul({
@@ -915,20 +886,20 @@ Node ul({
   Iterable<String>? classes,
   Map<String, String>? attributes,
   Iterable<Node>? children,
-}) =>
-    dom.element(
-      'ul',
-      id: id,
-      classes: classes,
-      attributes: attributes,
-      children: children,
-    );
+}) => dom.element(
+  'ul',
+  id: id,
+  classes: classes,
+  attributes: attributes,
+  children: children,
+);
 
 Object? _children(Iterable<Node>? children, Node? child, String? text) {
   if (children != null) {
     if (child != null) {
       throw ArgumentError(
-          'Only one of `child`, `children` or `text` may be specified');
+        'Only one of `child`, `children` or `text` may be specified',
+      );
     }
     if (text != null) {
       throw ArgumentError('`text` is not null');
@@ -978,7 +949,10 @@ class _StringDomContext extends DomContext {
 }
 
 Map<String, String>? _mergeAttributes(
-    String? id, Iterable<String>? classes, Map<String, String>? attributes) {
+  String? id,
+  Iterable<String>? classes,
+  Map<String, String>? attributes,
+) {
   final hasClasses = classes != null && classes.isNotEmpty;
   final hasAttributes =
       id != null || hasClasses || (attributes != null && attributes.isNotEmpty);
@@ -1005,7 +979,7 @@ class _StringNodeList extends _StringNode {
   final List<_StringNode> _children;
 
   _StringNodeList(Iterable<Node> children)
-      : _children = children.cast<_StringNode>().toList();
+    : _children = children.cast<_StringNode>().toList();
 
   @override
   void writeHtml(StringSink sink) {
@@ -1042,10 +1016,12 @@ class _StringElement extends _StringNode {
   final Object? _children;
 
   _StringElement(this._tag, this._attributes, this._children)
-      : assert(_children == null ||
+    : assert(
+        _children == null ||
             _children is _StringNode ||
             (_children is Iterable<Node> &&
-                (_children).every((c) => c is _StringNode)));
+                (_children).every((c) => c is _StringNode)),
+      );
 
   @override
   void writeHtml(StringSink sink) {

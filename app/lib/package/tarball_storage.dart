@@ -48,7 +48,9 @@ class TarballStorage {
 
   /// Gets the object info of the archive file from the canonical bucket.
   Future<ObjectInfo?> getCanonicalBucketArchiveInfo(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     final objectName = tarballObjectName(package, version);
     return await _canonicalBucket.tryInfo(objectName);
   }
@@ -64,7 +66,9 @@ class TarballStorage {
   /// Get a list of package names in the canonical bucket.
   Future<List<String>> listPackagesInCanonicalBucket() async {
     final items = await _canonicalBucket.listAllItemsWithRetry(
-        prefix: 'packages/', delimiter: '-');
+      prefix: 'packages/',
+      delimiter: '-',
+    );
     final packages = items
         .where((i) => i.isDirectory)
         .map((i) => i.name)
@@ -84,21 +88,22 @@ class TarballStorage {
       prefix: prefix,
       delimiter: '',
     );
-    return Map.fromEntries(items.whereType<BucketObjectEntry>().map((item) {
-      final version = item.name.without(prefix: prefix, suffix: '.tar.gz');
-      return MapEntry(
-        version,
-        SourceObjectInfo.fromObjectInfo(
-          _canonicalBucket,
-          item,
-        ),
-      );
-    }));
+    return Map.fromEntries(
+      items.whereType<BucketObjectEntry>().map((item) {
+        final version = item.name.without(prefix: prefix, suffix: '.tar.gz');
+        return MapEntry(
+          version,
+          SourceObjectInfo.fromObjectInfo(_canonicalBucket, item),
+        );
+      }),
+    );
   }
 
   /// Gets the object info of the archive file from the public bucket.
   Future<ObjectInfo?> getPublicBucketArchiveInfo(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     final objectName = tarballObjectName(package, version);
     return await _publicBucket.tryInfo(objectName);
   }
@@ -169,7 +174,9 @@ class TarballStorage {
 
   /// Copies archive bytes from canonical bucket to public bucket.
   Future<void> copyArchiveFromCanonicalToPublicBucket(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     final objectName = tarballObjectName(package, version);
     await _storage.copyObjectWithRetry(
       _canonicalBucket.absoluteObjectName(objectName),
@@ -179,7 +186,9 @@ class TarballStorage {
 
   /// Updates the `content-disposition` header to `attachment` on the public archive file.
   Future<void> updateContentDispositionOnPublicBucket(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     final info = await getPublicBucketArchiveInfo(package, version);
     if (info != null) {
       await updateContentDispositionToAttachment(info, _publicBucket);
@@ -188,7 +197,9 @@ class TarballStorage {
 
   /// Deletes package archive from all buckets.
   Future<void> deleteArchiveFromAllBuckets(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     final objectName = tarballObjectName(package, version);
     await _canonicalBucket.deleteWithRetry(objectName);
     await _publicBucket.deleteWithRetry(objectName);
@@ -196,7 +207,9 @@ class TarballStorage {
 
   /// Deletes the package archive file from the canonical bucket.
   Future<void> deleteArchiveFromCanonicalBucket(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     final objectName = tarballObjectName(package, version);
     final info = await _canonicalBucket.tryInfo(objectName);
     if (info != null) {
@@ -243,8 +256,9 @@ class TarballStorage {
       }
 
       if (publicInfo == null) {
-        _logger
-            .warning('Updating missing object in public bucket: $objectName');
+        _logger.warning(
+          'Updating missing object in public bucket: $objectName',
+        );
         try {
           await _storage.copyObjectWithRetry(
             _canonicalBucket.absoluteObjectName(objectName),
@@ -267,8 +281,9 @@ class TarballStorage {
     final filterForNamePrefix = package == null
         ? 'packages/'
         : _tarballObjectNamePackagePrefix(package);
-    await _publicBucket.listWithRetry(prefix: filterForNamePrefix,
-        (entry) async {
+    await _publicBucket.listWithRetry(prefix: filterForNamePrefix, (
+      entry,
+    ) async {
       // Skip non-objects.
       if (!entry.isObject) {
         return;
@@ -284,7 +299,8 @@ class TarballStorage {
       final publicInfo = await _publicBucket.tryInfo(entry.name);
       if (publicInfo == null) {
         _logger.warning(
-            'Failed to get info for public bucket object "${entry.name}".');
+          'Failed to get info for public bucket object "${entry.name}".',
+        );
         return;
       }
 
@@ -305,14 +321,16 @@ class TarballStorage {
           return;
         }
         _logger.severe(
-            'Object without matching PackageVersion in canonical and public buckets: "${entry.name}".');
+          'Object without matching PackageVersion in canonical and public buckets: "${entry.name}".',
+        );
         return;
       } else {
         // The object in the public bucket has no matching file in the canonical bucket.
         // We can assume it is stale and can delete it.
         if (publicInfo.age <= deleteIfOlder) {
           _logger.shout(
-              'Object from public bucket will be deleted: "${entry.name}".');
+            'Object from public bucket will be deleted: "${entry.name}".',
+          );
           toBeDeletedCount++;
         } else {
           deleteObjects.add(entry.name);
@@ -348,8 +366,4 @@ class PublicBucketUpdateStat {
       archivesUpdated == 0 && archivesToBeDeleted == 0 && archivesDeleted == 0;
 }
 
-enum ContentMatchStatus {
-  missing,
-  different,
-  same;
-}
+enum ContentMatchStatus { missing, different, same }

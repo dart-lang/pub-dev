@@ -11,9 +11,10 @@ Changelog _parse(String input) {
 
 void main() {
   group('Changelog parsing', () {
-    test('basic changelog with releases that specify title, date and sections',
-        () {
-      const markdown = '''
+    test(
+      'basic changelog with releases that specify title, date and sections',
+      () {
+        const markdown = '''
 # Changelog
 
 ## [1.2.0] - 2025-07-10
@@ -31,24 +32,25 @@ void main() {
 - Previous feature
 ''';
 
-      final changelog = _parse(markdown);
+        final changelog = _parse(markdown);
 
-      expect(changelog.title, equals('Changelog'));
-      expect(changelog.description, isNull);
-      expect(changelog.releases, hasLength(2));
+        expect(changelog.title, equals('Changelog'));
+        expect(changelog.description, isNull);
+        expect(changelog.releases, hasLength(2));
 
-      final firstRelease = changelog.releases[0];
-      expect(firstRelease.version, equals('1.2.0'));
-      expect(firstRelease.date, equals(DateTime(2025, 7, 10)));
-      expect(firstRelease.content.asHtmlText, contains('New feature A'));
-      expect(firstRelease.content.asHtmlText, contains('Bug fix 1'));
-      expect(firstRelease.content.asMarkdownText, contains('Bug fix 1'));
+        final firstRelease = changelog.releases[0];
+        expect(firstRelease.version, equals('1.2.0'));
+        expect(firstRelease.date, equals(DateTime(2025, 7, 10)));
+        expect(firstRelease.content.asHtmlText, contains('New feature A'));
+        expect(firstRelease.content.asHtmlText, contains('Bug fix 1'));
+        expect(firstRelease.content.asMarkdownText, contains('Bug fix 1'));
 
-      final secondRelease = changelog.releases[1];
-      expect(secondRelease.version, equals('1.1.0'));
-      expect(secondRelease.date, equals(DateTime(2025, 6, 15)));
-      expect(secondRelease.content.asHtmlText, contains('Previous feature'));
-    });
+        final secondRelease = changelog.releases[1];
+        expect(secondRelease.version, equals('1.1.0'));
+        expect(secondRelease.date, equals(DateTime(2025, 6, 15)));
+        expect(secondRelease.content.asHtmlText, contains('Previous feature'));
+      },
+    );
 
     test('parses changelog with description', () {
       const markdown = '''
@@ -69,7 +71,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
       expect(changelog.title, equals('Changelog'));
       expect(changelog.description, isNotNull);
       expect(
-          changelog.description!.asHtmlText, contains('All notable changes'));
+        changelog.description!.asHtmlText,
+        contains('All notable changes'),
+      );
       expect(changelog.description!.asHtmlText, contains('Keep a Changelog'));
       expect(changelog.releases, hasLength(1));
     });
@@ -97,7 +101,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
       expect(unreleasedSection.version, equals('Unreleased'));
       expect(unreleasedSection.date, isNull);
       expect(
-          unreleasedSection.content.asHtmlText, contains('Work in progress'));
+        unreleasedSection.content.asHtmlText,
+        contains('Work in progress'),
+      );
     });
 
     test('handles different version formats', () {
@@ -200,7 +206,9 @@ void main() {
 
       final release = changelog.releases[0];
       expect(
-          release.content.asHtmlText, contains('<strong>Bold text</strong>'));
+        release.content.asHtmlText,
+        contains('<strong>Bold text</strong>'),
+      );
       expect(release.content.asHtmlText, contains('<em>Italic text</em>'));
       expect(release.content.asHtmlText, contains('<code>Code snippet</code>'));
     });
@@ -251,10 +259,10 @@ void main() {
 
 ''';
       final changelog = _parse(markdown);
-      expect(
-        changelog.releases.map((e) => e.version).toList(),
-        ['2.0.0', '1.0.0'],
-      );
+      expect(changelog.releases.map((e) => e.version).toList(), [
+        '2.0.0',
+        '1.0.0',
+      ]);
     });
 
     test('handles embedded header levels', () {
@@ -354,7 +362,9 @@ This is about section.
       expect(changelog.releases[0].version, equals('1.0.0'));
       expect(changelog.description!.asHtmlText, contains('About'));
       expect(
-          changelog.description!.asHtmlText, contains('This is about section'));
+        changelog.description!.asHtmlText,
+        contains('This is about section'),
+      );
     });
 
     test('handles complex version numbers', () {
@@ -530,11 +540,15 @@ Beta release
       expect(changelog.description, isNull);
       expect(changelog.releases, hasLength(2));
       expect(changelog.releases[0].version, equals('1.0.0'));
-      expect(changelog.releases[0].content.asHtmlText,
-          contains('Initial release'));
+      expect(
+        changelog.releases[0].content.asHtmlText,
+        contains('Initial release'),
+      );
       expect(changelog.releases[1].version, equals('0.9.0'));
       expect(
-          changelog.releases[1].content.asHtmlText, contains('Beta release'));
+        changelog.releases[1].content.asHtmlText,
+        contains('Beta release'),
+      );
     });
 
     test('handles changelog with title and version headers at same level', () {
@@ -553,7 +567,9 @@ This is the changelog for the project.
 
       expect(changelog.title, equals('Project Changelog'));
       expect(
-          changelog.description!.asHtmlText, contains('This is the changelog'));
+        changelog.description!.asHtmlText,
+        contains('This is the changelog'),
+      );
       expect(changelog.releases, hasLength(1));
       expect(changelog.releases[0].version, equals('1.0.0'));
     });
@@ -590,40 +606,44 @@ And:
 ''';
       final changelog = _parse(markdown);
       expect(
-          changelog.description?.asMarkdownText,
-          '## Header 2\n'
-          '\n'
-          'Text 2 over two lines.\n'
-          '\n'
-          'Multiple paragraphs with [link](https://pub.dev), `code`, and *different* **emphasis**.\n'
-          '\n'
-          '---\n'
-          'Also:\n'
-          '\n'
-          '- unordered multiline\n'
-          '- list\n'
-          '\n'
-          'And:\n'
-          '\n'
-          '1. order\n'
-          '2. list\n'
-          '\n'
-          '> With multiline quoted `code`and *text*.\n'
-          '\n'
-          '\n'
-          '### Header 3\n'
-          '\n'
-          '#### Header 4\n'
-          '\n'
-          '##### Header 5\n'
-          '\n'
-          '###### Header 6');
+        changelog.description?.asMarkdownText,
+        '## Header 2\n'
+        '\n'
+        'Text 2 over two lines.\n'
+        '\n'
+        'Multiple paragraphs with [link](https://pub.dev), `code`, and *different* **emphasis**.\n'
+        '\n'
+        '---\n'
+        'Also:\n'
+        '\n'
+        '- unordered multiline\n'
+        '- list\n'
+        '\n'
+        'And:\n'
+        '\n'
+        '1. order\n'
+        '2. list\n'
+        '\n'
+        '> With multiline quoted `code`and *text*.\n'
+        '\n'
+        '\n'
+        '### Header 3\n'
+        '\n'
+        '#### Header 4\n'
+        '\n'
+        '##### Header 5\n'
+        '\n'
+        '###### Header 6',
+      );
 
       // check stability: another round of the markdown output yields the same result
-      final changelog2 =
-          _parse('# Changelog\n${changelog.description?.asMarkdownText}');
-      expect(changelog2.description?.asMarkdownText,
-          changelog.description?.asMarkdownText);
+      final changelog2 = _parse(
+        '# Changelog\n${changelog.description?.asMarkdownText}',
+      );
+      expect(
+        changelog2.description?.asMarkdownText,
+        changelog.description?.asMarkdownText,
+      );
     });
   });
 }

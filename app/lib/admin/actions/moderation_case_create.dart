@@ -24,7 +24,7 @@ Returns the fields on the newly created moderation case.
     'source':
         'The source of the moderation case. (default value: `trusted-flagger`)',
     'subject': 'The subject of the moderation case.',
-    'url': 'The url of the moderation case (optional).'
+    'url': 'The url of the moderation case (optional).',
   },
   invoke: (options) async {
     final reporterEmail = options['reporter-email'] ?? KnownAgents.pubSupport;
@@ -35,11 +35,15 @@ Returns the fields on the newly created moderation case.
 
     final kind = options['kind'] ?? ModerationKind.notification;
     InvalidInputException.check(
-        ModerationKind.isValidKind(kind), 'invalid kind');
+      ModerationKind.isValidKind(kind),
+      'invalid kind',
+    );
 
     final source = options['source'] ?? ModerationSource.trustedFlagger;
     InvalidInputException.check(
-        ModerationSource.isValidSource(source), 'invalid source');
+      ModerationSource.isValidSource(source),
+      'invalid source',
+    );
 
     final subject = options['subject'];
     InvalidInputException.check(

@@ -8,11 +8,7 @@ import 'package:test/test.dart';
 
 final _whitespace = RegExp(r'\s+');
 
-const _colors = {
-  'black',
-  'red',
-  'white',
-};
+const _colors = {'black', 'red', 'white'};
 
 void main() {
   group('Color restrictions and rules', () {
@@ -23,14 +19,11 @@ void main() {
           .where((f) => f.path.endsWith('.scss'))
           // _variables.scss is not checked, this should be the place for all color definitions
           .where((f) => !f.path.endsWith('/_variables.scss'))
-
           // _staging_ribbon.scss is only used on staging
           .where((f) => !f.path.endsWith('/_staging_ribbon.scss'))
-
           // _footer.scss has only one color theme, skipping for now
           // TODO: migrate the variables in this file
           .where((f) => !f.path.endsWith('/_footer.scss'))
-
           // dartdoc files are not checked
           .where((f) => !f.path.endsWith('/dartdoc.scss'))
           .toList();
@@ -40,14 +33,19 @@ void main() {
       for (final file in files) {
         var content = file.readAsStringSync();
         // remove multi-line comment blocks
-        content =
-            content.replaceAll(RegExp(r'\/\*.*\*/', multiLine: true), ' ');
+        content = content.replaceAll(
+          RegExp(r'\/\*.*\*/', multiLine: true),
+          ' ',
+        );
         final lines = content.split('\n');
         for (var i = 0; i < lines.length; i++) {
           final line = lines[i];
           // remove single-line comment
-          final expr =
-              line.split('//').first.replaceAll(_whitespace, ' ').trim();
+          final expr = line
+              .split('//')
+              .first
+              .replaceAll(_whitespace, ' ')
+              .trim();
           if (expr.isEmpty) continue;
 
           // minimal parsing and sanity check
@@ -57,8 +55,10 @@ void main() {
           var value = parts[1].trim();
 
           // remove known overlapping variable names from checking
-          value =
-              value.replaceAll('--pub-badge-red-color', '--pub-badge-color');
+          value = value.replaceAll(
+            '--pub-badge-red-color',
+            '--pub-badge-color',
+          );
 
           if (name.isEmpty || value.isEmpty) continue;
 
@@ -78,7 +78,8 @@ void main() {
           }
 
           // detect color patterns
-          final hasColor = value.contains('#') ||
+          final hasColor =
+              value.contains('#') ||
               // TODO: also migrate color- variables
               // value.contains(r'$color-') ||
               value.contains('rgb(') ||

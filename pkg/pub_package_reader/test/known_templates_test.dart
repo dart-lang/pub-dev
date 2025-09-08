@@ -9,13 +9,17 @@ import 'package:test/test.dart';
 void main() {
   group('description', () {
     test('known template', () {
-      expect(validateDescription('A sample command-line application.'),
-          isNotEmpty);
+      expect(
+        validateDescription('A sample command-line application.'),
+        isNotEmpty,
+      );
     });
 
     test('known template with some extra text', () {
-      expect(validateDescription('A sample command-line application by xyz.'),
-          isNotEmpty);
+      expect(
+        validateDescription('A sample command-line application by xyz.'),
+        isNotEmpty,
+      );
     });
   });
 
@@ -26,15 +30,19 @@ void main() {
 
     test('some readme', () {
       expect(
-          validateKnownTemplateReadme('README.md', 'This is not a template.'),
-          isEmpty);
+        validateKnownTemplateReadme('README.md', 'This is not a template.'),
+        isEmpty,
+      );
     });
 
     test('known template', () {
       expect(
-          validateKnownTemplateReadme('README.md',
-              'TODO: Tell users more about the package, and do not leave such templates in the README.md.'),
-          isNotEmpty);
+        validateKnownTemplateReadme(
+          'README.md',
+          'TODO: Tell users more about the package, and do not leave such templates in the README.md.',
+        ),
+        isNotEmpty,
+      );
     });
   });
 }

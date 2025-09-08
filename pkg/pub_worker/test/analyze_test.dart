@@ -43,63 +43,79 @@ void main() {
 
   testWithServer('analyze retry 3.0.0, 3.0.1', (server) async {
     // Add packages to the server
-    server.packages.add(await Package.fromFiles([
-      FileEntry.fromJson(name: 'pubspec.yaml', data: {
-        'name': 'retry',
-        'version': '3.0.0',
-        'dependencies': {
-          'meta': '^1.0.0',
-        },
-        'environment': {'sdk': '>=2.12.0-0 <3.0.0'},
-      }),
-      FileEntry.fromString(name: 'lib/retry.dart', contents: '''
+    server.packages.add(
+      await Package.fromFiles([
+        FileEntry.fromJson(
+          name: 'pubspec.yaml',
+          data: {
+            'name': 'retry',
+            'version': '3.0.0',
+            'dependencies': {'meta': '^1.0.0'},
+            'environment': {'sdk': '>=2.12.0-0 <3.0.0'},
+          },
+        ),
+        FileEntry.fromString(
+          name: 'lib/retry.dart',
+          contents: '''
         void retry(void Function() fn) { for (var i = 0; i < 5; i++) fn();}
-      '''),
-    ]));
+      ''',
+        ),
+      ]),
+    );
 
-    server.packages.add(await Package.fromFiles([
-      FileEntry.fromJson(name: 'pubspec.yaml', data: {
-        'name': 'retry',
-        'version': '3.0.1',
-        'dependencies': {
-          'meta': '^1.0.0',
-        },
-        'environment': {'sdk': '>=2.12.0-0 <3.0.0'},
-      }),
-      FileEntry.fromString(name: 'lib/retry.dart', contents: '''
+    server.packages.add(
+      await Package.fromFiles([
+        FileEntry.fromJson(
+          name: 'pubspec.yaml',
+          data: {
+            'name': 'retry',
+            'version': '3.0.1',
+            'dependencies': {'meta': '^1.0.0'},
+            'environment': {'sdk': '>=2.12.0-0 <3.0.0'},
+          },
+        ),
+        FileEntry.fromString(
+          name: 'lib/retry.dart',
+          contents: '''
         import 'package:meta/meta.dart';
         @Sealed()
         void retry(void Function() fn) { for (var i = 0; i < 5; i++) fn();}
-      '''),
-    ]));
+      ''',
+        ),
+      ]),
+    );
 
-    server.packages.add(await Package.fromFiles([
-      FileEntry.fromJson(name: 'pubspec.yaml', data: {
-        'name': 'meta',
-        'version': '1.0.0',
-        'dependencies': {},
-        'environment': {'sdk': '>=2.12.0-0 <3.0.0'},
-      }),
-      FileEntry.fromString(name: 'lib/meta.dart', contents: '''
+    server.packages.add(
+      await Package.fromFiles([
+        FileEntry.fromJson(
+          name: 'pubspec.yaml',
+          data: {
+            'name': 'meta',
+            'version': '1.0.0',
+            'dependencies': {},
+            'environment': {'sdk': '>=2.12.0-0 <3.0.0'},
+          },
+        ),
+        FileEntry.fromString(
+          name: 'lib/meta.dart',
+          contents: '''
         class Sealed {}
-      '''),
-    ]));
+      ''',
+        ),
+      ]),
+    );
 
     // Start the worker
-    final workerCompleted = analyze(Payload(
-      package: 'retry',
-      pubHostedUrl: '${server.baseUrl}',
-      versions: [
-        VersionTokenPair(
-          version: '3.0.0',
-          token: 'secret-token',
-        ),
-        VersionTokenPair(
-          version: '3.0.1',
-          token: 'secret-token',
-        ),
-      ],
-    ));
+    final workerCompleted = analyze(
+      Payload(
+        package: 'retry',
+        pubHostedUrl: '${server.baseUrl}',
+        versions: [
+          VersionTokenPair(version: '3.0.0', token: 'secret-token'),
+          VersionTokenPair(version: '3.0.1', token: 'secret-token'),
+        ],
+      ),
+    );
 
     final result = await server.waitForResult('retry', '3.0.0');
     expect(result.index.blobId, isNotEmpty);

@@ -31,13 +31,7 @@ Future<shelf.Response> issueGet(
   String path, {
   String? host,
   Map<String, String>? headers,
-}) async =>
-    issueHttp(
-      'GET',
-      path,
-      host: host,
-      headers: headers,
-    );
+}) async => issueHttp('GET', path, host: host, headers: headers);
 
 Future<shelf.Response> issueHttp(
   String method,
@@ -47,18 +41,14 @@ Future<shelf.Response> issueHttp(
   Map<String, String>? headers,
   dynamic body,
 }) async {
-  final url =
-      host == null ? '$siteRoot$path' : '${scheme ?? 'https'}://$host$path';
+  final url = host == null
+      ? '$siteRoot$path'
+      : '${scheme ?? 'https'}://$host$path';
   final uri = Uri.parse(url);
   if (uri.path.contains('//')) {
     throw ArgumentError('Double-slash URL detected: "$url".');
   }
-  return await _doHttp(
-    method: method,
-    uri: uri,
-    headers: headers,
-    body: body,
-  );
+  return await _doHttp(method: method, uri: uri, headers: headers, body: body);
 }
 
 Future<shelf.Response> _doHttp({
@@ -67,17 +57,13 @@ Future<shelf.Response> _doHttp({
   Map<String, String>? headers,
   body,
 }) async {
-  final request = shelf.Request(
-    method,
-    uri,
-    headers: headers,
-    body: body,
-  );
+  final request = shelf.Request(method, uri, headers: headers, body: body);
   final handler = createAppHandler();
   final wrapped = wrapHandler(Logger('test'), handler, sanitize: true);
   return await ss.fork(() async {
-    return await wrapped(request);
-  }) as shelf.Response;
+        return await wrapped(request);
+      })
+      as shelf.Response;
 }
 
 // TODO: migrate to use acquireFakeSessionCookies
@@ -86,10 +72,7 @@ Future<String> acquireSessionCookies(String email) async {
     'GET',
     Uri(
       path: '/sign-in',
-      queryParameters: {
-        'fake-email': email,
-        'go': '/',
-      },
+      queryParameters: {'fake-email': email, 'go': '/'},
     ).toString(),
     scheme: activeConfiguration.primarySiteUri.scheme,
     host: activeConfiguration.primarySiteUri.host,
@@ -150,10 +133,14 @@ Future<Map<String, dynamic>> expectJsonMapResponse(
   return map;
 }
 
-Future<String> expectAtomXmlResponse(shelf.Response response,
-    {int status = 200}) async {
+Future<String> expectAtomXmlResponse(
+  shelf.Response response, {
+  int status = 200,
+}) async {
   expect(response.statusCode, status);
-  expect(response.headers['content-type'],
-      'application/atom+xml; charset="utf-8"');
+  expect(
+    response.headers['content-type'],
+    'application/atom+xml; charset="utf-8"',
+  );
   return await response.readAsString();
 }

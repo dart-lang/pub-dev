@@ -26,22 +26,18 @@ void main() {
       // init server data
       await http.post(
         Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
-        body: json.encode(
-          {
-            'testProfile': {
-              'defaultUser': 'admin@pub.dev',
-              'generatedPackages': [
-                {
-                  'name': 'admin_pkg',
-                },
-                {
-                  'name': 'user_pkg',
-                  'uploaders': ['user@pub.dev'],
-                },
-              ],
-            },
+        body: json.encode({
+          'testProfile': {
+            'defaultUser': 'admin@pub.dev',
+            'generatedPackages': [
+              {'name': 'admin_pkg'},
+              {
+                'name': 'user_pkg',
+                'uploaders': ['user@pub.dev'],
+              },
+            ],
           },
-        ),
+        }),
       );
 
       // This should normally be used as a test user in higher-level tests.
@@ -53,10 +49,13 @@ void main() {
       await browserSession.withBrowserPage((page) async {
         await page.gotoOrigin('/');
         await page.takeScreenshots(
-            selector: '.site-header',
-            prefix: 'landing-page/site-header-public');
+          selector: '.site-header',
+          prefix: 'landing-page/site-header-public',
+        );
         await page.takeScreenshots(
-            selector: '.site-footer', prefix: 'landing-page/site-footer');
+          selector: '.site-footer',
+          prefix: 'landing-page/site-footer',
+        );
 
         {
           final rs = await page.gotoOrigin('/sign-in?fake-email=user@pub.dev');
@@ -68,12 +67,14 @@ void main() {
           final content = await page.content;
           expect(content, contains('user@pub.dev'));
 
-          firstSessionId =
-              cookies.firstWhere((c) => c.name == 'PUB_SID_INSECURE').value;
+          firstSessionId = cookies
+              .firstWhere((c) => c.name == 'PUB_SID_INSECURE')
+              .value;
         }
         await page.takeScreenshots(
-            selector: '.site-header',
-            prefix: 'landing-page/site-header-authenticated');
+          selector: '.site-header',
+          prefix: 'landing-page/site-header-authenticated',
+        );
 
         // same user sign-in with redirect
         {
@@ -93,15 +94,19 @@ void main() {
         // visiting unauthorized admin page fails
         {
           final rs1 = await page.gotoOrigin('/packages/admin_pkg/admin');
-          expect(await rs1.content,
-              contains('You have insufficient permissions to view this page.'));
+          expect(
+            await rs1.content,
+            contains('You have insufficient permissions to view this page.'),
+          );
 
           final rs2 = await page.gotoOrigin('/packages/user_pkg/admin');
           final content = await rs2.content;
           expect(
-              content,
-              isNot(contains(
-                  'You have insufficient permissions to view this page.')));
+            content,
+            isNot(
+              contains('You have insufficient permissions to view this page.'),
+            ),
+          );
           expect(await rs2.content, contains('Automated publishing'));
         }
 
@@ -141,7 +146,8 @@ void main() {
           expect(await page.content, isNot(contains('user@pub.dev')));
           final handle = await page.$('#-account-login');
           await handle.evaluate(
-              'node => node.setAttribute("data-fake-email", "user@pub.dev")');
+            'node => node.setAttribute("data-fake-email", "user@pub.dev")',
+          );
           await Future.wait([
             page.waitForNavigation(),
             page.click('#-account-login'),

@@ -87,7 +87,8 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
     return notFoundHandler(request, body: 'Missing session cookie.');
   }
   final session = await accountBackend.lookupValidUserSession(
-      requestContext.clientSessionCookieStatus.sessionId!);
+    requestContext.clientSessionCookieStatus.sessionId!,
+  );
   if (session == null) {
     return notFoundHandler(
       request,
@@ -124,7 +125,8 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
 
 /// Handles GET /api/account/session
 Future<ClientSessionStatus> getAccountSessionHandler(
-    shelf.Request request) async {
+  shelf.Request request,
+) async {
   final sessionData = requestContext.sessionData;
   return ClientSessionStatus(
     expires: sessionData?.expires,
@@ -148,7 +150,9 @@ Future<shelf.Response> invalidateSessionHandler(shelf.Request request) async {
 
 /// Handles `GET /consent?id=<consentId>`.
 Future<shelf.Response> consentPageHandler(
-    shelf.Request request, String? consentId) async {
+  shelf.Request request,
+  String? consentId,
+) async {
   final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
   if (unauthenticatedRs != null) {
     return unauthenticatedRs;
@@ -159,8 +163,9 @@ Future<shelf.Response> consentPageHandler(
     throw NotFoundException('Missing consent id.');
   }
 
-  final user =
-      await accountBackend.lookupUserById(requestContext.authenticatedUserId!);
+  final user = await accountBackend.lookupUserById(
+    requestContext.authenticatedUserId!,
+  );
   final consent = await consentBackend.getConsent(consentId, user!);
   // If consent does not exists (or does not belong to the user), the `getConsent`
   // call above will throw, and the generic error page will be shown.
@@ -181,7 +186,9 @@ Future<shelf.Response> consentPageHandler(
 
 /// Handles `GET /api/account/options/packages/<package>`.
 Future<AccountPkgOptions> accountPkgOptionsHandler(
-    shelf.Request request, String package) async {
+  shelf.Request request,
+  String package,
+) async {
   checkPackageVersionParams(package);
   final user = await requireAuthenticatedWebUser();
   final p = await packageBackend.lookupPackage(package);
@@ -189,25 +196,34 @@ Future<AccountPkgOptions> accountPkgOptionsHandler(
     throw NotFoundException.resource(package);
   }
   return AccountPkgOptions(
-      isAdmin: await packageBackend.isPackageAdmin(p, user.userId));
+    isAdmin: await packageBackend.isPackageAdmin(p, user.userId),
+  );
 }
 
 /// Handles GET /api/account/likes
 Future<LikedPackagesResponse> listPackageLikesHandler(
-    shelf.Request request) async {
+  shelf.Request request,
+) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
   final user = authenticatedUser.user;
   final packages = await likeBackend.listPackageLikes(user.userId);
   final List<PackageLikeResponse> packageLikes = packages
-      .map((like) => PackageLikeResponse(
-          liked: true, package: like.package, created: like.created))
+      .map(
+        (like) => PackageLikeResponse(
+          liked: true,
+          package: like.package,
+          created: like.created,
+        ),
+      )
       .toList();
   return LikedPackagesResponse(likedPackages: packageLikes);
 }
 
 /// Handles `GET /api/account/likes/<package>`.
 Future<PackageLikeResponse> getLikePackageHandler(
-    shelf.Request request, String package) async {
+  shelf.Request request,
+  String package,
+) async {
   checkPackageVersionParams(package);
   final user = await requireAuthenticatedWebUser();
   final p = await packageBackend.lookupPackage(package);
@@ -225,7 +241,9 @@ Future<PackageLikeResponse> getLikePackageHandler(
 
 /// Handles `PUT /api/account/likes/<package>`.
 Future<PackageLikeResponse> likePackageHandler(
-    shelf.Request request, String package) async {
+  shelf.Request request,
+  String package,
+) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
   final user = authenticatedUser.user;
   final l = await likeBackend.likePackage(user, package);
@@ -234,7 +252,9 @@ Future<PackageLikeResponse> likePackageHandler(
 
 /// Handles `DELETE /api/account/likes/<package>`.
 Future<shelf.Response> unlikePackageHandler(
-    shelf.Request request, String package) async {
+  shelf.Request request,
+  String package,
+) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
   final user = authenticatedUser.user;
   await likeBackend.unlikePackage(user, package);
@@ -243,15 +263,19 @@ Future<shelf.Response> unlikePackageHandler(
 
 /// Handles `/api/account/options/publishers/<publisherId>`.
 Future<AccountPublisherOptions> accountPublisherOptionsHandler(
-    shelf.Request request, String publisherId) async {
+  shelf.Request request,
+  String publisherId,
+) async {
   checkPublisherIdParam(publisherId);
   final user = await requireAuthenticatedWebUser();
   final publisher = await publisherBackend.getListedPublisher(publisherId);
   if (publisher == null) {
     throw NotFoundException.resource('publisher "$publisherId"');
   }
-  final member =
-      await publisherBackend.getPublisherMember(publisher, user.userId);
+  final member = await publisherBackend.getPublisherMember(
+    publisher,
+    user.userId,
+  );
   final isAdmin = member != null && member.role == PublisherMemberRole.admin;
   return AccountPublisherOptions(isAdmin: isAdmin);
 }
@@ -269,13 +293,16 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
   }
 
   final next = request.requestedUri.queryParameters['next'];
-  final page = await packageBackend
-      .listPackagesForUser(requestContext.authenticatedUserId!, next: next);
+  final page = await packageBackend.listPackagesForUser(
+    requestContext.authenticatedUserId!,
+    next: next,
+  );
   final hits = await scoreCardBackend.getPackageViews(page.packages);
 
   final html = renderAccountPackagesPage(
-    user: (await accountBackend
-        .lookupUserById(requestContext.authenticatedUserId!))!,
+    user: (await accountBackend.lookupUserById(
+      requestContext.authenticatedUserId!,
+    ))!,
     userSessionData: requestContext.sessionData!,
     startPackage: next,
     packageHits: hits.nonNulls.toList(),
@@ -286,14 +313,16 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
 
 /// Handles requests for GET my-liked-packages
 Future<shelf.Response> accountMyLikedPackagesPageHandler(
-    shelf.Request request) async {
+  shelf.Request request,
+) async {
   final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
   if (unauthenticatedRs != null) {
     return unauthenticatedRs;
   }
 
-  final user = (await accountBackend
-      .lookupUserById(requestContext.authenticatedUserId!))!;
+  final user = (await accountBackend.lookupUserById(
+    requestContext.authenticatedUserId!,
+  ))!;
   final likes = await likeBackend.listPackageLikes(user.userId);
   final html = renderMyLikedPackagesPage(
     user: user,
@@ -305,17 +334,20 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
 
 /// Handles requests for GET /my-publishers
 Future<shelf.Response> accountPublishersPageHandler(
-    shelf.Request request) async {
+  shelf.Request request,
+) async {
   final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
   if (unauthenticatedRs != null) {
     return unauthenticatedRs;
   }
 
-  final page = await publisherBackend
-      .listPublishersForUser(requestContext.authenticatedUserId!);
+  final page = await publisherBackend.listPublishersForUser(
+    requestContext.authenticatedUserId!,
+  );
   final content = renderAccountPublishersPage(
-    user: (await accountBackend
-        .lookupUserById(requestContext.authenticatedUserId!))!,
+    user: (await accountBackend.lookupUserById(
+      requestContext.authenticatedUserId!,
+    ))!,
     userSessionData: requestContext.sessionData!,
     publishers: page.publishers!,
   );
@@ -324,20 +356,23 @@ Future<shelf.Response> accountPublishersPageHandler(
 
 /// Handles requests for GET /my-activity-log
 Future<shelf.Response> accountMyActivityLogPageHandler(
-    shelf.Request request) async {
+  shelf.Request request,
+) async {
   final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
   if (unauthenticatedRs != null) {
     return unauthenticatedRs;
   }
   final before = auditBackend.parseBeforeQueryParameter(
-      request.requestedUri.queryParameters['before']);
+    request.requestedUri.queryParameters['before'],
+  );
   final activities = await auditBackend.listRecordsForUserId(
     requestContext.authenticatedUserId!,
     before: before,
   );
   final content = renderAccountMyActivityPage(
-    user: (await accountBackend
-        .lookupUserById(requestContext.authenticatedUserId!))!,
+    user: (await accountBackend.lookupUserById(
+      requestContext.authenticatedUserId!,
+    ))!,
     userSessionData: requestContext.sessionData!,
     activities: activities,
   );
@@ -358,7 +393,8 @@ Future<shelf.Response?> checkAuthenticatedPageRequest(
 
   final now = clock.now();
   final lastAuthenticated = requestContext.sessionData?.authenticatedAt;
-  final isLastAuthenticationOld = lastAuthenticated == null ||
+  final isLastAuthenticationOld =
+      lastAuthenticated == null ||
       now.difference(lastAuthenticated) > Duration(minutes: 30);
 
   final grantedScopes = requestContext.sessionData?.grantedScopes ?? <String>[];
@@ -372,10 +408,13 @@ Future<shelf.Response?> checkAuthenticatedPageRequest(
       path: requestedUri.path,
       query: requestedUri.hasQuery ? requestedUri.query : null,
     );
-    final signInUri = Uri(path: '/sign-in', queryParameters: {
-      'go': goUri.toString(),
-      if (requiredScopes.isNotEmpty) 'scope': requiredScopes.join(' '),
-    });
+    final signInUri = Uri(
+      path: '/sign-in',
+      queryParameters: {
+        'go': goUri.toString(),
+        if (requiredScopes.isNotEmpty) 'scope': requiredScopes.join(' '),
+      },
+    );
     return redirectResponse(signInUri.toString());
   }
 

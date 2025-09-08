@@ -50,12 +50,7 @@ void main() {
     final countData = setupInitialCounts(initialLastDate);
 
     // Extend existing counts and expel the lowest range.
-    final versionsCounts = {
-      '4.1.0': 10,
-      '4.0.0': 10,
-      '6.1.0': 10,
-      '7.0.0': 10,
-    };
+    final versionsCounts = {'4.1.0': 10, '4.0.0': 10, '6.1.0': 10, '7.0.0': 10};
     final newDate = initialLastDate.addCalendarDays(1);
 
     countData.addDownloadCounts(versionsCounts, newDate);
@@ -88,12 +83,7 @@ void main() {
     final countData = setupInitialCounts(initialLastDate);
 
     // Extend existing counts and expel the lowest range.
-    final versionsCounts = {
-      '4.1.0': 10,
-      '4.0.0': 10,
-      '6.1.0': 10,
-      '7.0.0': 10,
-    };
+    final versionsCounts = {'4.1.0': 10, '4.0.0': 10, '6.1.0': 10, '7.0.0': 10};
     final newDate = initialLastDate.addCalendarDays(2);
 
     countData.addDownloadCounts(versionsCounts, newDate);
@@ -121,12 +111,7 @@ void main() {
     expect(fifthRange.counts.take(1).toList(), [10]);
 
     // Update missing date.
-    final versionsCounts2 = {
-      '4.1.0': 8,
-      '4.0.0': 8,
-      '6.1.0': 8,
-      '7.0.0': 8,
-    };
+    final versionsCounts2 = {'4.1.0': 8, '4.0.0': 8, '6.1.0': 8, '7.0.0': 8};
     final newDate2 = initialLastDate.addCalendarDays(1);
 
     countData.addDownloadCounts(versionsCounts2, newDate2);
@@ -153,12 +138,7 @@ void main() {
     expect(fifthRange.counts.take(2).toList(), [10, 8]);
 
     // Update existing values
-    final versionsCounts3 = {
-      '4.1.0': 7,
-      '4.0.0': 7,
-      '6.1.0': 7,
-      '7.0.0': 7,
-    };
+    final versionsCounts3 = {'4.1.0': 7, '4.0.0': 7, '6.1.0': 7, '7.0.0': 7};
     final newDate3 = initialLastDate.addCalendarDays(1);
 
     countData.addDownloadCounts(versionsCounts3, newDate3);
@@ -189,12 +169,7 @@ void main() {
     final initialLastDate = DateTime.parse('1986-02-16T00:00:00Z');
     final countData = setupInitialCounts(initialLastDate);
 
-    final versionsCounts = {
-      '4.1.0': 10,
-      '4.0.0': 10,
-      '6.1.0': 10,
-      '7.0.0': 10,
-    };
+    final versionsCounts = {'4.1.0': 10, '4.0.0': 10, '6.1.0': 10, '7.0.0': 10};
     final newDate = initialLastDate.addCalendarDays(-2);
 
     countData.addDownloadCounts(versionsCounts, newDate);
@@ -226,10 +201,7 @@ void main() {
     final initialLastDate = DateTime.parse('1986-02-16T00:00:00Z');
     final countData = setupInitialCounts(initialLastDate);
 
-    final versionsCounts = {
-      '0.1.0': 27,
-      '0.1.1': 27,
-    };
+    final versionsCounts = {'0.1.0': 27, '0.1.1': 27};
     final newDate = initialLastDate.addCalendarDays(1);
     countData.addDownloadCounts(versionsCounts, newDate);
 
@@ -260,12 +232,7 @@ void main() {
     final initialLastDate = DateTime.parse('1986-02-16T00:00:00Z');
     final countData = setupInitialCounts(initialLastDate);
 
-    final versionCounts = {
-      '5.1.0': 10,
-      '4.0.0': 10,
-      '4.1.0': 10,
-      '7.0.0': 10,
-    };
+    final versionCounts = {'5.1.0': 10, '4.0.0': 10, '4.1.0': 10, '7.0.0': 10};
     final newDate = initialLastDate.addCalendarDays(1);
 
     countData.addDownloadCounts(versionCounts, newDate);
@@ -317,9 +284,7 @@ void main() {
     expect(secondRange.versionRange, '>=2.0.0-0 <3.0.0');
     expect(secondRange.counts.take(1).toList(), [6]);
 
-    final versionCounts = {
-      '0.1.0': 10,
-    };
+    final versionCounts = {'0.1.0': 10};
 
     final newDate = initialLastDate.addCalendarDays(1);
     countData.addDownloadCounts(versionCounts, newDate);
@@ -344,13 +309,13 @@ void main() {
   test('More than maxAge dates', () async {
     final initialLastDate = DateTime.parse('1986-02-16T00:00:00Z');
     final countData = CountData.empty();
-    final versionsCounts = {
-      '1.0.0': 2,
-    };
+    final versionsCounts = {'1.0.0': 2};
 
     for (int i = 0; i < maxAge; i++) {
       countData.addDownloadCounts(
-          versionsCounts, initialLastDate.addCalendarDays(i));
+        versionsCounts,
+        initialLastDate.addCalendarDays(i),
+      );
       expect(countData.newestDate, initialLastDate.addCalendarDays(i));
       expect(countData.majorRangeCounts.length, 1);
 
@@ -360,11 +325,11 @@ void main() {
       expect(firstRange.counts[i], 2);
     }
 
-    final newVersionsCounts = {
-      '1.0.0': 10,
-    };
+    final newVersionsCounts = {'1.0.0': 10};
     countData.addDownloadCounts(
-        newVersionsCounts, initialLastDate.addCalendarDays(maxAge));
+      newVersionsCounts,
+      initialLastDate.addCalendarDays(maxAge),
+    );
     expect(countData.newestDate, initialLastDate.addCalendarDays(maxAge));
     expect(countData.majorRangeCounts.length, 1);
     final firstRange = countData.majorRangeCounts[0];

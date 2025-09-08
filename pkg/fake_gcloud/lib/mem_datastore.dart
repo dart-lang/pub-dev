@@ -18,7 +18,8 @@ class MemDatastore implements Datastore {
   @override
   Future<List<Key>> allocateIds(List<Key> keys) async {
     throw UnimplementedError(
-        'fake_gcloud.Datastore.allocateIds is not implemented.');
+      'fake_gcloud.Datastore.allocateIds is not implemented.',
+    );
   }
 
   @override
@@ -35,7 +36,8 @@ class MemDatastore implements Datastore {
   }) async {
     if (autoIdInserts.isNotEmpty) {
       throw UnimplementedError(
-          'fake_gcloud.Datastore.autoIdInserts is not implemented.');
+        'fake_gcloud.Datastore.autoIdInserts is not implemented.',
+      );
     }
 
     // https://cloud.google.com/datastore/docs/concepts/transactions#what_can_be_done_in_a_transaction
@@ -85,7 +87,8 @@ class MemDatastore implements Datastore {
         overallLength += length;
         if (length > _maxKeySegmentLength) {
           throw DatastoreError(
-              'Key segment $segmentPart must not exceed $_maxKeySegmentLength bytes.');
+            'Key segment $segmentPart must not exceed $_maxKeySegmentLength bytes.',
+          );
         }
       }
 
@@ -108,23 +111,27 @@ class MemDatastore implements Datastore {
       final length = _propertyLength(p.value!);
       overallLength += length;
 
-      final indexed = entity.unIndexedProperties.isEmpty ||
+      final indexed =
+          entity.unIndexedProperties.isEmpty ||
           !entity.unIndexedProperties.contains(p.key);
 
       if (length > _maxPropertyLength) {
         throw DatastoreError(
-            'Property ${p.key} must not exceed $_maxPropertyLength bytes.');
+          'Property ${p.key} must not exceed $_maxPropertyLength bytes.',
+        );
       }
 
       if (indexed && length > _maxIndexedPropertyLength) {
         throw DatastoreError(
-            'Indexed property ${p.key} must not exceed $_maxIndexedPropertyLength bytes.');
+          'Indexed property ${p.key} must not exceed $_maxIndexedPropertyLength bytes.',
+        );
       }
     }
 
     if (overallLength > _maxPropertyLength) {
       throw DatastoreError(
-          'Overall entity length must not exceed $_maxPropertyLength bytes.');
+        'Overall entity length must not exceed $_maxPropertyLength bytes.',
+      );
     }
   }
 
@@ -136,8 +143,10 @@ class MemDatastore implements Datastore {
   }
 
   @override
-  Future<List<Entity?>> lookup(List<Key> keys,
-      {Transaction? transaction}) async {
+  Future<List<Entity?>> lookup(
+    List<Key> keys, {
+    Transaction? transaction,
+  }) async {
     if (keys.any((k) => k.elements.any((e) => e.id == null))) {
       throw ArgumentError('Key contains null.');
     }
@@ -172,8 +181,10 @@ class MemDatastore implements Datastore {
       if (b.elements.length != 1) {
         throw UnimplementedError();
       }
-      return Comparable.compare(a.elements.single.id as Comparable,
-          b.elements.single.id as Comparable);
+      return Comparable.compare(
+        a.elements.single.id as Comparable,
+        b.elements.single.id as Comparable,
+      );
     } else {
       return Comparable.compare(a as Comparable, b as Comparable);
     }
@@ -187,60 +198,60 @@ class MemDatastore implements Datastore {
   }) async {
     List<Entity> items = _entities.values
         .where((e) => e.key.elements.last.kind == query.kind)
-        .where(
-      (e) {
-        if (query.ancestorKey == null) {
-          return true;
-        } else if (query.ancestorKey!.partition != e.key.partition) {
-          return false;
-        } else if (query.ancestorKey!.elements.length !=
-            e.key.elements.length - 1) {
-          return false;
-        }
-        for (int i = 0; i < query.ancestorKey!.elements.length; i++) {
-          if (query.ancestorKey!.elements[i] != e.key.elements[i]) {
+        .where((e) {
+          if (query.ancestorKey == null) {
+            return true;
+          } else if (query.ancestorKey!.partition != e.key.partition) {
+            return false;
+          } else if (query.ancestorKey!.elements.length !=
+              e.key.elements.length - 1) {
             return false;
           }
-        }
-        return true;
-      },
-    ).where(
-      (e) {
-        if (query.filters == null || query.filters!.isEmpty) {
+          for (int i = 0; i < query.ancestorKey!.elements.length; i++) {
+            if (query.ancestorKey!.elements[i] != e.key.elements[i]) {
+              return false;
+            }
+          }
           return true;
-        }
-        return query.filters!.every((f) {
-          if (e.unIndexedProperties.contains(f.name)) {
-            throw DatastoreError(
-                'Filtering on unindexed property: "${f.name}".');
+        })
+        .where((e) {
+          if (query.filters == null || query.filters!.isEmpty) {
+            return true;
           }
-          final v = _getValue(e, f.name);
-          if (v == null) return false;
-          final c = _compare(v, f.value);
-          switch (f.relation) {
-            case FilterRelation.Equal:
-              return c == 0;
-            case FilterRelation.LessThan:
-              return c < 0;
-            case FilterRelation.LessThanOrEqual:
-              return c <= 0;
-            case FilterRelation.GreaterThan:
-              return c > 0;
-            case FilterRelation.GreaterThanOrEqual:
-              return c >= 0;
-            default:
-              throw UnimplementedError('Not handled relation: ${f.relation}');
-          }
-        });
-      },
-    ).toList();
+          return query.filters!.every((f) {
+            if (e.unIndexedProperties.contains(f.name)) {
+              throw DatastoreError(
+                'Filtering on unindexed property: "${f.name}".',
+              );
+            }
+            final v = _getValue(e, f.name);
+            if (v == null) return false;
+            final c = _compare(v, f.value);
+            switch (f.relation) {
+              case FilterRelation.Equal:
+                return c == 0;
+              case FilterRelation.LessThan:
+                return c < 0;
+              case FilterRelation.LessThanOrEqual:
+                return c <= 0;
+              case FilterRelation.GreaterThan:
+                return c > 0;
+              case FilterRelation.GreaterThanOrEqual:
+                return c >= 0;
+              default:
+                throw UnimplementedError('Not handled relation: ${f.relation}');
+            }
+          });
+        })
+        .toList();
     if (query.orders != null && query.orders!.isNotEmpty) {
       items.sort((a, b) {
         for (final o in query.orders!) {
           if (a.unIndexedProperties.contains(o.propertyName) ||
               b.unIndexedProperties.contains(o.propertyName)) {
             throw DatastoreError(
-                'Ordering on unindexed property: "${o.propertyName}".');
+              'Ordering on unindexed property: "${o.propertyName}".',
+            );
           }
 
           final ap = _getValue(a, o.propertyName);
@@ -347,10 +358,7 @@ class MemDatastore implements Datastore {
     return {
       'partition': key.partition.namespace,
       'elements': key.elements
-          .map((e) => {
-                'kind': e.kind,
-                'id': e.id,
-              })
+          .map((e) => {'kind': e.kind, 'id': e.id})
           .toList(),
     };
   }
@@ -361,16 +369,18 @@ class MemDatastore implements Datastore {
         .cast<Map<String, dynamic>>()
         .map((e) => KeyElement(e['kind'] as String, e['id']))
         .toList();
-    return Key(elements,
-        partition:
-            partition == null ? Partition.DEFAULT : Partition(partition));
+    return Key(
+      elements,
+      partition: partition == null ? Partition.DEFAULT : Partition(partition),
+    );
   }
 
   Map<String, dynamic> _encodeEntity(Entity entity) {
     return <String, dynamic>{
       'key': _encodeKey(entity.key),
-      'props': entity.properties
-          .map((key, value) => MapEntry(key, _encodeValue(value))),
+      'props': entity.properties.map(
+        (key, value) => MapEntry(key, _encodeValue(value)),
+      ),
       'unindexed': entity.unIndexedProperties.toList(),
     };
   }
@@ -378,8 +388,9 @@ class MemDatastore implements Datastore {
   Entity _decodeEntity(Map<String, dynamic> json) {
     final keyMap = json['key'] as Map<String, dynamic>;
     final key = _decodeKey(keyMap);
-    final props = (json['props'] as Map<String, dynamic>)
-        .map((k, v) => MapEntry(k, _decodeValue(v)));
+    final props = (json['props'] as Map<String, dynamic>).map(
+      (k, v) => MapEntry(k, _decodeValue(v)),
+    );
     final unindexed = (json['unindexed'] as List).cast<String>();
     return Entity(key, props, unIndexedProperties: unindexed.toSet());
   }
@@ -395,7 +406,7 @@ class _Page implements Page<Entity> {
   final int _pageSize;
 
   _Page(this._items, this._offset, this._pageSize)
-      : items = _items.skip(_offset).take(_pageSize).toList();
+    : items = _items.skip(_offset).take(_pageSize).toList();
 
   @override
   bool get isLast => _offset + _pageSize > _items.length;

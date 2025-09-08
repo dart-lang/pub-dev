@@ -31,23 +31,27 @@ d.Node listOfPackagesNode({
   required List<PackageView> packageHits,
   required List<String>? nameMatches,
 }) {
-  final bestNameMatch =
-      (nameMatches == null || nameMatches.isEmpty) ? null : nameMatches.first;
+  final bestNameMatch = (nameMatches == null || nameMatches.isEmpty)
+      ? null
+      : nameMatches.first;
   final listingPackagesLikedByMe =
       requestContext.experimentalFlags.useMyLikedSearch &&
-          (searchForm?.parsedQuery.tagsPredicate
-                  .isRequiredTag(AccountTag.isLikedByMe) ??
-              false);
+      (searchForm?.parsedQuery.tagsPredicate.isRequiredTag(
+            AccountTag.isLikedByMe,
+          ) ??
+          false);
   return d.div(
     classes: ['packages'],
     children: [
       ...sdkLibraryHits.map(_sdkLibraryItem),
-      ...packageHits.map((hit) => _packageItem(
-            hit,
-            searchForm: searchForm,
-            isNameMatch: hit.name == bestNameMatch,
-            isLiked: listingPackagesLikedByMe,
-          )),
+      ...packageHits.map(
+        (hit) => _packageItem(
+          hit,
+          searchForm: searchForm,
+          isNameMatch: hit.name == bestNameMatch,
+          isLiked: listingPackagesLikedByMe,
+        ),
+      ),
       imageCarousel(),
     ],
   );
@@ -65,7 +69,9 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
     description: hit.description ?? '',
     metadataNode: d.fragment([
       d.span(
-          classes: ['packages-metadata-block'], text: sdkDict.libraryTypeLabel),
+        classes: ['packages-metadata-block'],
+        text: sdkDict.libraryTypeLabel,
+      ),
       coreLibraryBadgeNode,
       nullSafeBadgeNode(),
     ]),
@@ -73,10 +79,10 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
     replacedBy: null,
     apiPages: hit.apiPages
         ?.where((page) => page.url != null)
-        .map((page) => _ApiPageUrl(
-              page.url!,
-              page.title ?? page.path ?? page.url!,
-            ))
+        .map(
+          (page) =>
+              _ApiPageUrl(page.url!, page.title ?? page.path ?? page.url!),
+        )
         .toList(),
   );
 }
@@ -89,10 +95,12 @@ d.Node _packageItem(
 }) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
   final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
-  final isDart3Compatible =
-      view.tags.contains(PackageVersionTags.isDart3Compatible);
-  final isDart3Incompatible =
-      view.tags.contains(PackageVersionTags.isDart3Incompatible);
+  final isDart3Compatible = view.tags.contains(
+    PackageVersionTags.isDart3Compatible,
+  );
+  final isDart3Incompatible = view.tags.contains(
+    PackageVersionTags.isDart3Incompatible,
+  );
 
   Iterable<d.Node> versionAndTimestamp(
     Release release, {
@@ -132,21 +140,22 @@ d.Node _packageItem(
       ],
     ),
     if (view.publisherId != null)
-      d.span(classes: [
-        'packages-metadata-block'
-      ], children: [
-        d.img(
-          classes: ['package-vp-icon', 'filter-invert-on-dark'],
-          image: verifiedPublisherIconImage(),
-          title: 'Published by a pub.dev verified publisher',
-        ),
-        d.a(href: urls.publisherUrl(view.publisherId!), text: view.publisherId),
-      ]),
-    if (licenseNode != null)
       d.span(
         classes: ['packages-metadata-block'],
-        child: licenseNode,
+        children: [
+          d.img(
+            classes: ['package-vp-icon', 'filter-invert-on-dark'],
+            image: verifiedPublisherIconImage(),
+            title: 'Published by a pub.dev verified publisher',
+          ),
+          d.a(
+            href: urls.publisherUrl(view.publisherId!),
+            text: view.publisherId,
+          ),
+        ],
       ),
+    if (licenseNode != null)
+      d.span(classes: ['packages-metadata-block'], child: licenseNode),
     if (isFlutterFavorite) flutterFavoriteBadgeNode,
     if (isNullSafe && !isDart3Compatible) nullSafeBadgeNode(),
     if (isDart3Compatible) dart3CompatibleNode,
@@ -160,30 +169,36 @@ d.Node _packageItem(
   final screenshotDescriptions = <String>[];
   if (hasScreenshots) {
     thumbnailUrl = imageStorage.getImageUrl(
-        view.name, releases.stable.version, screenshots.first.webp100Thumbnail);
+      view.name,
+      releases.stable.version,
+      screenshots.first.webp100Thumbnail,
+    );
 
     for (final screenshot in screenshots) {
-      screenshotUrls.add(imageStorage.getImageUrl(
-          view.name, releases.stable.version, screenshot.webpImage));
+      screenshotUrls.add(
+        imageStorage.getImageUrl(
+          view.name,
+          releases.stable.version,
+          screenshot.webpImage,
+        ),
+      );
       screenshotDescriptions.add(screenshot.description);
     }
   }
 
   List<d.Node> _topicsNode(List<String>? topics) {
     if (topics == null || topics.isEmpty) return [];
-    return topics.map(
-      (topic) {
-        final ct = canonicalTopics.asMap[topic];
-        final description = ct?.description;
-        return d.a(
-          classes: ['topics-tag'],
-          href: urls.searchUrl(q: 'topic:$topic'),
-          text: '#$topic',
-          title: description,
-          rel: 'nofollow',
-        );
-      },
-    ).toList();
+    return topics.map((topic) {
+      final ct = canonicalTopics.asMap[topic];
+      final description = ct?.description;
+      return d.a(
+        classes: ['topics-tag'],
+        href: urls.searchUrl(q: 'topic:$topic'),
+        text: '#$topic',
+        title: description,
+        rel: 'nofollow',
+      );
+    }).toList();
   }
 
   return _item(
@@ -200,20 +215,24 @@ d.Node _packageItem(
     likeIcon: isLiked
         ? renderLikeButton(view.name, likeCount: view.likes, isLiked: isLiked)
         : null,
-    copyIcon:
-        copyIcon(package: view.name, version: view.releases.stable.version),
+    copyIcon: copyIcon(
+      package: view.name,
+      version: view.releases.stable.version,
+    ),
     tagsNode: tagsNodeFromPackageView(searchForm: searchForm, package: view),
     replacedBy: view.replacedBy,
     apiPages: view.apiPages
-        ?.map((page) => _ApiPageUrl(
-              page.url ??
-                  urls.pkgDocUrl(
-                    view.name,
-                    isLatest: true,
-                    relativePath: page.path,
-                  ),
-              page.title ?? page.path!,
-            ))
+        ?.map(
+          (page) => _ApiPageUrl(
+            page.url ??
+                urls.pkgDocUrl(
+                  view.name,
+                  isLatest: true,
+                  relativePath: page.path,
+                ),
+            page.title ?? page.path!,
+          ),
+        )
         .toList(),
     topics: _topicsNode(view.topics),
   );
@@ -237,24 +256,25 @@ d.Node _item({
   required String? replacedBy,
   required List<_ApiPageUrl>? apiPages,
 }) {
-  final age =
-      newTimestamp == null ? null : clock.now().difference(newTimestamp);
+  final age = newTimestamp == null
+      ? null
+      : clock.now().difference(newTimestamp);
   return d.div(
     classes: ['packages-item'],
     children: [
       d.div(
         classes: ['packages-header'],
         children: [
-          d.h3(classes: [
-            'packages-title',
-            'pub-monochrome-icon-hoverable',
-          ], children: [
-            d.a(href: url, text: name),
-            if (likeIcon != null) ...[d.text(' '), likeIcon],
-            if (copyIcon != null) copyIcon,
-            d.text(' '),
-            if (isNameMatch) nameMatchBadgeNode,
-          ]),
+          d.h3(
+            classes: ['packages-title', 'pub-monochrome-icon-hoverable'],
+            children: [
+              d.a(href: url, text: name),
+              if (likeIcon != null) ...[d.text(' '), likeIcon],
+              if (copyIcon != null) copyIcon,
+              d.text(' '),
+              if (isNameMatch) nameMatchBadgeNode,
+            ],
+          ),
           if (age != null && age.inDays <= 30)
             d.div(
               classes: ['packages-recent'],
@@ -262,8 +282,9 @@ d.Node _item({
                 d.img(
                   classes: ['packages-recent-icon'],
                   image: d.Image(
-                    src:
-                        staticUrls.getAssetUrl('/static/img/schedule-icon.svg'),
+                    src: staticUrls.getAssetUrl(
+                      '/static/img/schedule-icon.svg',
+                    ),
                     alt: 'recently created package',
                     width: 10,
                     height: 10,
@@ -277,36 +298,39 @@ d.Node _item({
           if (labeledScoresNode != null) labeledScoresNode,
         ],
       ), // end of packages-header
-      d.div(classes: [
-        'packages-container'
-      ], children: [
-        d.div(
-          classes: ['packages-body'],
-          children: [
+      d.div(
+        classes: ['packages-container'],
+        children: [
+          d.div(
+            classes: ['packages-body'],
+            children: [
+              d.div(
+                classes: ['packages-description'],
+                children: [
+                  d.span(text: description),
+                  ...topics,
+                ],
+              ),
+              d.p(classes: ['packages-metadata'], child: metadataNode),
+              if (tagsNode != null) d.div(child: tagsNode),
+              if (apiPages != null && apiPages.isNotEmpty)
+                d.div(classes: ['packages-api'], child: _apiPages(apiPages)),
+            ],
+          ),
+          if (thumbnailUrl != null)
             d.div(
-              classes: ['packages-description'],
+              classes: ['packages-screenshot-thumbnail'],
               children: [
-                d.span(text: description),
-                ...topics,
+                screenshotThumbnailNode(
+                  thumbnailUrl: thumbnailUrl,
+                  screenshotUrls: screenshotUrls!,
+                  screenshotDescriptions: screenshotDescriptions!,
+                ),
+                collectionsIcon(),
               ],
             ),
-            d.p(classes: ['packages-metadata'], child: metadataNode),
-            if (tagsNode != null) d.div(child: tagsNode),
-            if (apiPages != null && apiPages.isNotEmpty)
-              d.div(classes: ['packages-api'], child: _apiPages(apiPages)),
-          ],
-        ),
-        if (thumbnailUrl != null)
-          d.div(classes: [
-            'packages-screenshot-thumbnail'
-          ], children: [
-            screenshotThumbnailNode(
-                thumbnailUrl: thumbnailUrl,
-                screenshotUrls: screenshotUrls!,
-                screenshotDescriptions: screenshotDescriptions!),
-            collectionsIcon()
-          ])
-      ]),
+        ],
+      ),
     ],
   );
 }
@@ -324,10 +348,7 @@ d.Node _apiPages(List<_ApiPageUrl> apiPages) {
       d.div(classes: ['packages-api-label'], text: 'API result:'),
       d.div(
         classes: ['packages-api-links'],
-        child: d.a(
-          href: apiPages.single.href,
-          text: apiPages.single.label,
-        ),
+        child: d.a(href: apiPages.single.href, text: apiPages.single.label),
       ),
     ]);
   } else {
@@ -336,7 +357,9 @@ d.Node _apiPages(List<_ApiPageUrl> apiPages) {
       d.details(
         classes: ['packages-api-details', 'packages-api-links'],
         summary: [d.a(href: apiPages.first.href, text: apiPages.first.label)],
-        children: apiPages.skip(1).map(
+        children: apiPages
+            .skip(1)
+            .map(
               (e) => d.div(
                 classes: ['-rest'],
                 child: d.a(href: e.href, text: e.label),

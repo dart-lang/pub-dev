@@ -10,8 +10,9 @@ import 'package:pub_dev/tool/test_profile/import_source.dart';
 import '../shared/test_models.dart';
 
 Future<T> withTempDirectory<T>(Future<T> Function(String temp) func) async {
-  final Directory dir =
-      await Directory.systemTemp.createTemp('pub.dartlang.org-backend-test');
+  final Directory dir = await Directory.systemTemp.createTemp(
+    'pub.dartlang.org-backend-test',
+  );
   try {
     return await func(dir.absolute.path);
   } finally {

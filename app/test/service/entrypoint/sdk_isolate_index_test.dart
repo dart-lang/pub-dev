@@ -15,7 +15,8 @@ void main() {
       kind: 'index',
       logger: _logger,
       spawnUri: Uri.parse(
-          'package:pub_dev/service/entrypoint/sdk_isolate_index.dart'),
+        'package:pub_dev/service/entrypoint/sdk_isolate_index.dart',
+      ),
     );
 
     tearDownAll(() async {

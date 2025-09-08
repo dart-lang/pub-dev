@@ -25,7 +25,10 @@ class TestContextProvider {
   final TestBrowser _testBrowser;
 
   TestContextProvider._(
-      this.pubHostedUrl, this._fakePubServerProcess, this._testBrowser);
+    this.pubHostedUrl,
+    this._fakePubServerProcess,
+    this._testBrowser,
+  );
 
   static Future<TestContextProvider> start() async {
     final fakePubServerProcess = await FakePubServerProcess.start();
@@ -39,10 +42,7 @@ class TestContextProvider {
       Isolate.current.hashCode,
     ].join('-');
 
-    final testBrowser = TestBrowser(
-      origin: origin,
-      testName: testName,
-    );
+    final testBrowser = TestBrowser(origin: origin, testName: testName);
     await testBrowser.startBrowser();
     return TestContextProvider._(origin, fakePubServerProcess, testBrowser);
   }
@@ -72,10 +72,12 @@ class TestContextProvider {
   }) async {
     late PubApiClient browserApi;
     final session = await _testBrowser.createSession();
-    await session.withPage(fn: (page) async {
-      await page.fakeAuthSignIn(email: email, scopes: scopes);
-      browserApi = await _apiClientHttpHeadersFromSignedInSession(page);
-    });
+    await session.withPage(
+      fn: (page) async {
+        await page.fakeAuthSignIn(email: email, scopes: scopes);
+        browserApi = await _apiClientHttpHeadersFromSignedInSession(page);
+      },
+    );
 
     return TestUser(
       email: email,
@@ -86,14 +88,17 @@ class TestContextProvider {
       ),
       createCredentials: () => fakeCredentialsMap(email: email),
       readLatestEmail: () async {
-        final map = await _fakePubServerProcess.fakeEmailReader
-            .readLatestEmail(recipient: email);
+        final map = await _fakePubServerProcess.fakeEmailReader.readLatestEmail(
+          recipient: email,
+        );
         return map['bodyText'] as String;
       },
       withBrowserPage: <T>(Future<T> Function(Page) fn) async {
-        return await session.withPage<T>(fn: (page) async {
-          return await fn(page);
-        });
+        return await session.withPage<T>(
+          fn: (page) async {
+            return await fn(page);
+          },
+        );
       },
     );
   }
@@ -109,10 +114,10 @@ Future<PubApiClient> _createClientWithAudience({
     email: email,
     audience: audience,
   );
-  return PubApiClient(pubHostedUrl,
-      client: createHttpClientWithHeaders({
-        'authorization': 'Bearer $token',
-      }));
+  return PubApiClient(
+    pubHostedUrl,
+    client: createHttpClientWithHeaders({'authorization': 'Bearer $token'}),
+  );
 }
 
 Future<String> createFakeGcpToken({
@@ -120,13 +125,15 @@ Future<String> createFakeGcpToken({
   required String email,
   String? audience,
 }) async {
-  final rs = await http.get(Uri.parse(pubHostedUrl).replace(
-    path: '/fake-gcp-token',
-    queryParameters: {
-      'email': email,
-      if (audience != null) 'audience': audience,
-    },
-  ));
+  final rs = await http.get(
+    Uri.parse(pubHostedUrl).replace(
+      path: '/fake-gcp-token',
+      queryParameters: {
+        'email': email,
+        if (audience != null) 'audience': audience,
+      },
+    ),
+  );
   final map = json.decode(rs.body) as Map<String, dynamic>;
   return map['token'] as String;
 }
@@ -159,11 +166,7 @@ class _HttpClient extends http.BaseClient {
   final bool _closeInnerClient;
   final Map<String, String> _headers;
 
-  _HttpClient(
-    this._client,
-    this._closeInnerClient,
-    this._headers,
-  );
+  _HttpClient(this._client, this._closeInnerClient, this._headers);
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {

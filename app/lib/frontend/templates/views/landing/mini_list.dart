@@ -13,11 +13,7 @@ d.Node miniListNode(String sectionTag, List<PackageView> packages) {
     children: packages.map(
       (p) => d.div(
         classes: ['mini-list-item'],
-        children: [
-          _title(sectionTag, p),
-          _body(p),
-          _footer(sectionTag, p),
-        ],
+        children: [_title(sectionTag, p), _body(p), _footer(sectionTag, p)],
       ),
     ),
   );
@@ -27,16 +23,11 @@ d.Node _title(String sectionTag, PackageView p) {
   return d.a(
     classes: ['mini-list-item-title'],
     href: urls.pkgPageUrl(p.name),
-    attributes: {
-      'data-ga-click-event': 'landing-$sectionTag-card-title',
-    },
+    attributes: {'data-ga-click-event': 'landing-$sectionTag-card-title'},
     child: d.span(
       classes: ['mini-list-item-title-text'],
       text: p.name,
-      attributes: {
-        'role': 'heading',
-        'aria-level': '2',
-      },
+      attributes: {'role': 'heading', 'aria-level': '2'},
     ),
   );
 }
@@ -68,7 +59,7 @@ d.Node _footer(String sectionTag, PackageView p) {
               classes: ['publisher-link'],
               href: urls.publisherUrl(p.publisherId!),
               attributes: {
-                'data-ga-click-event': 'landing-$sectionTag-card-publisher'
+                'data-ga-click-event': 'landing-$sectionTag-card-publisher',
               },
               text: p.publisherId,
             ),

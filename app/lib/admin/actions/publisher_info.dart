@@ -12,9 +12,7 @@ final publisherInfo = AdminAction(
   description: '''
 Loads and displays the publisher information.
 ''',
-  options: {
-    'publisher': 'The publisherId to be loaded.',
-  },
+  options: {'publisher': 'The publisherId to be loaded.'},
   invoke: (options) async {
     final publisherId = options['publisher'];
     InvalidInputException.check(

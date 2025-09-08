@@ -26,12 +26,7 @@ class PageData {
   /// has a chance to save their work on the page before it may be lost.
   final bool? sessionAware;
 
-  PageData({
-    this.consentId,
-    this.pkgData,
-    this.publisher,
-    this.sessionAware,
-  });
+  PageData({this.consentId, this.pkgData, this.publisher, this.sessionAware});
 
   factory PageData.fromJson(Map<String, dynamic> json) =>
       _$PageDataFromJson(json);
@@ -75,9 +70,7 @@ class PkgData {
 class PublisherData {
   final String publisherId;
 
-  PublisherData({
-    required this.publisherId,
-  });
+  PublisherData({required this.publisherId});
 
   factory PublisherData.fromJson(Map<String, dynamic> json) =>
       _$PublisherDataFromJson(json);

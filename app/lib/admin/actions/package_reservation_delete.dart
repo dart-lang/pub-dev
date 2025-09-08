@@ -13,9 +13,7 @@ final packageReservationDelete = AdminAction(
   description: '''
 Deletes a ReservedPackage entity, allowing the package name use by any user.
 ''',
-  options: {
-    'package': 'The package reservation to be deleted.',
-  },
+  options: {'package': 'The package reservation to be deleted.'},
   invoke: (options) async {
     final package = options['package'];
     InvalidInputException.check(

@@ -21,10 +21,12 @@ Sends an invite to <email> to become a member of <publisher>.
     'email': 'email to send invitation to',
   },
   invoke: (options) async {
-    final publisherId = options['publisher'] ??
+    final publisherId =
+        options['publisher'] ??
         (throw InvalidInputException('Missing --publisher argument.'));
 
-    final invitedEmail = options['email'] ??
+    final invitedEmail =
+        options['email'] ??
         (throw InvalidInputException('Missing --email argument.'));
 
     final publisher = await publisherBackend.lookupPublisher(publisherId);
@@ -32,11 +34,14 @@ Sends an invite to <email> to become a member of <publisher>.
       throw NotFoundException.resource(publisherId);
     }
 
-    final authenticatedAgent =
-        await requireAuthenticatedAdmin(AdminPermission.invokeAction);
+    final authenticatedAgent = await requireAuthenticatedAdmin(
+      AdminPermission.invokeAction,
+    );
 
     await publisherBackend.verifyPublisherMemberInvite(
-        publisherId, InviteMemberRequest(email: invitedEmail));
+      publisherId,
+      InviteMemberRequest(email: invitedEmail),
+    );
     await consentBackend.invitePublisherMember(
       authenticatedAgent: authenticatedAgent,
       publisherId: publisherId,

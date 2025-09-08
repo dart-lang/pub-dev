@@ -95,26 +95,21 @@ String renderLayoutPage(
     faviconUrl: faviconUrl ?? staticUrls.smallDartFavicon,
     noIndex: noIndex,
     csrfToken: session?.csrfToken,
-    pageDataEncoded:
-        pageData == null ? null : pageDataJsonCodec.encode(pageData.toJson()),
+    pageDataEncoded: pageData == null
+        ? null
+        : pageDataJsonCodec.encode(pageData.toJson()),
     bodyClasses: bodyClasses,
-    siteHeader: siteHeaderNode(
-      pageType: type,
-      userSession: session,
-    ),
+    siteHeader: siteHeaderNode(pageType: type, userSession: session),
     announcementBanner: announcementBannerHtml == null
         ? null
         : d.unsafeRawHtml(announcementBannerHtml),
     announcementBannerHash: announcementBannerHtml == null
         ? ''
         : hex
-            .encode(sha1.convert(utf8.encode(announcementBannerHtml)).bytes)
-            .substring(0, 16),
+              .encode(sha1.convert(utf8.encode(announcementBannerHtml)).bytes)
+              .substring(0, 16),
     searchBanner: showSearchBanner(type)
-        ? _renderSearchBanner(
-            type: type,
-            searchForm: searchForm,
-          )
+        ? _renderSearchBanner(type: type, searchForm: searchForm)
         : null,
     isLanding: type == PageType.landing,
     landingBlurb: defaultLandingBlurbNode,

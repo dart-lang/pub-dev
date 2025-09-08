@@ -103,13 +103,15 @@ class TokenIndex<K> {
     for (final word in splitForIndexing(text)) {
       final tokens = tokenize(word, isSplit: true) ?? {};
 
-      final present =
-          tokens.keys.where((token) => _inverseIds.containsKey(token)).toList();
+      final present = tokens.keys
+          .where((token) => _inverseIds.containsKey(token))
+          .toList();
       if (present.isEmpty) {
         return TokenMatch();
       }
-      final bestTokenValue =
-          present.map((token) => tokens[token]!).reduce(math.max);
+      final bestTokenValue = present
+          .map((token) => tokens[token]!)
+          .reduce(math.max);
       final minTokenValue = bestTokenValue * 0.7;
       for (final token in present) {
         final value = tokens[token]!;
@@ -124,8 +126,11 @@ class TokenIndex<K> {
 
   /// Search the index for [words], providing the result [IndexedScore] values
   /// in the [fn] callback, reusing the score buffers between calls.
-  R withSearchWords<R>(List<String> words, R Function(IndexedScore<K> score) fn,
-      {double weight = 1.0}) {
+  R withSearchWords<R>(
+    List<String> words,
+    R Function(IndexedScore<K> score) fn, {
+    double weight = 1.0,
+  }) {
     IndexedScore<K>? score;
 
     weight = math.pow(weight, 1 / words.length).toDouble();
@@ -202,9 +207,7 @@ abstract class _AllocationPool<T> {
 
   /// Executes [fn] and provides a pool item in the callback.
   /// The item will be released to the pool after [fn] completes.
-  R withPoolItem<R>({
-    required R Function(T array) fn,
-  }) {
+  R withPoolItem<R>({required R Function(T array) fn}) {
     final item = _acquire();
     final r = fn(item);
     _release(item);
@@ -237,21 +240,25 @@ abstract class _AllocationPool<T> {
 /// A reusable pool for [IndexedScore] instances to spare some memory allocation.
 class ScorePool<K> extends _AllocationPool<IndexedScore<K>> {
   ScorePool(List<K> keys)
-      : super(
-          () => IndexedScore(keys),
-          // sets all values to 0.0
-          (score) => score._values
-              .setAll(0, Iterable.generate(score.length, (_) => 0.0)),
-        );
+    : super(
+        () => IndexedScore(keys),
+        // sets all values to 0.0
+        (score) => score._values.setAll(
+          0,
+          Iterable.generate(score.length, (_) => 0.0),
+        ),
+      );
 }
 
 /// A reusable pool for [BitArray] instances to spare some memory allocation.
 class BitArrayPool extends _AllocationPool<BitArray> {
   BitArrayPool(int length)
-      : super(
-          () => BitArray(length),
-          (array) {}, // keeping the array as-is, reset happens at the beginning of the processing
-        );
+    : super(
+        () => BitArray(length),
+        (
+          array,
+        ) {}, // keeping the array as-is, reset happens at the beginning of the processing
+      );
 }
 
 /// Mutable score list that can accessed via integer index.
@@ -341,9 +348,9 @@ class IndexedScore<K> {
       if (v < minValue) continue;
       heap.collect(i);
     }
-    return Map.fromEntries(heap
-        .getAndRemoveTopK(count)
-        .map((i) => MapEntry(_keys[i], _values[i])));
+    return Map.fromEntries(
+      heap.getAndRemoveTopK(count).map((i) => MapEntry(_keys[i], _values[i])),
+    );
   }
 
   Map<K, double> toMap() {

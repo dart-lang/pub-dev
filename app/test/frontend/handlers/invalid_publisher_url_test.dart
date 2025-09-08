@@ -15,14 +15,17 @@ void main() {
   // The test collects the GET routes containing a single `<publisherId>` named parameter.
   // These endpoints will be called with a combination of good and bad parameters, and
   // response status codes are checked against a valid set of codes specific to a use-case.
-  final urls =
-      _parseGetRoutes().where((url) => url.contains('<publisherId>')).where(
-    (url) {
-      final vars = _variableExp.allMatches(url).map((m) => m.group(1)).toSet();
-      vars.remove('publisherId');
-      return vars.isEmpty;
-    },
-  ).toSet();
+  final urls = _parseGetRoutes()
+      .where((url) => url.contains('<publisherId>'))
+      .where((url) {
+        final vars = _variableExp
+            .allMatches(url)
+            .map((m) => m.group(1))
+            .toSet();
+        vars.remove('publisherId');
+        return vars.isEmpty;
+      })
+      .toSet();
 
   test('URLs are extracted', () {
     expect(urls, contains('/publishers/<publisherId>'));
@@ -45,8 +48,11 @@ void main() {
           final rs = await issueGet(u);
           statusCodes.add(rs.statusCode);
           expect(rs.statusCode, lessThan(500), reason: '$u ${rs.statusCode}');
-          expect(expectedCodes, contains(rs.statusCode),
-              reason: '$kind $u ${rs.statusCode}');
+          expect(
+            expectedCodes,
+            contains(rs.statusCode),
+            reason: '$kind $u ${rs.statusCode}',
+          );
         }
         expect(statusCodes, expectedCodes, reason: kind);
       }

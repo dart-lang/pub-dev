@@ -76,6 +76,7 @@ class _BaseIntegrityChecker {
   Stream<String> _streamWithPool<T>(
     Stream<T> Function() streamFn,
     Stream<String> Function(T item) itemFn, {
+
     /// Note: This time limit aborts the integrity check after a reasonable
     /// amount of time has passed with an entity-related operation.
     ///
@@ -93,8 +94,12 @@ class _BaseIntegrityChecker {
           try {
             return await f.timeout(timeLimit!);
           } on TimeoutException catch (e, st) {
-            _logger.pubNoticeShout('integrity-check-timeout',
-                'Integrity check operation timed out.', e, st);
+            _logger.pubNoticeShout(
+              'integrity-check-timeout',
+              'Integrity check operation timed out.',
+              e,
+              st,
+            );
             rethrow;
           }
         });
@@ -112,6 +117,7 @@ class _BaseIntegrityChecker {
 
   Stream<String> _queryWithPool<R extends Model>(
     Stream<String> Function(R model) fn, {
+
     /// Note: This time limit aborts the integrity check after a reasonable
     /// amount of time has passed with an entity-related operation.
     ///
@@ -119,14 +125,10 @@ class _BaseIntegrityChecker {
     /// hopefully it should complete on the next round.
     Duration? timeLimit,
   }) async* {
-    yield* _streamWithPool(
-      () => _db.query<R>().run(),
-      (m) async* {
-        _updateUnmappedFields(m);
-        yield* fn(m);
-      },
-      timeLimit: timeLimit,
-    );
+    yield* _streamWithPool(() => _db.query<R>().run(), (m) async* {
+      _updateUnmappedFields(m);
+      yield* fn(m);
+    }, timeLimit: timeLimit);
   }
 }
 
@@ -149,7 +151,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   int _versionChecked = 0;
 
   IntegrityChecker(DatastoreDB db, {int? concurrency})
-      : super._(Logger('integrity.check'), db, concurrency ?? 1);
+    : super._(Logger('integrity.check'), db, concurrency ?? 1);
 
   /// Runs integrity checks, and reports the problems via a [Logger].
   Future<void> verifyAndLogIssues() async {
@@ -158,10 +160,12 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       count++;
       _logger.warning('[pub-integrity-problem] $problem');
     }
-    _logger.info([
-      'Integrity check completed with $count issue(s).',
-      if (count == 0) '[pub-integrity-no-problems-found]',
-    ].join(' '));
+    _logger.info(
+      [
+        'Integrity check completed with $count issue(s).',
+        if (count == 0) '[pub-integrity-no-problems-found]',
+      ].join(' '),
+    );
   }
 
   /// Runs integrity checks, and returns the list of problems.
@@ -364,7 +368,8 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   }) async* {
     _logger.info('Scanning Packages...');
     yield* _queryWithPool<Package>(
-        (p) => _checkPackage(p, publisherAttributes: publisherAttributes));
+      (p) => _checkPackage(p, publisherAttributes: publisherAttributes),
+    );
 
     for (final r in _packageReplacedBys.entries) {
       if (await _packageMissing(r.value)) {
@@ -425,11 +430,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     final uploaders = p.uploaders;
     if (uploaders != null) {
       for (final userId in uploaders) {
-        yield* _checkUserValid(
-          userId,
-          entityType: 'Package',
-          entityId: p.name,
-        );
+        yield* _checkUserValid(userId, entityType: 'Package', entityId: p.name);
       }
     }
     if (p.deletedVersions != null) {
@@ -533,10 +534,14 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     final referencedAssetIds = <String>[];
 
     Stream<String> checkPackageVersionKey(
-        String entityType, QualifiedVersionKey key) async* {
+      String entityType,
+      QualifiedVersionKey key,
+    ) async* {
       if (!qualifiedVersionKeys.contains(key)) {
         final pv = await packageBackend.lookupPackageVersion(
-            key.package!, key.version!);
+          key.package!,
+          key.version!,
+        );
         if (pv == null) {
           yield '$entityType "$key" has no PackageVersion.';
         } else {
@@ -587,7 +592,9 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       if (!referencedAssetIds.contains(pva.assetId)) {
         // double check actual status to prevent misreports on cache race conditions
         final info = await packageBackend.lookupPackageVersionInfo(
-            pva.package!, pva.version!);
+          pva.package!,
+          pva.version!,
+        );
         if (info == null || !info.assets.contains(pva.kind!)) {
           yield 'PackageVersionAsset "${pva.id}" is not referenced from PackageVersionInfo.';
         }
@@ -624,8 +631,9 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     _logger.info('Scanning PackageVersions...');
     yield* _queryWithPool<PackageVersion>(_checkPackageVersion);
 
-    for (final package in _packages
-        .where((package) => !_packagesWithVersion.contains(package))) {
+    for (final package in _packages.where(
+      (package) => !_packagesWithVersion.contains(package),
+    )) {
       yield 'Package "$package" has no version.';
     }
     for (final package in _packagesWithVersion) {
@@ -712,10 +720,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       counts[like.package] = (counts[like.package] ?? 0) + 1;
     });
 
-    final allPackages = <String>{
-      ..._packageLikes.keys,
-      ...counts.keys,
-    };
+    final allPackages = <String>{..._packageLikes.keys, ...counts.keys};
     for (final package in allPackages) {
       final counted = counts[package] ?? 0;
       final originalStored = _packageLikes[package] ?? 0;
@@ -816,8 +821,9 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     /// even if the [User] has been deleted or invalidated.
     bool isRetainedRecord = false,
   }) async* {
-    final label =
-        entityId == null ? '$entityType entity' : '$entityType "$entityId"';
+    final label = entityId == null
+        ? '$entityType entity'
+        : '$entityType "$entityId"';
     if (!looksLikeUserIdOrServiceAgent(agent)) {
       yield '$label references an invalid agent: "$agent".';
     }
@@ -840,8 +846,9 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     /// even if the [User] has been deleted or invalidated.
     bool isRetainedRecord = false,
   }) async* {
-    final label =
-        entityId == null ? '$entityType entity' : '$entityType "$entityId"';
+    final label = entityId == null
+        ? '$entityType entity'
+        : '$entityType "$entityId"';
     if (!looksLikeUserId(userId)) {
       yield '$label references an invalid userId: "$userId".';
     }
@@ -860,8 +867,9 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     if (_userToOauth.containsKey(userId)) {
       return true;
     }
-    final user =
-        await _db.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
+    final user = await _db.lookupOrNull<User>(
+      _db.emptyKey.append(User, id: userId),
+    );
     if (user == null) {
       return false;
     }
@@ -922,7 +930,8 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
     if (mc.appealedCaseId != null) {
       final appealed = await _db.lookupOrNull<ModerationCase>(
-          _db.emptyKey.append(ModerationCase, id: mc.appealedCaseId!));
+        _db.emptyKey.append(ModerationCase, id: mc.appealedCaseId!),
+      );
       if (appealed == null) {
         yield 'ModerationCase "${mc.caseId}" references an appealed case that does not exists.';
       }
@@ -936,7 +945,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       yield [
         'Bad version format in pubspec for package "$package" ${values.length} versions: ',
         '${values.take(10).map((s) => '"$s"').join(', ')}',
-        if (values.length > 10) ' and more.'
+        if (values.length > 10) ' and more.',
       ].join();
     }
   }
@@ -1017,7 +1026,7 @@ Stream<String> _checkAdminDeletedFlags({
 /// Checks the integrity of the tarball storage (both canonical and public buckets).
 class TarballIntegrityChecker extends _BaseIntegrityChecker {
   TarballIntegrityChecker(DatastoreDB db, {int? concurrency})
-      : super._(Logger('tarball-integrity-check'), db, concurrency ?? 1);
+    : super._(Logger('tarball-integrity-check'), db, concurrency ?? 1);
 
   /// Runs integrity checks, and reports the problems via a [Logger].
   Future<void> verifyAndLogIssues() async {
@@ -1026,10 +1035,12 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
       count++;
       _logger.warning('[tarball-integrity-problem] $problem');
     }
-    _logger.info([
-      'Tarball integrity check completed with $count issue(s).',
-      if (count == 0) '[tarball-integrity-no-problems-found]',
-    ].join(' '));
+    _logger.info(
+      [
+        'Tarball integrity check completed with $count issue(s).',
+        if (count == 0) '[tarball-integrity-no-problems-found]',
+      ].join(' '),
+    );
   }
 
   /// Runs integrity checks, and returns the list of problems.
@@ -1047,17 +1058,24 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
     _logger.info('Scanning PackageVersion tarballs...');
     yield* _queryWithPool<PackageVersion>((pv) async* {
       final items = await retry(
-          () => _checkTarballInBuckets(pv, httpClient).toList(),
-          maxAttempts: 2);
+        () => _checkTarballInBuckets(pv, httpClient).toList(),
+        maxAttempts: 2,
+      );
       yield* Stream.fromIterable(items);
     });
   }
 
   Stream<String> _checkTarballInBuckets(
-      PackageVersion pv, http.Client httpClient) async* {
-    final archiveDownloadUri = Uri.parse(urls.pkgArchiveDownloadUrl(
-        pv.package, pv.version!,
-        baseUri: activeConfiguration.primaryApiUri));
+    PackageVersion pv,
+    http.Client httpClient,
+  ) async* {
+    final archiveDownloadUri = Uri.parse(
+      urls.pkgArchiveDownloadUrl(
+        pv.package,
+        pv.version!,
+        baseUri: activeConfiguration.primaryApiUri,
+      ),
+    );
 
     final isPackageVisible = await packageBackend.isPackageVisible(pv.package);
     final shouldBeInPublicBucket = isPackageVisible && pv.isVisible;
@@ -1069,8 +1087,10 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
       return;
     }
 
-    final info = await packageBackend.tarballStorage
-        .getPublicBucketArchiveInfo(pv.package, pv.version!);
+    final info = await packageBackend.tarballStorage.getPublicBucketArchiveInfo(
+      pv.package,
+      pv.version!,
+    );
     if (info == null) {
       if (shouldBeInPublicBucket) {
         yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching public archive file '
@@ -1124,30 +1144,29 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
     final packages = await packageBackend.tarballStorage
         .listPackagesInCanonicalBucket()
         .timeout(Duration(minutes: 15));
-    yield* _streamWithPool(
-      () => Stream.fromIterable(packages),
-      (package) async* {
-        final p = await packageBackend.lookupPackage(package);
-        if (p == null) {
-          yield 'Missing Package entity in database: "$package".';
-          return;
-        }
-        final bucketVersions = await packageBackend.tarballStorage
-            .listVersionsInCanonicalBucket(package);
-        final dbVersions = await packageBackend.versionsOfPackage(package);
+    yield* _streamWithPool(() => Stream.fromIterable(packages), (
+      package,
+    ) async* {
+      final p = await packageBackend.lookupPackage(package);
+      if (p == null) {
+        yield 'Missing Package entity in database: "$package".';
+        return;
+      }
+      final bucketVersions = await packageBackend.tarballStorage
+          .listVersionsInCanonicalBucket(package);
+      final dbVersions = await packageBackend.versionsOfPackage(package);
 
-        for (final e in bucketVersions.entries) {
-          final version = e.key;
-          final dbv = dbVersions.singleWhereOrNull((e) => e.version == version);
-          if (dbv == null) {
-            // NOTE: This check may expose files that become stale during an aborted upload.
-            //       If that's the case, further bucket cleanup may be required.
-            yield 'Missing PackageVersion entity in database: "$package/$version". May be a stale upload, investigatation needed!';
-          }
+      for (final e in bucketVersions.entries) {
+        final version = e.key;
+        final dbv = dbVersions.singleWhereOrNull((e) => e.version == version);
+        if (dbv == null) {
+          // NOTE: This check may expose files that become stale during an aborted upload.
+          //       If that's the case, further bucket cleanup may be required.
+          yield 'Missing PackageVersion entity in database: "$package/$version". May be a stale upload, investigatation needed!';
         }
+      }
 
-        // Note: checking the other way around is already done via iterating over the version entries in the database.
-      },
-    );
+      // Note: checking the other way around is already done via iterating over the version entries in the database.
+    });
   }
 }

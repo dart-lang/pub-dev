@@ -33,39 +33,42 @@ class FakeAnalyzerService {
     required Configuration configuration,
   }) async {
     await withFakeServices(
-        configuration: configuration,
-        datastore: _datastore,
-        storage: _storage,
-        cloudCompute: _cloudCompute,
-        fn: () async {
-          await generateFakeDownloadCountsInDatastore();
+      configuration: configuration,
+      datastore: _datastore,
+      storage: _storage,
+      cloudCompute: _cloudCompute,
+      fn: () async {
+        await generateFakeDownloadCountsInDatastore();
 
-          final handler = wrapHandler(_logger, analyzerServiceHandler);
-          final server = await IOServer.bind('localhost', port);
-          serveRequests(server.server, (request) async {
-            return (await ss.fork(() async {
-              if (request.requestedUri.path == '/fake-update-all') {
-                return shelf.Response.badRequest(
-                    body: 'endpoint no longer supported');
-              }
-              return await handler(request);
-            }) as shelf.Response?)!;
-          });
-          _logger.info('running on port $port');
-
-          (taskWorkerCloudCompute as FakeCloudCompute).startInstanceExecution();
-          ss.registerScopeExitCallback(
-              (taskWorkerCloudCompute as FakeCloudCompute)
-                  .stopInstanceExecution);
-          await taskBackend.backfillTrackingState();
-          await taskBackend.start();
-
-          await ProcessSignal.sigint.watch().first;
-
-          _logger.info('shutting down');
-          await server.close();
-          _logger.info('closing');
+        final handler = wrapHandler(_logger, analyzerServiceHandler);
+        final server = await IOServer.bind('localhost', port);
+        serveRequests(server.server, (request) async {
+          return (await ss.fork(() async {
+                if (request.requestedUri.path == '/fake-update-all') {
+                  return shelf.Response.badRequest(
+                    body: 'endpoint no longer supported',
+                  );
+                }
+                return await handler(request);
+              })
+              as shelf.Response?)!;
         });
+        _logger.info('running on port $port');
+
+        (taskWorkerCloudCompute as FakeCloudCompute).startInstanceExecution();
+        ss.registerScopeExitCallback(
+          (taskWorkerCloudCompute as FakeCloudCompute).stopInstanceExecution,
+        );
+        await taskBackend.backfillTrackingState();
+        await taskBackend.start();
+
+        await ProcessSignal.sigint.watch().first;
+
+        _logger.info('shutting down');
+        await server.close();
+        _logger.info('closing');
+      },
+    );
     _logger.info('closed');
   }
 }

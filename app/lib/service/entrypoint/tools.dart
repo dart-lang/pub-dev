@@ -25,10 +25,12 @@ Future<ProcessSignal> waitForProcessSignalTermination() {
     }
   }
 
-  subscriptions.addAll([
-    ProcessSignal.sighup,
-    ProcessSignal.sigint,
-    ProcessSignal.sigterm,
-  ].map((s) => s.watch().listen(process)));
+  subscriptions.addAll(
+    [
+      ProcessSignal.sighup,
+      ProcessSignal.sigint,
+      ProcessSignal.sigterm,
+    ].map((s) => s.watch().listen(process)),
+  );
   return completer.future;
 }

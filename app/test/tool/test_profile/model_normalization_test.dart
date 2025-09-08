@@ -10,15 +10,15 @@ void main() {
   group('normalization tests', () {
     test('a package with a publisher', () {
       expect(
-        normalize(TestProfile.fromYaml(
-          '''
+        normalize(
+          TestProfile.fromYaml('''
 defaultUser: user@domain.com
 generatedPackages:
   - name: foo
     publisher: example.com
     versions: ['1.0.0', '2.0.0']
-''',
-        )).toJson(),
+'''),
+        ).toJson(),
         {
           'importedPackages': [],
           'generatedPackages': [
@@ -28,25 +28,19 @@ generatedPackages:
               'versions': [
                 {'version': '1.0.0'},
                 {'version': '2.0.0'},
-              ]
-            }
+              ],
+            },
           ],
           'publishers': [
             {
               'name': 'example.com',
               'members': [
-                {
-                  'email': 'user@domain.com',
-                  'role': 'admin',
-                }
-              ]
-            }
+                {'email': 'user@domain.com', 'role': 'admin'},
+              ],
+            },
           ],
           'users': [
-            {
-              'email': 'user@domain.com',
-              'likes': [],
-            }
+            {'email': 'user@domain.com', 'likes': []},
           ],
           'defaultUser': 'user@domain.com',
         },
@@ -55,14 +49,14 @@ generatedPackages:
 
     test('a package without publisher', () {
       expect(
-        normalize(TestProfile.fromYaml(
-          '''
+        normalize(
+          TestProfile.fromYaml('''
 defaultUser: user@domain.com
 generatedPackages:
   - name: foo
     versions: ['1.0.0', '2.0.0']
-''',
-        )).toJson(),
+'''),
+        ).toJson(),
         {
           'importedPackages': [],
           'generatedPackages': [
@@ -72,16 +66,13 @@ generatedPackages:
                 {'version': '1.0.0'},
                 {'version': '2.0.0'},
               ],
-            }
+            },
           ],
           'publishers': [],
           'users': [
-            {
-              'email': 'user@domain.com',
-              'likes': [],
-            }
+            {'email': 'user@domain.com', 'likes': []},
           ],
-          'defaultUser': 'user@domain.com'
+          'defaultUser': 'user@domain.com',
         },
       );
     });

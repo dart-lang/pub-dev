@@ -20,9 +20,7 @@ d.Node searchBannerNode({
 }) {
   return d.form(
     classes: ['search-bar', 'banner-item'],
-    attributes: {
-      'autocomplete': 'off',
-    },
+    attributes: {'autocomplete': 'off'},
     action: formUrl,
     children: [
       d.input(
@@ -43,16 +41,14 @@ d.Node searchBannerNode({
       d.span(classes: ['icon']),
       if (showSearchFiltersButton)
         d.div(
-          classes: [
-            'search-filters-btn-wrapper',
-            if (hasActive) '-active',
-          ],
+          classes: ['search-filters-btn-wrapper', if (hasActive) '-active'],
           children: [
             d.img(
               classes: ['search-filters-btn', 'search-filters-btn-inactive'],
               image: d.Image(
-                src: staticUrls
-                    .getAssetUrl('/static/img/search-filters-inactive.svg'),
+                src: staticUrls.getAssetUrl(
+                  '/static/img/search-filters-inactive.svg',
+                ),
                 alt: 'toggle the display of search filters (inactive)',
                 width: 42,
                 height: 42,
@@ -61,8 +57,9 @@ d.Node searchBannerNode({
             d.img(
               classes: ['search-filters-btn', 'search-filters-btn-active'],
               image: d.Image(
-                src: staticUrls
-                    .getAssetUrl('/static/img/search-filters-active.svg'),
+                src: staticUrls.getAssetUrl(
+                  '/static/img/search-filters-active.svg',
+                ),
                 alt: 'toggle the display of search filters (active)',
                 width: 42,
                 height: 42,
@@ -131,63 +128,24 @@ String completionDataJson({
         ),
         CompletionRule(
           match: {'has:', '-has:'},
-          options: [
-            'executable',
-            'screenshot',
-          ],
+          options: ['executable', 'screenshot'],
         ),
         CompletionRule(
           match: {'license:', '-license:'},
-          options: [
-            'osi-approved',
-            ...licenses,
-          ],
+          options: ['osi-approved', ...licenses],
         ),
-        CompletionRule(
-          match: {'show:', '-show:'},
-          options: [
-            'unlisted',
-          ],
-        ),
-        CompletionRule(
-          match: {'sdk:', '-sdk:'},
-          options: [
-            'dart',
-            'flutter',
-          ],
-        ),
+        CompletionRule(match: {'show:', '-show:'}, options: ['unlisted']),
+        CompletionRule(match: {'sdk:', '-sdk:'}, options: ['dart', 'flutter']),
         CompletionRule(
           match: {'platform:', '-platform:'},
-          options: [
-            'android',
-            'ios',
-            'linux',
-            'macos',
-            'web',
-            'windows',
-          ],
+          options: ['android', 'ios', 'linux', 'macos', 'web', 'windows'],
         ),
         CompletionRule(
           match: {'runtime:', '-runtime:'},
-          options: [
-            'native-aot',
-            'native-jit',
-            'web',
-          ],
+          options: ['native-aot', 'native-jit', 'web'],
         ),
-        CompletionRule(
-          match: {'topic:', '-topic:'},
-          options: [
-            ...topics,
-          ],
-        ),
-        CompletionRule(
-          match: {'updated:'},
-          options: [
-            '3m',
-            '1y',
-          ],
-        ),
+        CompletionRule(match: {'topic:', '-topic:'}, options: [...topics]),
+        CompletionRule(match: {'updated:'}, options: ['3m', '1y']),
       ],
     ).toJson(),
   );

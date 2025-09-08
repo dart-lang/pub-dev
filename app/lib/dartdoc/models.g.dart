@@ -7,20 +7,20 @@ part of 'models.dart';
 // **************************************************************************
 
 ResolvedDocUrlVersion _$ResolvedDocUrlVersionFromJson(
-        Map<String, dynamic> json) =>
-    ResolvedDocUrlVersion(
-      version: json['version'] as String,
-      urlSegment: json['urlSegment'] as String,
-      message: json['message'] as String?,
-    );
+  Map<String, dynamic> json,
+) => ResolvedDocUrlVersion(
+  version: json['version'] as String,
+  urlSegment: json['urlSegment'] as String,
+  message: json['message'] as String?,
+);
 
 Map<String, dynamic> _$ResolvedDocUrlVersionToJson(
-        ResolvedDocUrlVersion instance) =>
-    <String, dynamic>{
-      'version': instance.version,
-      'urlSegment': instance.urlSegment,
-      if (instance.message case final value?) 'message': value,
-    };
+  ResolvedDocUrlVersion instance,
+) => <String, dynamic>{
+  'version': instance.version,
+  'urlSegment': instance.urlSegment,
+  if (instance.message case final value?) 'message': value,
+};
 
 DocPageStatus _$DocPageStatusFromJson(Map<String, dynamic> json) =>
     DocPageStatus(

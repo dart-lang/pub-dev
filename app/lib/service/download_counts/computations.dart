@@ -28,9 +28,10 @@ Future<Map<String, double>> computeTrend() async {
   await for (final pkg in packageBackend.allPackages()) {
     final name = pkg.name!;
     final downloads =
-        (await downloadCountsBackend.lookupDownloadCountData(name))
-                ?.totalCounts ??
-            [0];
+        (await downloadCountsBackend.lookupDownloadCountData(
+          name,
+        ))?.totalCounts ??
+        [0];
 
     res[name] = computeTrendScore(downloads);
   }
@@ -40,10 +41,14 @@ Future<Map<String, double>> computeTrend() async {
 final trendScoreFileName = 'trend-scores-v2.json';
 
 Future<void> uploadTrendScores(Map<String, double> trends) async {
-  final reportsBucket =
-      storageService.bucket(activeConfiguration.reportsBucketName!);
+  final reportsBucket = storageService.bucket(
+    activeConfiguration.reportsBucketName!,
+  );
   await uploadBytesWithRetry(
-      reportsBucket, trendScoreFileName, jsonUtf8Encoder.convert(trends));
+    reportsBucket,
+    trendScoreFileName,
+    jsonUtf8Encoder.convert(trends),
+  );
 }
 
 Future<void> compute30DaysTotalTask() async {
@@ -53,7 +58,8 @@ Future<void> compute30DaysTotalTask() async {
 }
 
 Future<Map<String, int>> compute30DayTotals(
-    Stream<DownloadCounts> downloadCounts) async {
+  Stream<DownloadCounts> downloadCounts,
+) async {
   final res = <String, int>{};
   await for (final dc in downloadCounts) {
     res[dc.package] = compute30DayTotal(dc);
@@ -72,10 +78,14 @@ int compute30DayTotal(DownloadCounts downloadCounts) {
 final downloadCounts30DaysTotalsFileName = 'download-counts-30-days-total.json';
 
 Future<void> upload30DaysTotal(Map<String, int> counts) async {
-  final reportsBucket =
-      storageService.bucket(activeConfiguration.reportsBucketName!);
-  await uploadBytesWithRetry(reportsBucket, downloadCounts30DaysTotalsFileName,
-      jsonUtf8Encoder.convert(counts));
+  final reportsBucket = storageService.bucket(
+    activeConfiguration.reportsBucketName!,
+  );
+  await uploadBytesWithRetry(
+    reportsBucket,
+    downloadCounts30DaysTotalsFileName,
+    jsonUtf8Encoder.convert(counts),
+  );
 }
 
 Future<WeeklyDownloadCounts?> getWeeklyTotalDownloads(String package) async {
@@ -85,7 +95,8 @@ Future<WeeklyDownloadCounts?> getWeeklyTotalDownloads(String package) async {
 }
 
 Future<WeeklyVersionDownloadCounts?> getWeeklyVersionDownloads(
-    String package) async {
+  String package,
+) async {
   return (await cache.weeklyVersionDownloadCounts(package).get(() async {
     return computeWeeklyVersionDownloads(package);
   }));
@@ -98,57 +109,63 @@ Future<WeeklyVersionDownloadCounts?> getWeeklyVersionDownloads(
 /// a given 7 day period starting from the newest date with download counts
 /// data available.
 Future<WeeklyDownloadCounts?> computeWeeklyTotalDownloads(
-    String package) async {
-  final countData =
-      await downloadCountsBackend.lookupDownloadCountData(package);
+  String package,
+) async {
+  final countData = await downloadCountsBackend.lookupDownloadCountData(
+    package,
+  );
   if (countData == null) {
     return null;
   }
 
   return WeeklyDownloadCounts(
-      weeklyDownloads: _computeWeeklyCounts(countData.totalCounts),
-      newestDate: countData.newestDate!);
+    weeklyDownloads: _computeWeeklyCounts(countData.totalCounts),
+    newestDate: countData.newestDate!,
+  );
 }
 
 /// Computes weekly downloads starting from `newestDate` for [package] and 52
 /// weeks back for all stored major, minor, and patch version ranges and total
 /// downloads.
 Future<WeeklyVersionDownloadCounts?> computeWeeklyVersionDownloads(
-    String package) async {
-  final countData =
-      await downloadCountsBackend.lookupDownloadCountData(package);
+  String package,
+) async {
+  final countData = await downloadCountsBackend.lookupDownloadCountData(
+    package,
+  );
   if (countData == null) return null;
 
   final majorRangeWeeklyCounts = <VersionRangeCount>[];
   countData.majorRangeCounts.forEach((vrc) {
     majorRangeWeeklyCounts.add((
       counts: _computeWeeklyCounts(vrc.counts),
-      versionRange: vrc.versionRange
+      versionRange: vrc.versionRange,
     ));
   });
   final minorRangeWeeklyCounts = <VersionRangeCount>[];
   countData.minorRangeCounts.forEach((vrc) {
     minorRangeWeeklyCounts.add((
       counts: _computeWeeklyCounts(vrc.counts),
-      versionRange: vrc.versionRange
+      versionRange: vrc.versionRange,
     ));
   });
   final patchRangeWeeklyCounts = <VersionRangeCount>[];
   countData.patchRangeCounts.forEach((vrc) {
     patchRangeWeeklyCounts.add((
       counts: _computeWeeklyCounts(vrc.counts),
-      versionRange: vrc.versionRange
+      versionRange: vrc.versionRange,
     ));
   });
 
   final weeklyTotalCounts = _computeWeeklyCounts(countData.totalCounts);
 
   return WeeklyVersionDownloadCounts(
-      newestDate: countData.newestDate!,
-      majorRangeWeeklyDownloads: majorRangeWeeklyCounts,
-      minorRangeWeeklyDownloads: minorRangeWeeklyCounts,
-      patchRangeWeeklyDownloads: patchRangeWeeklyCounts,
-      totalWeeklyDownloads: weeklyTotalCounts);
+    newestDate: countData.newestDate!,
+    majorRangeWeeklyDownloads: majorRangeWeeklyCounts,
+    minorRangeWeeklyDownloads: minorRangeWeeklyCounts,
+    patchRangeWeeklyDownloads: patchRangeWeeklyCounts,
+    totalWeeklyDownloads: weeklyTotalCounts,
+  );
 }
 
 List<int> _computeWeeklyCounts(List<int> dailyCounts) {

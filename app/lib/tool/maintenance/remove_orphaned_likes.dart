@@ -62,12 +62,14 @@ Future<DeleteCounts> removeOrphanedLikes({
       if (await isUserIdMissing(like.userId)) {
         // TODO: investigate if we need to recalculate the like count for the packages.
         _logger.info(
-            'Removing like for package `${like.package}` because userId `${like.userId}` is missing.');
+          'Removing like for package `${like.package}` because userId `${like.userId}` is missing.',
+        );
         return true;
       }
       if (await isPackageMissing(like.package)) {
         _logger.info(
-            'Removing like for userId `${like.userId}` because package `${like.package}` is missing.');
+          'Removing like for userId `${like.userId}` because package `${like.package}` is missing.',
+        );
         return true;
       }
       return false;

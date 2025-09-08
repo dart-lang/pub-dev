@@ -23,8 +23,7 @@ class GlobalLock {
   static GlobalLock create(
     String lockId, {
     Duration expiration = const Duration(minutes: 25),
-  }) =>
-      GlobalLock._(lockId, expiration, dbService);
+  }) => GlobalLock._(lockId, expiration, dbService);
 
   /// Call [fn] while retaining a claim to this lock. This will wait until the
   /// lock is acquired.
@@ -66,9 +65,7 @@ class GlobalLock {
             refreshed = c.refresh();
             try {
               if (!await refreshed) {
-                _log.warning(
-                  'failed to refresh claim $claimId on $_lockId',
-                );
+                _log.warning('failed to refresh claim $claimId on $_lockId');
                 return; // Stop refreshing, if refresh failed.
               }
             } on Exception catch (e, st) {

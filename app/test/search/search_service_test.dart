@@ -10,80 +10,73 @@ void main() {
   group('toServiceQuery', () {
     test('query with a single sdk parameter', () {
       final form = SearchForm.parse({'q': 'sdk:dart some framework'});
-      expect(
-        form.toServiceQuery().toUriQueryParameters(),
-        {
-          'q': 'sdk:dart some framework',
-          'tags': [
-            '-is:discontinued',
-            '-is:unlisted',
-            '-is:legacy',
-          ],
-          'offset': '0',
-          'limit': '10',
-        },
-      );
+      expect(form.toServiceQuery().toUriQueryParameters(), {
+        'q': 'sdk:dart some framework',
+        'tags': ['-is:discontinued', '-is:unlisted', '-is:legacy'],
+        'offset': '0',
+        'limit': '10',
+      });
     });
 
     test('query-based show:hidden', () {
       expect(
-        SearchForm(query: 'show:hidden')
-            .toServiceQuery()
-            .toUriQueryParameters()['tags'],
+        SearchForm(
+          query: 'show:hidden',
+        ).toServiceQuery().toUriQueryParameters()['tags'],
         [],
       );
     });
 
     test('query-based show:unlisted', () {
       expect(
-        SearchForm(query: 'show:unlisted')
-            .toServiceQuery()
-            .toUriQueryParameters()['tags'],
+        SearchForm(
+          query: 'show:unlisted',
+        ).toServiceQuery().toUriQueryParameters()['tags'],
         [],
       );
     });
 
     test('query-based discontinued', () {
       expect(
-        SearchForm(query: 'is:discontinued')
-            .toServiceQuery()
-            .toUriQueryParameters()['tags'],
+        SearchForm(
+          query: 'is:discontinued',
+        ).toServiceQuery().toUriQueryParameters()['tags'],
         ['-is:unlisted', '-is:legacy'],
       );
       expect(
-        SearchForm(query: 'show:discontinued')
-            .toServiceQuery()
-            .toUriQueryParameters()['tags'],
+        SearchForm(
+          query: 'show:discontinued',
+        ).toServiceQuery().toUriQueryParameters()['tags'],
         ['-is:unlisted', '-is:legacy'],
       );
     });
 
     test('query-based unlisted', () {
       expect(
-        SearchForm(query: 'is:unlisted')
-            .toServiceQuery()
-            .toUriQueryParameters()['tags'],
+        SearchForm(
+          query: 'is:unlisted',
+        ).toServiceQuery().toUriQueryParameters()['tags'],
         [],
       );
       expect(
-        SearchForm(query: 'show:unlisted')
-            .toServiceQuery()
-            .toUriQueryParameters()['tags'],
+        SearchForm(
+          query: 'show:unlisted',
+        ).toServiceQuery().toUriQueryParameters()['tags'],
         [],
       );
     });
 
     test('query-based legacy', () {
       expect(
-        SearchForm(query: 'is:legacy')
-            .toServiceQuery()
-            .toUriQueryParameters()['tags'],
+        SearchForm(
+          query: 'is:legacy',
+        ).toServiceQuery().toUriQueryParameters()['tags'],
         ['-is:discontinued', '-is:unlisted'],
       );
       expect(
-        SearchForm(query: 'show:legacy')
-            .toServiceQuery()
-            .toUriQueryParameters()['tags'],
+        SearchForm(
+          query: 'show:legacy',
+        ).toServiceQuery().toUriQueryParameters()['tags'],
         ['-is:discontinued', '-is:unlisted'],
       );
     });

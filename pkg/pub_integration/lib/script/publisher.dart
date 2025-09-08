@@ -42,8 +42,9 @@ class PublisherScript {
     try {
       _pubToolClient = await DartToolClient.withServer(
         pubHostedUrl: pubHostedUrl,
-        credentialsFileContent:
-            json.encode(await adminUser.createCredentials()),
+        credentialsFileContent: json.encode(
+          await adminUser.createCredentials(),
+        ),
       );
 
       await _createFakeRetryPkg();
@@ -51,7 +52,9 @@ class PublisherScript {
       await _publishDummyPkg('1.0.0');
       await Future.delayed(Duration(seconds: 1));
       await _verifyDummyPkg(
-          version: '1.0.0', uploaderEmail: 'user@example.com');
+        version: '1.0.0',
+        uploaderEmail: 'user@example.com',
+      );
 
       await adminUser.withBrowserPage((page) async {
         await page.createPublisher(publisherId: 'example.com');
@@ -61,8 +64,9 @@ class PublisherScript {
         );
       });
 
-      final infoBody =
-          await _pubHttpClient.getContent('/api/packages/_dummy_pkg/publisher');
+      final infoBody = await _pubHttpClient.getContent(
+        '/api/packages/_dummy_pkg/publisher',
+      );
       final info = json.decode(infoBody) as Map<String, dynamic>;
       if (info['publisherId'] != 'example.com') {
         throw Exception('Unexpected publisher info: $infoBody');
@@ -79,8 +83,9 @@ class PublisherScript {
 
       // member invite
       await adminUser.withBrowserPage((page) async {
-        final members1 =
-            await page.listPublisherMembers(publisherId: 'example.com');
+        final members1 = await page.listPublisherMembers(
+          publisherId: 'example.com',
+        );
         _verifyMap({'user@example.com': 'admin'}, members1);
 
         await page.invitePublisherMember(
@@ -108,8 +113,9 @@ class PublisherScript {
 
       // verify published members after invite succeeded
       await adminUser.withBrowserPage((page) async {
-        final members2 =
-            await page.listPublisherMembers(publisherId: 'example.com');
+        final members2 = await page.listPublisherMembers(
+          publisherId: 'example.com',
+        );
         _verifyMap({
           'user@example.com': 'admin',
           invitedUser.email: 'admin',
@@ -131,10 +137,11 @@ class PublisherScript {
     await dir.delete(recursive: true);
   }
 
-  Future<void> _verifyDummyPkg(
-      {required String version,
-      String? uploaderEmail,
-      String? publisherId}) async {
+  Future<void> _verifyDummyPkg({
+    required String version,
+    String? uploaderEmail,
+    String? publisherId,
+  }) async {
     final dv = await _pubHttpClient.getLatestVersionName('_dummy_pkg');
     if (dv != version) {
       throw Exception('Expected version does not match: $dv != $version');
@@ -148,7 +155,8 @@ class PublisherScript {
     // author must not be present
     if (pageHtml.contains('developer@example.com')) {
       throw Exception(
-          'pubspec author field most not be found on package page.');
+        'pubspec author field most not be found on package page.',
+      );
     }
     if (uploaderEmail != null) {
       if (publisherId != null) throw ArgumentError();
@@ -190,12 +198,14 @@ class PublisherScript {
   void _verifyMap(Map expected, Map actual) {
     if (expected.length != actual.length) {
       throw Exception(
-          'Map differ in length: ${expected.length} != ${actual.length}');
+        'Map differ in length: ${expected.length} != ${actual.length}',
+      );
     }
     for (final key in expected.keys) {
       if (actual[key] != expected[key]) {
         throw Exception(
-            'Map value differs for key: $key ${actual[key]} != ${expected[key]}');
+          'Map value differs for key: $key ${actual[key]} != ${expected[key]}',
+        );
       }
     }
   }

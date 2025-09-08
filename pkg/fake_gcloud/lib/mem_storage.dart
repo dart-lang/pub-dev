@@ -19,8 +19,11 @@ class MemStorage implements Storage {
   }
 
   @override
-  Future<void> createBucket(String bucketName,
-      {PredefinedAcl? predefinedAcl, Acl? acl}) async {
+  Future<void> createBucket(
+    String bucketName, {
+    PredefinedAcl? predefinedAcl,
+    Acl? acl,
+  }) async {
     _buckets.putIfAbsent(bucketName, () => _Bucket(bucketName));
   }
 
@@ -30,8 +33,11 @@ class MemStorage implements Storage {
   }
 
   @override
-  Bucket bucket(String bucketName,
-      {PredefinedAcl? defaultPredefinedObjectAcl, Acl? defaultObjectAcl}) {
+  Bucket bucket(
+    String bucketName, {
+    PredefinedAcl? defaultPredefinedObjectAcl,
+    Acl? defaultObjectAcl,
+  }) {
     return _buckets[bucketName]!;
   }
 
@@ -43,7 +49,8 @@ class MemStorage implements Storage {
   @override
   Future<BucketInfo> bucketInfo(String bucketName) async {
     throw UnimplementedError(
-        'fake_gcloud.Storage.bucketInfo is not implemented.');
+      'fake_gcloud.Storage.bucketInfo is not implemented.',
+    );
   }
 
   @override
@@ -56,7 +63,8 @@ class MemStorage implements Storage {
   @override
   Future<Page<String>> pageBucketNames({int pageSize = 50}) {
     throw UnimplementedError(
-        'fake_gcloud.Storage.pageBucketNames is not implemented.');
+      'fake_gcloud.Storage.pageBucketNames is not implemented.',
+    );
   }
 
   @override
@@ -97,8 +105,9 @@ class MemStorage implements Storage {
         case 'file':
           final file = _decodeFile(map[key] as Map<String, dynamic>);
           _buckets
-              .putIfAbsent(file.bucketName, () => _Bucket(file.bucketName))
-              ._files[file.name] = file;
+                  .putIfAbsent(file.bucketName, () => _Bucket(file.bucketName))
+                  ._files[file.name] =
+              file;
           break;
         default:
           throw UnimplementedError('Unknown key: $key');
@@ -139,7 +148,8 @@ class MemStorage implements Storage {
         cacheControl: meta['cacheControl'] as String?,
         contentDisposition: meta['contentDisposition'] as String?,
         contentLanguage: meta['contentLanguage'] as String?,
-        custom: (meta['custom'] as Map?)?.map(
+        custom:
+            (meta['custom'] as Map?)?.map(
               (k, v) => MapEntry(k as String, v as String),
             ) ??
             <String, String>{},
@@ -168,10 +178,10 @@ class _File implements BucketObjectEntry {
     required this.content,
     required this.metadata,
     DateTime? updated,
-  })  : // TODO: use a real CRC32 check
-        crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
-        md5Hash = md5.convert(content).bytes,
-        updated = updated ?? clock.now().toUtc();
+  }) : // TODO: use a real CRC32 check
+       crc32CChecksum = content.fold<int>(0, (a, b) => a + b) & 0xffffffff,
+       md5Hash = md5.convert(content).bytes,
+       updated = updated ?? clock.now().toUtc();
 
   @override
   Uri get downloadLink => Uri(scheme: 'gs', host: bucketName, path: name);
@@ -182,7 +192,8 @@ class _File implements BucketObjectEntry {
   @override
   ObjectGeneration get generation {
     throw UnimplementedError(
-        'fake_gcloud.ObjectInfo.generation is not implemented.');
+      'fake_gcloud.ObjectInfo.generation is not implemented.',
+    );
   }
 
   @override
@@ -200,14 +211,14 @@ class _File implements BucketObjectEntry {
       name: name,
       content: content,
       metadata: this.metadata.replace(
-            acl: metadata!.acl,
-            cacheControl: metadata.cacheControl,
-            contentDisposition: metadata.contentDisposition,
-            contentEncoding: metadata.contentEncoding,
-            contentLanguage: metadata.contentLanguage,
-            contentType: metadata.contentType,
-            custom: metadata.custom,
-          ),
+        acl: metadata!.acl,
+        cacheControl: metadata.cacheControl,
+        contentDisposition: metadata.contentDisposition,
+        contentEncoding: metadata.contentEncoding,
+        contentLanguage: metadata.contentLanguage,
+        contentType: metadata.contentType,
+        custom: metadata.custom,
+      ),
     );
   }
 }
@@ -227,44 +238,51 @@ class _Bucket implements Bucket {
   }
 
   @override
-  StreamSink<List<int>> write(String objectName,
-      {int? length,
-      ObjectMetadata? metadata,
-      Acl? acl,
-      PredefinedAcl? predefinedAcl,
-      String? contentType}) {
+  StreamSink<List<int>> write(
+    String objectName, {
+    int? length,
+    ObjectMetadata? metadata,
+    Acl? acl,
+    PredefinedAcl? predefinedAcl,
+    String? contentType,
+  }) {
     _validateObjectName(objectName);
     _logger.info('Writing stream to: $objectName');
     // ignore: close_sinks
     final controller = StreamController<List<int>>();
-    controller.stream.fold<List<int>>(<int>[], (buffer, data) {
-      buffer.addAll(data);
-      return buffer;
-    }).then((content) {
-      var meta = metadata ?? ObjectMetadata();
-      if (acl != null) {
-        meta = meta.replace(acl: acl);
-      }
-      if (contentType != null) {
-        meta = meta.replace(contentType: contentType);
-      }
-      _files[objectName] = _File(
-        bucketName: bucketName,
-        name: objectName,
-        content: content,
-        metadata: meta,
-      );
-      _logger.info('Completed ${content.length} bytes: $objectName');
-    });
+    controller.stream
+        .fold<List<int>>(<int>[], (buffer, data) {
+          buffer.addAll(data);
+          return buffer;
+        })
+        .then((content) {
+          var meta = metadata ?? ObjectMetadata();
+          if (acl != null) {
+            meta = meta.replace(acl: acl);
+          }
+          if (contentType != null) {
+            meta = meta.replace(contentType: contentType);
+          }
+          _files[objectName] = _File(
+            bucketName: bucketName,
+            name: objectName,
+            content: content,
+            metadata: meta,
+          );
+          _logger.info('Completed ${content.length} bytes: $objectName');
+        });
     return controller.sink;
   }
 
   @override
-  Future<ObjectInfo> writeBytes(String name, List<int> bytes,
-      {ObjectMetadata? metadata,
-      Acl? acl,
-      PredefinedAcl? predefinedAcl,
-      String? contentType}) async {
+  Future<ObjectInfo> writeBytes(
+    String name,
+    List<int> bytes, {
+    ObjectMetadata? metadata,
+    Acl? acl,
+    PredefinedAcl? predefinedAcl,
+    String? contentType,
+  }) async {
     _validateObjectName(name);
     final sink = write(
       name,
@@ -360,8 +378,11 @@ class _Bucket implements Bucket {
   }
 
   @override
-  Future<Page<BucketEntry>> page(
-      {String? prefix, String? delimiter, int pageSize = 50}) async {
+  Future<Page<BucketEntry>> page({
+    String? prefix,
+    String? delimiter,
+    int pageSize = 50,
+  }) async {
     final entries = await list(prefix: prefix, delimiter: delimiter).toList();
     entries.sort((a, b) => a.name.compareTo(b.name));
     return _Page<BucketEntry>(entries, pageSize, 0);
@@ -369,7 +390,9 @@ class _Bucket implements Bucket {
 
   @override
   Future<void> updateMetadata(
-      String objectName, ObjectMetadata metadata) async {
+    String objectName,
+    ObjectMetadata metadata,
+  ) async {
     _validateObjectName(objectName);
     _files[objectName] = _files[objectName]!.replace(metadata: metadata);
   }
@@ -409,9 +432,11 @@ class _Page<T> implements Page<T> {
   }
 
   _Page(this._allItems, this._pageSize, this._pageNum)
-      : _pageItems =
-            _allItems.skip(_pageNum * _pageSize).take(_pageSize).toList(),
-        isLast = _allItems.length <= _pageSize * (_pageNum + 1);
+    : _pageItems = _allItems
+          .skip(_pageNum * _pageSize)
+          .take(_pageSize)
+          .toList(),
+      isLast = _allItems.length <= _pageSize * (_pageNum + 1);
 }
 
 void _validateObjectName(String? objectName, {bool allowNull = false}) {

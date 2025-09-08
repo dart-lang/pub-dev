@@ -11,10 +11,8 @@ class PublicPagesScript {
   final bool expectLiveSite;
   final PubHttpClient _pubClient;
 
-  PublicPagesScript(
-    this.pubHostedUrl, {
-    required this.expectLiveSite,
-  }) : _pubClient = PubHttpClient(pubHostedUrl);
+  PublicPagesScript(this.pubHostedUrl, {required this.expectLiveSite})
+    : _pubClient = PubHttpClient(pubHostedUrl);
 
   /// Verify public pages.
   Future<void> verify() async {
@@ -46,20 +44,30 @@ class PublicPagesScript {
   }
 
   Future<void> _helpPages() async {
-    _contains(await _pubClient.getContent('/help'),
-        'following help pages are available');
+    _contains(
+      await _pubClient.getContent('/help'),
+      'following help pages are available',
+    );
 
     _contains(
-        await _pubClient.getContent('/help/api'), 'Hosted Pub Repository API');
+      await _pubClient.getContent('/help/api'),
+      'Hosted Pub Repository API',
+    );
 
-    _contains(await _pubClient.getContent('/help/scoring'),
-        'additional checks in the future');
+    _contains(
+      await _pubClient.getContent('/help/scoring'),
+      'additional checks in the future',
+    );
 
-    _contains(await _pubClient.getContent('/help/search'),
-        'supports the following search query expressions');
+    _contains(
+      await _pubClient.getContent('/help/search'),
+      'supports the following search query expressions',
+    );
 
-    _contains(await _pubClient.getContent('/help/publishing'),
-        'It also allows you to share your packages with the world.');
+    _contains(
+      await _pubClient.getContent('/help/publishing'),
+      'It also allows you to share your packages with the world.',
+    );
   }
 
   Future<void> _securityPage() async {
@@ -68,10 +76,7 @@ class PublicPagesScript {
   }
 
   Future<void> _atomFeed() async {
-    _contains(
-      await _pubClient.getContent('/feed.atom'),
-      'Pub Feed Generator',
-    );
+    _contains(await _pubClient.getContent('/feed.atom'), 'Pub Feed Generator');
     _contains(
       await _pubClient.getContent('/api/packages/retry/feed.atom'),
       '/api/packages/retry/feed.atom',
@@ -111,23 +116,26 @@ class PublicPagesScript {
 
   Future<void> _badRequest() async {
     _contains(
-        await _pubClient.getContent(
-          '/%D0%C2%BD%A8%CE%C4%BC%FE%BC%D0.zip',
-          expectedStatusCode: 400,
-        ),
-        'Bad Request');
+      await _pubClient.getContent(
+        '/%D0%C2%BD%A8%CE%C4%BC%FE%BC%D0.zip',
+        expectedStatusCode: 400,
+      ),
+      'Bad Request',
+    );
     _contains(
-        await _pubClient.getContent(
-          '/packages?q=%D0%C2%BD%A8%CE%C4%BC%FE%BC%D0',
-          expectedStatusCode: 400,
-        ),
-        'Bad Request');
+      await _pubClient.getContent(
+        '/packages?q=%D0%C2%BD%A8%CE%C4%BC%FE%BC%D0',
+        expectedStatusCode: 400,
+      ),
+      'Bad Request',
+    );
     _contains(
-        await _pubClient.getContent(
-          '/documentation/dart_amqp/latest//..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af/etc/passwd',
-          expectedStatusCode: 400,
-        ),
-        'Bad Request');
+      await _pubClient.getContent(
+        '/documentation/dart_amqp/latest//..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af..%25c0%25af/etc/passwd',
+        expectedStatusCode: 400,
+      ),
+      'Bad Request',
+    );
   }
 
   void _contains(String content, String matched) {

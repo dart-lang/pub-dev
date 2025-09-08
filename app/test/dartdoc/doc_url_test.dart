@@ -37,10 +37,11 @@ void main() {
         final segments = ['1.1.0', '2.0.1', '2.1.0', 'latest'];
         for (final segment in segments) {
           await expectHtmlResponse(
-              await issueGet('/documentation/oxygen/$segment/'),
-              present: [
-                '<link rel="canonical" href="https://pub.dev/documentation/oxygen/$segment/"/>'
-              ]);
+            await issueGet('/documentation/oxygen/$segment/'),
+            present: [
+              '<link rel="canonical" href="https://pub.dev/documentation/oxygen/$segment/"/>',
+            ],
+          );
         }
       },
       testProfile: _testProfile,
@@ -91,7 +92,8 @@ void main() {
           '/documentation/oxygen/latest/',
         );
         await expectHtmlResponse(
-            await issueGet('/documentation/oxygen/latest/search.html?q=abc'));
+          await issueGet('/documentation/oxygen/latest/search.html?q=abc'),
+        );
       },
       testProfile: _testProfile,
       processJobsWithFakeRunners: true,
@@ -101,9 +103,11 @@ void main() {
       'doc url missing',
       fn: () async {
         await expectNotFoundResponse(
-            await issueGet('/documentation/oxygen/1.2.0/'));
+          await issueGet('/documentation/oxygen/1.2.0/'),
+        );
         await expectNotFoundResponse(
-            await issueGet('/documentation/oxygen/1.2.0/x.html'));
+          await issueGet('/documentation/oxygen/1.2.0/x.html'),
+        );
       },
       testProfile: _testProfile,
       processJobsWithFakeRunners: true,
@@ -112,9 +116,13 @@ void main() {
     testWithProfile(
       'right after new version upload',
       fn: () async {
-        await createPubApiClient(authToken: adminClientToken)
-            .uploadPackageBytes(await packageArchiveBytes(
-                pubspecContent: generatePubspecYaml('oxygen', '2.5.0')));
+        await createPubApiClient(
+          authToken: adminClientToken,
+        ).uploadPackageBytes(
+          await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('oxygen', '2.5.0'),
+          ),
+        );
         await expectRedirectResponse(
           await issueGet('/documentation/oxygen/1.0.0/'),
           '/documentation/oxygen/1.1.0/',

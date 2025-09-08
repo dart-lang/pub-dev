@@ -23,10 +23,7 @@ List<int> encodeLength(int length) {
       bytesReversed.add(length & 0xff);
       length = length >> 8;
     }
-    return <int>[
-      0x80 | bytesReversed.length,
-      ...bytesReversed.reversed,
-    ];
+    return <int>[0x80 | bytesReversed.length, ...bytesReversed.reversed];
   }
 }
 
@@ -46,23 +43,14 @@ List<int> encodeIntegerFromBytes(List<int> bytes) {
 /// Wraps [bytes] as bit-string container.
 @visibleForTesting
 List<int> encodeBitString(List<int> bytes) {
-  return <int>[
-    0x03,
-    ...encodeLength(bytes.length + 1),
-    0x00,
-    ...bytes,
-  ];
+  return <int>[0x03, ...encodeLength(bytes.length + 1), 0x00, ...bytes];
 }
 
 /// Encodes multiple parts as a sequence.
 @visibleForTesting
 List<int> encodeSequence(Iterable<List<int>> parts) {
   final totalLength = parts.map((e) => e.length).fold<int>(0, (a, b) => a + b);
-  return <int>[
-    0x30,
-    ...encodeLength(totalLength),
-    ...parts.expand((e) => e),
-  ];
+  return <int>[0x30, ...encodeLength(totalLength), ...parts.expand((e) => e)];
 }
 
 /// A constant value that identifies the data structure as RSA public key.
@@ -89,10 +77,7 @@ List<int> encodeRsaPublicKey({
   required List<int> exponent,
 }) {
   return encodeSequence([
-    encodeSequence([
-      _objectIdentifierRsa,
-      _nullObject,
-    ]),
+    encodeSequence([_objectIdentifierRsa, _nullObject]),
     encodeBitString(
       encodeSequence([
         encodeIntegerFromBytes(modulus),

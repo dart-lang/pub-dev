@@ -23,48 +23,64 @@ void main() {
     // TODO: add test for PUT /api/publisher/<publisherId>/members/<userId> API calls
     // TODO: add test for DELETE /api/publisher/<publisherId>/members/<userId> API calls
 
-    testWithProfile('publisher redirect', fn: () async {
-      await expectRedirectResponse(
-        await issueGet('/publishers/example.com'),
-        '/publishers/example.com/packages',
-      );
-    });
+    testWithProfile(
+      'publisher redirect',
+      fn: () async {
+        await expectRedirectResponse(
+          await issueGet('/publishers/example.com'),
+          '/publishers/example.com/packages',
+        );
+      },
+    );
 
-    testWithProfile('publisher does not exists', fn: () async {
-      await expectHtmlResponse(
-        await issueGet('/publishers/no-such-publisher.com/packages'),
-        status: 404,
-      );
-    });
+    testWithProfile(
+      'publisher does not exists',
+      fn: () async {
+        await expectHtmlResponse(
+          await issueGet('/publishers/no-such-publisher.com/packages'),
+          status: 404,
+        );
+      },
+    );
 
-    testWithProfile('publisher is moderated', fn: () async {
-      final p = await dbService.lookupValue<Publisher>(
-          dbService.emptyKey.append(Publisher, id: 'example.com'));
-      p.updateIsModerated(isModerated: true);
-      await dbService.commit(inserts: [p]);
-      await expectHtmlResponse(
-        await issueGet('/publishers/example.com/packages'),
-        status: 404,
-      );
-      await expectHtmlResponse(
-        await issueGet('/publishers'),
-        absent: ['example.com'],
-      );
-    });
+    testWithProfile(
+      'publisher is moderated',
+      fn: () async {
+        final p = await dbService.lookupValue<Publisher>(
+          dbService.emptyKey.append(Publisher, id: 'example.com'),
+        );
+        p.updateIsModerated(isModerated: true);
+        await dbService.commit(inserts: [p]);
+        await expectHtmlResponse(
+          await issueGet('/publishers/example.com/packages'),
+          status: 404,
+        );
+        await expectHtmlResponse(
+          await issueGet('/publishers'),
+          absent: ['example.com'],
+        );
+      },
+    );
 
-    testWithProfile('publisher package with text search', fn: () async {
-      await expectRedirectResponse(
-        await issueGet('/publishers/example.com/packages?q=n'),
-        '/packages?q=publisher%3Aexample.com+n',
-      );
-    });
+    testWithProfile(
+      'publisher package with text search',
+      fn: () async {
+        await expectRedirectResponse(
+          await issueGet('/publishers/example.com/packages?q=n'),
+          '/packages?q=publisher%3Aexample.com+n',
+        );
+      },
+    );
 
-    testWithProfile('publisher package with tag search', fn: () async {
-      await expectRedirectResponse(
-        await issueGet('/publishers/example.com/packages?q=sdk:dart'),
-        '/packages?q=sdk%3Adart+publisher%3Aexample.com',
-      );
-    });
+    testWithProfile(
+      'publisher package with tag search',
+      fn: () async {
+        await expectRedirectResponse(
+          await issueGet('/publishers/example.com/packages?q=sdk:dart'),
+          '/packages?q=sdk%3Adart+publisher%3Aexample.com',
+        );
+      },
+    );
 
     testWithProfile(
       'publisher packages with pagination',
@@ -86,13 +102,16 @@ void main() {
       },
     );
 
-    testWithProfile('simple publisher packages', fn: () async {
-      await expectHtmlResponse(
-        await issueGet('/publishers/example.com/packages'),
-        present: ['/packages/neon'],
-        absent: ['/packages/oxygen'],
-      );
-    });
+    testWithProfile(
+      'simple publisher packages',
+      fn: () async {
+        await expectHtmlResponse(
+          await issueGet('/publishers/example.com/packages'),
+          present: ['/packages/neon'],
+          absent: ['/packages/oxygen'],
+        );
+      },
+    );
 
     testWithProfile(
       'unlisted packages',

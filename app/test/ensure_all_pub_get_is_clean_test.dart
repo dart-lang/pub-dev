@@ -13,10 +13,7 @@ import 'package:retry/retry.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final directories = [
-    'app',
-    ..._listPkgDirs(),
-  ];
+  final directories = ['app', ..._listPkgDirs()];
 
   test('known packages', () {
     expect(directories, contains('pkg/_pub_shared'));
@@ -25,20 +22,16 @@ void main() {
   });
 
   for (final dir in directories) {
-    test(
-      'ensure pub get in $dir',
-      () async {
-        final workingDirectory = p.join(Directory.current.path, '..', dir);
-        await runConstrained(
-          ['dart', 'pub', 'get', '--enforce-lockfile'],
-          workingDirectory: workingDirectory,
-          throwOnError: true,
-          retryOptions: RetryOptions(maxAttempts: 2),
-          retryIf: (_) => true,
-        );
-      },
-      timeout: Timeout(Duration(minutes: 2)),
-    );
+    test('ensure pub get in $dir', () async {
+      final workingDirectory = p.join(Directory.current.path, '..', dir);
+      await runConstrained(
+        ['dart', 'pub', 'get', '--enforce-lockfile'],
+        workingDirectory: workingDirectory,
+        throwOnError: true,
+        retryOptions: RetryOptions(maxAttempts: 2),
+        retryIf: (_) => true,
+      );
+    }, timeout: Timeout(Duration(minutes: 2)));
   }
 }
 

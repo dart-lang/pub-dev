@@ -31,7 +31,7 @@ class ImageStorage {
     'image/jpeg',
     'image/png',
     'image/svg+xml',
-    'image/webp'
+    'image/webp',
   ];
 
   /// Uploads an image to image storage, at
@@ -48,23 +48,30 @@ class ImageStorage {
   /// - `image/svg+xml`
   /// - `image/webp`
   Future<void> upload(
-      String package,
-      String version,
-      Stream<List<int>> Function() openStream,
-      String imageFilePath,
-      int length) async {
+    String package,
+    String version,
+    Stream<List<int>> Function() openStream,
+    String imageFilePath,
+    int length,
+  ) async {
     final String? mimeType = lookupMimeType(imageFilePath);
     if (mimeType == null || !isAllowedContentType(imageFilePath)) {
       _logger.info(
-          'Image upload of $imageFilePath for package $package failed. '
-          'The file $imageFilePath is not one of the following supported MIME '
-          'types: ${_supportedMIMETypes.join(', ')}.');
+        'Image upload of $imageFilePath for package $package failed. '
+        'The file $imageFilePath is not one of the following supported MIME '
+        'types: ${_supportedMIMETypes.join(', ')}.',
+      );
       throw ArgumentError(
-          'Failed to upload image file: Unsupported MIME type.');
+        'Failed to upload image file: Unsupported MIME type.',
+      );
     }
 
-    return bucket.uploadPublic([package, version, imageFilePath].join('/'),
-        length, openStream, mimeType);
+    return bucket.uploadPublic(
+      [package, version, imageFilePath].join('/'),
+      length,
+      openStream,
+      mimeType,
+    );
   }
 
   /// Validates whether the given image at [imageFilePath] is one of the

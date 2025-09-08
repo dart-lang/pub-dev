@@ -26,25 +26,22 @@ const jsonResponseHeaders = <String, String>{
 };
 
 Map<String, Object> _htmlResponseHeaders(
-    Map<String, Object>? headers, bool noReferrer) {
+  Map<String, Object>? headers,
+  bool noReferrer,
+) {
   headers ??= <String, Object>{};
   headers['content-type'] = 'text/html; charset="utf-8"';
-  headers['referrer-policy'] =
-      noReferrer ? 'no-referrer' : 'strict-origin-when-cross-origin';
+  headers['referrer-policy'] = noReferrer
+      ? 'no-referrer'
+      : 'strict-origin-when-cross-origin';
   return headers;
 }
 
 final _logger = Logger('pub.shared.handler');
 final _prettyJson = JsonUtf8Encoder('  ');
 
-shelf.Response redirectResponse(
-  String url, {
-  Map<String, Object>? headers,
-}) {
-  return shelf.Response.seeOther(
-    url,
-    headers: headers,
-  );
+shelf.Response redirectResponse(String url, {Map<String, Object>? headers}) {
+  return shelf.Response.seeOther(url, headers: headers);
 }
 
 shelf.Response redirectToSearch(String query) {
@@ -63,10 +60,7 @@ shelf.Response jsonResponse(
   return shelf.Response(
     status,
     body: body,
-    headers: {
-      ...jsonResponseHeaders,
-      ...?headers,
-    },
+    headers: {...jsonResponseHeaders, ...?headers},
   );
 }
 
@@ -104,11 +98,7 @@ shelf.Response notFoundHandler(
   String body = default404NotFound,
   Map<String, Object>? headers,
 }) {
-  return htmlResponse(
-    body,
-    status: 404,
-    headers: headers,
-  );
+  return htmlResponse(body, status: 404, headers: headers);
 }
 
 shelf.Response rejectRobotsHandler(shelf.Request request) =>

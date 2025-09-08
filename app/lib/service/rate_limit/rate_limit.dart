@@ -127,10 +127,12 @@ Future<void> _verifyRateLimit({
         .where((e) => e.kind == rateLimit.operation)
         .where((e) => e.created!.isAfter(windowStart))
         .where((e) => package == null || _containsPackage(e.packages, package))
-        .where((e) =>
-            agentId == null ||
-            e.agent == agentId ||
-            _containsUserId(e.users, agentId))
+        .where(
+          (e) =>
+              agentId == null ||
+              e.agent == agentId ||
+              _containsUserId(e.users, agentId),
+        )
         .toList();
 
     if (relevantEntries.length >= maxCount) {
@@ -169,20 +171,14 @@ Future<void> _verifyRateLimit({
   _logger.info('[rate-limit-verified] Rate limit verified in ${sw.elapsed}');
 }
 
-bool _containsPackage(
-  List<String>? packages,
-  String package,
-) {
+bool _containsPackage(List<String>? packages, String package) {
   if (packages == null || packages.isEmpty) {
     return false;
   }
   return packages.contains(package);
 }
 
-bool _containsUserId(
-  List<String>? users,
-  String userId,
-) {
+bool _containsUserId(List<String>? users, String userId) {
   if (users == null || users.isEmpty) {
     return false;
   }

@@ -26,7 +26,7 @@ Note: the action may take a longer time to complete as the public archive bucket
     'package': 'The package name to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
-    'note': 'Optional note to store (internal).'
+    'note': 'Optional note to store (internal).',
   },
   invoke: (options) async {
     final caseId = options['case'];
@@ -35,8 +35,8 @@ Note: the action may take a longer time to complete as the public archive bucket
     final state = options['state'];
     final note = options['note'];
 
-    final refCase =
-        await adminBackend.loadAndVerifyModerationCaseForAdminAction(caseId);
+    final refCase = await adminBackend
+        .loadAndVerifyModerationCaseForAdminAction(caseId);
 
     return await adminMarkPackageVisibility(
       package,
@@ -65,6 +65,7 @@ Note: the action may take a longer time to complete as the public archive bucket
 /// Changes the moderated or the admin-deleted flag and timestamp on a [package].
 Future<Map<String, dynamic>> adminMarkPackageVisibility(
   String? package, {
+
   /// `true`, `false` or `null`
   required String? state,
 
@@ -73,7 +74,8 @@ Future<Map<String, dynamic>> adminMarkPackageVisibility(
     TransactionWrapper tx,
     Package v,
     bool valueToSet,
-  ) whenUpdating,
+  )
+  whenUpdating,
 
   /// The debug information to return.
   required Map Function(Package v) valueFn,

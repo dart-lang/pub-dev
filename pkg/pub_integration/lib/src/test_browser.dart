@@ -37,18 +37,16 @@ class TestBrowser {
     String? testName,
     String? coverageDir,
     bool displayBrowser = false,
-  })  : _displayBrowser = displayBrowser,
-        _testName = testName,
-        _origin = origin,
-        _coverageDir = coverageDir ?? Platform.environment['COVERAGE_DIR'],
-        _tempDir = Directory.systemTemp.createTempSync('pub-headless');
+  }) : _displayBrowser = displayBrowser,
+       _testName = testName,
+       _origin = origin,
+       _coverageDir = coverageDir ?? Platform.environment['COVERAGE_DIR'],
+       _tempDir = Directory.systemTemp.createTempSync('pub-headless');
 
   Future<String> _detectChromeBinary() async {
     // TODO: scan $PATH
     // check hardcoded values
-    final binaries = [
-      '/usr/bin/google-chrome',
-    ];
+    final binaries = ['/usr/bin/google-chrome'];
 
     for (final binary in binaries) {
       if (!File(binary).existsSync()) {
@@ -60,8 +58,9 @@ class TestBrowser {
           maxAttempts: 2,
           retryIf: (e) => e is TimeoutException,
           () async {
-            return await Process.run(binary, ['--version'])
-                .timeout(Duration(seconds: 5));
+            return await Process.run(binary, [
+              '--version',
+            ]).timeout(Duration(seconds: 5));
           },
         );
         final output = pr.stdout.toString();
@@ -110,14 +109,16 @@ class TestBrowser {
     );
 
     // Update the default permissions like clipboard access.
-    await _browser!.defaultBrowserContext
-        .overridePermissions(_origin, [PermissionType.clipboardReadWrite]);
+    await _browser!.defaultBrowserContext.overridePermissions(_origin, [
+      PermissionType.clipboardReadWrite,
+    ]);
   }
 
   Future<TestBrowserSession> createSession() async {
     final incognito = await _browser!.createIncognitoBrowserContext();
-    await incognito
-        .overridePermissions(_origin, [PermissionType.clipboardReadWrite]);
+    await incognito.overridePermissions(_origin, [
+      PermissionType.clipboardReadWrite,
+    ]);
     final session = TestBrowserSession(this, incognito);
     _trackedSessions.add(session);
     return session;
@@ -150,15 +151,16 @@ class TestBrowser {
       if (map.isNotEmpty) {
         final file = File(path);
         await file.parent.create(recursive: true);
-        await file.writeAsString(json.encode(map.map(
-          (k, v) => MapEntry<String, dynamic>(
-            v.url,
-            {
-              'textLength': v.textLength,
-              'ranges': v._coveredRanges.map((r) => r.toJson()).toList(),
-            },
+        await file.writeAsString(
+          json.encode(
+            map.map(
+              (k, v) => MapEntry<String, dynamic>(v.url, {
+                'textLength': v.textLength,
+                'ranges': v._coveredRanges.map((r) => r.toJson()).toList(),
+              }),
+            ),
           ),
-        )));
+        );
       }
     }
 
@@ -176,9 +178,7 @@ class TestBrowserSession {
   TestBrowserSession(this._browser, this._context);
 
   /// Creates a new page and setup overrides and tracking.
-  Future<R> withPage<R>({
-    required Future<R> Function(Page page) fn,
-  }) async {
+  Future<R> withPage<R>({required Future<R> Function(Page page) fn}) async {
     final clientErrors = <ClientError>[];
     final serverErrors = <String>[];
     final page = await _context.newPage();
@@ -195,7 +195,8 @@ class TestBrowserSession {
           rq.url.startsWith('https://www.googletagmanager.com/') ||
           rq.url.startsWith('https://www.google.com/insights') ||
           rq.url.startsWith(
-              'https://www.gstatic.com/brandstudio/kato/cookie_choice_component/')) {
+            'https://www.gstatic.com/brandstudio/kato/cookie_choice_component/',
+          )) {
         // reduce log error by replying with empty JS content
         if (rq.url.endsWith('.js') || rq.url.contains('.js?')) {
           await rq.respond(
@@ -224,17 +225,20 @@ class TestBrowserSession {
 
     page.onResponse.listen((rs) async {
       if (rs.status >= 500) {
-        serverErrors
-            .add('${rs.status} ${rs.statusText} received on ${rs.request.url}');
+        serverErrors.add(
+          '${rs.status} ${rs.statusText} received on ${rs.request.url}',
+        );
       } else if (rs.status >= 400 && rs.url.contains('/static/')) {
-        serverErrors
-            .add('${rs.status} ${rs.statusText} received on ${rs.request.url}');
+        serverErrors.add(
+          '${rs.status} ${rs.statusText} received on ${rs.request.url}',
+        );
       }
 
       final contentType = rs.headers[HttpHeaders.contentTypeHeader];
       if (contentType == null || contentType.isEmpty) {
-        serverErrors
-            .add('Content type header is missing for ${rs.request.url}.');
+        serverErrors.add(
+          'Content type header is missing for ${rs.request.url}.',
+        );
       }
       if (rs.status == 200 && contentType!.contains('text/html')) {
         try {
@@ -275,7 +279,8 @@ class TestBrowserSession {
     // print and store uncaught errors
     page.onError.listen((e) {
       if (e.toString().contains(
-          'FocusTrap: Element must have at least one focusable child.')) {
+        'FocusTrap: Element must have at least one focusable child.',
+      )) {
         // The error seems to come from material components, but it still works.
         // TODO: investigate if this is something we can change on our side.
         print('Ignored client error: $e');
@@ -401,8 +406,10 @@ class _Coverage {
   }
 
   double get percent {
-    final coveredPosition =
-        _coveredRanges.fold<int>(0, (sum, r) => sum + r.end - r.start);
+    final coveredPosition = _coveredRanges.fold<int>(
+      0,
+      (sum, r) => sum + r.end - r.start,
+    );
     return coveredPosition * 100 / textLength!;
   }
 }

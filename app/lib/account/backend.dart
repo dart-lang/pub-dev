@@ -85,15 +85,18 @@ Future<AuthenticatedUser> requireAuthenticatedWebUser() async {
 ///
 /// Throws [AuthorizationException] if it doesn't have the permission.
 Future<SupportAgent> requireAuthenticatedAdmin(
-    AdminPermission permission) async {
+  AdminPermission permission,
+) async {
   final agent = await _requireAuthenticatedAgent();
   if (agent is AuthenticatedGcpServiceAccount) {
     final admin = activeConfiguration.admins!.firstWhereOrNull(
-        (a) => a.oauthUserId == agent.oauthUserId && a.email == agent.email);
+      (a) => a.oauthUserId == agent.oauthUserId && a.email == agent.email,
+    );
     final isAdmin = admin != null && admin.permissions.contains(permission);
     if (!isAdmin) {
       _logger.warning(
-          'Authenticated user (${agent.displayId}) is trying to access unauthorized admin APIs.');
+        'Authenticated user (${agent.displayId}) is trying to access unauthorized admin APIs.',
+      );
       throw AuthorizationException.userIsNotAdminForPubSite();
     }
     return SupportAgent();
@@ -111,7 +114,8 @@ Future<AuthenticatedAgent> requireAuthenticatedClient() async {
   if (agent is AuthenticatedUser &&
       agent.audience != activeConfiguration.pubClientAudience) {
     throw AuthenticationException.tokenInvalid(
-        'token audience "${agent.audience}" does not match expected value');
+      'token audience "${agent.audience}" does not match expected value',
+    );
   }
   return agent;
 }
@@ -162,7 +166,8 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
       idToken.payload.aud.single !=
           activeConfiguration.externalServiceAudience) {
     throw AssertionError(
-        'authProvider.tryAuthenticateAsServiceToken should not return a parsed token with audience mismatch.');
+      'authProvider.tryAuthenticateAsServiceToken should not return a parsed token with audience mismatch.',
+    );
   }
 
   if (idToken.payload.iss == GitHubJwtPayload.issuerUrl) {
@@ -170,10 +175,7 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
     if (payload == null) {
       throw AuthenticationException.tokenInvalid('unable to parse payload');
     }
-    return AuthenticatedGitHubAction(
-      idToken: idToken,
-      payload: payload,
-    );
+    return AuthenticatedGitHubAction(idToken: idToken, payload: payload);
   }
 
   if (idToken.payload.iss == GcpServiceAccountJwtPayload.issuerUrl) {
@@ -181,10 +183,7 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
     if (payload == null) {
       throw AuthenticationException.tokenInvalid('unable to parse payload');
     }
-    return AuthenticatedGcpServiceAccount(
-      idToken: idToken,
-      payload: payload,
-    );
+    return AuthenticatedGcpServiceAccount(idToken: idToken, payload: payload);
   }
 
   return null;
@@ -193,9 +192,9 @@ Future<AuthenticatedAgent?> _tryAuthenticateServiceAgent(String token) async {
 /// Represents the backend for the account handling and authentication.
 class AccountBackend {
   final DatastoreDB _db;
-  final _emailCache = Cache(Cache.inMemoryCacheProvider(1000))
-      .withTTL(Duration(minutes: 10))
-      .withCodec(utf8);
+  final _emailCache = Cache(
+    Cache.inMemoryCacheProvider(1000),
+  ).withTTL(Duration(minutes: 10)).withCodec(utf8);
 
   AccountBackend(this._db);
 
@@ -212,8 +211,9 @@ class AccountBackend {
     for (final userId in userIds) {
       checkUserIdParam(userId);
     }
-    final keys =
-        userIds.map((id) => _db.emptyKey.append(User, id: id)).toList();
+    final keys = userIds
+        .map((id) => _db.emptyKey.append(User, id: id))
+        .toList();
     return await _db.lookup<User>(keys);
   }
 
@@ -270,16 +270,18 @@ class AccountBackend {
       return await fn();
     } else {
       return await ss.fork(() async {
-        _registerBearerToken(token);
-        return await fn();
-      }) as R;
+            _registerBearerToken(token);
+            return await fn();
+          })
+          as R;
     }
   }
 
   Future<User?> _lookupUserByOauthUserId(String oauthUserId) async {
     // TODO: This should be cached.
     final oauthUserMapping = await _db.lookupOrNull<OAuthUserID>(
-        _db.emptyKey.append(OAuthUserID, id: oauthUserId));
+      _db.emptyKey.append(OAuthUserID, id: oauthUserId),
+    );
     if (oauthUserMapping == null) {
       return null;
     }
@@ -307,12 +309,15 @@ class AccountBackend {
   /// Returns an [User] entity for the authenticated service account.
   /// This method should be used only by admin agents.
   Future<User> userForServiceAccount(
-      AuthenticatedGcpServiceAccount authenticatedAgent) async {
-    final user = await _lookupOrCreateUserByOauthUserId(AuthResult(
-      oauthUserId: authenticatedAgent.oauthUserId,
-      email: authenticatedAgent.email,
-      audience: authenticatedAgent.audience,
-    ));
+    AuthenticatedGcpServiceAccount authenticatedAgent,
+  ) async {
+    final user = await _lookupOrCreateUserByOauthUserId(
+      AuthResult(
+        oauthUserId: authenticatedAgent.oauthUserId,
+        email: authenticatedAgent.email,
+        audience: authenticatedAgent.audience,
+      ),
+    );
     if (user == null) {
       throw AuthenticationException.failed();
     }
@@ -341,14 +346,12 @@ class AccountBackend {
     }
 
     return await withRetryTransaction<User>(_db, (tx) async {
-      final oauthUserIdKey = emptyKey.append(
-        OAuthUserID,
-        id: auth.oauthUserId,
-      );
+      final oauthUserIdKey = emptyKey.append(OAuthUserID, id: auth.oauthUserId);
 
       // Check that the user doesn't exist in this transaction.
-      final oauthUserMapping =
-          await tx.lookupOrNull<OAuthUserID>(oauthUserIdKey);
+      final oauthUserMapping = await tx.lookupOrNull<OAuthUserID>(
+        oauthUserIdKey,
+      );
       if (oauthUserMapping != null) {
         // If the user does exist we can just return it.
         return await tx.lookupValue<User>(
@@ -365,10 +368,10 @@ class AccountBackend {
       // Notice, that we're doing this outside the transaction, but these are
       // legacy users, we should avoid creation of new users with only emails
       // as this lookup is eventually consistent.
-      final usersWithEmail = await (_db.query<User>()
-            ..filter('email =', auth.email))
-          .run()
-          .toList();
+      final usersWithEmail =
+          await (_db.query<User>()..filter('email =', auth.email))
+              .run()
+              .toList();
       if (usersWithEmail.length == 1 &&
           usersWithEmail.single.oauthUserId == null &&
           !usersWithEmail.single.isDeleted) {
@@ -419,17 +422,17 @@ class AccountBackend {
 
   /// Updates an existing or creates a new client session for pre-authorization
   /// secrets and post-authorization user information.
-  Future<UserSession> createOrUpdateClientSession({
-    String? sessionId,
-  }) async {
+  Future<UserSession> createOrUpdateClientSession({String? sessionId}) async {
     final now = clock.now().toUtc();
-    final oldSession =
-        sessionId == null ? null : await lookupValidUserSession(sessionId);
+    final oldSession = sessionId == null
+        ? null
+        : await lookupValidUserSession(sessionId);
     // try to update old session first
     if (oldSession != null) {
       final rs = await withRetryTransaction(_db, (tx) async {
-        final session =
-            await tx.userSessions.lookupOrNull(oldSession.sessionId);
+        final session = await tx.userSessions.lookupOrNull(
+          oldSession.sessionId,
+        );
         if (session == null) {
           return null;
         }
@@ -457,7 +460,8 @@ class AccountBackend {
   }) async {
     final now = clock.now().toUtc();
     final info = await authProvider.callTokenInfoWithAccessToken(
-        accessToken: profile.accessToken ?? '');
+      accessToken: profile.accessToken ?? '',
+    );
     final user = await _lookupOrCreateUserByOauthUserId(profile);
     if (user == null || user.isModerated || user.isDeleted) {
       throw AuthenticationException.failed();
@@ -538,8 +542,10 @@ class AccountBackend {
     if (user == null || user.isModerated || user.isDeleted) {
       return null;
     }
-    return AuthenticatedUser(user,
-        audience: activeConfiguration.pubServerAudience!);
+    return AuthenticatedUser(
+      user,
+      audience: activeConfiguration.pubServerAudience!,
+    );
   }
 
   /// Returns the user session associated with the [sessionId] or null if it
@@ -611,8 +617,9 @@ class AccountBackend {
     required String? note,
   }) async {
     await withRetryTransaction(_db, (tx) async {
-      final user =
-          await tx.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
+      final user = await tx.lookupOrNull<User>(
+        _db.emptyKey.append(User, id: userId),
+      );
       if (user == null) throw NotFoundException.resource('User:$userId');
 
       user.updateIsModerated(
@@ -651,9 +658,7 @@ class AccountBackend {
 }
 
 /// Purge [cache] entries for given [userId].
-Future<void> purgeAccountCache({
-  required String userId,
-}) async {
+Future<void> purgeAccountCache({required String userId}) async {
   await Future.wait([
     cache.userPackageLikes(userId).purgeAndRepeat(),
     cache.publisherPage(userId).purgeAndRepeat(),

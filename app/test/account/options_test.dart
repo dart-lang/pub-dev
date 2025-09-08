@@ -11,56 +11,88 @@ import '../shared/test_services.dart';
 
 void main() {
   group('/api/account/options', () {
-    testWithProfile('package - no user', fn: () async {
-      final client = createPubApiClient();
-      final rs = client.accountPackageOptions('oxygen');
-      await expectApiException(rs, status: 401);
-    });
+    testWithProfile(
+      'package - no user',
+      fn: () async {
+        final client = createPubApiClient();
+        final rs = client.accountPackageOptions('oxygen');
+        await expectApiException(rs, status: 401);
+      },
+    );
 
-    testWithProfile('package - no package', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final rs = client.accountPackageOptions('no_package');
-      await expectApiException(rs, status: 404);
-    });
+    testWithProfile(
+      'package - no package',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final rs = client.accountPackageOptions('no_package');
+        await expectApiException(rs, status: 404);
+      },
+    );
 
-    testWithProfile('package - not admin', fn: () async {
-      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-      final rs = await client.accountPackageOptions('oxygen');
-      expect(rs.isAdmin, isFalse);
-    });
+    testWithProfile(
+      'package - not admin',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        final rs = await client.accountPackageOptions('oxygen');
+        expect(rs.isAdmin, isFalse);
+      },
+    );
 
-    testWithProfile('package - admin', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final rs = await client.accountPackageOptions('oxygen');
-      expect(rs.isAdmin, isTrue);
-    });
+    testWithProfile(
+      'package - admin',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final rs = await client.accountPackageOptions('oxygen');
+        expect(rs.isAdmin, isTrue);
+      },
+    );
 
-    testWithProfile('publisher - no user', fn: () async {
-      final client = createPubApiClient();
-      final rs = client.accountPublisherOptions('example.com');
-      await expectApiException(rs, status: 401);
-    });
+    testWithProfile(
+      'publisher - no user',
+      fn: () async {
+        final client = createPubApiClient();
+        final rs = client.accountPublisherOptions('example.com');
+        await expectApiException(rs, status: 401);
+      },
+    );
 
-    testWithProfile('publisher - no publisher', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final rs = client.accountPublisherOptions('no-domain.com');
-      await expectApiException(rs, status: 404);
-    });
+    testWithProfile(
+      'publisher - no publisher',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final rs = client.accountPublisherOptions('no-domain.com');
+        await expectApiException(rs, status: 404);
+      },
+    );
 
-    testWithProfile('publisher - not admin', fn: () async {
-      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-      final rs = await client.accountPublisherOptions('example.com');
-      expect(rs.isAdmin, isFalse);
-    });
+    testWithProfile(
+      'publisher - not admin',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        final rs = await client.accountPublisherOptions('example.com');
+        expect(rs.isAdmin, isFalse);
+      },
+    );
 
-    testWithProfile('publisher - admin', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final rs = await client.accountPublisherOptions('example.com');
-      expect(rs.isAdmin, isTrue);
-    });
+    testWithProfile(
+      'publisher - admin',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final rs = await client.accountPublisherOptions('example.com');
+        expect(rs.isAdmin, isTrue);
+      },
+    );
   });
 }

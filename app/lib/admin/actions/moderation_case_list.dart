@@ -17,13 +17,14 @@ List ModerationCase entities with filter options.
 ''',
   options: {
     'sort': 'Sort by the given attribute: `opened` (default), `resolved`.',
-    'status': '`pending` | `resolved` | '
+    'status':
+        '`pending` | `resolved` | '
         '${ModerationStatus.resolveValues.map((v) => '`$v`').join(' | ')}',
     'kind': '`appeal` | `notification`',
     'subject': 'The (substring of) the subject on the moderation case.',
     'density': '`caseIds` (default) | `compact` | `expanded`',
     'past':
-        'Limit the results opened (or resolved depending on `sort`) using "2w" or other time ranges.'
+        'Limit the results opened (or resolved depending on `sort`) using "2w" or other time ranges.',
   },
   invoke: (options) async {
     final sort = options['sort'] ?? 'opened';

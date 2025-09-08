@@ -88,7 +88,9 @@ shelf.Handler wrapHandler(
 
 /// Detects simple redirect loop and emits a log message on it.
 shelf.Handler _redirectLoopDetectorWrapper(
-    Logger logger, shelf.Handler handler) {
+  Logger logger,
+  shelf.Handler handler,
+) {
   return (shelf.Request request) async {
     final rs = await handler(request);
     // 304 Not Modified - doesn't need to have a location header and there is no redirect
@@ -98,28 +100,34 @@ shelf.Handler _redirectLoopDetectorWrapper(
       // sanity check for the header being present
       if (location == null) {
         throw ArgumentError(
-            'Redirect response without location header (rq: ${request.requestedUri}).');
+          'Redirect response without location header (rq: ${request.requestedUri}).',
+        );
       }
 
       // sanity check for the header being valid
       final uri = Uri.tryParse(location);
       if (uri == null) {
         throw FormatException(
-            'Redirect response with invalid location header: "$location" (rq: ${request.requestedUri}).');
+          'Redirect response with invalid location header: "$location" (rq: ${request.requestedUri}).',
+        );
       }
 
       // exact match
       if (request.requestedUri == uri) {
-        logger.shout('Redirect loop detected.',
-            Exception('Redirect loop detected (rq: ${request.requestedUri}).'));
+        logger.shout(
+          'Redirect loop detected.',
+          Exception('Redirect loop detected (rq: ${request.requestedUri}).'),
+        );
         return rs;
       }
 
       // path + querystring match
       if (uri.toString().startsWith(uri.path) &&
           request.requestedUri.toString().endsWith(uri.toString())) {
-        logger.shout('Redirect loop detected.',
-            Exception('Redirect loop detected (rq: ${request.requestedUri}).'));
+        logger.shout(
+          'Redirect loop detected.',
+          Exception('Redirect loop detected (rq: ${request.requestedUri}).'),
+        );
         return rs;
       }
     }
@@ -148,11 +156,13 @@ shelf.Handler _cspHeaderWrapper(shelf.Handler handler) {
     final contentType = rs.headers['content-type'];
     final isHtml = contentType != null && contentType.startsWith('text/html');
     if (isHtml) {
-      return rs.change(headers: {
-        'x-content-type-options': 'nosniff',
-        'x-frame-options': 'deny',
-        'content-security-policy': defaultContentSecurityPolicySerialized,
-      });
+      return rs.change(
+        headers: {
+          'x-content-type-options': 'nosniff',
+          'x-frame-options': 'deny',
+          'content-security-policy': defaultContentSecurityPolicySerialized,
+        },
+      );
     } else {
       return rs;
     }
@@ -240,7 +250,9 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
       }
     }
     return await accountBackend.withBearerToken(
-        accessToken, () async => await handler(request));
+      accessToken,
+      () async => await handler(request),
+    );
   };
 }
 
@@ -257,10 +269,12 @@ shelf.Handler _httpsWrapper(shelf.Handler handler) {
 
     shelf.Response rs = await handler(request);
     if (context.isProductionEnvironment) {
-      rs = rs.change(headers: {
-        'strict-transport-security':
-            'max-age=${_hstsDuration.inSeconds}; preload',
-      });
+      rs = rs.change(
+        headers: {
+          'strict-transport-security':
+              'max-age=${_hstsDuration.inSeconds}; preload',
+        },
+      );
     }
     return rs;
   };
@@ -278,7 +292,8 @@ shelf.Request _sanitizeRequestedUri(shelf.Request request) {
   final resource = Uri.decodeFull(uri.path);
   final normalizedPath = path.normalize(resource);
   // path.normalize removes trailing `/`, but in URLs we need to keep them
-  final normalizedResource = (resource.length > 1 &&
+  final normalizedResource =
+      (resource.length > 1 &&
           resource.endsWith('/') &&
           !normalizedPath.endsWith('/'))
       ? '$normalizedPath/'

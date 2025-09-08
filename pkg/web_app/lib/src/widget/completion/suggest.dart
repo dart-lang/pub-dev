@@ -26,12 +26,12 @@ class Suggestion implements Comparable<Suggestion> {
   });
 
   Map<String, dynamic> toJson() => {
-        'start': start,
-        'end': end,
-        'value': value,
-        'html': html,
-        'score': score,
-      };
+    'start': start,
+    'end': end,
+    'value': value,
+    'html': html,
+    'score': score,
+  };
 
   @override
   int compareTo(Suggestion other) {
@@ -77,22 +77,21 @@ class Suggestion implements Comparable<Suggestion> {
   final word = text.substring(start, end);
 
   // Find the longest match for each completion entry
-  final completionWithBestMatch = data.completions.map((c) => (
-        completion: c,
-        match: maxBy(c.match.where(word.startsWith), (m) => m.length),
-      ));
+  final completionWithBestMatch = data.completions.map(
+    (c) => (
+      completion: c,
+      match: maxBy(c.match.where(word.startsWith), (m) => m.length),
+    ),
+  );
   // Find the best completion entry
-  final (:completion, :match) = maxBy(completionWithBestMatch, (c) {
+  final (:completion, :match) =
+      maxBy(completionWithBestMatch, (c) {
         final m = c.match;
         return m != null ? m.length : -1;
       }) ??
       (completion: null, match: null);
   if (completion == null || match == null) {
-    return (
-      trigger: false,
-      suggestions: [],
-      isTrimmed: false,
-    );
+    return (trigger: false, suggestions: [], isTrimmed: false);
   }
 
   // prefix to be used for completion of options
@@ -102,11 +101,7 @@ class Suggestion implements Comparable<Suggestion> {
     // If prefix is an option, and there is no other options we don't have
     // anything to suggest.
     if (completion.options.length == 1) {
-      return (
-        trigger: false,
-        suggestions: [],
-        isTrimmed: false,
-      );
+      return (trigger: false, suggestions: [], isTrimmed: false);
     }
     // We don't to auto trigger completion unless there is an option that is
     // also a prefix and longer than what prefix currently matches.
@@ -124,13 +119,16 @@ class Suggestion implements Comparable<Suggestion> {
     // highlight the overlapping part of the text
     if (overlap.isNotEmpty) {
       html = html.replaceAll(
-          overlap, '<span class="completion-overlap">$overlap</span>');
+        overlap,
+        '<span class="completion-overlap">$overlap</span>',
+      );
     }
     // include matched prefix as part of the display option
     if (completion.terminal) {
       html = '<span class="completion-overlap">$match</span>$html';
     }
-    final score = (option.startsWith(word) ? math.pow(overlap.length, 3) : 0) +
+    final score =
+        (option.startsWith(word) ? math.pow(overlap.length, 3) : 0) +
         math.pow(overlap.length, 2) +
         (option.startsWith(overlap) ? overlap.length : 0) +
         overlap.length / option.length;
@@ -147,27 +145,22 @@ class Suggestion implements Comparable<Suggestion> {
     suggestions.sort();
   } else {
     // List of score bucket entries ordered by decreasing score.
-    final buckets = suggestions
-        .groupListsBy((s) => s.score.floor())
-        .entries
-        .toList()
-      ..sort((a, b) => -a.key.compareTo(b.key));
+    final buckets =
+        suggestions.groupListsBy((s) => s.score.floor()).entries.toList()
+          ..sort((a, b) => -a.key.compareTo(b.key));
     suggestions = [];
     for (final bucket in buckets) {
       bucket.value.sort();
-      suggestions
-          .addAll(bucket.value.take(maxOptionCount - suggestions.length));
+      suggestions.addAll(
+        bucket.value.take(maxOptionCount - suggestions.length),
+      );
       if (suggestions.length >= maxOptionCount) {
         break;
       }
     }
   }
 
-  return (
-    trigger: trigger,
-    suggestions: suggestions,
-    isTrimmed: isTrimmed,
-  );
+  return (trigger: trigger, suggestions: suggestions, isTrimmed: isTrimmed);
 }
 
 /// The longest common substring

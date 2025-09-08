@@ -14,10 +14,7 @@ void main() {
         'is:null-safe',
         'platform:linux',
       ];
-      final excluded = [
-        'license:x',
-        'is:other',
-      ];
+      final excluded = ['license:x', 'is:other'];
 
       for (final tag in included) {
         expect(isFutureVersionTag(tag), true, reason: tag);

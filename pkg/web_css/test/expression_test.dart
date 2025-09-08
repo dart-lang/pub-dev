@@ -47,7 +47,8 @@ void main() {
       // composite patterns
       expressions.removeWhere((e) => e.startsWith('home-block-'));
       expressions.removeWhere(
-          (e) => e.startsWith('detail-tab-') && e.endsWith('-content'));
+        (e) => e.startsWith('detail-tab-') && e.endsWith('-content'),
+      );
       expressions.removeWhere((e) => e.startsWith('package-badge-'));
       expressions.removeWhere((e) => e.startsWith('pub-toc-node-'));
       // downloads chart color classes
@@ -80,19 +81,15 @@ void main() {
       }
 
       final files = <File>[
-        ...await Directory('../../app/lib/frontend/templates')
-            .list(recursive: true)
-            .where((f) => f is File)
-            .cast<File>()
-            .toList(),
+        ...await Directory(
+          '../../app/lib/frontend/templates',
+        ).list(recursive: true).where((f) => f is File).cast<File>().toList(),
         File('../../app/lib/frontend/dom/dom.dart'),
         File('../../app/lib/frontend/dom/material.dart'),
         File('../../app/lib/shared/markdown.dart'),
-        ...await Directory('../web_app/lib')
-            .list(recursive: true)
-            .where((f) => f is File)
-            .cast<File>()
-            .toList()
+        ...await Directory(
+          '../web_app/lib',
+        ).list(recursive: true).where((f) => f is File).cast<File>().toList(),
       ];
 
       for (final file in files) {
@@ -107,10 +104,7 @@ void main() {
   });
 }
 
-Future<_Visitor> _visitCssFile(
-  String path, {
-  bool checked = false,
-}) async {
+Future<_Visitor> _visitCssFile(String path, {bool checked = false}) async {
   final file = File(path);
   final styles = parse(
     await file.readAsString(),
@@ -132,16 +126,17 @@ class _Visitor extends Visitor {
   final selectors = <String>{};
 
   Set<String> get expressions => <String>{
-        ...elements,
-        ...ids,
-        ...classes,
-        ...selectors,
-      };
+    ...elements,
+    ...ids,
+    ...classes,
+    ...selectors,
+  };
 
   @override
   void visitSelector(Selector node) {
-    selectors
-        .addAll(node.simpleSelectorSequences.map((e) => e.simpleSelector.name));
+    selectors.addAll(
+      node.simpleSelectorSequences.map((e) => e.simpleSelector.name),
+    );
     super.visitSelector(node);
   }
 

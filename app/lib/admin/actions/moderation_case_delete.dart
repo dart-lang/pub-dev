@@ -13,9 +13,7 @@ final moderationCaseDelete = AdminAction(
   description: '''
 Deletes a moderation case.
 ''',
-  options: {
-    'case': 'The caseId to be deleted.',
-  },
+  options: {'case': 'The caseId to be deleted.'},
   invoke: (options) async {
     final caseId = options['case'];
     InvalidInputException.check(
@@ -25,7 +23,8 @@ Deletes a moderation case.
 
     await withRetryTransaction(dbService, (tx) async {
       final mc = await tx.lookupOrNull<ModerationCase>(
-          dbService.emptyKey.append(ModerationCase, id: caseId));
+        dbService.emptyKey.append(ModerationCase, id: caseId),
+      );
       if (mc != null) {
         tx.delete(mc.key);
       } else {
@@ -33,8 +32,6 @@ Deletes a moderation case.
       }
     });
 
-    return {
-      'deleted': true,
-    };
+    return {'deleted': true};
   },
 );

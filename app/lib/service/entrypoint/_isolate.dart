@@ -44,17 +44,17 @@ class IsolateRunner {
     required this.kind,
     required ServicesWrapperFn this.servicesWrapperFn,
     required EntryPointFn this.entryPoint,
-  })  : spawnUri = null,
-        spawnArgs = null;
+  }) : spawnUri = null,
+       spawnArgs = null;
 
   IsolateRunner.uri({
     required this.logger,
     required this.kind,
     required Uri this.spawnUri,
     List<String>? spawnArgs,
-  })  : entryPoint = null,
-        servicesWrapperFn = null,
-        spawnArgs = spawnArgs ?? <String>[];
+  }) : entryPoint = null,
+       servicesWrapperFn = null,
+       spawnArgs = spawnArgs ?? <String>[];
 
   /// Starts [count] new isolates.
   Future<void> start(int count) async {
@@ -65,14 +65,13 @@ class IsolateRunner {
 
   /// Starts [count] new isolates, and after a [wait] duration,
   /// closes the old ones.
-  Future<void> renew({
-    required int count,
-    required Duration wait,
-  }) async {
+  Future<void> renew({required int count, required Duration wait}) async {
     final isolatesToClose = [..._isolates];
     final lastId = isolatesToClose.isEmpty ? null : isolatesToClose.last.id;
-    logger.info('About to renew $count isolate(s) '
-        '(closing ${isolatesToClose.length}, last: `$lastId`).');
+    logger.info(
+      'About to renew $count isolate(s) '
+      '(closing ${isolatesToClose.length}, last: `$lastId`).',
+    );
 
     await start(count);
     // prevent traffic to hit the old instances
@@ -84,8 +83,10 @@ class IsolateRunner {
     for (final i in isolatesToClose) {
       await i.close();
     }
-    logger.info('Renewed $count isolate(s) '
-        '(closing ${isolatesToClose.length}, last: `$lastId`).');
+    logger.info(
+      'Renewed $count isolate(s) '
+      '(closing ${isolatesToClose.length}, last: `$lastId`).',
+    );
   }
 
   /// Send [RequestMessage] and wait for [ReplyMessage] returning
@@ -94,8 +95,10 @@ class IsolateRunner {
     Object payload, {
     required Duration timeout,
   }) async {
-    final last = _isolates.lastWhereOrNull((i) =>
-        i.markedForRenew == false && i._readyMessage?.requestSendPort != null);
+    final last = _isolates.lastWhereOrNull(
+      (i) =>
+          i.markedForRenew == false && i._readyMessage?.requestSendPort != null,
+    );
     if (last == null) {
       throw IsolateRequestException('No isolate to process request.');
     }
@@ -122,20 +125,18 @@ class IsolateRunner {
     started++;
     final id = '$kind isolate #$started';
     logger.info('About to start $id ...');
-    final isolate = _Isolate(
-      group: this,
-      logger: logger,
-      id: id,
-    );
+    final isolate = _Isolate(group: this, logger: logger, id: id);
     _isolates.add(isolate);
-    unawaited(isolate.done.then((_) async {
-      _isolates.remove(isolate);
-      // The `done` callback may happen on schedule renewal, instance shutdown,
-      // or unexpected exits. We only need to propagate the issue on the later.
-      if (!_closing && !isolate.markedForRenew) {
-        throw Exception('$id exited unexpectedly.');
-      }
-    }));
+    unawaited(
+      isolate.done.then((_) async {
+        _isolates.remove(isolate);
+        // The `done` callback may happen on schedule renewal, instance shutdown,
+        // or unexpected exits. We only need to propagate the issue on the later.
+        if (!_closing && !isolate.markedForRenew) {
+          throw Exception('$id exited unexpectedly.');
+        }
+      }),
+    );
     if (entryPoint != null) {
       await isolate.spawnFn(
         servicesWrapperFn: servicesWrapperFn!,
@@ -218,11 +219,7 @@ class _Isolate {
   late final done = _doneCompleter.future;
   bool markedForRenew = false;
 
-  _Isolate({
-    required this.group,
-    required this.logger,
-    required this.id,
-  });
+  _Isolate({required this.group, required this.logger, required this.id});
 
   Future<void> spawnFn({
     required ServicesWrapperFn servicesWrapperFn,
@@ -233,9 +230,7 @@ class _Isolate {
       [
         servicesWrapperFn,
         entryPoint,
-        EntryMessage(
-          protocolSendPort: _protocolReceivePort.sendPort,
-        ),
+        EntryMessage(protocolSendPort: _protocolReceivePort.sendPort),
       ],
       onError: _errorReceivePort.sendPort,
       onExit: _exitReceivePort.sendPort,
@@ -352,7 +347,11 @@ Future<void> runIsolateFunctions({
       msg.replyPort.send(reply.encodeAsJson());
     } catch (e, st) {
       logger.pubNoticeShout(
-          'isolate-message-error', 'Error processing message: $e', e, st);
+        'isolate-message-error',
+        'Error processing message: $e',
+        e,
+        st,
+      );
     }
   });
   entryMessage.protocolSendPort.send(

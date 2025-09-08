@@ -81,7 +81,8 @@ class SecurityAdvisoryBackend {
   bool _isValidAdvisory(OSV osv) {
     final errors = sanityCheckOSV(osv);
     errors.forEach(
-        (error) => _logger.shout('[advisory-malformed] ID: ${osv.id}: $error'));
+      (error) => _logger.shout('[advisory-malformed] ID: ${osv.id}: $error'),
+    );
     return errors.isEmpty;
   }
 
@@ -115,8 +116,9 @@ class SecurityAdvisoryBackend {
       final idAndAliases = [osv.id, ...osv.aliases];
 
       osv.databaseSpecific ??= <String, dynamic>{};
-      osv.databaseSpecific?['pub_display_url'] =
-          _computeDisplayUrl(idAndAliases);
+      osv.databaseSpecific?['pub_display_url'] = _computeDisplayUrl(
+        idAndAliases,
+      );
 
       final newAdvisory = SecurityAdvisory()
         ..id = osv.id
@@ -128,8 +130,9 @@ class SecurityAdvisoryBackend {
             .where((a) => a.package.ecosystem.toLowerCase() == 'pub')
             .map((a) => a.package.name)
             .toList()
-        ..published =
-            osv.published != null ? DateTime.parse(osv.published!) : modified
+        ..published = osv.published != null
+            ? DateTime.parse(osv.published!)
+            : modified
         ..syncTime = syncTime;
 
       if (newAdvisory.affectedPackages!.length > 50) {
@@ -138,8 +141,9 @@ class SecurityAdvisoryBackend {
         // it turns out that this becomes a problem we need to consider other
         // solutions with eventual consistency.
         _logger.shout(
-            'Failed to update `latestAdvisory` field for packages affected by'
-            ' `${newAdvisory.name}`. Too many (>50) affected packages.');
+          'Failed to update `latestAdvisory` field for packages affected by'
+          ' `${newAdvisory.name}`. Too many (>50) affected packages.',
+        );
         tx.queueMutations(
           // This is an upsert
           inserts: [newAdvisory],
@@ -158,8 +162,9 @@ class SecurityAdvisoryBackend {
   }
 
   String _computeDisplayUrl(List<String> idAndAliases) {
-    final githubId =
-        idAndAliases.firstWhereOrNull((id) => id.startsWith('GHSA'));
+    final githubId = idAndAliases.firstWhereOrNull(
+      (id) => id.startsWith('GHSA'),
+    );
     if (githubId != null) {
       return 'https://github.com/advisories/$githubId';
     }
@@ -173,7 +178,9 @@ class SecurityAdvisoryBackend {
   }
 
   Future<void> deleteAdvisory(
-      SecurityAdvisory advisory, DateTime syncTime) async {
+    SecurityAdvisory advisory,
+    DateTime syncTime,
+  ) async {
     return await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(SecurityAdvisory, id: advisory.id);
 
@@ -183,8 +190,9 @@ class SecurityAdvisoryBackend {
         // it turns out that this becomes a problem we need to consider other
         // solutions with eventual consistency.
         _logger.shout(
-            'Failed to update `latestAdvisory` field for packages affected by'
-            ' `${advisory.name}`. Too many (>50) affected packages.');
+          'Failed to update `latestAdvisory` field for packages affected by'
+          ' `${advisory.name}`. Too many (>50) affected packages.',
+        );
 
         // If necessary this can be optimized by deleting up to 500 at once.
         // At this point we don't expect many deletes so we keep it simple.
@@ -199,15 +207,18 @@ class SecurityAdvisoryBackend {
   }
 
   Future<List<Package>> _lookupAffectedPackages(
-      SecurityAdvisory advisory, TransactionWrapper tx) async {
+    SecurityAdvisory advisory,
+    TransactionWrapper tx,
+  ) async {
     final packages = <Package>[];
     for (final packageName in advisory.affectedPackages!) {
       final packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
-        _logger
-            .shout('Package $packageName not found, while ingesting advisory '
-                '${advisory.id}.');
+        _logger.shout(
+          'Package $packageName not found, while ingesting advisory '
+          '${advisory.id}.',
+        );
         continue;
       }
 
@@ -225,8 +236,9 @@ class SecurityAdvisoryBackend {
 List<String> sanityCheckOSV(OSV osv) {
   final errors = <String>[];
 
-  if (DateTime.parse(osv.modified)
-      .isAfter(clock.now().add(Duration(hours: 1)))) {
+  if (DateTime.parse(
+    osv.modified,
+  ).isAfter(clock.now().add(Duration(hours: 1)))) {
     errors.add('Invalid modified date, cannot be a future date.');
   }
 
@@ -241,18 +253,21 @@ List<String> sanityCheckOSV(OSV osv) {
     osv.affected!
         .where((a) => a.package.ecosystem.toLowerCase() == 'pub')
         .forEach((affected) {
-      if (affected.versions == null || affected.versions!.isEmpty) {
-        logger.warning('No versions specified for affected package '
-            '${affected.package.name} in advisory ${osv.id}.');
-      } else {
-        noAffectedHasVersion = false;
-      }
-    });
+          if (affected.versions == null || affected.versions!.isEmpty) {
+            logger.warning(
+              'No versions specified for affected package '
+              '${affected.package.name} in advisory ${osv.id}.',
+            );
+          } else {
+            noAffectedHasVersion = false;
+          }
+        });
 
     if (noAffectedHasVersion) {
       errors.add(
-          'Non of the affected packages in advisory ${osv.id} has specified '
-          'affected versions');
+        'Non of the affected packages in advisory ${osv.id} has specified '
+        'affected versions',
+      );
     }
   }
 

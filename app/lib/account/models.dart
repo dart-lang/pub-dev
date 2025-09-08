@@ -406,11 +406,12 @@ String consentDedupId({
   required String? email,
   required String? kind,
   required List<String> args,
-}) =>
-    [fromAgentId, email, kind, ...args]
-        .nonNulls
-        .map(Uri.encodeComponent)
-        .join('/');
+}) => [
+  fromAgentId,
+  email,
+  kind,
+  ...args,
+].nonNulls.map(Uri.encodeComponent).join('/');
 
 abstract class UserModeratedReason {
   static const bot = 'bot';

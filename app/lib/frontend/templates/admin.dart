@@ -74,9 +74,10 @@ String renderAccountPackagesPage({
     tabs: [
       _myPublishersLink(),
       Tab.withContent(
-          id: 'my-packages',
-          title: myPackagesTabTitle,
-          contentNode: tabContent),
+        id: 'my-packages',
+        title: myPackagesTabTitle,
+        contentNode: tabContent,
+      ),
       _myLikedPackagesLink(),
       _myActivityLogLink(),
     ],
@@ -101,22 +102,21 @@ String renderMyLikedPackagesPage({
   final resultCount = likes.isNotEmpty
       ? d.p(
           text:
-              'You like ${likes.length} ${likes.length == 1 ? 'package' : 'packages'}.')
+              'You like ${likes.length} ${likes.length == 1 ? 'package' : 'packages'}.',
+        )
       : d.p(text: 'You have not liked any packages yet.');
 
-  final tabContent = d.fragment([
-    resultCount,
-    likedPackageListNode(likes),
-  ]);
+  final tabContent = d.fragment([resultCount, likedPackageListNode(likes)]);
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
       _myPublishersLink(),
       _myPackagesLink(),
       Tab.withContent(
-          id: 'my-liked-packages',
-          title: myLikedPackagesTabTitle,
-          contentNode: tabContent),
+        id: 'my-liked-packages',
+        title: myLikedPackagesTabTitle,
+        contentNode: tabContent,
+      ),
       _myActivityLogLink(),
     ],
     infoBoxNode: null,
@@ -200,22 +200,28 @@ String renderAccountMyActivityPage({
 }
 
 Tab _myPackagesLink() => Tab.withLink(
-    id: 'my-packages', title: myPackagesTabTitle, href: urls.myPackagesUrl());
+  id: 'my-packages',
+  title: myPackagesTabTitle,
+  href: urls.myPackagesUrl(),
+);
 
 Tab _myLikedPackagesLink() => Tab.withLink(
-    id: 'my-liked-packages',
-    title: myLikedPackagesTabTitle,
-    href: urls.myLikedPackagesUrl());
+  id: 'my-liked-packages',
+  title: myLikedPackagesTabTitle,
+  href: urls.myLikedPackagesUrl(),
+);
 
 Tab _myPublishersLink() => Tab.withLink(
-    id: 'my-publishers',
-    title: myPublishersTabTitle,
-    href: urls.myPublishersUrl());
+  id: 'my-publishers',
+  title: myPublishersTabTitle,
+  href: urls.myPublishersUrl(),
+);
 
 Tab _myActivityLogLink() => Tab.withLink(
-    id: 'my-activity-log',
-    title: myActivityLogTabTitle,
-    href: urls.myActivityLogUrl());
+  id: 'my-activity-log',
+  title: myActivityLogTabTitle,
+  href: urls.myActivityLogUrl(),
+);
 
 d.Node _accountDetailHeader(User user, SessionData userSessionData) {
   return renderDetailHeader(
@@ -228,10 +234,12 @@ d.Node _accountDetailHeader(User user, SessionData userSessionData) {
     ),
     metadataNode: d.fragment([
       d.p(text: user.email!),
-      d.p(children: [
-        d.text('Joined '),
-        d.xAgoTimestamp(user.created!, datePrefix: 'on'),
-      ]),
+      d.p(
+        children: [
+          d.text('Joined '),
+          d.xAgoTimestamp(user.created!, datePrefix: 'on'),
+        ],
+      ),
     ]),
   );
 }

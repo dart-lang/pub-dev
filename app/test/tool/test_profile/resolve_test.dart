@@ -14,12 +14,14 @@ import '../../shared/utils.dart';
 void main() {
   Future<List<ResolvedVersion>> _resolve(List<TestPackage> packages) async {
     final client = Client();
-    final profile = normalize(TestProfile(
-      publishers: [],
-      importedPackages: packages,
-      users: [],
-      defaultUser: 'dev@example.com',
-    ));
+    final profile = normalize(
+      TestProfile(
+        publishers: [],
+        importedPackages: packages,
+        users: [],
+        defaultUser: 'dev@example.com',
+      ),
+    );
     final rs = await resolveVersions(client, profile);
     client.close();
     rs.sort();
@@ -40,7 +42,7 @@ void main() {
         TestPackage(
           name: 'safe_url_check',
           versions: [TestVersion(version: '1.1.1')],
-        )
+        ),
       ]);
       expect(pvs, hasLength(2));
       expect(pvs.map((e) => e.package).toSet(), {'safe_url_check', 'retry'});

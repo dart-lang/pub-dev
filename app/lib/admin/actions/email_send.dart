@@ -32,7 +32,8 @@ The `to` argument is comma separated list of:
 The list of resolved emails will be deduplicated.
 ''',
   options: {
-    'to': 'A comma separated list of email addresses or subjects '
+    'to':
+        'A comma separated list of email addresses or subjects '
         '(the recipients of the messages).',
     'cc': '(optional) same as "to" with addresses that will be CC-d.',
     'from': 'The email address to impersonate (`support@pub.dev` by default).',
@@ -42,8 +43,8 @@ The list of resolved emails will be deduplicated.
         '(optional) A comma separated list of email addresses to be used in the Reply-To header.',
     'in-reply-to':
         '(optional) The local message id of the email that this is a reply to '
-            '(e.g. moderation case id). The email sender will the `In-Reply-To` and `References` '
-            'headers with the `<local-id>@pub.dev` value, referencing an earlier `Message-Id`.',
+        '(e.g. moderation case id). The email sender will the `In-Reply-To` and `References` '
+        'headers with the `<local-id>@pub.dev` value, referencing an earlier `Message-Id`.',
   },
   invoke: (options) async {
     final emailSubject = options['subject'];
@@ -73,17 +74,19 @@ The list of resolved emails will be deduplicated.
     final ccEmailList = cc == null ? null : await _resolveEmails(cc);
 
     try {
-      await emailSender.sendMessage(EmailMessage(
-        localMessageId: createUuid(),
-        EmailAddress(from),
-        emailList.map((v) => EmailAddress(v)).toList(),
-        emailSubject!,
-        emailBody!,
-        ccRecipients:
-            ccEmailList?.map((v) => EmailAddress(v)).toList() ?? const [],
-        inReplyToLocalMessageId: inReplyTo,
-        replyTos: replyTo?.split(',') ?? const <String>[],
-      ));
+      await emailSender.sendMessage(
+        EmailMessage(
+          localMessageId: createUuid(),
+          EmailAddress(from),
+          emailList.map((v) => EmailAddress(v)).toList(),
+          emailSubject!,
+          emailBody!,
+          ccRecipients:
+              ccEmailList?.map((v) => EmailAddress(v)).toList() ?? const [],
+          inReplyToLocalMessageId: inReplyTo,
+          replyTos: replyTo?.split(',') ?? const <String>[],
+        ),
+      );
       return {
         'emails': emailList,
         if (ccEmailList != null) 'ccEmails': ccEmailList,
@@ -121,14 +124,16 @@ Future<List<String>> _resolveEmails(String value) async {
           final list = await publisherBackend.getAdminMemberEmails(publisher);
           emails.addAll(list.nonNulls);
         } else {
-          final list = await accountBackend
-              .lookupUsersById(pkg.uploaders ?? const <String>[]);
+          final list = await accountBackend.lookupUsersById(
+            pkg.uploaders ?? const <String>[],
+          );
           emails.addAll(list.map((e) => e?.email).nonNulls);
         }
         break;
       case ModerationSubjectKind.publisher:
-        final list =
-            await publisherBackend.getAdminMemberEmails(ms.publisherId!);
+        final list = await publisherBackend.getAdminMemberEmails(
+          ms.publisherId!,
+        );
         emails.addAll(list.nonNulls);
         break;
       case ModerationSubjectKind.user:

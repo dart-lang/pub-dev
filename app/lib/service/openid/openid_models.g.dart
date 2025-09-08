@@ -7,10 +7,9 @@ part of 'openid_models.dart';
 // **************************************************************************
 
 OpenIdData _$OpenIdDataFromJson(Map<String, dynamic> json) => OpenIdData(
-      provider:
-          OpenIdProvider.fromJson(json['provider'] as Map<String, dynamic>),
-      jwks: JsonWebKeyList.fromJson(json['jwks'] as Map<String, dynamic>),
-    );
+  provider: OpenIdProvider.fromJson(json['provider'] as Map<String, dynamic>),
+  jwks: JsonWebKeyList.fromJson(json['jwks'] as Map<String, dynamic>),
+);
 
 Map<String, dynamic> _$OpenIdDataToJson(OpenIdData instance) =>
     <String, dynamic>{
@@ -48,22 +47,22 @@ JsonWebKeyList _$JsonWebKeyListFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$JsonWebKeyListToJson(JsonWebKeyList instance) =>
-    <String, dynamic>{
-      'keys': instance.keys.map((e) => e.toJson()).toList(),
-    };
+    <String, dynamic>{'keys': instance.keys.map((e) => e.toJson()).toList()};
 
 JsonWebKey _$JsonWebKeyFromJson(Map<String, dynamic> json) => JsonWebKey(
-      alg: json['alg'] as String,
-      use: json['use'] as String?,
-      kid: json['kid'] as String?,
-      kty: json['kty'] as String?,
-      x5c: (json['x5c'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      x5t: json['x5t'] as String?,
-      n: const NullableUint8ListUnpaddedBase64UrlConverter()
-          .fromJson(json['n'] as String?),
-      e: const NullableUint8ListUnpaddedBase64UrlConverter()
-          .fromJson(json['e'] as String?),
-    );
+  alg: json['alg'] as String,
+  use: json['use'] as String?,
+  kid: json['kid'] as String?,
+  kty: json['kty'] as String?,
+  x5c: (json['x5c'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  x5t: json['x5t'] as String?,
+  n: const NullableUint8ListUnpaddedBase64UrlConverter().fromJson(
+    json['n'] as String?,
+  ),
+  e: const NullableUint8ListUnpaddedBase64UrlConverter().fromJson(
+    json['e'] as String?,
+  ),
+);
 
 Map<String, dynamic> _$JsonWebKeyToJson(JsonWebKey instance) =>
     <String, dynamic>{

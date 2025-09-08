@@ -29,21 +29,17 @@ Optionally, write rewrite of all files using:
   },
   invoke: (options) async {
     final forceWriteString = options['force-write'] ?? 'false';
-    InvalidInputException.checkAnyOf(
-      forceWriteString,
-      'force-write',
-      ['true', 'false'],
-    );
+    InvalidInputException.checkAnyOf(forceWriteString, 'force-write', [
+      'true',
+      'false',
+    ]);
     final forceWrite = forceWriteString == 'true';
 
     final packagesOpt = options['packages'] ?? '';
     final syncAll = packagesOpt == 'ALL';
     if (syncAll) {
       await apiExporter.synchronizeExportedApi(forceWrite: forceWrite);
-      return {
-        'packages': 'ALL',
-        'forceWrite': forceWrite,
-      };
+      return {'packages': 'ALL', 'forceWrite': forceWrite};
     } else {
       final packages = packagesOpt.split(' ').map((p) => p.trim()).toList();
       for (final p in packages) {
@@ -52,10 +48,7 @@ Optionally, write rewrite of all files using:
       for (final p in packages) {
         await apiExporter.synchronizePackage(p, forceWrite: forceWrite);
       }
-      return {
-        'packages': packages,
-        'forceWrite': forceWrite,
-      };
+      return {'packages': packages, 'forceWrite': forceWrite};
     }
   },
 );

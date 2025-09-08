@@ -26,17 +26,15 @@ void main() {
       // init server data
       await http.post(
         Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
-        body: json.encode(
-          {
-            'testProfile': {
-              'defaultUser': 'admin@pub.dev',
-              'generatedPackages': [
-                {'name': 'test_pkg'},
-                {'name': 'other_pkg'},
-              ],
-            },
+        body: json.encode({
+          'testProfile': {
+            'defaultUser': 'admin@pub.dev',
+            'generatedPackages': [
+              {'name': 'test_pkg'},
+              {'name': 'other_pkg'},
+            ],
           },
-        ),
+        }),
       );
 
       final user = await fakeTestScenario.createTestUser(email: 'user@pub.dev');
@@ -60,12 +58,15 @@ void main() {
 
       await user.withBrowserPage((page) async {
         Future<List<String>> getCountLabels() async {
-          final buttonLabel =
-              await page.$OrNull('.like-button-and-label--count');
-          final viewLabel = await page
-              .$OrNull('.packages-score-like .packages-score-value-number');
-          final keyScoreLabel = await page
-              .$OrNull('.score-key-figure--likes .score-key-figure-value');
+          final buttonLabel = await page.$OrNull(
+            '.like-button-and-label--count',
+          );
+          final viewLabel = await page.$OrNull(
+            '.packages-score-like .packages-score-value-number',
+          );
+          final keyScoreLabel = await page.$OrNull(
+            '.score-key-figure--likes .score-key-figure-value',
+          );
           return [
             (await buttonLabel?.textContent()) ?? '',
             (await viewLabel?.textContent()) ?? '',

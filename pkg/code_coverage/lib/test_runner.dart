@@ -44,18 +44,17 @@ Future<void> main(List<String> args) async {
       testPath,
     ],
     workingDirectory: packageDir,
-    environment: {
-      'COVERAGE_DIR': buildDir,
-      'COVERAGE_SESSION': outputPrefix,
-    },
+    environment: {'COVERAGE_DIR': buildDir, 'COVERAGE_SESSION': outputPrefix},
   );
 
   _writeLogs(testProcess.stdout, '[$testPath][OUT]');
   _writeLogs(testProcess.stderr, '[$testPath][ERR]');
 
   await Future.delayed(Duration(seconds: 15));
-  final testCollectProcess =
-      await _startCollect(testVmPort, '$buildDir/raw/$outputPrefix-test.json');
+  final testCollectProcess = await _startCollect(
+    testVmPort,
+    '$buildDir/raw/$outputPrefix-test.json',
+  );
 
   final testOutput = await testProcess.exitCode;
   print('$testPath exited with code $testOutput');
@@ -64,10 +63,9 @@ Future<void> main(List<String> args) async {
   await testCollectProcess.exitCode;
 
   final dir = Directory('$buildDir/raw');
-  final files = dir
-      .listSync()
-      .whereType<File>()
-      .where((f) => f.path.split('/').last.startsWith('$outputPrefix-'));
+  final files = dir.listSync().whereType<File>().where(
+    (f) => f.path.split('/').last.startsWith('$outputPrefix-'),
+  );
   for (final file in files) {
     final name = file.path.split('/').last;
     await _convertToLcov(
@@ -79,61 +77,61 @@ Future<void> main(List<String> args) async {
 }
 
 void _writeLogs(Stream<List<int>> stream, String prefix) {
-  stream.transform(utf8.decoder).transform(LineSplitter()).listen(
-    (s) {
-      s = s.trim();
-      if (s.isNotEmpty) {
-        print('  $prefix ${s.trim()}');
-      }
-    },
-    onDone: () {
-      print('  $prefix[DONE]');
-    },
-  );
+  stream
+      .transform(utf8.decoder)
+      .transform(LineSplitter())
+      .listen(
+        (s) {
+          s = s.trim();
+          if (s.isNotEmpty) {
+            print('  $prefix ${s.trim()}');
+          }
+        },
+        onDone: () {
+          print('  $prefix[DONE]');
+        },
+      );
 }
 
 Future<Process> _startCollect(int port, String outputFile) async {
   await File(outputFile).parent.create(recursive: true);
   print('[collect-$port-$outputFile] starting...');
-  final p = await Process.start(
-    'dart',
-    [
-      'run',
-      'coverage:collect_coverage',
-      '--uri=http://localhost:$port',
-      '-o',
-      outputFile,
-      '--wait-paused',
-      '--resume-isolates',
-    ],
-  );
+  final p = await Process.start('dart', [
+    'run',
+    'coverage:collect_coverage',
+    '--uri=http://localhost:$port',
+    '-o',
+    outputFile,
+    '--wait-paused',
+    '--resume-isolates',
+  ]);
   _writeLogs(p.stdout, '[collect-$port-$outputFile-out]');
   _writeLogs(p.stderr, '[collect-$port-$outputFile-err]');
   return p;
 }
 
 Future<void> _convertToLcov(
-    String packageDir, String inputFile, String outputFile) async {
+  String packageDir,
+  String inputFile,
+  String outputFile,
+) async {
   final out = File(outputFile);
   if (await out.exists()) return;
   await out.parent.create(recursive: true);
-  final baseDir =
-      Directory(packageDir.contains('/app') ? '../' : '../../').absolute.path;
-  await Process.run(
-    'dart',
-    [
-      'run',
-      'coverage:format_coverage',
-      '--packages',
-      '$baseDir/.dart_tool/package_config.json',
-      '-i',
-      inputFile,
-      '--base-directory',
-      baseDir,
-      '--lcov',
-      '--out',
-      outputFile,
-    ],
-    workingDirectory: packageDir,
-  );
+  final baseDir = Directory(
+    packageDir.contains('/app') ? '../' : '../../',
+  ).absolute.path;
+  await Process.run('dart', [
+    'run',
+    'coverage:format_coverage',
+    '--packages',
+    '$baseDir/.dart_tool/package_config.json',
+    '-i',
+    inputFile,
+    '--base-directory',
+    baseDir,
+    '--lcov',
+    '--out',
+    outputFile,
+  ], workingDirectory: packageDir);
 }

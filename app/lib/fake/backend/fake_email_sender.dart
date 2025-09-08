@@ -19,9 +19,7 @@ class FakeEmailSender implements EmailSender {
   final sentMessages = <EmailMessage>[];
   int failNextMessageCount = 0;
 
-  FakeEmailSender({
-    String? outputDir,
-  }) : _outputDir = outputDir;
+  FakeEmailSender({String? outputDir}) : _outputDir = outputDir;
 
   @override
   bool get shouldBackoff => false;

@@ -30,7 +30,8 @@ class PubHttpClient {
       return;
     }
     throw UnsupportedError(
-        'Forced analyzer update is supported only on fake pub server.');
+      'Forced analyzer update is supported only on fake pub server.',
+    );
   }
 
   /// Forces the dartdoc jobs to update and run.
@@ -44,7 +45,8 @@ class PubHttpClient {
       return;
     }
     throw UnsupportedError(
-        'Forced dartdoc update is supported only on fake pub server.');
+      'Forced dartdoc update is supported only on fake pub server.',
+    );
   }
 
   /// Forces the search index to update.
@@ -58,7 +60,8 @@ class PubHttpClient {
       return;
     }
     throw UnsupportedError(
-        'Forced search update is supported only on fake pub server.');
+      'Forced search update is supported only on fake pub server.',
+    );
   }
 
   /// Get the latest version name of a package.
@@ -79,8 +82,9 @@ class PubHttpClient {
   /// not exists.
   Future<String?> getLatestVersionPage(String package, {String? tab}) async {
     final tabUrl = tab == null ? '' : '/$tab';
-    final rs =
-        await _http.get(_pubHostedUrl.resolve('/packages/$package$tabUrl'));
+    final rs = await _http.get(
+      _pubHostedUrl.resolve('/packages/$package$tabUrl'),
+    );
     if (rs.statusCode == 404) {
       return null;
     } else if (rs.statusCode == 200) {
@@ -102,8 +106,9 @@ class PubHttpClient {
 
   /// Get the content of the publisher page or null if it does not exists.
   Future<String?> getPublisherPage(String publisherId) async {
-    final rs =
-        await _http.get(_pubHostedUrl.resolve('/publishers/$publisherId'));
+    final rs = await _http.get(
+      _pubHostedUrl.resolve('/publishers/$publisherId'),
+    );
     if (rs.statusCode == 404) {
       return null;
     } else if (rs.statusCode == 200) {
@@ -122,9 +127,10 @@ class PubHttpClient {
     return rs.body;
   }
 
-  Future<String> getDocumentationPage(String package,
-          [String version = 'latest']) async =>
-      getContent('/documentation/$package/$version/');
+  Future<String> getDocumentationPage(
+    String package, [
+    String version = 'latest',
+  ]) async => getContent('/documentation/$package/$version/');
 
   /// Creates a publisher.
   Future<void> createPublisher({
@@ -138,9 +144,7 @@ class PubHttpClient {
         ..._jsonRequestHeaders,
         HttpHeaders.authorizationHeader: 'Bearer $authToken',
       },
-      body: json.encode({
-        'accessToken': accessToken,
-      }),
+      body: json.encode({'accessToken': accessToken}),
     );
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
@@ -159,9 +163,7 @@ class PubHttpClient {
         ..._jsonRequestHeaders,
         HttpHeaders.authorizationHeader: 'Bearer $authToken',
       },
-      body: json.encode({
-        'publisherId': publisherId,
-      }),
+      body: json.encode({'publisherId': publisherId}),
     );
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
@@ -180,9 +182,7 @@ class PubHttpClient {
         ..._jsonRequestHeaders,
         HttpHeaders.authorizationHeader: 'Bearer $authToken',
       },
-      body: json.encode({
-        'email': invitedEmail,
-      }),
+      body: json.encode({'email': invitedEmail}),
     );
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
@@ -206,8 +206,14 @@ class PubHttpClient {
     }
     final map = json.decode(rs.body);
     final members = (map['members'] as List).cast<Map>();
-    return Map.fromEntries(members.map((Map m) => MapEntry<String?, String?>(
-        m['email'] as String?, m['role'] as String?)));
+    return Map.fromEntries(
+      members.map(
+        (Map m) => MapEntry<String?, String?>(
+          m['email'] as String?,
+          m['role'] as String?,
+        ),
+      ),
+    );
   }
 
   /// Returns the list of packages from `/api/package-names` endpoint.
@@ -226,8 +232,9 @@ class PubHttpClient {
 
   /// Returns the list of packages from `/api/package-name-completion-data` endpoint.
   Future<List<String>> apiPackageNameCompletionData() async {
-    final rs = await _http
-        .get(_pubHostedUrl.resolve('/api/package-name-completion-data'));
+    final rs = await _http.get(
+      _pubHostedUrl.resolve('/api/package-name-completion-data'),
+    );
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
     }
@@ -240,8 +247,9 @@ class PubHttpClient {
   /// endpoint.
   Future<List<String>> apiTopicNameCompletionData() async {
     final Response rs = await _http.get(
-        _pubHostedUrl.resolve('/api/topic-name-completion-data'),
-        headers: {HttpHeaders.acceptHeader: 'application/json'});
+      _pubHostedUrl.resolve('/api/topic-name-completion-data'),
+      headers: {HttpHeaders.acceptHeader: 'application/json'},
+    );
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
     }
@@ -260,9 +268,7 @@ class PubHttpClient {
         ..._jsonRequestHeaders,
         HttpHeaders.authorizationHeader: 'Bearer $accessToken',
       },
-      body: json.encode({
-        'email': invitedEmail,
-      }),
+      body: json.encode({'email': invitedEmail}),
     );
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
@@ -282,9 +288,7 @@ class PubHttpClient {
         ..._jsonRequestHeaders,
         HttpHeaders.authorizationHeader: 'Bearer $accessToken',
       },
-      body: json.encode({
-        'email': uploaderEmail,
-      }),
+      body: json.encode({'email': uploaderEmail}),
     );
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
@@ -309,7 +313,8 @@ class _HtmlVerifierHttpClient extends BaseClient {
     final contentType = rs.headers[HttpHeaders.contentTypeHeader];
     if (contentType == null || contentType.isEmpty) {
       throw FormatException(
-          'Content type header is missing for ${request.url}.');
+        'Content type header is missing for ${request.url}.',
+      );
     }
     if (rs.statusCode == 200 && contentType.contains('text/html')) {
       final body = await rs.stream.bytesToString();

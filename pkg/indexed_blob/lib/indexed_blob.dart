@@ -91,16 +91,18 @@ final class IndexedBlobBuilder {
       _isAdding = true;
       final start = _offset;
       var totalSize = 0;
-      await _blob.addStream(content.map((chunk) {
-        totalSize += chunk.length;
-        if (skipAfterSize > 0 && totalSize > skipAfterSize) {
-          // Do not store the remaining chunks, we will not store the entry.
-          return const [];
-        }
+      await _blob.addStream(
+        content.map((chunk) {
+          totalSize += chunk.length;
+          if (skipAfterSize > 0 && totalSize > skipAfterSize) {
+            // Do not store the remaining chunks, we will not store the entry.
+            return const [];
+          }
 
-        _offset += chunk.length;
-        return chunk;
-      }));
+          _offset += chunk.length;
+          return chunk;
+        }),
+      );
 
       if (skipAfterSize > 0 && totalSize > skipAfterSize) {
         return;
@@ -141,10 +143,7 @@ final class IndexedBlobBuilder {
     _finished = true;
     await _blob.close();
 
-    final bytes = _buildIndexBytes(
-      blobId: blobId,
-      index: _index,
-    );
+    final bytes = _buildIndexBytes(blobId: blobId, index: _index);
     return BlobIndex.fromBytes(bytes);
   }
 
@@ -254,12 +253,15 @@ final class BlobIndex {
   /// [BlobIndex], attempts to read/write the format outside of these classes
   /// is unsupported.
   BlobIndex.fromBytes(List<int> indexFile)
-      : _indexFile =
-            indexFile is Uint8List ? indexFile : Uint8List.fromList(indexFile);
+    : _indexFile = indexFile is Uint8List
+          ? indexFile
+          : Uint8List.fromList(indexFile);
 
   BlobIndex.empty({required String blobId})
-      : _indexFile =
-            IndexedBlobBuilder._buildIndexBytes(blobId: blobId, index: {});
+    : _indexFile = IndexedBlobBuilder._buildIndexBytes(
+        blobId: blobId,
+        index: {},
+      );
 
   /// Get the free-form [String] given as `blobId` when the blob was built.
   ///
@@ -368,9 +370,7 @@ final class BlobIndex {
   Uint8List asBytes() => _indexFile;
 
   /// Create a new [BlobIndex] updated with a new [blobId].
-  BlobIndex update({
-    String? blobId,
-  }) {
+  BlobIndex update({String? blobId}) {
     final r = JsonReader.fromUtf8(_indexFile);
     r.expectObject();
 
@@ -446,12 +446,7 @@ final class FileRange {
     if (parts.length != 2) {
       throw FormatException('invalid range "$range"');
     }
-    return FileRange._(
-      path,
-      int.parse(parts[0]),
-      int.parse(parts[1]),
-      blobId,
-    );
+    return FileRange._(path, int.parse(parts[0]), int.parse(parts[1]), blobId);
   }
 
   /// The length of the range in blob.

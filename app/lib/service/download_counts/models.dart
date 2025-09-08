@@ -17,18 +17,22 @@ class DownloadCounts extends db.ExpandoModel<String> {
 
 class CountDataProperty extends db.Property {
   const CountDataProperty({super.propertyName, super.required = false})
-      : super(indexed: false);
+    : super(indexed: false);
 
   @override
   Object? decodePrimitiveValue(db.ModelDB db, Object? value) {
     if (value == null) return null;
     return CountData.fromJson(
-        json.decode(value as String) as Map<String, dynamic>);
+      json.decode(value as String) as Map<String, dynamic>,
+    );
   }
 
   @override
-  Object? encodeValue(db.ModelDB db, Object? value,
-      {bool forComparison = false}) {
+  Object? encodeValue(
+    db.ModelDB db,
+    Object? value, {
+    bool forComparison = false,
+  }) {
     return json.encode(value);
   }
 

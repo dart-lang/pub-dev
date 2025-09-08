@@ -12,11 +12,7 @@ import 'deferred/markdown.dart' deferred as md;
 
 /// Displays a message via the modal window.
 Future<void> modalMessage(String title, Element content) async {
-  await modalWindow(
-    titleText: title,
-    content: content,
-    isQuestion: false,
-  );
+  await modalWindow(titleText: title, content: content, isQuestion: false);
 }
 
 /// Display [content] to user (assumed it has a question format), and return
@@ -46,8 +42,9 @@ Future<bool> modalWindow({
   /// dialog is kept open (e.g. the user may update the form).
   FutureOr<bool> Function()? onExecute,
 }) async {
-  final restoreFocusabilityFn =
-      disableAllFocusability(allowedComponents: [content]);
+  final restoreFocusabilityFn = disableAllFocusability(
+    allowedComponents: [content],
+  );
   final c = Completer<bool>();
   final root = _buildDialog(
     titleText: titleText,
@@ -88,71 +85,70 @@ Element _buildDialog({
   /// The callback will be called with `true` when "OK" was clicked, and `false`
   /// when "Cancel" was clicked.
   required void Function(bool) closing,
-}) =>
+}) => DivElement()
+  ..classes.add('mdc-dialog')
+  ..attributes.addAll({
+    'role': 'alertdialog',
+    'aria-model': 'true',
+    'aria-labelledby': 'pub-dialog-title',
+    'aria-describedby': 'pub-dialog-content',
+  })
+  ..children = [
     DivElement()
-      ..classes.add('mdc-dialog')
-      ..attributes.addAll({
-        'role': 'alertdialog',
-        'aria-model': 'true',
-        'aria-labelledby': 'pub-dialog-title',
-        'aria-describedby': 'pub-dialog-content',
-      })
+      ..classes.add('mdc-dialog__container')
       ..children = [
         DivElement()
-          ..classes.add('mdc-dialog__container')
+          ..classes.add('mdc-dialog__surface')
           ..children = [
+            HeadingElement.h2()
+              ..classes.add('mdc-dialog__title')
+              ..id = 'pub-dialog-title'
+              ..innerText = titleText,
             DivElement()
-              ..classes.add('mdc-dialog__surface')
+              ..classes.add('mdc-dialog__content')
+              ..id = 'pub-dialog-content'
+              ..children = [content],
+            Element.footer()
+              ..classes.add('mdc-dialog__actions')
               ..children = [
-                HeadingElement.h2()
-                  ..classes.add('mdc-dialog__title')
-                  ..id = 'pub-dialog-title'
-                  ..innerText = titleText,
-                DivElement()
-                  ..classes.add('mdc-dialog__content')
-                  ..id = 'pub-dialog-content'
-                  ..children = [content],
-                Element.footer()
-                  ..classes.add('mdc-dialog__actions')
+                if (isQuestion)
+                  ButtonElement()
+                    ..classes.addAll([
+                      'mdc-button',
+                      'mdc-dialog__button',
+                      '-pub-dom-dialog-cancel-button',
+                    ])
+                    ..tabIndex = 2
+                    ..onClick.listen((e) {
+                      e.preventDefault();
+                      closing(false);
+                    })
+                    ..children = [
+                      SpanElement()
+                        ..classes.add('mdc-button__label')
+                        ..innerText = cancelButtonText ?? 'Cancel',
+                    ],
+                ButtonElement()
+                  ..classes.addAll([
+                    'mdc-button',
+                    'mdc-dialog__button',
+                    '-pub-dom-dialog-ok-button',
+                  ])
+                  ..tabIndex = 1
+                  ..onClick.listen((e) {
+                    e.preventDefault();
+                    closing(true);
+                  })
                   ..children = [
-                    if (isQuestion)
-                      ButtonElement()
-                        ..classes.addAll([
-                          'mdc-button',
-                          'mdc-dialog__button',
-                          '-pub-dom-dialog-cancel-button',
-                        ])
-                        ..tabIndex = 2
-                        ..onClick.listen((e) {
-                          e.preventDefault();
-                          closing(false);
-                        })
-                        ..children = [
-                          SpanElement()
-                            ..classes.add('mdc-button__label')
-                            ..innerText = cancelButtonText ?? 'Cancel',
-                        ],
-                    ButtonElement()
-                      ..classes.addAll([
-                        'mdc-button',
-                        'mdc-dialog__button',
-                        '-pub-dom-dialog-ok-button',
-                      ])
-                      ..tabIndex = 1
-                      ..onClick.listen((e) {
-                        e.preventDefault();
-                        closing(true);
-                      })
-                      ..children = [
-                        SpanElement()
-                          ..classes.add('mdc-button__label')
-                          ..innerText = okButtonText ?? 'Ok',
-                      ],
+                    SpanElement()
+                      ..classes.add('mdc-button__label')
+                      ..innerText = okButtonText ?? 'Ok',
                   ],
               ],
           ],
-        DivElement()..classes.add('mdc-dialog__scrim'),
-      ];
+      ],
+    DivElement()..classes.add('mdc-dialog__scrim'),
+  ];
 
 /// Creates an [Element] with unformatted [text] content.
 Element text(String text) => DivElement()..text = text;
@@ -208,8 +204,9 @@ bool _isInsideContent(Element e, Element content) {
 void Function() disableAllFocusability({
   required List<Element> allowedComponents,
 }) {
-  final focusableElements =
-      document.body!.querySelectorAll(_focusableSelectors.join(', '));
+  final focusableElements = document.body!.querySelectorAll(
+    _focusableSelectors.join(', '),
+  );
   final restoreFocusabilityFns = <void Function()>[];
   for (final e in focusableElements) {
     if (allowedComponents.any((content) => _isInsideContent(e, content))) {
@@ -234,8 +231,9 @@ void Function() _disableFocusability(Element e) {
     if (!isLink) 'disabled': 'disabled',
     'aria-hidden': 'true',
   };
-  final attributesToRestore =
-      attributesToSet.map((key, _) => MapEntry(key, e.getAttribute(key)));
+  final attributesToRestore = attributesToSet.map(
+    (key, _) => MapEntry(key, e.getAttribute(key)),
+  );
   for (final a in attributesToSet.entries) {
     e.setAttribute(a.key, a.value);
   }

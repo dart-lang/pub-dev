@@ -14,11 +14,12 @@ import 'package:sanitize_html/sanitize_html.dart';
 import 'urls.dart' show UriExt;
 
 /// Resolves [reference] relative to a repository URL.
-typedef UrlResolverFn = String Function(
-  String reference, {
-  String? relativeFrom,
-  bool? isEmbeddedObject,
-});
+typedef UrlResolverFn =
+    String Function(
+      String reference, {
+      String? relativeFrom,
+      bool? isEmbeddedObject,
+    });
 
 final Logger _logger = Logger('pub.markdown');
 
@@ -71,7 +72,8 @@ String markdownToHtml(
         .replaceAll("'", '&#39;')
         .replaceAll('"', '&quot;');
     return sanitizeHtml(
-        '<p>Error rendering markdown.</p>\n<pre><code>\n$safeText\n</code></pre>\n');
+      '<p>Error rendering markdown.</p>\n<pre><code>\n$safeText\n</code></pre>\n',
+    );
   } finally {
     if (sw.elapsed.inSeconds >= 3) {
       _logger.shout('Markdown rendering taking too long: ${sw.elapsed}');
@@ -106,9 +108,7 @@ String _renderSafeHtml(
     addLinkRel: (String url) {
       final uri = Uri.tryParse(url);
       if (uri == null || uri.isInvalid) return ['nofollow'];
-      return <String>[
-        if (uri.shouldIndicateUgc) 'ugc',
-      ];
+      return <String>[if (uri.shouldIndicateUgc) 'ugc'];
     },
   );
   return '$html\n';
@@ -151,7 +151,8 @@ class _HashLink extends html_parsing.TreeVisitor {
   void visitElement(html.Element element) {
     super.visitElement(element);
 
-    final isHeaderWithHash = element.attributes.containsKey('id') &&
+    final isHeaderWithHash =
+        element.attributes.containsKey('id') &&
         _structuralHeaderTags.contains(element.localName!);
 
     if (isHeaderWithHash) {
@@ -258,8 +259,11 @@ class _RelativeUrlRewriter extends html_parsing.TreeVisitor {
     }
   }
 
-  void _updateUrlAttributes(html.Element element, String attrName,
-      {bool raw = false}) {
+  void _updateUrlAttributes(
+    html.Element element,
+    String attrName, {
+    bool raw = false,
+  }) {
     final oldUrl = element.attributes[attrName];
     final newUrl = _rewriteUrl(oldUrl, raw: raw);
     if (newUrl == null) {

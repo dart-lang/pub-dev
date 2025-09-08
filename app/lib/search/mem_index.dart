@@ -49,9 +49,8 @@ class InMemoryPackageIndex {
 
   late final DateTime _lastUpdated;
 
-  InMemoryPackageIndex({
-    required Iterable<PackageDocument> documents,
-  }) : _documents = [...documents] {
+  InMemoryPackageIndex({required Iterable<PackageDocument> documents})
+    : _documents = [...documents] {
     final apiDocPageKeys = <IndexedApiDocPage>[];
     final apiDocPageValues = <List<String>>[];
     for (var i = 0; i < _documents.length; i++) {
@@ -100,18 +99,28 @@ class InMemoryPackageIndex {
     }
     _updateOverallScores();
     _lastUpdated = clock.now().toUtc();
-    _overallOrderedHits = _rankWithComparator(_compareOverall,
-        score: (doc) => doc.overallScore ?? 0.0);
+    _overallOrderedHits = _rankWithComparator(
+      _compareOverall,
+      score: (doc) => doc.overallScore ?? 0.0,
+    );
     _createdOrderedHits = _rankWithComparator(_compareCreated);
     _updatedOrderedHits = _rankWithComparator(_compareUpdated);
-    _downloadsOrderedHits = _rankWithComparator(_compareDownloads,
-        score: (doc) => doc.downloadCount.toDouble());
-    _likesOrderedHits = _rankWithComparator(_compareLikes,
-        score: (doc) => doc.likeCount.toDouble());
-    _pointsOrderedHits = _rankWithComparator(_comparePoints,
-        score: (doc) => doc.grantedPoints.toDouble());
-    _trendingOrderedHits = _rankWithComparator(_compareTrending,
-        score: (doc) => doc.trendScore.toDouble());
+    _downloadsOrderedHits = _rankWithComparator(
+      _compareDownloads,
+      score: (doc) => doc.downloadCount.toDouble(),
+    );
+    _likesOrderedHits = _rankWithComparator(
+      _compareLikes,
+      score: (doc) => doc.likeCount.toDouble(),
+    );
+    _pointsOrderedHits = _rankWithComparator(
+      _comparePoints,
+      score: (doc) => doc.grantedPoints.toDouble(),
+    );
+    _trendingOrderedHits = _rankWithComparator(
+      _compareTrending,
+      score: (doc) => doc.trendScore.toDouble(),
+    );
   }
 
   IndexInfo indexInfo() {
@@ -134,13 +143,13 @@ class InMemoryPackageIndex {
         errorMessage: '`is:liked-by-me` is only for authenticated users.',
       );
     }
-    return _bitArrayPool.withPoolItem(fn: (array) {
-      return _scorePool.withItemGetter(
-        (scoreFn) {
+    return _bitArrayPool.withPoolItem(
+      fn: (array) {
+        return _scorePool.withItemGetter((scoreFn) {
           return _search(query, array, scoreFn);
-        },
-      );
-    });
+        });
+      },
+    );
   }
 
   /// Filters on query predicates with fast bitmap operations.
@@ -148,8 +157,9 @@ class InMemoryPackageIndex {
   /// of documents that matches the predicates so far.
   int _filterOnPredicates(ServiceSearchQuery query, BitArray packages) {
     // filter on tags
-    final combinedTagsPredicate =
-        query.tagsPredicate.appendPredicate(query.parsedQuery.tagsPredicate);
+    final combinedTagsPredicate = query.tagsPredicate.appendPredicate(
+      query.parsedQuery.tagsPredicate,
+    );
     if (combinedTagsPredicate.isNotEmpty) {
       for (final entry in combinedTagsPredicate.entries) {
         final tagBits = _tagBitArrays[entry.key];
@@ -195,8 +205,9 @@ class InMemoryPackageIndex {
 
     // filter on points
     if (query.minPoints != null && query.minPoints! > 0) {
-      packages
-          .clearWhere((i) => _documents[i].grantedPoints < query.minPoints!);
+      packages.clearWhere(
+        (i) => _documents[i].grantedPoints < query.minPoints!,
+      );
     }
 
     // filter on updatedDuration
@@ -204,7 +215,8 @@ class InMemoryPackageIndex {
     if (updatedDuration != null && updatedDuration > Duration.zero) {
       final now = clock.now();
       packages.clearWhere(
-          (i) => now.difference(_documents[i].updated) > updatedDuration);
+        (i) => now.difference(_documents[i].updated) > updatedDuration,
+      );
     }
 
     return packages.cardinality;
@@ -221,8 +233,9 @@ class InMemoryPackageIndex {
       return PackageSearchResult.empty();
     }
     final bestNameMatch = _bestNameMatch(query);
-    final bestNameIndex =
-        bestNameMatch == null ? null : _nameToIndex[bestNameMatch];
+    final bestNameIndex = bestNameMatch == null
+        ? null
+        : _nameToIndex[bestNameMatch];
 
     // do text matching
     final parsedQueryText = query.parsedQuery.text;
@@ -330,7 +343,8 @@ class InMemoryPackageIndex {
     }
 
     // Only indicate name match when the first item's score is lower than the second's score.
-    final indicateNameMatch = bestNameMatch != null &&
+    final indicateNameMatch =
+        bestNameMatch != null &&
         packageHits.length > 1 &&
         ((packageHits[0].score ?? 0) <= (packageHits[1].score ?? 0));
     return PackageSearchResult(
@@ -425,8 +439,9 @@ class InMemoryPackageIndex {
     final matchName = textMatchExtent.shouldMatchName();
     if (!matchName) {
       return _TextResults.empty(
-          errorMessage:
-              'Search index in reduced mode: unable to match query text.');
+        errorMessage:
+            'Search index in reduced mode: unable to match query text.',
+      );
     }
 
     for (final index in packages.asIntIterable()) {
@@ -439,7 +454,8 @@ class InMemoryPackageIndex {
       if (!aborted && sw.elapsed > _textSearchTimeout) {
         aborted = true;
         _logger.info(
-            '[pub-aborted-search-query] Aborted text search after ${sw.elapsedMilliseconds} ms.');
+          '[pub-aborted-search-query] Aborted text search after ${sw.elapsedMilliseconds} ms.',
+        );
       }
       return aborted;
     }
@@ -451,23 +467,31 @@ class InMemoryPackageIndex {
     for (final word in words) {
       _scorePool.withPoolItem(
         fn: (wordScore) {
-          _packageNameIndex.searchWord(word,
-              score: wordScore, filterOnNonZeros: packageScores);
+          _packageNameIndex.searchWord(
+            word,
+            score: wordScore,
+            filterOnNonZeros: packageScores,
+          );
 
           if (matchDescription) {
             _descrIndex.searchAndAccumulate(word, score: wordScore);
           }
           if (matchReadme) {
-            _readmeIndex.searchAndAccumulate(word,
-                weight: 0.75, score: wordScore);
+            _readmeIndex.searchAndAccumulate(
+              word,
+              weight: 0.75,
+              score: wordScore,
+            );
           }
           packageScores.multiplyAllFrom(wordScore);
         },
       );
     }
 
-    final topApiPages =
-        List<List<MapEntry<String, double>>?>.filled(_documents.length, null);
+    final topApiPages = List<List<MapEntry<String, double>>?>.filled(
+      _documents.length,
+      null,
+    );
 
     if (matchApi) {
       const maxApiPageCount = 2;
@@ -481,8 +505,8 @@ class InMemoryPackageIndex {
             if (!packages[doc.index]) continue;
 
             // skip if the previously found pages are better than the current one
-            final pages =
-                topApiPages[doc.index] ??= <MapEntry<String, double>>[];
+            final pages = topApiPages[doc.index] ??=
+                <MapEntry<String, double>>[];
             if (pages.length >= maxApiPageCount && pages.last.value > value) {
               continue;
             }
@@ -511,10 +535,12 @@ class InMemoryPackageIndex {
       for (var i = 0; i < packageScores.length; i++) {
         if (packageScores.isNotPositive(i)) continue;
         final doc = _documents[i];
-        final matchedAllPhrases = phrases.every((phrase) =>
-            (matchName && doc.package.contains(phrase)) ||
-            (matchDescription && doc.description!.contains(phrase)) ||
-            (matchReadme && doc.readme!.contains(phrase)));
+        final matchedAllPhrases = phrases.every(
+          (phrase) =>
+              (matchName && doc.package.contains(phrase)) ||
+              (matchDescription && doc.description!.contains(phrase)) ||
+              (matchReadme && doc.readme!.contains(phrase)),
+        );
         if (!matchedAllPhrases) {
           packageScores.setValue(i, 0);
         }
@@ -526,6 +552,7 @@ class InMemoryPackageIndex {
 
   Iterable<IndexedPackageHit> _rankWithValues(
     IndexedScore<String> score, {
+
     /// When no best name match is applied, this parameter will be `-1`
     required int bestNameIndex,
 
@@ -547,8 +574,14 @@ class InMemoryPackageIndex {
       if (value <= 0.0 && i != bestNameIndex) continue;
       heap.collect(i);
     }
-    return heap.getAndRemoveTopK(topK).map((i) => IndexedPackageHit(
-        i, PackageHit(package: score.keys[i], score: score.getValue(i))));
+    return heap
+        .getAndRemoveTopK(topK)
+        .map(
+          (i) => IndexedPackageHit(
+            i,
+            PackageHit(package: score.keys[i], score: score.getValue(i)),
+          ),
+        );
   }
 
   List<IndexedPackageHit> _rankWithComparator(
@@ -556,11 +589,15 @@ class InMemoryPackageIndex {
     double Function(PackageDocument doc)? score,
   }) {
     final list = _documents
-        .mapIndexed((index, doc) => IndexedPackageHit(
+        .mapIndexed(
+          (index, doc) => IndexedPackageHit(
             index,
             PackageHit(
-                package: doc.package,
-                score: score == null ? null : score(doc))))
+              package: doc.package,
+              score: score == null ? null : score(doc),
+            ),
+          ),
+        )
         .toList();
     list.sort((a, b) => compare(_documents[a.index], _documents[b.index]));
     return list;
@@ -611,18 +648,10 @@ class _TextResults {
   final String? errorMessage;
 
   factory _TextResults.empty({String? errorMessage}) {
-    return _TextResults(
-      null,
-      errorMessage: errorMessage,
-      hasNoMatch: true,
-    );
+    return _TextResults(null, errorMessage: errorMessage, hasNoMatch: true);
   }
 
-  _TextResults(
-    this.topApiPages, {
-    this.errorMessage,
-    this.hasNoMatch = false,
-  });
+  _TextResults(this.topApiPages, {this.errorMessage, this.hasNoMatch = false});
 }
 
 /// A simple (non-inverted) index designed for package name lookup.
@@ -679,8 +708,9 @@ class PackageNameIndex {
     assert(score.keys.length == _packageNames.length);
     final lowercasedWord = word.toLowerCase();
     final collapsedWord = _removeUnderscores(lowercasedWord);
-    final parts =
-        collapsedWord.length <= 3 ? [collapsedWord] : trigrams(collapsedWord);
+    final parts = collapsedWord.length <= 3
+        ? [collapsedWord]
+        : trigrams(collapsedWord);
     for (var i = 0; i < _data.length; i++) {
       if (filterOnNonZeros?.isNotPositive(i) ?? false) {
         continue;
@@ -757,5 +787,5 @@ class IndexedApiDocPage {
   final String relativePath;
 
   IndexedApiDocPage(this.index, ApiDocPage page)
-      : relativePath = page.relativePath;
+    : relativePath = page.relativePath;
 }

@@ -25,18 +25,21 @@ Future<void> fetchAdvisories(Directory targetDir) async {
   zipFile.writeAsBytesSync(bytes);
 
   ProcessResult processResult;
-  processResult = await Process.run('unzip', [zipFile.path],
-      workingDirectory: targetDir.path);
+  processResult = await Process.run('unzip', [
+    zipFile.path,
+  ], workingDirectory: targetDir.path);
 
   if (processResult.exitCode != 0) {
     throw Exception(
-        'Unzipping advisories failed with exitcode ${processResult.exitCode}.\n'
-        '${processResult.stdout}\n${processResult.stderr}');
+      'Unzipping advisories failed with exitcode ${processResult.exitCode}.\n'
+      '${processResult.stdout}\n${processResult.stderr}',
+    );
   }
 }
 
 Future<(Map<String, OSV>, List<String>)> loadAdvisoriesFromDir(
-    Directory advisoriesDir) async {
+  Directory advisoriesDir,
+) async {
   final osvs = <String, OSV>{};
   final failedFiles = <String>[];
 
@@ -85,8 +88,9 @@ Future<void> syncSecurityAdvisories() async {
 
     if (failedFiles.isNotEmpty) {
       throw Exception(
-          'Advisory ingestion was partial. The following advisories failed '
-          '$failedFiles');
+        'Advisory ingestion was partial. The following advisories failed '
+        '$failedFiles',
+      );
     }
   } finally {
     await tempDir.delete(recursive: true);

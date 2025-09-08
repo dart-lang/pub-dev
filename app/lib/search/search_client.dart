@@ -68,8 +68,9 @@ class SearchClient {
       skipCache = true;
     }
 
-    final hasLikedByMeTag =
-        query.parsedQuery.tagsPredicate.hasTag(AccountTag.isLikedByMe);
+    final hasLikedByMeTag = query.parsedQuery.tagsPredicate.hasTag(
+      AccountTag.isLikedByMe,
+    );
     final userId = requestContext.sessionData?.userId;
     if (hasLikedByMeTag) {
       skipCache = true;
@@ -82,8 +83,9 @@ class SearchClient {
     }
 
     // Returns the status code and the body of the last response, or null on timeout.
-    Future<({int statusCode, String? body})?> doCallHttpServiceEndpoint(
-        {String? prefix}) async {
+    Future<({int statusCode, String? body})?> doCallHttpServiceEndpoint({
+      String? prefix,
+    }) async {
       final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;
       try {
         if (requestContext.experimentalFlags.useMyLikedSearch) {
@@ -91,8 +93,9 @@ class SearchClient {
             (client) async {
               var data = query.toSearchRequestData();
               if (userId != null && hasLikedByMeTag) {
-                final newQuery =
-                    data.query?.replaceAll(AccountTag.isLikedByMe, ' ').trim();
+                final newQuery = data.query
+                    ?.replaceAll(AccountTag.isLikedByMe, ' ')
+                    .trim();
                 final newTags = data.tags!
                     .where((e) => e != AccountTag.isLikedByMe)
                     .toList();
@@ -103,11 +106,9 @@ class SearchClient {
                 );
               }
               // NOTE: Keeping the query parameter to help investigating logs.
-              final uri = Uri.parse('$httpHostPort/search').replace(
-                queryParameters: {
-                  'q': data.query,
-                },
-              );
+              final uri = Uri.parse(
+                '$httpHostPort/search',
+              ).replace(queryParameters: {'q': data.query});
               final rs = await client.post(
                 uri,
                 headers: {
@@ -119,7 +120,8 @@ class SearchClient {
               return (statusCode: rs.statusCode, body: rs.body);
             },
             client: _httpClient,
-            retryIf: (e) => (e is UnexpectedStatusException &&
+            retryIf: (e) =>
+                (e is UnexpectedStatusException &&
                 e.statusCode == searchIndexNotReadyCode),
           );
         }
@@ -129,7 +131,8 @@ class SearchClient {
           client: _httpClient,
           headers: cloudTraceHeaders(),
           perRequestTimeout: Duration(seconds: 5),
-          retryIf: (e) => (e is UnexpectedStatusException &&
+          retryIf: (e) =>
+              (e is UnexpectedStatusException &&
               e.statusCode == searchIndexNotReadyCode),
           responseFn: (rs) => (statusCode: rs.statusCode, body: rs.body),
         );
@@ -145,12 +148,14 @@ class SearchClient {
       var response = await doCallHttpServiceEndpoint();
       // if needed and possible, calling fallback request to unversioned endpoint
       if (response == null || response.statusCode != 200) {
-        final serviceIsInStartup =
-            clock.now().isBefore(_fallbackSearchThreshold);
+        final serviceIsInStartup = clock.now().isBefore(
+          _fallbackSearchThreshold,
+        );
         if (serviceIsInStartup &&
             activeConfiguration.fallbackSearchServicePrefix != null) {
           response = await doCallHttpServiceEndpoint(
-              prefix: activeConfiguration.fallbackSearchServicePrefix);
+            prefix: activeConfiguration.fallbackSearchServicePrefix,
+          );
         }
       }
       if (response == null) {
@@ -198,10 +203,11 @@ class SearchClient {
       }
       final r = await searchFn();
       await cacheEntry.set(
-          r,
-          r.errorMessage == null
-              ? const Duration(minutes: 3)
-              : const Duration(minutes: 1));
+        r,
+        r.errorMessage == null
+            ? const Duration(minutes: 3)
+            : const Duration(minutes: 1),
+      );
       return r;
     }
   }

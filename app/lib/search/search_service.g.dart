@@ -26,11 +26,13 @@ PackageDocument _$PackageDocumentFromJson(Map<String, dynamic> json) =>
       likeScore: (json['likeScore'] as num?)?.toDouble(),
       grantedPoints: (json['grantedPoints'] as num?)?.toInt(),
       maxPoints: (json['maxPoints'] as num?)?.toInt(),
-      dependencies: (json['dependencies'] as Map<String, dynamic>?)?.map(
+      dependencies:
+          (json['dependencies'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, e as String),
           ) ??
           const {},
-      apiDocPages: (json['apiDocPages'] as List<dynamic>?)
+      apiDocPages:
+          (json['apiDocPages'] as List<dynamic>?)
               ?.map((e) => ApiDocPage.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
@@ -66,10 +68,11 @@ Map<String, dynamic> _$PackageDocumentToJson(PackageDocument instance) =>
     };
 
 ApiDocPage _$ApiDocPageFromJson(Map<String, dynamic> json) => ApiDocPage(
-      relativePath: json['relativePath'] as String,
-      symbols:
-          (json['symbols'] as List<dynamic>?)?.map((e) => e as String).toList(),
-    );
+  relativePath: json['relativePath'] as String,
+  symbols: (json['symbols'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
+);
 
 Map<String, dynamic> _$ApiDocPageToJson(ApiDocPage instance) =>
     <String, dynamic>{
@@ -95,16 +98,16 @@ PackageSearchResult _$PackageSearchResultFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$PackageSearchResultToJson(
-        PackageSearchResult instance) =>
-    <String, dynamic>{
-      'timestamp': instance.timestamp.toIso8601String(),
-      'totalCount': instance.totalCount,
-      if (instance.nameMatches case final value?) 'nameMatches': value,
-      'sdkLibraryHits': instance.sdkLibraryHits.map((e) => e.toJson()).toList(),
-      'packageHits': instance.packageHits.map((e) => e.toJson()).toList(),
-      if (instance.errorMessage case final value?) 'errorMessage': value,
-      if (instance.statusCode case final value?) 'statusCode': value,
-    };
+  PackageSearchResult instance,
+) => <String, dynamic>{
+  'timestamp': instance.timestamp.toIso8601String(),
+  'totalCount': instance.totalCount,
+  if (instance.nameMatches case final value?) 'nameMatches': value,
+  'sdkLibraryHits': instance.sdkLibraryHits.map((e) => e.toJson()).toList(),
+  'packageHits': instance.packageHits.map((e) => e.toJson()).toList(),
+  if (instance.errorMessage case final value?) 'errorMessage': value,
+  if (instance.statusCode case final value?) 'statusCode': value,
+};
 
 SdkLibraryHit _$SdkLibraryHitFromJson(Map<String, dynamic> json) =>
     SdkLibraryHit(
@@ -130,12 +133,12 @@ Map<String, dynamic> _$SdkLibraryHitToJson(SdkLibraryHit instance) =>
     };
 
 PackageHit _$PackageHitFromJson(Map<String, dynamic> json) => PackageHit(
-      package: json['package'] as String,
-      score: (json['score'] as num?)?.toDouble(),
-      apiPages: (json['apiPages'] as List<dynamic>?)
-          ?.map((e) => ApiPageRef.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
+  package: json['package'] as String,
+  score: (json['score'] as num?)?.toDouble(),
+  apiPages: (json['apiPages'] as List<dynamic>?)
+      ?.map((e) => ApiPageRef.fromJson(e as Map<String, dynamic>))
+      .toList(),
+);
 
 Map<String, dynamic> _$PackageHitToJson(PackageHit instance) =>
     <String, dynamic>{
@@ -146,10 +149,10 @@ Map<String, dynamic> _$PackageHitToJson(PackageHit instance) =>
     };
 
 ApiPageRef _$ApiPageRefFromJson(Map<String, dynamic> json) => ApiPageRef(
-      title: json['title'] as String?,
-      path: json['path'] as String?,
-      url: json['url'] as String?,
-    );
+  title: json['title'] as String?,
+  path: json['path'] as String?,
+  url: json['url'] as String?,
+);
 
 Map<String, dynamic> _$ApiPageRefToJson(ApiPageRef instance) =>
     <String, dynamic>{

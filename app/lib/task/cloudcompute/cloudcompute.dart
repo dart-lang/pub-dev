@@ -20,12 +20,8 @@ abstract class CloudInstance {
 
   /// Representation for debugging purposes.
   @override
-  String toString() => 'CloudInstance(${[
-        'name: $instanceName',
-        'zone: $zone',
-        'created: $created',
-        'state: $state',
-      ].join(',')})';
+  String toString() =>
+      'CloudInstance(${['name: $instanceName', 'zone: $zone', 'created: $created', 'state: $state'].join(',')})';
 }
 
 /// Simplified instance state.

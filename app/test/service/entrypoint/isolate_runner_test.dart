@@ -69,26 +69,24 @@ void main() {
       await runner.start(1);
 
       await Future.delayed(Duration(seconds: 1));
-      expect(
-        messages,
-        [
-          'About to start test isolate #1 ...',
-          'test isolate #1 started.',
-        ],
-      );
+      expect(messages, [
+        'About to start test isolate #1 ...',
+        'test isolate #1 started.',
+      ]);
       // renew isolate
       await runner.renew(count: 1, wait: Duration(seconds: 1));
       await Future.delayed(Duration(seconds: 1));
       expect(
-          messages,
-          containsAll([
-            'About to start test isolate #1 ...',
-            'test isolate #1 started.',
-            'About to start test isolate #2 ...',
-            'test isolate #2 started.',
-            'About to close test isolate #1 ...',
-            'test isolate #1 closed.'
-          ]));
+        messages,
+        containsAll([
+          'About to start test isolate #1 ...',
+          'test isolate #1 started.',
+          'About to start test isolate #2 ...',
+          'test isolate #2 started.',
+          'About to close test isolate #1 ...',
+          'test isolate #1 closed.',
+        ]),
+      );
 
       await runner.close();
       await subs.cancel();
@@ -118,27 +116,27 @@ void main() {
         await runner.start(1);
 
         await Future.delayed(Duration(seconds: 1));
-        expect(
-          messages,
-          [
-            'About to start test isolate #1 ...',
-            'test isolate #1 started.',
-            'ERROR from test isolate #1',
-            'About to close test isolate #1 ...',
-            'test isolate #1 closed.',
-          ],
-        );
+        expect(messages, [
+          'About to start test isolate #1 ...',
+          'test isolate #1 started.',
+          'ERROR from test isolate #1',
+          'About to close test isolate #1 ...',
+          'test isolate #1 closed.',
+        ]);
         // second isolate is not started
         await Future.delayed(Duration(seconds: 7));
         expect(
-            messages,
-            isNot(containsAll([
+          messages,
+          isNot(
+            containsAll([
               'About to start test isolate #2 ...',
               'test isolate #2 started.',
               'ERROR from test isolate #2',
               'About to close test isolate #2 ...',
               'test isolate #2 closed.',
-            ])));
+            ]),
+          ),
+        );
 
         await runner.close();
       });

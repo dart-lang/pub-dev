@@ -220,8 +220,8 @@ class Package extends db.ExpandoModel<String> {
 
   Version? get latestPrereleaseSemanticVersion =>
       latestPrereleaseVersionKey == null
-          ? null
-          : Version.parse(latestPrereleaseVersion!);
+      ? null
+      : Version.parse(latestPrereleaseVersion!);
 
   Version? get latestPreviewSemanticVersion => latestPreviewVersionKey == null
       ? null
@@ -250,7 +250,9 @@ class Package extends db.ExpandoModel<String> {
   void addUploader(String? userId) {
     if (publisherId != null) {
       throw OperationForbiddenException.publisherOwnedPackageNoUploader(
-          name!, publisherId!);
+        name!,
+        publisherId!,
+      );
     }
     if (userId != null && !uploaders!.contains(userId)) {
       uploaders!.add(userId);
@@ -261,7 +263,9 @@ class Package extends db.ExpandoModel<String> {
   void removeUploader(String? userId) {
     if (publisherId != null) {
       throw OperationForbiddenException.publisherOwnedPackageNoUploader(
-          name!, publisherId!);
+        name!,
+        publisherId!,
+      );
     }
     uploaders!.remove(userId);
   }
@@ -348,14 +352,18 @@ class Package extends db.ExpandoModel<String> {
       }
 
       if (latestPrereleaseVersionKey == null ||
-          isNewer(latestPrereleaseSemanticVersion!, newVersion,
-              pubSorted: false)) {
+          isNewer(
+            latestPrereleaseSemanticVersion!,
+            newVersion,
+            pubSorted: false,
+          )) {
         latestPrereleaseVersionKey = pv.key;
         latestPrereleasePublished = pv.created;
       }
     }
 
-    final unchanged = oldStableVersion == latestVersionKey &&
+    final unchanged =
+        oldStableVersion == latestVersionKey &&
         oldPrereleaseVersion == latestPrereleaseVersionKey &&
         oldPreviewVersion == latestPreviewVersionKey &&
         oldLastVersionPublished == lastVersionPublished &&
@@ -385,10 +393,7 @@ class Package extends db.ExpandoModel<String> {
 
   LatestReleases get latestReleases {
     return LatestReleases(
-      stable: Release(
-        version: latestVersion!,
-        published: latestPublished!,
-      ),
+      stable: Release(version: latestVersion!, published: latestPublished!),
       prerelease: showPrereleaseVersion
           ? Release(
               version: latestPrereleaseVersion!,
@@ -404,17 +409,13 @@ class Package extends db.ExpandoModel<String> {
     );
   }
 
-  void updateIsModerated({
-    required bool isModerated,
-  }) {
+  void updateIsModerated({required bool isModerated}) {
     this.isModerated = isModerated;
     moderatedAt = isModerated ? clock.now().toUtc() : null;
     updated = clock.now().toUtc();
   }
 
-  void updateIsAdminDeleted({
-    required bool isAdminDeleted,
-  }) {
+  void updateIsAdminDeleted({required bool isAdminDeleted}) {
     this.isAdminDeleted = isAdminDeleted;
     adminDeletedAt = isAdminDeleted ? clock.now().toUtc() : null;
     updated = clock.now().toUtc();
@@ -428,11 +429,7 @@ class LatestReleases {
   final Release? prerelease;
   final Release? preview;
 
-  LatestReleases({
-    required this.stable,
-    this.prerelease,
-    this.preview,
-  });
+  LatestReleases({required this.stable, this.prerelease, this.preview});
 
   factory LatestReleases.fromJson(Map<String, dynamic> json) =>
       _$LatestReleasesFromJson(json);
@@ -449,10 +446,7 @@ class Release {
   final String version;
   final DateTime published;
 
-  Release({
-    required this.version,
-    required this.published,
-  });
+  Release({required this.version, required this.published});
 
   factory Release.fromJson(Map<String, dynamic> json) =>
       _$ReleaseFromJson(json);
@@ -482,9 +476,10 @@ class AutomatedPublishing {
 
 /// A [db.Property] encoding [AutomatedPublishing] as JSON.
 class AutomatedPublishingProperty extends db.Property {
-  const AutomatedPublishingProperty(
-      {super.propertyName, super.required = false})
-      : super(indexed: false);
+  const AutomatedPublishingProperty({
+    super.propertyName,
+    super.required = false,
+  }) : super(indexed: false);
 
   @override
   Object? encodeValue(
@@ -497,13 +492,11 @@ class AutomatedPublishingProperty extends db.Property {
   }
 
   @override
-  Object? decodePrimitiveValue(
-    db.ModelDB mdb,
-    Object? value,
-  ) {
+  Object? decodePrimitiveValue(db.ModelDB mdb, Object? value) {
     if (value == null) return null;
     return AutomatedPublishing.fromJson(
-        json.decode(value as String) as Map<String, dynamic>);
+      json.decode(value as String) as Map<String, dynamic>,
+    );
   }
 
   @override
@@ -532,9 +525,7 @@ class GitHubPublishingLock {
 class GcpPublishingLock {
   final String oauthUserId;
 
-  GcpPublishingLock({
-    required this.oauthUserId,
-  });
+  GcpPublishingLock({required this.oauthUserId});
 
   factory GcpPublishingLock.fromJson(Map<String, dynamic> json) =>
       _$GcpPublishingLockFromJson(json);
@@ -633,17 +624,12 @@ class PackageVersion extends db.ExpandoModel<String> {
   }
 
   QualifiedVersionKey get qualifiedVersionKey {
-    return QualifiedVersionKey(
-      package: package,
-      version: version,
-    );
+    return QualifiedVersionKey(package: package, version: version);
   }
 
   /// Updates the current instance with the newly derived data.
   /// Returns true if the current instance changed.
-  bool updateIfChanged({
-    required String? pubspecContentAsYaml,
-  }) {
+  bool updateIfChanged({required String? pubspecContentAsYaml}) {
     var changed = false;
     if (pubspecContentAsYaml != null) {
       final newPubspec = Pubspec.fromYaml(pubspecContentAsYaml);
@@ -681,16 +667,12 @@ class PackageVersion extends db.ExpandoModel<String> {
       isRetracted &&
       retracted!.isAfter(clock.now().toUtc().subtract(const Duration(days: 7)));
 
-  void updateIsModerated({
-    required bool isModerated,
-  }) {
+  void updateIsModerated({required bool isModerated}) {
     this.isModerated = isModerated;
     moderatedAt = isModerated ? clock.now().toUtc() : null;
   }
 
-  void updateIsAdminDeleted({
-    required bool isAdminDeleted,
-  }) {
+  void updateIsAdminDeleted({required bool isAdminDeleted}) {
     this.isAdminDeleted = isAdminDeleted;
     adminDeletedAt = isAdminDeleted ? clock.now().toUtc() : null;
   }
@@ -766,10 +748,7 @@ class PackageVersionInfo extends db.ExpandoModel<String> {
   }
 
   QualifiedVersionKey get qualifiedVersionKey {
-    return QualifiedVersionKey(
-      package: package,
-      version: version,
-    );
+    return QualifiedVersionKey(package: package, version: version);
   }
 
   bool get hasLicense => assets.contains(AssetKind.license);
@@ -859,10 +838,7 @@ class PackageVersionAsset extends db.ExpandoModel {
   }
 
   QualifiedVersionKey get qualifiedVersionKey {
-    return QualifiedVersionKey(
-      package: package,
-      version: version,
-    );
+    return QualifiedVersionKey(package: package, version: version);
   }
 }
 
@@ -915,10 +891,7 @@ class QualifiedVersionKey {
   final String? package;
   final String? version;
 
-  QualifiedVersionKey({
-    required this.package,
-    required this.version,
-  });
+  QualifiedVersionKey({required this.package, required this.version});
 
   /// The qualified key in `<package>/<version>` format.
   String get qualifiedVersion => Uri(pathSegments: [package!, version!]).path;
@@ -993,8 +966,8 @@ class PackageView {
     this.spdxIdentifiers,
     this.apiPages,
     this.topics,
-  })  : isPending = isPending ?? false,
-        tags = tags ?? <String>[];
+  }) : isPending = isPending ?? false,
+       tags = tags ?? <String>[];
 
   factory PackageView.fromJson(Map<String, dynamic> json) =>
       _$PackageViewFromJson(json);
@@ -1023,8 +996,9 @@ class PackageView {
       maxPubPoints: scoreCard.maxPubPoints,
       tags: tags.toList(),
       replacedBy: package.replacedBy,
-      spdxIdentifiers:
-          scoreCard.panaReport?.licenses?.map((e) => e.spdxIdentifier).toList(),
+      spdxIdentifiers: scoreCard.panaReport?.licenses
+          ?.map((e) => e.spdxIdentifier)
+          .toList(),
       apiPages: apiPages,
       screenshots: scoreCard.panaReport?.screenshots,
       topics: version?.pubspec?.canonicalizedTopics,
@@ -1064,11 +1038,19 @@ class PackageView {
 /// will rank pre-release versions lower than stable versions (e.g. it will
 /// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
-void sortPackageVersionsDesc(List<PackageVersion> versions,
-    {bool decreasing = true, bool pubSorting = true}) {
-  versions.sort((PackageVersion a, PackageVersion b) =>
-      compareSemanticVersionsDesc(
-          a.semanticVersion, b.semanticVersion, decreasing, pubSorting));
+void sortPackageVersionsDesc(
+  List<PackageVersion> versions, {
+  bool decreasing = true,
+  bool pubSorting = true,
+}) {
+  versions.sort(
+    (PackageVersion a, PackageVersion b) => compareSemanticVersionsDesc(
+      a.semanticVersion,
+      b.semanticVersion,
+      decreasing,
+      pubSorting,
+    ),
+  );
 }
 
 /// The URLs provided by the package's pubspec or inferred from the homepage.
@@ -1100,10 +1082,10 @@ class PackageLinks {
     this.issueTrackerUrl,
     this.contributingUrl,
     List<Uri>? fundingUris,
-  })  : documentationUrl = urls.hideUserProvidedDocUrl(documentationUrl)
-            ? null
-            : documentationUrl,
-        fundingUris = fundingUris ?? <Uri>[];
+  }) : documentationUrl = urls.hideUserProvidedDocUrl(documentationUrl)
+           ? null
+           : documentationUrl,
+       fundingUris = fundingUris ?? <Uri>[];
 
   factory PackageLinks.infer({
     String? homepageUrl,
@@ -1215,8 +1197,5 @@ class PackageListPage {
   final List<String> packages;
   final String? nextPackage;
 
-  PackageListPage({
-    required this.packages,
-    this.nextPackage,
-  });
+  PackageListPage({required this.packages, this.nextPackage});
 }

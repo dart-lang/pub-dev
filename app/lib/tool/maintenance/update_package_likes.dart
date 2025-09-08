@@ -23,12 +23,14 @@ Future<int> updatePackageLikes() async {
       continue;
     }
     _logger.info(
-        'Updating likes for package "${p.name}" changing from ${p.likes} to $count.');
+      'Updating likes for package "${p.name}" changing from ${p.likes} to $count.',
+    );
     await withRetryTransaction(dbService, (tx) async {
       final pkg = await tx.lookupValue<Package>(p.key);
       if (pkg.updated != p.updated || pkg.likes != p.likes) {
         _logger.info(
-            'Skipping like update for package "${p.name}": changed since the like verification started.');
+          'Skipping like update for package "${p.name}": changed since the like verification started.',
+        );
         return;
       }
       pkg.likes = count;

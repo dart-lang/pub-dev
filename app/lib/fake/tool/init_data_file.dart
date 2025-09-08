@@ -27,8 +27,10 @@ class FakeInitDataFileCommand extends Command {
 
   FakeInitDataFileCommand() {
     argParser
-      ..addOption('test-profile',
-          help: 'The file to read the test profile from.')
+      ..addOption(
+        'test-profile',
+        help: 'The file to read the test profile from.',
+      )
       ..addOption(
         'analysis',
         allowed: ['none', 'fake', 'local', 'worker'],
@@ -42,12 +44,14 @@ class FakeInitDataFileCommand extends Command {
   @override
   Future<void> run() async {
     Logger.root.onRecord.listen((r) {
-      print([
-        r.time.toIso8601String(),
-        r.toString(),
-        r.error,
-        r.stackTrace?.toString(),
-      ].nonNulls.join(' '));
+      print(
+        [
+          r.time.toIso8601String(),
+          r.toString(),
+          r.error,
+          r.stackTrace?.toString(),
+        ].nonNulls.join(' '),
+      );
     });
 
     final analysis = argResults!['analysis'] as String;
@@ -67,16 +71,18 @@ class FakeInitDataFileCommand extends Command {
     final state = LocalServerState();
 
     await withFakeServices(
-        datastore: state.datastore,
-        storage: state.storage,
-        fn: () async {
-          // ignore: invalid_use_of_visible_for_testing_member
-          await importProfile(
-              profile: profile,
-              source: ImportSource(pubDevArchiveCachePath: archiveCachePath));
+      datastore: state.datastore,
+      storage: state.storage,
+      fn: () async {
+        // ignore: invalid_use_of_visible_for_testing_member
+        await importProfile(
+          profile: profile,
+          source: ImportSource(pubDevArchiveCachePath: archiveCachePath),
+        );
 
-          await processTaskFakeLocalOrWorker(analysis);
-        });
+        await processTaskFakeLocalOrWorker(analysis);
+      },
+    );
     await state.save(dataFile);
   }
 }

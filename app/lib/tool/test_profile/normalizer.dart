@@ -63,10 +63,7 @@ TestProfile normalize(TestProfile profile) {
 TestUser _createUserIfNeeded(Map<String, TestUser> users, String email) {
   return users.putIfAbsent(
     email,
-    () => TestUser(
-      email: email,
-      likes: <String>[],
-    ),
+    () => TestUser(email: email, likes: <String>[]),
   );
 }
 
@@ -78,12 +75,7 @@ TestPublisher _createPublisherIfNeeded(
   return publishers.putIfAbsent(publisherId, () {
     return TestPublisher(
       name: publisherId,
-      members: <TestMember>[
-        TestMember(
-          email: memberEmail,
-          role: 'admin',
-        ),
-      ],
+      members: <TestMember>[TestMember(email: memberEmail, role: 'admin')],
     );
   });
 }

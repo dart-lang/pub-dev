@@ -81,9 +81,7 @@ extension PubPageExt on Page {
     await gotoOrigin(url);
   }
 
-  Future<void> createPublisher({
-    required String publisherId,
-  }) async {
+  Future<void> createPublisher({required String publisherId}) async {
     await gotoOrigin('/create-publisher?domain=$publisherId');
     await waitAndClick('#-admin-create-publisher');
     await waitAndClickOnDialogOk();
@@ -171,9 +169,7 @@ extension PubPageExt on Page {
     await _waitConfirmDialogThenConfirmOp();
   }
 
-  Future<void> acceptConsent({
-    required String consentId,
-  }) async {
+  Future<void> acceptConsent({required String consentId}) async {
     await gotoOrigin('/consent?id=$consentId');
     await waitAndClick('#-admin-consent-accept-button');
     await waitAndClickOnDialogOk();
@@ -196,10 +192,12 @@ extension PubPageExt on Page {
   }) async {
     final sw = Stopwatch()..start();
     final handles = await Future.wait(
-        selectors.map((e) => waitForSelector(e, timeout: timeout)));
+      selectors.map((e) => waitForSelector(e, timeout: timeout)),
+    );
     while (sw.elapsed < timeout) {
-      final positions =
-          await Future.wait(handles.map((e) async => (await e!.boundingBox)!));
+      final positions = await Future.wait(
+        handles.map((e) async => (await e!.boundingBox)!),
+      );
       bool hasSamePosition = false;
       for (var i = 0; i < positions.length; i++) {
         for (var j = i + 1; j < positions.length; j++) {
@@ -221,14 +219,8 @@ extension PubPageExt on Page {
     throw TimeoutException('Did not have a stable layout in $timeout.');
   }
 
-  Future<void> waitAndClick(
-    String selector, {
-    bool? waitForOneResponse,
-  }) async {
-    await waitForSelector(
-      selector,
-      timeout: Duration(seconds: 5),
-    );
+  Future<void> waitAndClick(String selector, {bool? waitForOneResponse}) async {
+    await waitForSelector(selector, timeout: Duration(seconds: 5));
     Future? future;
     if (waitForOneResponse ?? false) {
       future = frameManager.networkManager.onResponse.first;
@@ -240,16 +232,11 @@ extension PubPageExt on Page {
   }
 
   Future<void> _waitAndType(String selector, String text) async {
-    await waitForSelector(
-      selector,
-      timeout: Duration(seconds: 5),
-    );
+    await waitForSelector(selector, timeout: Duration(seconds: 5));
     await type(selector, text);
   }
 
-  Future<void> waitAndClickOnDialogOk({
-    bool? waitForOneResponse,
-  }) async {
+  Future<void> waitAndClickOnDialogOk({bool? waitForOneResponse}) async {
     await waitAndClick(
       '.-pub-dom-dialog-ok-button',
       waitForOneResponse: waitForOneResponse,

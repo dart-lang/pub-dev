@@ -14,9 +14,7 @@ PublisherPage _$PublisherPageFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$PublisherPageToJson(PublisherPage instance) =>
-    <String, dynamic>{
-      'publishers': instance.publishers,
-    };
+    <String, dynamic>{'publishers': instance.publishers};
 
 PublisherSummary _$PublisherSummaryFromJson(Map<String, dynamic> json) =>
     PublisherSummary(

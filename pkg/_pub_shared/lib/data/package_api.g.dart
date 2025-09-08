@@ -7,23 +7,20 @@ part of 'package_api.dart';
 // **************************************************************************
 
 UploadInfo _$UploadInfoFromJson(Map<String, dynamic> json) => UploadInfo(
-      url: json['url'] as String,
-      fields: (json['fields'] as Map<String, dynamic>?)?.map(
-        (k, e) => MapEntry(k, e as String),
-      ),
-    );
+  url: json['url'] as String,
+  fields: (json['fields'] as Map<String, dynamic>?)?.map(
+    (k, e) => MapEntry(k, e as String),
+  ),
+);
 
 Map<String, dynamic> _$UploadInfoToJson(UploadInfo instance) =>
-    <String, dynamic>{
-      'url': instance.url,
-      'fields': instance.fields,
-    };
+    <String, dynamic>{'url': instance.url, 'fields': instance.fields};
 
 PkgOptions _$PkgOptionsFromJson(Map<String, dynamic> json) => PkgOptions(
-      isDiscontinued: json['isDiscontinued'] as bool?,
-      replacedBy: json['replacedBy'] as String?,
-      isUnlisted: json['isUnlisted'] as bool?,
-    );
+  isDiscontinued: json['isDiscontinued'] as bool?,
+  replacedBy: json['replacedBy'] as String?,
+  isUnlisted: json['isUnlisted'] as bool?,
+);
 
 Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
     <String, dynamic>{
@@ -33,48 +30,47 @@ Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
     };
 
 AutomatedPublishingConfig _$AutomatedPublishingConfigFromJson(
-        Map<String, dynamic> json) =>
-    AutomatedPublishingConfig(
-      github: json['github'] == null
-          ? null
-          : GitHubPublishingConfig.fromJson(
-              json['github'] as Map<String, dynamic>),
-      gcp: json['gcp'] == null
-          ? null
-          : GcpPublishingConfig.fromJson(json['gcp'] as Map<String, dynamic>),
-    );
+  Map<String, dynamic> json,
+) => AutomatedPublishingConfig(
+  github: json['github'] == null
+      ? null
+      : GitHubPublishingConfig.fromJson(json['github'] as Map<String, dynamic>),
+  gcp: json['gcp'] == null
+      ? null
+      : GcpPublishingConfig.fromJson(json['gcp'] as Map<String, dynamic>),
+);
 
 Map<String, dynamic> _$AutomatedPublishingConfigToJson(
-        AutomatedPublishingConfig instance) =>
-    <String, dynamic>{
-      if (instance.github?.toJson() case final value?) 'github': value,
-      if (instance.gcp?.toJson() case final value?) 'gcp': value,
-    };
+  AutomatedPublishingConfig instance,
+) => <String, dynamic>{
+  if (instance.github?.toJson() case final value?) 'github': value,
+  if (instance.gcp?.toJson() case final value?) 'gcp': value,
+};
 
 GitHubPublishingConfig _$GitHubPublishingConfigFromJson(
-        Map<String, dynamic> json) =>
-    GitHubPublishingConfig(
-      isEnabled: json['isEnabled'] as bool? ?? false,
-      repository: json['repository'] as String?,
-      tagPattern: json['tagPattern'] as String?,
-      requireEnvironment: json['requireEnvironment'] as bool? ?? false,
-      environment: json['environment'] as String?,
-      isPushEventEnabled: json['isPushEventEnabled'] as bool? ?? true,
-      isWorkflowDispatchEventEnabled:
-          json['isWorkflowDispatchEventEnabled'] as bool? ?? false,
-    );
+  Map<String, dynamic> json,
+) => GitHubPublishingConfig(
+  isEnabled: json['isEnabled'] as bool? ?? false,
+  repository: json['repository'] as String?,
+  tagPattern: json['tagPattern'] as String?,
+  requireEnvironment: json['requireEnvironment'] as bool? ?? false,
+  environment: json['environment'] as String?,
+  isPushEventEnabled: json['isPushEventEnabled'] as bool? ?? true,
+  isWorkflowDispatchEventEnabled:
+      json['isWorkflowDispatchEventEnabled'] as bool? ?? false,
+);
 
 Map<String, dynamic> _$GitHubPublishingConfigToJson(
-        GitHubPublishingConfig instance) =>
-    <String, dynamic>{
-      'isEnabled': instance.isEnabled,
-      if (instance.repository case final value?) 'repository': value,
-      if (instance.tagPattern case final value?) 'tagPattern': value,
-      'requireEnvironment': instance.requireEnvironment,
-      if (instance.environment case final value?) 'environment': value,
-      'isPushEventEnabled': instance.isPushEventEnabled,
-      'isWorkflowDispatchEventEnabled': instance.isWorkflowDispatchEventEnabled,
-    };
+  GitHubPublishingConfig instance,
+) => <String, dynamic>{
+  'isEnabled': instance.isEnabled,
+  if (instance.repository case final value?) 'repository': value,
+  if (instance.tagPattern case final value?) 'tagPattern': value,
+  'requireEnvironment': instance.requireEnvironment,
+  if (instance.environment case final value?) 'environment': value,
+  'isPushEventEnabled': instance.isPushEventEnabled,
+  'isWorkflowDispatchEventEnabled': instance.isWorkflowDispatchEventEnabled,
+};
 
 GcpPublishingConfig _$GcpPublishingConfigFromJson(Map<String, dynamic> json) =>
     GcpPublishingConfig(
@@ -83,34 +79,26 @@ GcpPublishingConfig _$GcpPublishingConfigFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$GcpPublishingConfigToJson(
-        GcpPublishingConfig instance) =>
-    <String, dynamic>{
-      'isEnabled': instance.isEnabled,
-      if (instance.serviceAccountEmail case final value?)
-        'serviceAccountEmail': value,
-    };
+  GcpPublishingConfig instance,
+) => <String, dynamic>{
+  'isEnabled': instance.isEnabled,
+  if (instance.serviceAccountEmail case final value?)
+    'serviceAccountEmail': value,
+};
 
 VersionOptions _$VersionOptionsFromJson(Map<String, dynamic> json) =>
-    VersionOptions(
-      isRetracted: json['isRetracted'] as bool?,
-    );
+    VersionOptions(isRetracted: json['isRetracted'] as bool?);
 
 Map<String, dynamic> _$VersionOptionsToJson(VersionOptions instance) =>
-    <String, dynamic>{
-      'isRetracted': instance.isRetracted,
-    };
+    <String, dynamic>{'isRetracted': instance.isRetracted};
 
 PackagePublisherInfo _$PackagePublisherInfoFromJson(
-        Map<String, dynamic> json) =>
-    PackagePublisherInfo(
-      publisherId: json['publisherId'] as String?,
-    );
+  Map<String, dynamic> json,
+) => PackagePublisherInfo(publisherId: json['publisherId'] as String?);
 
 Map<String, dynamic> _$PackagePublisherInfoToJson(
-        PackagePublisherInfo instance) =>
-    <String, dynamic>{
-      'publisherId': instance.publisherId,
-    };
+  PackagePublisherInfo instance,
+) => <String, dynamic>{'publisherId': instance.publisherId};
 
 SuccessMessage _$SuccessMessageFromJson(Map<String, dynamic> json) =>
     SuccessMessage(
@@ -118,30 +106,27 @@ SuccessMessage _$SuccessMessageFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$SuccessMessageToJson(SuccessMessage instance) =>
-    <String, dynamic>{
-      'success': instance.success,
-    };
+    <String, dynamic>{'success': instance.success};
 
-Message _$MessageFromJson(Map<String, dynamic> json) => Message(
-      message: json['message'] as String,
-    );
+Message _$MessageFromJson(Map<String, dynamic> json) =>
+    Message(message: json['message'] as String);
 
 Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
-      'message': instance.message,
-    };
+  'message': instance.message,
+};
 
 PackageData _$PackageDataFromJson(Map<String, dynamic> json) => PackageData(
-      name: json['name'] as String,
-      isDiscontinued: json['isDiscontinued'] as bool?,
-      replacedBy: json['replacedBy'] as String?,
-      latest: VersionInfo.fromJson(json['latest'] as Map<String, dynamic>),
-      versions: (json['versions'] as List<dynamic>)
-          .map((e) => VersionInfo.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      advisoriesUpdated: json['advisoriesUpdated'] == null
-          ? null
-          : DateTime.parse(json['advisoriesUpdated'] as String),
-    );
+  name: json['name'] as String,
+  isDiscontinued: json['isDiscontinued'] as bool?,
+  replacedBy: json['replacedBy'] as String?,
+  latest: VersionInfo.fromJson(json['latest'] as Map<String, dynamic>),
+  versions: (json['versions'] as List<dynamic>)
+      .map((e) => VersionInfo.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  advisoriesUpdated: json['advisoriesUpdated'] == null
+      ? null
+      : DateTime.parse(json['advisoriesUpdated'] as String),
+);
 
 Map<String, dynamic> _$PackageDataToJson(PackageData instance) =>
     <String, dynamic>{
@@ -155,15 +140,15 @@ Map<String, dynamic> _$PackageDataToJson(PackageData instance) =>
     };
 
 VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) => VersionInfo(
-      version: json['version'] as String,
-      retracted: json['retracted'] as bool?,
-      pubspec: json['pubspec'] as Map<String, dynamic>,
-      archiveUrl: json['archive_url'] as String?,
-      archiveSha256: json['archive_sha256'] as String?,
-      published: json['published'] == null
-          ? null
-          : DateTime.parse(json['published'] as String),
-    );
+  version: json['version'] as String,
+  retracted: json['retracted'] as bool?,
+  pubspec: json['pubspec'] as Map<String, dynamic>,
+  archiveUrl: json['archive_url'] as String?,
+  archiveSha256: json['archive_sha256'] as String?,
+  published: json['published'] == null
+      ? null
+      : DateTime.parse(json['published'] as String),
+);
 
 Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
     <String, dynamic>{
@@ -177,12 +162,12 @@ Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
     };
 
 VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) => VersionScore(
-      grantedPoints: (json['grantedPoints'] as num?)?.toInt(),
-      maxPoints: (json['maxPoints'] as num?)?.toInt(),
-      likeCount: (json['likeCount'] as num?)?.toInt(),
-      downloadCount30Days: (json['downloadCount30Days'] as num?)?.toInt(),
-      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-    );
+  grantedPoints: (json['grantedPoints'] as num?)?.toInt(),
+  maxPoints: (json['maxPoints'] as num?)?.toInt(),
+  likeCount: (json['likeCount'] as num?)?.toInt(),
+  downloadCount30Days: (json['downloadCount30Days'] as num?)?.toInt(),
+  tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+);
 
 Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) =>
     <String, dynamic>{
@@ -194,25 +179,17 @@ Map<String, dynamic> _$VersionScoreToJson(VersionScore instance) =>
     };
 
 RemoveUploaderRequest _$RemoveUploaderRequestFromJson(
-        Map<String, dynamic> json) =>
-    RemoveUploaderRequest(
-      email: json['email'] as String,
-    );
+  Map<String, dynamic> json,
+) => RemoveUploaderRequest(email: json['email'] as String);
 
 Map<String, dynamic> _$RemoveUploaderRequestToJson(
-        RemoveUploaderRequest instance) =>
-    <String, dynamic>{
-      'email': instance.email,
-    };
+  RemoveUploaderRequest instance,
+) => <String, dynamic>{'email': instance.email};
 
 InviteUploaderRequest _$InviteUploaderRequestFromJson(
-        Map<String, dynamic> json) =>
-    InviteUploaderRequest(
-      email: json['email'] as String,
-    );
+  Map<String, dynamic> json,
+) => InviteUploaderRequest(email: json['email'] as String);
 
 Map<String, dynamic> _$InviteUploaderRequestToJson(
-        InviteUploaderRequest instance) =>
-    <String, dynamic>{
-      'email': instance.email,
-    };
+  InviteUploaderRequest instance,
+) => <String, dynamic>{'email': instance.email};

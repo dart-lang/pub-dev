@@ -222,7 +222,9 @@ final class Configuration {
   /// the value of environment variable `ENV`.
   factory Configuration.fromYamlFile(final String path) {
     final content = replaceEnvVariables(
-        File(path).readAsStringSync(), Platform.environment);
+      File(path).readAsStringSync(),
+      Platform.environment,
+    );
     return Configuration.fromJson(
       json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>,
     );
@@ -230,9 +232,12 @@ final class Configuration {
 
   @visibleForTesting
   static String replaceEnvVariables(
-      String content, Map<String, String> environment) {
-    return content.replaceAllMapped(RegExp(r'\{\{([A-Z]+[A-Z0-9_]*)\}\}'),
-        (match) {
+    String content,
+    Map<String, String> environment,
+  ) {
+    return content.replaceAllMapped(RegExp(r'\{\{([A-Z]+[A-Z0-9_]*)\}\}'), (
+      match,
+    ) {
       final name = match.group(1);
       if (name != null &&
           environment.containsKey(name) &&
@@ -240,7 +245,8 @@ final class Configuration {
         return environment[name]!;
       } else {
         throw ArgumentError(
-            'Configuration file requires "$name" environment variable, but it is not present.');
+          'Configuration file requires "$name" environment variable, but it is not present.',
+        );
       }
     });
   }
@@ -295,7 +301,8 @@ final class Configuration {
       );
     }
 
-    final configFile = envConfig.configPath ??
+    final configFile =
+        envConfig.configPath ??
         path.join(resolveAppDir(), 'config', projectId + '.yaml');
     if (!File(configFile).existsSync()) {
       throw StateError('Could not find configuration file: "$configFile"');

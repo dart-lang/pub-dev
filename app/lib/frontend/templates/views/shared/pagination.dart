@@ -22,9 +22,7 @@ d.Node paginationNode(PageLinks links) {
               : null,
           rel: 'prev nofollow',
           child: d.span(text: '«'),
-          attributes: {
-            'aria-label': 'previous page',
-          },
+          attributes: {'aria-label': 'previous page'},
         ),
       ),
 
@@ -59,9 +57,7 @@ d.Node paginationNode(PageLinks links) {
               : null,
           rel: 'next nofollow',
           child: d.span(text: '»'),
-          attributes: {
-            'aria-label': 'next page',
-          },
+          attributes: {'aria-label': 'next page'},
         ),
       ),
     ],

@@ -16,22 +16,24 @@ d.Node publisherHeaderMetadataNode(Publisher publisher) {
   return d.fragment([
     if (publisher.hasDescription)
       d.p(child: d.markdown(publisher.shortDescription)),
-    d.p(children: [
-      if (websiteUri != null)
-        _ref(
-          href: websiteUri.toString(),
-          rel: websiteRel,
-          label: websiteDisplayable!,
-          iconAlt: 'link to website',
-        ),
-      if (publisher.hasContactEmail)
-        _ref(
-          href: 'mailto:${publisher.contactEmail}',
-          label: publisher.contactEmail!,
-          iconPath: '/static/img/email-icon.svg',
-          iconAlt: 'contact email',
-        ),
-    ]),
+    d.p(
+      children: [
+        if (websiteUri != null)
+          _ref(
+            href: websiteUri.toString(),
+            rel: websiteRel,
+            label: websiteDisplayable!,
+            iconAlt: 'link to website',
+          ),
+        if (publisher.hasContactEmail)
+          _ref(
+            href: 'mailto:${publisher.contactEmail}',
+            label: publisher.contactEmail!,
+            iconPath: '/static/img/email-icon.svg',
+            iconAlt: 'contact email',
+          ),
+      ],
+    ),
     d.p(
       children: [
         d.text('Publisher registered '),
@@ -48,25 +50,26 @@ d.Node _ref({
   String? iconPath,
   required String iconAlt,
 }) {
-  return d.span(classes: [
-    'detail-header-metadata-ref'
-  ], children: [
-    d.img(
-      classes: ['detail-header-metadata-ref-icon'],
-      image: d.Image(
-        src: staticUrls.getAssetUrl(iconPath ?? '/static/img/link-icon.svg'),
-        alt: iconAlt,
-        width: 14,
-        height: 14,
+  return d.span(
+    classes: ['detail-header-metadata-ref'],
+    children: [
+      d.img(
+        classes: ['detail-header-metadata-ref-icon'],
+        image: d.Image(
+          src: staticUrls.getAssetUrl(iconPath ?? '/static/img/link-icon.svg'),
+          alt: iconAlt,
+          width: 14,
+          height: 14,
+        ),
       ),
-    ),
-    d.a(
-      classes: ['detail-header-metadata-ref-label'],
-      href: href,
-      rel: rel,
-      text: label,
-    ),
-  ]);
+      d.a(
+        classes: ['detail-header-metadata-ref-label'],
+        href: href,
+        rel: rel,
+        text: label,
+      ),
+    ],
+  );
 }
 
 extension on Publisher {

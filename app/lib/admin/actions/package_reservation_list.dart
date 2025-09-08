@@ -20,10 +20,7 @@ Returns the list of all ReservedPackage entities and the allowed emails.
 
     return {
       'packages': list
-          .map((rp) => {
-                'name': rp.name,
-                'emails': rp.emails,
-              })
+          .map((rp) => {'name': rp.name, 'emails': rp.emails})
           .toList(),
     };
   },

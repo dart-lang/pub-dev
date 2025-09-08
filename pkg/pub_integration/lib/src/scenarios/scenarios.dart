@@ -7,6 +7,4 @@ import 'package:pub_integration/src/test_scenario.dart' show TestScenario;
 
 /// List of all [TestScenario]'s that can be used for integration and deployment
 /// testing.
-final scenarios = <TestScenario>[
-  likePackageScenario,
-];
+final scenarios = <TestScenario>[likePackageScenario];

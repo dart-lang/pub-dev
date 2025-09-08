@@ -56,9 +56,12 @@ class _FakeTimeClient implements http.Client {
   void close() => _client.close();
 
   @override
-  Future<http.Response> delete(Uri url,
-          {Map<String, String>? headers, Object? body, Encoding? encoding}) =>
-      _client.delete(url, headers: headers, body: body, encoding: encoding);
+  Future<http.Response> delete(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) => _client.delete(url, headers: headers, body: body, encoding: encoding);
 
   @override
   Future<http.Response> get(Uri url, {Map<String, String>? headers}) =>
@@ -69,19 +72,28 @@ class _FakeTimeClient implements http.Client {
       _client.head(url, headers: headers);
 
   @override
-  Future<http.Response> patch(Uri url,
-          {Map<String, String>? headers, Object? body, Encoding? encoding}) =>
-      _client.patch(url, headers: headers, body: body, encoding: encoding);
+  Future<http.Response> patch(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) => _client.patch(url, headers: headers, body: body, encoding: encoding);
 
   @override
-  Future<http.Response> post(Uri url,
-          {Map<String, String>? headers, Object? body, Encoding? encoding}) =>
-      _client.post(url, headers: headers, body: body, encoding: encoding);
+  Future<http.Response> post(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) => _client.post(url, headers: headers, body: body, encoding: encoding);
 
   @override
-  Future<http.Response> put(Uri url,
-          {Map<String, String>? headers, Object? body, Encoding? encoding}) =>
-      _client.put(url, headers: headers, body: body, encoding: encoding);
+  Future<http.Response> put(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) => _client.put(url, headers: headers, body: body, encoding: encoding);
 
   @override
   Future<String> read(Uri url, {Map<String, String>? headers}) =>
@@ -101,6 +113,7 @@ class _FakeTimeClient implements http.Client {
 Future<R> withRetryPubApiClient<R>(
   /// The callback function that may be retried on transient errors.
   Future<R> Function(PubApiClient client) fn, {
+
   /// The token to use as the `Authorization` header in the format of `Bearer <token>`.
   String? authToken,
 
@@ -175,12 +188,15 @@ extension PubApiClientExt on PubApiClient {
       // TODO: figure out what is causing these issues.
       final body = await uploadRs.stream.bytesToString();
       final headers = uploadRs.headers;
-      throw AssertionError('Expected HTTP redirect, got ${uploadRs.statusCode}.'
-          '\nbody: $body\nheaders: $headers');
+      throw AssertionError(
+        'Expected HTTP redirect, got ${uploadRs.statusCode}.'
+        '\nbody: $body\nheaders: $headers',
+      );
     }
 
-    final callbackUri =
-        Uri.parse(uploadInfo.fields!['success_action_redirect']!);
+    final callbackUri = Uri.parse(
+      uploadInfo.fields!['success_action_redirect']!,
+    );
     return callbackUri.queryParameters['upload_id']!;
   }
 

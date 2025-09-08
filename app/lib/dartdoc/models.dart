@@ -29,10 +29,9 @@ class ResolvedDocUrlVersion {
     this.message,
   });
 
-  ResolvedDocUrlVersion.empty({
-    required this.message,
-  })  : version = '',
-        urlSegment = '';
+  ResolvedDocUrlVersion.empty({required this.message})
+    : version = '',
+      urlSegment = '';
 
   factory ResolvedDocUrlVersion.fromJson(Map<String, dynamic> json) =>
       _$ResolvedDocUrlVersionFromJson(json);
@@ -50,11 +49,7 @@ class DocPageStatus {
   final String? redirectPath;
   final String? errorMessage;
 
-  DocPageStatus({
-    required this.code,
-    this.redirectPath,
-    this.errorMessage,
-  });
+  DocPageStatus({required this.code, this.redirectPath, this.errorMessage});
 
   factory DocPageStatus.ok() {
     return DocPageStatus(code: DocPageStatusCode.ok);

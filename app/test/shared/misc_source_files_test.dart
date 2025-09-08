@@ -15,8 +15,9 @@ void main() {
         .where((f) => f.path.endsWith('_test.dart'));
     for (final file in files) {
       final lines = file.readAsLinesSync();
-      final main = lines
-          .firstWhere((line) => line.contains(' main(') && line.contains('{'));
+      final main = lines.firstWhere(
+        (line) => line.contains(' main(') && line.contains('{'),
+      );
       expect(main.contains('Future<'), isFalse);
       expect(main.contains(' async '), isFalse);
       expect(main.contains('void '), isTrue);
@@ -34,17 +35,18 @@ void main() {
   });
 
   test('clock.now() instead of DateTime.now()', () async {
-    final exceptions = [
-      './test/shared/misc_source_files_test.dart',
-    ];
+    final exceptions = ['./test/shared/misc_source_files_test.dart'];
     final files = Directory('.')
         .listSync(recursive: true)
         .whereType<File>()
         .where((f) => f.path.endsWith('.dart'));
     for (final file in files) {
       final content = await file.readAsString();
-      expect(content.contains('DateTime.now()'), exceptions.contains(file.path),
-          reason: '${file.path} contains DateTime.now()');
+      expect(
+        content.contains('DateTime.now()'),
+        exceptions.contains(file.path),
+        reason: '${file.path} contains DateTime.now()',
+      );
     }
   });
 
@@ -62,16 +64,16 @@ void main() {
         .where((f) => f.path.endsWith('.dart'));
     for (final file in files) {
       final content = await file.readAsString();
-      expect(content.contains('Platform.environment'),
-          exceptions.contains(file.path),
-          reason: '${file.path} contains Platform.environment');
+      expect(
+        content.contains('Platform.environment'),
+        exceptions.contains(file.path),
+        reason: '${file.path} contains Platform.environment',
+      );
     }
   });
 
   test('cache-control is set only in frontend/handlers/headers.dart', () async {
-    final exceptions = [
-      'lib/frontend/handlers/cache_control.dart',
-    ];
+    final exceptions = ['lib/frontend/handlers/cache_control.dart'];
     final files = Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()

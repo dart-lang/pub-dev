@@ -12,6 +12,8 @@ import '../../shared/utils.dart';
 Future<void> generateFakeTopicValues() async {
   await storageService
       .bucket(activeConfiguration.reportsBucketName!)
-      .writeBytesWithRetry(topicsJsonFileName,
-          jsonUtf8Encoder.convert({'ffi': 7, 'ui': 5, 'network': 6}));
+      .writeBytesWithRetry(
+        topicsJsonFileName,
+        jsonUtf8Encoder.convert({'ffi': 7, 'ui': 5, 'network': 6}),
+      );
 }

@@ -22,8 +22,9 @@ import '../dom/dom.dart' as d;
 
 /// Handles requests for `/feed.atom`
 Future<shelf.Response> allPackagesAtomFeedhandler(shelf.Request request) async {
-  final feedContent =
-      await cache.allPackagesAtomFeedXml().get(buildAllPackagesAtomFeedContent);
+  final feedContent = await cache.allPackagesAtomFeedXml().get(
+    buildAllPackagesAtomFeedContent,
+  );
   return shelf.Response.ok(
     feedContent,
     headers: {
@@ -56,7 +57,8 @@ Future<String> buildAllPackagesAtomFeedContent() async {
   final versions = await packageBackend.latestPackageVersions(limit: 100);
   versions.removeWhere((pv) => pv.isNotVisible || pv.isRetracted);
   final contents = await Future.wait(
-      versions.map((v) => _getChangelogReleaseContent(v.package, v.version!)));
+    versions.map((v) => _getChangelogReleaseContent(v.package, v.version!)),
+  );
   final feed = _allPackagesFeed(versions, contents);
   return feed.toXmlDocument();
 }
@@ -67,38 +69,41 @@ Future<String> buildPackageAtomFeedContent(String package) async {
     throw NotFoundException.resource(package);
   }
   final versions = await packageBackend
-      .streamVersionsOfPackage(
-        package,
-        order: '-created',
-        limit: 10,
-      )
+      .streamVersionsOfPackage(package, order: '-created', limit: 10)
       .toList();
   versions.removeWhere((pv) => pv.isNotVisible || pv.isRetracted);
   final contents = await Future.wait(
-      versions.map((v) => _getChangelogReleaseContent(package, v.version!)));
+    versions.map((v) => _getChangelogReleaseContent(package, v.version!)),
+  );
   final feed = _packageFeed(package, versions, contents);
   return feed.toXmlDocument();
 }
 
 Future<String> _getChangelogReleaseContent(
-    String package, String version) async {
+  String package,
+  String version,
+) async {
   final content = await cache
       .changelogReleaseContentAsMarkdown(package, version)
       .get(() async {
-    final asset = await packageBackend.lookupPackageVersionAsset(
-        package, version, AssetKind.changelog);
-    final content = asset?.textContent;
-    if (content == null) {
-      return '';
-    }
-    final parsed = ChangelogParser().parseMarkdownText(content);
-    final release =
-        parsed.releases.firstWhereOrNull((r) => r.version == version);
-    if (release == null) {
-      return '';
-    }
-    return release.content.asMarkdownText;
-  });
+        final asset = await packageBackend.lookupPackageVersionAsset(
+          package,
+          version,
+          AssetKind.changelog,
+        );
+        final content = asset?.textContent;
+        if (content == null) {
+          return '';
+        }
+        final parsed = ChangelogParser().parseMarkdownText(content);
+        final release = parsed.releases.firstWhereOrNull(
+          (r) => r.version == version,
+        );
+        if (release == null) {
+          return '';
+        }
+        return release.content.asMarkdownText;
+      });
   return content ?? '';
 }
 
@@ -166,14 +171,14 @@ class Feed {
     this.generator = 'Pub Feed Generator',
     this.generatorVersion = '0.1.0',
     required this.entries,
-  })  : id = selfUrl,
-        // Set the updated timestamp to the latest version timestamp. This prevents
-        // unnecessary updates in the exported API bucket and makes tests consistent.
-        updated = entries.isNotEmpty
-            ? entries
-                .map((v) => v.updated)
-                .reduce((a, b) => a.isAfter(b) ? a : b)
-            : clock.now().toUtc();
+  }) : id = selfUrl,
+       // Set the updated timestamp to the latest version timestamp. This prevents
+       // unnecessary updates in the exported API bucket and makes tests consistent.
+       updated = entries.isNotEmpty
+           ? entries
+                 .map((v) => v.updated)
+                 .reduce((a, b) => a.isAfter(b) ? a : b)
+           : clock.now().toUtc();
 
   String toXmlDocument() {
     final buffer = StringBuffer();
@@ -218,12 +223,14 @@ Feed _allPackagesFeed(
     final version = versions[i];
 
     final pkgPage = urls.pkgPageUrl(version.package);
-    final alternateUrl =
-        activeConfiguration.primarySiteUri.replace(path: pkgPage).toString();
+    final alternateUrl = activeConfiguration.primarySiteUri
+        .replace(path: pkgPage)
+        .toString();
     final alternateTitle = version.package;
 
-    final hash =
-        sha512.convert(utf8.encode('${version.package}/${version.version}'));
+    final hash = sha512.convert(
+      utf8.encode('${version.package}/${version.version}'),
+    );
     final id = createUuid(hash.bytes.sublist(0, 16));
     final title = 'v${version.version} of ${version.package}';
     final fullReleaseContent = releaseContents[i];
@@ -234,22 +241,25 @@ Feed _allPackagesFeed(
       version.ellipsizedDescription ?? '[no description]',
       if (releaseContent.isNotEmpty) 'Changelog excerpt:\n$releaseContent',
     ].join('\n\n');
-    entries.add(FeedEntry(
-      id: id,
-      title: title,
-      updated: version.created!,
-      publisherId: version.publisherId,
-      content: content,
-      alternateUrl: alternateUrl,
-      alternateTitle: alternateTitle,
-    ));
+    entries.add(
+      FeedEntry(
+        id: id,
+        title: title,
+        updated: version.created!,
+        publisherId: version.publisherId,
+        content: content,
+        alternateUrl: alternateUrl,
+        alternateTitle: alternateTitle,
+      ),
+    );
   }
 
   return Feed(
     title: 'Recently published packages on pub.dev',
     alternateUrl: activeConfiguration.primarySiteUri.resolve('/').toString(),
-    selfUrl:
-        activeConfiguration.primarySiteUri.resolve('/feed.atom').toString(),
+    selfUrl: activeConfiguration.primarySiteUri
+        .resolve('/feed.atom')
+        .toString(),
     entries: entries,
   );
 }
@@ -270,15 +280,12 @@ Feed _packageFeed(
         .toString(),
     author: versions.firstOrNull?.publisherId,
     entries: versions.mapIndexed((i, v) {
-      final hash =
-          sha512.convert(utf8.encode('package-feed/$package/${v.version}'));
+      final hash = sha512.convert(
+        utf8.encode('package-feed/$package/${v.version}'),
+      );
       final id = createUuid(hash.bytes.sublist(0, 16));
       final alternateUrl = activeConfiguration.primarySiteUri
-          .replace(
-              path: urls.pkgPageUrl(
-            package,
-            version: v.version,
-          ))
+          .replace(path: urls.pkgPageUrl(package, version: v.version))
           .toString();
       final fullReleaseContent = releaseContents[i];
       final releaseContent = fullReleaseContent.length > 1024

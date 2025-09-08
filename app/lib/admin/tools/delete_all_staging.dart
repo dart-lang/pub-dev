@@ -15,10 +15,18 @@ import '../../task/models.dart';
 import '../../tool/neat_task/datastore_status_provider.dart';
 
 final _argParser = ArgParser()
-  ..addOption('concurrency',
-      abbr: 'c', defaultsTo: '1', help: 'Number of concurrent processing.')
-  ..addFlag('dry-run',
-      abbr: 'n', defaultsTo: false, help: 'Do not change Datastore.')
+  ..addOption(
+    'concurrency',
+    abbr: 'c',
+    defaultsTo: '1',
+    help: 'Number of concurrent processing.',
+  )
+  ..addFlag(
+    'dry-run',
+    abbr: 'n',
+    defaultsTo: false,
+    help: 'Do not change Datastore.',
+  )
   ..addFlag('help', abbr: 'h', defaultsTo: false, help: 'Show help.');
 
 /// Deletes every (used) entity on staging.
@@ -59,14 +67,10 @@ Future<String> executeDeleteAllStaging(List<String> args) async {
   final pool = Pool(concurrency);
   for (final entity in entities.entries) {
     final futures = <Future>[];
-    await _batchedQuery(
-      entity.key,
-      (keys) {
-        final f = pool.withResource(() => _commit(keys, dryRun));
-        futures.add(f);
-      },
-      maxBatchSize: entity.value,
-    );
+    await _batchedQuery(entity.key, (keys) {
+      final f = pool.withResource(() => _commit(keys, dryRun));
+      futures.add(f);
+    }, maxBatchSize: entity.value);
     await Future.wait(futures);
   }
   await pool.close();

@@ -78,10 +78,7 @@ void _setEventForScreenshot() {
   for (final thumbnail in thumbnails) {
     void setup() {
       restoreFocusabilityFn = disableAllFocusability(
-        allowedComponents: [
-          prev,
-          next,
-        ],
+        allowedComponents: [prev, next],
       );
       focusedTriggerSourceElement = thumbnail;
       showElement(carousel);

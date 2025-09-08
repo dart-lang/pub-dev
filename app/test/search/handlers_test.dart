@@ -30,66 +30,84 @@ void main() {
     });
 
     group('search', () {
-      testWithProfile('Finds package by name', fn: () async {
-        await expectJsonResponse(await issueGet('/search?q=oxygen'), body: {
-          'timestamp': isNotNull,
-          'totalCount': 1,
-          'sdkLibraryHits': [],
-          'packageHits': [
-            {'package': 'oxygen', 'score': isPositive},
-          ],
-        });
-
-        await expectJsonResponse(
-          await issuePost(
-            '/search',
-            body: SearchRequestData(query: 'oxygen').toJson(),
-          ),
-          body: {
-            'timestamp': isNotNull,
-            'totalCount': 1,
-            'sdkLibraryHits': [],
-            'packageHits': [
-              {'package': 'oxygen', 'score': isPositive},
-            ],
-          },
-        );
-      });
-
-      testWithProfile('Finds text in description or readme', fn: () async {
-        await expectJsonResponse(await issueGet('/search?q=awesome'), body: {
-          'timestamp': isNotNull,
-          'totalCount': 3,
-          'sdkLibraryHits': [],
-          'packageHits': hasLength(3),
-        });
-      });
-
-      testWithProfile('Finds package by package-prefix search only',
-          fn: () async {
-        await expectJsonResponse(await issueGet('/search?q=package:oxy'),
+      testWithProfile(
+        'Finds package by name',
+        fn: () async {
+          await expectJsonResponse(
+            await issueGet('/search?q=oxygen'),
             body: {
               'timestamp': isNotNull,
               'totalCount': 1,
               'sdkLibraryHits': [],
               'packageHits': [
-                {
-                  'package': 'oxygen',
-                  'score': isNotNull,
-                },
+                {'package': 'oxygen', 'score': isPositive},
               ],
-            });
-      });
+            },
+          );
 
-      testWithProfile('pkg-prefix filters out results', fn: () async {
-        await expectJsonResponse(await issueGet('/search?q=awesome+package:x'),
+          await expectJsonResponse(
+            await issuePost(
+              '/search',
+              body: SearchRequestData(query: 'oxygen').toJson(),
+            ),
+            body: {
+              'timestamp': isNotNull,
+              'totalCount': 1,
+              'sdkLibraryHits': [],
+              'packageHits': [
+                {'package': 'oxygen', 'score': isPositive},
+              ],
+            },
+          );
+        },
+      );
+
+      testWithProfile(
+        'Finds text in description or readme',
+        fn: () async {
+          await expectJsonResponse(
+            await issueGet('/search?q=awesome'),
+            body: {
+              'timestamp': isNotNull,
+              'totalCount': 3,
+              'sdkLibraryHits': [],
+              'packageHits': hasLength(3),
+            },
+          );
+        },
+      );
+
+      testWithProfile(
+        'Finds package by package-prefix search only',
+        fn: () async {
+          await expectJsonResponse(
+            await issueGet('/search?q=package:oxy'),
+            body: {
+              'timestamp': isNotNull,
+              'totalCount': 1,
+              'sdkLibraryHits': [],
+              'packageHits': [
+                {'package': 'oxygen', 'score': isNotNull},
+              ],
+            },
+          );
+        },
+      );
+
+      testWithProfile(
+        'pkg-prefix filters out results',
+        fn: () async {
+          await expectJsonResponse(
+            await issueGet('/search?q=awesome+package:x'),
             body: {
               'timestamp': isNotNull,
               'totalCount': 0,
               'sdkLibraryHits': [],
               'packageHits': [],
-            });
-      });
+            },
+          );
+        },
+      );
     });
   });
 
@@ -111,14 +129,16 @@ void main() {
     testWithProfile(
       'input text predicate overrides URL parameter',
       fn: () async {
-        expect(
-          await queryPackageOrder('/packages?sort=points'),
-          ['oxygen', 'neon', 'flutter_titanium'],
-        );
-        expect(
-          await queryPackageOrder('/packages?sort=downloads'),
-          ['oxygen', 'flutter_titanium', 'neon'],
-        );
+        expect(await queryPackageOrder('/packages?sort=points'), [
+          'oxygen',
+          'neon',
+          'flutter_titanium',
+        ]);
+        expect(await queryPackageOrder('/packages?sort=downloads'), [
+          'oxygen',
+          'flutter_titanium',
+          'neon',
+        ]);
         expect(
           await queryPackageOrder('/packages?sort=downloads&q=sort:points'),
           ['oxygen', 'neon', 'flutter_titanium'],

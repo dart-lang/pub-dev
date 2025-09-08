@@ -24,17 +24,13 @@ void main() {
       // as they doesn't contain the api_client/ directory path.
       'api_client/': [],
       'admin_pages.dart': [],
-      'deferred/http.dart': [
-        'lib/src/api_client/api_client.dart',
-      ],
+      'deferred/http.dart': ['lib/src/api_client/api_client.dart'],
       'deferred/markdown.dart': [],
       'package:http/': [
         'lib/src/api_client/pubapi.client.dart',
         'lib/src/deferred/http.dart',
       ],
-      'package:markdown/': [
-        'lib/src/deferred/markdown.dart',
-      ],
+      'package:markdown/': ['lib/src/deferred/markdown.dart'],
       'completion/': [],
     };
 
@@ -48,13 +44,19 @@ void main() {
           for (final key in deferredLibraryParts.keys.where(line.contains)) {
             hasDefinition = true;
             final containsFile = deferredLibraryParts[key]!.contains(file.path);
-            expect(containsFile, !containsDeferred,
-                reason:
-                    'Import line pattern not recognized: $line in ${file.path}.');
+            expect(
+              containsFile,
+              !containsDeferred,
+              reason:
+                  'Import line pattern not recognized: $line in ${file.path}.',
+            );
           }
           if (containsDeferred) {
-            expect(hasDefinition, isTrue,
-                reason: 'Unknown library from `$line` in ${file.path}');
+            expect(
+              hasDefinition,
+              isTrue,
+              reason: 'Unknown library from `$line` in ${file.path}',
+            );
           }
         }
       }

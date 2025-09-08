@@ -27,14 +27,18 @@ void main() {
     });
 
     test('classes', () {
-      expect(dom.element('div', classes: ['c1', 'c2']).toString(),
-          '<div class="c1 c2"></div>');
+      expect(
+        dom.element('div', classes: ['c1', 'c2']).toString(),
+        '<div class="c1 c2"></div>',
+      );
     });
 
     test('invalid attribute key', () {
       void invalid(String key) {
-        expect(() => dom.element('div', attributes: {key: 'value'}),
-            throwsA(isA<FormatException>()));
+        expect(
+          () => dom.element('div', attributes: {key: 'value'}),
+          throwsA(isA<FormatException>()),
+        );
       }
 
       invalid('');
@@ -45,35 +49,36 @@ void main() {
     });
 
     test('escaped attribute value', () {
-      expect(dom.element('div', attributes: {'title': '\'@&%"'}).toString(),
-          '<div title="\'@&amp;%&quot;"></div>');
+      expect(
+        dom.element('div', attributes: {'title': '\'@&%"'}).toString(),
+        '<div title="\'@&amp;%&quot;"></div>',
+      );
     });
 
     test('children', () {
       expect(
-          dom.element(
-            'div',
-            children: [dom.element('header'), dom.element('footer')],
-          ).toString(),
-          '<div><header></header><footer></footer></div>');
+        dom
+            .element(
+              'div',
+              children: [dom.element('header'), dom.element('footer')],
+            )
+            .toString(),
+        '<div><header></header><footer></footer></div>',
+      );
     });
 
     test('escaped text', () {
       expect(
-          dom.element(
-            'div',
-            children: [dom.text('\'&%/"<>abcd12')],
-          ).toString(),
-          '<div>&#39;&amp;%&#47;&quot;&lt;&gt;abcd12</div>');
+        dom.element('div', children: [dom.text('\'&%/"<>abcd12')]).toString(),
+        '<div>&#39;&amp;%&#47;&quot;&lt;&gt;abcd12</div>',
+      );
     });
 
     test('fragment', () {
       expect(
-          dom.fragment([
-            dom.element('div'),
-            dom.element('span'),
-          ]).toString(),
-          '<div></div><span></span>');
+        dom.fragment([dom.element('div'), dom.element('span')]).toString(),
+        '<div></div><span></span>',
+      );
     });
   });
 
@@ -87,14 +92,15 @@ void main() {
       };
       final script = ldJson(original);
       expect(
-          script.toString(),
-          r'<script type="application/ld+json">'
-          r'{"beamer":"...Navigator\u0027s \u005b...\u005d \u0022Navigator 2.0\u0022.",'
-          r'"quote":"\u0027",'
-          r'"doublequote":"\u0022",'
-          r'"backslash":"\u005c"'
-          r'}'
-          r'</script>');
+        script.toString(),
+        r'<script type="application/ld+json">'
+        r'{"beamer":"...Navigator\u0027s \u005b...\u005d \u0022Navigator 2.0\u0022.",'
+        r'"quote":"\u0027",'
+        r'"doublequote":"\u0022",'
+        r'"backslash":"\u005c"'
+        r'}'
+        r'</script>',
+      );
       final fragment = parseFragment(script.toString());
       final value = json.decode(fragment.text!);
       expect(value, original);

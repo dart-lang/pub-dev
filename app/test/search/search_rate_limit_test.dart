@@ -16,14 +16,10 @@ import '../shared/test_services.dart';
 void main() {
   group('Search rate limit', () {
     final refTime = clock.now();
-    Future<Response> search(
-      String query, {
-      required Duration time,
-    }) async {
-      return await withClock(
-        Clock.fixed(refTime.add(time)),
-        () async {
-          return await packagesHandler(Request(
+    Future<Response> search(String query, {required Duration time}) async {
+      return await withClock(Clock.fixed(refTime.add(time)), () async {
+        return await packagesHandler(
+          Request(
             'GET',
             Uri(
               scheme: 'http',
@@ -32,12 +28,10 @@ void main() {
               path: '/packages',
               queryParameters: {'q': query},
             ),
-            headers: {
-              'x-forwarded-for': '1.2.3.4',
-            },
-          ));
-        },
-      );
+            headers: {'x-forwarded-for': '1.2.3.4'},
+          ),
+        );
+      });
     }
 
     testWithProfile(
@@ -45,7 +39,8 @@ void main() {
       fn: () async {
         for (var i = 0; i < 120; i++) {
           await expectHtmlResponse(
-              await search('json', time: Duration(milliseconds: i)));
+            await search('json', time: Duration(milliseconds: i)),
+          );
         }
         await expectLater(
           search('json', time: Duration(milliseconds: 120)),

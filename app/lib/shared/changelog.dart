@@ -35,11 +35,7 @@ class Changelog {
   /// A list of releases, typically in reverse chronological order.
   final List<Release> releases;
 
-  Changelog({
-    this.title,
-    this.description,
-    required this.releases,
-  });
+  Changelog({this.title, this.description, required this.releases});
 }
 
 /// Represents a single version entry in the changelog,
@@ -92,10 +88,11 @@ class Content {
 
   late final asHtmlText = () {
     if (_asText != null) return _asText!;
-    final root = _asNode is html.DocumentFragment
-        ? _asNode as html.DocumentFragment
-        : html.DocumentFragment()
-      ..append(_asNode!);
+    final root =
+        _asNode is html.DocumentFragment
+              ? _asNode as html.DocumentFragment
+              : html.DocumentFragment()
+          ..append(_asNode!);
     return root.outerHtml;
   }();
 
@@ -282,16 +279,15 @@ class ChangelogParser {
   final bool _strictLevels;
   final int _partOfLevelThreshold;
 
-  ChangelogParser({
-    bool strictLevels = false,
-    int partOfLevelThreshold = 2,
-  })  : _strictLevels = strictLevels,
-        _partOfLevelThreshold = partOfLevelThreshold;
+  ChangelogParser({bool strictLevels = false, int partOfLevelThreshold = 2})
+    : _strictLevels = strictLevels,
+      _partOfLevelThreshold = partOfLevelThreshold;
 
   /// Parses markdown text into a [Changelog] structure.
   Changelog parseMarkdownText(String input) {
-    final nodes =
-        m.Document(extensionSet: m.ExtensionSet.gitHubWeb).parse(input);
+    final nodes = m.Document(
+      extensionSet: m.ExtensionSet.gitHubWeb,
+    ).parse(input);
     final rawHtml = m.renderToHtml(nodes);
     final root = html_parser.parseFragment(rawHtml);
     return parseHtmlNodes(root.nodes);
@@ -314,14 +310,16 @@ class ChangelogParser {
           description = null;
         }
       } else {
-        releases.add(Release(
-          version: current.version,
-          anchor: current.anchor,
-          label: current.label,
-          date: current.date,
-          note: current.note,
-          content: Content.fromParsedHtml(nodes),
-        ));
+        releases.add(
+          Release(
+            version: current.version,
+            anchor: current.anchor,
+            label: current.label,
+            date: current.date,
+            note: current.note,
+            content: Content.fromParsedHtml(nodes),
+          ),
+        );
       }
       nodes = <html.Node>[];
     }
@@ -339,10 +337,12 @@ class ChangelogParser {
         // Check if this looks like a version header first
         final parsed = _tryParseAsHeader(node, headerText);
 
-        final isNewVersion = parsed != null &&
+        final isNewVersion =
+            parsed != null &&
             releases.every((r) => r.version != parsed.version) &&
             current?.version != parsed.version;
-        final isPartOfCurrent = current != null &&
+        final isPartOfCurrent =
+            current != null &&
             parsed != null &&
             current.level + _partOfLevelThreshold <= parsed.level;
         if (isNewVersion && !isPartOfCurrent) {
@@ -419,8 +419,9 @@ class ChangelogParser {
     }
 
     // rest of the release header
-    String? label =
-        input.substring(input.indexOf(versionPart) + versionPart.length).trim();
+    String? label = input
+        .substring(input.indexOf(versionPart) + versionPart.length)
+        .trim();
     if (label.startsWith('- ')) {
       label = label.substring(2).trim();
     }
@@ -443,8 +444,14 @@ class ChangelogParser {
       }
     }
 
-    return _ParsedHeader(level, version, label, date,
-        anchor ?? version.replaceAll('.', ''), note);
+    return _ParsedHeader(
+      level,
+      version,
+      label,
+      date,
+      anchor ?? version.replaceAll('.', ''),
+      note,
+    );
   }
 
   /// Parses the version part of a release title.
@@ -511,5 +518,11 @@ class _ParsedHeader {
   final String? note;
 
   _ParsedHeader(
-      this.level, this.version, this.label, this.date, this.anchor, this.note);
+    this.level,
+    this.version,
+    this.label,
+    this.date,
+    this.anchor,
+    this.note,
+  );
 }

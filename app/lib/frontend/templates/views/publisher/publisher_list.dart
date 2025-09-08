@@ -26,11 +26,13 @@ d.Node publisherListNode({
                   text: p.publisherId,
                 ),
               ),
-              d.p(children: [
-                d.text('Registered '),
-                d.xAgoTimestamp(p.created, datePrefix: 'on'),
-                d.text('.'),
-              ]),
+              d.p(
+                children: [
+                  d.text('Registered '),
+                  d.xAgoTimestamp(p.created, datePrefix: 'on'),
+                  d.text('.'),
+                ],
+              ),
             ],
           ),
         ),

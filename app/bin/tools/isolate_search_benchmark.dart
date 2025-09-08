@@ -24,11 +24,15 @@ final queries = [
 ];
 
 Future<void> main(List<String> args) async {
-  print('Started. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
-      'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB');
+  print(
+    'Started. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
+    'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB',
+  );
   final runner = await startSearchIsolate(snapshot: args.first);
-  print('Loaded. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
-      'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB');
+  print(
+    'Loaded. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
+    'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB',
+  );
 
   for (var i = 0; i < 5; i++) {
     await _benchmark(runner);
@@ -36,8 +40,10 @@ Future<void> main(List<String> args) async {
   }
 
   await runner.close();
-  print('Done. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
-      'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB');
+  print(
+    'Done. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
+    'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB',
+  );
 }
 
 Future<void> _benchmark(IsolateRunner primary) async {
@@ -46,25 +52,31 @@ Future<void> _benchmark(IsolateRunner primary) async {
   for (var i = 0; i < 100; i++) {
     final random = Random(i);
     final items = queries
-        .map((q) => ServiceSearchQuery.parse(
-              query: q,
-              tagsPredicate: TagsPredicate.regularSearch(),
-            ))
+        .map(
+          (q) => ServiceSearchQuery.parse(
+            query: q,
+            tagsPredicate: TagsPredicate.regularSearch(),
+          ),
+        )
         .toList();
     items.shuffle(random);
-    await Future.wait(items.map((q) async {
-      final sw = Stopwatch()..start();
-      await index.search(q);
-      final d = sw.elapsed.inMicroseconds;
-      durations.putIfAbsent('all', () => []).add(d);
-      final key = q.parsedQuery.hasFreeText ? 'primary' : 'reduced';
-      durations.putIfAbsent(key, () => []).add(d);
-    }));
+    await Future.wait(
+      items.map((q) async {
+        final sw = Stopwatch()..start();
+        await index.search(q);
+        final d = sw.elapsed.inMicroseconds;
+        durations.putIfAbsent('all', () => []).add(d);
+        final key = q.parsedQuery.hasFreeText ? 'primary' : 'reduced';
+        durations.putIfAbsent(key, () => []).add(d);
+      }),
+    );
   }
   for (final e in durations.entries) {
     e.value.sort();
-    print('${e.key.padLeft(10)}: '
-        '${e.value.average.round().toString().padLeft(10)} avg '
-        '${e.value[e.value.length * 90 ~/ 100].toString().padLeft(10)} p90');
+    print(
+      '${e.key.padLeft(10)}: '
+      '${e.value.average.round().toString().padLeft(10)} avg '
+      '${e.value[e.value.length * 90 ~/ 100].toString().padLeft(10)} p90',
+    );
   }
 }

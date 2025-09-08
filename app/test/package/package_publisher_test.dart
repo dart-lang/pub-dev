@@ -27,29 +27,37 @@ void main() {
     _testNoPackage((client) => client.getPackagePublisher('no_package'));
     _testPublisherModerated((client) => client.publisherInfo('example.com'));
 
-    testWithProfile('traditional package, not authenticated user',
-        fn: () async {
-      final client = createPubApiClient();
-      final rs = await client.getPackagePublisher('oxygen');
-      expect(rs.toJson(), {'publisherId': null});
-    });
+    testWithProfile(
+      'traditional package, not authenticated user',
+      fn: () async {
+        final client = createPubApiClient();
+        final rs = await client.getPackagePublisher('oxygen');
+        expect(rs.toJson(), {'publisherId': null});
+      },
+    );
   });
 
   group('Set publisher for a traditional package', () {
-    _testNoPackage((client) => client.setPackagePublisher(
-          'no_package',
-          PackagePublisherInfo(publisherId: 'no-domain.net'),
-        ));
+    _testNoPackage(
+      (client) => client.setPackagePublisher(
+        'no_package',
+        PackagePublisherInfo(publisherId: 'no-domain.net'),
+      ),
+    );
 
-    _testNoPublisher((client) => client.setPackagePublisher(
-          'oxygen',
-          PackagePublisherInfo(publisherId: 'no-domain.net'),
-        ));
+    _testNoPublisher(
+      (client) => client.setPackagePublisher(
+        'oxygen',
+        PackagePublisherInfo(publisherId: 'no-domain.net'),
+      ),
+    );
 
-    _testPublisherModerated((client) => client.setPackagePublisher(
-          'oxygen',
-          PackagePublisherInfo(publisherId: 'example.com'),
-        ));
+    _testPublisherModerated(
+      (client) => client.setPackagePublisher(
+        'oxygen',
+        PackagePublisherInfo(publisherId: 'example.com'),
+      ),
+    );
 
     _testUserNotMemberOfPublisher(
       fn: (client) => client.setPackagePublisher(
@@ -65,100 +73,134 @@ void main() {
       ),
     );
 
-    testWithProfile('User is not an uploader', fn: () async {
-      final client = await createFakeAuthPubApiClient(email: userAtPubDevEmail);
-      final rs = client.setPackagePublisher(
-        'oxygen',
-        PackagePublisherInfo(publisherId: 'example.com'),
-      );
-      await expectApiException(rs,
-          status: 403, code: 'InsufficientPermissions');
-      expect(fakeEmailSender.sentMessages, isEmpty);
-    });
+    testWithProfile(
+      'User is not an uploader',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        final rs = client.setPackagePublisher(
+          'oxygen',
+          PackagePublisherInfo(publisherId: 'example.com'),
+        );
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+        );
+        expect(fakeEmailSender.sentMessages, isEmpty);
+      },
+    );
 
-    testWithProfile('successful', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final rs = await client.setPackagePublisher(
-        'oxygen',
-        PackagePublisherInfo(publisherId: 'example.com'),
-      );
-      expect(_json(rs.toJson()), {'publisherId': 'example.com'});
+    testWithProfile(
+      'successful',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final rs = await client.setPackagePublisher(
+          'oxygen',
+          PackagePublisherInfo(publisherId: 'example.com'),
+        );
+        expect(_json(rs.toJson()), {'publisherId': 'example.com'});
 
-      // also making sure it is idempotent
-      final rs2 = await client.setPackagePublisher(
-        'oxygen',
-        PackagePublisherInfo(publisherId: 'example.com'),
-      );
-      expect(_json(rs2.toJson()), {'publisherId': 'example.com'});
+        // also making sure it is idempotent
+        final rs2 = await client.setPackagePublisher(
+          'oxygen',
+          PackagePublisherInfo(publisherId: 'example.com'),
+        );
+        expect(_json(rs2.toJson()), {'publisherId': 'example.com'});
 
-      final p = (await packageBackend.lookupPackage('oxygen'))!;
-      expect(p.publisherId, 'example.com');
-      expect(p.uploaders, []);
+        final p = (await packageBackend.lookupPackage('oxygen'))!;
+        expect(p.publisherId, 'example.com');
+        expect(p.uploaders, []);
 
-      final info = await client.getPackagePublisher('oxygen');
-      expect(_json(info.toJson()), _json(rs.toJson()));
+        final info = await client.getPackagePublisher('oxygen');
+        expect(_json(info.toJson()), _json(rs.toJson()));
 
-      final auditLogs =
-          await auditBackend.listRecordsForPublisher('example.com');
-      final transferLogs = auditLogs.records
-          .where((r) =>
-              r.packages != null &&
-              r.packages!.contains('oxygen') &&
-              r.kind == AuditLogRecordKind.packageTransferred)
-          .toList();
-      expect(transferLogs.single.summary,
-          'Package `oxygen` was transferred to publisher `example.com` by `admin@pub.dev`.');
-      expect(fakeEmailSender.sentMessages, hasLength(1));
-      final email = fakeEmailSender.sentMessages.single;
-      expect(email.subject, contains('transferred'));
-      expect(email.subject, contains('example.com'));
-      expect(email.bodyText, contains('support@'));
-      expect(email.bodyText, contains('/packages/oxygen'));
-      expect(email.recipients.map((e) => e.email).toList(), ['admin@pub.dev']);
-    });
+        final auditLogs = await auditBackend.listRecordsForPublisher(
+          'example.com',
+        );
+        final transferLogs = auditLogs.records
+            .where(
+              (r) =>
+                  r.packages != null &&
+                  r.packages!.contains('oxygen') &&
+                  r.kind == AuditLogRecordKind.packageTransferred,
+            )
+            .toList();
+        expect(
+          transferLogs.single.summary,
+          'Package `oxygen` was transferred to publisher `example.com` by `admin@pub.dev`.',
+        );
+        expect(fakeEmailSender.sentMessages, hasLength(1));
+        final email = fakeEmailSender.sentMessages.single;
+        expect(email.subject, contains('transferred'));
+        expect(email.subject, contains('example.com'));
+        expect(email.bodyText, contains('support@'));
+        expect(email.bodyText, contains('/packages/oxygen'));
+        expect(email.recipients.map((e) => e.email).toList(), [
+          'admin@pub.dev',
+        ]);
+      },
+    );
   });
 
   group('Upload with a publisher', () {
-    testWithProfile('not an admin', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      await client.setPackagePublisher(
-        'oxygen',
-        PackagePublisherInfo(publisherId: 'example.com'),
-      );
-      final tarball = await packageArchiveBytes(
-          pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
-      final rs = createPubApiClient(authToken: userClientToken)
-          .uploadPackageBytes(tarball);
-      await expectApiException(rs,
-          status: 403, code: 'InsufficientPermissions');
-    });
+    testWithProfile(
+      'not an admin',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        await client.setPackagePublisher(
+          'oxygen',
+          PackagePublisherInfo(publisherId: 'example.com'),
+        );
+        final tarball = await packageArchiveBytes(
+          pubspecContent: generatePubspecYaml('oxygen', '3.0.0'),
+        );
+        final rs = createPubApiClient(
+          authToken: userClientToken,
+        ).uploadPackageBytes(tarball);
+        await expectApiException(
+          rs,
+          status: 403,
+          code: 'InsufficientPermissions',
+        );
+      },
+    );
 
-    testWithProfile('successful', fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      await client.setPackagePublisher(
-        'oxygen',
-        PackagePublisherInfo(publisherId: 'example.com'),
-      );
-      final tarball = await packageArchiveBytes(
-          pubspecContent: generatePubspecYaml('oxygen', '3.0.0'));
-      final message = await createPubApiClient(authToken: adminClientToken)
-          .uploadPackageBytes(tarball);
-      expect(message.success.message, contains('Successfully uploaded'));
-      expect(message.success.message, contains('3.0.0'));
-    });
+    testWithProfile(
+      'successful',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        await client.setPackagePublisher(
+          'oxygen',
+          PackagePublisherInfo(publisherId: 'example.com'),
+        );
+        final tarball = await packageArchiveBytes(
+          pubspecContent: generatePubspecYaml('oxygen', '3.0.0'),
+        );
+        final message = await createPubApiClient(
+          authToken: adminClientToken,
+        ).uploadPackageBytes(tarball);
+        expect(message.success.message, contains('Successfully uploaded'));
+        expect(message.success.message, contains('3.0.0'));
+      },
+    );
   });
 
   group('Move between publishers', () {
     TestProfile _profile() => TestProfile(
-          generatedPackages: [
-            GeneratedTestPackage(name: 'one', publisher: 'verified.com'),
-            GeneratedTestPackage(name: 'two', publisher: 'example.com'),
-          ],
-          defaultUser: 'admin@pub.dev',
-        );
+      generatedPackages: [
+        GeneratedTestPackage(name: 'one', publisher: 'verified.com'),
+        GeneratedTestPackage(name: 'two', publisher: 'example.com'),
+      ],
+      defaultUser: 'admin@pub.dev',
+    );
 
     _testNoPackage((client) async {
       return client.setPackagePublisher(
@@ -217,32 +259,39 @@ void main() {
       ),
     );
 
-    testWithProfile('successful', testProfile: _profile(), fn: () async {
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-      final rs = await client.setPackagePublisher(
-        'one',
-        PackagePublisherInfo(publisherId: 'example.com'),
-      );
-      expect(_json(rs.toJson()), {'publisherId': 'example.com'});
+    testWithProfile(
+      'successful',
+      testProfile: _profile(),
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        final rs = await client.setPackagePublisher(
+          'one',
+          PackagePublisherInfo(publisherId: 'example.com'),
+        );
+        expect(_json(rs.toJson()), {'publisherId': 'example.com'});
 
-      final p = (await packageBackend.lookupPackage('one'))!;
-      expect(p.publisherId, 'example.com');
-      expect(p.uploaders, []);
+        final p = (await packageBackend.lookupPackage('one'))!;
+        expect(p.publisherId, 'example.com');
+        expect(p.uploaders, []);
 
-      final info = await client.getPackagePublisher('one');
-      expect(_json(info.toJson()), _json(rs.toJson()));
+        final info = await client.getPackagePublisher('one');
+        expect(_json(info.toJson()), _json(rs.toJson()));
 
-      expect(fakeEmailSender.sentMessages, hasLength(1));
-      final email = fakeEmailSender.sentMessages.single;
-      expect(email.subject, contains('transferred'));
-      expect(email.subject, contains('example.com'));
-      expect(email.bodyText, contains('verified.com'));
-      expect(email.bodyText, contains('example.com'));
-      expect(email.bodyText, contains('support@'));
-      expect(email.bodyText, contains('/packages/one'));
-      expect(email.recipients.map((e) => e.email).toList(), ['admin@pub.dev']);
-    });
+        expect(fakeEmailSender.sentMessages, hasLength(1));
+        final email = fakeEmailSender.sentMessages.single;
+        expect(email.subject, contains('transferred'));
+        expect(email.subject, contains('example.com'));
+        expect(email.bodyText, contains('verified.com'));
+        expect(email.bodyText, contains('example.com'));
+        expect(email.bodyText, contains('support@'));
+        expect(email.bodyText, contains('/packages/one'));
+        expect(email.recipients.map((e) => e.email).toList(), [
+          'admin@pub.dev',
+        ]);
+      },
+    );
   });
 }
 
@@ -254,12 +303,19 @@ void _testUserNotMemberOfPublisher({
   TestProfile? testProfile,
 }) {
   email ??= 'other@pub.dev';
-  testWithProfile('Active user is not a member of publisher',
-      testProfile: testProfile, fn: () async {
-    final client = await createFakeAuthPubApiClient(email: email!);
-    final rs = fn(client);
-    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
-  });
+  testWithProfile(
+    'Active user is not a member of publisher',
+    testProfile: testProfile,
+    fn: () async {
+      final client = await createFakeAuthPubApiClient(email: email!);
+      final rs = fn(client);
+      await expectApiException(
+        rs,
+        status: 403,
+        code: 'InsufficientPermissions',
+      );
+    },
+  );
 }
 
 void _testUserNotAdminOfPublisher({
@@ -268,52 +324,74 @@ void _testUserNotAdminOfPublisher({
   TestProfile? testProfile,
 }) {
   email ??= adminAtPubDevEmail;
-  testWithProfile('Active user is not admin of publisher',
-      testProfile: testProfile, fn: () async {
-    await withFakeAuthRequestContext(email!, () async {
-      final user = await requireAuthenticatedWebUser();
-      final members = await dbService
-          .query<PublisherMember>()
-          .run()
-          .where((e) => e.userId == user.userId)
-          .toList();
-      expect(members, isNotEmpty);
-      for (final m in members) {
-        m.role = 'non-admin';
-      }
-      await dbService.commit(inserts: members);
-    });
-    final client = await createFakeAuthPubApiClient(email: email);
-    final rs = fn(client);
-    await expectApiException(rs, status: 403, code: 'InsufficientPermissions');
-  });
+  testWithProfile(
+    'Active user is not admin of publisher',
+    testProfile: testProfile,
+    fn: () async {
+      await withFakeAuthRequestContext(email!, () async {
+        final user = await requireAuthenticatedWebUser();
+        final members = await dbService
+            .query<PublisherMember>()
+            .run()
+            .where((e) => e.userId == user.userId)
+            .toList();
+        expect(members, isNotEmpty);
+        for (final m in members) {
+          m.role = 'non-admin';
+        }
+        await dbService.commit(inserts: members);
+      });
+      final client = await createFakeAuthPubApiClient(email: email);
+      final rs = fn(client);
+      await expectApiException(
+        rs,
+        status: 403,
+        code: 'InsufficientPermissions',
+      );
+    },
+  );
 }
 
 void _testNoActiveUser(Future Function(PubApiClient client) fn) {
-  testWithProfile('No active user', fn: () async {
-    final client = createPubApiClient();
-    final rs = fn(client);
-    await expectApiException(rs,
+  testWithProfile(
+    'No active user',
+    fn: () async {
+      final client = createPubApiClient();
+      final rs = fn(client);
+      await expectApiException(
+        rs,
         status: 401,
         code: 'MissingAuthentication',
-        message: 'Authentication failed');
-  });
+        message: 'Authentication failed',
+      );
+    },
+  );
 }
 
 void _testNoPackage(Future Function(PubApiClient client) fn) {
-  testWithProfile('No package with given name', fn: () async {
-    final client = await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-    final rs = fn(client);
-    await expectApiException(rs, status: 404, code: 'NotFound');
-  });
+  testWithProfile(
+    'No package with given name',
+    fn: () async {
+      final client = await createFakeAuthPubApiClient(
+        email: adminAtPubDevEmail,
+      );
+      final rs = fn(client);
+      await expectApiException(rs, status: 404, code: 'NotFound');
+    },
+  );
 }
 
 void _testNoPublisher(Future Function(PubApiClient client) fn) {
-  testWithProfile('No publisher with given id', fn: () async {
-    final client = await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
-    final rs = fn(client);
-    await expectApiException(rs, status: 404, code: 'NotFound');
-  });
+  testWithProfile(
+    'No publisher with given id',
+    fn: () async {
+      final client = await createFakeAuthPubApiClient(
+        email: adminAtPubDevEmail,
+      );
+      final rs = fn(client);
+      await expectApiException(rs, status: 404, code: 'NotFound');
+    },
+  );
 }
 
 void _testPublisherModerated(
@@ -328,12 +406,14 @@ void _testPublisherModerated(
     testProfile: testProfile,
     fn: () async {
       final p = await dbService.lookupValue<Publisher>(
-          dbService.emptyKey.append(Publisher, id: publisherId));
+        dbService.emptyKey.append(Publisher, id: publisherId),
+      );
       p.updateIsModerated(isModerated: true);
       await dbService.commit(inserts: [p]);
 
-      final client =
-          await createFakeAuthPubApiClient(email: adminAtPubDevEmail);
+      final client = await createFakeAuthPubApiClient(
+        email: adminAtPubDevEmail,
+      );
       final rs = fn(client);
       await expectApiException(rs, status: status, code: code);
     },

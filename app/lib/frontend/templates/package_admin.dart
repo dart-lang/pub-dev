@@ -47,11 +47,7 @@ String renderPkgAdminPage(
     PageType.package,
     content,
     title: '${data.package.name} package - Admin',
-    pageData: pkgPageData(
-      data.package,
-      data.version,
-      editable: true,
-    ),
+    pageData: pkgPageData(data.package, data.version, editable: true),
     noIndex: true,
   );
 }

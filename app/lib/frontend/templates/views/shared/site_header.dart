@@ -10,10 +10,7 @@ import '../../_consts.dart';
 import '../../layout.dart' show PageType, showSearchBanner;
 
 /// Creates the site header and navigation node.
-d.Node siteHeaderNode({
-  required PageType pageType,
-  SessionData? userSession,
-}) {
+d.Node siteHeaderNode({required PageType pageType, SessionData? userSession}) {
   return d.div(
     classes: ['site-header'],
     children: [
@@ -22,9 +19,7 @@ d.Node siteHeaderNode({
         d.a(
           classes: ['logo'],
           href: '/',
-          attributes: {
-            'aria-label': 'Go to the landing page of pub.dev',
-          },
+          attributes: {'aria-label': 'Go to the landing page of pub.dev'},
           child: d.img(
             classes: ['site-logo'],
             image: d.Image.decorative(
@@ -47,17 +42,12 @@ d.Node siteHeaderNode({
               name: 'q',
               placeholder: 'New search...',
               autocomplete: 'on',
-              attributes: {
-                'title': 'Search',
-              },
+              attributes: {'title': 'Search'},
             ),
           ),
         ),
       d.nav(
-        classes: [
-          'site-header-nav',
-          'scroll-container',
-        ],
+        classes: ['site-header-nav', 'scroll-container'],
         children: [
           if (userSession == null || !userSession.isAuthenticated)
             d.div(
@@ -82,7 +72,9 @@ d.Node siteHeaderNode({
                       _navLink(urls.myPublishersUrl(), myPublishersTabTitle),
                       _navLink(urls.myPackagesUrl(), myPackagesTabTitle),
                       _navLink(
-                          urls.myLikedPackagesUrl(), myLikedPackagesTabTitle),
+                        urls.myLikedPackagesUrl(),
+                        myLikedPackagesTabTitle,
+                      ),
                       _navLink(urls.myActivityLogUrl(), myActivityLogTabTitle),
                       _navLink(urls.createPublisherUrl(), 'Create publisher'),
                     ],
@@ -134,10 +126,7 @@ d.Node _userBlock(SessionData userSession) {
       d.input(
         type: 'image',
         classes: ['nav-profile-img', 'nav-profile-image-desktop'],
-        attributes: {
-          'src': userSession.imageUrl ?? '',
-          'alt': 'Profile Image',
-        },
+        attributes: {'src': userSession.imageUrl ?? '', 'alt': 'Profile Image'},
       ),
       d.div(
         classes: ['nav-hover-popup'],
@@ -200,16 +189,22 @@ final _pubDevLinks = [
 
 final _flutterLinks = [
   _navNewPage('https://flutter.dev/using-packages/', 'Using packages'),
-  _navNewPage('https://flutter.dev/developing-packages/',
-      'Developing packages and plugins'),
   _navNewPage(
-      '${urls.dartSiteRoot}/tools/pub/publishing', 'Publishing a package'),
+    'https://flutter.dev/developing-packages/',
+    'Developing packages and plugins',
+  ),
+  _navNewPage(
+    '${urls.dartSiteRoot}/tools/pub/publishing',
+    'Publishing a package',
+  ),
 ];
 
 final _dartLinks = [
   _navNewPage('${urls.dartSiteRoot}/guides/packages', 'Using packages'),
   _navNewPage(
-      '${urls.dartSiteRoot}/tools/pub/publishing', 'Publishing a package'),
+    '${urls.dartSiteRoot}/tools/pub/publishing',
+    'Publishing a package',
+  ),
 ];
 
 d.Node _navLink(String href, String text) {
@@ -247,8 +242,9 @@ d.Node _foldableMobileLinks(String label, Iterable<d.Node> children) {
           d.img(
             classes: ['foldable-icon'],
             image: d.Image(
-              src: staticUrls
-                  .getAssetUrl('/static/img/nav-mobile-foldable-icon.svg'),
+              src: staticUrls.getAssetUrl(
+                '/static/img/nav-mobile-foldable-icon.svg',
+              ),
               alt: 'toggle folding of the section',
               width: 13,
               height: 6,
@@ -256,10 +252,7 @@ d.Node _foldableMobileLinks(String label, Iterable<d.Node> children) {
           ),
         ],
       ),
-      d.div(
-        classes: ['foldable-content'],
-        children: children,
-      ),
+      d.div(classes: ['foldable-content'], children: children),
     ],
   );
 }

@@ -60,27 +60,39 @@ Future<void> watchForResourceChanges() async {
   _logger.info('Watching for resource changes...');
 
   void setupWatcher(
-      String name, String path, FutureOr<void> Function() updateFn) {
+    String name,
+    String path,
+    FutureOr<void> Function() updateFn,
+  ) {
     final w = Watcher(path, pollingDelay: Duration(seconds: 3));
-    final subs = w.events.debounce(Duration(milliseconds: 2500)).listen(
-      (_) async {
-        _logger.info('Updating $name...');
-        await updateFn();
-        _logger.info('$name updated.');
-      },
-    );
+    final subs = w.events.debounce(Duration(milliseconds: 2500)).listen((
+      _,
+    ) async {
+      _logger.info('Updating $name...');
+      await updateFn();
+      _logger.info('$name updated.');
+    });
     registerScopeExitCallback(subs.cancel);
   }
 
   // watch pkg/web_app
-  setupWatcher('/pkg/web_app', path.join(resolveWebAppDirPath(), 'lib'),
-      () => updateWebAppBuild());
+  setupWatcher(
+    '/pkg/web_app',
+    path.join(resolveWebAppDirPath(), 'lib'),
+    () => updateWebAppBuild(),
+  );
 
   // watch pkg/web_css
-  setupWatcher('/pkg/web_css', path.join(resolveWebCssDirPath(), 'lib'),
-      () => updateWebCssBuild());
+  setupWatcher(
+    '/pkg/web_css',
+    path.join(resolveWebCssDirPath(), 'lib'),
+    () => updateWebCssBuild(),
+  );
 
   // watch /static files
-  setupWatcher('/static', resolveStaticDirPath(),
-      () => registerStaticFileCacheForTest(StaticFileCache.withDefaults()));
+  setupWatcher(
+    '/static',
+    resolveStaticDirPath(),
+    () => registerStaticFileCacheForTest(StaticFileCache.withDefaults()),
+  );
 }

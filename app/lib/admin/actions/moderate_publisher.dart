@@ -25,7 +25,7 @@ can't be updated, administrators must not be able to update publisher options.
     'publisher': 'The publisherId to be moderated',
     'state':
         'Set moderated state true / false. Returns current state if omitted.',
-    'note': 'Optional note to store (internal).'
+    'note': 'Optional note to store (internal).',
   },
   invoke: (options) async {
     final caseId = options['case'];
@@ -38,7 +38,9 @@ can't be updated, administrators must not be able to update publisher options.
 
     final publisher = await publisherBackend.lookupPublisher(publisherId!);
     InvalidInputException.check(
-        publisher != null, 'Unable to locate publisher.');
+      publisher != null,
+      'Unable to locate publisher.',
+    );
 
     final state = options['state'];
     bool? valueToSet;
@@ -53,8 +55,8 @@ can't be updated, administrators must not be able to update publisher options.
 
     final note = options['note'];
 
-    final refCase =
-        await adminBackend.loadAndVerifyModerationCaseForAdminAction(caseId);
+    final refCase = await adminBackend
+        .loadAndVerifyModerationCaseForAdminAction(caseId);
 
     Publisher? publisher2;
     if (valueToSet != null) {

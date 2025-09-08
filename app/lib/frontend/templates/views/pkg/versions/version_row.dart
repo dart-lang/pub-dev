@@ -19,9 +19,7 @@ d.Node versionRowNode(
 }) {
   final sdk = pubspec.minSdkVersion;
   return d.tr(
-    attributes: {
-      'data-version': version.version,
-    },
+    attributes: {'data-version': version.version},
     children: [
       d.td(
         classes: ['version'],
@@ -35,20 +33,19 @@ d.Node versionRowNode(
         classes: ['badge'],
         child: pubspec.hasOptedIntoNullSafety
             ? nullSafeBadgeNode(
-                title: 'Package version is opted into null safety.')
+                title: 'Package version is opted into null safety.',
+              )
             : null,
       ),
       d.td(
         classes: ['sdk'],
         child: sdk != null
             ? d.text(
-                '${sdk.major}.${sdk.minor}${sdk.channel != null ? ' (${sdk.channel})' : ''}')
+                '${sdk.major}.${sdk.minor}${sdk.channel != null ? ' (${sdk.channel})' : ''}',
+              )
             : null,
       ),
-      d.td(
-        classes: ['uploaded'],
-        child: d.xAgoTimestamp(version.published!),
-      ),
+      d.td(classes: ['uploaded'], child: d.xAgoTimestamp(version.published!)),
       d.td(
         classes: ['documentation'],
         child: _documentationCell(package, version, versionStatus),

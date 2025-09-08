@@ -43,9 +43,5 @@ class TocNode {
   /// Children nodes of this node.
   List<TocNode>? children;
 
-  TocNode(
-    this.label, {
-    this.href,
-    this.children,
-  });
+  TocNode(this.label, {this.href, this.children});
 }

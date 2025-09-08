@@ -19,9 +19,9 @@ import '../../shared/urls.dart' as urls;
 import 'models.dart';
 import 'resolver.dart' as resolver;
 
-final _markdownSamples =
-    File(p.join('lib', 'tool', 'test_profile', 'markdown_samples.md'))
-        .readAsStringSync();
+final _markdownSamples = File(
+  p.join('lib', 'tool', 'test_profile', 'markdown_samples.md'),
+).readAsStringSync();
 
 /// Utility class for resolving and getting data for profiles.
 class ImportSource {
@@ -32,10 +32,9 @@ class ImportSource {
 
   late final String pubDevArchiveCachePath;
 
-  ImportSource({
-    String? pubDevArchiveCachePath,
-  }) {
-    this.pubDevArchiveCachePath = pubDevArchiveCachePath ??
+  ImportSource({String? pubDevArchiveCachePath}) {
+    this.pubDevArchiveCachePath =
+        pubDevArchiveCachePath ??
         p.join('.dart_tool', 'pub-test-profile', 'archives');
   }
 
@@ -46,17 +45,17 @@ class ImportSource {
 
   /// Resolve all the package-version required for the [profile].
   Future<List<ResolvedVersion>> resolveImportedVersions(
-      TestProfile profile) async {
+    TestProfile profile,
+  ) async {
     return await resolver.resolveVersions(_client, profile);
   }
 
   Future<List<ResolvedVersion>> resolveGeneratedVersions(
-      TestProfile profile) async {
+    TestProfile profile,
+  ) async {
     final versions = <ResolvedVersion>[];
     profile.generatedPackages.forEach((p) {
-      final vs = <String>[
-        ...?p.versions?.map((v) => v.version),
-      ];
+      final vs = <String>[...?p.versions?.map((v) => v.version)];
       if (vs.isEmpty) {
         final r = Random(p.name.hashCode.abs());
         vs.add('1.${r.nextInt(5)}.${r.nextInt(10)}');
@@ -72,12 +71,10 @@ class ImportSource {
         );
         final created =
             p.versions?.firstWhereOrNull((x) => x.version == v)?.created ??
-                lastCreated.subtract(diff);
-        versions.add(ResolvedVersion(
-          package: p.name,
-          version: v,
-          created: created,
-        ));
+            lastCreated.subtract(diff);
+        versions.add(
+          ResolvedVersion(package: p.name, version: v, created: created),
+        );
         lastCreated = created;
       }
     });
@@ -85,15 +82,19 @@ class ImportSource {
   }
 
   Future<List<int>> getPubDevArchiveBytes(
-      String package, String version) async {
+    String package,
+    String version,
+  ) async {
     final archiveName = '$package-$version.tar.gz';
     final file = File(p.join(pubDevArchiveCachePath, archiveName));
     // download package archive if not already in the cache
     if (!await file.exists()) {
       // TODO: Use archive_url from version-listing, that is stable!
-      final rs = await _client.get(Uri.parse(
-        '${urls.siteRoot}/packages/$package/versions/$version.tar.gz',
-      ));
+      final rs = await _client.get(
+        Uri.parse(
+          '${urls.siteRoot}/packages/$package/versions/$version.tar.gz',
+        ),
+      );
       await file.parent.create(recursive: true);
       await file.writeAsBytes(rs.bodyBytes);
     }
@@ -124,21 +125,17 @@ class ImportSource {
       'description': '$package is awesome',
       if (homepage.isNotEmpty) 'homepage': homepage,
       if (repository.isNotEmpty) 'repository': repository,
-      'environment': {
-        'sdk': '$sdkConstraint',
-      },
+      'environment': {'sdk': '$sdkConstraint'},
       'dependencies': {
         if (isFlutter) 'flutter': {'sdk': 'flutter'},
       },
       'screenshots': [
         {
           'path': '${screenshot.path}',
-          'description': '${screenshot.description}'
-        }
+          'description': '${screenshot.description}',
+        },
       ],
-      'funding': [
-        'https://example.com/funding/$package',
-      ],
+      'funding': ['https://example.com/funding/$package'],
       'topics': ['chemical-element'],
     });
 
@@ -170,7 +167,9 @@ class MainClass {
 enum TypeEnum { a, b }
 ''');
     archive.addFile(
-        'example/example.dart', 'main() {\n  print(\'example\');\n}\n');
+      'example/example.dart',
+      'main() {\n  print(\'example\');\n}\n',
+    );
     archive.addFile('LICENSE', 'All rights reserved.');
     archive.addFileBytes('${screenshot.path}', screenshot.data);
     final content = await archive.toTarGzBytes();
@@ -185,31 +184,35 @@ class ArchiveBuilder {
 
   void addFile(String path, String content) {
     final bytes = utf8.encode(content);
-    _entries.add(TarEntry(
-      TarHeader(
-        name: path,
-        size: bytes.length,
-        mode: 420, // 644₈
+    _entries.add(
+      TarEntry(
+        TarHeader(
+          name: path,
+          size: bytes.length,
+          mode: 420, // 644₈
+        ),
+        Stream<List<int>>.fromIterable([bytes]),
       ),
-      Stream<List<int>>.fromIterable([bytes]),
-    ));
+    );
   }
 
   void addFileBytes(String path, List<int> bytes) {
-    _entries.add(TarEntry(
-      TarHeader(
-        name: path,
-        size: bytes.length,
-        mode: 420, // 644₈
+    _entries.add(
+      TarEntry(
+        TarHeader(
+          name: path,
+          size: bytes.length,
+          mode: 420, // 644₈
+        ),
+        Stream<List<int>>.fromIterable([bytes]),
       ),
-      Stream<List<int>>.fromIterable([bytes]),
-    ));
+    );
   }
 
   Future<List<int>> toTarGzBytes() async {
-    final stream = Stream<TarEntry>.fromIterable(_entries)
-        .transform(tarWriter)
-        .transform(gzip.encoder);
+    final stream = Stream<TarEntry>.fromIterable(
+      _entries,
+    ).transform(tarWriter).transform(gzip.encoder);
     return readByteStream(stream);
   }
 }
@@ -222,7 +225,8 @@ class TestScreenshot {
   TestScreenshot._(this.path, this.description, this.data);
 
   factory TestScreenshot.success() {
-    final validWebp = '''
+    final validWebp =
+        '''
 UklGRhANAABXRUJQVlA4IAQNAACQiACdASpYAlgCPpFIokwlpKOiIpTYALASCWlu/HyZpveLyux8
 ffCn9x/jn4geL39p9L+nx6I/gn0fXjfrp+u/nfuC+wD8GvMH8J+iL2Avxj+Xf6nzNenPamZf/dfQ
 C9g/j/6aftv5rGoF3a/S/4AP5l/N/1f/9ftX/EvAp+f/7L2AP4V/pfU4/Vv9V/cfym9i/41/af/b
@@ -282,7 +286,7 @@ psZJ8x3WTYQ8ufzBYnCqvuXuC2SEy63N3LlviF8iHxXEVDQ/q+1mtx7imxkokVp60Jdr4gyv8lFX
 bVIWlXHlVO/L9+edWfgAmtKVouTlJyYHD8wnzyrgiSKLGVdV4pz+ncACMFDUfxYoaZlC54f5JL98
 4GPIEoNGNHbjt2WimxXrc3cuW9yfGawrQYZLYf4wMt/thm4YQZqJfYk+nkEh3ZTX5xaA5sl0VXFy
 mUkOXEcf93ItLhC1gmieO9NrI42y6//5oAEJFSxq94AAAAAAAAAAAAAAAAAAAA=='''
-        .replaceAll('\n', '');
+            .replaceAll('\n', '');
     return TestScreenshot._(
       'static.webp',
       'This is an awesome screenshot',

@@ -105,12 +105,12 @@ Future<R?> rpc<R>({
     }
     error = (
       exception: e,
-      message: _requestExceptionMessage(asJson) ?? 'Unexpected error: $e'
+      message: _requestExceptionMessage(asJson) ?? 'Unexpected error: $e',
     );
   } catch (e) {
     error = (
       exception: Exception('Unexpected error: $e'),
-      message: 'Unexpected error: $e'
+      message: 'Unexpected error: $e',
     );
   } finally {
     await cancelSpinner();
@@ -134,18 +134,17 @@ Future<R?> rpc<R>({
   return result;
 }
 
-String? _requestExceptionMessage(Map<String, Object?> jsonBody) =>
-    switch (jsonBody) {
-      {'error': {'message': final String errorMessage}} => errorMessage,
-      // TODO: Remove after the server is migrated to return only `{'error': {'message': 'XX'}}`.
-      {'message': final String errorMessage} => errorMessage,
-      // TODO: Check if we ever send responses like this and remove if not.
-      {'error': final String errorMessage} => errorMessage,
-      _ => null,
-    };
+String? _requestExceptionMessage(
+  Map<String, Object?> jsonBody,
+) => switch (jsonBody) {
+  {'error': {'message': final String errorMessage}} => errorMessage,
+  // TODO: Remove after the server is migrated to return only `{'error': {'message': 'XX'}}`.
+  {'message': final String errorMessage} => errorMessage,
+  // TODO: Check if we ever send responses like this and remove if not.
+  {'error': final String errorMessage} => errorMessage,
+  _ => null,
+};
 
 Element _createSpinner() => DivElement()
   ..className = 'spinner-frame'
-  ..children = [
-    DivElement()..className = 'spinner',
-  ];
+  ..children = [DivElement()..className = 'spinner'];

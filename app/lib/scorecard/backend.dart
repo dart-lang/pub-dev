@@ -60,7 +60,8 @@ class ScoreCardBackend {
     final futures = <Future<PackageView?>>[];
     for (final p in packages) {
       futures.add(
-          _packageViewGetterPool.withResource(() async => getPackageView(p)));
+        _packageViewGetterPool.withResource(() async => getPackageView(p)),
+      );
     }
     return await Future.wait(futures);
   }
@@ -114,7 +115,8 @@ class ScoreCardBackend {
   /// If no analysis has been finished for this package, the method loads
   /// the information for the latest version.
   Future<ScoreCardData> getLatestFinishedScoreCardData(String package) async {
-    final version = await taskBackend.latestFinishedVersion(package) ??
+    final version =
+        await taskBackend.latestFinishedVersion(package) ??
         await packageBackend.getLatestVersion(package);
     if (version == null) {
       throw NotFoundException.resource('package "$package"');
@@ -129,7 +131,9 @@ class ScoreCardBackend {
     Package? package,
   }) async {
     InvalidInputException.check(
-        packageVersion != 'latest', 'latest is no longer supported');
+      packageVersion != 'latest',
+      'latest is no longer supported',
+    );
     final cacheEntry = cache.scoreCardData(packageName, packageVersion);
     final cached = await cacheEntry.get();
     if (cached != null) {
@@ -143,11 +147,14 @@ class ScoreCardBackend {
     if (package.isNotVisible) {
       throw ModeratedException.package(packageName);
     }
-    final version =
-        await packageBackend.lookupPackageVersion(packageName, packageVersion);
+    final version = await packageBackend.lookupPackageVersion(
+      packageName,
+      packageVersion,
+    );
     if (version == null) {
       throw NotFoundException(
-          'Package version "$packageName $packageVersion" does not exist.');
+        'Package version "$packageName $packageVersion" does not exist.',
+      );
     }
     if (version.isNotVisible) {
       throw ModeratedException.packageVersion(packageName, packageVersion);
@@ -175,8 +182,9 @@ class ScoreCardBackend {
       runtimeVersion: stateInfo.runtimeVersion,
       updated: summary?.createdAt ?? version.created,
       dartdocReport: DartdocReport(
-        reportStatus:
-            hasDartdocFile ? ReportStatus.success : ReportStatus.failed,
+        reportStatus: hasDartdocFile
+            ? ReportStatus.success
+            : ReportStatus.failed,
       ),
       panaReport: PanaReport.fromSummary(summary, packageStatus: status),
       taskStatus: taskStatus,
@@ -189,22 +197,27 @@ class ScoreCardBackend {
   /// Returns the status of a package and version.
   Future<PackageStatus> getPackageStatus(String package, String version) async {
     final packageKey = _db.emptyKey.append(Package, id: package);
-    final list = await _db
-        .lookup([packageKey, packageKey.append(PackageVersion, id: version)]);
+    final list = await _db.lookup([
+      packageKey,
+      packageKey.append(PackageVersion, id: version),
+    ]);
     final p = list[0] as Package?;
     final pv = list[1] as PackageVersion?;
     return PackageStatus.fromModels(p, pv);
   }
 
   /// Return the version score object served in the API.
-  Future<VersionScore> getVersionScore(String package,
-      {String? version}) async {
+  Future<VersionScore> getVersionScore(
+    String package, {
+    String? version,
+  }) async {
     final pkg = await packageBackend.lookupPackage(package);
     if (pkg == null) {
       throw NotFoundException.resource('package "$package"');
     }
-    final v =
-        (version == null || version == 'latest') ? pkg.latestVersion! : version;
+    final v = (version == null || version == 'latest')
+        ? pkg.latestVersion!
+        : version;
     final pv = await packageBackend.lookupPackageVersion(package, v);
     if (pv == null) {
       throw NotFoundException.resource('package "$package" version "$version"');
@@ -221,8 +234,9 @@ class ScoreCardBackend {
       grantedPoints: card.grantedPubPoints,
       maxPoints: card.maxPubPoints,
       likeCount: pkg.likes,
-      downloadCount30Days:
-          downloadCountsBackend.lookup30DaysTotalCounts(package),
+      downloadCount30Days: downloadCountsBackend.lookup30DaysTotalCounts(
+        package,
+      ),
       tags: tags.toList(),
     );
   }

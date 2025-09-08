@@ -92,7 +92,8 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
   final root = yaml.loadYaml(pubspecYaml);
   if (root is! Map) {
     _logger.warning(
-        'Unable to parse YAML for package, in _fixupBrokenVersionAndConstraints!');
+      'Unable to parse YAML for package, in _fixupBrokenVersionAndConstraints!',
+    );
     return pubspecYaml; // return original as no changes can be made
   }
 
@@ -113,7 +114,8 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
         // sanity check
         if (Version.parse(updated).toString() != updated) {
           throw FormatException(
-              'Sanity check failed on version: `${c.value}`.');
+            'Sanity check failed on version: `${c.value}`.',
+          );
         }
         // do update
         editor.update(c.path, updated);
@@ -125,7 +127,8 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
         // sanity check
         if (VersionConstraint.parse(updated).toString() != updated) {
           throw FormatException(
-              'Sanity check failed on version constraint: `${c.value}`.');
+            'Sanity check failed on version constraint: `${c.value}`.',
+          );
         }
         // do update
         editor.update(c.path, updated);
@@ -168,7 +171,8 @@ String _fixupBrokenVersionAndConstraints(String pubspecYaml) {
   final fixedPubspecYaml = editor.toString();
   if (fixedPubspecYaml == pubspecYaml) {
     _logger.warning(
-        'Updating pubspec.yaml in package:$name failed while fixing versions.');
+      'Updating pubspec.yaml in package:$name failed while fixing versions.',
+    );
   }
 
   return '# Compatibility rewrites applied by pub.dev\n$fixedPubspecYaml';
@@ -179,11 +183,7 @@ class _VersionEditCandidate {
   final String value;
   final bool isVersion;
 
-  _VersionEditCandidate(
-    this.path,
-    this.value, {
-    this.isVersion = false,
-  });
+  _VersionEditCandidate(this.path, this.value, {this.isVersion = false});
 }
 
 List<_VersionEditCandidate> _detectVersionEditCandidates(Map root) {
@@ -215,8 +215,13 @@ List<_VersionEditCandidate> _detectVersionEditCandidates(Map root) {
       for (final pkg in deps.keys.map((e) => e.toString())) {
         final value = deps[pkg];
         if (value is Map && value['version'] is String) {
-          paths.add(_VersionEditCandidate(
-              [dependencyKey, pkg, 'version'], value['version'] as String));
+          paths.add(
+            _VersionEditCandidate([
+              dependencyKey,
+              pkg,
+              'version',
+            ], value['version'] as String),
+          );
         } else if (value is String) {
           paths.add(_VersionEditCandidate([dependencyKey, pkg], value));
         }

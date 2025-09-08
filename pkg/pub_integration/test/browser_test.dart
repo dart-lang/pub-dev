@@ -29,91 +29,93 @@ void main() {
     test('bulk tests', () async {
       // base setup: publish packages
       await httpClient.post(
-          Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
-          body: json.encode({
-            'testProfile': {
-              'defaultUser': 'admin@pub.dev',
-              'generatedPackages': [
-                {
-                  'name': 'retry',
-                  'versions': ['3.1.0'],
-                  'template': {
-                    'markdownSamples': true,
-                  },
-                },
-                {'name': '_dummy_pkg'},
-              ],
-            },
-          }));
+        Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
+        body: json.encode({
+          'testProfile': {
+            'defaultUser': 'admin@pub.dev',
+            'generatedPackages': [
+              {
+                'name': 'retry',
+                'versions': ['3.1.0'],
+                'template': {'markdownSamples': true},
+              },
+              {'name': '_dummy_pkg'},
+            ],
+          },
+        }),
+      );
 
       final user = await fakeTestScenario.createAnonymousTestUser();
 
       // landing page
-      await user.withBrowserPage(
-        (page) async {
-          await page.gotoOrigin('/');
+      await user.withBrowserPage((page) async {
+        await page.gotoOrigin('/');
 
-          // checking if there is a login button
-          await page.hover('#-account-login');
-        },
-      );
+        // checking if there is a login button
+        await page.hover('#-account-login');
+      });
 
       // listing page
-      await user.withBrowserPage(
-        (page) async {
-          await page.gotoOrigin('/packages');
+      await user.withBrowserPage((page) async {
+        await page.gotoOrigin('/packages');
 
-          // check package list
-          final info = await listingPageInfo(page);
-          expect(info.packageNames, containsAll(['_dummy_pkg', 'retry']));
-        },
-      );
+        // check package list
+        final info = await listingPageInfo(page);
+        expect(info.packageNames, containsAll(['_dummy_pkg', 'retry']));
+      });
 
       // package page
-      await user.withBrowserPage(
-        (page) async {
-          await page.gotoOrigin('/packages/retry');
-          await page.takeScreenshots(
-              prefix: 'package-page/readme-page', selector: 'body');
+      await user.withBrowserPage((page) async {
+        await page.gotoOrigin('/packages/retry');
+        await page.takeScreenshots(
+          prefix: 'package-page/readme-page',
+          selector: 'body',
+        );
 
-          // check pub score
-          final pubScoreElem = await page
-              .$('.packages-score-health .packages-score-value-number');
-          final pubScore = await pubScoreElem.textContent();
-          expect(int.parse(pubScore), greaterThanOrEqualTo(30));
+        // check pub score
+        final pubScoreElem = await page.$(
+          '.packages-score-health .packages-score-value-number',
+        );
+        final pubScore = await pubScoreElem.textContent();
+        expect(int.parse(pubScore), greaterThanOrEqualTo(30));
 
-          // check header with name and version
-          Future<void> checkHeaderTitle() async {
-            final headerTitle = await page.$('h1.title');
-            expect(await headerTitle.textContent(), contains('retry 3.1.0'));
-          }
+        // check header with name and version
+        Future<void> checkHeaderTitle() async {
+          final headerTitle = await page.$('h1.title');
+          expect(await headerTitle.textContent(), contains('retry 3.1.0'));
+        }
 
-          await checkHeaderTitle();
-          await _checkCopyToClipboard(page);
+        await checkHeaderTitle();
+        await _checkCopyToClipboard(page);
 
-          await page.gotoOrigin('/packages/retry/versions/3.1.0');
-          await checkHeaderTitle();
+        await page.gotoOrigin('/packages/retry/versions/3.1.0');
+        await checkHeaderTitle();
 
-          // TODO: non-canonical version should redirect and we should test for it
-          await page.gotoOrigin('/packages/retry/versions/3.01.00');
-          await checkHeaderTitle();
+        // TODO: non-canonical version should redirect and we should test for it
+        await page.gotoOrigin('/packages/retry/versions/3.01.00');
+        await checkHeaderTitle();
 
-          await page.gotoOrigin('/packages/retry/license');
-          await checkHeaderTitle();
+        await page.gotoOrigin('/packages/retry/license');
+        await checkHeaderTitle();
 
-          await page.gotoOrigin('/packages/retry/versions');
-          await page.takeScreenshots(
-              prefix: 'package-page/versions-page', selector: 'body');
+        await page.gotoOrigin('/packages/retry/versions');
+        await page.takeScreenshots(
+          prefix: 'package-page/versions-page',
+          selector: 'body',
+        );
 
-          await page.gotoOrigin('/packages/retry/changelog');
-          await page.takeScreenshots(
-              prefix: 'package-page/changelog-page', selector: 'body');
+        await page.gotoOrigin('/packages/retry/changelog');
+        await page.takeScreenshots(
+          prefix: 'package-page/changelog-page',
+          selector: 'body',
+        );
 
-          await page.gotoOrigin('/packages/retry/score');
-          await page.takeScreenshots(
-              prefix: 'package-page/score-page', selector: 'body');
-        },
-      );
+        await page.gotoOrigin('/packages/retry/score');
+        await page.takeScreenshots(
+          prefix: 'package-page/score-page',
+          selector: 'body',
+        );
+      });
 
       // 404 page
       await user.withBrowserPage((page) async {

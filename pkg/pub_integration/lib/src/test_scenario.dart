@@ -84,8 +84,8 @@ final class TestServiceAccount {
   Future<String> getIdToken() => _getIdToken();
 }
 
-typedef WithBrowserPageCallbackFn = Future<T> Function<T>(
-    Future<T> Function(Page page) fn);
+typedef WithBrowserPageCallbackFn =
+    Future<T> Function<T>(Future<T> Function(Page page) fn);
 typedef ReadLatestEmailFn = FutureOr<String> Function();
 typedef CreateCredentialsFn = FutureOr<Map<String, Object?>> Function();
 

@@ -27,58 +27,70 @@ void scopedTest(
   dynamic skip,
   Iterable<Pattern>? expectedLogMessages,
 }) {
-  test(name, () async {
-    final logMessages = <String>{};
-    final logSubscription = Logger.root.onRecord
-        .where((r) => r.level.value >= Level.SEVERE.value)
-        .listen((r) => logMessages.add('${r.level} ${r.message}'));
-    try {
-      await fork(() async {
-        // double fork to allow further override
-        registerActiveConfiguration(Configuration.test());
-        registerAnnouncementBackend(AnnouncementBackend());
-        return await fork(() async => func());
-      });
-    } finally {
-      await logSubscription.cancel();
-    }
-    final allMatchedMessages = <String>{};
-    for (final p in expectedLogMessages ?? const <Pattern>[]) {
-      final matchedMessages =
-          logMessages.where((m) => p.matchAsPrefix(m) != null).toList();
-      if (matchedMessages.isEmpty) {
-        throw AssertionError(
-            'Expected log message pattern "$p", but was absent.');
+  test(
+    name,
+    () async {
+      final logMessages = <String>{};
+      final logSubscription = Logger.root.onRecord
+          .where((r) => r.level.value >= Level.SEVERE.value)
+          .listen((r) => logMessages.add('${r.level} ${r.message}'));
+      try {
+        await fork(() async {
+          // double fork to allow further override
+          registerActiveConfiguration(Configuration.test());
+          registerAnnouncementBackend(AnnouncementBackend());
+          return await fork(() async => func());
+        });
+      } finally {
+        await logSubscription.cancel();
       }
-      allMatchedMessages.addAll(matchedMessages);
-    }
-    // remove known messages that can be ignored for now
-    // TODO: investigate why these messages are flaky
-    logMessages.removeWhere((m) =>
-        allMatchedMessages.contains(m) ||
-        m.startsWith('SEVERE failed to delete task-worker ') ||
-        m.startsWith('SHOUT Download counts sync was partial.') ||
-        (m.startsWith('SEVERE Failed to proccess line') &&
-            m.contains('daily_download_counts')) ||
-        m.contains(
-            'appeared in download counts data for file daily_download_counts') ||
-        (m.startsWith('SEVERE daily_download_counts') &&
-            m.endsWith('.jsonl is empty.')) ||
-        m.startsWith(
-            'SEVERE [pub-search-not-working] Search is temporarily impaired'));
-    expect(logMessages, isEmpty);
-  }, timeout: timeout, skip: skip);
+      final allMatchedMessages = <String>{};
+      for (final p in expectedLogMessages ?? const <Pattern>[]) {
+        final matchedMessages = logMessages
+            .where((m) => p.matchAsPrefix(m) != null)
+            .toList();
+        if (matchedMessages.isEmpty) {
+          throw AssertionError(
+            'Expected log message pattern "$p", but was absent.',
+          );
+        }
+        allMatchedMessages.addAll(matchedMessages);
+      }
+      // remove known messages that can be ignored for now
+      // TODO: investigate why these messages are flaky
+      logMessages.removeWhere(
+        (m) =>
+            allMatchedMessages.contains(m) ||
+            m.startsWith('SEVERE failed to delete task-worker ') ||
+            m.startsWith('SHOUT Download counts sync was partial.') ||
+            (m.startsWith('SEVERE Failed to proccess line') &&
+                m.contains('daily_download_counts')) ||
+            m.contains(
+              'appeared in download counts data for file daily_download_counts',
+            ) ||
+            (m.startsWith('SEVERE daily_download_counts') &&
+                m.endsWith('.jsonl is empty.')) ||
+            m.startsWith(
+              'SEVERE [pub-search-not-working] Search is temporarily impaired',
+            ),
+      );
+      expect(logMessages, isEmpty);
+    },
+    timeout: timeout,
+    skip: skip,
+  );
 }
 
 /// Pretty printing [input] using HTML parser and XML formatter.
 String prettyPrintHtml(String input, {bool isFragment = false}) {
-  final htmlDoc =
-      isFragment ? parseFragment('<fragment>$input</fragment>') : parse(input);
+  final htmlDoc = isFragment
+      ? parseFragment('<fragment>$input</fragment>')
+      : parse(input);
   return htmlDoc.toXml().toXmlString(
-            pretty: true,
-            indent: '  ',
-            entityMapping: xml.XmlDefaultEntityMapping.html5(),
-          ) +
+        pretty: true,
+        indent: '  ',
+        entityMapping: xml.XmlDefaultEntityMapping.html5(),
+      ) +
       '\n';
 }
 
@@ -102,7 +114,8 @@ extension ToXmlExt on Node {
         return xml.XmlElement(
           xml.XmlName(tag),
           e.attributes.entries.map(
-              (e) => xml.XmlAttribute(xml.XmlName(e.key.toString()), e.value)),
+            (e) => xml.XmlAttribute(xml.XmlName(e.key.toString()), e.value),
+          ),
           e.nodes.map((e) => e.toXml()).toList(),
           isSelfClosing(tag),
         );

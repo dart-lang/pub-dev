@@ -18,8 +18,10 @@ Future<void> _done = Future.value();
 
 /// Ensure only one task runs at the same time.
 void _enqueue(Future<void> Function() task) {
-  _done = _done.then((_) => task(),
-      onError: (Object? e) => print('Action failed: $e'));
+  _done = _done.then(
+    (_) => task(),
+    onError: (Object? e) => print('Action failed: $e'),
+  );
 }
 
 void setupLikesList() {
@@ -45,8 +47,9 @@ void setupLikesList() {
 }
 
 void setupLikes() {
-  for (final likeButton
-      in document.querySelectorAll('.like-button-and-label--button')) {
+  for (final likeButton in document.querySelectorAll(
+    '.like-button-and-label--button',
+  )) {
     final package = likeButton.dataset['package'];
     final originalCount = int.tryParse(likeButton.dataset['value'] ?? '');
 
@@ -58,8 +61,9 @@ void setupLikes() {
 
     void updateLabels() {
       final likesCount = originalCount + likesDelta;
-      final countLabel =
-          likeButton.parent?.querySelector('.like-button-and-label--count');
+      final countLabel = likeButton.parent?.querySelector(
+        '.like-button-and-label--count',
+      );
       if (countLabel != null) {
         // keep in-sync with app/lib/frontend/templates/views/pkg/liked_package_list.dart
         countLabel.innerText = formatWithSuffix(likesCount);
@@ -68,18 +72,19 @@ void setupLikes() {
       // keep in-sync with app/lib/frontend/templates/views/pkg/labeled_scores.dart
       final formatted = compactFormat(likesCount);
       final labeledScoreLikeString = '${formatted.value}${formatted.suffix}';
-      final labeledLikes = querySelectorAll('.packages-score-like')
-          .where((e) => e.dataset['package'] == package)
-          .toList();
+      final labeledLikes = querySelectorAll(
+        '.packages-score-like',
+      ).where((e) => e.dataset['package'] == package).toList();
       for (final labeledLike in labeledLikes) {
         labeledLike.querySelector('.packages-score-value-number')?.text =
             labeledScoreLikeString;
       }
 
       // keep in-sync with app/lib/frontend/templates/views/pkg/score_tab.dart
-      querySelector('.score-key-figure--likes')
-          ?.querySelector('.score-key-figure-value')
-          ?.text = labeledScoreLikeString;
+      querySelector(
+            '.score-key-figure--likes',
+          )?.querySelector('.score-key-figure-value')?.text =
+          labeledScoreLikeString;
     }
 
     final iconButtonToggle = MDCIconButtonToggle(likeButton);
@@ -87,7 +92,8 @@ void setupLikes() {
       if (isNotAuthenticated) {
         iconButtonToggle.on = false;
         final content = ParagraphElement()
-          ..text = 'You need to be signed-in to like packages. '
+          ..text =
+              'You need to be signed-in to like packages. '
               'Would you like to visit the authentication page?';
         final redirect = await modalConfirm(content);
         if (redirect) {

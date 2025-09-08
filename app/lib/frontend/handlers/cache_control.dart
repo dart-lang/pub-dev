@@ -36,18 +36,18 @@ final class CacheControl {
   /// Create `Cache-Control` and `Expires` headers for this [CacheControl]
   /// configuration.
   Map<String, String> get headers => {
-        'Cache-Control': [
-          if (noStore) 'no-store',
-          if (noCache) 'no-cache',
-          if (mustRevalidate) 'must-revalidate',
-          if (private) 'private',
-          if (public) 'public',
-          if (maxAge case final maxage?) 'max-age=${maxage.inSeconds}'
-        ].join(', '),
-        'Expires': HttpDate.format(clock.fromNowBy(
-          maxAge ?? Duration(minutes: -5),
-        )),
-      };
+    'Cache-Control': [
+      if (noStore) 'no-store',
+      if (noCache) 'no-cache',
+      if (mustRevalidate) 'must-revalidate',
+      if (private) 'private',
+      if (public) 'public',
+      if (maxAge case final maxage?) 'max-age=${maxage.inSeconds}',
+    ].join(', '),
+    'Expires': HttpDate.format(
+      clock.fromNowBy(maxAge ?? Duration(minutes: -5)),
+    ),
+  };
 
   /// `Cache-Control` headers for static files where the URL includes a hash!
   static const staticFiles = CacheControl(

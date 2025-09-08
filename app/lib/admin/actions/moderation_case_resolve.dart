@@ -17,16 +17,20 @@ Closes the moderation case and updates the status based on the actions logged on
 ''',
   options: {
     'case': 'The caseId to be closed.',
-    'status': 'The resolved status of the case '
+    'status':
+        'The resolved status of the case '
         '(optional, will be automatically inferred if absent). '
         'One of: ${ModerationStatus.resolveValues.join(', ')}.',
-    'grounds': 'The grounds for the moderation actions '
+    'grounds':
+        'The grounds for the moderation actions '
         '(if moderation action was taken). '
         'One of: ${ModerationGrounds.resolveValues.join(', ')}.',
-    'violation': 'The high-level category of the violation reason '
+    'violation':
+        'The high-level category of the violation reason '
         '(if moderation action was taken). '
         'One of: ${ModerationViolation.violationValues.join(', ')}.',
-    'reason': 'The text from SOR statement sent to the user '
+    'reason':
+        'The text from SOR statement sent to the user '
         '(if moderation action was taken).',
   },
   invoke: (options) async {
@@ -51,7 +55,8 @@ Closes the moderation case and updates the status based on the actions logged on
 
     final mc = await withRetryTransaction(dbService, (tx) async {
       final mc = await tx.lookupOrNull<ModerationCase>(
-          dbService.emptyKey.append(ModerationCase, id: caseId!));
+        dbService.emptyKey.append(ModerationCase, id: caseId!),
+      );
       if (mc == null) {
         throw NotFoundException.resource(caseId);
       }
@@ -69,11 +74,12 @@ Closes the moderation case and updates the status based on the actions logged on
               ? ModerationStatus.moderationApplied
               : ModerationStatus.noAction;
         } else if (mc.kind == ModerationKind.appeal) {
-          final appealedCase = await tx.lookupValue<ModerationCase>(dbService
-              .emptyKey
-              .append(ModerationCase, id: mc.appealedCaseId!));
-          final appealHadModeratedAction =
-              appealedCase.getActionLog().isNotEmpty;
+          final appealedCase = await tx.lookupValue<ModerationCase>(
+            dbService.emptyKey.append(ModerationCase, id: mc.appealedCaseId!),
+          );
+          final appealHadModeratedAction = appealedCase
+              .getActionLog()
+              .isNotEmpty;
           if (appealHadModeratedAction) {
             status = hasModeratedAction
                 ? ModerationStatus.moderationReverted
@@ -107,9 +113,13 @@ Closes the moderation case and updates the status based on the actions logged on
         InvalidInputException.checkStringLength(reason, 'reason', minimum: 10);
       } else {
         InvalidInputException.check(
-            grounds == ModerationGrounds.none, '"grounds" must be `none`');
-        InvalidInputException.check(violation == ModerationViolation.none,
-            '"violation" must be `none`');
+          grounds == ModerationGrounds.none,
+          '"grounds" must be `none`',
+        );
+        InvalidInputException.check(
+          violation == ModerationViolation.none,
+          '"violation" must be `none`',
+        );
         InvalidInputException.checkNull(reason, 'reason');
       }
 

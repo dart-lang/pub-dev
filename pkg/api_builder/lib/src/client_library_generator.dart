@@ -33,15 +33,19 @@ class ClientLibraryGenerator extends EndPointGenerator {
   Future<String> generateForClasses(
     Map<ClassElement, List<Handler>> classes,
   ) async {
-    return code.Library((b) => b
-          ..directives.add(code.Directive.export(
-            'package:api_builder/_client_utils.dart',
-            show: ['RequestException'],
-          ))
-          ..body.addAll([
-            for (final cls in classes.entries)
-              _buildClientClass(cls.key, cls.value),
-          ]))
+    return code.Library(
+          (b) => b
+            ..directives.add(
+              code.Directive.export(
+                'package:api_builder/_client_utils.dart',
+                show: ['RequestException'],
+              ),
+            )
+            ..body.addAll([
+              for (final cls in classes.entries)
+                _buildClientClass(cls.key, cls.value),
+            ]),
+        )
         .accept(
           code.DartEmitter(
             allocator: code.Allocator.simplePrefixing(),
@@ -52,10 +56,7 @@ class ClientLibraryGenerator extends EndPointGenerator {
   }
 }
 
-code.Class _buildClientClass(
-  ClassElement cls,
-  List<Handler> handlers,
-) =>
+code.Class _buildClientClass(ClassElement cls, List<Handler> handlers) =>
     code.Class(
       (b) => b
         ..docs.addAll([
@@ -68,39 +69,53 @@ code.Class _buildClientClass(
           '/// as bytes',
         ])
         ..name = '${cls.name}Client'
-        ..fields.add(code.Field(
-          (b) => b
-            ..name = '_client'
-            ..type =
-                code.refer('Client', 'package:api_builder/_client_utils.dart')
-            ..modifier = code.FieldModifier.final$,
-        ))
-        ..constructors.add(code.Constructor((b) => b
-          ..requiredParameters.add(code.Parameter(
+        ..fields.add(
+          code.Field(
             (b) => b
-              ..name = 'baseUrl'
-              ..type = code.refer('String'),
-          ))
-          ..optionalParameters.add(code.Parameter(
+              ..name = '_client'
+              ..type = code.refer(
+                'Client',
+                'package:api_builder/_client_utils.dart',
+              )
+              ..modifier = code.FieldModifier.final$,
+          ),
+        )
+        ..constructors.add(
+          code.Constructor(
             (b) => b
-              ..name = 'client'
-              ..named = true
-              ..type = code.refer('Client?', 'package:http/http.dart'),
-          ))
-          ..initializers.add(
-            code
-                .refer('_client')
-                .assign(
-                  code
-                      .refer('Client', 'package:api_builder/_client_utils.dart')
-                      .call([
-                    code.refer('baseUrl'),
-                  ], {
-                    'client': code.refer('client'),
-                  }),
-                )
-                .code,
-          )))
+              ..requiredParameters.add(
+                code.Parameter(
+                  (b) => b
+                    ..name = 'baseUrl'
+                    ..type = code.refer('String'),
+                ),
+              )
+              ..optionalParameters.add(
+                code.Parameter(
+                  (b) => b
+                    ..name = 'client'
+                    ..named = true
+                    ..type = code.refer('Client?', 'package:http/http.dart'),
+                ),
+              )
+              ..initializers.add(
+                code
+                    .refer('_client')
+                    .assign(
+                      code
+                          .refer(
+                            'Client',
+                            'package:api_builder/_client_utils.dart',
+                          )
+                          .call(
+                            [code.refer('baseUrl')],
+                            {'client': code.refer('client')},
+                          ),
+                    )
+                    .code,
+              ),
+          ),
+        )
         ..methods.addAll(
           _removeDuplicateHandlers(handlers).map(_buildClientMethod),
         ),
@@ -111,9 +126,7 @@ code.Class _buildClientClass(
 /// This will match `'user/<userId|.*>'` as `['user/', 'userId', '.*']`.
 final _parser = RegExp(r'([^<]*)(?:<([^>|]+)(?:\|([^>]*))?>)?');
 
-code.Method _buildClientMethod(
-  Handler h,
-) {
+code.Method _buildClientMethod(Handler h) {
   // Find url parameters
   final params = _parser.allMatches(h.route).map((m) => m[2]).nonNulls.toList();
   // Create a url pattern that embeds parameters above
@@ -140,18 +153,20 @@ code.Method _buildClientMethod(
   // Map<String,String> (used later in the generated code)
   final queryMap =
       h.queryParameters.map((p) => '${p.name} != null').join(' || ') +
-          ' ? <String,String>{' +
-          h.queryParameters
-              .map((p) => 'if (${p.name} != null) \'${p.name}\': ${p.name}')
-              .join(', ') +
-          '} : null';
+      ' ? <String,String>{' +
+      h.queryParameters
+          .map((p) => 'if (${p.name} != null) \'${p.name}\': ${p.name}')
+          .join(', ') +
+      '} : null';
 
   return code.Method(
     (b) => b
       ..name = h.element.name
-      ..returns = code.TypeReference((b) => b
-        ..symbol = 'Future'
-        ..types.add(returnTypeRef))
+      ..returns = code.TypeReference(
+        (b) => b
+          ..symbol = 'Future'
+          ..types.add(returnTypeRef),
+      )
       ..requiredParameters.addAll([
         for (final param in params)
           code.Parameter(
@@ -164,7 +179,7 @@ code.Method _buildClientMethod(
             (b) => b
               ..name = 'payload'
               ..type = _referToType(h.payloadType!),
-          )
+          ),
       ])
       ..optionalParameters.addAll([
         for (final param in h.queryParameters)
@@ -173,23 +188,31 @@ code.Method _buildClientMethod(
               ..name = param.name
               ..type = code.refer('String?')
               ..named = true,
-          )
+          ),
       ])
       ..modifier = code.MethodModifier.async
-      ..body = returnsResponse ? Code.scope((r) => '''
+      ..body = returnsResponse
+          ? Code.scope(
+              (r) =>
+                  '''
         return await _client.requestBytes(
           verb: '${h.verb.toLowerCase()}',
           path: '$urlPattern',
           ${h.queryParameters.isEmpty ? '' : 'query: ' + queryMap + ','}
           ${h.hasPayload ? 'body: payload.toJson(),' : ''}
         );
-      ''') : Code.scope((r) => '''
+      ''',
+            )
+          : Code.scope(
+              (r) =>
+                  '''
         return ${r(returnTypeRef)}.fromJson(await _client.requestJson(
           verb: '${h.verb.toLowerCase()}',
           path: '$urlPattern',
           ${h.queryParameters.isEmpty ? '' : 'query: ' + queryMap + ','}
           ${h.hasPayload ? 'body: payload.toJson(),' : ''}
         ));
-      '''),
+      ''',
+            ),
   );
 }

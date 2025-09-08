@@ -168,12 +168,11 @@ final _transactionRetrier = RetryOptions(
 Future<T> withRetryTransaction<T>(
   DatastoreDB db,
   Future<T> Function(TransactionWrapper tx) fn,
-) =>
-    _transactionRetrier.retry<T>(
-      () => _withTransaction<T>(db, fn),
-      retryIf: _retryIf,
-      onRetry: (e) => _onRetry('transaction', e),
-    );
+) => _transactionRetrier.retry<T>(
+  () => _withTransaction<T>(db, fn),
+  retryIf: _retryIf,
+  onRetry: (e) => _onRetry('transaction', e),
+);
 
 // TODO(jonasfj): Over time we want reduce the number exceptions on which
 //                we retry. The following is a list of exceptions we know
@@ -183,7 +182,8 @@ Future<T> withRetryTransaction<T>(
 bool _retryIf(Exception e) => e is! ResponseException;
 
 void _onRetry(String op, Exception e) {
-  final message =
-      e is ds.DatastoreError ? 'DatastoreError' : 'non-DatastoreError';
+  final message = e is ds.DatastoreError
+      ? 'DatastoreError'
+      : 'non-DatastoreError';
   _logger.info('retrying $op - $message ${e.runtimeType}', e);
 }

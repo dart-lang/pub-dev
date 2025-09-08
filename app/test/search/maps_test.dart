@@ -14,15 +14,18 @@ void main() {
     late InMemoryPackageIndex index;
 
     setUpAll(() async {
-      index = InMemoryPackageIndex(documents: [
-        PackageDocument(package: 'maps', updated: DateTime(2020, 10, 2)),
-        PackageDocument(package: 'map', updated: DateTime(2020, 10, 1)),
-      ]);
+      index = InMemoryPackageIndex(
+        documents: [
+          PackageDocument(package: 'maps', updated: DateTime(2020, 10, 2)),
+          PackageDocument(package: 'map', updated: DateTime(2020, 10, 1)),
+        ],
+      );
     });
 
     test('maps', () async {
       final PackageSearchResult result = index.search(
-          ServiceSearchQuery.parse(query: 'maps', order: SearchOrder.text));
+        ServiceSearchQuery.parse(query: 'maps', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,
@@ -36,7 +39,8 @@ void main() {
 
     test('map', () async {
       final PackageSearchResult result = index.search(
-          ServiceSearchQuery.parse(query: 'map', order: SearchOrder.text));
+        ServiceSearchQuery.parse(query: 'map', order: SearchOrder.text),
+      );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
         'totalCount': 2,

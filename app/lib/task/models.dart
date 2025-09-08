@@ -79,10 +79,7 @@ class PackageState extends db.ExpandoModel<String> {
     String runtimeVersion,
     String packageName,
   ) =>
-      emptyKey.append<String>(
-        PackageState,
-        id: '$runtimeVersion/$packageName',
-      );
+      emptyKey.append<String>(PackageState, id: '$runtimeVersion/$packageName');
 
   /// Set the [id] using given [runtimeVersion] and [packageName].
   void setId(String runtimeVersion, String packageName) =>
@@ -331,28 +328,25 @@ class PackageVersionStateInfo {
 
 /// A [db.Property] encoding a Map from version to [PackageVersionStateInfo] as JSON.
 class PackageVersionStateMapProperty extends db.Property {
-  const PackageVersionStateMapProperty(
-      {super.propertyName, super.required = false})
-      : super(indexed: false);
+  const PackageVersionStateMapProperty({
+    super.propertyName,
+    super.required = false,
+  }) : super(indexed: false);
 
   @override
   Object? encodeValue(
     db.ModelDB mdb,
     Object? value, {
     bool forComparison = false,
-  }) =>
-      json.encode((value as Map<String, PackageVersionStateInfo>).map(
-        (version, state) => MapEntry(
-          version,
-          _$PackageVersionStateInfoToJson(state),
-        ),
-      ));
+  }) => json.encode(
+    (value as Map<String, PackageVersionStateInfo>).map(
+      (version, state) =>
+          MapEntry(version, _$PackageVersionStateInfoToJson(state)),
+    ),
+  );
 
   @override
-  Object? decodePrimitiveValue(
-    db.ModelDB mdb,
-    Object? value,
-  ) =>
+  Object? decodePrimitiveValue(db.ModelDB mdb, Object? value) =>
       (json.decode(value as String) as Map<String, dynamic>).map(
         (version, state) => MapEntry(
           version,
@@ -385,9 +379,7 @@ class PackageStateInfo {
     required this.versions,
   });
 
-  factory PackageStateInfo.empty({
-    required String package,
-  }) {
+  factory PackageStateInfo.empty({required String package}) {
     return PackageStateInfo(
       runtimeVersion: shared_versions.runtimeVersion,
       package: package,
@@ -422,10 +414,7 @@ class AbortedTokenInfo {
   final String token;
   final DateTime expires;
 
-  AbortedTokenInfo({
-    required this.token,
-    required this.expires,
-  });
+  AbortedTokenInfo({required this.token, required this.expires});
 
   factory AbortedTokenInfo.fromJson(Map<String, dynamic> m) =>
       _$AbortedTokenInfoFromJson(m);
@@ -441,27 +430,23 @@ class AbortedTokenInfo {
 /// A [db.Property] encoding a List os [AbortedTokenInfo] as JSON.
 class AbortedTokenListProperty extends db.Property {
   const AbortedTokenListProperty({super.propertyName, super.required = false})
-      : super(indexed: false);
+    : super(indexed: false);
 
   @override
   Object? encodeValue(
     db.ModelDB mdb,
     Object? value, {
     bool forComparison = false,
-  }) =>
-      json.encode(
-          (value as List<AbortedTokenInfo>?)?.map((e) => e.toJson()).toList());
+  }) => json.encode(
+    (value as List<AbortedTokenInfo>?)?.map((e) => e.toJson()).toList(),
+  );
 
   @override
-  Object? decodePrimitiveValue(
-    db.ModelDB mdb,
-    Object? value,
-  ) =>
-      value == null
-          ? null
-          : (json.decode(value as String) as List?)
-              ?.map((e) => AbortedTokenInfo.fromJson(e as Map<String, dynamic>))
-              .toList();
+  Object? decodePrimitiveValue(db.ModelDB mdb, Object? value) => value == null
+      ? null
+      : (json.decode(value as String) as List?)
+            ?.map((e) => AbortedTokenInfo.fromJson(e as Map<String, dynamic>))
+            .toList();
 
   @override
   bool validate(db.ModelDB mdb, Object? value) =>

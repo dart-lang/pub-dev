@@ -14,11 +14,11 @@ import 'package:test/test.dart';
 void main() {
   group('EmailSenderBase', () {
     EmailMessage newEmailMessage() => EmailMessage(
-          EmailAddress('admin@pub.dev'),
-          [EmailAddress('user@pub.dev')],
-          'subject',
-          'bodyText',
-        );
+      EmailAddress('admin@pub.dev'),
+      [EmailAddress('user@pub.dev')],
+      'subject',
+      'bodyText',
+    );
 
     test('sending email', () async {
       final log = <String>[];
@@ -32,9 +32,7 @@ void main() {
 
       log.clear();
       await sender.sendMessage(newEmailMessage());
-      expect(log, [
-        '#0 sending to user@pub.dev',
-      ]);
+      expect(log, ['#0 sending to user@pub.dev']);
 
       log.clear();
       await withClock(Clock.fixed(clock.minutesFromNow(2)), () async {

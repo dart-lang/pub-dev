@@ -97,10 +97,7 @@ final class ClockController {
   final DateTime Function() _originalTime;
   Duration _offset;
 
-  ClockController._(
-    this._originalTime,
-    this._offset,
-  );
+  ClockController._(this._originalTime, this._offset);
 
   DateTime _controlledTime() => _originalTime().add(_offset);
 
@@ -121,10 +118,7 @@ final class ClockController {
   /// This value is `null` when [_pendingTimers] is empty.
   Timer? _timerForFirstPendingTimer;
 
-  _TravelingTimer _createTimer(
-    Duration duration,
-    void Function() fn,
-  ) {
+  _TravelingTimer _createTimer(Duration duration, void Function() fn) {
     final timer = _TravelingTimer(
       owner: this,
       createdInControlledTime: _controlledTime(),
@@ -194,17 +188,11 @@ final class ClockController {
     // Trigger the callback for the pending timer.
     for (final triggeredTimer in triggeredTimers) {
       try {
-        triggeredTimer._zone.runUnary(
-          triggeredTimer._trigger,
-          triggeredTimer,
-        );
+        triggeredTimer._zone.runUnary(triggeredTimer._trigger, triggeredTimer);
       } catch (error, stackTrace) {
         // Documentation is unclear about whether or not an exception can be
         // thrown here.
-        triggeredTimer._zone.handleUncaughtError(
-          error,
-          stackTrace,
-        );
+        triggeredTimer._zone.handleUncaughtError(error, stackTrace);
       }
     }
   }
@@ -257,15 +245,16 @@ final class ClockController {
     int seconds = 0,
     int milliseconds = 0,
     int microseconds = 0,
-  }) =>
-      elapseTime(Duration(
-        days: days,
-        hours: hours,
-        minutes: minutes,
-        seconds: seconds,
-        milliseconds: milliseconds,
-        microseconds: microseconds,
-      ));
+  }) => elapseTime(
+    Duration(
+      days: days,
+      hours: hours,
+      minutes: minutes,
+      seconds: seconds,
+      milliseconds: milliseconds,
+      microseconds: microseconds,
+    ),
+  );
 
   void elapseSync({
     int days = 0,
@@ -274,15 +263,16 @@ final class ClockController {
     int seconds = 0,
     int milliseconds = 0,
     int microseconds = 0,
-  }) =>
-      elapseTimeSync(Duration(
-        days: days,
-        hours: hours,
-        minutes: minutes,
-        seconds: seconds,
-        milliseconds: milliseconds,
-        microseconds: microseconds,
-      ));
+  }) => elapseTimeSync(
+    Duration(
+      days: days,
+      hours: hours,
+      minutes: minutes,
+      seconds: seconds,
+      milliseconds: milliseconds,
+      microseconds: microseconds,
+    ),
+  );
 
   Future<void> elapseTime(Duration duration) {
     if (duration.isNegative) {
@@ -362,7 +352,9 @@ final class ClockController {
 
   /// Expect [condition] to return `true` until [duration] has elapsed.
   Future<void> expectUntil(
-      FutureOr<bool> Function() condition, Duration duration) async {
+    FutureOr<bool> Function() condition,
+    Duration duration,
+  ) async {
     try {
       await elapseUntil(() async {
         return !await condition();
@@ -465,11 +457,11 @@ final class _TravelingTimer {
     required Zone zone,
     required Duration duration,
     required void Function() trigger,
-  })  : _owner = owner,
-        _createdInControlledTime = createdInControlledTime,
-        _zone = zone,
-        _duration = duration,
-        _trigger = ((_) => trigger());
+  }) : _owner = owner,
+       _createdInControlledTime = createdInControlledTime,
+       _zone = zone,
+       _duration = duration,
+       _trigger = ((_) => trigger());
 
   void cancel() => _owner._cancelPendingTimer(this);
 }

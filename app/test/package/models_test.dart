@@ -115,10 +115,7 @@ version: 1.0.9
 
     group('legacy sdk', () {
       Pubspec pubspecWithEnv(Map<String, String> env) {
-        return Pubspec.fromJson({
-          'name': 'test',
-          'environment': env,
-        });
+        return Pubspec.fromJson({'name': 'test', 'environment': env});
       }
 
       test('no environment', () {
@@ -130,45 +127,69 @@ version: 1.0.9
       });
 
       test('only Dart 1', () {
-        expect(pubspecWithEnv({'sdk': '>=1.0.0 <2.0.0'}).supportsOnlyLegacySdk,
-            true);
-        expect(pubspecWithEnv({'sdk': '>=1.0.0 <2.0.0'}).isDart3Incompatible,
-            false);
+        expect(
+          pubspecWithEnv({'sdk': '>=1.0.0 <2.0.0'}).supportsOnlyLegacySdk,
+          true,
+        );
+        expect(
+          pubspecWithEnv({'sdk': '>=1.0.0 <2.0.0'}).isDart3Incompatible,
+          false,
+        );
       });
 
       test('Dart 1 and 2', () {
-        expect(pubspecWithEnv({'sdk': '>=1.0.0 <3.0.0'}).supportsOnlyLegacySdk,
-            false);
-        expect(pubspecWithEnv({'sdk': '>=1.0.0 <3.0.0'}).isDart3Incompatible,
-            true);
+        expect(
+          pubspecWithEnv({'sdk': '>=1.0.0 <3.0.0'}).supportsOnlyLegacySdk,
+          false,
+        );
+        expect(
+          pubspecWithEnv({'sdk': '>=1.0.0 <3.0.0'}).isDart3Incompatible,
+          true,
+        );
       });
 
       test('Dart pre-2.12', () {
-        expect(pubspecWithEnv({'sdk': '>=2.0.0 <3.0.0'}).supportsOnlyLegacySdk,
-            false);
-        expect(pubspecWithEnv({'sdk': '>=2.0.0 <3.0.0'}).isDart3Incompatible,
-            true);
+        expect(
+          pubspecWithEnv({'sdk': '>=2.0.0 <3.0.0'}).supportsOnlyLegacySdk,
+          false,
+        );
+        expect(
+          pubspecWithEnv({'sdk': '>=2.0.0 <3.0.0'}).isDart3Incompatible,
+          true,
+        );
       });
 
       test('Dart post-2.12', () {
-        expect(pubspecWithEnv({'sdk': '>=2.12.0 <3.0.0'}).supportsOnlyLegacySdk,
-            false);
-        expect(pubspecWithEnv({'sdk': '>=2.12.0 <3.0.0'}).isDart3Incompatible,
-            false);
+        expect(
+          pubspecWithEnv({'sdk': '>=2.12.0 <3.0.0'}).supportsOnlyLegacySdk,
+          false,
+        );
+        expect(
+          pubspecWithEnv({'sdk': '>=2.12.0 <3.0.0'}).isDart3Incompatible,
+          false,
+        );
       });
 
       test('Dart 2 and 3', () {
-        expect(pubspecWithEnv({'sdk': '>=2.0.0 <4.0.0'}).supportsOnlyLegacySdk,
-            false);
-        expect(pubspecWithEnv({'sdk': '>=2.0.0 <4.0.0'}).isDart3Incompatible,
-            true);
+        expect(
+          pubspecWithEnv({'sdk': '>=2.0.0 <4.0.0'}).supportsOnlyLegacySdk,
+          false,
+        );
+        expect(
+          pubspecWithEnv({'sdk': '>=2.0.0 <4.0.0'}).isDart3Incompatible,
+          true,
+        );
       });
 
       test('Dart 3', () {
-        expect(pubspecWithEnv({'sdk': '>=3.0.0 <4.0.0'}).supportsOnlyLegacySdk,
-            false);
-        expect(pubspecWithEnv({'sdk': '>=3.0.0 <4.0.0'}).isDart3Incompatible,
-            false);
+        expect(
+          pubspecWithEnv({'sdk': '>=3.0.0 <4.0.0'}).supportsOnlyLegacySdk,
+          false,
+        );
+        expect(
+          pubspecWithEnv({'sdk': '>=3.0.0 <4.0.0'}).isDart3Incompatible,
+          false,
+        );
       });
     });
 
@@ -179,18 +200,22 @@ version: 1.0.9
         expect(p.dependsOnFlutterSdk, isFalse);
       });
       test('Depends on Flutter SDK', () {
-        final Pubspec p = Pubspec(pubspecBase +
-            'dependencies:\n'
-                '  flutter:\n'
-                '    sdk: flutter\n');
+        final Pubspec p = Pubspec(
+          pubspecBase +
+              'dependencies:\n'
+                  '  flutter:\n'
+                  '    sdk: flutter\n',
+        );
         expect(p.hasFlutterPlugin, isFalse);
         expect(p.dependsOnFlutterSdk, isTrue);
       });
       test('Has flutter plugin', () {
-        final Pubspec p = Pubspec(pubspecBase +
-            'flutter:\n'
-                '  plugin:\n'
-                '    androidPackage: com.example.EntryPoint\n');
+        final Pubspec p = Pubspec(
+          pubspecBase +
+              'flutter:\n'
+                  '  plugin:\n'
+                  '    androidPackage: com.example.EntryPoint\n',
+        );
         expect(p.hasFlutterPlugin, isTrue);
         expect(p.dependsOnFlutterSdk, isFalse);
       });
@@ -198,8 +223,8 @@ version: 1.0.9
 
     group('preview analysis SDK', () {
       final nextDartSdk = semanticToolStableDartSdkVersion.nextMinor.toString();
-      final nextFlutterSdk =
-          semanticToolStableFlutterSdkVersion.nextMinor.toString();
+      final nextFlutterSdk = semanticToolStableFlutterSdkVersion.nextMinor
+          .toString();
 
       bool usesPreviewAnalysisSdk(Map<String, String> environment) {
         return Pubspec.fromJson({
@@ -214,50 +239,52 @@ version: 1.0.9
 
       test('stable constraints', () {
         expect(
-            usesPreviewAnalysisSdk({
-              'sdk': '>=$toolStableDartSdkVersion <400.0.0',
-            }),
-            isFalse);
+          usesPreviewAnalysisSdk({
+            'sdk': '>=$toolStableDartSdkVersion <400.0.0',
+          }),
+          isFalse,
+        );
         expect(
-            usesPreviewAnalysisSdk({
-              'flutter': '>=$toolStableFlutterSdkVersion <400.0.0',
-            }),
-            isFalse);
+          usesPreviewAnalysisSdk({
+            'flutter': '>=$toolStableFlutterSdkVersion <400.0.0',
+          }),
+          isFalse,
+        );
         expect(
-            usesPreviewAnalysisSdk({
-              'sdk': '>=$toolStableDartSdkVersion <400.0.0',
-              'flutter': '>=$toolStableFlutterSdkVersion <400.0.0',
-            }),
-            isFalse);
+          usesPreviewAnalysisSdk({
+            'sdk': '>=$toolStableDartSdkVersion <400.0.0',
+            'flutter': '>=$toolStableFlutterSdkVersion <400.0.0',
+          }),
+          isFalse,
+        );
       });
 
       test('preview Dart', () {
         expect(
-          usesPreviewAnalysisSdk({
-            'sdk': '>=$nextDartSdk <400.0.0',
-          }),
+          usesPreviewAnalysisSdk({'sdk': '>=$nextDartSdk <400.0.0'}),
           isTrue,
         );
       });
 
       test('preview Flutter', () {
         expect(
-            usesPreviewAnalysisSdk({
-              'flutter': '>=$nextFlutterSdk <400.0.0',
-            }),
-            isTrue);
+          usesPreviewAnalysisSdk({'flutter': '>=$nextFlutterSdk <400.0.0'}),
+          isTrue,
+        );
         expect(
-            usesPreviewAnalysisSdk({
-              'sdk': '>=$toolStableDartSdkVersion <400.0.0',
-              'flutter': '>=$nextFlutterSdk <400.0.0',
-            }),
-            isTrue);
+          usesPreviewAnalysisSdk({
+            'sdk': '>=$toolStableDartSdkVersion <400.0.0',
+            'flutter': '>=$nextFlutterSdk <400.0.0',
+          }),
+          isTrue,
+        );
         expect(
-            usesPreviewAnalysisSdk({
-              'sdk': '>=$nextDartSdk <400.0.0',
-              'flutter': '>=$nextFlutterSdk <400.0.0',
-            }),
-            isTrue);
+          usesPreviewAnalysisSdk({
+            'sdk': '>=$nextDartSdk <400.0.0',
+            'flutter': '>=$nextFlutterSdk <400.0.0',
+          }),
+          isTrue,
+        );
       });
     });
   });
@@ -265,7 +292,8 @@ version: 1.0.9
   group('MinSdkVersion', () {
     test('dev only', () {
       final msd = MinSdkVersion.tryParse(
-          VersionConstraint.parse('>=2.12.0-0 <2.12.0'))!;
+        VersionConstraint.parse('>=2.12.0-0 <2.12.0'),
+      )!;
       expect(msd.major, 2);
       expect(msd.minor, 12);
       expect(msd.channel, 'dev');
@@ -273,7 +301,8 @@ version: 1.0.9
 
     test('dev', () {
       final msd = MinSdkVersion.tryParse(
-          VersionConstraint.parse('>=2.12.0-29.10.dev <3.0.0'))!;
+        VersionConstraint.parse('>=2.12.0-29.10.dev <3.0.0'),
+      )!;
       expect(msd.major, 2);
       expect(msd.minor, 12);
       expect(msd.channel, 'dev');
@@ -281,15 +310,17 @@ version: 1.0.9
 
     test('beta', () {
       final msd = MinSdkVersion.tryParse(
-          VersionConstraint.parse('>=2.12.0-29.10.beta <3.0.0'))!;
+        VersionConstraint.parse('>=2.12.0-29.10.beta <3.0.0'),
+      )!;
       expect(msd.major, 2);
       expect(msd.minor, 12);
       expect(msd.channel, 'beta');
     });
 
     test('stable', () {
-      final msd =
-          MinSdkVersion.tryParse(VersionConstraint.parse('>=2.12.0 <3.0.0'))!;
+      final msd = MinSdkVersion.tryParse(
+        VersionConstraint.parse('>=2.12.0 <3.0.0'),
+      )!;
       expect(msd.major, 2);
       expect(msd.minor, 12);
       expect(msd.channel, isNull);
@@ -297,12 +328,15 @@ version: 1.0.9
   });
 
   group('PackageView', () {
-    testWithProfile('do not forget to update change method', fn: () async {
-      final view = await scoreCardBackend.getPackageView('oxygen');
-      final original = json.decode(json.encode(view!.toJson()));
-      final updated = json.decode(json.encode(view.change().toJson()));
-      expect(updated, original);
-    });
+    testWithProfile(
+      'do not forget to update change method',
+      fn: () async {
+        final view = await scoreCardBackend.getPackageView('oxygen');
+        final original = json.decode(json.encode(view!.toJson()));
+        final updated = json.decode(json.encode(view.change().toJson()));
+        expect(updated, original);
+      },
+    );
   });
 }
 
@@ -317,9 +351,9 @@ class _PublishSequence {
     String pastSdk = '2.7.0',
     String currentSdk = '2.10.4',
     String nextSdk = '2.12.0',
-  })  : _pastSdk = Version.parse(pastSdk),
-        _currentSdk = Version.parse(currentSdk),
-        _futureSdk = Version.parse(nextSdk);
+  }) : _pastSdk = Version.parse(pastSdk),
+       _currentSdk = Version.parse(currentSdk),
+       _futureSdk = Version.parse(nextSdk);
 
   final _p = Package()
     ..parentKey = Key.emptyKey(Partition(null))
@@ -339,14 +373,14 @@ class _PublishSequence {
       ..pubspec = Pubspec.fromJson({
         'name': 'pkg',
         'version': version,
-        'environment': {
-          'sdk': '>=$minSdk <3.0.0',
-        },
+        'environment': {'sdk': '>=$minSdk <3.0.0'},
       });
     _versions.add(pv);
-    _p.updateVersions(_versions,
-        dartSdkVersion: _currentSdk,
-        flutterSdkVersion: Version.parse('3.20.0'));
+    _p.updateVersions(
+      _versions,
+      dartSdkVersion: _currentSdk,
+      flutterSdkVersion: Version.parse('3.20.0'),
+    );
   }
 
   void verify(

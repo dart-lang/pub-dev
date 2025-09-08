@@ -57,15 +57,20 @@ Map<String, int> _extractDayCounts(Map<String, dynamic> json) {
 }
 
 Future<Set<String>> processDownloadCounts(DateTime date) async {
-  final fileNamePrefix =
-      ['daily_download_counts', formatDateForFileName(date), 'data-'].join('/');
-  final bucket =
-      storageService.bucket(activeConfiguration.downloadCountsBucketName!);
+  final fileNamePrefix = [
+    'daily_download_counts',
+    formatDateForFileName(date),
+    'data-',
+  ].join('/');
+  final bucket = storageService.bucket(
+    activeConfiguration.downloadCountsBucketName!,
+  );
 
   final failedFiles = <String>{};
 
-  final bucketEntries =
-      await bucket.listAllItemsWithRetry(prefix: fileNamePrefix);
+  final bucketEntries = await bucket.listAllItemsWithRetry(
+    prefix: fileNamePrefix,
+  );
 
   if (bucketEntries.isEmpty) {
     _logger.info('Failed to read any files with prefix "$fileNamePrefix"./n');
@@ -79,7 +84,8 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
     final fileName = f.name;
     if (f.isDirectory) {
       _logger.severe(
-          'Cannot process $f, since $f is a directory. Expected a "jsonl" file.');
+        'Cannot process $f, since $f is a directory. Expected a "jsonl" file.',
+      );
       failedFiles.add(fileName);
       continue;
     }
@@ -93,8 +99,10 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
     try {
       bytes = await bucket.readAsBytes(fileName);
     } on Exception catch (e) {
-      _logger.info('Failed to read "$fileName"./n'
-          '$e');
+      _logger.info(
+        'Failed to read "$fileName"./n'
+        '$e',
+      );
       failedFiles.add(fileName);
       continue;
     }
@@ -112,93 +120,102 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
     try {
       lines = utf8.decode(bytes).split('\n');
     } on FormatException catch (e) {
-      _logger.severe('Failed to utf8 decode bytes of $fileName/n'
-          '$e');
+      _logger.severe(
+        'Failed to utf8 decode bytes of $fileName/n'
+        '$e',
+      );
       failedFiles.add(fileName);
       continue;
     }
 
-    await Future.wait(lines.map((line) async {
-      return await pool.withResource(() async {
-        if (line.isBlank) {
-          return;
-        }
-        final String package;
-        final Map<String, int> dayCounts;
-        try {
-          final data = json.decode(line);
-          if (data is! Map<String, dynamic>) {
-            throw FormatException('Download counts data is not valid json');
+    await Future.wait(
+      lines.map((line) async {
+        return await pool.withResource(() async {
+          if (line.isBlank) {
+            return;
           }
-
-          if (data['package'] is! String) {
-            throw FormatException('"package" must be a String');
-          }
-          package = data['package'] as String;
-          processedPackages.add(package);
-
-          dayCounts = _extractDayCounts(data);
-        } on FormatException catch (e) {
-          _logger.severe('Failed to proccess line $line of file $fileName \n'
-              '$e');
-          failedFiles.add(fileName);
-          return;
-        }
-
-        List<String> versions;
-        try {
-          // Validate that the package and version exist and ignore the
-          // non-existing packages and versions.
-          // First do it via the cached data, fall back to query for invisible
-          // and moderated packages.
-          versions = (await packageBackend.listVersionsCached(package))
-              .versions
-              .map((e) => e.version)
-              .toList();
-
-          final nonExistingVersions = <String>[];
-          dayCounts.keys.forEach((version) {
-            if (!versions.contains(version)) {
-              nonExistingVersions.add(version);
-              if (date.isBefore(regExpQueryFixDate)) {
-                // If the data is generated before the fix of the query, we
-                // ignore versions that do not exist.
-                _logger.warning(
-                    '$package-$version appeared in download counts data but does'
-                    ' not exist');
-              } else {
-                _logger.severe(
-                    '$package-$version appeared in download counts data but does'
-                    ' not exist');
-              }
-              processedPackagesWithErrors.add(package);
+          final String package;
+          final Map<String, int> dayCounts;
+          try {
+            final data = json.decode(line);
+            if (data is! Map<String, dynamic>) {
+              throw FormatException('Download counts data is not valid json');
             }
-          });
 
-          nonExistingVersions.forEach((v) => dayCounts.remove(v));
-        } on NotFoundException catch (e) {
-          final pkg = await packageBackend.lookupPackage(package);
-          // The package is neither invisible or tombstoned, hence there is
-          // probably an error in the generated data.
-          if (pkg == null &&
-              (await packageBackend.lookupModeratedPackage(package)) == null) {
+            if (data['package'] is! String) {
+              throw FormatException('"package" must be a String');
+            }
+            package = data['package'] as String;
+            processedPackages.add(package);
+
+            dayCounts = _extractDayCounts(data);
+          } on FormatException catch (e) {
             _logger.severe(
+              'Failed to proccess line $line of file $fileName \n'
+              '$e',
+            );
+            failedFiles.add(fileName);
+            return;
+          }
+
+          List<String> versions;
+          try {
+            // Validate that the package and version exist and ignore the
+            // non-existing packages and versions.
+            // First do it via the cached data, fall back to query for invisible
+            // and moderated packages.
+            versions = (await packageBackend.listVersionsCached(
+              package,
+            )).versions.map((e) => e.version).toList();
+
+            final nonExistingVersions = <String>[];
+            dayCounts.keys.forEach((version) {
+              if (!versions.contains(version)) {
+                nonExistingVersions.add(version);
+                if (date.isBefore(regExpQueryFixDate)) {
+                  // If the data is generated before the fix of the query, we
+                  // ignore versions that do not exist.
+                  _logger.warning(
+                    '$package-$version appeared in download counts data but does'
+                    ' not exist',
+                  );
+                } else {
+                  _logger.severe(
+                    '$package-$version appeared in download counts data but does'
+                    ' not exist',
+                  );
+                }
+                processedPackagesWithErrors.add(package);
+              }
+            });
+
+            nonExistingVersions.forEach((v) => dayCounts.remove(v));
+          } on NotFoundException catch (e) {
+            final pkg = await packageBackend.lookupPackage(package);
+            // The package is neither invisible or tombstoned, hence there is
+            // probably an error in the generated data.
+            if (pkg == null &&
+                (await packageBackend.lookupModeratedPackage(package)) ==
+                    null) {
+              _logger.severe(
                 'Package $package appeared in download counts data for file '
                 '$fileName but does not exist.\n'
-                'Error: $e');
-            processedPackagesWithErrors.add(package);
-            return;
-          } // else {
-          // The package is either invisible, tombstoned or has no versions.
-          // }
-        }
-        await downloadCountsBackend.updateDownloadCounts(
-          package,
-          dayCounts,
-          date,
-        );
-      });
-    }));
+                'Error: $e',
+              );
+              processedPackagesWithErrors.add(package);
+              return;
+            } // else {
+            // The package is either invisible, tombstoned or has no versions.
+            // }
+          }
+          await downloadCountsBackend.updateDownloadCounts(
+            package,
+            dayCounts,
+            date,
+          );
+        });
+      }),
+    );
   }
 
   if (processedPackages.isEmpty) {
@@ -211,20 +228,26 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
   // query output.
   final allPackageNames = await packageBackend.allPackageNames().toSet();
   final missingPackages = allPackageNames.difference(processedPackages.toSet());
-  await Future.wait(missingPackages.map((package) async {
-    return await pool.withResource(() async {
-      // Calling 'updateDownloadCounts' for 'package' with an empty dataset
-      // causes '0' to be added for all versions, hereby indicating 0 downloads.
-      await downloadCountsBackend.updateDownloadCounts(package, {}, date);
-    });
-  }));
+  await Future.wait(
+    missingPackages.map((package) async {
+      return await pool.withResource(() async {
+        // Calling 'updateDownloadCounts' for 'package' with an empty dataset
+        // causes '0' to be added for all versions, hereby indicating 0 downloads.
+        await downloadCountsBackend.updateDownloadCounts(package, {}, date);
+      });
+    }),
+  );
 
   final filesString = bucketEntries.length == 1 ? 'file' : 'files';
   _logger.info('Finished processing download counts for date $date:');
-  _logger.info('  - ${failedFiles.length} out of ${bucketEntries.length} '
-      '$filesString failed during processing.');
-  _logger.info('  - ${processedPackages.length} packages processed including '
-      '${processedPackagesWithErrors.length} packages with errors.');
+  _logger.info(
+    '  - ${failedFiles.length} out of ${bucketEntries.length} '
+    '$filesString failed during processing.',
+  );
+  _logger.info(
+    '  - ${processedPackages.length} packages processed including '
+    '${processedPackagesWithErrors.length} packages with errors.',
+  );
   return failedFiles;
 }
 
@@ -247,8 +270,10 @@ const defaultNumberOfSyncDays = 5;
 /// Throws an exception if one or more of the syncs fail except if the only
 /// failed file is that of yesterday. We expect this function to be called at
 /// least once per day, hence tolerating that yesterday's data is not yet ready.
-Future<void> syncDownloadCounts(
-    {DateTime? date, int numberOfSyncDays = defaultNumberOfSyncDays}) async {
+Future<void> syncDownloadCounts({
+  DateTime? date,
+  int numberOfSyncDays = defaultNumberOfSyncDays,
+}) async {
   final yesterday = clock.now().addCalendarDays(-1);
   final startingDate = date ?? yesterday;
   final failedFiles = <String>[];
@@ -263,16 +288,19 @@ Future<void> syncDownloadCounts(
   ].join('/');
 
   if (failedFiles.isNotEmpty) {
-    _logger
-        .shout('Download counts sync was partial. The following files failed:\n'
-            '$failedFiles');
-    if (!(failedFiles
-        .every((fileName) => fileName.contains(yesterdayFileNamePrefix)))) {
+    _logger.shout(
+      'Download counts sync was partial. The following files failed:\n'
+      '$failedFiles',
+    );
+    if (!(failedFiles.every(
+      (fileName) => fileName.contains(yesterdayFileNamePrefix),
+    ))) {
       // We only disregard failure of yesterday's file. Otherwise we consider
       // the sync to be broken.
       throw Exception(
-          'Download counts sync was partial. The following files failed:'
-          '$failedFiles');
+        'Download counts sync was partial. The following files failed:'
+        '$failedFiles',
+      );
     }
   }
 }

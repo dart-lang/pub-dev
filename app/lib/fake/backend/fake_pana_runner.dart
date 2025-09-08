@@ -46,8 +46,9 @@ Future<Summary> fakePanaSummary({
           'platform:windows',
         ].where((p) => hasher(p, max: 5) > 0).toList()
       : <String>[];
-  final licenseSpdx =
-      hasher('license', max: 5) == 0 ? 'unknown' : 'BSD-3-Clause';
+  final licenseSpdx = hasher('license', max: 5) == 0
+      ? 'unknown'
+      : 'BSD-3-Clause';
 
   String? fakeUrlCheck(String key, String? url) {
     return hasher(key, max: 20) > 0 ? url : null;
@@ -55,17 +56,23 @@ Future<Summary> fakePanaSummary({
 
   final homepageUrl = fakeUrlCheck('pubspec.homepage', pubspec.homepage);
   final repositoryUrl = fakeUrlCheck('pubspec.repository', pubspec.repository);
-  final issueTrackerUrl =
-      fakeUrlCheck('pubspec.issueTracker', pubspec.issueTracker);
-  final documentationUrl =
-      fakeUrlCheck('pubspec.documentation', pubspec.documentation);
-  final verifiedUrl =
-      Repository.tryParseUrl(repositoryUrl ?? homepageUrl ?? '');
+  final issueTrackerUrl = fakeUrlCheck(
+    'pubspec.issueTracker',
+    pubspec.issueTracker,
+  );
+  final documentationUrl = fakeUrlCheck(
+    'pubspec.documentation',
+    pubspec.documentation,
+  );
+  final verifiedUrl = Repository.tryParseUrl(
+    repositoryUrl ?? homepageUrl ?? '',
+  );
   final hasVerifiedRepository =
       verifiedUrl != null && hasher('verifiedRepository', max: 20) > 0;
   Repository? repository;
   if (hasVerifiedRepository) {
-    final verifiedRepositoryBranch = verifiedUrl.branch ??
+    final verifiedRepositoryBranch =
+        verifiedUrl.branch ??
         (hasher('verifiedRepository.branch', max: 5) > 0 ? 'main' : null);
     repository = Repository(
       provider: verifiedUrl.provider,
@@ -77,20 +84,23 @@ Future<Summary> fakePanaSummary({
   }
 
   final contributingUrl = fakeUrlCheck(
-      'contributingUrl', repository?.tryResolveUrl('CONTRIBUTING.md'));
+    'contributingUrl',
+    repository?.tryResolveUrl('CONTRIBUTING.md'),
+  );
 
   final result = AnalysisResult(
-      homepageUrl: homepageUrl,
-      repositoryUrl: repositoryUrl,
-      issueTrackerUrl: issueTrackerUrl,
-      documentationUrl: documentationUrl,
-      repository: repository,
-      fundingUrls: pubspec.funding
-          .map((e) => e.toString())
-          .where((url) => fakeUrlCheck('funding', url) != null)
-          .toList(),
-      contributingUrl: contributingUrl,
-      licenses: [License(path: '', spdxIdentifier: licenseSpdx)]);
+    homepageUrl: homepageUrl,
+    repositoryUrl: repositoryUrl,
+    issueTrackerUrl: issueTrackerUrl,
+    documentationUrl: documentationUrl,
+    repository: repository,
+    fundingUrls: pubspec.funding
+        .map((e) => e.toString())
+        .where((url) => fakeUrlCheck('funding', url) != null)
+        .toList(),
+    contributingUrl: contributingUrl,
+    licenses: [License(path: '', spdxIdentifier: licenseSpdx)],
+  );
   return Summary(
     createdAt: clock.now().toUtc(),
     packageName: package,
@@ -139,8 +149,9 @@ Future<Summary> fakePanaSummary({
             grantedPoints: examplePoints,
             maxPoints: 40,
           ),
-          status:
-              examplePoints > 20 ? ReportStatus.passed : ReportStatus.partial,
+          status: examplePoints > 20
+              ? ReportStatus.passed
+              : ReportStatus.partial,
         ),
       ],
     ),
@@ -178,8 +189,9 @@ String _renderSimpleSectionSummary({
   required int grantedPoints,
   required int maxPoints,
 }) {
-  final mark =
-      grantedPoints == 0 ? 'x' : (grantedPoints == maxPoints ? '*' : '~');
+  final mark = grantedPoints == 0
+      ? 'x'
+      : (grantedPoints == maxPoints ? '*' : '~');
   return [
     '### [$mark] $grantedPoints/$maxPoints points: $title',
     ' * $description',

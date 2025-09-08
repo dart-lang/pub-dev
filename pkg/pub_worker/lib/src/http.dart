@@ -10,27 +10,15 @@ extension WithAuthorization on http.Client {
   http.Client withAuthorization(
     FutureOr<String?> Function() tokenProvider, {
     bool closeParent = true,
-  }) =>
-      _AuthenticatedClient(
-        tokenProvider,
-        this,
-        closeParent,
-      );
+  }) => _AuthenticatedClient(tokenProvider, this, closeParent);
 }
 
 extension WithUserAgent on http.Client {
   /// Returns an [http.Client] which sends `User-Agent` header for each request.
   ///
   /// This will only set `User-Agent`, if the header isn't already present.
-  http.Client withUserAgent(
-    String userAgent, {
-    bool closeParent = true,
-  }) =>
-      _UserAgentClient(
-        userAgent,
-        this,
-        closeParent,
-      );
+  http.Client withUserAgent(String userAgent, {bool closeParent = true}) =>
+      _UserAgentClient(userAgent, this, closeParent);
 }
 
 /// An [http.Client] which sends a `Bearer` token as `Authorization` header for
@@ -70,11 +58,7 @@ class _UserAgentClient extends http.BaseClient {
   final http.Client _client;
   final bool _closeInnerClient;
 
-  _UserAgentClient(
-    this._userAgent,
-    this._client,
-    this._closeInnerClient,
-  );
+  _UserAgentClient(this._userAgent, this._client, this._closeInnerClient);
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {

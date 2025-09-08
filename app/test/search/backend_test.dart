@@ -12,31 +12,38 @@ import '../shared/test_services.dart';
 
 void main() {
   group('search backend', () {
-    testWithProfile('fetch SDK library description', fn: () async {
-      final content = await loadOrFetchSdkIndexJsonAsString(
-          SdkMemIndex.dartSdkIndexJsonUri);
-      final index = SdkMemIndex(
-        dartIndex: DartdocIndex.parseJsonText(content),
-        flutterIndex: DartdocIndex([]),
-      );
-      final rs = index.search('dart:async');
-      expect(
-        rs.first.description,
-        'Support for asynchronous programming, with classes such as Future and Stream.',
-      );
-    });
+    testWithProfile(
+      'fetch SDK library description',
+      fn: () async {
+        final content = await loadOrFetchSdkIndexJsonAsString(
+          SdkMemIndex.dartSdkIndexJsonUri,
+        );
+        final index = SdkMemIndex(
+          dartIndex: DartdocIndex.parseJsonText(content),
+          flutterIndex: DartdocIndex([]),
+        );
+        final rs = index.search('dart:async');
+        expect(
+          rs.first.description,
+          'Support for asynchronous programming, with classes such as Future and Stream.',
+        );
+      },
+    );
 
-    testWithProfile('updates snapshot storage', fn: () async {
-      var documents = await searchBackend.fetchSnapshotDocuments();
-      expect(documents, isNull);
-      await searchBackend.doCreateAndUpdateSnapshot(
-        FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
-        concurrency: 2,
-        sleepDuration: Duration(milliseconds: 300),
-      );
-      documents = await searchBackend.fetchSnapshotDocuments();
-      expect(documents, isNotEmpty);
-    });
+    testWithProfile(
+      'updates snapshot storage',
+      fn: () async {
+        var documents = await searchBackend.fetchSnapshotDocuments();
+        expect(documents, isNull);
+        await searchBackend.doCreateAndUpdateSnapshot(
+          FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
+          concurrency: 2,
+          sleepDuration: Duration(milliseconds: 300),
+        );
+        documents = await searchBackend.fetchSnapshotDocuments();
+        expect(documents, isNotEmpty);
+      },
+    );
   });
 
   group('canonical search form', () {
@@ -55,7 +62,9 @@ void main() {
 
     test('query with non-aliased topic tags', () {
       expect(
-          canonicalizeSearchForm(_parse('abc topic:unrelated-topic')), isNull);
+        canonicalizeSearchForm(_parse('abc topic:unrelated-topic')),
+        isNull,
+      );
       expect(canonicalizeSearchForm(_parse('topic:unrelated-topic')), isNull);
     });
 

@@ -35,8 +35,10 @@ final DateFormat shortDateFormat = DateFormat.yMMMd();
 final jsonUtf8Encoder = JsonUtf8Encoder();
 final utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
-Future<T> withTempDirectory<T>(Future<T> Function(Directory dir) func,
-    {String prefix = 'dart-tempdir'}) {
+Future<T> withTempDirectory<T>(
+  Future<T> Function(Directory dir) func, {
+  String prefix = 'dart-tempdir',
+}) {
   return Directory.systemTemp.createTemp(prefix).then((Directory dir) {
     return func(dir).whenComplete(() {
       dir.delete(recursive: true);
@@ -60,8 +62,13 @@ String? canonicalizeVersion(String? version) {
   final pre = v.preRelease.isNotEmpty ? v.preRelease.join('.') : null;
   final build = v.build.isNotEmpty ? v.build.join('.') : null;
 
-  final canonicalVersion =
-      semver.Version(v.major, v.minor, v.patch, pre: pre, build: build);
+  final canonicalVersion = semver.Version(
+    v.major,
+    v.minor,
+    v.patch,
+    pre: pre,
+    build: build,
+  );
 
   if (v != canonicalVersion) {
     return null;
@@ -76,7 +83,11 @@ String? canonicalizeVersion(String? version) {
 /// order "0.9.0-dev.1 < 0.8.0").  Otherwise it will use semantic version
 /// sorting (e.g. it will order "0.8.0 < 0.9.0-dev.1").
 int compareSemanticVersionsDesc(
-    semver.Version a, semver.Version b, bool decreasing, bool pubSorted) {
+  semver.Version a,
+  semver.Version b,
+  bool decreasing,
+  bool pubSorted,
+) {
   if (pubSorted) {
     if (decreasing) {
       return semver.Version.prioritize(b, a);
@@ -142,10 +153,10 @@ class LastNTracker<T extends Comparable<T>> {
 
 class DurationTracker extends LastNTracker<Duration> {
   Map toShortStat() => {
-        'median': median?.inMilliseconds,
-        'p90': p90?.inMilliseconds,
-        'p99': p99?.inMilliseconds,
-      };
+    'median': median?.inMilliseconds,
+    'p90': p90?.inMilliseconds,
+    'p99': p99?.inMilliseconds,
+  };
 }
 
 /// Returns the MIME content type based on the name of the file.
@@ -299,29 +310,24 @@ class DecayingMaxLatencyTracker {
   int _value = 0;
   DateTime _lastUpdated = clock.now();
 
-  DecayingMaxLatencyTracker({
-    Duration? halfLifePeriod,
-  }) : _halfLifePeriod = halfLifePeriod ?? Duration(minutes: 1);
+  DecayingMaxLatencyTracker({Duration? halfLifePeriod})
+    : _halfLifePeriod = halfLifePeriod ?? Duration(minutes: 1);
 
-  void _decay({
-    required DateTime now,
-    Duration? updateDelay,
-  }) {
+  void _decay({required DateTime now, Duration? updateDelay}) {
     updateDelay ??= Duration.zero;
     final diff = now.difference(_lastUpdated);
     if (diff <= updateDelay) {
       return;
     }
-    final multiplier =
-        pow(0.5, diff.inMicroseconds / _halfLifePeriod.inMicroseconds);
+    final multiplier = pow(
+      0.5,
+      diff.inMicroseconds / _halfLifePeriod.inMicroseconds,
+    );
     _value = (_value * multiplier).round();
     _lastUpdated = now;
   }
 
-  Duration getLatency({
-    DateTime? now,
-    Duration? updateDelay,
-  }) {
+  Duration getLatency({DateTime? now, Duration? updateDelay}) {
     _decay(
       now: now ?? clock.now(),
       updateDelay: updateDelay ?? const Duration(seconds: 1),
@@ -329,10 +335,7 @@ class DecayingMaxLatencyTracker {
     return Duration(microseconds: _value);
   }
 
-  void observe(
-    Duration duration, {
-    DateTime? now,
-  }) {
+  void observe(Duration duration, {DateTime? now}) {
     now ??= clock.now();
     _decay(now: now);
     final value = duration.inMicroseconds;

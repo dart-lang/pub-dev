@@ -61,30 +61,27 @@ void setupAppEngineLogging() {
 
       // Truncated messages over 64kb
       if (message.length > 64 * 1024) {
-        message = message.substring(0, 32 * 1024) +
+        message =
+            message.substring(0, 32 * 1024) +
             '...\n[truncated due to size]\n...' +
             message.substring(message.length - 16 * 1024);
       }
 
       // Unless logging a request, we just log directly to stdout
       if (logging == null || logging is! LoggingImpl) {
-        print(jsonEncode({
-          'severity': level.name.toUpperCase(),
-          'message': message,
-          'logging.googleapis.com/labels': {
-            'logger': record.loggerName,
-          },
-          'time': record.time.toUtc().toIso8601String(),
-        }));
+        print(
+          jsonEncode({
+            'severity': level.name.toUpperCase(),
+            'message': message,
+            'logging.googleapis.com/labels': {'logger': record.loggerName},
+            'time': record.time.toUtc().toIso8601String(),
+          }),
+        );
       } else {
         // If inside a request, we'll log using appengine logging service, this
         // ensures that our logs works with existing metrics. Eventually, we
         // can consider migrating to structured logging on stdout.
-        logging.log(
-          level,
-          message,
-          timestamp: record.time,
-        );
+        logging.log(level, message, timestamp: record.time);
         if (error != null && stackTrace != null) {
           logging.reportError(level, error, stackTrace);
         }

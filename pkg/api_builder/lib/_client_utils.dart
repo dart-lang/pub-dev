@@ -31,8 +31,8 @@ class Client {
   final http.Client? _client;
 
   Client(String baseUrl, {http.Client? client})
-      : _baseUrl = baseUrl,
-        _client = client {
+    : _baseUrl = baseUrl,
+      _client = client {
     ArgumentError.checkNotNull(_baseUrl, 'baseUrl');
   }
 
@@ -53,40 +53,38 @@ class Client {
     required String path,
     Map<String, String>? query,
     Map<String, dynamic>? body,
-  }) =>
-      _withClient((client) async {
-        final u = Uri.parse(_baseUrl + path).replace(queryParameters: query);
-        final req = http.Request(verb, u);
-        if (body != null) {
-          req.bodyBytes = json.fuse(utf8).encode(body);
-          req.headers['content-type'] = 'application/json; charset="utf-8"';
-        }
-        final res = await http.Response.fromStream(await client.send(req));
-        if (200 <= res.statusCode && res.statusCode < 300) {
-          return json.fuse(utf8).decode(res.bodyBytes) as Map<String, dynamic>;
-        }
-        throw RequestException(res.statusCode, res.headers, res.bodyBytes);
-      });
+  }) => _withClient((client) async {
+    final u = Uri.parse(_baseUrl + path).replace(queryParameters: query);
+    final req = http.Request(verb, u);
+    if (body != null) {
+      req.bodyBytes = json.fuse(utf8).encode(body);
+      req.headers['content-type'] = 'application/json; charset="utf-8"';
+    }
+    final res = await http.Response.fromStream(await client.send(req));
+    if (200 <= res.statusCode && res.statusCode < 300) {
+      return json.fuse(utf8).decode(res.bodyBytes) as Map<String, dynamic>;
+    }
+    throw RequestException(res.statusCode, res.headers, res.bodyBytes);
+  });
 
   Future<List<int>> requestBytes({
     required String verb,
     required String path,
     Map<String, String>? query,
     Map<String, dynamic>? body,
-  }) =>
-      _withClient((client) async {
-        final u = Uri.parse(_baseUrl + path).replace(queryParameters: query);
-        final req = http.Request(verb, u);
-        if (body != null) {
-          req.bodyBytes = json.fuse(utf8).encode(body);
-          req.headers['content-type'] = 'application/json; charset="utf-8"';
-        }
-        final res = await http.Response.fromStream(await client.send(req));
-        if (200 <= res.statusCode && res.statusCode < 300) {
-          return res.bodyBytes;
-        }
-        throw RequestException(res.statusCode, res.headers, res.bodyBytes);
-      });
+  }) => _withClient((client) async {
+    final u = Uri.parse(_baseUrl + path).replace(queryParameters: query);
+    final req = http.Request(verb, u);
+    if (body != null) {
+      req.bodyBytes = json.fuse(utf8).encode(body);
+      req.headers['content-type'] = 'application/json; charset="utf-8"';
+    }
+    final res = await http.Response.fromStream(await client.send(req));
+    if (200 <= res.statusCode && res.statusCode < 300) {
+      return res.bodyBytes;
+    }
+    throw RequestException(res.statusCode, res.headers, res.bodyBytes);
+  });
 }
 
 /// Utility method exported for use in generated code.

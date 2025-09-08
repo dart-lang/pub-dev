@@ -28,16 +28,18 @@ void main() {
     test('bulk tests', () async {
       final origin = fakeTestScenario.pubHostedUrl;
       // Importing one package + local analysis
-      await httpClient.post(Uri.parse('$origin/fake-test-profile'),
-          body: json.encode({
-            'testProfile': {
-              'defaultUser': 'admin@pub.dev',
-              'generatedPackages': [
-                {'name': 'oxygen'},
-              ],
-            },
-            'analysis': 'local',
-          }));
+      await httpClient.post(
+        Uri.parse('$origin/fake-test-profile'),
+        body: json.encode({
+          'testProfile': {
+            'defaultUser': 'admin@pub.dev',
+            'generatedPackages': [
+              {'name': 'oxygen'},
+            ],
+          },
+          'analysis': 'local',
+        }),
+      );
 
       final user = await fakeTestScenario.createAnonymousTestUser();
 
@@ -57,8 +59,10 @@ void main() {
 
         // It is likely that we end up on the `TypeEnum.html` page, but we don't
         // need to hardcode it here, in case dartdoc changes the order of the options.
-        expect(page.url,
-            startsWith('$origin/documentation/oxygen/latest/oxygen/'));
+        expect(
+          page.url,
+          startsWith('$origin/documentation/oxygen/latest/oxygen/'),
+        );
         expect(page.url, endsWith('.html'));
         expect(await page.content, contains('TypeEnum'));
 
@@ -71,7 +75,8 @@ void main() {
       // test library page redirect
       await user.withBrowserPage((page) async {
         await page.gotoOrigin(
-            '/documentation/oxygen/latest/oxygen/oxygen-library.html');
+          '/documentation/oxygen/latest/oxygen/oxygen-library.html',
+        );
         await Future.delayed(Duration(milliseconds: 200));
         expect(page.url, '$origin/documentation/oxygen/latest/oxygen/');
       });

@@ -70,10 +70,7 @@ class ApiResponseException implements Exception {
       status,
       body: json.fuse(utf8).encode({
         ...?body,
-        'error': {
-          'code': code,
-          'message': message,
-        },
+        'error': {'code': code, 'message': message},
         // TODO: remove after the above gets deployed live
         'code': code,
         'message': message,
@@ -129,17 +126,24 @@ abstract class $utilities {
 
   /// Utility method exported for use in generated code.
   static shelf.Response jsonResponse(Map<String, dynamic> payload) {
-    return shelf.Response(200, body: json.fuse(utf8).encode(payload), headers: {
-      'content-type': 'application/json; charset="utf-8"',
-      'x-content-type-options': 'nosniff',
-    });
+    return shelf.Response(
+      200,
+      body: json.fuse(utf8).encode(payload),
+      headers: {
+        'content-type': 'application/json; charset="utf-8"',
+        'x-content-type-options': 'nosniff',
+      },
+    );
   }
 
   /// Utility method exported for use in generated code.
   static shelf.Response unhandledError(Object e, StackTrace st) {
     final incidentId = Uuid().v4();
     _log.severe(
-        'Unhandled error in API handler (incidentId: $incidentId)', e, st);
+      'Unhandled error in API handler (incidentId: $incidentId)',
+      e,
+      st,
+    );
     return ApiResponseException(
       status: 500,
       code: 'InternalError',

@@ -63,9 +63,11 @@ dev_dependencies:
 
       expect(
         summary.issues,
-        contains(predicate<ArchiveIssue>(
-          (i) => i.message.contains('pubspec.yaml may not use references'),
-        )),
+        contains(
+          predicate<ArchiveIssue>(
+            (i) => i.message.contains('pubspec.yaml may not use references'),
+          ),
+        ),
       );
     });
 

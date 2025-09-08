@@ -40,9 +40,9 @@ final _defaultCacheWriteTimeout = Duration(milliseconds: 1000);
 class CachePatterns {
   final Cache<List<int>> _cache;
   CachePatterns._(Cache<List<int>> cache)
-      : _cache = cache
-            .withPrefix('rv-$runtimeVersion/')
-            .withTTL(Duration(minutes: 10));
+    : _cache = cache
+          .withPrefix('rv-$runtimeVersion/')
+          .withTTL(Duration(minutes: 10));
 
   // NOTE: This class should only contain methods that return Entry<T>, as well
   //       configuration options like prefix and TTL.
@@ -53,10 +53,12 @@ class CachePatterns {
       .withTTL(Duration(hours: 24))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (SessionData data) => data.toJson(),
-        decode: (d) => SessionData.fromJson(d as Map<String, dynamic>),
-      ))[sessionId];
+      .withCodec(
+        wrapAsCodec(
+          encode: (SessionData data) => data.toJson(),
+          decode: (d) => SessionData.fromJson(d as Map<String, dynamic>),
+        ),
+      )[sessionId];
 
   /// Cache for [Consent] mapping the `dedupId` to the `consentId`.
   Entry<String> consentDedupLookup(String dedupId) => _cache
@@ -125,17 +127,17 @@ class CachePatterns {
       .withTTL(Duration(hours: 12))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (bool value) => value,
-        decode: (d) => d as bool,
-      ))[package];
+      .withCodec(
+        wrapAsCodec(encode: (bool value) => value, decode: (d) => d as bool),
+      )[package];
 
   Entry<String> changelogReleaseContentAsMarkdown(
-          String package, String version) =>
-      _cache
-          .withPrefix('changelog-release-content-md/')
-          .withTTL(Duration(hours: 1))
-          .withCodec(utf8)['$package-$version'];
+    String package,
+    String version,
+  ) => _cache
+      .withPrefix('changelog-release-content-md/')
+      .withTTL(Duration(hours: 1))
+      .withCodec(utf8)['$package-$version'];
 
   Entry<List<int>> packageData(String package) => _cache
       .withPrefix('api-package-data-by-uri/')
@@ -150,10 +152,12 @@ class CachePatterns {
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (VersionScore d) => d.toJson(),
-        decode: (d) => VersionScore.fromJson(d as Map<String, dynamic>),
-      ))['$package-$version'];
+      .withCodec(
+        wrapAsCodec(
+          encode: (VersionScore d) => d.toJson(),
+          decode: (d) => VersionScore.fromJson(d as Map<String, dynamic>),
+        ),
+      )['$package-$version'];
 
   Entry<String> packageLatestVersion(String package) => _cache
       .withPrefix('package-latest-version/')
@@ -175,20 +179,24 @@ class CachePatterns {
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (PackageView pv) => pv.toJson(),
-        decode: (d) => PackageView.fromJson(d as Map<String, dynamic>),
-      ))[package];
+      .withCodec(
+        wrapAsCodec(
+          encode: (PackageView pv) => pv.toJson(),
+          decode: (d) => PackageView.fromJson(d as Map<String, dynamic>),
+        ),
+      )[package];
 
   Entry<Map<String, dynamic>> apiPackagesListPage(int page) => _cache
       .withPrefix('api-packages-list/')
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (Map<String, dynamic> map) => map,
-        decode: (obj) => obj as Map<String, dynamic>,
-      ))['$page'];
+      .withCodec(
+        wrapAsCodec(
+          encode: (Map<String, dynamic> map) => map,
+          decode: (obj) => obj as Map<String, dynamic>,
+        ),
+      )['$page'];
 
   Entry<PackageSearchResult> packageSearchResult(String url) {
     return _cache
@@ -196,25 +204,31 @@ class CachePatterns {
         .withTTL(const Duration(minutes: 1))
         .withCodec(utf8)
         .withCodec(json)
-        .withCodec(wrapAsCodec(
-          encode: (PackageSearchResult r) => r.toJson(),
-          decode: (d) =>
-              PackageSearchResult.fromJson(d as Map<String, dynamic>),
-        ))[url];
+        .withCodec(
+          wrapAsCodec(
+            encode: (PackageSearchResult r) => r.toJson(),
+            decode: (d) =>
+                PackageSearchResult.fromJson(d as Map<String, dynamic>),
+          ),
+        )[url];
   }
 
   Entry<RateLimitRequestCounter> rateLimitRequestCounter(
-      String sourceIp, String operation) {
+    String sourceIp,
+    String operation,
+  ) {
     return _cache
         .withPrefix('rate-limit-request-counter/')
         .withTTL(const Duration(minutes: 3))
         .withCodec(utf8)
         .withCodec(json)
-        .withCodec(wrapAsCodec(
-          encode: (RateLimitRequestCounter r) => r.toJson(),
-          decode: (d) =>
-              RateLimitRequestCounter.fromJson(d as Map<String, dynamic>),
-        ))['$sourceIp/$operation'];
+        .withCodec(
+          wrapAsCodec(
+            encode: (RateLimitRequestCounter r) => r.toJson(),
+            decode: (d) =>
+                RateLimitRequestCounter.fromJson(d as Map<String, dynamic>),
+          ),
+        )['$sourceIp/$operation'];
   }
 
   Entry<ScoreCardData> scoreCardData(String package, String version) => _cache
@@ -222,70 +236,84 @@ class CachePatterns {
       .withTTL(Duration(hours: 2))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (ScoreCardData d) => d.toJson(),
-        decode: (d) => ScoreCardData.fromJson(d as Map<String, dynamic>),
-      ))['$package-$version'];
+      .withCodec(
+        wrapAsCodec(
+          encode: (ScoreCardData d) => d.toJson(),
+          decode: (d) => ScoreCardData.fromJson(d as Map<String, dynamic>),
+        ),
+      )['$package-$version'];
 
   Entry<List<SecurityAdvisoryData>> securityAdvisories(String package) => _cache
       .withPrefix('security-advisory/')
       .withTTL(Duration(hours: 8))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (List<SecurityAdvisoryData> l) =>
-            l.map((SecurityAdvisoryData adv) => adv.toJson()).toList(),
-        decode: (d) => (d as List)
-            .map(
-                (d) => SecurityAdvisoryData.fromJson(d as Map<String, dynamic>))
-            .toList(),
-      ))[package];
+      .withCodec(
+        wrapAsCodec(
+          encode: (List<SecurityAdvisoryData> l) =>
+              l.map((SecurityAdvisoryData adv) => adv.toJson()).toList(),
+          decode: (d) => (d as List)
+              .map(
+                (d) => SecurityAdvisoryData.fromJson(d as Map<String, dynamic>),
+              )
+              .toList(),
+        ),
+      )[package];
 
   Entry<CountData> downloadCounts(String package) => _cache
       .withPrefix('download-counts/')
       .withTTL(Duration(hours: 25))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (CountData cd) => cd.toJson(),
-        decode: (d) => CountData.fromJson(d as Map<String, dynamic>),
-      ))[package];
+      .withCodec(
+        wrapAsCodec(
+          encode: (CountData cd) => cd.toJson(),
+          decode: (d) => CountData.fromJson(d as Map<String, dynamic>),
+        ),
+      )[package];
 
   Entry<WeeklyDownloadCounts> weeklyDownloadCounts(String package) => _cache
       .withPrefix('weekly-download-counts/')
       .withTTL(Duration(hours: 6))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (WeeklyDownloadCounts wdc) => wdc.toJson(),
-        decode: (d) => WeeklyDownloadCounts.fromJson(d as Map<String, dynamic>),
-      ))[package];
+      .withCodec(
+        wrapAsCodec(
+          encode: (WeeklyDownloadCounts wdc) => wdc.toJson(),
+          decode: (d) =>
+              WeeklyDownloadCounts.fromJson(d as Map<String, dynamic>),
+        ),
+      )[package];
 
   Entry<WeeklyVersionDownloadCounts> weeklyVersionDownloadCounts(
-          String package) =>
-      _cache
-          .withPrefix('weekly-versions-download-counts/')
-          .withTTL(Duration(hours: 6))
-          .withCodec(utf8)
-          .withCodec(json)
-          .withCodec(wrapAsCodec(
-            encode: (WeeklyVersionDownloadCounts wdc) => wdc.toJson(),
-            decode: (d) =>
-                WeeklyVersionDownloadCounts.fromJson(d as Map<String, dynamic>),
-          ))[package];
+    String package,
+  ) => _cache
+      .withPrefix('weekly-versions-download-counts/')
+      .withTTL(Duration(hours: 6))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(
+        wrapAsCodec(
+          encode: (WeeklyVersionDownloadCounts wdc) => wdc.toJson(),
+          decode: (d) =>
+              WeeklyVersionDownloadCounts.fromJson(d as Map<String, dynamic>),
+        ),
+      )[package];
 
   Entry<List<LikeData>> userPackageLikes(String userId) => _cache
       .withPrefix('user-package-likes/')
       .withTTL(Duration(minutes: 60))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (List<LikeData> l) =>
-            l.map((LikeData l) => l.toJson()).toList(),
-        decode: (d) => (d as List)
-            .map((d) => LikeData.fromJson(d as Map<String, dynamic>))
-            .toList(),
-      ))[userId];
+      .withCodec(
+        wrapAsCodec(
+          encode: (List<LikeData> l) =>
+              l.map((LikeData l) => l.toJson()).toList(),
+          decode: (d) => (d as List)
+              .map((d) => LikeData.fromJson(d as Map<String, dynamic>))
+              .toList(),
+        ),
+      )[userId];
 
   Entry<String> secretValue(String secretId) => _cache
       .withPrefix('secret-value/')
@@ -312,20 +340,22 @@ class CachePatterns {
       .withTTL(Duration(hours: 4))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (PublisherPage list) => list.toJson(),
-        decode: (data) => PublisherPage.fromJson(data as Map<String, dynamic>),
-      ))['$userId'];
+      .withCodec(
+        wrapAsCodec(
+          encode: (PublisherPage list) => list.toJson(),
+          decode: (data) =>
+              PublisherPage.fromJson(data as Map<String, dynamic>),
+        ),
+      )['$userId'];
 
   Entry<bool> publisherVisible(String publisherId) => _cache
       .withPrefix('publisher-visible/')
       .withTTL(Duration(hours: 12))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (bool value) => value,
-        decode: (d) => d as bool,
-      ))[publisherId];
+      .withCodec(
+        wrapAsCodec(encode: (bool value) => value, decode: (d) => d as bool),
+      )[publisherId];
 
   Entry<String> allPackagesAtomFeedXml() => _cache
       .withPrefix('atom-feed-xml/')
@@ -349,19 +379,17 @@ class CachePatterns {
   Entry<BlobIndex> taskResultIndex(String package, String version) => _cache
       .withPrefix('task-result-index/')
       .withTTL(Duration(hours: 24))
-      .withCodec(wrapAsCodec(
-        encode: (BlobIndex entry) => entry.asBytes(),
-        decode: (data) => BlobIndex.fromBytes(data),
-      ))['$package-$version'];
+      .withCodec(
+        wrapAsCodec(
+          encode: (BlobIndex entry) => entry.asBytes(),
+          decode: (data) => BlobIndex.fromBytes(data),
+        ),
+      )['$package-$version'];
 
   /// Cache for gzipped task-result files used by TaskBackend.
-  Entry<List<int>> gzippedTaskResult(
-    String blobId,
-    String path,
-  ) =>
-      _cache
-          .withPrefix('task-result/')
-          .withTTL(Duration(hours: 4))['$blobId/$path'];
+  Entry<List<int>> gzippedTaskResult(String blobId, String path) => _cache
+      .withPrefix('task-result/')
+      .withTTL(Duration(hours: 4))['$blobId/$path'];
 
   /// Cache for task status.
   Entry<PackageStateInfo> taskPackageStatus(String package) => _cache
@@ -369,37 +397,40 @@ class CachePatterns {
       .withTTL(Duration(hours: 3))
       .withCodec(utf8)
       .withCodec(json)
-      .withCodec(wrapAsCodec(
-        encode: (PackageStateInfo s) => s.toJson(),
-        decode: (data) =>
-            PackageStateInfo.fromJson(data as Map<String, dynamic>),
-      ))[package];
+      .withCodec(
+        wrapAsCodec(
+          encode: (PackageStateInfo s) => s.toJson(),
+          decode: (data) =>
+              PackageStateInfo.fromJson(data as Map<String, dynamic>),
+        ),
+      )[package];
 
   /// Cache for sanitized and re-rendered dartdoc HTML files.
   Entry<List<int>> dartdocHtmlBytes(
     String package,
     String urlSegment,
     String path,
-  ) =>
-      _cache
-          .withPrefix('dartdoc-html/')
-          .withTTL(Duration(minutes: 10))['$package/$urlSegment/$path'];
+  ) => _cache
+      .withPrefix('dartdoc-html/')
+      .withTTL(Duration(minutes: 10))['$package/$urlSegment/$path'];
 
   /// Cache for sanitized and re-rendered dartdoc HTML files.
   Entry<DocPageStatus> dartdocPageStatus(
     String package,
     String urlSegment,
     String path,
-  ) =>
-      _cache
-          .withPrefix('dartdoc-status/')
-          .withTTL(Duration(minutes: 10))
-          .withCodec(utf8)
-          .withCodec(json)
-          .withCodec(wrapAsCodec(
-              encode: (DocPageStatus s) => s.toJson(),
-              decode: (data) => DocPageStatus.fromJson(
-                  data as Map<String, dynamic>)))['$package/$urlSegment/$path'];
+  ) => _cache
+      .withPrefix('dartdoc-status/')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(
+        wrapAsCodec(
+          encode: (DocPageStatus s) => s.toJson(),
+          decode: (data) =>
+              DocPageStatus.fromJson(data as Map<String, dynamic>),
+        ),
+      )['$package/$urlSegment/$path'];
 
   /// Stores the OpenID Data (including the JSON Web Key list).
   ///
@@ -411,16 +442,17 @@ class CachePatterns {
   Entry<OpenIdData> openIdData({
     required String configurationUrl,
     Duration? ttl,
-  }) =>
-      _cache
-          .withPrefix('openid-data/')
-          .withTTL(ttl ?? Duration(minutes: 15))
-          .withCodec(utf8)
-          .withCodec(json)
-          .withCodec(wrapAsCodec(
-            encode: (OpenIdData v) => v.toJson(),
-            decode: (v) => OpenIdData.fromJson(v as Map<String, dynamic>),
-          ))[configurationUrl];
+  }) => _cache
+      .withPrefix('openid-data/')
+      .withTTL(ttl ?? Duration(minutes: 15))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(
+        wrapAsCodec(
+          encode: (OpenIdData v) => v.toJson(),
+          decode: (v) => OpenIdData.fromJson(v as Map<String, dynamic>),
+        ),
+      )[configurationUrl];
 
   Entry<List<int>> topicsPageData() =>
       _cache.withPrefix('topics-page-data/').withTTL(Duration(hours: 1))['-'];
@@ -431,24 +463,29 @@ class CachePatterns {
       .withPrefix('rate-limit-until/')
       .withTTL(Duration(hours: 1)) // gets override when the set is called
       .withCodec(utf8)
-      .withCodec(wrapAsCodec(
-        encode: (DateTime v) => v.toUtc().toIso8601String(),
-        decode: (v) => DateTime.parse(v.toString()),
-      ))[entryKey];
+      .withCodec(
+        wrapAsCodec(
+          encode: (DateTime v) => v.toUtc().toIso8601String(),
+          decode: (v) => DateTime.parse(v.toString()),
+        ),
+      )[entryKey];
 
   /// The resolved display version and URL redirect info for /documentation/ URLs.
   Entry<ResolvedDocUrlVersion> resolvedDocUrlVersion(
-          String package, String version) =>
-      _cache
-          .withPrefix('resolved-doc-url-version/')
-          .withTTL(Duration(minutes: 15))
-          .withCodec(utf8)
-          .withCodec(json)
-          .withCodec(wrapAsCodec(
-            encode: (ResolvedDocUrlVersion v) => v.toJson(),
-            decode: (v) =>
-                ResolvedDocUrlVersion.fromJson(v as Map<String, dynamic>),
-          ))['$package-$version'];
+    String package,
+    String version,
+  ) => _cache
+      .withPrefix('resolved-doc-url-version/')
+      .withTTL(Duration(minutes: 15))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(
+        wrapAsCodec(
+          encode: (ResolvedDocUrlVersion v) => v.toJson(),
+          decode: (v) =>
+              ResolvedDocUrlVersion.fromJson(v as Map<String, dynamic>),
+        ),
+      )['$package-$version'];
 
   Entry<PlaylistItemListResponse> youtubePlaylistItems(String pageToken) =>
       _cache
@@ -456,11 +493,13 @@ class CachePatterns {
           .withTTL(Duration(hours: 6))
           .withCodec(utf8)
           .withCodec(json)
-          .withCodec(wrapAsCodec(
-            encode: (PlaylistItemListResponse v) => v.toJson(),
-            decode: (v) =>
-                PlaylistItemListResponse.fromJson(v as Map<String, dynamic>),
-          ))[pageToken];
+          .withCodec(
+            wrapAsCodec(
+              encode: (PlaylistItemListResponse v) => v.toJson(),
+              decode: (v) =>
+                  PlaylistItemListResponse.fromJson(v as Map<String, dynamic>),
+            ),
+          )[pageToken];
 }
 
 /// The active cache.
@@ -484,8 +523,9 @@ Future<void> setupCache() async {
 /// Read redis connection string from the secret backend and initialize redis
 /// cache.
 Future _registerRedisCache() async {
-  final connectionString =
-      await secretBackend.lookup(SecretKey.redisConnectionString);
+  final connectionString = await secretBackend.lookup(
+    SecretKey.redisConnectionString,
+  );
   // Validate that we got a connection string
   if (connectionString == null || connectionString.isEmpty) {
     throw Exception('Secret ${SecretKey.redisConnectionString} is missing');
@@ -494,7 +534,8 @@ Future _registerRedisCache() async {
 
   // Create and register a cache
   final cacheProvider = await _ConnectionRefreshingCacheProvider.connect(
-      () async => Cache.redisCacheProvider(connectionUri));
+    () async => Cache.redisCacheProvider(connectionUri),
+  );
   _registerCache(CachePatterns._(Cache(cacheProvider)));
   ss.registerScopeExitCallback(() async => cacheProvider.close());
 }
@@ -540,7 +581,8 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
   }
 
   static Future<_ConnectionRefreshingCacheProvider<T>> connect<T>(
-      _CacheProviderFn<T> fn) async {
+    _CacheProviderFn<T> fn,
+  ) async {
     return _ConnectionRefreshingCacheProvider._(fn, await fn());
   }
 
@@ -589,7 +631,7 @@ extension EntryPurgeExt<T> on Entry<T> {
     });
   }
 
-// Get or create a value.
+  // Get or create a value.
   Future<T?> obtain(
     Future<T?> Function() create, {
     Duration? ttl,

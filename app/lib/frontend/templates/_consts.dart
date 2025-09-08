@@ -23,19 +23,19 @@ class SdkDict {
   });
 
   const SdkDict.any()
-      : topSdkPackages = 'Top packages',
-        searchPackagesLabel = 'Search packages',
-        libraryTypeLabel = 'SDK library';
+    : topSdkPackages = 'Top packages',
+      searchPackagesLabel = 'Search packages',
+      libraryTypeLabel = 'SDK library';
 
   const SdkDict.dart()
-      : topSdkPackages = 'Top Dart packages',
-        searchPackagesLabel = 'Search Dart packages',
-        libraryTypeLabel = 'Dart SDK library';
+    : topSdkPackages = 'Top Dart packages',
+      searchPackagesLabel = 'Search Dart packages',
+      libraryTypeLabel = 'Dart SDK library';
 
   const SdkDict.flutter()
-      : topSdkPackages = 'Top Flutter packages',
-        searchPackagesLabel = 'Search Flutter packages',
-        libraryTypeLabel = 'Flutter SDK library';
+    : topSdkPackages = 'Top Flutter packages',
+      searchPackagesLabel = 'Search Flutter packages',
+      libraryTypeLabel = 'Flutter SDK library';
 }
 
 /// Returns the dictionary spec for [sdk].
@@ -84,44 +84,54 @@ class SortDict {
 
 final _sortDicts = const <SortDict>[
   SortDict(
-      id: 'listing_relevance',
-      label: 'listing relevance',
-      tooltip:
-          'Packages are sorted by the combination of their overall score and '
-          'their specificity to the selected platform.'),
+    id: 'listing_relevance',
+    label: 'listing relevance',
+    tooltip:
+        'Packages are sorted by the combination of their overall score and '
+        'their specificity to the selected platform.',
+  ),
   SortDict(
-      id: 'search_relevance',
-      label: 'search relevance',
-      tooltip: 'Packages are sorted by the combination of the text match, '
-          'their overall score and their specificity to the selected platform.'),
+    id: 'search_relevance',
+    label: 'search relevance',
+    tooltip:
+        'Packages are sorted by the combination of the text match, '
+        'their overall score and their specificity to the selected platform.',
+  ),
   SortDict(
-      id: 'top',
-      label: 'overall score',
-      tooltip: 'Packages are sorted by the overall score.'),
+    id: 'top',
+    label: 'overall score',
+    tooltip: 'Packages are sorted by the overall score.',
+  ),
   SortDict(
-      id: 'updated',
-      label: 'recently updated',
-      tooltip: 'Packages are sorted by their updated time.'),
+    id: 'updated',
+    label: 'recently updated',
+    tooltip: 'Packages are sorted by their updated time.',
+  ),
   SortDict(
-      id: 'created',
-      label: 'newest package',
-      tooltip: 'Packages are sorted by their created time.'),
+    id: 'created',
+    label: 'newest package',
+    tooltip: 'Packages are sorted by their created time.',
+  ),
   SortDict(
-      id: 'like',
-      label: 'most likes',
-      tooltip: 'Packages are sorted by like count.'),
+    id: 'like',
+    label: 'most likes',
+    tooltip: 'Packages are sorted by like count.',
+  ),
   SortDict(
-      id: 'points',
-      label: 'most pub points',
-      tooltip: 'Packages are sorted by pub points.'),
+    id: 'points',
+    label: 'most pub points',
+    tooltip: 'Packages are sorted by pub points.',
+  ),
   SortDict(
-      id: 'downloads',
-      label: 'downloads',
-      tooltip: 'Packages are sorted by their download counts.'),
+    id: 'downloads',
+    label: 'downloads',
+    tooltip: 'Packages are sorted by their download counts.',
+  ),
   SortDict(
-      id: 'trending',
-      label: 'trending',
-      tooltip: 'Packages are sorted by trending.'),
+    id: 'trending',
+    label: 'trending',
+    tooltip: 'Packages are sorted by trending.',
+  ),
 ];
 
 List<SortDict> getSortDicts(bool isSearch) {

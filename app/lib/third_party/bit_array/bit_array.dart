@@ -103,9 +103,9 @@ class BitArray extends BitSet {
   /// The number of bits set to true.
   @override
   int get cardinality => _data.buffer.asUint8List().fold(
-        0,
-        (sum, value) => sum + _cardinalityBitCounts[value],
-      );
+    0,
+    (sum, value) => sum + _cardinalityBitCounts[value],
+  );
 
   /// Whether the [BitArray] is empty == has only zero values.
   bool get isEmpty {
@@ -449,7 +449,7 @@ class _IntIterator implements Iterator<int> {
   int _cursorMask = 1;
 
   _IntIterator(this._buffer, this._length, this._matchValue)
-      : _skipMatch = _matchValue ? 0x00 : 0xffffffff;
+    : _skipMatch = _matchValue ? 0x00 : 0xffffffff;
 
   @override
   int get current => _current;

@@ -15,12 +15,13 @@ Future<void> main() async {
   final buildOutputDir = Directory(p.join(cwd.path, 'build'));
 
   final projectDir = cwd.parent.parent;
-  final listPkgs = Directory(p.join(projectDir.path, 'pkg'))
-      .listSync()
-      .whereType<Directory>()
-      .map((e) => p.basename(e.path))
-      .toList()
-    ..sort();
+  final listPkgs =
+      Directory(p.join(projectDir.path, 'pkg'))
+          .listSync()
+          .whereType<Directory>()
+          .map((e) => p.basename(e.path))
+          .toList()
+        ..sort();
   final skipPkgDirs = [
     'api_builder',
     'code_coverage',
@@ -36,33 +37,25 @@ Future<void> main() async {
     final rawOutputDir = p.join(buildOutputDir.path, 'raw', 'pkg', pkg);
     await Directory(rawOutputDir).create(recursive: true);
     print('Running test in pkg/$pkg...');
-    await Process.run(
-      'dart',
-      [
-        'test',
-        '--run-skipped',
-        '--coverage',
-        rawOutputDir,
-      ],
-      workingDirectory: pkgDir,
-    );
+    await Process.run('dart', [
+      'test',
+      '--run-skipped',
+      '--coverage',
+      rawOutputDir,
+    ], workingDirectory: pkgDir);
     print('Formatting coverage in pkg/$pkg...');
-    await Process.run(
-      'dart',
-      [
-        'run',
-        'coverage:format_coverage',
-        '--packages',
-        p.join(projectDir.path, '.dart_tool', 'package_config.json'),
-        '-i',
-        rawOutputDir,
-        '--base-directory',
-        projectDir.path,
-        '--lcov',
-        '--out',
-        p.join(buildOutputDir.path, 'lcov', 'pkg', '$pkg.json.info'),
-      ],
-      workingDirectory: pkgDir,
-    );
+    await Process.run('dart', [
+      'run',
+      'coverage:format_coverage',
+      '--packages',
+      p.join(projectDir.path, '.dart_tool', 'package_config.json'),
+      '-i',
+      rawOutputDir,
+      '--base-directory',
+      projectDir.path,
+      '--lcov',
+      '--out',
+      p.join(buildOutputDir.path, 'lcov', 'pkg', '$pkg.json.info'),
+    ], workingDirectory: pkgDir);
   }
 }

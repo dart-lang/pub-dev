@@ -42,10 +42,7 @@ void main() {
 
     test('parse successful', () {
       final parsed = JsonWebToken.parse(jwtIoToken);
-      expect(parsed.header, {
-        'alg': 'RS256',
-        'typ': 'JWT',
-      });
+      expect(parsed.header, {'alg': 'RS256', 'typ': 'JWT'});
       expect(parsed.header.alg, 'RS256');
       expect(parsed.header.typ, 'JWT');
       expect(parsed.payload, {
@@ -74,11 +71,7 @@ void main() {
   });
 
   group('timestamps', () {
-    JwtPayload createPayload({
-      DateTime? exp,
-      DateTime? iat,
-      DateTime? nbf,
-    }) {
+    JwtPayload createPayload({DateTime? exp, DateTime? iat, DateTime? nbf}) {
       return JwtPayload({
         if (iat != null) 'iat': iat.millisecondsSinceEpoch ~/ 1000,
         if (nbf != null) 'nbf': nbf.millisecondsSinceEpoch ~/ 1000,
@@ -88,9 +81,7 @@ void main() {
 
     test('iat missing', () {
       expect(
-        createPayload(
-          exp: clock.now().add(Duration(hours: 2)),
-        ).isTimely(),
+        createPayload(exp: clock.now().add(Duration(hours: 2))).isTimely(),
         false,
       );
     });
@@ -107,9 +98,7 @@ void main() {
 
     test('exp missing', () {
       expect(
-        createPayload(
-          iat: clock.now().subtract(Duration(hours: 2)),
-        ).isTimely(),
+        createPayload(iat: clock.now().subtract(Duration(hours: 2))).isTimely(),
         false,
       );
     });
@@ -161,18 +150,21 @@ void main() {
     test('known PEM encoding', () {
       final reference = Asn1RsaPublicKey.parsePemString(jwtIoPublicKeyPem);
       final n = hex.decode(
-          'bb5494d4b7d52cf1c2a333311f6328e2580e11e3f3366d2d46078b7b357a7df0'
-          '2dd20ba75532f0ee89cb467aead3f2335bbc9647b424ae604bee34ca127e6efa'
-          'a2a16f029f06cb48b3e6cc636664a75f209d3c4a2f1a12dad15ccc690f2cf822'
-          'cec92e7a63208519e259aa0b7327a191ddeaa86125bd6fd50cbe406964e0d272'
-          'd5923468f73fb8d11433b95684f00900166c59ce8c37c7e54960a763ca4909d2'
-          '24fdc024b40d14d7bb6ebd576eb855fff78efade75988a46483094bf71340c31'
-          '5c5834c7f5c5c34d3951655122476070a5938e904fd9d3f0559e16582fbd6865'
-          '5df86ca7d68d022de95fe2b1231a85db00012002a786531adc2256e35df6dc9b');
+        'bb5494d4b7d52cf1c2a333311f6328e2580e11e3f3366d2d46078b7b357a7df0'
+        '2dd20ba75532f0ee89cb467aead3f2335bbc9647b424ae604bee34ca127e6efa'
+        'a2a16f029f06cb48b3e6cc636664a75f209d3c4a2f1a12dad15ccc690f2cf822'
+        'cec92e7a63208519e259aa0b7327a191ddeaa86125bd6fd50cbe406964e0d272'
+        'd5923468f73fb8d11433b95684f00900166c59ce8c37c7e54960a763ca4909d2'
+        '24fdc024b40d14d7bb6ebd576eb855fff78efade75988a46483094bf71340c31'
+        '5c5834c7f5c5c34d3951655122476070a5938e904fd9d3f0559e16582fbd6865'
+        '5df86ca7d68d022de95fe2b1231a85db00012002a786531adc2256e35df6dc9b',
+      );
       final e = hex.decode('010001');
       final publicKey = Asn1RsaPublicKey(modulus: n, exponent: e);
-      expect(hex.encode(publicKey.asDerEncodedBytes),
-          hex.encode(reference.asDerEncodedBytes));
+      expect(
+        hex.encode(publicKey.asDerEncodedBytes),
+        hex.encode(reference.asDerEncodedBytes),
+      );
     });
   });
 
@@ -186,7 +178,8 @@ void main() {
           'kty': 'RSA',
           'kid': 'public:c424b67b-fe28-45d7-b015-f79da50b5b21',
           'alg': 'RS256',
-          'n': 'sttddbg-_yjXzcFpbMJB1fIFam9lQBeXWbTqzJwbuFbspHMsRowa8FaPw44l2C'
+          'n':
+              'sttddbg-_yjXzcFpbMJB1fIFam9lQBeXWbTqzJwbuFbspHMsRowa8FaPw44l2C'
               '9Q42J3AdQD8CcNj2z7byCTSC5gaDAY30xvZoi5WDWkSjHblMPBUT2cDtw9bIZ6F'
               'ocRp46KaKzeoVDv3a0EBg5cdAdrefawfZoruPZCLmyLqXZmBM8RbpYLChb-UFO2'
               '5i7e4AoRJ2hNFYg0qM-hRZNwLliDfkafjnOgSu7_w0WDInNzbUuy26rb_yDNGEI'
@@ -204,7 +197,8 @@ void main() {
           'kty': 'RSA',
           'kid': 'public:9b9d0b47-b9ed-4ba6-9180-52fc5b161a3a',
           'alg': 'RS256',
-          'n': '6f4qEUPMmYAyAQnGQOIx1UkIEVPPt1BnhDH70w3Gq6uYpm4hUyRFiM1oZ4_xB2'
+          'n':
+              '6f4qEUPMmYAyAQnGQOIx1UkIEVPPt1BnhDH70w3Gq6uYpm4hUyRFiM1oZ4_xB2'
               '8gTmpR_SJZL31E_yZTLKPwKKsCDyF6YGhFtcyifhsLJc45GW4G4poX8Y34EIYlT'
               '63G9vutwNwzistWZZqBm52e-bdUQ7zjmWUGpgkq1GQJZyPz2lvA2bThRqqj94w1'
               'hqHSCXuAc90cN-Th0Ss1QhKesud7dIgaJQngjWWXdlPBqNYe1oCI04E3gcWdYRF'
@@ -219,7 +213,8 @@ void main() {
         },
       ],
     };
-    final tokenData = 'eyJhbGciOiJSUzI1NiIsImtpZCI6InB1YmxpYzpjNDI0YjY3Yi1mZTI'
+    final tokenData =
+        'eyJhbGciOiJSUzI1NiIsImtpZCI6InB1YmxpYzpjNDI0YjY3Yi1mZTI'
         '4LTQ1ZDctYjAxNS1mNzlkYTUwYjViMjEiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOltdLCJjb'
         'GllbnRfaWQiOiJteS1jbGllbnQiLCJleHAiOjE1Nzg1MTU3MzYsImV4dCI6e30sImlhdC'
         'I6MTU3ODUxMjEzNiwiaXNzIjoiaHR0cDovLzEyNy4wLjAuMTo0NDQ0LyIsImp0aSI6IjQ'
@@ -244,7 +239,7 @@ void main() {
       expect(token.header, {
         'alg': 'RS256',
         'kid': 'public:c424b67b-fe28-45d7-b015-f79da50b5b21',
-        'typ': 'JWT'
+        'typ': 'JWT',
       });
       expect(jwks.keys.first.kid, token.header['kid']);
       // actual verification

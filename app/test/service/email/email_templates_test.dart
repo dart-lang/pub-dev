@@ -6,15 +6,8 @@ import 'package:pub_dev/service/email/email_templates.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final validUserParts = <String>[
-    'a',
-    '1',
-    'john.doe',
-    "o'hara",
-  ];
-  final invalidUserParts = <String>[
-    '..',
-  ];
+  final validUserParts = <String>['a', '1', 'john.doe', "o'hara"];
+  final invalidUserParts = <String>['..'];
   final allUserParts = <String>[...validUserParts, ...invalidUserParts];
 
   final validDomainParts = <String>[
@@ -106,13 +99,17 @@ void main() {
 
   group('EmailAddress format', () {
     test('email only', () {
-      expect(EmailAddress('john.doe@example.com').toString(),
-          'john.doe@example.com');
+      expect(
+        EmailAddress('john.doe@example.com').toString(),
+        'john.doe@example.com',
+      );
     });
 
     test('composite', () {
-      expect(EmailAddress('john.doe@example.com', name: 'John Doe').toString(),
-          'John Doe <john.doe@example.com>');
+      expect(
+        EmailAddress('john.doe@example.com', name: 'John Doe').toString(),
+        'John Doe <john.doe@example.com>',
+      );
     });
   });
 
@@ -125,37 +122,47 @@ void main() {
     });
 
     test('empty lines', () {
-      expect(reflowBodyText('line 1\n\nline 2\n\n\nline 3'),
-          'line 1\n\nline 2\n\n\nline 3');
+      expect(
+        reflowBodyText('line 1\n\nline 2\n\n\nline 3'),
+        'line 1\n\nline 2\n\n\nline 3',
+      );
     });
 
     test('long line', () {
       expect(
-          reflowBodyText(
-              'line 0\nabc def ghi jkl mno pqr stu vwx yz0 123 456 789 abc def ghi jkl '
-              'mno pqr stu vwx yz0 123 456 789 abc def ghi jkl mno pqr stu vwx '
-              'yz0 123 456 789 abc def ghi jkl mno pqr stu vwx yz0 123 456 789\nline 2'),
-          'line 0\n'
-          'abc def ghi jkl mno pqr stu vwx yz0 123 456 789 abc def ghi jkl mno pqr\n'
-          'stu vwx yz0 123 456 789 abc def ghi jkl mno pqr stu vwx yz0 123 456 789\n'
-          'abc def ghi jkl mno pqr stu vwx yz0 123 456 789\n'
-          'line 2');
+        reflowBodyText(
+          'line 0\nabc def ghi jkl mno pqr stu vwx yz0 123 456 789 abc def ghi jkl '
+          'mno pqr stu vwx yz0 123 456 789 abc def ghi jkl mno pqr stu vwx '
+          'yz0 123 456 789 abc def ghi jkl mno pqr stu vwx yz0 123 456 789\nline 2',
+        ),
+        'line 0\n'
+        'abc def ghi jkl mno pqr stu vwx yz0 123 456 789 abc def ghi jkl mno pqr\n'
+        'stu vwx yz0 123 456 789 abc def ghi jkl mno pqr stu vwx yz0 123 456 789\n'
+        'abc def ghi jkl mno pqr stu vwx yz0 123 456 789\n'
+        'line 2',
+      );
     });
 
     test('long word', () {
       expect(
-          reflowBodyText(
-              'sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb'),
-          'sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb');
+        reflowBodyText(
+          'sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb',
+        ),
+        'sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb',
+      );
       expect(
-          reflowBodyText(
-              'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb'),
-          'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb');
+        reflowBodyText(
+          'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb',
+        ),
+        'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb',
+      );
       expect(
-          reflowBodyText(
-              'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb abcdefg'),
-          'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb\n'
-          'abcdefg');
+        reflowBodyText(
+          'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb abcdefg',
+        ),
+        'abcdefg sdhfbdskhfgbdfhgbdgdfgkdhsfvdkhfvddhjfbgkdhjfbgsdkhjfbgksdjhfgbdskfhgb\n'
+        'abcdefg',
+      );
     });
   });
 
@@ -167,7 +174,7 @@ void main() {
         displayId: 'uploader@example.com',
         authorizedUploaders: [
           EmailAddress(name: 'Joe', 'joe@example.com'),
-          EmailAddress('uploader@example.com')
+          EmailAddress('uploader@example.com'),
         ],
         uploadMessages: [],
       );
@@ -181,8 +188,10 @@ void main() {
       expect(message.bodyText, contains('pkg_foo'));
       expect(message.bodyText, contains('1.0.0'));
       expect(message.bodyText, contains('uploader@example.com'));
-      expect(message.bodyText,
-          contains('https://pub.dev/packages/pkg_foo/versions/1.0.0'));
+      expect(
+        message.bodyText,
+        contains('https://pub.dev/packages/pkg_foo/versions/1.0.0'),
+      );
     });
   });
 }

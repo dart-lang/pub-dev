@@ -44,7 +44,8 @@ void main() {
 
         // collect dependencies:
         final pubspec = Pubspec.parse(
-            await File(p.join(pkgDir, 'pubspec.yaml')).readAsString());
+          await File(p.join(pkgDir, 'pubspec.yaml')).readAsString(),
+        );
 
         String extractConstraint(Dependency d) {
           if (d is! HostedDependency) {
@@ -55,25 +56,32 @@ void main() {
         }
 
         final dependentPackages = <String, String>{
-          ...pubspec.dependencies
-              .map((k, v) => MapEntry(k, extractConstraint(v))),
-          ...pubspec.devDependencies
-              .map((k, v) => MapEntry(k, extractConstraint(v))),
+          ...pubspec.dependencies.map(
+            (k, v) => MapEntry(k, extractConstraint(v)),
+          ),
+          ...pubspec.devDependencies.map(
+            (k, v) => MapEntry(k, extractConstraint(v)),
+          ),
         };
         for (final d in dependentPackages.keys) {
           final pkgDir = p.join(tempDir.path, d);
           await Directory(pkgDir).create(recursive: true);
-          await File(p.join(pkgDir, 'pubspec.yaml')).writeAsString('name: $d\n'
-              'version: ${dependentPackages[d]}\n'
-              'description: simple package placeholder\n'
-              'environment:\n  sdk: ">=3.0.0 <4.0.0"\n');
-          await File(p.join(pkgDir, 'LICENSE'))
-              .writeAsString('No real license.');
+          await File(p.join(pkgDir, 'pubspec.yaml')).writeAsString(
+            'name: $d\n'
+            'version: ${dependentPackages[d]}\n'
+            'description: simple package placeholder\n'
+            'environment:\n  sdk: ">=3.0.0 <4.0.0"\n',
+          );
+          await File(
+            p.join(pkgDir, 'LICENSE'),
+          ).writeAsString('No real license.');
           if (d == 'test') {
             final file = File(p.join(pkgDir, 'lib/test.dart'));
             await file.parent.create(recursive: true);
-            await file.writeAsString('void test(String name, Function fn) {}\n'
-                'void expect(dynamic a, dynamic b) {}\n');
+            await file.writeAsString(
+              'void test(String name, Function fn) {}\n'
+              'void expect(dynamic a, dynamic b) {}\n',
+            );
           }
           await localDartTool.publish(pkgDir);
         }
@@ -82,9 +90,11 @@ void main() {
         final pubspecFile = File(p.join(pkgDir, 'pubspec.yaml'));
         final pubspecContent = await pubspecFile.readAsString();
         await pubspecFile.writeAsString(
-            'homepage: https://github.com/abc/xyz\n$pubspecContent');
-        await File(p.join(pkgDir, 'LICENSE'))
-            .writeAsString('All rights reserved.');
+          'homepage: https://github.com/abc/xyz\n$pubspecContent',
+        );
+        await File(
+          p.join(pkgDir, 'LICENSE'),
+        ).writeAsString('All rights reserved.');
 
         // publish should fail with the description-related error message
         await localDartTool.publish(

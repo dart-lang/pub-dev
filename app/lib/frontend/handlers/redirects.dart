@@ -43,17 +43,19 @@ class PubDartlangOrgService {
 
   /// (Old) Server packages redirect
   @Route.get('/server/packages')
-  Future<Response> serverPackages(Request request) async =>
-      redirectResponse(request.requestedUri
-          .replace(host: primaryHost, path: '/packages')
-          .toString());
+  Future<Response> serverPackages(Request request) async => redirectResponse(
+    request.requestedUri
+        .replace(host: primaryHost, path: '/packages')
+        .toString(),
+  );
 
   /// (Old) Search redirect
   @Route.get('/search')
-  Future<Response> search(Request request) async =>
-      redirectResponse(request.requestedUri
-          .replace(host: primaryHost, path: '/packages')
-          .toString());
+  Future<Response> search(Request request) async => redirectResponse(
+    request.requestedUri
+        .replace(host: primaryHost, path: '/packages')
+        .toString(),
+  );
 
   @Route.get('/robots.txt')
   Future<Response> robotsTxt(Request request) async =>
@@ -72,10 +74,9 @@ class LegacyDartdocService {
   /// Specific documentation page of dartdocs.org
   @Route.get('/documentation')
   @Route.get('/documentation/<path|[^]*>')
-  Future<Response> documentation(Request request) async =>
-      redirectResponse(Uri.parse(fullSiteUrl)
-          .replace(path: request.requestedUri.path)
-          .toString());
+  Future<Response> documentation(Request request) async => redirectResponse(
+    Uri.parse(fullSiteUrl).replace(path: request.requestedUri.path).toString(),
+  );
 
   @Route.get('/robots.txt')
   Future<Response> robotsTxt(Request request) async =>
@@ -120,5 +121,5 @@ const Map<String, String> redirectPaths = <String, String>{
   '/doc/pub-get.html': 'cmd/pub-get.html',
   '/doc/pub-lish.html': 'cmd/pub-lish.html',
   '/doc/pub-upgrade.html': 'cmd/pub-upgrade.html',
-  '/doc/pub-serve.html': 'cmd/pub-serve.html'
+  '/doc/pub-serve.html': 'cmd/pub-serve.html',
 };

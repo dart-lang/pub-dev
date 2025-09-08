@@ -10,57 +10,76 @@ import '../shared/test_services.dart';
 
 void main() {
   group('image upload', () {
-    testWithProfile('succesful upload', fn: () async {
-      await imageStorage.upload(
+    testWithProfile(
+      'succesful upload',
+      fn: () async {
+        await imageStorage.upload(
           'new_pkg',
           '1.2.3',
           () => Stream.fromIterable([
-                [1],
-              ]),
+            [1],
+          ]),
           'image.svg',
-          1);
+          1,
+        );
 
-      expect(
+        expect(
           await imageStorage.bucket.read('new_pkg/1.2.3/image.svg').foldBytes(),
-          [1]);
-    });
+          [1],
+        );
+      },
+    );
 
-    testWithProfile('unsupported file extension', fn: () async {
-      final rs = imageStorage.upload(
+    testWithProfile(
+      'unsupported file extension',
+      fn: () async {
+        final rs = imageStorage.upload(
           'new_pkg',
           '1.2.3',
           () => Stream.fromIterable([
-                [1]
-              ]),
+            [1],
+          ]),
           'image.txt',
-          1);
+          1,
+        );
 
-      await expectLater(
-        rs,
-        throwsA(
-          isA<ArgumentError>().having(
-              (e) => '$e', 'text', contains('Failed to upload image file')),
-        ),
-      );
-    });
+        await expectLater(
+          rs,
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => '$e',
+              'text',
+              contains('Failed to upload image file'),
+            ),
+          ),
+        );
+      },
+    );
 
-    testWithProfile('no file extension', fn: () async {
-      final rs = imageStorage.upload(
+    testWithProfile(
+      'no file extension',
+      fn: () async {
+        final rs = imageStorage.upload(
           'new_pkg',
           '1.2.3',
           () => Stream.fromIterable([
-                [1]
-              ]),
+            [1],
+          ]),
           'image',
-          1);
+          1,
+        );
 
-      await expectLater(
-        rs,
-        throwsA(
-          isA<ArgumentError>().having(
-              (e) => '$e', 'text', contains('Failed to upload image file')),
-        ),
-      );
-    });
+        await expectLater(
+          rs,
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => '$e',
+              'text',
+              contains('Failed to upload image file'),
+            ),
+          ),
+        );
+      },
+    );
   });
 }

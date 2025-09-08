@@ -107,8 +107,9 @@ class AdminBackend {
 
       // NOTE: we should fix https://github.com/dart-lang/gcloud/issues/23
       //       and remove the toDatastoreKey conversion here.
-      final key =
-          _db.modelDB.toDatastoreKey(_db.emptyKey.append(User, id: lastId));
+      final key = _db.modelDB.toDatastoreKey(
+        _db.emptyKey.append(User, id: lastId),
+      );
       query.filter('__key__ >', key);
       query.order('__key__');
     } else {
@@ -137,8 +138,10 @@ class AdminBackend {
     final user = await accountBackend.lookupUserById(userId);
     if (user == null) return;
     if (user.isDeleted) return;
-    _logger.info('${caller.displayId}) initiated the delete '
-        'of ${user.userId} (${user.email})');
+    _logger.info(
+      '${caller.displayId}) initiated the delete '
+      'of ${user.userId} (${user.email})',
+    );
     await _removeUser(user);
   }
 
@@ -150,8 +153,9 @@ class AdminBackend {
     final futures = <Future>[];
     final pkgQuery = _db.query<Package>()..filter('uploaders =', user.userId);
     await for (final p in pkgQuery.run()) {
-      final f = pool
-          .withResource(() => _removeUploaderFromPackage(p.key, user.userId));
+      final f = pool.withResource(
+        () => _removeUploaderFromPackage(p.key, user.userId),
+      );
       futures.add(f);
     }
     await Future.wait(futures);
@@ -179,8 +183,9 @@ class AdminBackend {
     final pool = Pool(5);
     final futures = <Future>[];
     for (final like in await likeBackend.listPackageLikes(user.userId)) {
-      final f = pool
-          .withResource(() => likeBackend.unlikePackage(user, like.package!));
+      final f = pool.withResource(
+        () => likeBackend.unlikePackage(user, like.package!),
+      );
       futures.add(f);
     }
     await Future.wait(futures);
@@ -199,8 +204,10 @@ class AdminBackend {
   }
 
   Future<void> _removeMember(User user, PublisherMember member) async {
-    final seniorMember =
-        await _remainingSeniorMember(member.publisherKey, member.userId!);
+    final seniorMember = await _remainingSeniorMember(
+      member.publisherKey,
+      member.userId!,
+    );
     await withRetryTransaction(_db, (tx) async {
       final p = await tx.lookupValue<Publisher>(member.publisherKey);
       if (seniorMember == null) {
@@ -208,8 +215,9 @@ class AdminBackend {
         p.contactEmail = null;
         // TODO: consider deleting Publisher if there are no other references to it
       } else if (p.contactEmail == user.email) {
-        final seniorUser =
-            await accountBackend.lookupUserById(seniorMember.userId!);
+        final seniorUser = await accountBackend.lookupUserById(
+          seniorMember.userId!,
+        );
         p.contactEmail = seniorUser!.email;
       }
       tx.queueMutations(inserts: [p], deletes: [member.key]);
@@ -242,7 +250,9 @@ class AdminBackend {
   ///
   /// If there are no more admins left, the "oldest" non-admin member is returned.
   Future<PublisherMember?> _remainingSeniorMember(
-      Key publisherKey, String excludeUserId) async {
+    Key publisherKey,
+    String excludeUserId,
+  ) async {
     final otherMembers = await _db
         .query<PublisherMember>(ancestorKey: publisherKey)
         .run()
@@ -267,8 +277,10 @@ class AdminBackend {
       final u = await tx.lookupValue<User>(user.key);
       final deleteKeys = <Key>[];
       if (user.oauthUserId != null) {
-        final mappingKey =
-            _db.emptyKey.append(OAuthUserID, id: user.oauthUserId);
+        final mappingKey = _db.emptyKey.append(
+          OAuthUserID,
+          id: user.oauthUserId,
+        );
         final mapping = await tx.lookupOrNull<OAuthUserID>(mappingKey);
         if (mapping != null) {
           deleteKeys.add(mappingKey);
@@ -291,32 +303,35 @@ class AdminBackend {
   /// Datastore representing the removed package. No new package with the same
   /// name can be published.
   Future<
-      ({
-        int deletedPackages,
-        int deletedPackageVersions,
-        int deletedPackageVersionInfos,
-        int deletedPackageVersionAssets,
-        int deletedLikes,
-        int deletedAuditLogs,
-        int replacedByFixes,
-      })> removePackage(
-    String packageName, {
-    DateTime? moderated,
-  }) async {
+    ({
+      int deletedPackages,
+      int deletedPackageVersions,
+      int deletedPackageVersionInfos,
+      int deletedPackageVersionAssets,
+      int deletedLikes,
+      int deletedAuditLogs,
+      int replacedByFixes,
+    })
+  >
+  removePackage(String packageName, {DateTime? moderated}) async {
     final packageKey = _db.emptyKey.append(Package, id: packageName);
-    final versions = (await _db
-            .query<PackageVersion>(ancestorKey: packageKey)
-            .run()
-            .map((pv) => pv.version!)
-            .toList())
-        .toSet();
+    final versions =
+        (await _db
+                .query<PackageVersion>(ancestorKey: packageKey)
+                .run()
+                .map((pv) => pv.version!)
+                .toList())
+            .toSet();
 
     final pool = Pool(10);
     final futures = <Future>[];
     for (final v in versions) {
       // Deleting public and canonical archives, 404 errors are ignored.
-      futures.add(pool.withResource(
-          () => packageBackend.removePackageTarball(packageName, v)));
+      futures.add(
+        pool.withResource(
+          () => packageBackend.removePackageTarball(packageName, v),
+        ),
+      );
     }
     await Future.wait(futures);
     await pool.close();
@@ -341,63 +356,76 @@ class AdminBackend {
 
     _logger.info('Removing package from PackageVersionInfo ...');
     final deletedPackageVersionInfos = await _db.deleteWithQuery(
-        _db.query<PackageVersionInfo>()..filter('package =', packageName));
+      _db.query<PackageVersionInfo>()..filter('package =', packageName),
+    );
 
     _logger.info('Removing package from PackageVersionAsset ...');
     final deletedPackageVersionAssets = await _db.deleteWithQuery(
-        _db.query<PackageVersionAsset>()..filter('package =', packageName));
+      _db.query<PackageVersionAsset>()..filter('package =', packageName),
+    );
 
     _logger.info('Removing package from Like ...');
     final deletedLikes = await _db.deleteWithQuery(
-        _db.query<Like>()..filter('packageName =', packageName));
+      _db.query<Like>()..filter('packageName =', packageName),
+    );
 
     _logger.info('Removing package from AuditLogRecord...');
     final deletedAuditLogRecords = await _db.deleteWithQuery(
-        _db.query<AuditLogRecord>()..filter('packages =', packageName));
+      _db.query<AuditLogRecord>()..filter('packages =', packageName),
+    );
 
     _logger.info('Removing Package from Datastore...');
     var deletedPackages = 0;
     await withRetryTransaction(_db, (tx) async {
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
-        _logger
-            .info('Package $packageName not found. Removing related elements.');
+        _logger.info(
+          'Package $packageName not found. Removing related elements.',
+        );
         // Returning early makes sure we are not creating ghost `ModeratedPackage`
         // entities because of a typo.
         return;
       }
       tx.delete(packageKey);
       deletedPackages = 1;
-      final moderatedPkgKey =
-          _db.emptyKey.append(ModeratedPackage, id: packageName);
-      final moderatedPkg =
-          await _db.lookupOrNull<ModeratedPackage>(moderatedPkgKey);
+      final moderatedPkgKey = _db.emptyKey.append(
+        ModeratedPackage,
+        id: packageName,
+      );
+      final moderatedPkg = await _db.lookupOrNull<ModeratedPackage>(
+        moderatedPkgKey,
+      );
       if (moderatedPkg == null) {
         // Refresh versions to make sure we are not missing a freshly uploaded one.
-        versions.addAll(await tx
-            .query<PackageVersion>(packageKey)
-            .run()
-            .map((pv) => pv.version!)
-            .toList());
+        versions.addAll(
+          await tx
+              .query<PackageVersion>(packageKey)
+              .run()
+              .map((pv) => pv.version!)
+              .toList(),
+        );
 
         versions.addAll(package.deletedVersions ?? const <String>[]);
 
-        tx.insert(ModeratedPackage()
-          ..parentKey = _db.emptyKey
-          ..id = packageName
-          ..name = packageName
-          ..moderated = moderated ?? clock.now().toUtc()
-          ..versions = versions.toList()
-          ..publisherId = package.publisherId
-          ..uploaders = package.uploaders);
+        tx.insert(
+          ModeratedPackage()
+            ..parentKey = _db.emptyKey
+            ..id = packageName
+            ..name = packageName
+            ..moderated = moderated ?? clock.now().toUtc()
+            ..versions = versions.toList()
+            ..publisherId = package.publisherId
+            ..uploaders = package.uploaders,
+        );
 
         _logger.info('Adding package to moderated packages ...');
       }
     });
 
     _logger.info('Removing package from PackageVersion ...');
-    await _db
-        .deleteWithQuery(_db.query<PackageVersion>(ancestorKey: packageKey));
+    await _db.deleteWithQuery(
+      _db.query<PackageVersion>(ancestorKey: packageKey),
+    );
 
     triggerPackagePostUpdates(packageName);
 
@@ -409,7 +437,7 @@ class AdminBackend {
       deletedPackageVersionAssets: deletedPackageVersionAssets.deleted,
       deletedLikes: deletedLikes.deleted,
       deletedAuditLogs: deletedAuditLogRecords.deleted,
-      replacedByFixes: replacedByFixes
+      replacedByFixes: replacedByFixes,
     );
   }
 
@@ -418,33 +446,48 @@ class AdminBackend {
   /// It is safe to call [updateVersionOptions] on an version with the same
   /// options values (e.g. same retracted status), as the call is idempotent.
   Future<void> updateVersionOptions(
-      String packageName, String version, VersionOptions options) async {
+    String packageName,
+    String version,
+    VersionOptions options,
+  ) async {
     checkPackageVersionParams(packageName, version);
-    InvalidInputException.check(options.isRetracted != null,
-        'Only updating "isRetracted" is implemented.');
-    final caller =
-        await requireAuthenticatedAdmin(AdminPermission.manageRetraction);
+    InvalidInputException.check(
+      options.isRetracted != null,
+      'Only updating "isRetracted" is implemented.',
+    );
+    final caller = await requireAuthenticatedAdmin(
+      AdminPermission.manageRetraction,
+    );
 
     if (options.isRetracted != null) {
       final isRetracted = options.isRetracted!;
-      _logger.info('${caller.displayId}) initiated the isRetracted status '
-          'of package $packageName $version to be $isRetracted.');
+      _logger.info(
+        '${caller.displayId}) initiated the isRetracted status '
+        'of package $packageName $version to be $isRetracted.',
+      );
 
       await withRetryTransaction(_db, (tx) async {
         final p = await tx.lookupOrNull<Package>(
-            _db.emptyKey.append(Package, id: packageName));
+          _db.emptyKey.append(Package, id: packageName),
+        );
         if (p == null) {
           throw NotFoundException.resource(packageName);
         }
         final pv = await tx.lookupOrNull<PackageVersion>(
-            p.key.append(PackageVersion, id: version));
+          p.key.append(PackageVersion, id: version),
+        );
         if (pv == null) {
           throw NotFoundException.resource(version);
         }
 
         if (pv.isRetracted != isRetracted) {
           await packageBackend.doUpdateRetractedStatus(
-              caller, tx, p, pv, isRetracted);
+            caller,
+            tx,
+            p,
+            pv,
+            isRetracted,
+          );
         }
       });
       triggerPackagePostUpdates(packageName);
@@ -456,16 +499,20 @@ class AdminBackend {
   /// removed version, as the call is idempotent.
   @visibleForTesting
   Future<
-      ({
-        int deletedPackageVersions,
-        int deletedPackageVersionInfos,
-        int deletedPackageVersionAssets,
-      })> removePackageVersion(String packageName, String version) async {
+    ({
+      int deletedPackageVersions,
+      int deletedPackageVersionInfos,
+      int deletedPackageVersionAssets,
+    })
+  >
+  removePackageVersion(String packageName, String version) async {
     var deletedPackageVersions = 0;
     final currentDartSdk = await getCachedDartSdkVersion(
-        lastKnownStable: toolStableDartSdkVersion);
+      lastKnownStable: toolStableDartSdkVersion,
+    );
     final currentFlutterSdk = await getCachedFlutterSdkVersion(
-        lastKnownStable: toolStableFlutterSdkVersion);
+      lastKnownStable: toolStableFlutterSdkVersion,
+    );
 
     _logger.info('Removing GCS objects ...');
     await packageBackend.removePackageTarball(packageName, version);
@@ -500,7 +547,8 @@ class AdminBackend {
 
       if (versionNames.length == 1 && versionNames.single == version) {
         throw Exception(
-            'Last version detected. Use full package removal without the version qualifier.');
+          'Last version detected. Use full package removal without the version qualifier.',
+        );
       }
 
       package.updateVersions(
@@ -531,9 +579,7 @@ class AdminBackend {
   /// return anything secret. This is because the `/admin/` section is only
   /// intended to be exposed to administrators. Users can read the assigned-tags
   /// through API that returns list of package tags.
-  Future<api.AssignedTags> handleGetAssignedTags(
-    String packageName,
-  ) async {
+  Future<api.AssignedTags> handleGetAssignedTags(String packageName) async {
     checkPackageVersionParams(packageName);
     await requireAuthenticatedAdmin(AdminPermission.manageAssignedTags);
     final package = await packageBackend.lookupPackage(packageName);
@@ -541,9 +587,7 @@ class AdminBackend {
       throw NotFoundException.resource(packageName);
     }
 
-    return api.AssignedTags(
-      assignedTags: package.assignedTags!,
-    );
+    return api.AssignedTags(assignedTags: package.assignedTags!);
   }
 
   /// Handles `POST '/api/admin/packages/<package>/assigned-tags'`.
@@ -554,8 +598,9 @@ class AdminBackend {
     await requireAuthenticatedAdmin(AdminPermission.manageAssignedTags);
 
     InvalidInputException.check(
-      body.assignedTagsAdded
-          .every((tag) => allowedTagPrefixes.any(tag.startsWith)),
+      body.assignedTagsAdded.every(
+        (tag) => allowedTagPrefixes.any(tag.startsWith),
+      ),
       'Only following tag-prefixes are allowed "${allowedTagPrefixes.join("\", ")}"',
     );
     InvalidInputException.check(
@@ -567,10 +612,9 @@ class AdminBackend {
     );
 
     return await withRetryTransaction(_db, (tx) async {
-      final package = await tx.lookupOrNull<Package>(_db.emptyKey.append(
-        Package,
-        id: packageName,
-      ));
+      final package = await tx.lookupOrNull<Package>(
+        _db.emptyKey.append(Package, id: packageName),
+      );
 
       if (package == null) {
         throw NotFoundException.resource(packageName);
@@ -585,9 +629,7 @@ class AdminBackend {
         tx.insert(package);
       }
 
-      return api.AssignedTags(
-        assignedTags: package.assignedTags!,
-      );
+      return api.AssignedTags(assignedTags: package.assignedTags!);
     });
   }
 
@@ -604,12 +646,12 @@ class AdminBackend {
       throw NotFoundException.resource(packageName);
     }
     InvalidInputException.check(
-        package.publisherId == null, 'Package must not be under a publisher.');
+      package.publisherId == null,
+      'Package must not be under a publisher.',
+    );
 
     final users = await accountBackend.lookupUsersById(package.uploaders!);
-    return api.PackageUploaders(
-      uploaders: _convertUsers(users),
-    );
+    return api.PackageUploaders(uploaders: _convertUsers(users));
   }
 
   List<api.AdminUserEntry> _convertUsers(Iterable<User?> users) {
@@ -629,10 +671,13 @@ class AdminBackend {
   ///
   /// Returns the list of uploaders for a package.
   Future<api.PackageUploaders> handleAddPackageUploader(
-      String packageName, String email) async {
+    String packageName,
+    String email,
+  ) async {
     checkPackageVersionParams(packageName);
-    final authenticatedAgent =
-        await requireAuthenticatedAdmin(AdminPermission.managePackageOwnership);
+    final authenticatedAgent = await requireAuthenticatedAdmin(
+      AdminPermission.managePackageOwnership,
+    );
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null) {
       throw NotFoundException.resource(packageName);
@@ -640,7 +685,9 @@ class AdminBackend {
 
     final uploaderEmail = email.toLowerCase();
     InvalidInputException.check(
-        isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
+      isValidEmail(uploaderEmail),
+      'Not a valid email: `$uploaderEmail`.',
+    );
 
     await consentBackend.invitePackageUploader(
       agent: authenticatedAgent,
@@ -654,10 +701,13 @@ class AdminBackend {
   ///
   /// Returns the list of uploaders for a package.
   Future<api.PackageUploaders> handleRemovePackageUploader(
-      String packageName, String email) async {
+    String packageName,
+    String email,
+  ) async {
     checkPackageVersionParams(packageName);
-    final authenticatedAgent =
-        await requireAuthenticatedAdmin(AdminPermission.managePackageOwnership);
+    final authenticatedAgent = await requireAuthenticatedAdmin(
+      AdminPermission.managePackageOwnership,
+    );
     final package = await packageBackend.lookupPackage(packageName);
     if (package == null) {
       throw NotFoundException.resource(packageName);
@@ -665,37 +715,48 @@ class AdminBackend {
 
     final uploaderEmail = email.toLowerCase();
     InvalidInputException.check(
-        isValidEmail(uploaderEmail), 'Not a valid email: `$uploaderEmail`.');
-    final uploaderUsers =
-        await accountBackend.lookupUsersByEmail(uploaderEmail);
-    InvalidInputException.check(uploaderUsers.isNotEmpty,
-        'No users found for email: `$uploaderEmail`.');
+      isValidEmail(uploaderEmail),
+      'Not a valid email: `$uploaderEmail`.',
+    );
+    final uploaderUsers = await accountBackend.lookupUsersByEmail(
+      uploaderEmail,
+    );
+    InvalidInputException.check(
+      uploaderUsers.isNotEmpty,
+      'No users found for email: `$uploaderEmail`.',
+    );
 
     await withRetryTransaction(_db, (tx) async {
       final p = await tx.lookupValue<Package>(package.key);
       InvalidInputException.check(
-          p.publisherId == null, 'Package must not be under a publisher.');
+        p.publisherId == null,
+        'Package must not be under a publisher.',
+      );
       var removed = false;
       for (final uploaderUser in uploaderUsers) {
         final r = p.uploaders!.remove(uploaderUser.userId);
         if (r) {
           removed = true;
-          tx.insert(await AuditLogRecord.uploaderRemoved(
-            agent: authenticatedAgent,
-            package: packageName,
-            uploaderUser: uploaderUser,
-          ));
+          tx.insert(
+            await AuditLogRecord.uploaderRemoved(
+              agent: authenticatedAgent,
+              package: packageName,
+              uploaderUser: uploaderUser,
+            ),
+          );
         }
       }
       if (removed) {
         if (p.uploaders!.isEmpty) {
           p.isDiscontinued = true;
-          tx.insert(await AuditLogRecord.packageOptionsUpdated(
-            agent: authenticatedAgent,
-            package: packageName,
-            publisherId: p.publisherId,
-            options: ['discontinued'],
-          ));
+          tx.insert(
+            await AuditLogRecord.packageOptionsUpdated(
+              agent: authenticatedAgent,
+              package: packageName,
+              publisherId: p.publisherId,
+              options: ['discontinued'],
+            ),
+          );
         }
         p.updated = clock.now().toUtc();
         tx.insert(p);
@@ -735,8 +796,9 @@ class AdminBackend {
     }
 
     // Don't allow unknown arguments
-    final unknownArgs =
-        args.keys.toSet().difference(action.options.keys.toSet());
+    final unknownArgs = args.keys.toSet().difference(
+      action.options.keys.toSet(),
+    );
     InvalidInputException.check(
       unknownArgs.isEmpty,
       'Unknown options: ${unknownArgs.join(',')}',
@@ -751,7 +813,8 @@ class AdminBackend {
 
   Future<ModerationCase?> lookupModerationCase(String caseId) async {
     return await dbService.lookupOrNull<ModerationCase>(
-        dbService.emptyKey.append(ModerationCase, id: caseId));
+      dbService.emptyKey.append(ModerationCase, id: caseId),
+    );
   }
 
   /// Returns a valid [ModerationCase] if it exists.
@@ -812,10 +875,7 @@ class AdminBackend {
       }
 
       _logger.info('Deleting moderated package: ${package.name}');
-      await removePackage(
-        package.name!,
-        moderated: package.moderatedAt,
-      );
+      await removePackage(package.name!, moderated: package.moderatedAt);
       _logger.info('Deleted moderated package: ${package.name}');
     }
 
@@ -830,10 +890,12 @@ class AdminBackend {
       }
 
       _logger.info(
-          'Deleting moderated package version: ${version.qualifiedVersionKey}');
+        'Deleting moderated package version: ${version.qualifiedVersionKey}',
+      );
       await removePackageVersion(version.package, version.version!);
       _logger.info(
-          'Deleted moderated package version: ${version.qualifiedVersionKey}');
+        'Deleted moderated package version: ${version.qualifiedVersionKey}',
+      );
     }
 
     // delete publishers
@@ -866,7 +928,8 @@ class AdminBackend {
 
       // removes publisher members
       await _db.deleteWithQuery(
-          _db.query<PublisherMember>(ancestorKey: publisher.key));
+        _db.query<PublisherMember>(ancestorKey: publisher.key),
+      );
 
       // removes publisher entity
       await _db.commit(deletes: [publisher.key]);
@@ -921,10 +984,12 @@ class AdminBackend {
       }
 
       _logger.info(
-          'Deleting admin-deleted package version: ${version.qualifiedVersionKey}');
+        'Deleting admin-deleted package version: ${version.qualifiedVersionKey}',
+      );
       await removePackageVersion(version.package, version.version!);
       _logger.info(
-          'Deleted moderated package version: ${version.qualifiedVersionKey}');
+        'Deleted moderated package version: ${version.qualifiedVersionKey}',
+      );
     }
   }
 

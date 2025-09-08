@@ -9,8 +9,9 @@ import '../shared/exceptions.dart';
 
 import 'models.dart';
 
-final _uuidRegExp =
-    RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
+final _uuidRegExp = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+);
 
 /// Agents identify authenticated users or automated system accounts.
 ///
@@ -55,9 +56,7 @@ abstract class KnownAgents {
   }
 
   /// Returns an agentId in the format of `service:gcp-service-account:<oauthUserId>`
-  static String gcpServiceAccountAgentId({
-    required String oauthUserId,
-  }) {
+  static String gcpServiceAccountAgentId({required String oauthUserId}) {
     return [_gcpServiceAccountPrefix, oauthUserId].join();
   }
 
@@ -95,7 +94,9 @@ void checkUserIdParam(String value) {
 
 void checkAgentParam(String value) {
   InvalidInputException.check(
-      looksLikeUserIdOrServiceAgent(value), 'Invalid "agent".');
+    looksLikeUserIdOrServiceAgent(value),
+    'Invalid "agent".',
+  );
 }
 
 /// An [AuthenticatedAgent] represents an _agent_ (a user or automated service)
@@ -155,10 +156,7 @@ class AuthenticatedGitHubAction implements AuthenticatedAgent {
   /// The parsed, GitHub-specific JWT payload.
   final GitHubJwtPayload payload;
 
-  AuthenticatedGitHubAction({
-    required this.idToken,
-    required this.payload,
-  }) {
+  AuthenticatedGitHubAction({required this.idToken, required this.payload}) {
     _assertRepository(payload.repository);
   }
 
@@ -169,7 +167,8 @@ class AuthenticatedGitHubAction implements AuthenticatedAgent {
 void _assertRepository(String repository) {
   if (repository.trim().isEmpty) {
     throw AssertionError(
-        'The JWT from GitHub must have a non-empty `repository`.');
+      'The JWT from GitHub must have a non-empty `repository`.',
+    );
   }
   final parts = repository.split('/');
   if (parts.length != 2) {
@@ -185,8 +184,9 @@ void _assertRepository(String repository) {
 /// The [agentId] has the following format: `service:gcp-service-account:<oauthUserId>`
 class AuthenticatedGcpServiceAccount implements AuthenticatedAgent {
   @override
-  late final agentId =
-      KnownAgents.gcpServiceAccountAgentId(oauthUserId: oauthUserId);
+  late final agentId = KnownAgents.gcpServiceAccountAgentId(
+    oauthUserId: oauthUserId,
+  );
 
   @override
   String get displayId => email;
@@ -220,10 +220,7 @@ class AuthenticatedUser implements AuthenticatedAgent {
   final User user;
   final String audience;
 
-  AuthenticatedUser(
-    this.user, {
-    required this.audience,
-  });
+  AuthenticatedUser(this.user, {required this.audience});
 
   @override
   String get agentId => user.userId;

@@ -16,10 +16,7 @@ class SearchResultCombiner implements SearchIndex {
   final SearchIndex primaryIndex;
   final SdkIndex? sdkIndex;
 
-  SearchResultCombiner({
-    required this.primaryIndex,
-    required this.sdkIndex,
-  });
+  SearchResultCombiner({required this.primaryIndex, required this.sdkIndex});
 
   @override
   FutureOr<IndexInfo> indexInfo() async {
@@ -37,12 +34,18 @@ class SearchResultCombiner implements SearchIndex {
       return await primaryIndex.search(query);
     }
 
-    final queryFlutterSdk = query.tagsPredicate.hasNoTagPrefix('sdk:') ||
+    final queryFlutterSdk =
+        query.tagsPredicate.hasNoTagPrefix('sdk:') ||
         query.tagsPredicate.hasTag(SdkTag.sdkFlutter);
     final results = await Future.wait([
       Future(() => primaryIndex.search(query)),
-      Future(() => sdkIndex!
-          .search(query.query!, limit: 2, skipFlutter: !queryFlutterSdk)),
+      Future(
+        () => sdkIndex!.search(
+          query.query!,
+          limit: 2,
+          skipFlutter: !queryFlutterSdk,
+        ),
+      ),
     ]);
     final primaryResult = results[0] as PackageSearchResult;
     final sdkLibraryHits = results[1] as List<SdkLibraryHit>;

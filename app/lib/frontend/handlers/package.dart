@@ -53,7 +53,9 @@ Map packageDebugStats() {
 
 /// Handles requests for `/packages/<package>`, returning JSON.
 Future<shelf.Response> packageShowHandlerJson(
-    shelf.Request request, String packageName) async {
+  shelf.Request request,
+  String packageName,
+) async {
   checkPackageVersionParams(packageName);
   final package = await packageBackend.lookupPackage(packageName);
   if (package == null || package.isNotVisible) {
@@ -72,7 +74,9 @@ Future<shelf.Response> packageShowHandlerJson(
 
 /// Handles requests for `/packages/<package>/versions`.
 Future<shelf.Response> packageVersionsListHandler(
-    shelf.Request request, String packageName) async {
+  shelf.Request request,
+  String packageName,
+) async {
   return _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -86,9 +90,11 @@ Future<shelf.Response> packageVersionsListHandler(
       }
 
       final dartSdkVersion = await getCachedDartSdkVersion(
-          lastKnownStable: toolStableDartSdkVersion);
+        lastKnownStable: toolStableDartSdkVersion,
+      );
       final currentFlutterSdk = await getCachedFlutterSdkVersion(
-          lastKnownStable: toolStableFlutterSdkVersion);
+        lastKnownStable: toolStableFlutterSdkVersion,
+      );
       final taskStatus = await taskBackend.packageStatus(packageName);
       return renderPkgVersionsPage(
         data,
@@ -108,8 +114,10 @@ Future<shelf.Response> packageVersionsListHandler(
 /// - `/packages/<package>/changelog`
 /// - `/packages/<package>/versions/<version>/changelog`
 Future<shelf.Response> packageChangelogHandler(
-    shelf.Request request, String packageName,
-    {String? versionName}) async {
+  shelf.Request request,
+  String packageName, {
+  String? versionName,
+}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -119,7 +127,8 @@ Future<shelf.Response> packageChangelogHandler(
     renderFn: (data) {
       if (!data.hasChangelog) {
         return redirectResponse(
-            urls.pkgPageUrl(packageName, version: versionName));
+          urls.pkgPageUrl(packageName, version: versionName),
+        );
       }
       return renderPkgChangelogPage(data);
     },
@@ -132,8 +141,10 @@ Future<shelf.Response> packageChangelogHandler(
 /// - `/packages/<package>/example`
 /// - `/packages/<package>/versions/<version>/example`
 Future<shelf.Response> packageExampleHandler(
-    shelf.Request request, String packageName,
-    {String? versionName}) async {
+  shelf.Request request,
+  String packageName, {
+  String? versionName,
+}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -143,7 +154,8 @@ Future<shelf.Response> packageExampleHandler(
     renderFn: (data) {
       if (!data.hasExample) {
         return redirectResponse(
-            urls.pkgPageUrl(packageName, version: versionName));
+          urls.pkgPageUrl(packageName, version: versionName),
+        );
       }
       return renderPkgExamplePage(data);
     },
@@ -156,8 +168,10 @@ Future<shelf.Response> packageExampleHandler(
 /// - `/packages/<package>/install`
 /// - `/packages/<package>/versions/<version>/install`
 Future<shelf.Response> packageInstallHandler(
-    shelf.Request request, String packageName,
-    {String? versionName}) async {
+  shelf.Request request,
+  String packageName, {
+  String? versionName,
+}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -174,8 +188,10 @@ Future<shelf.Response> packageInstallHandler(
 /// - `/packages/<package>/license`
 /// - `/packages/<package>/versions/<version>/license`
 Future<shelf.Response> packageLicenseHandler(
-    shelf.Request request, String packageName,
-    {String? versionName}) async {
+  shelf.Request request,
+  String packageName, {
+  String? versionName,
+}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -192,8 +208,10 @@ Future<shelf.Response> packageLicenseHandler(
 /// - `/packages/<package>/pubspec`
 /// - `/packages/<package>/versions/<version>/pubspec`
 Future<shelf.Response> packagePubspecHandler(
-    shelf.Request request, String packageName,
-    {String? versionName}) async {
+  shelf.Request request,
+  String packageName, {
+  String? versionName,
+}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -210,8 +228,10 @@ Future<shelf.Response> packagePubspecHandler(
 /// - `/packages/<package>/score`
 /// - `/packages/<package>/versions/<version>/score`
 Future<shelf.Response> packageScoreHandler(
-    shelf.Request request, String packageName,
-    {String? versionName}) async {
+  shelf.Request request,
+  String packageName, {
+  String? versionName,
+}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -247,9 +267,7 @@ Future<shelf.Response> packageScoreLogTxtHandler(
   return shelf.Response(
     log == null || log.startsWith('no log -') ? 404 : 200,
     body: log ?? 'no log',
-    headers: {
-      'content-type': 'text/plain;charset=UTF-8',
-    },
+    headers: {'content-type': 'text/plain;charset=UTF-8'},
   );
 }
 
@@ -258,8 +276,10 @@ Future<shelf.Response> packageScoreLogTxtHandler(
 /// - `/packages/<package>`
 /// - `/packages/<package>/versions/<version>`
 Future<shelf.Response> packageVersionHandlerHtml(
-    shelf.Request request, String packageName,
-    {String? versionName}) async {
+  shelf.Request request,
+  String packageName, {
+  String? versionName,
+}) async {
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -360,7 +380,9 @@ Future<String> _canonicalPackageName(String name) async {
 /// - `/packages/<package>/admin`
 /// - `/packages/<package>/versions/<version>/admin`
 Future<shelf.Response> packageAdminHandler(
-    shelf.Request request, String packageName) async {
+  shelf.Request request,
+  String packageName,
+) async {
   return _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -375,14 +397,17 @@ Future<shelf.Response> packageAdminHandler(
       if (!data.isAdmin) {
         return htmlResponse(renderUnauthorizedPage());
       }
-      final page = await publisherBackend
-          .listPublishersForUser(requestContext.authenticatedUserId!);
-      final uploaderEmails = await accountBackend
-          .lookupUsersById(data.package.uploaders ?? <String>[]);
-      final retractableVersions =
-          await packageBackend.listRetractableVersions(packageName);
-      final retractedVersions =
-          await packageBackend.listRecentlyRetractedVersions(packageName);
+      final page = await publisherBackend.listPublishersForUser(
+        requestContext.authenticatedUserId!,
+      );
+      final uploaderEmails = await accountBackend.lookupUsersById(
+        data.package.uploaders ?? <String>[],
+      );
+      final retractableVersions = await packageBackend.listRetractableVersions(
+        packageName,
+      );
+      final retractedVersions = await packageBackend
+          .listRecentlyRetractedVersions(packageName);
       return renderPkgAdminPage(
         data,
         page.publishers!.map((p) => p.publisherId).toList(),
@@ -396,7 +421,9 @@ Future<shelf.Response> packageAdminHandler(
 
 /// Handles requests for `/packages/<package>/activity-log`
 Future<shelf.Response> packageActivityLogHandler(
-    shelf.Request request, String packageName) async {
+  shelf.Request request,
+  String packageName,
+) async {
   return _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -412,7 +439,8 @@ Future<shelf.Response> packageActivityLogHandler(
         return htmlResponse(renderUnauthorizedPage());
       }
       final before = auditBackend.parseBeforeQueryParameter(
-          request.requestedUri.queryParameters['before']);
+        request.requestedUri.queryParameters['before'],
+      );
       final activities = await auditBackend.listRecordsForPackage(
         packageName,
         before: before,
@@ -444,10 +472,14 @@ Future<PackagePageData> loadPackagePageData(
     return likeStatus != null;
   });
 
-  final selectedVersionFuture =
-      packageBackend.lookupPackageVersion(packageName, versionName!);
-  final versionInfoFuture =
-      packageBackend.lookupPackageVersionInfo(packageName, versionName);
+  final selectedVersionFuture = packageBackend.lookupPackageVersion(
+    packageName,
+    versionName!,
+  );
+  final versionInfoFuture = packageBackend.lookupPackageVersionInfo(
+    packageName,
+    versionName,
+  );
 
   final assetFuture = assetKind == null
       ? Future.value(null)
@@ -464,8 +496,11 @@ Future<PackagePageData> loadPackagePageData(
           requestContext.authenticatedUserId!,
         );
 
-  final scoreCardFuture = scoreCardBackend
-      .getScoreCardData(packageName, versionName, package: package);
+  final scoreCardFuture = scoreCardBackend.getScoreCardData(
+    packageName,
+    versionName,
+    package: package,
+  );
 
   final weeklyDownloadCountsFuture = getWeeklyTotalDownloads(package.name!);
 
@@ -483,13 +518,15 @@ Future<PackagePageData> loadPackagePageData(
   final selectedVersion = await selectedVersionFuture;
   if (selectedVersion == null) {
     throw NotFoundException.resource(
-        'package "$packageName" version "$versionName"');
+      'package "$packageName" version "$versionName"',
+    );
   }
 
   final versionInfo = await versionInfoFuture;
   if (versionInfo == null) {
     throw NotFoundException.resource(
-        'package "$packageName" version "$versionName"');
+      'package "$packageName" version "$versionName"',
+    );
   }
 
   return PackagePageData(
@@ -507,7 +544,9 @@ Future<PackagePageData> loadPackagePageData(
 
 /// Handles requests for `/api/packages/<package>`.
 Future<shelf.Response> listVersionsHandler(
-    shelf.Request request, String package) async {
+  shelf.Request request,
+  String package,
+) async {
   checkPackageVersionParams(package);
 
   var body = await packageBackend.listVersionsGzCachedBytes(package);
@@ -530,7 +569,9 @@ Future<shelf.Response> listVersionsHandler(
 
 /// Handles requests for `/packages/<package>/publisher`.
 Future<shelf.Response> packagePublisherHandler(
-    shelf.Request request, String package) async {
+  shelf.Request request,
+  String package,
+) async {
   checkPackageVersionParams(package);
   final info = await packageBackend.getPublisherInfo(package);
   final publisherId = info.publisherId;
@@ -542,7 +583,9 @@ Future<shelf.Response> packagePublisherHandler(
 
 /// Handles requests for `/api/packages/<package>/advisories`.
 Future<ListAdvisoriesResponse> listAdvisoriesForPackage(
-    shelf.Request request, String packageName) async {
+  shelf.Request request,
+  String packageName,
+) async {
   InvalidInputException.checkPackageName(packageName);
   final package = await packageBackend.lookupPackage(packageName);
   if (package == null) {

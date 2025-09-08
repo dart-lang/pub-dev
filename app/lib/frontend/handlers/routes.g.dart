@@ -8,61 +8,17 @@ part of 'routes.dart';
 
 Router _$PubSiteServiceRouter(PubSiteService service) {
   final router = Router();
-  router.add(
-    'GET',
-    r'/liveness_check',
-    service.livenessCheck,
-  );
-  router.add(
-    'GET',
-    r'/readiness_check',
-    service.readinessCheck,
-  );
-  router.add(
-    'GET',
-    r'/',
-    service.index,
-  );
-  router.add(
-    'GET',
-    r'/dart',
-    service.dart,
-  );
-  router.add(
-    'GET',
-    r'/flutter',
-    service.flutter,
-  );
-  router.add(
-    'GET',
-    r'/web',
-    service.web,
-  );
-  router.add(
-    'GET',
-    r'/packages',
-    service.packages,
-  );
-  router.add(
-    'GET',
-    r'/dart/packages',
-    service.dartPackages,
-  );
-  router.add(
-    'GET',
-    r'/flutter/packages',
-    service.flutterPackages,
-  );
-  router.add(
-    'GET',
-    r'/flutter/favorites',
-    service.flutterFavoritesPackages,
-  );
-  router.add(
-    'GET',
-    r'/web/packages',
-    service.webPackages,
-  );
+  router.add('GET', r'/liveness_check', service.livenessCheck);
+  router.add('GET', r'/readiness_check', service.readinessCheck);
+  router.add('GET', r'/', service.index);
+  router.add('GET', r'/dart', service.dart);
+  router.add('GET', r'/flutter', service.flutter);
+  router.add('GET', r'/web', service.web);
+  router.add('GET', r'/packages', service.packages);
+  router.add('GET', r'/dart/packages', service.dartPackages);
+  router.add('GET', r'/flutter/packages', service.flutterPackages);
+  router.add('GET', r'/flutter/favorites', service.flutterFavoritesPackages);
+  router.add('GET', r'/web/packages', service.webPackages);
   router.add(
     'GET',
     r'/packages/<package>/versions/<version>/changelog',
@@ -103,66 +59,26 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
     r'/packages/<package>/versions/<version>',
     service.packageVersion,
   );
-  router.add(
-    'GET',
-    r'/packages/<package>/admin',
-    service.packageAdmin,
-  );
+  router.add('GET', r'/packages/<package>/admin', service.packageAdmin);
   router.add(
     'GET',
     r'/packages/<package>/activity-log',
     service.packageActivityLog,
   );
-  router.add(
-    'GET',
-    r'/packages/<package>/changelog',
-    service.packageChangelog,
-  );
-  router.add(
-    'GET',
-    r'/packages/<package>/example',
-    service.packageExample,
-  );
-  router.add(
-    'GET',
-    r'/packages/<package>/install',
-    service.packageInstall,
-  );
-  router.add(
-    'GET',
-    r'/packages/<package>/license',
-    service.packageLicense,
-  );
-  router.add(
-    'GET',
-    r'/packages/<package>/publisher',
-    service.packagePublisher,
-  );
-  router.add(
-    'GET',
-    r'/packages/<package>/pubspec',
-    service.packagePubspec,
-  );
-  router.add(
-    'GET',
-    r'/packages/<package>/score',
-    service.packageScore,
-  );
+  router.add('GET', r'/packages/<package>/changelog', service.packageChangelog);
+  router.add('GET', r'/packages/<package>/example', service.packageExample);
+  router.add('GET', r'/packages/<package>/install', service.packageInstall);
+  router.add('GET', r'/packages/<package>/license', service.packageLicense);
+  router.add('GET', r'/packages/<package>/publisher', service.packagePublisher);
+  router.add('GET', r'/packages/<package>/pubspec', service.packagePubspec);
+  router.add('GET', r'/packages/<package>/score', service.packageScore);
   router.add(
     'GET',
     r'/packages/<package>/score/log.txt',
     service.packageScoreLogTxt,
   );
-  router.add(
-    'GET',
-    r'/packages/<package>/versions',
-    service.packageVersions,
-  );
-  router.add(
-    'GET',
-    r'/packages/<package>',
-    service.package,
-  );
+  router.add('GET', r'/packages/<package>/versions', service.packageVersions);
+  router.add('GET', r'/packages/<package>', service.package);
   router.add(
     'GET',
     r'/packages/<package>/versions/<version>/gen-res/<path|[^]*>',
@@ -183,31 +99,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
     r'/documentation/<package>/<version>/',
     service.documentationVersion,
   );
-  router.add(
-    'GET',
-    r'/documentation/<package>',
-    service.documentationLatest,
-  );
-  router.add(
-    'GET',
-    r'/documentation/<package>/',
-    service.documentationLatest,
-  );
-  router.add(
-    'GET',
-    r'/create-publisher',
-    service.createPublisherPage,
-  );
-  router.add(
-    'GET',
-    r'/publishers',
-    service.publisherList,
-  );
-  router.add(
-    'GET',
-    r'/publishers/<publisherId>',
-    service.publisherPage,
-  );
+  router.add('GET', r'/documentation/<package>', service.documentationLatest);
+  router.add('GET', r'/documentation/<package>/', service.documentationLatest);
+  router.add('GET', r'/create-publisher', service.createPublisherPage);
+  router.add('GET', r'/publishers', service.publisherList);
+  router.add('GET', r'/publishers/<publisherId>', service.publisherPage);
   router.add(
     'GET',
     r'/publishers/<publisherId>/packages',
@@ -228,121 +124,29 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
     r'/publishers/<publisherId>/activity-log',
     service.publisherActivityLogPage,
   );
-  router.add(
-    'GET',
-    r'/feed.atom',
-    service.allPackagesAtomFeed,
-  );
-  router.add(
-    'GET',
-    r'/help',
-    service.helpPageMain,
-  );
-  router.add(
-    'GET',
-    r'/help/<article>',
-    service.helpPageArticle,
-  );
-  router.add(
-    'GET',
-    r'/policy',
-    service.policyPage,
-  );
-  router.add(
-    'GET',
-    r'/robots.txt',
-    service.robotsTxt,
-  );
-  router.add(
-    'GET',
-    r'/security',
-    service.securityPage,
-  );
-  router.add(
-    'GET',
-    r'/sitemap.txt',
-    service.sitemapTxt,
-  );
-  router.add(
-    'GET',
-    r'/sitemap-2.txt',
-    service.sitemapPublishersTxt,
-  );
-  router.add(
-    'GET',
-    r'/topics',
-    service.topicsPage,
-  );
-  router.add(
-    'GET',
-    r'/favicon.ico',
-    service.staticAsset,
-  );
-  router.add(
-    'GET',
-    r'/osd.xml',
-    service.staticAsset,
-  );
-  router.add(
-    'GET',
-    r'/static/<path|[^]*>',
-    service.staticAsset,
-  );
-  router.add(
-    'GET',
-    r'/experimental',
-    service.experimental,
-  );
-  router.add(
-    'GET',
-    r'/.well-known/security.txt',
-    service.wellKnownSecurityTxt,
-  );
-  router.add(
-    'GET',
-    r'/sign-in',
-    service.startSignIn,
-  );
-  router.add(
-    'GET',
-    r'/sign-in/complete',
-    service.signInComplete,
-  );
-  router.add(
-    'GET',
-    r'/my-packages',
-    service.accountPackagesPage,
-  );
-  router.add(
-    'GET',
-    r'/my-liked-packages',
-    service.accountMyLikedPackagesPage,
-  );
-  router.add(
-    'GET',
-    r'/my-publishers',
-    service.accountPublishersPage,
-  );
-  router.add(
-    'GET',
-    r'/my-activity-log',
-    service.accountMyActivityLogPage,
-  );
-  router.add(
-    'GET',
-    r'/authorized',
-    service.authorizationConfirmed,
-  );
-  router.add(
-    'GET',
-    r'/consent',
-    service.consentPage,
-  );
-  router.add(
-    'GET',
-    r'/report',
-    service.reportPage,
-  );
+  router.add('GET', r'/feed.atom', service.allPackagesAtomFeed);
+  router.add('GET', r'/help', service.helpPageMain);
+  router.add('GET', r'/help/<article>', service.helpPageArticle);
+  router.add('GET', r'/policy', service.policyPage);
+  router.add('GET', r'/robots.txt', service.robotsTxt);
+  router.add('GET', r'/security', service.securityPage);
+  router.add('GET', r'/sitemap.txt', service.sitemapTxt);
+  router.add('GET', r'/sitemap-2.txt', service.sitemapPublishersTxt);
+  router.add('GET', r'/topics', service.topicsPage);
+  router.add('GET', r'/favicon.ico', service.staticAsset);
+  router.add('GET', r'/osd.xml', service.staticAsset);
+  router.add('GET', r'/static/<path|[^]*>', service.staticAsset);
+  router.add('GET', r'/experimental', service.experimental);
+  router.add('GET', r'/.well-known/security.txt', service.wellKnownSecurityTxt);
+  router.add('GET', r'/sign-in', service.startSignIn);
+  router.add('GET', r'/sign-in/complete', service.signInComplete);
+  router.add('GET', r'/my-packages', service.accountPackagesPage);
+  router.add('GET', r'/my-liked-packages', service.accountMyLikedPackagesPage);
+  router.add('GET', r'/my-publishers', service.accountPublishersPage);
+  router.add('GET', r'/my-activity-log', service.accountMyActivityLogPage);
+  router.add('GET', r'/authorized', service.authorizationConfirmed);
+  router.add('GET', r'/consent', service.consentPage);
+  router.add('GET', r'/report', service.reportPage);
   router.add(
     'GET',
     r'/experimental/task-summary/<package>/<version>/',

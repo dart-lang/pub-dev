@@ -13,7 +13,8 @@ final downloadCountsBackfill = AdminAction(
     'sync-days': 'the number days to sync starting from "date" and going back',
   },
   summary: 'Sync download counts data from <date> and <sync-days> days back',
-  description: '''
+  description:
+      '''
 This action will trigger syncing of the download counts backend with download
 counts data from <date> and <sync-days> days going back. For instance, given 3
 sync days and the date '2024-05-29', data will be synced for '2024-05-27',
@@ -36,12 +37,15 @@ $defaultNumberOfSyncDays days.
     int? parsedSyncDays;
     if (syncDays != null) {
       parsedSyncDays = int.tryParse(syncDays);
-      InvalidInputException.check(parsedSyncDays != null && parsedSyncDays > 0,
-          'invalid sync-days, must be a positive integer');
+      InvalidInputException.check(
+        parsedSyncDays != null && parsedSyncDays > 0,
+        'invalid sync-days, must be a positive integer',
+      );
     }
     await syncDownloadCounts(
-        date: parsedDate,
-        numberOfSyncDays: parsedSyncDays ?? defaultNumberOfSyncDays);
+      date: parsedDate,
+      numberOfSyncDays: parsedSyncDays ?? defaultNumberOfSyncDays,
+    );
 
     return {'message': 'syncing of download counts has been triggered.'};
   },

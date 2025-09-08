@@ -10,8 +10,10 @@ final authorizedNode = d.fragment([
     children: [
       d.text('The '),
       d.code(text: 'pub'),
-      d.text(' client has been successfully authorized. '
-          'You may now use it to upload packages and perform other tasks.'),
+      d.text(
+        ' client has been successfully authorized. '
+        'You may now use it to upload packages and perform other tasks.',
+      ),
     ],
   ),
 ]);

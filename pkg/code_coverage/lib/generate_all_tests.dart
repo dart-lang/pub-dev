@@ -9,11 +9,15 @@ import 'package:path/path.dart' as p;
 
 final _parser = ArgParser()
   ..addOption('dir', defaultsTo: 'test', help: 'The test directory.')
-  ..addOption('test-path-prefix',
-      help: 'Scan only includes files with this prefix.')
-  ..addOption('name',
-      defaultsTo: '_all_tests.dart',
-      help: 'The file name to use for all tests.');
+  ..addOption(
+    'test-path-prefix',
+    help: 'Scan only includes files with this prefix.',
+  )
+  ..addOption(
+    'name',
+    defaultsTo: '_all_tests.dart',
+    help: 'The file name to use for all tests.',
+  );
 
 /// Generates test/_all_tests.dart that includes reference to all tests.
 Future main(List<String> args) async {

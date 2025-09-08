@@ -117,10 +117,7 @@ abstract class SdkTag {
   static const String sdkDart = 'sdk:${SdkTagValue.dart}';
   static const String sdkFlutter = 'sdk:${SdkTagValue.flutter}';
 
-  static const _allSdkTags = {
-    sdkDart,
-    sdkFlutter,
-  };
+  static const _allSdkTags = {sdkDart, sdkFlutter};
 }
 
 /// Collection of SDK tag values.
