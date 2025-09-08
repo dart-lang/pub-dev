@@ -122,6 +122,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'post',
         path: '/api/packages/$package/remove-uploader',
+
         body: payload.toJson(),
       ),
     );
@@ -135,6 +136,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'post',
         path: '/api/packages/$package/invite-uploader',
+
         body: payload.toJson(),
       ),
     );
@@ -173,6 +175,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'put',
         path: '/api/publishers/$publisherId',
+
         body: payload.toJson(),
       ),
     );
@@ -186,6 +189,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'post',
         path: '/api/publishers/$publisherId/invite-member',
+
         body: payload.toJson(),
       ),
     );
@@ -221,6 +225,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'put',
         path: '/api/publishers/$publisherId/members/$userId',
+
         body: payload.toJson(),
       ),
     );
@@ -253,6 +258,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'put',
         path: '/api/account/consent/$consentId',
+
         body: payload.toJson(),
       ),
     );
@@ -382,6 +388,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'put',
         path: '/api/packages/$package/options',
+
         body: payload.toJson(),
       ),
     );
@@ -395,6 +402,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'put',
         path: '/api/packages/$package/automated-publishing',
+
         body: payload.toJson(),
       ),
     );
@@ -421,6 +429,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'put',
         path: '/api/packages/$package/versions/$version/options',
+
         body: payload.toJson(),
       ),
     );
@@ -452,6 +461,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'put',
         path: '/api/packages/$package/publisher',
+
         body: payload.toJson(),
       ),
     );
@@ -537,6 +547,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'post',
         path: '/api/admin/actions/$action',
+
         body: payload.toJson(),
       ),
     );
@@ -578,6 +589,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'put',
         path: '/api/admin/packages/$package/versions/$version/options',
+
         body: payload.toJson(),
       ),
     );
@@ -600,6 +612,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'post',
         path: '/api/admin/packages/$package/assigned-tags',
+
         body: payload.toJson(),
       ),
     );
@@ -654,6 +667,7 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'post',
         path: '/api/report',
+
         body: payload.toJson(),
       ),
     );
