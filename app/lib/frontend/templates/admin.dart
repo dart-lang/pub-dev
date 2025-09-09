@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/page_data.dart';
+import 'package:_pub_shared/search/search_form.dart';
+import 'package:pub_dev/frontend/templates/listing.dart';
+import 'package:pub_dev/package/search_adapter.dart';
 
 import '../../account/models.dart' show LikeData, User, SessionData;
 import '../../audit/models.dart';
@@ -97,16 +100,38 @@ String renderAccountPackagesPage({
 String renderMyLikedPackagesPage({
   required User user,
   required SessionData userSessionData,
-  required List<LikeData> likes,
+  required List<LikeData>? likes,
+  required SearchForm? searchForm,
+  required SearchResultPage? searchResult,
 }) {
-  final resultCount = likes.isNotEmpty
-      ? d.p(
-          text:
-              'You like ${likes.length} ${likes.length == 1 ? 'package' : 'packages'}.',
-        )
-      : d.p(text: 'You have not liked any packages yet.');
+  late d.Node tabContent;
+  if (likes != null) {
+    final resultCount = likes.isNotEmpty
+        ? d.p(
+            text:
+                'You like ${likes.length} ${likes.length == 1 ? 'package' : 'packages'}.',
+          )
+        : d.p(text: 'You have not liked any packages yet.');
 
-  final tabContent = d.fragment([resultCount, likedPackageListNode(likes)]);
+    tabContent = d.fragment([resultCount, likedPackageListNode(likes)]);
+  } else {
+    final infoNode = listingInfo(
+      searchForm: searchForm!,
+      totalCount: searchResult!.totalCount,
+      title: 'My liked packages',
+      messageFromBackend: searchResult.errorMessage,
+    );
+    final listNode = packageList(searchResult);
+    final pagination = searchResult.hasHit
+        ? paginationNode(PageLinks(searchForm, searchResult.totalCount))
+        : null;
+    tabContent = d.fragment([
+      infoNode,
+      listNode,
+      if (pagination != null) pagination,
+    ]);
+  }
+
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),
     tabs: [
@@ -129,6 +154,7 @@ String renderMyLikedPackagesPage({
     noIndex: true,
     mainClasses: [wideHeaderDetailPageClassName],
     pageData: PageData(sessionAware: true),
+    searchForm: searchForm,
   );
 }
 

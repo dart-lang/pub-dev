@@ -3,8 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/account_api.dart';
+import 'package:_pub_shared/search/search_form.dart';
+import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/frontend/handlers/cache_control.dart';
+import 'package:pub_dev/package/search_adapter.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -311,7 +314,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
   return htmlResponse(html);
 }
 
-/// Handles requests for GET my-liked-packages
+/// Handles requests for GET /my-liked-packages
 Future<shelf.Response> accountMyLikedPackagesPageHandler(
   shelf.Request request,
 ) async {
@@ -323,11 +326,49 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
   final user = (await accountBackend.lookupUserById(
     requestContext.authenticatedUserId!,
   ))!;
+
+  // Redirect in case of empty search query.
+  if (request.requestedUri.query == 'q=') {
+    return redirectResponse(request.requestedUri.path);
+  }
+
+  if (requestContext.experimentalFlags.useMyLikedSearch) {
+    // redirect to the search page when any search or pagination is present
+    final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
+    if (searchForm.isNotEmpty) {
+      final redirectForm = searchForm.addRequiredTagIfAbsent(
+        AccountTag.isLikedByMe,
+      );
+      return redirectResponse(
+        redirectForm.toSearchLink(page: searchForm.currentPage),
+      );
+    }
+
+    final appliedSearchForm = SearchForm().toggleRequiredTag(
+      AccountTag.isLikedByMe,
+    );
+    final searchResult = await searchAdapter.search(
+      appliedSearchForm,
+      // Do not apply rate limit here.
+      rateLimitKey: null,
+    );
+    final html = renderMyLikedPackagesPage(
+      user: user,
+      userSessionData: requestContext.sessionData!,
+      likes: null,
+      searchForm: appliedSearchForm,
+      searchResult: searchResult,
+    );
+    return htmlResponse(html);
+  }
+
   final likes = await likeBackend.listPackageLikes(user.userId);
   final html = renderMyLikedPackagesPage(
     user: user,
     userSessionData: requestContext.sessionData!,
     likes: likes,
+    searchForm: null,
+    searchResult: null,
   );
   return htmlResponse(html);
 }

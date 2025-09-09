@@ -122,7 +122,6 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'post',
         path: '/api/packages/$package/remove-uploader',
-
         body: payload.toJson(),
       ),
     );

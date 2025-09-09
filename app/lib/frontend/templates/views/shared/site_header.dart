@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/search/search_form.dart';
+
 import '../../../../account/models.dart' show SessionData;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
@@ -10,7 +12,11 @@ import '../../_consts.dart';
 import '../../layout.dart' show PageType, showSearchBanner;
 
 /// Creates the site header and navigation node.
-d.Node siteHeaderNode({required PageType pageType, SessionData? userSession}) {
+d.Node siteHeaderNode({
+  required PageType pageType,
+  required SessionData? userSession,
+  required SearchForm? searchForm,
+}) {
   return d.div(
     classes: ['site-header'],
     children: [
@@ -31,7 +37,7 @@ d.Node siteHeaderNode({required PageType pageType, SessionData? userSession}) {
         ),
       d.div(classes: ['site-header-space']),
       d.div(classes: ['site-header-mask']),
-      if (!showSearchBanner(pageType))
+      if (!showSearchBanner(pageType, searchForm))
         d.div(
           classes: ['site-header-search'],
           child: d.form(
