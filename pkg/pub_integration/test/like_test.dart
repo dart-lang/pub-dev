@@ -88,6 +88,11 @@ void main() {
         await Future.delayed(Duration(milliseconds: 200));
         expect(await getCountLabels(), ['1', '1', '']);
 
+        // checking /my-liked-packages - with the one liked package
+        await page.gotoOrigin('/my-liked-packages');
+        final info = await listingPageInfo(page);
+        expect(info.packageNames.toSet(), {'test_pkg'});
+
         // checking search with my-liked packages - with the one liked package
         await page.gotoOrigin('/packages?q=pkg+is:liked-by-me');
         final info2 = await listingPageInfo(page);
