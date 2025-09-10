@@ -8,8 +8,8 @@ import 'package:_pub_shared/data/admin_api.dart';
 import 'package:http/http.dart' as http;
 import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
-import 'package:pub_integration/src/screenshot_utils.dart';
 import 'package:pub_integration/src/test_browser.dart';
+import 'package:screenshot_tools/screenshot_utils.dart';
 import 'package:test/test.dart';
 
 final _caseIdExpr = RegExp(r'[0-9]{8}I[0-9a-f]{10}');

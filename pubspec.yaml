@@ -14,6 +14,7 @@ workspace:
   - pkg/fake_gcloud
   - pkg/indexed_blob
   - pkg/pub_package_reader
+  - pkg/screenshot_tools
 
 dev_dependencies:
   lints: ^6.0.0

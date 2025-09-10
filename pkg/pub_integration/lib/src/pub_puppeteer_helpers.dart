@@ -4,8 +4,8 @@
 import 'dart:async';
 
 import 'package:puppeteer/puppeteer.dart';
+import 'package:screenshot_tools/screenshot_utils.dart';
 
-import 'screenshot_utils.dart';
 import 'test_browser.dart';
 
 const webmastersReadonlyScope =
