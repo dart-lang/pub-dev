@@ -4,7 +4,7 @@
 import 'dart:async';
 
 import 'package:puppeteer/puppeteer.dart';
-import 'package:screenshot_tools/screenshot_utils.dart';
+import 'package:puppeteer_screenshots/screenshot_utils.dart';
 
 import 'test_browser.dart';
 

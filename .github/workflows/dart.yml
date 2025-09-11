@@ -152,16 +152,16 @@ jobs:
         if: "always() && steps.pkg_web_css_pub_get.conclusion == 'success'"
         working-directory: pkg/web_css
   job_003:
-    name: "smoke_test; PKGS: pkg/indexed_blob, pkg/screenshot_tools; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
+    name: "smoke_test; PKGS: pkg/indexed_blob, pkg/puppeteer_screenshots; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/indexed_blob-pkg/screenshot_tools;commands:format-analyze_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/indexed_blob-pkg/puppeteer_screenshots;commands:format-analyze_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/indexed_blob-pkg/screenshot_tools
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/indexed_blob-pkg/puppeteer_screenshots
             os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -185,19 +185,19 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.pkg_indexed_blob_pub_get.conclusion == 'success'"
         working-directory: pkg/indexed_blob
-      - id: pkg_screenshot_tools_pub_get
-        name: pkg/screenshot_tools; dart pub get
+      - id: pkg_puppeteer_screenshots_pub_get
+        name: pkg/puppeteer_screenshots; dart pub get
         run: dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkg/screenshot_tools
-      - name: "pkg/screenshot_tools; dart format --output=none --set-exit-if-changed ."
+        working-directory: pkg/puppeteer_screenshots
+      - name: "pkg/puppeteer_screenshots; dart format --output=none --set-exit-if-changed ."
         run: "dart format --output=none --set-exit-if-changed ."
-        if: "always() && steps.pkg_screenshot_tools_pub_get.conclusion == 'success'"
-        working-directory: pkg/screenshot_tools
-      - name: "pkg/screenshot_tools; dart analyze --fatal-infos ."
+        if: "always() && steps.pkg_puppeteer_screenshots_pub_get.conclusion == 'success'"
+        working-directory: pkg/puppeteer_screenshots
+      - name: "pkg/puppeteer_screenshots; dart analyze --fatal-infos ."
         run: dart analyze --fatal-infos .
-        if: "always() && steps.pkg_screenshot_tools_pub_get.conclusion == 'success'"
-        working-directory: pkg/screenshot_tools
+        if: "always() && steps.pkg_puppeteer_screenshots_pub_get.conclusion == 'success'"
+        working-directory: pkg/puppeteer_screenshots
   job_004:
     name: "smoke_test; PKG: pkg/pub_integration; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos lib/`, `dart analyze --fatal-infos test/`"
     runs-on: ubuntu-latest
@@ -885,16 +885,16 @@ jobs:
       - job_007
       - job_008
   job_021:
-    name: "unit_test; PKG: pkg/screenshot_tools; `dart test --run-skipped`"
+    name: "unit_test; PKG: pkg/puppeteer_screenshots; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/screenshot_tools;commands:test_09"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/puppeteer_screenshots;commands:test_09"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/screenshot_tools
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/puppeteer_screenshots
             os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -905,15 +905,15 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - id: pkg_screenshot_tools_pub_get
-        name: pkg/screenshot_tools; dart pub get
+      - id: pkg_puppeteer_screenshots_pub_get
+        name: pkg/puppeteer_screenshots; dart pub get
         run: dart pub get
         if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkg/screenshot_tools
-      - name: "pkg/screenshot_tools; dart test --run-skipped"
+        working-directory: pkg/puppeteer_screenshots
+      - name: "pkg/puppeteer_screenshots; dart test --run-skipped"
         run: dart test --run-skipped
-        if: "always() && steps.pkg_screenshot_tools_pub_get.conclusion == 'success'"
-        working-directory: pkg/screenshot_tools
+        if: "always() && steps.pkg_puppeteer_screenshots_pub_get.conclusion == 'success'"
+        working-directory: pkg/puppeteer_screenshots
     needs:
       - job_001
       - job_002

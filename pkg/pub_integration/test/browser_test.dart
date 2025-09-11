@@ -9,7 +9,7 @@ import 'package:pub_integration/src/fake_test_context_provider.dart';
 import 'package:pub_integration/src/pub_puppeteer_helpers.dart';
 import 'package:pub_integration/src/test_browser.dart';
 import 'package:puppeteer/puppeteer.dart';
-import 'package:screenshot_tools/screenshot_utils.dart';
+import 'package:puppeteer_screenshots/screenshot_utils.dart';
 import 'package:test/test.dart';
 
 void main() {

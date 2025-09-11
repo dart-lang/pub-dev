@@ -1,4 +1,4 @@
-name: screenshot_tools
+name: puppeteer_screenshots
 publish_to: none
 environment:
   sdk: ^3.9.0

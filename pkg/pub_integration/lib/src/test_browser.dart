@@ -9,8 +9,8 @@ import 'dart:io';
 import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:path/path.dart' as p;
 import 'package:puppeteer/puppeteer.dart';
+import 'package:puppeteer_screenshots/screenshot_utils.dart';
 import 'package:retry/retry.dart';
-import 'package:screenshot_tools/screenshot_utils.dart';
 
 /// Creates and tracks the headless Chrome environment, its temp directories and
 /// and uncaught exceptions.
