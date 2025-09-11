@@ -75,9 +75,11 @@ class SearchClient {
     if (hasLikedByMeTag) {
       skipCache = true;
     }
+    final useLikedByMe =
+        hasLikedByMeTag && requestContext.experimentalFlags.useMyLikedSearch;
 
     List<String>? packages;
-    if (userId != null && hasLikedByMeTag) {
+    if (userId != null && useLikedByMe) {
       final likedPackages = await likeBackend.listPackageLikes(userId);
       packages = likedPackages.map((l) => l.package!).toList();
     }
@@ -88,53 +90,40 @@ class SearchClient {
     }) async {
       final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;
       try {
-        if (requestContext.experimentalFlags.useMyLikedSearch) {
-          return await withRetryHttpClient(
-            (client) async {
-              var data = query.toSearchRequestData();
-              if (userId != null && hasLikedByMeTag) {
-                final newQuery = data.query
-                    ?.replaceAll(AccountTag.isLikedByMe, ' ')
-                    .trim();
-                final newTags = data.tags!
-                    .where((e) => e != AccountTag.isLikedByMe)
-                    .toList();
-                data = data.replace(
-                  query: newQuery,
-                  tags: newTags,
-                  packages: packages,
-                );
-              }
-              // NOTE: Keeping the query parameter to help investigating logs.
-              final uri = Uri.parse(
-                '$httpHostPort/search',
-              ).replace(queryParameters: {'q': data.query});
-              final rs = await client.post(
-                uri,
-                headers: {
-                  ...?cloudTraceHeaders(),
-                  'content-type': 'application/json',
-                },
-                body: json.encode(data.toJson()),
+        return await withRetryHttpClient(
+          (client) async {
+            var data = query.toSearchRequestData();
+            if (userId != null && useLikedByMe) {
+              final newQuery = data.query
+                  ?.replaceAll(AccountTag.isLikedByMe, ' ')
+                  .trim();
+              final newTags = data.tags!
+                  .where((e) => e != AccountTag.isLikedByMe)
+                  .toList();
+              data = data.replace(
+                query: newQuery,
+                tags: newTags,
+                packages: packages,
               );
-              return (statusCode: rs.statusCode, body: rs.body);
-            },
-            client: _httpClient,
-            retryIf: (e) =>
-                (e is UnexpectedStatusException &&
-                e.statusCode == searchIndexNotReadyCode),
-          );
-        }
-        final serviceUrl = '$httpHostPort/search$serviceUrlParams';
-        return await httpGetWithRetry(
-          Uri.parse(serviceUrl),
+            }
+            // NOTE: Keeping the query parameter to help investigating logs.
+            final uri = Uri.parse(
+              '$httpHostPort/search',
+            ).replace(queryParameters: {'q': data.query});
+            final rs = await client.post(
+              uri,
+              headers: {
+                ...?cloudTraceHeaders(),
+                'content-type': 'application/json',
+              },
+              body: json.encode(data.toJson()),
+            );
+            return (statusCode: rs.statusCode, body: rs.body);
+          },
           client: _httpClient,
-          headers: cloudTraceHeaders(),
-          perRequestTimeout: Duration(seconds: 5),
           retryIf: (e) =>
               (e is UnexpectedStatusException &&
               e.statusCode == searchIndexNotReadyCode),
-          responseFn: (rs) => (statusCode: rs.statusCode, body: rs.body),
         );
       } on TimeoutException {
         return null;
