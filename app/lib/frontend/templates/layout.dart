@@ -35,8 +35,8 @@ enum PageType {
 
 /// Whether to show a wide/tall search banner at the top of the page,
 /// otherwise only show a top-navigation search input.
-bool showSearchBanner(PageType type) =>
-    type != PageType.account &&
+bool showSearchBanner(PageType type, SearchForm? searchForm) =>
+    (type != PageType.account || searchForm != null) &&
     type != PageType.package &&
     type != PageType.standalone;
 
@@ -99,7 +99,11 @@ String renderLayoutPage(
         ? null
         : pageDataJsonCodec.encode(pageData.toJson()),
     bodyClasses: bodyClasses,
-    siteHeader: siteHeaderNode(pageType: type, userSession: session),
+    siteHeader: siteHeaderNode(
+      pageType: type,
+      userSession: session,
+      searchForm: searchForm,
+    ),
     announcementBanner: announcementBannerHtml == null
         ? null
         : d.unsafeRawHtml(announcementBannerHtml),
@@ -108,7 +112,7 @@ String renderLayoutPage(
         : hex
               .encode(sha1.convert(utf8.encode(announcementBannerHtml)).bytes)
               .substring(0, 16),
-    searchBanner: showSearchBanner(type)
+    searchBanner: showSearchBanner(type, searchForm)
         ? _renderSearchBanner(type: type, searchForm: searchForm)
         : null,
     isLanding: type == PageType.landing,

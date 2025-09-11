@@ -880,6 +880,8 @@ void main() {
               LikeData(package: 'super_package', created: liked1),
               LikeData(package: 'another_package', created: liked2),
             ],
+            searchForm: null,
+            searchResult: null,
           );
           expectGoldenFile(
             html,

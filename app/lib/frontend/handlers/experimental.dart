@@ -10,11 +10,14 @@ typedef PublicFlag = ({String name, String description});
 
 const _publicFlags = <PublicFlag>{
   (name: 'example', description: 'Short description'),
+  (
+    name: 'my-liked-search',
+    description: 'New "My liked packages" page and search.',
+  ),
 };
 
 final _allFlags = <String>{
   'dark-as-default',
-  'my-liked-search',
   ..._publicFlags.map((x) => x.name),
 };
 
