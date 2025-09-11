@@ -152,16 +152,16 @@ jobs:
         if: "always() && steps.pkg_web_css_pub_get.conclusion == 'success'"
         working-directory: pkg/web_css
   job_003:
-    name: "smoke_test; PKG: pkg/indexed_blob; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
+    name: "smoke_test; PKGS: pkg/indexed_blob, pkg/puppeteer_screenshots; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/indexed_blob;commands:format-analyze_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/indexed_blob-pkg/puppeteer_screenshots;commands:format-analyze_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/indexed_blob
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/indexed_blob-pkg/puppeteer_screenshots
             os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -185,6 +185,19 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.pkg_indexed_blob_pub_get.conclusion == 'success'"
         working-directory: pkg/indexed_blob
+      - id: pkg_puppeteer_screenshots_pub_get
+        name: pkg/puppeteer_screenshots; dart pub get
+        run: dart pub get
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkg/puppeteer_screenshots
+      - name: "pkg/puppeteer_screenshots; dart format --output=none --set-exit-if-changed ."
+        run: "dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.pkg_puppeteer_screenshots_pub_get.conclusion == 'success'"
+        working-directory: pkg/puppeteer_screenshots
+      - name: "pkg/puppeteer_screenshots; dart analyze --fatal-infos ."
+        run: dart analyze --fatal-infos .
+        if: "always() && steps.pkg_puppeteer_screenshots_pub_get.conclusion == 'success'"
+        working-directory: pkg/puppeteer_screenshots
   job_004:
     name: "smoke_test; PKG: pkg/pub_integration; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos lib/`, `dart analyze --fatal-infos test/`"
     runs-on: ubuntu-latest
@@ -872,6 +885,45 @@ jobs:
       - job_007
       - job_008
   job_021:
+    name: "unit_test; PKG: pkg/puppeteer_screenshots; `dart test --run-skipped`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/puppeteer_screenshots;commands:test_09"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0;packages:pkg/puppeteer_screenshots
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.9.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+        with:
+          sdk: "3.9.0"
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+      - id: pkg_puppeteer_screenshots_pub_get
+        name: pkg/puppeteer_screenshots; dart pub get
+        run: dart pub get
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkg/puppeteer_screenshots
+      - name: "pkg/puppeteer_screenshots; dart test --run-skipped"
+        run: dart test --run-skipped
+        if: "always() && steps.pkg_puppeteer_screenshots_pub_get.conclusion == 'success'"
+        working-directory: pkg/puppeteer_screenshots
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
+      - job_008
+  job_022:
     name: "unit_test; PKG: pkg/web_app; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -910,7 +962,7 @@ jobs:
       - job_006
       - job_007
       - job_008
-  job_022:
+  job_023:
     name: "unit_test; PKG: pkg/web_css; `dart test --run-skipped`"
     runs-on: ubuntu-latest
     steps:
@@ -949,7 +1001,7 @@ jobs:
       - job_006
       - job_007
       - job_008
-  job_023:
+  job_024:
     name: "unit_test; PKG: pkg/pub_integration; `dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~4p'``"
     runs-on: ubuntu-latest
     steps:
@@ -988,7 +1040,7 @@ jobs:
       - job_006
       - job_007
       - job_008
-  job_024:
+  job_025:
     name: "unit_test; PKG: pkg/pub_integration; `dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~4p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1027,7 +1079,7 @@ jobs:
       - job_006
       - job_007
       - job_008
-  job_025:
+  job_026:
     name: "unit_test; PKG: pkg/pub_integration; `dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~4p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1066,7 +1118,7 @@ jobs:
       - job_006
       - job_007
       - job_008
-  job_026:
+  job_027:
     name: "unit_test; PKG: pkg/pub_integration; `dart test -j1 --run-skipped `find test -name \"*_test\\\\.dart\" | sort | sed -n '3~4p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1105,7 +1157,7 @@ jobs:
       - job_006
       - job_007
       - job_008
-  job_027:
+  job_028:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '0~3p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1144,7 +1196,7 @@ jobs:
       - job_006
       - job_007
       - job_008
-  job_028:
+  job_029:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '1~3p'``"
     runs-on: ubuntu-latest
     steps:
@@ -1183,7 +1235,7 @@ jobs:
       - job_006
       - job_007
       - job_008
-  job_029:
+  job_030:
     name: "unit_test; PKG: pkg/pub_worker; `dart test --run-skipped --concurrency=1 `find test -name \"*_test\\\\.dart\" | sort | sed -n '2~3p'``"
     runs-on: ubuntu-latest
     steps:

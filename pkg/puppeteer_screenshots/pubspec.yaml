@@ -1,0 +1,13 @@
+name: puppeteer_screenshots
+publish_to: none
+environment:
+  sdk: ^3.9.0
+resolution: workspace
+
+dependencies:
+  markdown: ^7.3.0
+  path: ^1.8.0
+  puppeteer: ^3.16.0
+
+dev_dependencies:
+  test: ^1.0.0

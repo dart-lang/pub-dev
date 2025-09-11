@@ -10,15 +10,14 @@ import 'package:puppeteer/puppeteer.dart';
 // Default screen with 16:10 ratio.
 final desktopDeviceViewport = DeviceViewport(width: 1280, height: 800);
 
-final _screenshotDir = Platform.environment['PUB_SCREENSHOT_DIR'];
+final _screenshotDir = Platform.environment['SCREENSHOT_DIR'];
 final _isScreenshotDirSet =
     _screenshotDir != null && _screenshotDir!.isNotEmpty;
 
 // Set this variable to enable screenshot files to be updated with new takes.
 // The default is to throw an exception to prevent accidental overrides from
 // separate tests.
-final _allowScreeshotUpdates =
-    Platform.environment['PUB_SCREENSHOT_UPDATE'] == '1';
+final _allowScreeshotUpdates = Platform.environment['SCREENSHOT_UPDATE'] == '1';
 
 // Note: The default values are the last, so we don't need reset
 //       the original values after taking the screenshots.
@@ -34,16 +33,16 @@ extension ScreenshotPageExt on Page {
     await File(path).writeAsBytes(await screenshot());
   }
 
-  /// Takes screenshots **if** `PUB_SCREENSHOT_DIR` environment variable is set.
+  /// Takes screenshots **if** `SCREENSHOT_DIR` environment variable is set.
   ///
   /// Iterates over viewports and themes, and generates screenshot files with the
   /// following pattern:
-  /// - `PUB_SCREENSHOT_DIR/$prefix-desktop-dark.png`
-  /// - `PUB_SCREENSHOT_DIR/$prefix-desktop-light.png`
-  /// - `PUB_SCREENSHOT_DIR/$prefix-mobile-dark.png`
-  /// - `PUB_SCREENSHOT_DIR/$prefix-mobile-light.png`
-  /// - `PUB_SCREENSHOT_DIR/$prefix-tablet-dark.png`
-  /// - `PUB_SCREENSHOT_DIR/$prefix-tablet-light.png`
+  /// - `SCREENSHOT_DIR/$prefix-desktop-dark.png`
+  /// - `SCREENSHOT_DIR/$prefix-desktop-light.png`
+  /// - `SCREENSHOT_DIR/$prefix-mobile-dark.png`
+  /// - `SCREENSHOT_DIR/$prefix-mobile-light.png`
+  /// - `SCREENSHOT_DIR/$prefix-tablet-dark.png`
+  /// - `SCREENSHOT_DIR/$prefix-tablet-light.png`
   Future<void> takeScreenshots({
     required String selector,
     required String prefix,
@@ -54,16 +53,16 @@ extension ScreenshotPageExt on Page {
 }
 
 extension ScreenshotElementHandleExt on ElementHandle {
-  /// Takes screenshots **if** `PUB_SCREENSHOT_DIR` environment variable is set.
+  /// Takes screenshots **if** `SCREENSHOT_DIR` environment variable is set.
   ///
   /// Iterates over viewports and themes, and generates screenshot files with the
   /// following pattern:
-  /// - `PUB_SCREENSHOT_DIR/$prefix-desktop-dark.png`
-  /// - `PUB_SCREENSHOT_DIR/$prefix-desktop-light.png`
-  /// - `PUB_SCREENSHOT_DIR/$prefix-mobile-dark.png`
-  /// - `PUB_SCREENSHOT_DIR/$prefix-mobile-light.png`
-  /// - `PUB_SCREENSHOT_DIR/$prefix-tablet-dark.png`
-  /// - `PUB_SCREENSHOT_DIR/$prefix-tablet-light.png`
+  /// - `SCREENSHOT_DIR/$prefix-desktop-dark.png`
+  /// - `SCREENSHOT_DIR/$prefix-desktop-light.png`
+  /// - `SCREENSHOT_DIR/$prefix-mobile-dark.png`
+  /// - `SCREENSHOT_DIR/$prefix-mobile-light.png`
+  /// - `SCREENSHOT_DIR/$prefix-tablet-dark.png`
+  /// - `SCREENSHOT_DIR/$prefix-tablet-light.png`
   Future<void> takeScreenshots(String prefix) async {
     final body = await page.$('body');
     final bodyClassAttr =
