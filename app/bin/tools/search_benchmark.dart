@@ -16,7 +16,7 @@ Future<void> main(List<String> args) async {
     'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB',
   );
   // Assumes that the first argument is a search snapshot file.
-  final index = await loadInMemoryPackageIndexFromFile(args.first);
+  final index = await loadInMemoryPackageIndexFromUrl(args.first);
   print(
     'Loaded. Current memory: ${ProcessInfo.currentRss ~/ 1024} KiB,  '
     'max memory: ${ProcessInfo.maxRss ~/ 1024} KiB',

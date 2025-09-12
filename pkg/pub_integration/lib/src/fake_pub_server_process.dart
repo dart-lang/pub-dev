@@ -151,13 +151,13 @@ class FakePubServerProcess {
   Future<void> get started => _startedCompleter.future;
 
   Future<void> kill() async {
-    // First try SIGINT, and after 10 seconds do SIGTERM.
+    // First try SIGINT, and after 10 seconds do SIGKILL.
     print('Sending INT signal to ${_process.pid}...');
     _process.kill(ProcessSignal.sigint);
     await _coverageConfig?.waitForCollect();
     final timer = Timer(Duration(seconds: 10), () {
       print('Sending TERM signal to ${_process.pid}...');
-      _process.kill();
+      _process.kill(ProcessSignal.sigkill);
     });
     final exitCode = await _process.exitCode;
     print('Exit code: $exitCode');
