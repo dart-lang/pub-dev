@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/search/result_combiner.dart';
 import 'package:pub_dev/service/entrypoint/sdk_isolate_index.dart';
 import 'package:pub_dev/service/entrypoint/search_index.dart';
+import 'package:shelf/shelf.dart';
 
 import '../../search/backend.dart';
 import '../../search/handlers.dart';
@@ -38,47 +39,77 @@ class SearchCommand extends Command {
 
     envConfig.checkServiceEnvironment(name);
     await withServices(() async {
-      final packageIsolate = await startSearchIsolate(logger: _logger);
-      registerScopeExitCallback(packageIsolate.close);
-
-      final sdkIsolate = await startQueryIsolate(
-        logger: _logger,
-        kind: 'sdk',
-        spawnUri: Uri.parse(
-          'package:pub_dev/service/entrypoint/sdk_isolate_index.dart',
-        ),
+      await runSearchInstanceController(
+        port: 8080,
+        renewPackageIndex: _createRenewStream(delayDrift: delayDrift),
       );
-      registerScopeExitCallback(sdkIsolate.close);
-
-      registerSearchIndex(
-        SearchResultCombiner(
-          primaryIndex: LatencyAwareSearchIndex(
-            IsolateSearchIndex(packageIsolate),
-          ),
-          sdkIndex: SdkIsolateIndex(sdkIsolate),
-        ),
-      );
-
-      void scheduleRenew() {
-        scheduleMicrotask(() async {
-          // 12 - 17 minutes delay
-          final delay = Duration(
-            minutes: 12,
-            seconds: delayDrift + _random.nextInt(240),
-          );
-          await Future.delayed(delay);
-
-          // create a new index and handover with a 2-minute maximum wait
-          await packageIsolate.renew(count: 1, wait: Duration(minutes: 2));
-
-          // schedule the renewal again
-          scheduleRenew();
-        });
-      }
-
-      scheduleRenew();
-
-      await runHandler(_logger, searchServiceHandler);
     });
   }
+}
+
+/// Creates a stream with events separated by 12 - 17 minutes
+Stream<Completer> _createRenewStream({required int delayDrift}) {
+  return Stream.periodic(Duration(minutes: 12), (_) => Completer()).asyncMap(
+    (c) => Future.delayed(
+      Duration(seconds: delayDrift + _random.nextInt(240)),
+      () => c,
+    ),
+  );
+}
+
+/// Runs the search instance main controller, which creates separate isolates
+/// for the package and the SDK indexes.
+///
+/// When the [renewPackageIndex] has a new event, it will trigger the renewal of the
+/// package index isolate, updating the search index.
+Future<void> runSearchInstanceController({
+  required int port,
+  required Stream<Completer> renewPackageIndex,
+  Duration renewWait = const Duration(minutes: 2),
+  String? snapshot,
+  Handler? handler,
+  Future<void> Function()? processTerminationSignal,
+}) async {
+  final packageIsolate = await startSearchIsolate(
+    logger: _logger,
+    snapshot: snapshot,
+  );
+  registerScopeExitCallback(packageIsolate.close);
+
+  final sdkIsolate = await startQueryIsolate(
+    logger: _logger,
+    kind: 'sdk',
+    spawnUri: Uri.parse(
+      'package:pub_dev/service/entrypoint/sdk_isolate_index.dart',
+    ),
+  );
+  registerScopeExitCallback(sdkIsolate.close);
+
+  registerSearchIndex(
+    SearchResultCombiner(
+      primaryIndex: LatencyAwareSearchIndex(IsolateSearchIndex(packageIsolate)),
+      sdkIndex: SdkIsolateIndex(sdkIsolate),
+    ),
+  );
+
+  final updateStream = renewPackageIndex.asyncMap((c) async {
+    try {
+      // create a new index and handover with a 2-minute maximum wait
+      await packageIsolate.renew(count: 1, wait: renewWait);
+      c.complete(null);
+    } catch (e, st) {
+      c.completeError(e, st);
+    }
+  });
+  final updateListener = updateStream.listen((_) {
+    _logger.info('Package SDK isolate renewed.');
+  });
+
+  await runHandler(
+    _logger,
+    handler ?? searchServiceHandler,
+    port: port,
+    processTerminationSignal: processTerminationSignal,
+  );
+  await updateListener.cancel();
 }

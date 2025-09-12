@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -28,14 +29,20 @@ void registerIndexUpdater(IndexUpdater updater) =>
 /// The active index updater.
 IndexUpdater get indexUpdater => ss.lookup(#_indexUpdater) as IndexUpdater;
 
-/// Loads a local search snapshot file and builds an in-memory package index from it.
-Future<InMemoryPackageIndex> loadInMemoryPackageIndexFromFile(
-  String path,
-) async {
-  final file = File(path);
-  final content =
-      json.decode(utf8.decode(gzip.decode(await file.readAsBytes())))
-          as Map<String, Object?>;
+/// Loads a search snapshot from an URL or from a local file and builds
+/// an in-memory package index from it.
+Future<InMemoryPackageIndex> loadInMemoryPackageIndexFromUrl(String url) async {
+  late String textContent;
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    textContent = await httpGetWithRetry(
+      Uri.parse(url),
+      responseFn: (rs) => rs.body,
+    );
+  } else {
+    final file = File(url);
+    textContent = utf8.decode(gzip.decode(await file.readAsBytes()));
+  }
+  final content = json.decode(textContent) as Map<String, Object?>;
   final snapshot = SearchSnapshot.fromJson(content);
   return InMemoryPackageIndex(
     documents: snapshot.documents!.values.where(
@@ -83,12 +90,19 @@ class IndexUpdater {
   /// complete document for the index.
   @visibleForTesting
   Future<void> updateAllPackages() async {
+    final documents = await loadAllPackageDocuments();
+    updatePackageIndex(InMemoryPackageIndex(documents: documents));
+  }
+
+  /// Loads all packages as PackageDocuments.
+  @visibleForTesting
+  Future<List<PackageDocument>> loadAllPackageDocuments() async {
     final documents = <PackageDocument>[];
     await for (final p in _db.query<Package>().run()) {
       final doc = await searchBackend.loadDocument(p.name!);
       documents.add(doc);
     }
-    updatePackageIndex(InMemoryPackageIndex(documents: documents));
+    return documents;
   }
 
   /// Returns whether the snapshot was initialized and loaded properly.

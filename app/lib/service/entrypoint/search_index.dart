@@ -49,7 +49,7 @@ Future<void> main(List<String> args, var message) async {
       if (snapshot == null) {
         await indexUpdater.init();
       } else {
-        updatePackageIndex(await loadInMemoryPackageIndexFromFile(snapshot));
+        updatePackageIndex(await loadInMemoryPackageIndexFromUrl(snapshot));
       }
 
       await runIsolateFunctions(

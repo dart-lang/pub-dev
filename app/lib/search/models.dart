@@ -19,6 +19,14 @@ class SearchSnapshot {
 
   factory SearchSnapshot() => SearchSnapshot._(clock.now().toUtc(), {});
 
+  factory SearchSnapshot.fromDocuments(Iterable<PackageDocument> documents) {
+    final snapshot = SearchSnapshot();
+    for (final doc in documents) {
+      snapshot.add(doc);
+    }
+    return snapshot;
+  }
+
   factory SearchSnapshot.fromJson(Map<String, dynamic> json) =>
       _$SearchSnapshotFromJson(json);
 

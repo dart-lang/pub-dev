@@ -38,6 +38,7 @@ Future<void> runHandler(
   shelf.Handler handler, {
   bool sanitize = false,
   int port = 8080,
+  Future<void> Function()? processTerminationSignal,
 }) async {
   handler = wrapHandler(logger, handler, sanitize: sanitize);
   if (envConfig.isRunningInAppengine) {
@@ -60,7 +61,8 @@ Future<void> runHandler(
       port,
       shared: true,
     );
-    await waitForProcessSignalTermination();
+    processTerminationSignal ??= waitForProcessSignalTermination;
+    await processTerminationSignal();
     await server.close();
   }
 }
