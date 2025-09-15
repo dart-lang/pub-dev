@@ -9,13 +9,16 @@ import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/search/handlers.dart';
+import 'package:pub_dev/search/models.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
 import 'package:pub_dev/search/updater.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/handler_helpers.dart';
+import 'package:pub_dev/shared/handlers.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
@@ -70,4 +73,18 @@ class FakeSearchService {
     );
     _logger.info('closed');
   }
+}
+
+@visibleForTesting
+Future<IOServer> setupLocalSnapshotServer() async {
+  final snapshotServer = await IOServer.bind('localhost', 0);
+  serveRequests(snapshotServer.server, (request) async {
+    await generateFakeDownloadCountsInDatastore();
+    final snapshot = SearchSnapshot.fromDocuments(
+      // ignore: invalid_use_of_visible_for_testing_member
+      await indexUpdater.loadAllPackageDocuments(),
+    );
+    return jsonResponse(snapshot.toJson());
+  });
+  return snapshotServer;
 }
