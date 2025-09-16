@@ -92,7 +92,7 @@ class ExperimentalFlags {
 
   bool get isDarkModeDefault => isEnabled('dark-as-default');
 
-  bool get useMyLikedSearch => isEnabled('my-liked-search');
+  bool get useMyLikedSearch => true;
 
   String encodedAsCookie() => _enabled.join(':');
 
