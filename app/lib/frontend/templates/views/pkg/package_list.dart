@@ -73,7 +73,6 @@ d.Node _sdkLibraryItem(SdkLibraryHit hit) {
         text: sdkDict.libraryTypeLabel,
       ),
       coreLibraryBadgeNode,
-      nullSafeBadgeNode(),
     ]),
     tagsNode: null,
     replacedBy: null,
@@ -94,7 +93,6 @@ d.Node _packageItem(
   required bool isLiked,
 }) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
-  final isNullSafe = view.tags.contains(PackageVersionTags.isNullSafe);
   final isDart3Compatible = view.tags.contains(
     PackageVersionTags.isDart3Compatible,
   );
@@ -157,7 +155,6 @@ d.Node _packageItem(
     if (licenseNode != null)
       d.span(classes: ['packages-metadata-block'], child: licenseNode),
     if (isFlutterFavorite) flutterFavoriteBadgeNode,
-    if (isNullSafe && !isDart3Compatible) nullSafeBadgeNode(),
     if (isDart3Compatible) dart3CompatibleNode,
     if (isDart3Incompatible) dart3IncompatibleNode,
   ]);
