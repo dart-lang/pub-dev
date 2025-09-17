@@ -6,7 +6,6 @@ import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/liked_package_list.dart';
 
 import '../../../../package/models.dart';
@@ -35,11 +34,10 @@ d.Node listOfPackagesNode({
       ? null
       : nameMatches.first;
   final listingPackagesLikedByMe =
-      requestContext.experimentalFlags.useMyLikedSearch &&
-      (searchForm?.parsedQuery.tagsPredicate.isRequiredTag(
-            AccountTag.isLikedByMe,
-          ) ??
-          false);
+      searchForm?.parsedQuery.tagsPredicate.isRequiredTag(
+        AccountTag.isLikedByMe,
+      ) ??
+      false;
   return d.div(
     classes: ['packages'],
     children: [

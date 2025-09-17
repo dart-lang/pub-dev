@@ -10,7 +10,6 @@ import 'package:_pub_shared/validation/html/html_validation.dart';
 import 'package:clock/clock.dart';
 import 'package:html/parser.dart';
 import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
@@ -869,27 +868,28 @@ void main() {
       '/my-liked-packages page',
       fn: () async {
         await withFakeAuthRequestContext(userAtPubDevEmail, () async {
+          final oxygen = (await scoreCardBackend.getPackageView('oxygen'))!;
+          final neon = (await scoreCardBackend.getPackageView('neon'))!;
           final authenticatedUser = await requireAuthenticatedWebUser();
           final user = authenticatedUser.user;
-          final liked1 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
-          final liked2 = DateTime.fromMillisecondsSinceEpoch(1574423824000);
+          final searchForm = SearchForm(query: 'is:liked-by-me');
           final html = renderMyLikedPackagesPage(
             user: user,
             userSessionData: requestContext.sessionData!,
-            likes: [
-              LikeData(package: 'super_package', created: liked1),
-              LikeData(package: 'another_package', created: liked2),
-            ],
-            searchForm: null,
-            searchResult: null,
+            searchForm: searchForm,
+            searchResult: SearchResultPage(
+              searchForm,
+              2,
+              packageHits: [oxygen, neon],
+            ),
           );
           expectGoldenFile(
             html,
             'my_liked_packages.html',
             timestamps: {
               'user-created': user.created,
-              'liked1': liked1,
-              'liked2': liked2,
+              'oxygen-created': oxygen.created,
+              'neon-created': neon.created,
             },
           );
         });
