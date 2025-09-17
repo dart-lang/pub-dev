@@ -84,18 +84,11 @@ class SortDict {
 
 final _sortDicts = const <SortDict>[
   SortDict(
-    id: 'listing_relevance',
-    label: 'listing relevance',
+    id: 'default_ranking',
+    label: 'default ranking',
     tooltip:
         'Packages are sorted by the combination of their overall score and '
-        'their specificity to the selected platform.',
-  ),
-  SortDict(
-    id: 'search_relevance',
-    label: 'search relevance',
-    tooltip:
-        'Packages are sorted by the combination of the text match, '
-        'their overall score and their specificity to the selected platform.',
+        'their relevance to matching the search query text.',
   ),
   SortDict(
     id: 'top',
@@ -134,7 +127,4 @@ final _sortDicts = const <SortDict>[
   ),
 ];
 
-List<SortDict> getSortDicts(bool isSearch) {
-  final removeId = isSearch ? 'listing_relevance' : 'search_relevance';
-  return _sortDicts.where((d) => d.id != removeId).toList();
-}
+List<SortDict> getSortDicts() => _sortDicts;
