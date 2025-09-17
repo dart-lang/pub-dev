@@ -28,10 +28,7 @@ d.Node versionRowNode(
           title: 'Visit $package ${version.version} page',
         ),
       ),
-      d.td(
-        classes: ['badge'],
-        child: null,
-      ),
+      d.td(classes: ['badge'], child: null),
       d.td(
         classes: ['sdk'],
         child: sdk != null
