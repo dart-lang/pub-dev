@@ -75,11 +75,9 @@ class SearchClient {
     if (hasLikedByMeTag) {
       skipCache = true;
     }
-    final useLikedByMe =
-        hasLikedByMeTag && requestContext.experimentalFlags.useMyLikedSearch;
 
     List<String>? packages;
-    if (userId != null && useLikedByMe) {
+    if (userId != null && hasLikedByMeTag) {
       final likedPackages = await likeBackend.listPackageLikes(userId);
       packages = likedPackages.map((l) => l.package!).toList();
     }
@@ -93,7 +91,7 @@ class SearchClient {
         return await withRetryHttpClient(
           (client) async {
             var data = query.toSearchRequestData();
-            if (userId != null && useLikedByMe) {
+            if (userId != null && hasLikedByMeTag) {
               final newQuery = data.query
                   ?.replaceAll(AccountTag.isLikedByMe, ' ')
                   .trim();

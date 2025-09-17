@@ -7,7 +7,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:pub_dev/frontend/templates/listing.dart';
 import 'package:pub_dev/package/search_adapter.dart';
 
-import '../../account/models.dart' show LikeData, User, SessionData;
+import '../../account/models.dart' show User, SessionData;
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/models.dart';
@@ -19,7 +19,6 @@ import '_consts.dart';
 import 'detail_page.dart';
 import 'layout.dart';
 import 'views/account/authorized.dart';
-import 'views/pkg/liked_package_list.dart';
 import 'views/pkg/package_list.dart';
 import 'views/publisher/publisher_list.dart';
 
@@ -100,37 +99,24 @@ String renderAccountPackagesPage({
 String renderMyLikedPackagesPage({
   required User user,
   required SessionData userSessionData,
-  required List<LikeData>? likes,
-  required SearchForm? searchForm,
-  required SearchResultPage? searchResult,
+  required SearchForm searchForm,
+  required SearchResultPage searchResult,
 }) {
-  late d.Node tabContent;
-  if (likes != null) {
-    final resultCount = likes.isNotEmpty
-        ? d.p(
-            text:
-                'You like ${likes.length} ${likes.length == 1 ? 'package' : 'packages'}.',
-          )
-        : d.p(text: 'You have not liked any packages yet.');
-
-    tabContent = d.fragment([resultCount, likedPackageListNode(likes)]);
-  } else {
-    final infoNode = listingInfo(
-      searchForm: searchForm!,
-      totalCount: searchResult!.totalCount,
-      title: 'My liked packages',
-      messageFromBackend: searchResult.errorMessage,
-    );
-    final listNode = packageList(searchResult);
-    final pagination = searchResult.hasHit
-        ? paginationNode(PageLinks(searchForm, searchResult.totalCount))
-        : null;
-    tabContent = d.fragment([
-      infoNode,
-      listNode,
-      if (pagination != null) pagination,
-    ]);
-  }
+  final infoNode = listingInfo(
+    searchForm: searchForm,
+    totalCount: searchResult.totalCount,
+    title: 'My liked packages',
+    messageFromBackend: searchResult.errorMessage,
+  );
+  final listNode = packageList(searchResult);
+  final pagination = searchResult.hasHit
+      ? paginationNode(PageLinks(searchForm, searchResult.totalCount))
+      : null;
+  final tabContent = d.fragment([
+    infoNode,
+    listNode,
+    if (pagination != null) pagination,
+  ]);
 
   final content = renderDetailPage(
     headerNode: _accountDetailHeader(user, userSessionData),

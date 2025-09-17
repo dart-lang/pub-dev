@@ -332,43 +332,30 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
     return redirectResponse(request.requestedUri.path);
   }
 
-  if (requestContext.experimentalFlags.useMyLikedSearch) {
-    // redirect to the search page when any search or pagination is present
-    final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
-    if (searchForm.isNotEmpty) {
-      final redirectForm = searchForm.addRequiredTagIfAbsent(
-        AccountTag.isLikedByMe,
-      );
-      return redirectResponse(
-        redirectForm.toSearchLink(page: searchForm.currentPage),
-      );
-    }
-
-    final appliedSearchForm = SearchForm().toggleRequiredTag(
+  // redirect to the search page when any search or pagination is present
+  final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
+  if (searchForm.isNotEmpty) {
+    final redirectForm = searchForm.addRequiredTagIfAbsent(
       AccountTag.isLikedByMe,
     );
-    final searchResult = await searchAdapter.search(
-      appliedSearchForm,
-      // Do not apply rate limit here.
-      rateLimitKey: null,
+    return redirectResponse(
+      redirectForm.toSearchLink(page: searchForm.currentPage),
     );
-    final html = renderMyLikedPackagesPage(
-      user: user,
-      userSessionData: requestContext.sessionData!,
-      likes: null,
-      searchForm: appliedSearchForm,
-      searchResult: searchResult,
-    );
-    return htmlResponse(html);
   }
 
-  final likes = await likeBackend.listPackageLikes(user.userId);
+  final appliedSearchForm = SearchForm().toggleRequiredTag(
+    AccountTag.isLikedByMe,
+  );
+  final searchResult = await searchAdapter.search(
+    appliedSearchForm,
+    // Do not apply rate limit here.
+    rateLimitKey: null,
+  );
   final html = renderMyLikedPackagesPage(
     user: user,
     userSessionData: requestContext.sessionData!,
-    likes: likes,
-    searchForm: null,
-    searchResult: null,
+    searchForm: appliedSearchForm,
+    searchResult: searchResult,
   );
   return htmlResponse(html);
 }

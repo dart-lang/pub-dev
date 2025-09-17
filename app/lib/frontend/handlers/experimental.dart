@@ -10,10 +10,6 @@ typedef PublicFlag = ({String name, String description});
 
 const _publicFlags = <PublicFlag>{
   (name: 'example', description: 'Short description'),
-  (
-    name: 'my-liked-search',
-    description: 'New "My liked packages" page and search.',
-  ),
 };
 
 final _allFlags = <String>{
@@ -91,8 +87,6 @@ class ExperimentalFlags {
   }
 
   bool get isDarkModeDefault => isEnabled('dark-as-default');
-
-  bool get useMyLikedSearch => true;
 
   String encodedAsCookie() => _enabled.join(':');
 

@@ -43,11 +43,6 @@
       </a>
       <div class="site-header-space"></div>
       <div class="site-header-mask"></div>
-      <div class="site-header-search">
-        <form action="/packages" method="GET">
-          <input class="site-header-search-input" name="q" placeholder="New search..." autocomplete="on" title="Search"/>
-        </form>
-      </div>
       <nav class="site-header-nav scroll-container">
         <div id="-account-profile" class="nav-container nav-my-container hoverable">
           <button class="nav-main-button">My pub.dev</button>
@@ -136,6 +131,14 @@
       <button class="-pub-theme-toggle" aria-label="light/dark theme toggle"></button>
     </div>
     <div id="banner-container"></div>
+    <div class="_banner-bg">
+      <div class="container">
+        <form class="search-bar banner-item" action="/packages" autocomplete="off">
+          <input class="input" type="search" name="q" placeholder="Search packages" autocomplete="off" value="is:liked-by-me" title="Search" data-widget="completion" data-completion-src="/api/search-input-completion-data" data-completion-class="search-completion"/>
+          <span class="icon"></span>
+        </form>
+      </div>
+    </div>
     <main class="-wide-header-detail-page">
       <div class="detail-wrapper -active">
         <div class="detail-header">
@@ -178,45 +181,200 @@
             <div class="detail-container detail-body-main">
               <div class="detail-tabs-content">
                 <section class="tab-content detail-tab-my-liked-packages-content -active">
-                  <p>You like 2 packages.</p>
-                  <div class="packages -compact">
-                    <div class="packages-item">
-                      <div class="packages-header">
-                        <h3 class="packages-title">
-                          <a href="/packages/super_package">super_package</a>
-                        </h3>
-                        <div class="packages-icons">
-                          <button class="mdc-button mdc-button--unelevated -pub-like-button" data-mdc-auto-init="MDCRipple" data-package="super_package" data-thumb_up_outlined="/static/hash-%%etag%%/img/thumb-up-24px.svg" data-thumb_up_filled="/static/hash-%%etag%%/img/thumb-up-filled-24px.svg">
-                            <div class="mdc-button__ripple"></div>
-                            <img class="mdc-button__icon -pub-like-button-img" src="/static/hash-%%etag%%/img/thumb-up-filled-24px.svg" alt="thumb up" width="24" height="24" aria-hidden="true"/>
-                            <span class="mdc-button__label -pub-like-button-label">Unlike</span>
-                          </button>
-                        </div>
-                      </div>
-                      <p class="packages-metadata">
-                        Liked
-                        <a class="-x-ago" href="" title="on %%liked1-date%%" role="button" data-timestamp="%%millis%%">%%x-ago%%</a>
-                      </p>
+                  <div class="listing-info">
+                    <div class="listing-info-count">
+                      <span class="info-identifier">Results</span>
+                      <span class="count">2</span>
+                      packages
                     </div>
-                    <div class="packages-item">
-                      <div class="packages-header">
-                        <h3 class="packages-title">
-                          <a href="/packages/another_package">another_package</a>
-                        </h3>
-                        <div class="packages-icons">
-                          <button class="mdc-button mdc-button--unelevated -pub-like-button" data-mdc-auto-init="MDCRipple" data-package="another_package" data-thumb_up_outlined="/static/hash-%%etag%%/img/thumb-up-24px.svg" data-thumb_up_filled="/static/hash-%%etag%%/img/thumb-up-filled-24px.svg">
-                            <div class="mdc-button__ripple"></div>
-                            <img class="mdc-button__icon -pub-like-button-img" src="/static/hash-%%etag%%/img/thumb-up-filled-24px.svg" alt="thumb up" width="24" height="24" aria-hidden="true"/>
-                            <span class="mdc-button__label -pub-like-button-label">Unlike</span>
-                          </button>
-                        </div>
+                    <div class="sort-control hoverable">
+                      <div class="info-identifier" title="Packages are sorted by the combination of their overall score and their relevance to matching the search query text.">
+                        Sort by
+                        <button class="sort-control-selected">default ranking</button>
                       </div>
-                      <p class="packages-metadata">
-                        Liked
-                        <a class="-x-ago" href="" title="on %%liked1-date%%" role="button" data-timestamp="%%millis%%">%%x-ago%%</a>
-                      </p>
+                      <div class="sort-control-popup">
+                        <button class="sort-control-option selected" data-value="default_ranking">default ranking</button>
+                        <button class="sort-control-option" data-value="top">overall score</button>
+                        <button class="sort-control-option" data-value="updated">recently updated</button>
+                        <button class="sort-control-option" data-value="created">newest package</button>
+                        <button class="sort-control-option" data-value="like">most likes</button>
+                        <button class="sort-control-option" data-value="points">most pub points</button>
+                        <button class="sort-control-option" data-value="downloads">downloads</button>
+                        <button class="sort-control-option" data-value="trending">trending</button>
+                      </div>
                     </div>
                   </div>
+                  <div class="packages">
+                    <div class="packages-item">
+                      <div class="packages-header">
+                        <h3 class="packages-title pub-monochrome-icon-hoverable">
+                          <a href="/packages/oxygen">oxygen</a>
+                          <button class="mdc-icon-button mdc-icon-button--on like-button-and-label--button" data-ga-click-event="toggle-like" aria-pressed="true" data-package="oxygen" data-value="0" title="Unlike this package">
+                            <img class="mdc-icon-button__icon" src="/static/hash-%%etag%%/img/like-inactive.svg" alt="liked status: inactive" width="18" height="18"/>
+                            <img class="mdc-icon-button__icon mdc-icon-button__icon--on" src="/static/hash-%%etag%%/img/like-active.svg" alt="liked status: active" width="18" height="18"/>
+                          </button>
+                          <span class="pkg-page-title-copy">
+                            <img class="pub-monochrome-icon pkg-page-title-copy-icon filter-invert-on-dark" src="/static/hash-%%etag%%/img/content-copy-icon.svg" alt="copy &quot;oxygen: ^1.2.0&quot; to clipboard" width="18" height="18" title="Copy &quot;oxygen: ^1.2.0&quot; to clipboard" data-copy-content="oxygen: ^1.2.0" data-ga-click-event="copy-package-version"/>
+                            <div class="pkg-page-title-copy-feedback">
+                              <span class="code">oxygen: ^1.2.0</span>
+                              copied to clipboard
+                            </div>
+                          </span>
+                        </h3>
+                        <div class="packages-recent">
+                          <img class="packages-recent-icon" src="/static/hash-%%etag%%/img/schedule-icon.svg" alt="recently created package" width="10" height="10" title="recently created package"/>
+                          Added
+                          <b>%%x-ago%%</b>
+                        </div>
+                        <a class="packages-scores" href="/packages/oxygen/score">
+                          <div class="packages-score packages-score-like" data-package="oxygen">
+                            <div class="packages-score-value -has-value">
+                              <span class="packages-score-value-number">0</span>
+                              <span class="packages-score-value-sign"></span>
+                            </div>
+                            <div class="packages-score-label">likes</div>
+                          </div>
+                          <div class="packages-score packages-score-health">
+                            <div class="packages-score-value -has-value">
+                              <span class="packages-score-value-number">0</span>
+                              <span class="packages-score-value-sign"></span>
+                            </div>
+                            <div class="packages-score-label">points</div>
+                          </div>
+                          <div class="packages-score packages-score-downloads" title="Number of downloads of this package during the past 30 days">
+                            <div class="packages-score-value">
+                              <span class="packages-score-value-number">--</span>
+                              <span class="packages-score-value-sign"></span>
+                            </div>
+                            <div class="packages-score-label">downloads</div>
+                          </div>
+                        </a>
+                      </div>
+                      <div class="packages-container">
+                        <div class="packages-body">
+                          <div class="packages-description">
+                            <span>oxygen is awesome</span>
+                            <a class="topics-tag" href="/packages?q=topic%3Achemical-element" rel="nofollow">#chemical-element</a>
+                          </div>
+                          <p class="packages-metadata">
+                            <span class="packages-metadata-block">
+                              v
+                              <a href="/packages/oxygen" title="Visit oxygen 1.2.0 page">1.2.0</a>
+                              (
+                              <a class="-x-ago" href="" title="%%user-created-date%%" role="button" data-timestamp="%%millis%%">%%x-ago%%</a>
+                              ) /
+                              <a href="/packages/oxygen/versions/2.0.0-dev" title="Visit oxygen 2.0.0-dev page">2.0.0-dev</a>
+                              (
+                              <a class="-x-ago" href="" title="%%user-created-date%%" role="button" data-timestamp="%%millis%%">%%x-ago%%</a>
+                              )
+                            </span>
+                          </p>
+                          <div>
+                            <span class="package-tag missing" title="This version was scheduled for analysis, but it hasn't completed yet.">[pending analysis]</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="packages-item">
+                      <div class="packages-header">
+                        <h3 class="packages-title pub-monochrome-icon-hoverable">
+                          <a href="/packages/neon">neon</a>
+                          <button class="mdc-icon-button mdc-icon-button--on like-button-and-label--button" data-ga-click-event="toggle-like" aria-pressed="true" data-package="neon" data-value="0" title="Unlike this package">
+                            <img class="mdc-icon-button__icon" src="/static/hash-%%etag%%/img/like-inactive.svg" alt="liked status: inactive" width="18" height="18"/>
+                            <img class="mdc-icon-button__icon mdc-icon-button__icon--on" src="/static/hash-%%etag%%/img/like-active.svg" alt="liked status: active" width="18" height="18"/>
+                          </button>
+                          <span class="pkg-page-title-copy">
+                            <img class="pub-monochrome-icon pkg-page-title-copy-icon filter-invert-on-dark" src="/static/hash-%%etag%%/img/content-copy-icon.svg" alt="copy &quot;neon: ^1.0.0&quot; to clipboard" width="18" height="18" title="Copy &quot;neon: ^1.0.0&quot; to clipboard" data-copy-content="neon: ^1.0.0" data-ga-click-event="copy-package-version"/>
+                            <div class="pkg-page-title-copy-feedback">
+                              <span class="code">neon: ^1.0.0</span>
+                              copied to clipboard
+                            </div>
+                          </span>
+                        </h3>
+                        <div class="packages-recent">
+                          <img class="packages-recent-icon" src="/static/hash-%%etag%%/img/schedule-icon.svg" alt="recently created package" width="10" height="10" title="recently created package"/>
+                          Added
+                          <b>%%x-ago%%</b>
+                        </div>
+                        <a class="packages-scores" href="/packages/neon/score">
+                          <div class="packages-score packages-score-like" data-package="neon">
+                            <div class="packages-score-value -has-value">
+                              <span class="packages-score-value-number">0</span>
+                              <span class="packages-score-value-sign"></span>
+                            </div>
+                            <div class="packages-score-label">likes</div>
+                          </div>
+                          <div class="packages-score packages-score-health">
+                            <div class="packages-score-value -has-value">
+                              <span class="packages-score-value-number">0</span>
+                              <span class="packages-score-value-sign"></span>
+                            </div>
+                            <div class="packages-score-label">points</div>
+                          </div>
+                          <div class="packages-score packages-score-downloads" title="Number of downloads of this package during the past 30 days">
+                            <div class="packages-score-value">
+                              <span class="packages-score-value-number">--</span>
+                              <span class="packages-score-value-sign"></span>
+                            </div>
+                            <div class="packages-score-label">downloads</div>
+                          </div>
+                        </a>
+                      </div>
+                      <div class="packages-container">
+                        <div class="packages-body">
+                          <div class="packages-description">
+                            <span>neon is awesome</span>
+                            <a class="topics-tag" href="/packages?q=topic%3Achemical-element" rel="nofollow">#chemical-element</a>
+                          </div>
+                          <p class="packages-metadata">
+                            <span class="packages-metadata-block">
+                              v
+                              <a href="/packages/neon" title="Visit neon 1.0.0 page">1.0.0</a>
+                              (
+                              <a class="-x-ago" href="" title="%%user-created-date%%" role="button" data-timestamp="%%millis%%">%%x-ago%%</a>
+                              )
+                            </span>
+                            <span class="packages-metadata-block">
+                              <img class="package-vp-icon filter-invert-on-dark" src="/static/hash-%%etag%%/img/material-icon-verified.svg" alt="verified publisher" width="14" height="14" title="Published by a pub.dev verified publisher"/>
+                              <a href="/publishers/example.com">example.com</a>
+                            </span>
+                          </p>
+                          <div>
+                            <span class="package-tag missing" title="This version was scheduled for analysis, but it hasn't completed yet.">[pending analysis]</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="-screenshot-carousel" class="carousel">
+                      <fab id="-carousel-prev" class="mdc-fab carousel-prev carousel-nav" data-mdc-auto-init="MDCRipple" title="Previous" data-ga-click-event="screenshot-carousel-prev-click" tabindex="0">
+                        <div class="mdc-fab__ripple"></div>
+                        <img class="mdc-fab__icon" src="/static/hash-%%etag%%/img/keyboard_arrow_left.svg" alt="previous" width="24" height="24" aria-hidden="true"/>
+                      </fab>
+                      <div id="-image-container" class="image-container"></div>
+                      <fab id="-carousel-next" class="mdc-fab carousel-next carousel-nav" data-mdc-auto-init="MDCRipple" title="Next" data-ga-click-event="screenshot-carousel-next-click" tabindex="0">
+                        <div class="mdc-fab__ripple"></div>
+                        <img class="mdc-fab__icon" src="/static/hash-%%etag%%/img/keyboard_arrow_right.svg" alt="next" width="24" height="24" aria-hidden="true"/>
+                      </fab>
+                      <p id="-screenshot-description" class="screenshot-description"></p>
+                    </div>
+                  </div>
+                  <ul class="pagination">
+                    <li class="-disabled">
+                      <a rel="prev nofollow" aria-label="previous page">
+                        <span>«</span>
+                      </a>
+                    </li>
+                    <li class="-active">
+                      <a rel="nofollow">
+                        <span>1</span>
+                      </a>
+                    </li>
+                    <li class="-disabled">
+                      <a rel="next nofollow" aria-label="next page">
+                        <span>»</span>
+                      </a>
+                    </li>
+                  </ul>
                 </section>
               </div>
             </div>
