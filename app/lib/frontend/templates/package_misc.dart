@@ -35,14 +35,6 @@ final nameMatchBadgeNode = packageBadgeNode(
   color: 'name-match',
 );
 
-/// Renders the null-safe badge used by package listing and package page.
-d.Node nullSafeBadgeNode({String? title}) {
-  return packageBadgeNode(
-    label: 'Null safety',
-    title: title ?? 'Supports the null safety language feature.',
-  );
-}
-
 /// Renders the Dart 3 compatible badge.
 final dart3CompatibleNode = packageBadgeNode(
   label: 'Dart 3 compatible',

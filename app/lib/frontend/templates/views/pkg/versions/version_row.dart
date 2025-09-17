@@ -9,7 +9,6 @@ import '../../../../../package/model_properties.dart';
 import '../../../../../shared/urls.dart' as urls;
 import '../../../../dom/dom.dart' as d;
 import '../../../../static_files.dart';
-import '../../../package_misc.dart';
 
 d.Node versionRowNode(
   String package,
@@ -31,11 +30,7 @@ d.Node versionRowNode(
       ),
       d.td(
         classes: ['badge'],
-        child: pubspec.hasOptedIntoNullSafety
-            ? nullSafeBadgeNode(
-                title: 'Package version is opted into null safety.',
-              )
-            : null,
+        child: null,
       ),
       d.td(
         classes: ['sdk'],

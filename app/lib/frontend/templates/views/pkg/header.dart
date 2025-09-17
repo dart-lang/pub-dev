@@ -22,7 +22,6 @@ d.Node packageHeaderNode({
     d.span(child: d.xAgoTimestamp(published)),
     d.text(' '),
     if (publisherId != null) ..._publisher(publisherId),
-    if (isNullSafe && !isDart3Compatible) nullSafeBadgeNode(),
     if (isDart3Compatible) dart3CompatibleNode,
     if (isDart3Incompatible) dart3IncompatibleNode,
     if (releases != null) ..._releases(packageName, releases),
