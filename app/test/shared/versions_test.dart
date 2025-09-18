@@ -82,8 +82,8 @@ void main() {
     expect(docker.contains('\nFROM dart:$runtimeSdkVersion\n'), isTrue);
     final String monoPkg = await File('mono_pkg.yaml').readAsString();
     expect(monoPkg.contains('$runtimeSdkVersion'), isTrue);
-    final ci = await File('../.github/workflows/dart.yml').readAsString();
-    expect(ci.contains('sdk:$runtimeSdkVersion'), isTrue);
+    final ci = await File('../.github/workflows/all-test.yml').readAsString();
+    expect(ci.contains("DART_SDK_VERSION: '$runtimeSdkVersion'"), isTrue);
   });
 
   test('Dart SDK versions should match Dockerfile.worker', () async {

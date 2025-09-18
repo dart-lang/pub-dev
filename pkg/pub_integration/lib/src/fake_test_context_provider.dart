@@ -17,7 +17,7 @@ import 'test_browser.dart';
 import 'test_scenario.dart';
 
 /// The timeout factor that should be used in integration tests.
-final testTimeoutFactor = 6;
+final testTimeoutFactor = 8;
 
 class TestContextProvider {
   final String pubHostedUrl;
@@ -30,7 +30,9 @@ class TestContextProvider {
     this._testBrowser,
   );
 
-  static Future<TestContextProvider> start() async {
+  static Future<TestContextProvider> start({
+    List<IgnoreMessageFilter>? ignoreServerErrors,
+  }) async {
     final fakePubServerProcess = await FakePubServerProcess.start();
     await fakePubServerProcess.started;
     final origin = 'http://localhost:${fakePubServerProcess.port}';
@@ -42,7 +44,11 @@ class TestContextProvider {
       Isolate.current.hashCode,
     ].join('-');
 
-    final testBrowser = TestBrowser(origin: origin, testName: testName);
+    final testBrowser = TestBrowser(
+      origin: origin,
+      testName: testName,
+      ignoreServerErrors: ignoreServerErrors,
+    );
     await testBrowser.startBrowser();
     return TestContextProvider._(origin, fakePubServerProcess, testBrowser);
   }

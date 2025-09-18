@@ -12,6 +12,9 @@ import 'package:puppeteer/puppeteer.dart';
 import 'package:puppeteer_screenshots/puppeteer_utils.dart';
 import 'package:retry/retry.dart';
 
+/// Filters server or client messages, ignoring and not reporting them as errors.
+typedef IgnoreMessageFilter = bool Function(String message);
+
 /// Creates and tracks the headless Chrome environment, its temp directories and
 /// and uncaught exceptions.
 class TestBrowser {
@@ -31,14 +34,19 @@ class TestBrowser {
   /// The coverage report of CSS files.
   final _cssCoverages = <String, _Coverage>{};
 
+  /// Filters to ignore server errors.
+  final List<IgnoreMessageFilter>? _ignoreServerErrors;
+
   TestBrowser({
     required String origin,
     String? testName,
     String? coverageDir,
     bool displayBrowser = false,
+    List<IgnoreMessageFilter>? ignoreServerErrors,
   }) : _displayBrowser = displayBrowser,
        _testName = testName,
        _origin = origin,
+       _ignoreServerErrors = ignoreServerErrors,
        _coverageDir = coverageDir ?? Platform.environment['COVERAGE_DIR'],
        _tempDir = Directory.systemTemp.createTempSync('pub-headless');
 
@@ -297,8 +305,15 @@ class TestBrowserSession {
       if (clientErrors.isNotEmpty) {
         throw Exception('Client errors detected: ${clientErrors.first}');
       }
+      if (_browser._ignoreServerErrors != null) {
+        serverErrors.removeWhere(
+          (msg) => _browser._ignoreServerErrors!.any((fn) => fn(msg)),
+        );
+      }
       if (serverErrors.isNotEmpty) {
-        throw Exception('Server errors detected: ${serverErrors.first}');
+        throw Exception(
+          '${serverErrors.length} server errors detected: ${serverErrors.first}',
+        );
       }
       return r;
     } finally {
