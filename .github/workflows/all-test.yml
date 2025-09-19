@@ -68,6 +68,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # TODO: use `dart pub workspace list --json` to get this list
         package:
         - api_builder
         - code_coverage
