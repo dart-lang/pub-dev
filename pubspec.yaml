@@ -18,4 +18,3 @@ workspace:
 
 dev_dependencies:
   lints: ^6.0.0
-  mono_repo: ^6.6.2

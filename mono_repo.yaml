@@ -1,9 +1,0 @@
-# See https://pub.dev/packages/mono_repo for details on this file
-self_validate: smoke_test
-pub_action: get
-
-github:
-  cron: "0 0 * * 0"
-
-merge_stages:
-  - smoke_test

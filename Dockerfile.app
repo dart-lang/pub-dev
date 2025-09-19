@@ -1,4 +1,4 @@
-# Keep version in-sync with .mono_repo.yml and app/lib/shared/versions.dart
+# Keep version in-sync with .github/workflows/all-test.yml and app/lib/shared/versions.dart
 FROM dart:3.9.0
 
 # After install we remove the apt-index again to keep the docker image diff small.
