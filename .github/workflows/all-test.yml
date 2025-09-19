@@ -1,0 +1,121 @@
+name: All tests
+permissions: read-all
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  schedule:
+    - cron: "0 0 * * 0" # runs on every Sunday
+
+env:
+  PUB_ENVIRONMENT: bot.github
+  DART_SDK_VERSION: '3.9.0'
+
+jobs:
+  app_build_only:
+    name: app/ (build only)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Cache PUB_CACHE
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+      with:
+        path: ~/.pub-cache
+        key: ${{runner.os}}-pub-cache
+    - name: Setup Dart SDK
+      uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+      with:
+        sdk: ${{env.DART_SDK_VERSION}}
+    - name: Checkout repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - run: dart pub get
+    - name: Install webp
+      run: sudo apt-get update -yq && sudo apt-get install webp
+    - run: dart analyze --fatal-infos .
+      working-directory: app/
+    - run: dart format --output=none --set-exit-if-changed .
+      working-directory: app/
+    - run: dart test -P build-only -j 1
+      working-directory: app/
+
+  app_test:
+    name: app/ (shard ${{matrix.shard}})
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Cache PUB_CACHE
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+      with:
+        path: ~/.pub-cache
+        key: ${{runner.os}}-pub-cache
+    - name: Setup Dart SDK
+      uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+      with:
+        sdk: ${{env.DART_SDK_VERSION}}
+    - name: Checkout repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - run: dart pub get
+    - name: Install webp
+      run: sudo apt-get update -yq && sudo apt-get install webp
+    - run: dart test -P presubmit --shard-index ${{matrix.shard}} --total-shards 8
+      working-directory: app/
+
+  test_packages:
+    strategy:
+      fail-fast: false
+      matrix:
+        # TODO: use `dart pub workspace list --json` to get this list
+        package:
+        - api_builder
+        - code_coverage
+        - fake_gcloud
+        - indexed_blob
+        - pub_integration
+        - pub_package_reader
+        - _pub_shared
+        - pub_worker
+        - puppeteer_screenshots
+        - web_app
+        - web_css
+    name: pkg/${{matrix.package}}/
+    runs-on: ubuntu-latest
+    steps:
+    - name: Cache PUB_CACHE
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+      with:
+        path: ~/.pub-cache
+        key: ${{runner.os}}-pub-cache
+    - name: Setup Dart SDK
+      uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+      with:
+        sdk: ${{env.DART_SDK_VERSION}}
+    - name: Checkout repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - run: dart pub get
+    - run: dart analyze --fatal-infos .
+      working-directory: pkg/${{matrix.package}}
+    - run: dart format --output=none --set-exit-if-changed .
+      working-directory: pkg/${{matrix.package}}
+    - name: Check for test directory
+      id: check_test_dir
+      run: |
+        if [ -d "pkg/${{matrix.package}}/test" ]; then
+          echo "Test directory found for ${{matrix.package}}."
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "No test directory found for ${{matrix.package}}. Skipping tests."
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+      shell: bash
+    - name: Run tests
+      if: steps.check_test_dir.outputs.exists == 'true'
+      run: |
+        if [[ "${{ matrix.package }}" == "pub_integration" ]]; then
+          dart tool/trigger_puppeteer_download.dart
+        fi
+        dart test --run-skipped
+      working-directory: pkg/${{matrix.package}}

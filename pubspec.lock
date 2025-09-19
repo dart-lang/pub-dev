@@ -545,14 +545,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  mono_repo:
-    dependency: "direct dev"
-    description:
-      name: mono_repo
-      sha256: "442806126e36d053bf4a305f65fb8f51990bb96115d76522237ac9e7feecf214"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.6.3"
   native_stack_traces:
     dependency: transitive
     description:
