@@ -100,43 +100,17 @@ annotations. Input files are usually listed in `build.yaml`, and generated
 files usually suffixed `.g.dart`. To generate code use:
 
 ```bash
-dart run build_runner build
+./tool/codegen.sh
 ```
-
-## Working with `mono_repo`
-
-The app uses [`mono_repo`](https://pub.dev/packages/mono_repo) to organize
-multiple packages inside the repository.
-
-### Setup / activate `mono_repo`
-
-To use `mono_repo`, first activate it:
-
-```bash
-dart pub global activate mono_repo
-```
-
-> Note: Run `pub global list` to make sure the version is at least `2.0.0`.
-
-`mono_repo` has two kinds of configuration files:
-- `mono_repo.yaml` (in the root directory)
-- `mono_pkg.yaml` (in each package directory)
 
 ### Update/upgrade dependencies
 
 ```bash
-dart pub global run mono_repo pub get
-```
-
-### Update/upgrade SDK in all mono_pkg.yaml
-
-```bash
-dart tool/update_mono_pkg_yaml.dart
-dart pub global run mono_repo generate
+./tool/run-pub-in-all.sh upgrade
 ```
 
 ### Creating a new package (or vendoring existing packages)
 
-1. Create `mono_pkg.yaml` for the package. (Use the existing ones as template.)
+1. Include the package in the root-level workspace.
 
-2. Run `dart pub global run mono_repo generate` from the root.
+2. Use `resolution: workspace` in the new package's `pubspec.yaml`.
