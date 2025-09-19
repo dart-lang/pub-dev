@@ -105,8 +105,10 @@ files usually suffixed `.g.dart`. To generate code use:
 
 ### Update/upgrade dependencies
 
+Run `pub upgrade` in the root to upgrade the entire workspace:
+
 ```bash
-./tool/run-pub-in-all.sh upgrade
+dart pub upgrade
 ```
 
 ### Creating a new package (or vendoring existing packages)
