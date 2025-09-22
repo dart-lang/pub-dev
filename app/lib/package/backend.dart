@@ -198,6 +198,30 @@ class PackageBackend {
     return await db.lookupOrNull<ReservedPackage>(packageKey);
   }
 
+  /// Lists the currently reserved package names. A reserved package prefix is a regular name
+  /// that ends with `_` (underscore).
+  ///
+  /// List the prefixes in descending length for easier matching.
+  Future<List<String>> listReservedPackagePrefixes() async {
+    return await cache.reservedPackagePrefixes().get(() async {
+          final list = <String>[];
+          await for (final p in db.query<ReservedPackage>().run()) {
+            final name = p.name;
+            if (name != null && name.endsWith('_')) {
+              list.add(name);
+            }
+          }
+          list.sort((a, b) {
+            if (a.length != b.length) {
+              return -a.length.compareTo(b.length);
+            }
+            return a.compareTo(b);
+          });
+          return list;
+        })
+        as List<String>;
+  }
+
   /// Looks up a package by name.
   Future<List<Package>> lookupPackages(Iterable<String> packageNames) async {
     return (await db.lookup(
@@ -1191,7 +1215,18 @@ class PackageBackend {
     required String name,
     required AuthenticatedAgent agent,
   }) async {
-    final reservedPackage = await lookupReservedPackage(name);
+    // Apply either the exact-name reserved package lookup, or the closest prefix (ending with '_').
+    var reservedPackage = await lookupReservedPackage(name);
+    if (reservedPackage == null) {
+      // lookup prefixes
+      final prefixes = await listReservedPackagePrefixes();
+      for (final prefix in prefixes) {
+        if (name.startsWith(prefix)) {
+          reservedPackage = await lookupReservedPackage(prefix);
+          break;
+        }
+      }
+    }
 
     bool isAllowedUser = false;
     if (agent is AuthenticatedUser) {

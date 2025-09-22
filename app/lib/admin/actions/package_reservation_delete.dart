@@ -4,6 +4,7 @@
 
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
 
 import 'actions.dart';
 
@@ -27,6 +28,7 @@ Deletes a ReservedPackage entity, allowing the package name use by any user.
     }
 
     await dbService.commit(deletes: [rp.key]);
+    await cache.reservedPackagePrefixes().purge();
 
     return {
       'ReservedPackage': {
