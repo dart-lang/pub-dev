@@ -500,6 +500,17 @@ class CachePatterns {
                   PlaylistItemListResponse.fromJson(v as Map<String, dynamic>),
             ),
           )[pageToken];
+
+  Entry<List<String>> reservedPackagePrefixes() => _cache
+      .withPrefix('reserved-package-prefixes/')
+      .withTTL(Duration(hours: 1))
+      .withCodec(utf8)
+      .withCodec(
+        wrapAsCodec(
+          encode: (List<String> v) => json.encode(v),
+          decode: (v) => (json.decode(v) as List).cast<String>(),
+        ),
+      )[''];
 }
 
 /// The active cache.

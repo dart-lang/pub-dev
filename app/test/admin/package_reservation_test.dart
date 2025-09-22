@@ -135,6 +135,24 @@ void main() {
     );
 
     testWithProfile(
+      'prefix reserve',
+      fn: () async {
+        await _reserve('pkg_');
+
+        final pubspecContent = generatePubspecYaml('pkg_foo', '1.0.0');
+        final bytes = await packageArchiveBytes(pubspecContent: pubspecContent);
+        await expectApiException(
+          createPubApiClient(
+            authToken: userClientToken,
+          ).uploadPackageBytes(bytes),
+          code: 'PackageRejected',
+          status: 400,
+          message: 'Package name pkg_foo is reserved.',
+        );
+      },
+    );
+
+    testWithProfile(
       'list and delete',
       fn: () async {
         await _reserve('pkg', emails: ['foo@pub.dev']);
