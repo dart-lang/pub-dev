@@ -64,25 +64,28 @@ jobs:
     - run: dart test -P presubmit --shard-index ${{matrix.shard}} --total-shards 8
       working-directory: app/
 
+  define_pkg_list:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.packages.outputs.packages }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: List packages
+        id: packages
+        run: |
+          DIRS=$(find . -maxdepth 1 -mindepth 1 -type d -printf '"%f"\n' | tr '\n' ',' | sed 's/,$//')
+          echo "packages=[$DIRS]" >> $GITHUB_OUTPUT
+        working-directory: pkg/
+
   test_packages:
+    name: pkg/${{matrix.package}}/
+    runs-on: ubuntu-latest
+    needs: define_pkg_list
     strategy:
       fail-fast: false
       matrix:
-        # TODO: use `dart pub workspace list --json` to get this list
-        package:
-        - api_builder
-        - code_coverage
-        - fake_gcloud
-        - indexed_blob
-        - pub_integration
-        - pub_package_reader
-        - _pub_shared
-        - pub_worker
-        - puppeteer_screenshots
-        - web_app
-        - web_css
-    name: pkg/${{matrix.package}}/
-    runs-on: ubuntu-latest
+        package: ${{ fromJson(needs.define_pkg_list.outputs.packages) }}
     steps:
     - name: Cache PUB_CACHE
       uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
