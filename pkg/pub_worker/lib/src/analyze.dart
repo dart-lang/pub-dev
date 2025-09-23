@@ -81,9 +81,17 @@ Future<void> analyze(Payload payload) async {
         );
       }
 
+      void warnTaskError(Exception e, StackTrace st) {
+        _log.warning(
+          'Failed to process ${payload.package} / ${p.version}',
+          e,
+          st,
+        );
+      }
+
       void shoutTaskError(Object e, StackTrace st) {
         _log.shout(
-          'failed to process ${payload.package} / ${p.version}',
+          'Failed to process ${payload.package} / ${p.version}',
           e,
           st,
         );
@@ -120,13 +128,17 @@ Future<void> analyze(Payload payload) async {
         late final map = e.bodyAsJson();
         late final error = map['error'];
         late final code = map['code'] ?? (error is Map ? error['code'] : null);
-        if (e.status == 400 && code is String && code == 'TaskAborted') {
+        if (e.status >= 500) {
+          warnTaskError(e, st);
+        } else if (e.status == 400 && code is String && code == 'TaskAborted') {
           warnTaskAborted(e, st);
         } else {
           shoutTaskError(e, st);
         }
       } on ApiResponseException catch (e, st) {
-        if (e.status == 400 && e.code == 'TaskAborted') {
+        if (e.status >= 500) {
+          warnTaskError(e, st);
+        } else if (e.status == 400 && e.code == 'TaskAborted') {
           warnTaskAborted(e, st);
         } else {
           shoutTaskError(e, st);
