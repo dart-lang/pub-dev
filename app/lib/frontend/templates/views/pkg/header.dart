@@ -12,8 +12,6 @@ d.Node packageHeaderNode({
   required String packageName,
   required String? publisherId,
   required DateTime published,
-  required bool isNullSafe,
-  required bool isDart3Compatible,
   required bool isDart3Incompatible,
   required LatestReleases? releases,
 }) {
@@ -22,7 +20,6 @@ d.Node packageHeaderNode({
     d.span(child: d.xAgoTimestamp(published)),
     d.text(' '),
     if (publisherId != null) ..._publisher(publisherId),
-    if (isDart3Compatible) dart3CompatibleNode,
     if (isDart3Incompatible) dart3IncompatibleNode,
     if (releases != null) ..._releases(packageName, releases),
   ]);

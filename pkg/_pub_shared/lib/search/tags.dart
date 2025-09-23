@@ -104,11 +104,9 @@ abstract class PackageVersionTags {
   /// search results (e.g. a version may have compatibility errors or
   /// get `is:legacy` classification).
   static const _futurePackageVersionTags = {
-    PackageVersionTags.isNullSafe,
     PackageVersionTags.isPlugin,
     PackageVersionTags.hasFundingLink,
     PackageVersionTags.hasScreenshot,
-    PackageVersionTags.isDart3Compatible,
   };
 }
 

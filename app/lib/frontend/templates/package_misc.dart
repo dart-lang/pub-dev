@@ -35,12 +35,6 @@ final nameMatchBadgeNode = packageBadgeNode(
   color: 'name-match',
 );
 
-/// Renders the Dart 3 compatible badge.
-final dart3CompatibleNode = packageBadgeNode(
-  label: 'Dart 3 compatible',
-  title: 'Package is compatible with Dart 3.',
-);
-
 /// Renders the Dart 3 incompatible badge.
 final dart3IncompatibleNode = packageBadgeNode(
   label: 'Dart 3 incompatible',
