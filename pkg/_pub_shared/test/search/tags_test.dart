@@ -11,7 +11,7 @@ void main() {
       final included = [
         'runtime:native-jit',
         'sdk:dart',
-        'is:null-safe',
+        'is:wasm-ready',
         'platform:linux',
       ];
       final excluded = ['license:x', 'is:other'];

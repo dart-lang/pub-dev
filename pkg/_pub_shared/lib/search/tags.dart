@@ -105,6 +105,7 @@ abstract class PackageVersionTags {
   /// get `is:legacy` classification).
   static const _futurePackageVersionTags = {
     PackageVersionTags.isPlugin,
+    PackageVersionTags.isWasmReady,
     PackageVersionTags.hasFundingLink,
     PackageVersionTags.hasScreenshot,
   };
