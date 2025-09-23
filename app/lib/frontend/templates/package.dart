@@ -116,15 +116,10 @@ d.Node renderPkgHeader(PackagePageData data) {
       !data.isLatestStable || showPrereleaseVersion || showPreviewVersion;
 
   final pkgView = data.toPackageView();
-  final isNullSafe = pkgView.tags.contains(PackageVersionTags.isNullSafe);
   final metadataNode = packageHeaderNode(
     packageName: package.name!,
     publisherId: package.publisherId,
     published: data.version.created!,
-    isNullSafe: isNullSafe,
-    isDart3Compatible: pkgView.tags.contains(
-      PackageVersionTags.isDart3Compatible,
-    ),
     isDart3Incompatible: pkgView.tags.contains(
       PackageVersionTags.isDart3Incompatible,
     ),

@@ -151,13 +151,6 @@ d.Node _searchFormContainer({
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'is',
-                tagValue: 'dart3-compatible',
-                label: 'Dart 3 compatible',
-                searchForm: searchForm,
-                title: 'Show only packages compatible with Dart 3.',
-              ),
-              _tagBasedCheckbox(
-                tagPrefix: 'is',
                 tagValue: 'plugin',
                 label: 'Flutter plugin',
                 searchForm: searchForm,

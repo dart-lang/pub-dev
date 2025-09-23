@@ -91,9 +91,6 @@ d.Node _packageItem(
   required bool isLiked,
 }) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
-  final isDart3Compatible = view.tags.contains(
-    PackageVersionTags.isDart3Compatible,
-  );
   final isDart3Incompatible = view.tags.contains(
     PackageVersionTags.isDart3Incompatible,
   );
@@ -153,7 +150,6 @@ d.Node _packageItem(
     if (licenseNode != null)
       d.span(classes: ['packages-metadata-block'], child: licenseNode),
     if (isFlutterFavorite) flutterFavoriteBadgeNode,
-    if (isDart3Compatible) dart3CompatibleNode,
     if (isDart3Incompatible) dart3IncompatibleNode,
   ]);
 

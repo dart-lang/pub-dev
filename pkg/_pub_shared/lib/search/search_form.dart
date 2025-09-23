@@ -442,7 +442,6 @@ class SearchForm {
       parsedQuery.tagsPredicate.hasTag(PackageTags.isFlutterFavorite) ||
       parsedQuery.tagsPredicate.hasTag(PackageTags.showUnlisted) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.hasScreenshot) ||
-      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isDart3Compatible) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isPlugin) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isWasmReady);
 
