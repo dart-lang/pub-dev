@@ -131,9 +131,31 @@ Future<void> main(List<String> args) async {
   );
 
   // sanity check on pana report size
-  final reportSize = gzip
+  var reportSize = gzip
       .encode(utf8.encode(json.encode(summary.toJson())))
       .length;
+
+  // Note: the new license coverage data seems to generate coverage pairs that
+  //       occupy way too much space. Until that bug is fixed, we should remove
+  //       that data from the summary.
+  // TODO: remove this block once https://github.com/dart-lang/pana/issues/1481 gets fixed and deployed
+  if (reportSize > _reportSizeDropThreshold) {
+    // We are storing the licenses in two fields, removing the fallback/unused one.
+    // ignore: deprecated_member_use
+    summary.licenses?.clear();
+
+    // Remove excessive range data.
+    for (final l in summary.result?.licenses ?? <License>[]) {
+      final count = l.range?.coverages.length ?? 0;
+      if (count > 50) {
+        l.range?.coverages.removeRange(50, count);
+      }
+    }
+
+    // re-calculate report size
+    reportSize = gzip.encode(utf8.encode(json.encode(summary.toJson()))).length;
+  }
+
   if (reportSize > _reportSizeDropThreshold) {
     summary = Summary(
       createdAt: summary.createdAt,
