@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:io';
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/iamcredentials/v1.dart' as iam_credentials;
@@ -264,12 +265,14 @@ class _GmailSmtpRelay extends EmailSenderBase {
   /// [_serviceAccountEmail] configured for _domain-wide delegation_ following:
   /// https://developers.google.com/identity/protocols/oauth2/service-account
   Future<String> _createAccessToken(String sender) async {
-    final iam = iam_credentials.IAMCredentialsApi(_authClient);
     final iat = clock.now().toUtc().millisecondsSinceEpoch ~/ 1000 - 20;
     iam_credentials.SignJwtResponse jwtResponse;
     try {
-      jwtResponse = await retry(
-        () => iam.projects.serviceAccounts.signJwt(
+      jwtResponse = await withRetryHttpClient(client: _authClient, (
+        client,
+      ) async {
+        final iam = iam_credentials.IAMCredentialsApi(client);
+        return iam.projects.serviceAccounts.signJwt(
           iam_credentials.SignJwtRequest()
             ..payload = json.encode({
               'iss': _serviceAccountEmail,
@@ -280,8 +283,8 @@ class _GmailSmtpRelay extends EmailSenderBase {
               'sub': sender,
             }),
           'projects/-/serviceAccounts/$_serviceAccountEmail',
-        ),
-      );
+        );
+      });
     } on Exception catch (e, st) {
       _logger.severe(
         'Signing JWT for sending email failed, '
@@ -294,29 +297,24 @@ class _GmailSmtpRelay extends EmailSenderBase {
       );
     }
 
-    final client = http.Client();
-    try {
+    return await withRetryHttpClient((client) async {
       // Send a POST request with:
       // Content-Type: application/x-www-form-urlencoded; charset=utf-8
-      return await retry(() async {
-        final r = await client.post(
-          _googleOauth2TokenUrl,
-          body: {
-            'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-            'assertion': jwtResponse.signedJwt,
-          },
+      final r = await client.post(
+        _googleOauth2TokenUrl,
+        body: {
+          'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+          'assertion': jwtResponse.signedJwt,
+        },
+      );
+      if (r.statusCode != 200) {
+        throw SmtpClientAuthenticationException(
+          'statusCode=${r.statusCode} from $_googleOauth2TokenUrl '
+          'while trying exchange JWT for access_token',
         );
-        if (r.statusCode != 200) {
-          throw SmtpClientAuthenticationException(
-            'statusCode=${r.statusCode} from $_googleOauth2TokenUrl '
-            'while trying exchange JWT for access_token',
-          );
-        }
-        return json.decode(r.body)['access_token'] as String;
-      });
-    } finally {
-      client.close();
-    }
+      }
+      return json.decode(r.body)['access_token'] as String;
+    });
   }
 }
 

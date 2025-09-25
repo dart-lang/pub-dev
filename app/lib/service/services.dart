@@ -106,7 +106,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
               )
             : loggingEmailSender,
       );
-      registerUploadSigner(await createUploadSigner(retryingAuthClient));
+      registerUploadSigner(await createUploadSigner(authClient));
       registerSecretBackend(GcpSecretBackend(authClient));
 
       // Configure a CloudCompute pool for later use in TaskBackend

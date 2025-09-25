@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/secretmanager/v1.dart' as secretmanager;
@@ -12,7 +13,6 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/monitoring.dart';
-import 'package:retry/retry.dart';
 
 import 'models.dart';
 
@@ -72,17 +72,17 @@ final class GcpSecretBackend extends SecretBackend {
 
   Future<String?> _lookup(String id) async {
     try {
-      final api = secretmanager.SecretManagerApi(_client);
-      final secret = await retry(
-        () async => await api.projects.secrets.versions.access(
+      return await withRetryHttpClient(client: _client, (client) async {
+        final api = secretmanager.SecretManagerApi(client);
+        final secret = await api.projects.secrets.versions.access(
           'projects/${activeConfiguration.projectId}/secrets/$id/versions/latest',
-        ),
-      );
-      final data = secret.payload?.data;
-      if (data == null) {
-        return null;
-      }
-      return utf8.decode(base64.decode(data));
+        );
+        final data = secret.payload?.data;
+        if (data == null) {
+          return null;
+        }
+        return utf8.decode(base64.decode(data));
+      });
     } catch (e, st) {
       // Log the issue
       _log.pubNoticeShout(

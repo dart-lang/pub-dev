@@ -87,6 +87,7 @@ Future<K> httpGetWithRetry<K>(
 Future<K> withRetryHttpClient<K>(
   Future<K> Function(http.Client client) fn, {
   int maxAttempts = 3,
+  Duration maxDelay = const Duration(seconds: 30),
 
   /// The HTTP client to use.
   ///
@@ -109,6 +110,7 @@ Future<K> withRetryHttpClient<K>(
       }
     },
     maxAttempts: maxAttempts,
+    maxDelay: maxDelay,
     retryIf: (e) => _retryIf(e) || (retryIf != null && retryIf(e)),
   );
 }

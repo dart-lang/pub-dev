@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/searchconsole/v1.dart' as wmx;
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:retry/retry.dart' show retry;
 
 import '../shared/exceptions.dart' show AuthorizationException;
 
@@ -47,8 +47,9 @@ class DomainVerifier {
     );
     try {
       // Request list of sites/domains from the Search Console API.
-      final sites = await retry(
-        () => wmx.SearchConsoleApi(client).sites.list(),
+      final sites = await withRetryHttpClient(
+        client: client,
+        (client) => wmx.SearchConsoleApi(client).sites.list(),
         maxAttempts: 3,
         maxDelay: Duration(milliseconds: 500),
         retryIf: (e) => e is! auth.AccessDeniedException,

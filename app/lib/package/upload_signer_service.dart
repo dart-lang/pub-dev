@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/iam/v1.dart' as iam;
@@ -105,20 +106,22 @@ abstract class UploadSignerService {
 class _IamBasedUploadSigner extends UploadSignerService {
   final String projectId;
   final String email;
-  final iam.IamApi iamApi;
+  final http.Client authClient;
 
-  _IamBasedUploadSigner(this.projectId, this.email, http.Client client)
-    : iamApi = iam.IamApi(client);
+  _IamBasedUploadSigner(this.projectId, this.email, this.authClient);
 
   @override
   Future<SigningResult> sign(List<int> bytes) async {
     final request = iam.SignBlobRequest()..bytesToSignAsBytes = bytes;
     final name = 'projects/$projectId/serviceAccounts/$email';
-    final iam.SignBlobResponse response =
-        // TODO: figure out what new API we should use.
-        // ignore: deprecated_member_use
-        await iamApi.projects.serviceAccounts.signBlob(request, name);
-    return SigningResult(email, response.signatureAsBytes);
+    return await withRetryHttpClient(client: authClient, (client) async {
+      final iamApi = iam.IamApi(client);
+      final response =
+          // TODO: figure out what new API we should use.
+          // ignore: deprecated_member_use
+          await iamApi.projects.serviceAccounts.signBlob(request, name);
+      return SigningResult(email, response.signatureAsBytes);
+    });
   }
 }
 
