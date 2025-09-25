@@ -68,7 +68,7 @@ class SimpleTag {
   factory SimpleTag.analysisIssue({required String scorePageUrl}) {
     return SimpleTag(
       status: 'unidentified',
-      text: '[analysis issue]',
+      text: '[incomplete package analysis]',
       title: 'Check the scores tab for details.',
       href: scorePageUrl,
     );
