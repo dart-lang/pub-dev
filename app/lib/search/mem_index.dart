@@ -757,7 +757,11 @@ class PackageNameIndex {
 
   /// Returns the list of package names where the collapsed name matches.
   List<String>? lookupMatchingNames(String text) {
-    return _collapsedNameResolvesToMap[_removeUnderscores(text.toLowerCase())];
+    // convert to lowercase, remove spaces and underscores
+    final collapsedName = _removeUnderscores(
+      text.toLowerCase().replaceAll(' ', ''),
+    );
+    return _collapsedNameResolvesToMap[collapsedName];
   }
 }
 

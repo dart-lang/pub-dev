@@ -742,6 +742,44 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           },
         );
       });
+
+      test('exact name match with multi-phrase query', () {
+        final index = InMemoryPackageIndex(
+          documents: [
+            PackageDocument(
+              package: 'abc_def_xyz',
+              description: 'abc def xyz',
+              maxPoints: 100,
+              grantedPoints: 100,
+              tags: ['sdk:dart', 'sdk:flutter'],
+              likeCount: 400,
+              downloadCount: 400,
+            ),
+
+            PackageDocument(
+              package: 'abc_def',
+              description: 'some package',
+              maxPoints: 100,
+              grantedPoints: 0,
+              tags: ['sdk:dart', 'sdk:flutter'],
+              likeCount: 4,
+              downloadCount: 4,
+            ),
+          ],
+        );
+
+        final rs = index.search(ServiceSearchQuery.parse(query: 'abc def'));
+        expect(rs.toJson(), {
+          'timestamp': isNotEmpty,
+          'totalCount': 2,
+          'nameMatches': ['abc_def'],
+          'sdkLibraryHits': [],
+          'packageHits': [
+            {'package': 'abc_def', 'score': closeTo(0.55, 0.01)},
+            {'package': 'abc_def_xyz', 'score': closeTo(1.0, 0.01)},
+          ],
+        });
+      });
     });
   });
 
