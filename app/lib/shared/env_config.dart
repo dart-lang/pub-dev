@@ -50,6 +50,9 @@ class _EnvConfig {
   late final fakeEmailSenderOutputDir =
       Platform.environment['FAKE_EMAIL_SENDER_OUTPUT_DIR'];
 
+  /// When specified, the server will connect to this URL for postgres database connections.
+  late final pubPostgresUrl = Platform.environment['PUB_POSTGRES_URL'];
+
   /// True, if running inside AppEngine.
   bool get isRunningInAppengine => _gaeService != null && _gaeVersion != null;
 
