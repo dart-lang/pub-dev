@@ -73,6 +73,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  buffer:
+    dependency: transitive
+    description:
+      name: buffer
+      sha256: "389da2ec2c16283c8787e0adaede82b1842102f8c8aae2f49003a766c5c6b3d1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.3"
   build:
     dependency: transitive
     description:
@@ -649,6 +657,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.1"
+  postgres:
+    dependency: transitive
+    description:
+      name: postgres
+      sha256: "96d7f40e079b96cdbfed13d71c64668cfd79c35bc17223c6b3ac0ca63bff72f0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.5.8"
   protobuf:
     dependency: transitive
     description:
