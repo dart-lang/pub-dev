@@ -772,10 +772,11 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         expect(rs.toJson(), {
           'timestamp': isNotEmpty,
           'totalCount': 2,
+          'nameMatches': ['abc_def'],
           'sdkLibraryHits': [],
           'packageHits': [
-            {'package': 'abc_def_xyz', 'score': closeTo(1.0, 0.01)},
             {'package': 'abc_def', 'score': closeTo(0.55, 0.01)},
+            {'package': 'abc_def_xyz', 'score': closeTo(1.0, 0.01)},
           ],
         });
       });
