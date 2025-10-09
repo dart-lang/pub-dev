@@ -306,8 +306,7 @@ void main() {
             rs,
             status: 403,
             code: 'InsufficientPermissions',
-            message:
-                'The manual publishing with the `pub` tool is disabled on the package admin page.',
+            message: 'Manual publishing with the `pub` tool has been disabled.',
           );
         },
       );
