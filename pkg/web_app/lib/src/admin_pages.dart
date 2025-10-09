@@ -85,7 +85,6 @@ class _PkgAdminWidget {
   InputElement? _replacedByInput;
   Element? _replacedByButton;
   InputElement? _unlistedCheckbox;
-  InputElement? _disableManualPublishingCheckbox;
   Element? _inviteUploaderButton;
   Element? _inviteUploaderContent;
   InputElement? _inviteUploaderInput;
@@ -113,12 +112,6 @@ class _PkgAdminWidget {
     _unlistedCheckbox =
         document.getElementById('-admin-is-unlisted-checkbox') as InputElement?;
     _unlistedCheckbox?.onChange.listen((_) => _toggleUnlisted());
-    _disableManualPublishingCheckbox =
-        document.getElementById('-admin-is-manual-publishing-disabled')
-            as InputElement?;
-    _disableManualPublishingCheckbox?.onChange.listen(
-      (_) => _toggleManualPublishingDisabled(),
-    );
     _inviteUploaderButton = document.getElementById(
       '-pkg-admin-invite-uploader-button',
     );
@@ -156,6 +149,9 @@ class _PkgAdminWidget {
   }
 
   void _setupAutomatedPublishing() {
+    final manualPublishingEnabledCheckbox =
+        document.getElementById('-pkg-admin-manual-publishing-enabled')
+            as InputElement?;
     final githubEnabledCheckbox =
         document.getElementById('-pkg-admin-automated-github-enabled')
             as InputElement?;
@@ -194,7 +190,7 @@ class _PkgAdminWidget {
     updateButton.onClick.listen((event) async {
       await api_client.rpc<void>(
         confirmQuestion: await markdown(
-          'Are you sure you want to update the automated publishing config?',
+          'Are you sure you want to update the publishing config?',
         ),
         fn: () async {
           await api_client.client.setAutomatedPublishing(
@@ -215,6 +211,9 @@ class _PkgAdminWidget {
               gcp: GcpPublishingConfig(
                 isEnabled: gcpEnabledCheckbox!.checked ?? false,
                 serviceAccountEmail: gcpServiceAccountEmailInput!.value,
+              ),
+              manual: ManualPublishingConfig(
+                isEnabled: manualPublishingEnabledCheckbox?.checked ?? true,
               ),
             ),
           );
@@ -342,32 +341,6 @@ class _PkgAdminWidget {
     } else {
       _unlistedCheckbox!.defaultChecked = newValue;
       _unlistedCheckbox!.checked = newValue;
-    }
-  }
-
-  Future<void> _toggleManualPublishingDisabled() async {
-    final oldValue = _disableManualPublishingCheckbox!.defaultChecked ?? false;
-    final newValue = await api_client.rpc(
-      confirmQuestion: text(
-        'Are you sure you want change the manual publishing status of the package?',
-      ),
-      fn: () async {
-        final rs = await api_client.client.setAutomatedPublishing(
-          pageData.pkgData!.package,
-          AutomatedPublishingConfig(
-            manual: ManualPublishingConfig(isDisabled: !oldValue),
-          ),
-        );
-        return rs.manual?.isDisabled;
-      },
-      successMessage: text('Manual publishing status changed.'),
-      onError: (err) => null,
-    );
-    if (newValue == null) {
-      _disableManualPublishingCheckbox!.checked = oldValue;
-    } else {
-      _disableManualPublishingCheckbox!.defaultChecked = newValue;
-      _disableManualPublishingCheckbox!.checked = newValue;
     }
   }
 

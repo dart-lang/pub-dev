@@ -291,7 +291,7 @@ void main() {
             await client.setAutomatedPublishing(
               'oxygen',
               AutomatedPublishingConfig(
-                manual: ManualPublishingConfig(isDisabled: true),
+                manual: ManualPublishingConfig(isEnabled: false),
               ),
             );
           });

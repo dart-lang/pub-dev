@@ -84,15 +84,19 @@ void main() {
         await page.gotoOrigin('/experimental?manual-publishing=1');
         await page.gotoOrigin('/packages/test_pkg/admin');
 
-        await page.waitAndClick('#-admin-is-manual-publishing-disabled');
-        await page.waitAndClickOnDialogOk(waitForOneResponse: true);
+        await page.waitAndClick('#-pkg-admin-manual-publishing-enabled');
+        await page.waitAndClick(
+          '#-pkg-admin-automated-button',
+          waitForOneResponse: true,
+        );
+        await page.waitAndClickOnDialogOk();
         await page.reload();
 
         final value = await page.propertyValue(
-          '#-admin-is-manual-publishing-disabled',
+          '#-pkg-admin-manual-publishing-enabled',
           'checked',
         );
-        expect(value, true);
+        expect(value, false);
       });
 
       // visit activity log page

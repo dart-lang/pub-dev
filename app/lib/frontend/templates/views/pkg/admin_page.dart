@@ -33,19 +33,27 @@ d.Node packageAdminPageNode({
         ],
       ),
       TocNode(
-        'Automated publishing',
-        href: '#automated-publishing',
+        'Publishing',
+        href: '#publishing',
         children: [
-          TocNode('GitHub Actions', href: '#github-actions'),
+          if (requestContext
+              .experimentalFlags
+              .isManualPublishingConfigAvailable)
+            TocNode('Manual publishing', href: '#manual-publishing'),
           TocNode(
-            'Google Cloud Service account',
-            href: '#google-cloud-service-account',
+            'Automated publishing',
+            href: '#automated-publishing',
+            children: [
+              TocNode('GitHub Actions', href: '#github-actions'),
+              TocNode(
+                'Google Cloud Service account',
+                href: '#google-cloud-service-account',
+              ),
+            ],
           ),
+          TocNode('Version retraction', href: '#version-retraction'),
         ],
       ),
-      if (requestContext.experimentalFlags.isManualPublishingConfigAvailable)
-        TocNode('Manual publishing', href: '#manual-publishing'),
-      TocNode('Version retraction', href: '#version-retraction'),
     ]),
     d.a(name: 'ownership'),
     d.h2(text: 'Package ownership'),
@@ -229,9 +237,11 @@ d.Node packageAdminPageNode({
         ),
       ),
     ],
-    _automatedPublishing(package),
+    d.a(name: 'publishing'),
+    d.h2(text: 'Publishing'),
     if (requestContext.experimentalFlags.isManualPublishingConfigAvailable)
       _manualPublishing(package),
+    _automatedPublishing(package),
     d.a(name: 'version-retraction'),
     d.h2(text: 'Version retraction'),
     d.div(
@@ -309,7 +319,7 @@ d.Node _automatedPublishing(Package package) {
   final isGitHubEnabled = github?.isEnabled ?? false;
   return d.fragment([
     d.a(name: 'automated-publishing'),
-    d.h2(text: 'Automated publishing'),
+    d.h3(text: 'Automated publishing'),
     d.markdown(
       'You can automate publishing from the supported automated deployment environments. '
       'Instead of creating long-lived secrets, you may use temporary OpenID-Connect tokens '
@@ -462,7 +472,7 @@ d.Node _manualPublishing(Package package) {
   final manual = package.automatedPublishing?.manualConfig;
   return d.fragment([
     d.a(name: 'manual-publishing'),
-    d.h2(text: 'Manual publishing'),
+    d.h3(text: 'Manual publishing'),
     d.markdown(
       'The manual publishing of new versions using the `pub` tool is enabled by default in all packages. '
       'Disabling it may protect the package from accidental publishing events when the package is otherwise using '
@@ -471,9 +481,9 @@ d.Node _manualPublishing(Package package) {
     d.div(
       classes: ['-pub-form-checkbox-row'],
       child: material.checkbox(
-        id: '-admin-is-manual-publishing-disabled',
-        label: 'Disable manual publishing',
-        checked: manual?.isDisabled ?? false,
+        id: '-pkg-admin-manual-publishing-enabled',
+        label: 'Enable manual publishing',
+        checked: manual?.isEnabled ?? true,
       ),
     ),
   ]);

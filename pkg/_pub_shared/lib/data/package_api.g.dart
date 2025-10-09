@@ -91,11 +91,11 @@ Map<String, dynamic> _$GcpPublishingConfigToJson(
 
 ManualPublishingConfig _$ManualPublishingConfigFromJson(
   Map<String, dynamic> json,
-) => ManualPublishingConfig(isDisabled: json['isDisabled'] as bool? ?? false);
+) => ManualPublishingConfig(isEnabled: json['isEnabled'] as bool? ?? true);
 
 Map<String, dynamic> _$ManualPublishingConfigToJson(
   ManualPublishingConfig instance,
-) => <String, dynamic>{'isDisabled': instance.isDisabled};
+) => <String, dynamic>{'isEnabled': instance.isEnabled};
 
 VersionOptions _$VersionOptionsFromJson(Map<String, dynamic> json) =>
     VersionOptions(isRetracted: json['isRetracted'] as bool?);

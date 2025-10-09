@@ -182,7 +182,7 @@ void main() {
             'oxygen',
             AutomatedPublishingConfig(
               github: GitHubPublishingConfig(
-                isEnabled: false,
+                isEnabled: true,
                 repository: 'abcd/efgh',
                 tagPattern: pattern,
               ),
@@ -331,9 +331,9 @@ void main() {
         }
 
         await update(
-          manual: ManualPublishingConfig(isDisabled: false),
+          manual: ManualPublishingConfig(isEnabled: true),
           expected: {
-            'manual': {'isDisabled': false},
+            'manual': {'isEnabled': true},
           },
         );
 
@@ -346,12 +346,12 @@ void main() {
               'isPushEventEnabled': true,
               'isWorkflowDispatchEventEnabled': false,
             },
-            'manual': {'isDisabled': false},
+            'manual': {'isEnabled': true},
           },
         );
 
         await update(
-          manual: ManualPublishingConfig(isDisabled: true),
+          manual: ManualPublishingConfig(isEnabled: false),
           expected: {
             'github': {
               'isEnabled': false,
@@ -359,7 +359,7 @@ void main() {
               'isPushEventEnabled': true,
               'isWorkflowDispatchEventEnabled': false,
             },
-            'manual': {'isDisabled': true},
+            'manual': {'isEnabled': false},
           },
         );
 
@@ -378,7 +378,7 @@ void main() {
               'isPushEventEnabled': true,
               'isWorkflowDispatchEventEnabled': false,
             },
-            'manual': {'isDisabled': true},
+            'manual': {'isEnabled': false},
           },
         );
       },

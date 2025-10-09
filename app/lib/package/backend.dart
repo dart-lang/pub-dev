@@ -1616,9 +1616,9 @@ class PackageBackend {
     }
     if (agent is AuthenticatedUser &&
         await packageBackend.isPackageAdmin(package, agent.user.userId)) {
-      final isDisabled =
-          package.automatedPublishing?.manualConfig?.isDisabled ?? false;
-      if (isDisabled) {
+      final isEnabled =
+          package.automatedPublishing?.manualConfig?.isEnabled ?? true;
+      if (!isEnabled) {
         throw AuthorizationException.manualPublishingDisabled();
       }
       return;

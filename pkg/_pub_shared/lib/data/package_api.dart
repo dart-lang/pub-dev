@@ -123,9 +123,9 @@ class GcpPublishingConfig {
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class ManualPublishingConfig {
-  bool isDisabled;
+  bool isEnabled;
 
-  ManualPublishingConfig({this.isDisabled = false});
+  ManualPublishingConfig({this.isEnabled = true});
 
   factory ManualPublishingConfig.fromJson(Map<String, dynamic> json) =>
       _$ManualPublishingConfigFromJson(json);
