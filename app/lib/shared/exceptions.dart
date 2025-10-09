@@ -575,7 +575,7 @@ class AuthorizationException extends ResponseException {
   /// Signaling that the manual publishing was disabled and cannot be authorized.
   factory AuthorizationException.manualPublishingDisabled() =>
       AuthorizationException._(
-        'Manual publishing with the `pub` tool has been disabled. This usually means this package should be published via automated publishing (see https://dart.dev/tools/pub/automated-publishing). To re-enable manual publishing, go to the package admin page.',
+        'Manual publishing has been disabled. This usually means this package should be published via automated publishing (see https://dart.dev/tools/pub/automated-publishing). To re-enable manual publishing, go to the package admin page.',
       );
 
   @override
