@@ -306,7 +306,7 @@ void main() {
             rs,
             status: 403,
             code: 'InsufficientPermissions',
-            message: 'Manual publishing with the `pub` tool has been disabled.',
+            message: 'Manual publishing has been disabled.',
           );
         },
       );
