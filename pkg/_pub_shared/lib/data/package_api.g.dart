@@ -38,6 +38,9 @@ AutomatedPublishingConfig _$AutomatedPublishingConfigFromJson(
   gcp: json['gcp'] == null
       ? null
       : GcpPublishingConfig.fromJson(json['gcp'] as Map<String, dynamic>),
+  manual: json['manual'] == null
+      ? null
+      : ManualPublishingConfig.fromJson(json['manual'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$AutomatedPublishingConfigToJson(
@@ -45,6 +48,7 @@ Map<String, dynamic> _$AutomatedPublishingConfigToJson(
 ) => <String, dynamic>{
   'github': ?instance.github?.toJson(),
   'gcp': ?instance.gcp?.toJson(),
+  'manual': ?instance.manual?.toJson(),
 };
 
 GitHubPublishingConfig _$GitHubPublishingConfigFromJson(
@@ -84,6 +88,14 @@ Map<String, dynamic> _$GcpPublishingConfigToJson(
   'isEnabled': instance.isEnabled,
   'serviceAccountEmail': ?instance.serviceAccountEmail,
 };
+
+ManualPublishingConfig _$ManualPublishingConfigFromJson(
+  Map<String, dynamic> json,
+) => ManualPublishingConfig(isDisabled: json['isDisabled'] as bool? ?? false);
+
+Map<String, dynamic> _$ManualPublishingConfigToJson(
+  ManualPublishingConfig instance,
+) => <String, dynamic>{'isDisabled': instance.isDisabled};
 
 VersionOptions _$VersionOptionsFromJson(Map<String, dynamic> json) =>
     VersionOptions(isRetracted: json['isRetracted'] as bool?);

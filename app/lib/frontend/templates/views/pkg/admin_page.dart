@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../../account/models.dart';
 import '../../../../package/models.dart';
@@ -42,6 +43,8 @@ d.Node packageAdminPageNode({
           ),
         ],
       ),
+      if (requestContext.experimentalFlags.isManualPublishingConfigAvailable)
+        TocNode('Manual publishing', href: '#manual-publishing'),
       TocNode('Version retraction', href: '#version-retraction'),
     ]),
     d.a(name: 'ownership'),
@@ -227,6 +230,8 @@ d.Node packageAdminPageNode({
       ),
     ],
     _automatedPublishing(package),
+    if (requestContext.experimentalFlags.isManualPublishingConfigAvailable)
+      _manualPublishing(package),
     d.a(name: 'version-retraction'),
     d.h2(text: 'Version retraction'),
     d.div(
@@ -448,6 +453,27 @@ d.Node _automatedPublishing(Package package) {
         id: '-pkg-admin-automated-button',
         label: 'Update',
         raised: true,
+      ),
+    ),
+  ]);
+}
+
+d.Node _manualPublishing(Package package) {
+  final manual = package.automatedPublishing?.manualConfig;
+  return d.fragment([
+    d.a(name: 'manual-publishing'),
+    d.h2(text: 'Manual publishing'),
+    d.markdown(
+      'The manual publishing of new versions using the `pub` tool is enabled by default in all packages. '
+      'Disabling it may protect the package from accidental publishing events when the package is otherwise using '
+      'automated publishing, or in other cases, is discontinued.',
+    ),
+    d.div(
+      classes: ['-pub-form-checkbox-row'],
+      child: material.checkbox(
+        id: '-admin-is-manual-publishing-disabled',
+        label: 'Disable manual publishing',
+        checked: manual?.isDisabled ?? false,
       ),
     ),
   ]);

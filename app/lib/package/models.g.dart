@@ -54,6 +54,11 @@ AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
       gcpLock: json['gcpLock'] == null
           ? null
           : GcpPublishingLock.fromJson(json['gcpLock'] as Map<String, dynamic>),
+      manualConfig: json['manualConfig'] == null
+          ? null
+          : ManualPublishingConfig.fromJson(
+              json['manualConfig'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$AutomatedPublishingToJson(
@@ -63,6 +68,7 @@ Map<String, dynamic> _$AutomatedPublishingToJson(
   'githubLock': ?instance.githubLock?.toJson(),
   'gcpConfig': ?instance.gcpConfig?.toJson(),
   'gcpLock': ?instance.gcpLock?.toJson(),
+  'manualConfig': ?instance.manualConfig?.toJson(),
 };
 
 GitHubPublishingLock _$GitHubPublishingLockFromJson(

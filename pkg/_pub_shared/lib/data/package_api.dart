@@ -46,8 +46,9 @@ class PkgOptions {
 class AutomatedPublishingConfig {
   final GitHubPublishingConfig? github;
   final GcpPublishingConfig? gcp;
+  final ManualPublishingConfig? manual;
 
-  AutomatedPublishingConfig({this.github, this.gcp});
+  AutomatedPublishingConfig({this.github, this.gcp, this.manual});
 
   factory AutomatedPublishingConfig.fromJson(Map<String, dynamic> json) =>
       _$AutomatedPublishingConfigFromJson(json);
@@ -118,6 +119,18 @@ class GcpPublishingConfig {
       _$GcpPublishingConfigFromJson(json);
 
   Map<String, dynamic> toJson() => _$GcpPublishingConfigToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
+class ManualPublishingConfig {
+  bool isDisabled;
+
+  ManualPublishingConfig({this.isDisabled = false});
+
+  factory ManualPublishingConfig.fromJson(Map<String, dynamic> json) =>
+      _$ManualPublishingConfigFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ManualPublishingConfigToJson(this);
 }
 
 @JsonSerializable()

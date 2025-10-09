@@ -309,5 +309,79 @@ void main() {
         );
       },
     );
+
+    testWithProfile(
+      'partial settings do not override the other',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+
+        Future<void> update({
+          GitHubPublishingConfig? github,
+          GcpPublishingConfig? gcp,
+          ManualPublishingConfig? manual,
+          required Map<String, dynamic> expected,
+        }) async {
+          final rs = await client.setAutomatedPublishing(
+            'oxygen',
+            AutomatedPublishingConfig(github: github, gcp: gcp, manual: manual),
+          );
+          expect(rs.toJson(), expected);
+        }
+
+        await update(
+          manual: ManualPublishingConfig(isDisabled: false),
+          expected: {
+            'manual': {'isDisabled': false},
+          },
+        );
+
+        await update(
+          github: GitHubPublishingConfig(isEnabled: false),
+          expected: {
+            'github': {
+              'isEnabled': false,
+              'requireEnvironment': false,
+              'isPushEventEnabled': true,
+              'isWorkflowDispatchEventEnabled': false,
+            },
+            'manual': {'isDisabled': false},
+          },
+        );
+
+        await update(
+          manual: ManualPublishingConfig(isDisabled: true),
+          expected: {
+            'github': {
+              'isEnabled': false,
+              'requireEnvironment': false,
+              'isPushEventEnabled': true,
+              'isWorkflowDispatchEventEnabled': false,
+            },
+            'manual': {'isDisabled': true},
+          },
+        );
+
+        await update(
+          github: GitHubPublishingConfig(
+            isEnabled: true,
+            tagPattern: '{{version}}',
+            repository: 'user/repo',
+          ),
+          expected: {
+            'github': {
+              'isEnabled': true,
+              'repository': 'user/repo',
+              'tagPattern': '{{version}}',
+              'requireEnvironment': false,
+              'isPushEventEnabled': true,
+              'isWorkflowDispatchEventEnabled': false,
+            },
+            'manual': {'isDisabled': true},
+          },
+        );
+      },
+    );
   });
 }

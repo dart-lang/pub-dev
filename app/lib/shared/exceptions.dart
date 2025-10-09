@@ -572,6 +572,12 @@ class AuthorizationException extends ResponseException {
     'The calling service account is not allowed to publish, because: $reason.\nSee https://dart.dev/go/publishing-with-service-account',
   );
 
+  /// Signaling that the manual publishing was disabled and cannot be authorized.
+  factory AuthorizationException.manualPublishingDisabled() =>
+      AuthorizationException._(
+        'The manual publishing with the `pub` tool is disabled on the package admin page.',
+      );
+
   @override
   String toString() => '$code: $message'; // used by package:pub_server
 }

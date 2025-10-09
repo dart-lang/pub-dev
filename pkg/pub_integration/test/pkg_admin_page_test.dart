@@ -79,6 +79,22 @@ void main() {
         expect(value, githubRepository);
       });
 
+      // disable manual publishing
+      await user.withBrowserPage((page) async {
+        await page.gotoOrigin('/experimental?manual-publishing=1');
+        await page.gotoOrigin('/packages/test_pkg/admin');
+
+        await page.waitAndClick('#-admin-is-manual-publishing-disabled');
+        await page.waitAndClickOnDialogOk(waitForOneResponse: true);
+        await page.reload();
+
+        final value = await page.propertyValue(
+          '#-admin-is-manual-publishing-disabled',
+          'checked',
+        );
+        expect(value, true);
+      });
+
       // visit activity log page
       await user.withBrowserPage((page) async {
         await page.gotoOrigin('/packages/test_pkg/activity-log');
