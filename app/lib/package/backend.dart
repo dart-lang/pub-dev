@@ -635,6 +635,8 @@ class PackageBackend {
       final p = await tx.lookupValue<Package>(pkg.key);
       final githubConfig = body.github;
       final gcpConfig = body.gcp;
+      final manualConfig = body.manual;
+
       if (githubConfig != null) {
         final isEnabled = githubConfig.isEnabled;
 
@@ -648,7 +650,9 @@ class PackageBackend {
         final repository = githubConfig.repository?.trim() ?? '';
         githubConfig.repository = repository.isEmpty ? null : repository;
         final tagPattern = githubConfig.tagPattern?.trim() ?? '';
-        verifyTagPattern(tagPattern: tagPattern);
+        if (isEnabled) {
+          verifyTagPattern(tagPattern: tagPattern);
+        }
         githubConfig.tagPattern = tagPattern.isEmpty ? null : tagPattern;
         final environment = githubConfig.environment?.trim() ?? '';
         githubConfig.environment = environment.isEmpty ? null : environment;
@@ -726,9 +730,14 @@ class PackageBackend {
       }
 
       // finalize changes
-      p.automatedPublishing ??= AutomatedPublishing();
-      p.automatedPublishing!.githubConfig = githubConfig;
-      p.automatedPublishing!.gcpConfig = gcpConfig;
+      final automatedPublishing = p.automatedPublishing ??=
+          AutomatedPublishing();
+      automatedPublishing.githubConfig =
+          githubConfig ?? automatedPublishing.githubConfig;
+      automatedPublishing.gcpConfig =
+          gcpConfig ?? automatedPublishing.gcpConfig;
+      automatedPublishing.manualConfig =
+          manualConfig ?? automatedPublishing.manualConfig;
 
       p.updated = clock.now().toUtc();
       tx.insert(p);
@@ -742,6 +751,7 @@ class PackageBackend {
       return api.AutomatedPublishingConfig(
         github: p.automatedPublishing!.githubConfig,
         gcp: p.automatedPublishing!.gcpConfig,
+        manual: p.automatedPublishing!.manualConfig,
       );
     });
   }
@@ -1606,6 +1616,11 @@ class PackageBackend {
     }
     if (agent is AuthenticatedUser &&
         await packageBackend.isPackageAdmin(package, agent.user.userId)) {
+      final isEnabled =
+          package.automatedPublishing?.manualConfig?.isEnabled ?? true;
+      if (!isEnabled) {
+        throw AuthorizationException.manualPublishingDisabled(package.name!);
+      }
       return;
     }
     if (agent is AuthenticatedGitHubAction) {

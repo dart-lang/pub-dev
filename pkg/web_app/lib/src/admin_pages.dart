@@ -149,6 +149,9 @@ class _PkgAdminWidget {
   }
 
   void _setupAutomatedPublishing() {
+    final manualPublishingEnabledCheckbox =
+        document.getElementById('-pkg-admin-manual-publishing-enabled')
+            as InputElement?;
     final githubEnabledCheckbox =
         document.getElementById('-pkg-admin-automated-github-enabled')
             as InputElement?;
@@ -187,7 +190,7 @@ class _PkgAdminWidget {
     updateButton.onClick.listen((event) async {
       await api_client.rpc<void>(
         confirmQuestion: await markdown(
-          'Are you sure you want to update the automated publishing config?',
+          'Are you sure you want to update the publishing config?',
         ),
         fn: () async {
           await api_client.client.setAutomatedPublishing(
@@ -208,6 +211,9 @@ class _PkgAdminWidget {
               gcp: GcpPublishingConfig(
                 isEnabled: gcpEnabledCheckbox!.checked ?? false,
                 serviceAccountEmail: gcpServiceAccountEmailInput!.value,
+              ),
+              manual: ManualPublishingConfig(
+                isEnabled: manualPublishingEnabledCheckbox?.checked ?? true,
               ),
             ),
           );

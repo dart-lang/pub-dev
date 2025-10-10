@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../../account/models.dart';
 import '../../../../package/models.dart';
@@ -32,17 +33,27 @@ d.Node packageAdminPageNode({
         ],
       ),
       TocNode(
-        'Automated publishing',
-        href: '#automated-publishing',
+        'Publishing',
+        href: '#publishing',
         children: [
-          TocNode('GitHub Actions', href: '#github-actions'),
+          if (requestContext
+              .experimentalFlags
+              .isManualPublishingConfigAvailable)
+            TocNode('Manual publishing', href: '#manual-publishing'),
           TocNode(
-            'Google Cloud Service account',
-            href: '#google-cloud-service-account',
+            'Automated publishing',
+            href: '#automated-publishing',
+            children: [
+              TocNode('GitHub Actions', href: '#github-actions'),
+              TocNode(
+                'Google Cloud Service account',
+                href: '#google-cloud-service-account',
+              ),
+            ],
           ),
+          TocNode('Version retraction', href: '#version-retraction'),
         ],
       ),
-      TocNode('Version retraction', href: '#version-retraction'),
     ]),
     d.a(name: 'ownership'),
     d.h2(text: 'Package ownership'),
@@ -226,6 +237,10 @@ d.Node packageAdminPageNode({
         ),
       ),
     ],
+    d.a(name: 'publishing'),
+    d.h2(text: 'Publishing'),
+    if (requestContext.experimentalFlags.isManualPublishingConfigAvailable)
+      _manualPublishing(package),
     _automatedPublishing(package),
     d.a(name: 'version-retraction'),
     d.h2(text: 'Version retraction'),
@@ -304,7 +319,7 @@ d.Node _automatedPublishing(Package package) {
   final isGitHubEnabled = github?.isEnabled ?? false;
   return d.fragment([
     d.a(name: 'automated-publishing'),
-    d.h2(text: 'Automated publishing'),
+    d.h3(text: 'Automated publishing'),
     d.markdown(
       'You can automate publishing from the supported automated deployment environments. '
       'Instead of creating long-lived secrets, you may use temporary OpenID-Connect tokens '
@@ -448,6 +463,28 @@ d.Node _automatedPublishing(Package package) {
         id: '-pkg-admin-automated-button',
         label: 'Update',
         raised: true,
+      ),
+    ),
+  ]);
+}
+
+d.Node _manualPublishing(Package package) {
+  final manual = package.automatedPublishing?.manualConfig;
+  return d.fragment([
+    d.a(name: 'manual-publishing'),
+    d.h3(text: 'Manual publishing'),
+    d.markdown('''
+Manual publishing, using personal credentials for the `pub` client (`pub login`) .
+
+Disable to prevent accidental publication from the command line.
+
+It is recommended to disable when automated publishing is enabled.'''),
+    d.div(
+      classes: ['-pub-form-checkbox-row'],
+      child: material.checkbox(
+        id: '-pkg-admin-manual-publishing-enabled',
+        label: 'Enable manual publishing',
+        checked: manual?.isEnabled ?? true,
       ),
     ),
   ]);

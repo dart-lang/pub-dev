@@ -460,12 +460,14 @@ class AutomatedPublishing {
   GitHubPublishingLock? githubLock;
   GcpPublishingConfig? gcpConfig;
   GcpPublishingLock? gcpLock;
+  ManualPublishingConfig? manualConfig;
 
   AutomatedPublishing({
     this.githubConfig,
     this.githubLock,
     this.gcpConfig,
     this.gcpLock,
+    this.manualConfig,
   });
 
   factory AutomatedPublishing.fromJson(Map<String, dynamic> json) =>

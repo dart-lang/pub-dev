@@ -281,6 +281,37 @@ void main() {
       );
     });
 
+    group('Manual publishing overrides', () {
+      testWithProfile(
+        'manual publishing disabled',
+        fn: () async {
+          await withFakeAuthRetryPubApiClient(email: adminAtPubDevEmail, (
+            client,
+          ) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              AutomatedPublishingConfig(
+                manual: ManualPublishingConfig(isEnabled: false),
+              ),
+            );
+          });
+
+          final bytes = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('oxygen', '2.2.0'),
+          );
+          final rs = createPubApiClient(
+            authToken: adminClientToken,
+          ).uploadPackageBytes(bytes);
+          await expectApiException(
+            rs,
+            status: 403,
+            code: 'InsufficientPermissions',
+            message: 'Manual publishing has been disabled.',
+          );
+        },
+      );
+    });
+
     group('Uploading with service account', () {
       testWithProfile(
         'service account cannot upload new package',
