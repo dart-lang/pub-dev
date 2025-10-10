@@ -16,6 +16,7 @@ library;
 import 'dart:io';
 
 import 'package:api_builder/api_builder.dart' show ApiResponseException;
+import 'package:pub_dev/shared/urls.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 /// Base class for all exceptions that are intercepted by HTTP handler wrappers.
@@ -573,10 +574,15 @@ class AuthorizationException extends ResponseException {
   );
 
   /// Signaling that the manual publishing was disabled and cannot be authorized.
-  factory AuthorizationException.manualPublishingDisabled() =>
-      AuthorizationException._(
-        'Manual publishing has been disabled. This usually means this package should be published via automated publishing (see https://dart.dev/tools/pub/automated-publishing). To re-enable manual publishing, go to the package admin page.',
-      );
+  factory AuthorizationException.manualPublishingDisabled(String package) {
+    return AuthorizationException._(
+      'Manual publishing has been disabled. '
+      'This usually means this package should be published via automated publishing '
+      '(see https://dart.dev/tools/pub/automated-publishing). '
+      'To re-enable manual publishing, go to the package admin page '
+      '(see ${pkgAdminUrl(package, includeHost: true)}).',
+    );
+  }
 
   @override
   String toString() => '$code: $message'; // used by package:pub_server

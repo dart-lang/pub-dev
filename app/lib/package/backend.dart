@@ -1619,7 +1619,7 @@ class PackageBackend {
       final isEnabled =
           package.automatedPublishing?.manualConfig?.isEnabled ?? true;
       if (!isEnabled) {
-        throw AuthorizationException.manualPublishingDisabled();
+        throw AuthorizationException.manualPublishingDisabled(package.name!);
       }
       return;
     }

@@ -473,14 +473,12 @@ d.Node _manualPublishing(Package package) {
   return d.fragment([
     d.a(name: 'manual-publishing'),
     d.h3(text: 'Manual publishing'),
-    d.markdown(
-      '''
+    d.markdown('''
 Manual publishing, using personal credentials for the `pub` client (`pub login`) .
 
 Disable to prevent accidental publication from the command line.
 
-It is recommended to disable when automated publishing is enabled.''',
-    ),
+It is recommended to disable when automated publishing is enabled.'''),
     d.div(
       classes: ['-pub-form-checkbox-row'],
       child: material.checkbox(
