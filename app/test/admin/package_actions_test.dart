@@ -75,5 +75,19 @@ void main() {
         expect(rs.output, {'updatedCount': 0});
       },
     );
+
+    testWithProfile(
+      'set publisher on a package',
+      fn: () async {
+        final client = createPubApiClient(authToken: siteAdminToken);
+        final rs = await client.adminInvokeAction(
+          'package-publisher-set',
+          AdminInvokeActionArguments(
+            arguments: {'package': 'oxygen', 'publisher': 'example.com'},
+          ),
+        );
+        expect(rs.output, {'publisherId': 'example.com'});
+      },
+    );
   });
 }

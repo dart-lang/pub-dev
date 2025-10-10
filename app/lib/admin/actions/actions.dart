@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:pub_dev/admin/actions/package_invite_uploader.dart';
-
 import '../../shared/exceptions.dart';
 import 'download_counts_backfill.dart';
 import 'download_counts_delete.dart';
@@ -24,7 +22,9 @@ import 'moderation_transparency_metrics.dart';
 import 'package_delete.dart';
 import 'package_discontinue.dart';
 import 'package_info.dart';
+import 'package_invite_uploader.dart';
 import 'package_latest_update.dart';
+import 'package_publisher_set.dart';
 import 'package_reservation_create.dart';
 import 'package_reservation_delete.dart';
 import 'package_reservation_list.dart';
@@ -115,6 +115,7 @@ final class AdminAction {
     packageInfo,
     packageInviteUploader,
     packageLatestUpdate,
+    packagePublisherSet,
     packageReservationCreate,
     packageReservationDelete,
     packageReservationList,
