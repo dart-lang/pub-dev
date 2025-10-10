@@ -56,6 +56,9 @@ final packagePublisherSet = AdminAction(
     }
 
     final pkg = await packageBackend.lookupPackage(packageName);
-    return {'publisherId': pkg!.publisherId};
+    return {
+      'before': {'publisherId': currentPublisherId},
+      'after': {'publisherId': pkg!.publisherId},
+    };
   },
 );

@@ -86,7 +86,10 @@ void main() {
             arguments: {'package': 'oxygen', 'publisher': 'example.com'},
           ),
         );
-        expect(rs.output, {'publisherId': 'example.com'});
+        expect(rs.output, {
+          'before': {'publisherId': null},
+          'after': {'publisherId': 'example.com'},
+        });
       },
     );
   });
