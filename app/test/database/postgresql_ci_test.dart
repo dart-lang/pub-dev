@@ -4,8 +4,11 @@
 
 import 'package:clock/clock.dart';
 import 'package:postgres/postgres.dart';
+import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/shared/env_config.dart';
 import 'package:test/test.dart';
+
+import '../shared/test_services.dart';
 
 void main() {
   group('Postgresql connection on CI', () {
@@ -32,5 +35,17 @@ void main() {
       await conn.execute('CREATE DATABASE $dbName');
       await conn.execute('DROP DATABASE $dbName');
     });
+
+    testWithProfile(
+      'registered database scope',
+      fn: () async {
+        final pubPostgresUrl = envConfig.pubPostgresUrl;
+        if (pubPostgresUrl == null) {
+          markTestSkipped('PUB_POSTGRES_URL was not specified.');
+          return;
+        }
+        await primaryDatabase!.verifyConnection();
+      },
+    );
   });
 }
