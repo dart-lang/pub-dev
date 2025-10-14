@@ -144,8 +144,9 @@ class Pubspec {
       !_dartSdkConstraint.isAny &&
       !_dartSdkConstraint.isEmpty;
 
-  SdkConstraintStatus get _sdkConstraintStatus =>
-      SdkConstraintStatus.fromSdkVersion(_dartSdkConstraint, name);
+  late final _sdkConstraintStatus = SdkConstraintStatus.fromSdkVersion(
+    _dartSdkConstraint,
+  );
 
   bool get supportsOnlyLegacySdk =>
       _flutterSdkConstraint == null &&
