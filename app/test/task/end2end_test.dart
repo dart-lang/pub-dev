@@ -55,7 +55,9 @@ void main() {
       expect(doc.querySelector('.self-crumb')!.text, contains('oxygen'));
       // Check that we don't have noindex on /latest/
       expect(
-        doc.querySelectorAll('meta').where(
+        doc
+            .querySelectorAll('meta')
+            .where(
               (m) =>
                   m.attributes['name'] == 'robots' &&
                   m.attributes['content'] == 'noindex',
@@ -131,8 +133,8 @@ Future<void> _traverseLinksUnderPath({
     final r = relativeTo.resolveUri(u);
     return r.path;
   };
-  final isUnderRoots =
-      (String path) => roots.any((root) => path.startsWith(root));
+  final isUnderRoots = (String path) =>
+      roots.any((root) => path.startsWith(root));
 
   final visited = <String>{};
   // HTML pages to visit
@@ -150,8 +152,7 @@ Future<void> _traverseLinksUnderPath({
     final res = await issueGet(target.toString(), headers: _headers);
     if (res.statusCode == 303) {
       htmlQueue.addAll(
-        [normalize(res.headers['location']!, target)]
-            .nonNulls
+        [normalize(res.headers['location']!, target)].nonNulls
             .whereNot(visited.contains)
             .whereNot(htmlQueue.contains)
             .whereNot(assetQueue.contains),
