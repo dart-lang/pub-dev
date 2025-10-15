@@ -4,6 +4,10 @@
 
 /// Identifiers and secret keys.
 abstract class SecretKey {
+  /// Postgres connection string.
+  static const String postgresConnectionString = 'postgres-connection-string';
+
+  /// Redis connection string.
   static const String redisConnectionString = 'redis-connection-string';
 
   /// OAuth client secret.
@@ -27,6 +31,7 @@ abstract class SecretKey {
 
   /// List of all keys.
   static const values = [
+    postgresConnectionString,
     redisConnectionString,
     oauthClientSecret,
     announcement,
