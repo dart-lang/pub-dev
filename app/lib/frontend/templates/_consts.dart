@@ -11,6 +11,10 @@ const myPackagesTabTitle = 'Packages';
 const myLikedPackagesTabTitle = 'Likes';
 const myActivityLogTabTitle = 'Activity log';
 
+/// Text to display when the mouse pointer is hovering over the download count number.
+const titleFor30DaysDownloadCounts =
+    'Number of downloads of this package during the past 30 days';
+
 class SdkDict {
   final String topSdkPackages;
   final String searchPackagesLabel;

@@ -7,14 +7,15 @@ import 'dart:convert';
 import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/format/number_format.dart';
 import 'package:pana/models.dart';
-import 'package:pub_dev/frontend/dom/material.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import '../../../../scorecard/models.dart' hide ReportStatus;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
+import '../../../dom/material.dart';
 import '../../../static_files.dart';
+import '../../_consts.dart';
 
 /// Renders the score page content.
 d.Node scoreTabNode({
@@ -337,7 +338,12 @@ d.Node _likeKeyFigureNode(int? likeCount) {
 
 d.Node _downloadCountsKeyFigureNode(int? downloadCounts) {
   if (downloadCounts == null) {
-    return _keyFigureNode(value: '--', supplemental: '', label: 'downloads');
+    return _keyFigureNode(
+      value: '--',
+      supplemental: '',
+      label: 'downloads',
+      title: titleFor30DaysDownloadCounts,
+    );
   }
   return _keyFigureNode(
     value:
@@ -345,6 +351,7 @@ d.Node _downloadCountsKeyFigureNode(int? downloadCounts) {
         '${compactFormat(downloadCounts).suffix}',
     supplemental: '',
     label: 'downloads',
+    title: titleFor30DaysDownloadCounts,
   );
 }
 
@@ -373,10 +380,13 @@ d.Node _keyFigureNode({
   required String value,
   required String supplemental,
   required String label,
+  String? title,
   List<String>? classes,
 }) {
+  final attributes = title == null ? null : {'title': title};
   return d.div(
     classes: ['score-key-figure', ...?classes],
+    attributes: attributes,
     children: [
       d.div(
         classes: ['score-key-figure-title'],
