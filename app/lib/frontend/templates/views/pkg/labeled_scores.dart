@@ -5,6 +5,7 @@
 import 'package:_pub_shared/format/number_format.dart';
 
 import '../../../dom/dom.dart' as d;
+import '../../_consts.dart';
 
 d.Node labeledScoresNode({
   required String package,
@@ -36,10 +37,7 @@ d.Node labeledScoresNode({
         child: _labeledScore('points', grantedPubPoints?.toString(), sign: ''),
       ),
       d.div(
-        attributes: {
-          'title':
-              'Number of downloads of this package during the past 30 days',
-        },
+        attributes: {'title': titleFor30DaysDownloadCounts},
         classes: ['packages-score', 'packages-score-downloads'],
         child: _labeledScore(
           'downloads',
