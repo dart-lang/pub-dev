@@ -15,6 +15,7 @@ workspace:
   - pkg/indexed_blob
   - pkg/pub_package_reader
   - pkg/puppeteer_screenshots
+  - pkg/image_proxy
 
 dev_dependencies:
   lints: ^6.0.0
