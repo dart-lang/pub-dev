@@ -10,7 +10,6 @@ import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 
-import '../../../service/rate_limit/rate_limit.dart';
 import '../../account/like_backend.dart';
 import '../../frontend/request_context.dart';
 import '../shared/configuration.dart';
@@ -18,11 +17,6 @@ import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
 
 import 'search_service.dart';
-
-/// The number of requests allowed over [_searchRateLimitWindow]
-const _searchRateLimit = 120;
-const _searchRateLimitWindow = Duration(minutes: 2);
-const _searchRateLimitWindowAsText = 'last 2 minutes';
 
 /// Sets the search client.
 void registerSearchClient(SearchClient client) =>
@@ -167,16 +161,6 @@ class SearchClient {
       return PackageSearchResult.error(
         errorMessage: 'Service returned status code ${response.statusCode}.',
         statusCode: response.statusCode,
-      );
-    }
-
-    if (sourceIp != null) {
-      await verifyRequestCounts(
-        sourceIp: sourceIp,
-        operation: 'search',
-        limit: _searchRateLimit,
-        window: _searchRateLimitWindow,
-        windowAsText: _searchRateLimitWindowAsText,
       );
     }
 
