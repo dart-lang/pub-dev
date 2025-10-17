@@ -573,10 +573,10 @@ packages:
     dependency: transitive
     description:
       name: neat_cache
-      sha256: "72bebca0bb1a443c0c8e76ddae55ef9059b8bc591edb88168d19f5e9a55a4dba"
+      sha256: "02ce0965835a4e0bb3021a49156b38c0f943642404fbf959cb2d3345168875d9"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.4"
+    version: "2.0.5"
   neat_periodic_task:
     dependency: transitive
     description:

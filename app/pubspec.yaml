@@ -29,7 +29,7 @@ dependencies:
   markdown: ^7.2.2
   meta: ^1.1.2
   mime: ^2.0.0
-  neat_cache: ^2.0.4
+  neat_cache: ^2.0.5
   neat_periodic_task: ^2.0.0
   path: '^1.8.0'
   pem: ^2.0.1

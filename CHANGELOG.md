@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2025.10.17`.
+ * Updated `neat_cache` to `2.0.5`
 
 ## `20251015t083400-all`
  * Bump runtimeVersion to `2025.10.10`.
