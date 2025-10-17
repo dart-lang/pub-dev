@@ -39,12 +39,8 @@ void main() {
     testWithProfile(
       'registered database scope',
       fn: () async {
-        final pubPostgresUrl = envConfig.pubPostgresUrl;
-        if (pubPostgresUrl == null) {
-          markTestSkipped('PUB_POSTGRES_URL was not specified.');
-          return;
-        }
-        await primaryDatabase!.verifyConnection();
+        final name = await primaryDatabase!.verifyConnection();
+        expect(name, contains('fake_pub_'));
       },
     );
   });
