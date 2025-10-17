@@ -452,10 +452,7 @@ const _commonLicenses = [
 /// Handles requests for /api/search
 Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
-  final sr = await searchClient.search(
-    searchForm.toServiceQuery(),
-    sourceIp: request.sourceIp,
-  );
+  final sr = await searchClient.search(searchForm.toServiceQuery());
   final packages = sr.packageHits.map((ps) => {'package': ps.package}).toList();
   final hasNextPage = sr.totalCount > searchForm.pageSize! + searchForm.offset;
   final result = <String, dynamic>{

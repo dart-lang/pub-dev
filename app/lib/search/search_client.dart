@@ -39,7 +39,6 @@ class SearchClient {
   /// Calls the search service (or uses cache) to serve the [query].
   Future<PackageSearchResult> search(
     ServiceSearchQuery query, {
-    required String? sourceIp,
     bool skipCache = false,
   }) async {
     // check validity first

@@ -62,10 +62,7 @@ class SearchAdapter {
   ) async {
     PackageSearchResult? result;
     try {
-      result = await searchClient.search(
-        searchForm.toServiceQuery(),
-        sourceIp: sourceIp,
-      );
+      result = await searchClient.search(searchForm.toServiceQuery());
     } on RateLimitException {
       rethrow;
     } catch (e, st) {
