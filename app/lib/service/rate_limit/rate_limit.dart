@@ -6,7 +6,6 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/audit/backend.dart';
-import 'package:pub_dev/service/rate_limit/models.dart';
 
 import '../../account/agent.dart';
 import '../../audit/models.dart';
@@ -183,25 +182,4 @@ bool _containsUserId(List<String>? users, String userId) {
     return false;
   }
   return users.contains(userId);
-}
-
-Future<void> verifyRequestCounts({
-  required String sourceIp,
-  required String operation,
-  required int limit,
-  required Duration window,
-  required String windowAsText,
-}) async {
-  final counterCacheEntry = cache.rateLimitRequestCounter(sourceIp, operation);
-  final cachedCounter = await counterCacheEntry.get();
-  if (cachedCounter == null) {
-    await counterCacheEntry.set(RateLimitRequestCounter.init(1));
-  } else {
-    final nextCounter = cachedCounter.incrementOrThrow(
-      limit: limit,
-      window: window,
-      windowAsText: windowAsText,
-    );
-    await counterCacheEntry.set(nextCounter);
-  }
 }

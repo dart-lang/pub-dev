@@ -11,7 +11,6 @@ import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../../../service/rate_limit/rate_limit.dart';
 import '../../account/backend.dart';
 import '../../admin/models.dart';
 import '../../frontend/handlers/cache_control.dart';
@@ -24,11 +23,6 @@ import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../request_context.dart';
 import '../templates/report.dart';
-
-/// The number of requests allowed over [_reportRateLimitWindow]
-const _reportRateLimit = 5;
-const _reportRateLimitWindow = Duration(minutes: 10);
-const _reportRateLimitWindowAsText = 'last 10 minutes';
 
 /// Handles GET /report
 Future<shelf.Response> reportPageHandler(shelf.Request request) async {
@@ -175,17 +169,6 @@ Future<Message> processReportPageHandler(
   shelf.Request request,
   ReportForm form,
 ) async {
-  final sourceIp = request.sourceIp;
-  if (sourceIp != null) {
-    await verifyRequestCounts(
-      sourceIp: sourceIp,
-      operation: 'report',
-      limit: _reportRateLimit,
-      window: _reportRateLimitWindow,
-      windowAsText: _reportRateLimitWindowAsText,
-    );
-  }
-
   final now = clock.now().toUtc();
   final caseId = ModerationCase.generateCaseId(now: now);
 

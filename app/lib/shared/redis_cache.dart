@@ -17,7 +17,6 @@ import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 
 import '../../../service/async_queue/async_queue.dart';
-import '../../../service/rate_limit/models.dart';
 import '../../../service/security_advisories/models.dart';
 import '../../dartdoc/models.dart';
 import '../../shared/env_config.dart';
@@ -211,24 +210,6 @@ class CachePatterns {
                 PackageSearchResult.fromJson(d as Map<String, dynamic>),
           ),
         )[url];
-  }
-
-  Entry<RateLimitRequestCounter> rateLimitRequestCounter(
-    String sourceIp,
-    String operation,
-  ) {
-    return _cache
-        .withPrefix('rate-limit-request-counter/')
-        .withTTL(const Duration(minutes: 3))
-        .withCodec(utf8)
-        .withCodec(json)
-        .withCodec(
-          wrapAsCodec(
-            encode: (RateLimitRequestCounter r) => r.toJson(),
-            decode: (d) =>
-                RateLimitRequestCounter.fromJson(d as Map<String, dynamic>),
-          ),
-        )['$sourceIp/$operation'];
   }
 
   Entry<ScoreCardData> scoreCardData(String package, String version) => _cache
