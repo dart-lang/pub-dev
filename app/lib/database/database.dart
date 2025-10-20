@@ -2,11 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:io';
+import 'dart:math';
+
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:postgres/postgres.dart';
 import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/shared/env_config.dart';
+
+final _random = Random.secure();
 
 /// Sets the primary database service.
 void registerPrimaryDatabase(PrimaryDatabase database) =>
@@ -26,13 +33,38 @@ class PrimaryDatabase {
   /// the secret backend, connects to it and registers the primary database
   /// service in the current scope.
   static Future<void> tryRegisterInScope() async {
-    final connectionString =
+    var connectionString =
         envConfig.pubPostgresUrl ??
         (await secretBackend.lookup(SecretKey.postgresConnectionString));
-    if (connectionString == null) {
+    if (connectionString == null && envConfig.isRunningInAppengine) {
       // ignore for now, must throw once we have the environment setup ready
       return;
     }
+    // The scope-specific custom database. We are creating a custom database for
+    // each test run, in order to provide full isolation, however, this must not
+    // be used in Appengine.
+    String? customDb;
+    if (connectionString == null) {
+      (connectionString, customDb) = await _startOrUseLocalPostgresInDocker();
+    }
+    if (customDb == null && !envConfig.isRunningInAppengine) {
+      customDb = await _createCustomDatabase(connectionString);
+    }
+
+    if (customDb != null) {
+      if (envConfig.isRunningInAppengine) {
+        throw StateError('Should not use custom database inside AppEngine.');
+      }
+
+      final originalUrl = connectionString;
+      connectionString = Uri.parse(
+        connectionString,
+      ).replace(path: customDb).toString();
+      ss.registerScopeExitCallback(() async {
+        await _dropCustomDatabase(originalUrl, customDb!);
+      });
+    }
+
     final database = await _fromConnectionString(connectionString);
     registerPrimaryDatabase(database);
     ss.registerScopeExitCallback(database.close);
@@ -48,10 +80,64 @@ class PrimaryDatabase {
   }
 
   @visibleForTesting
-  Future<void> verifyConnection() async {
-    final rs = await _pg.execute('SELECT 1');
+  Future<String> verifyConnection() async {
+    final rs = await _pg.execute('SELECT current_database();');
     if (rs.length != 1) {
       throw StateError('Connection is not returning expected rows.');
     }
+    return rs.single.single as String;
   }
+}
+
+Future<(String, String?)> _startOrUseLocalPostgresInDocker() async {
+  // sanity check
+  if (envConfig.isRunningInAppengine) {
+    throw StateError('Missing connection URL in Appengine environment.');
+  }
+
+  // the default connection URL for local server
+  final url = Uri(
+    scheme: 'postgresql',
+    host: 'localhost',
+    port: 55432,
+    path: 'postgres',
+    userInfo: 'postgres:postgres',
+    queryParameters: {'sslmode': 'disable'},
+  ).toString();
+
+  try {
+    // try opening the connection
+    final customDb = await _createCustomDatabase(url);
+    return (url, customDb);
+  } catch (_) {
+    // on failure start the local server
+    final pr = await Process.run('tool/start-local-postgres.sh', []);
+    if (pr.exitCode != 0) {
+      throw StateError(
+        'Unexpect exit code from tool/start-local-postgres.sh\n${pr.stderr}',
+      );
+    }
+  }
+  return (url, null);
+}
+
+int _customDbCount = 0;
+
+Future<String> _createCustomDatabase(String url) async {
+  _customDbCount++;
+  final dbName =
+      'fake_pub_${pid.toRadixString(36)}'
+      '${_customDbCount.toRadixString(36)}'
+      '${clock.now().millisecondsSinceEpoch.toRadixString(36)}'
+      '${_random.nextInt(1 << 32).toRadixString(36)}';
+  final conn = await Connection.openFromUrl(url);
+  await conn.execute('CREATE DATABASE "$dbName";');
+  await conn.close(force: true);
+  return dbName;
+}
+
+Future<void> _dropCustomDatabase(String url, String dbName) async {
+  final conn = await Connection.openFromUrl(url);
+  await conn.execute('DROP DATABASE "$dbName";');
+  await conn.close(force: true);
 }

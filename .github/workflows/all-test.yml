@@ -97,6 +97,19 @@ jobs:
     name: pkg/${{matrix.package}}/
     runs-on: ubuntu-latest
     needs: define_pkg_list
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     strategy:
       fail-fast: false
       matrix:
@@ -137,3 +150,5 @@ jobs:
         fi
         dart test --run-skipped
       working-directory: pkg/${{matrix.package}}
+      env:
+        PUB_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
