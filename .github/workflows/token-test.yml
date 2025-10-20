@@ -21,6 +21,19 @@ jobs:
     permissions:
       id-token: write
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -33,3 +46,5 @@ jobs:
       - name: Run test
         run: dart test -P presubmit test/service/openid/github_actions_id_token_test.dart
         working-directory: app
+        env:
+          PUB_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
