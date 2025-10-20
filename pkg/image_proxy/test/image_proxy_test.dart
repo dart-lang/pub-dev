@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -28,10 +29,16 @@ Future<int> startImageProxy() async {
   return port!;
 }
 
+Stream<List<int>> infiniteStream() async* {
+  while (true) {
+    yield List.generate(1000, (i) => 0);
+  }
+}
+
 Future<int> startImageServer() async {
   var i = 0;
   final server = await shelf_io.serve(
-    (shelf.Request request) {
+    (shelf.Request request) async {
       switch (request.url.path) {
         case 'path/to/image.jpg':
           return shelf.Response.ok(
@@ -71,6 +78,42 @@ Future<int> startImageServer() async {
           }
           return shelf.Response.ok(
             File(jpgImagePath).readAsBytesSync(),
+            headers: {'content-type': 'image/jpeg'},
+          );
+        case 'timeout':
+          await Future.delayed(Duration(hours: 1));
+          return shelf.Response.notFound('Not found');
+        case 'timeoutstreaming':
+          late final StreamController lateStreamController;
+          lateStreamController = StreamController(
+            onListen: () async {
+              // Return a single byte, and then stall.
+              lateStreamController.add([1]);
+              await Future.delayed(Duration(hours: 1));
+              await lateStreamController.close();
+            },
+          );
+          return shelf.Response.ok(
+            lateStreamController.stream,
+            headers: {'content-type': 'image/jpeg'},
+          );
+        case 'okstreaming':
+          return shelf.Response.ok(
+            // Has no content-length
+            File(jpgImagePath).openRead(),
+            headers: {'content-type': 'image/jpeg'},
+          );
+        case 'toobig':
+          return shelf.Response.ok(
+            infiniteStream(),
+            headers: {
+              'content-type': 'image/jpeg',
+              'content-length': '100000000',
+            },
+          );
+        case 'toobigstreaming':
+          return shelf.Response.ok(
+            infiniteStream(),
             headers: {'content-type': 'image/jpeg'},
           );
         default:
@@ -166,6 +209,23 @@ Future<void> main() async {
       expect(response.headers['content-type']!.single, 'image/svg+xml');
       final hash = await sha256.bind(response).single;
       final expected = sha256.convert(File(svgImagePath).readAsBytesSync());
+      expect(hash, expected);
+    }
+
+    {
+      final response = await getImage(
+        day: today,
+        imageProxyPort: imageProxyPort,
+        imageServerPort: imageServerPort,
+        // Gives no content-length
+        pathToImage: 'okstreaming',
+      );
+      expect(response.statusCode, 200);
+      expect(response.headers['content-type']!.single, 'image/jpeg');
+      final jpgFile = File(jpgImagePath).readAsBytesSync();
+      expect(response.contentLength, jpgFile.length);
+      final hash = await sha256.bind(response).single;
+      final expected = sha256.convert(jpgFile);
       expect(hash, expected);
     }
   });
@@ -325,6 +385,64 @@ Future<void> main() async {
       final hash = await sha256.bind(response).single;
       final expected = sha256.convert(File(jpgImagePath).readAsBytesSync());
       expect(hash, expected);
+    }
+  });
+
+  test('times out', () async {
+    final imageProxyPort = await startImageProxy();
+    final imageServerPort = await startImageServer();
+    {
+      final response = await getImage(
+        imageProxyPort: imageProxyPort,
+        imageServerPort: imageServerPort,
+        day: today,
+        pathToImage: 'timeout',
+      );
+
+      expect(response.statusCode, 400);
+      // The proxy doesn't cache as long time as the original.
+      expect(await Utf8Codec().decodeStream(response), 'No response');
+    }
+    {
+      final response = await getImage(
+        imageProxyPort: imageProxyPort,
+        imageServerPort: imageServerPort,
+        day: today,
+        pathToImage: 'timeoutstreaming',
+      );
+
+      expect(response.statusCode, 400);
+      // The proxy doesn't cache as long time as the original.
+      expect(await Utf8Codec().decodeStream(response), 'No response');
+    }
+  });
+
+  test('protects against too big files', () async {
+    final imageProxyPort = await startImageProxy();
+    final imageServerPort = await startImageServer();
+    {
+      final response = await getImage(
+        imageProxyPort: imageProxyPort,
+        imageServerPort: imageServerPort,
+        day: today,
+        pathToImage: 'toobig',
+      );
+
+      expect(response.statusCode, 400);
+      // The proxy doesn't cache as long time as the original.
+      expect(await Utf8Codec().decodeStream(response), 'Image too large');
+    }
+    {
+      final response = await getImage(
+        imageProxyPort: imageProxyPort,
+        imageServerPort: imageServerPort,
+        day: today,
+        pathToImage: 'toobigstreaming',
+      );
+
+      expect(response.statusCode, 400);
+      // The proxy doesn't cache as long time as the original.
+      expect(await Utf8Codec().decodeStream(response), 'Image too large');
     }
   });
 }

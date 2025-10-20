@@ -6,23 +6,19 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:crypto/crypto.dart';
+import 'package:googleapis/cloudkms/v1.dart' as kms;
+import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart' as http;
-
 import 'package:retry/retry.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
-import 'package:googleapis/cloudkms/v1.dart' as kms;
-import 'package:googleapis_auth/auth_io.dart' as auth;
-
-class Config {
-  final Uri secretsUrl;
-  final int maxFileSize;
-  Config({required this.secretsUrl, required this.maxFileSize});
-}
 
 bool isTesting = Platform.environment['IMAGE_PROXY_TESTING'] == 'true';
+
+Duration timeoutDelay = Duration(seconds: isTesting ? 1 : 8);
 
 /// The keys we currently allow the url to be signed with.
 Map<int, Uint8List> allowedKeys = {};
@@ -98,7 +94,10 @@ bool _constantTimeEquals(Uint8List a, Uint8List b) {
 
 // The client used for requesting the images.
 // Using raw dart:io client such that we can disable autoUncompress.
-final HttpClient client = HttpClient()..autoUncompress = false;
+final HttpClient client = HttpClient()
+  ..autoUncompress = false
+  ..connectionTimeout = Duration(seconds: 10)
+  ..idleTimeout = Duration(seconds: 15);
 
 final maxImageSize = 1024 * 1024 * 10; // At most 10 MB.
 
@@ -162,12 +161,21 @@ Future<shelf.Response> handler(shelf.Request request) async {
       String? contentEncoding;
       try {
         (statusCode, bytes, contentType, contentEncoding) = await retry(
-          maxDelay: isTesting ? Duration(seconds: 1) : Duration(seconds: 8),
+          maxDelay: timeoutDelay,
           maxAttempts: isTesting ? 2 : 8,
           () async {
             final request = await client.getUrl(parsedImageUrl);
+            Timer? timeoutTimer;
+            void scheduleRequestTimeout() {
+              timeoutTimer?.cancel();
+              timeoutTimer = Timer(timeoutDelay, () {
+                request.abort(RequestTimeoutException('No response'));
+              });
+            }
+
             request.headers.add('user-agent', 'pub-proxy');
             request.followRedirects = false;
+            scheduleRequestTimeout();
             var response = await request.close();
             var redirectCount = 0;
             while (response.isRedirect) {
@@ -184,9 +192,11 @@ Future<shelf.Response> handler(shelf.Request request) async {
               }
               final uri = parsedImageUrl.resolve(location);
               final request = await client.getUrl(uri);
+
               request.headers.add('user-agent', 'pub-proxy');
               // Set the body or headers as desired.
               request.followRedirects = false;
+              scheduleRequestTimeout();
               response = await request.close();
             }
             switch (response.statusCode) {
@@ -204,6 +214,11 @@ Future<shelf.Response> handler(shelf.Request request) async {
               await readAllBytes(
                 response,
                 contentLength == -1 ? maxImageSize : contentLength,
+              ).timeout(
+                timeoutDelay,
+                onTimeout: () {
+                  throw RequestTimeoutException('No response');
+                },
               ),
               response.headers.value('content-type'),
               response.headers.value('content-encoding'),
@@ -217,6 +232,8 @@ Future<shelf.Response> handler(shelf.Request request) async {
       } on TooLargeException {
         return shelf.Response.badRequest(body: 'Image too large');
       } on RedirectException catch (e) {
+        return shelf.Response.badRequest(body: e.message);
+      } on RequestTimeoutException catch (e) {
         return shelf.Response.badRequest(body: e.message);
       } on ServerSideException catch (e) {
         return shelf.Response.badRequest(
@@ -265,6 +282,11 @@ class ServerSideException implements Exception {
 class RedirectException implements Exception {
   String message;
   RedirectException(this.message);
+}
+
+class RequestTimeoutException implements Exception {
+  String message;
+  RequestTimeoutException(this.message);
 }
 
 Uint8List hmacSign(Uint8List key, Uint8List imageUrlBytes) {
