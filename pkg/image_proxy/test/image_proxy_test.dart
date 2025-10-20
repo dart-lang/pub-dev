@@ -7,9 +7,8 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:pub_dev_image_proxy/image_proxy_service.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf/shelf.dart' as shelf;
-
+import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 
 Future<int> startImageProxy() async {
