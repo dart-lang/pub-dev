@@ -495,8 +495,6 @@ class SearchBackend {
       // Do not cache response at the search client level, as we'll be caching
       // it in a processed form much longer.
       skipCache: true,
-      // Do not apply rate limit here.
-      sourceIp: null,
     );
     return {'packages': rs.packageHits.map((p) => p.package).toList()};
   }
