@@ -23,6 +23,16 @@ Duration timeoutDelay = Duration(seconds: isTesting ? 1 : 8);
 /// The keys we currently allow the url to be signed with.
 Map<int, Uint8List> allowedKeys = {};
 
+// Inspired by https://github.com/atmos/camo/blob/master/server.coffee#L39.
+Map<String, String> securityHeaders = {
+  'X-Frame-Options': 'deny',
+  'X-XSS-Protection': '1; mode=block',
+  'X-Content-Type-Options': 'nosniff',
+  'Content-Security-Policy':
+      "default-src 'none'; img-src data:; style-src 'unsafe-inline'",
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+};
+
 /// Ensure that [allowedKeys] contains keys for today and the two surrounding
 /// days.
 Future<void> updateAllowedKeys() async {
@@ -104,13 +114,17 @@ final maxImageSize = 1024 * 1024 * 10; // At most 10 MB.
 Future<shelf.Response> handler(shelf.Request request) async {
   try {
     if (request.method != 'GET') {
-      return shelf.Response.notFound('Unsupported method');
+      return shelf.Response.notFound(
+        'Unsupported method',
+        headers: securityHeaders,
+      );
     }
     final segments = request.url.pathSegments;
     if (segments.length != 3) {
       return shelf.Response.badRequest(
         body:
             'malformed request, ${segments.length} should be of the form <base64(hmac(url,daily_secret))>/<date>/<urlencode(url)>',
+        headers: securityHeaders,
       );
     }
     final Uint8List signature;
@@ -119,22 +133,30 @@ Future<shelf.Response> handler(shelf.Request request) async {
     } on FormatException catch (_) {
       return shelf.Response.badRequest(
         body: 'malformed request, could not decode mac signature',
+        headers: securityHeaders,
       );
     }
     final date = int.tryParse(segments[1]);
     if (date == null) {
-      return shelf.Response.badRequest(body: 'malformed request, missing date');
+      return shelf.Response.badRequest(
+        body: 'malformed request, missing date',
+        headers: securityHeaders,
+      );
     }
     final secret = allowedKeys[date];
     if (secret == null) {
       return shelf.Response.badRequest(
         body: 'malformed request, proxy url expired',
+        headers: securityHeaders,
       );
     }
 
     final imageUrl = segments[2];
     if (imageUrl.length > 1024) {
-      return shelf.Response.badRequest(body: 'proxied url too long');
+      return shelf.Response.badRequest(
+        body: 'proxied url too long',
+        headers: securityHeaders,
+      );
     }
     final imageUrlBytes = utf8.encode(imageUrl);
 
@@ -143,16 +165,23 @@ Future<shelf.Response> handler(shelf.Request request) async {
       try {
         parsedImageUrl = Uri.parse(imageUrl);
       } on FormatException catch (e) {
-        return shelf.Response.badRequest(body: 'Malformed proxied url $e');
+        return shelf.Response.badRequest(
+          body: 'Malformed proxied url $e',
+          headers: securityHeaders,
+        );
       }
       if (!(parsedImageUrl.isScheme('http') ||
           parsedImageUrl.isScheme('https'))) {
         return shelf.Response.badRequest(
           body: 'Can only proxy http and https urls',
+          headers: securityHeaders,
         );
       }
       if (!parsedImageUrl.isAbsolute) {
-        return shelf.Response.badRequest(body: 'Can only proxy absolute urls');
+        return shelf.Response.badRequest(
+          body: 'Can only proxy absolute urls',
+          headers: securityHeaders,
+        );
       }
 
       int statusCode;
@@ -233,14 +262,24 @@ Future<shelf.Response> handler(shelf.Request request) async {
               e is ServerSideException,
         );
       } on TooLargeException {
-        return shelf.Response.badRequest(body: 'Image too large');
+        return shelf.Response.badRequest(
+          body: 'Image too large',
+          headers: securityHeaders,
+        );
       } on RedirectException catch (e) {
-        return shelf.Response.badRequest(body: e.message);
+        return shelf.Response.badRequest(
+          body: e.message,
+          headers: securityHeaders,
+        );
       } on RequestTimeoutException catch (e) {
-        return shelf.Response.badRequest(body: e.message);
+        return shelf.Response.badRequest(
+          body: e.message,
+          headers: securityHeaders,
+        );
       } on ServerSideException catch (e) {
         return shelf.Response.badRequest(
           body: 'Failed to retrieve image. Status code ${e.statusCode}',
+          headers: securityHeaders,
         );
       }
 
@@ -251,10 +290,11 @@ Future<shelf.Response> handler(shelf.Request request) async {
           'Cache-control': 'max-age=180, public',
           'content-type': ?contentType,
           'content-encoding': ?contentEncoding,
+          ...securityHeaders,
         },
       );
     } else {
-      return shelf.Response.unauthorized('Bad hmac');
+      return shelf.Response.unauthorized('Bad hmac', headers: securityHeaders);
     }
   } catch (e, st) {
     stderr.writeln('Uncaught error: $e $st');

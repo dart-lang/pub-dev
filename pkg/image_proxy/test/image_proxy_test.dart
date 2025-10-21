@@ -35,6 +35,12 @@ Stream<List<int>> infiniteStream() async* {
   }
 }
 
+void validateSecurityHeaders(HttpClientResponse response) {
+  for (final header in securityHeaders.entries) {
+    expect(response.headers[header.key], [header.value]);
+  }
+}
+
 Future<int> startImageServer() async {
   var i = 0;
   final server = await shelf_io.serve(
@@ -175,10 +181,10 @@ Future<void> main() async {
         imageProxyPort: imageProxyPort,
         imageServerPort: imageServerPort,
       );
+      validateSecurityHeaders(response);
       expect(response.statusCode, 200);
       expect(response.headers['content-type']!.single, 'image/jpeg');
       expect(response.headers['cache-control']!.single, 'max-age=180, public');
-
       final hash = await sha256.bind(response).single;
       final expected = sha256.convert(File(jpgImagePath).readAsBytesSync());
       expect(hash, expected);
@@ -191,6 +197,7 @@ Future<void> main() async {
         imageServerPort: imageServerPort,
         pathToImage: 'path/to/image.png',
       );
+      validateSecurityHeaders(response);
       expect(response.statusCode, 200);
       expect(response.headers['content-type']!.single, 'image/png');
       final hash = await sha256.bind(response).single;
@@ -205,6 +212,7 @@ Future<void> main() async {
         imageServerPort: imageServerPort,
         pathToImage: 'path/to/image.svg',
       );
+      validateSecurityHeaders(response);
       expect(response.statusCode, 200);
       expect(response.headers['content-type']!.single, 'image/svg+xml');
       final hash = await sha256.bind(response).single;
@@ -220,6 +228,7 @@ Future<void> main() async {
         // Gives no content-length
         pathToImage: 'okstreaming',
       );
+      validateSecurityHeaders(response);
       expect(response.statusCode, 200);
       expect(response.headers['content-type']!.single, 'image/jpeg');
       final jpgFile = File(jpgImagePath).readAsBytesSync();
@@ -239,6 +248,7 @@ Future<void> main() async {
         imageServerPort: imageServerPort,
         day: tomorrow.add(Duration(days: 1)),
       );
+      validateSecurityHeaders(response);
       expect(response.statusCode, 400);
 
       expect(
@@ -258,6 +268,7 @@ Future<void> main() async {
         day: today,
         disturbSignature: true,
       );
+      validateSecurityHeaders(response);
       expect(response.statusCode, 401);
 
       expect(await Utf8Codec().decodeStream(response), 'Bad hmac');
@@ -275,6 +286,7 @@ Future<void> main() async {
         disturbSignature: true,
         pathToImage: 'next/' * 1000 + 'image.jpg',
       );
+      validateSecurityHeaders(response);
       expect(response.statusCode, 400);
 
       expect(await Utf8Codec().decodeStream(response), 'proxied url too long');
@@ -291,6 +303,7 @@ Future<void> main() async {
         day: today,
         pathToImage: 'redirect',
       );
+      validateSecurityHeaders(response);
 
       expect(response.statusCode, 200);
       final hash = await sha256.bind(response).single;
@@ -309,6 +322,7 @@ Future<void> main() async {
         day: today,
         pathToImage: 'redirectForever',
       );
+      validateSecurityHeaders(response);
 
       expect(await Utf8Codec().decodeStream(response), 'Too many redirects.');
       expect(response.statusCode, 400);
@@ -325,6 +339,7 @@ Future<void> main() async {
         day: today,
         pathToImage: 'serverError',
       );
+      validateSecurityHeaders(response);
 
       expect(
         await Utf8Codec().decodeStream(response),
@@ -344,6 +359,7 @@ Future<void> main() async {
         day: today,
         pathToImage: 'doesntexist',
       );
+      validateSecurityHeaders(response);
 
       expect(await Utf8Codec().decodeStream(response), 'Not found');
       expect(response.statusCode, 404);
@@ -360,6 +376,7 @@ Future<void> main() async {
         day: today,
         pathToImage: 'worksSecondTime',
       );
+      validateSecurityHeaders(response);
 
       expect(response.statusCode, 200);
       final hash = await sha256.bind(response).single;
@@ -378,6 +395,7 @@ Future<void> main() async {
         day: today,
         pathToImage: 'canBeCachedLong',
       );
+      validateSecurityHeaders(response);
 
       expect(response.statusCode, 200);
       // The proxy doesn't cache as long time as the original.
@@ -398,6 +416,7 @@ Future<void> main() async {
         day: today,
         pathToImage: 'timeout',
       );
+      validateSecurityHeaders(response);
 
       expect(response.statusCode, 400);
       // The proxy doesn't cache as long time as the original.
@@ -410,6 +429,7 @@ Future<void> main() async {
         day: today,
         pathToImage: 'timeoutstreaming',
       );
+      validateSecurityHeaders(response);
 
       expect(response.statusCode, 400);
       // The proxy doesn't cache as long time as the original.
@@ -427,6 +447,7 @@ Future<void> main() async {
         day: today,
         pathToImage: 'toobig',
       );
+      validateSecurityHeaders(response);
 
       expect(response.statusCode, 400);
       // The proxy doesn't cache as long time as the original.
@@ -439,6 +460,7 @@ Future<void> main() async {
         day: today,
         pathToImage: 'toobigstreaming',
       );
+      validateSecurityHeaders(response);
 
       expect(response.statusCode, 400);
       // The proxy doesn't cache as long time as the original.
