@@ -11,6 +11,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:postgres/postgres.dart';
 import 'package:pub_dev/service/secret/backend.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/env_config.dart';
 
 final _random = Random.secure();
@@ -33,11 +34,15 @@ class PrimaryDatabase {
   /// the secret backend, connects to it and registers the primary database
   /// service in the current scope.
   static Future<void> tryRegisterInScope() async {
+    if (activeConfiguration.isProduction) {
+      // Production is not configured for postgresql yet.
+      return;
+    }
     var connectionString =
         envConfig.pubPostgresUrl ??
         (await secretBackend.lookup(SecretKey.postgresConnectionString));
-    if (connectionString == null && envConfig.isRunningInAppengine) {
-      // ignore for now, must throw once we have the environment setup ready
+    if (connectionString == null && activeConfiguration.isStaging) {
+      // Staging may not have the connection string set yet.
       return;
     }
     // The scope-specific custom database. We are creating a custom database for

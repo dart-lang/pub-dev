@@ -14,6 +14,7 @@ import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:logging/logging.dart';
+import 'package:postgres/postgres.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/search/handlers.dart';
@@ -251,7 +252,16 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
           await storageService.verifyBucketExistenceAndAccess(bucketName);
         }
 
-        await PrimaryDatabase.tryRegisterInScope();
+        try {
+          await PrimaryDatabase.tryRegisterInScope();
+        } on PgException catch (e, st) {
+          if (envConfig.isRunningInAppengine) {
+            // ignore setup issues for now
+            _logger.warning('Could not connect to Postgresql database.', e, st);
+          } else {
+            rethrow;
+          }
+        }
         registerAccountBackend(AccountBackend(dbService));
         registerAdminBackend(AdminBackend(dbService));
         registerAnnouncementBackend(AnnouncementBackend());

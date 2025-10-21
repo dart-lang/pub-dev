@@ -9,6 +9,7 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:_pub_shared/data/task_api.dart';
 import 'package:api_builder/api_builder.dart';
+import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/frontend/handlers/atom_feed.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -457,6 +458,7 @@ class PubApi {
   Future<Response> debug(Request request) async => debugResponse({
     'package': packageDebugStats(),
     'search': searchDebugStats(),
+    'database': primaryDatabase != null,
   });
 
   @EndPoint.get('/packages.json')
