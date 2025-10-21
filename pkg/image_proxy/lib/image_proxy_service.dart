@@ -173,7 +173,10 @@ Future<shelf.Response> handler(shelf.Request request) async {
               });
             }
 
-            request.headers.add('user-agent', 'Image proxy for pub.dev. See https://github.com/dart-lang/pub-dev/pkg/image-proxy. If you have any issues, contact support@pub.dev.');
+            request.headers.add(
+              'user-agent',
+              'Image proxy for pub.dev. See https://github.com/dart-lang/pub-dev/pkg/image-proxy. If you have any issues, contact support@pub.dev.',
+            );
             request.followRedirects = false;
             scheduleRequestTimeout();
             var response = await request.close();
