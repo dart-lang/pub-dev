@@ -251,7 +251,16 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
           await storageService.verifyBucketExistenceAndAccess(bucketName);
         }
 
-        await PrimaryDatabase.tryRegisterInScope();
+        try {
+          await PrimaryDatabase.tryRegisterInScope();
+        } catch (e, st) {
+          if (envConfig.isRunningInAppengine) {
+            // ignore setup issues for now
+            _logger.warning('Could not connect to Postgresql database.', e, st);
+          } else {
+            rethrow;
+          }
+        }
         registerAccountBackend(AccountBackend(dbService));
         registerAdminBackend(AdminBackend(dbService));
         registerAnnouncementBackend(AnnouncementBackend());
