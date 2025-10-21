@@ -65,7 +65,7 @@ void main() {
     'accepted runtime versions should be lexicographically ordered',
     () {
       for (final version in acceptedRuntimeVersions) {
-        expect(runtimeVersionPattern.hasMatch(version), isTrue);
+        expect(version, matches(runtimeVersionPattern));
       }
       final sorted = [...acceptedRuntimeVersions]
         ..sort((a, b) => -a.compareTo(b));
@@ -77,23 +77,29 @@ void main() {
     expect(acceptedRuntimeVersions, hasLength(lessThan(6)));
   });
 
-  test('runtime sdk version should match CI and dockerfile', () async {
+  test('runtime sdk version should match CI and dockerfiles', () async {
     final String docker = await File('../Dockerfile.app').readAsString();
-    expect(docker.contains('\nFROM dart:$runtimeSdkVersion\n'), isTrue);
+    expect(docker, contains('\nFROM dart:$runtimeSdkVersion\n'));
     final ci = await File('../.github/workflows/all-test.yml').readAsString();
-    expect(ci.contains("DART_SDK_VERSION: '$runtimeSdkVersion'"), isTrue);
+    expect(ci, contains("DART_SDK_VERSION: '$runtimeSdkVersion'"));
+    final imageProxyDocker = await File(
+      '../pkg/image_proxy/Dockerfile',
+    ).readAsString();
+    expect(imageProxyDocker, contains('\nFROM dart:$runtimeSdkVersion '));
   });
 
   test('Dart SDK versions should match Dockerfile.worker', () async {
     final dockerfileContent = await File('../Dockerfile.worker').readAsString();
     expect(
-      dockerfileContent.contains(
-            'tool/setup-dart.sh /home/worker/dart/stable stable/raw/hash/',
-          ) ||
-          dockerfileContent.contains(
-            'tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion',
-          ),
-      isTrue,
+      dockerfileContent,
+      anyOf(
+        contains(
+          'tool/setup-dart.sh /home/worker/dart/stable stable/raw/hash/',
+        ),
+        contains(
+          'tool/setup-dart.sh /home/worker/dart/stable $toolStableDartSdkVersion',
+        ),
+      ),
     );
   });
 
@@ -166,7 +172,7 @@ and do not format to also bump the runtimeVersion.''',
     // roll traffic backwards.
     // Avoid this by temporarily hardcoding gcBeforeRuntimeVersion to not be
     // the last version of acceptedRuntimeVersions.
-    expect(gcBeforeRuntimeVersion != runtimeVersion, isTrue);
+    expect(gcBeforeRuntimeVersion, isNot(runtimeVersion));
   });
 
   scopedTest('GC is returning correct values for known versions', () {
