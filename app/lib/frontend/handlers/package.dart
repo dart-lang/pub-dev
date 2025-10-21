@@ -301,6 +301,7 @@ Future<shelf.Response> _handlePackagePage({
   Entry<String>? cacheEntry,
 }) async {
   checkPackageVersionParams(packageName, versionName);
+  final cacheEnabled = requestContext.uiCacheEnabled && cacheEntry != null;
 
   final canonicalUrl = canonicalUrlFn(
     await _canonicalPackageName(packageName),
@@ -314,7 +315,7 @@ Future<shelf.Response> _handlePackagePage({
   }
   final Stopwatch sw = Stopwatch()..start();
   String? cachedPage;
-  if (requestContext.uiCacheEnabled && cacheEntry != null) {
+  if (cacheEnabled) {
     cachedPage = await cacheEntry.get();
   }
 
@@ -350,12 +351,15 @@ Future<shelf.Response> _handlePackagePage({
     } else {
       throw StateError('Unknown result type: ${renderedResult.runtimeType}');
     }
-    if (requestContext.uiCacheEnabled && cacheEntry != null) {
+    if (cacheEnabled) {
       await cacheEntry.set(cachedPage);
     }
     _packageDoneLatencyTracker.add(sw.elapsed);
   }
-  return htmlResponse(cachedPage);
+  return htmlResponse(
+    cachedPage,
+    headers: cacheEnabled ? CacheControl.packageContentPage.headers : null,
+  );
 }
 
 /// Returns the optionally lowercased version of [name], but only if there

@@ -23,6 +23,12 @@ import '../../shared/urls.dart';
 ///
 /// - `/documentation/<package>/<version>`
 Future<shelf.Response> documentationHandler(shelf.Request request) async {
+  final requestMethod = request.method.toUpperCase();
+  if (requestMethod != 'HEAD' && requestMethod != 'GET') {
+    // TODO: Should probably be "method not supported"!
+    return notFoundHandler(request);
+  }
+
   final docFilePath = parseRequestUri(request.requestedUri);
   if (docFilePath == null) {
     return notFoundHandler(request);
@@ -57,12 +63,6 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
         relativePath: detectedPath,
       ),
     );
-  }
-  final String requestMethod = request.method.toUpperCase();
-
-  if (requestMethod != 'HEAD' && requestMethod != 'GET') {
-    // TODO: Should probably be "method not supported"!
-    return notFoundHandler(request);
   }
 
   final package = docFilePath.package;

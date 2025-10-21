@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
 import 'package:pub_dev/dartdoc/models.dart';
+import 'package:pub_dev/frontend/handlers/cache_control.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/handlers.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
@@ -90,7 +91,10 @@ Future<shelf.Response> handleDartDoc(
     );
     final htmlBytes = await htmlBytesCacheEntry.get();
     if (htmlBytes != null) {
-      return htmlBytesResponse(htmlBytes);
+      return htmlBytesResponse(
+        htmlBytes,
+        headers: CacheControl.packageContentPage.headers,
+      );
     }
 
     // check cached status for redirect or missing pages
@@ -211,7 +215,10 @@ Future<shelf.Response> handleDartDoc(
     switch (status.code) {
       case DocPageStatusCode.ok:
         await htmlBytesCacheEntry.set(bytes!);
-        return htmlBytesResponse(bytes);
+        return htmlBytesResponse(
+          bytes,
+          headers: CacheControl.packageContentPage.headers,
+        );
       case DocPageStatusCode.redirect:
         return redirectPathResponse(status.redirectPath!);
       case DocPageStatusCode.missing:
@@ -236,13 +243,14 @@ Future<shelf.Response> handleDartDoc(
   }
 
   if (request.method.toUpperCase() == 'HEAD') {
-    return htmlResponse('');
+    return htmlResponse('', headers: CacheControl.packageContentPage.headers);
   }
 
   final acceptsGzip = request.acceptsGzipEncoding();
   return shelf.Response.ok(
     acceptsGzip ? dataGz : gzip.decode(dataGz),
     headers: {
+      ...CacheControl.packageContentPage.headers,
       'Content-Type': mime,
       'Vary': 'Accept-Encoding', // body depends on accept-encoding!
       if (acceptsGzip) 'Content-Encoding': 'gzip',
