@@ -140,7 +140,7 @@ class PanaReport {
       }.toList(),
       allDependencies: summary?.allDependencies,
       // ignore: deprecated_member_use
-      licenses: summary?.result?.licenses ?? summary?.licenses,
+      licenses: summary?.result?.licenses,
       report: summary?.report,
       result: summary?.result,
       urlProblems: summary?.urlProblems,
