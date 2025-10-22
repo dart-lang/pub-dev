@@ -43,7 +43,7 @@ d.Node packageInfoBoxNode({
   if (data.versionInfo.hasLicense) {
     final licenses = data.scoreCard.panaReport?.licenses ?? <License>[];
     if (licenses.isEmpty) {
-      licenses.add(License(path: 'LICENSE', spdxIdentifier: 'unknown'));
+      licenses.add(License(spdxIdentifier: 'unknown'));
     }
     license = _licenseNode(
       licenses: licenses,

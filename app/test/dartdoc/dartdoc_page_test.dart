@@ -70,7 +70,7 @@ void main() {
         dartdocVersion: dartdocVersion,
         pubCacheDir: pubCacheDir,
       );
-      await toolEnv.runUpgrade(pkgDir, false);
+      await toolEnv.runPub(pkgDir, command: 'get', usesFlutter: false);
     });
 
     tearDownAll(() async {

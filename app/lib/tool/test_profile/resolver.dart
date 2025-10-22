@@ -64,7 +64,11 @@ Future<List<ResolvedVersion>> resolveVersions(
           ),
         );
 
-        final pr = await toolEnv.runUpgrade(dummyDir.path, false);
+        final pr = await toolEnv.runPub(
+          dummyDir.path,
+          command: 'upgrade',
+          usesFlutter: false,
+        );
         if (pr.exitCode != 0) {
           throw Exception(
             'dart pub get on `${package.name} $version` exited with ${pr.exitCode}.\n${pr.stderr}',

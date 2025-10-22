@@ -337,8 +337,6 @@ Summary _emptySummary(String package, String version) {
     tags: null,
     report: null,
     result: null,
-    licenseFile: null,
-    licenses: null,
     errorMessage: null,
     pubspec: null, // will be ignored
   );
