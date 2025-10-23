@@ -99,7 +99,7 @@ Future<Summary> fakePanaSummary({
         .where((url) => fakeUrlCheck('funding', url) != null)
         .toList(),
     contributingUrl: contributingUrl,
-    licenses: [License(path: '', spdxIdentifier: licenseSpdx)],
+    licenses: [License(spdxIdentifier: licenseSpdx)],
   );
   return Summary(
     createdAt: clock.now().toUtc(),
@@ -156,7 +156,6 @@ Future<Summary> fakePanaSummary({
       ],
     ),
     result: result,
-    licenses: [],
     errorMessage: null,
     pubspec: null, // will be ignored
   );
