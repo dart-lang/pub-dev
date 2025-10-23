@@ -101,6 +101,13 @@ shelf.Response notFoundHandler(
   return htmlResponse(body, status: 404, headers: headers);
 }
 
+shelf.Response methodNotAllowedHandler(
+  shelf.Request request, {
+  Map<String, Object>? headers,
+}) {
+  return shelf.Response(405, body: 'Method Not Allowed', headers: headers);
+}
+
 shelf.Response rejectRobotsHandler(shelf.Request request) =>
     shelf.Response.ok('User-agent: *\nDisallow: /\n');
 

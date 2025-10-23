@@ -185,7 +185,10 @@ class TestBrowserSession {
   TestBrowserSession(this._browser, this._context);
 
   /// Creates a new page and setup overrides and tracking.
-  Future<R> withPage<R>({required Future<R> Function(Page page) fn}) async {
+  Future<R> withPage<R>({
+    required Future<R> Function(Page page) fn,
+    bool expectAllResponsesToBeCacheControlPublic = false,
+  }) async {
     final clientErrors = <ClientError>[];
     final serverErrors = <String>[];
     final page = await _context.newPage();
@@ -261,20 +264,31 @@ class TestBrowserSession {
         }
       }
 
-      if (!rs.url.startsWith('data:') &&
-          // exempt the image URL from markdown_samples.md
-          rs.url != 'https://pub.dev/static/img/pub-dev-logo.svg') {
+      if (rs.status == 200 &&
+          rs.request.method.toUpperCase() == 'GET' &&
+          // filters out data: and other-domain URLs
+          rs.url.startsWith(_browser._origin)) {
         final uri = Uri.parse(rs.url);
-        if (uri.pathSegments.length > 1 && uri.pathSegments.first == 'static') {
+        final firstPathSegment = uri.pathSegments.firstOrNull;
+
+        if (firstPathSegment == 'static') {
           if (!uri.pathSegments[1].startsWith('hash-')) {
             serverErrors.add('Static URL ${rs.url} is without hash segment.');
           }
+        }
 
+        final shouldBePublic =
+            firstPathSegment == 'static' ||
+            firstPathSegment == 'documentation' ||
+            expectAllResponsesToBeCacheControlPublic;
+        final knownExemption =
+            firstPathSegment == 'experimental' || firstPathSegment == 'report';
+        if (shouldBePublic && !knownExemption) {
           final cacheHeader = rs.headers[HttpHeaders.cacheControlHeader];
           if (cacheHeader == null ||
               !cacheHeader.contains('public') ||
               !cacheHeader.contains('max-age')) {
-            serverErrors.add('Static ${rs.url} is without public caching.');
+            serverErrors.add('${rs.url} is without public caching.');
           }
         }
       }

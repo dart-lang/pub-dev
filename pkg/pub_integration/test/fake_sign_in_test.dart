@@ -43,7 +43,9 @@ void main() {
       // This should normally be used as a test user in higher-level tests.
       // However, this integration test is to verify the lower-level details
       // of the fake sign-in, and the relation cookie and redirect handling.
-      final browserSession = await fakeTestScenario.createAnonymousTestUser();
+      final browserSession = await fakeTestScenario.createAnonymousTestUser(
+        expectAllResponsesToBeCacheControlPublic: false,
+      );
       String? firstSessionId;
       // sign-in page
       await browserSession.withBrowserPage((page) async {

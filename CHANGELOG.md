@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bump runtimeVersion to `2025.10.22`.
  * Upgraded stable Flutter analysis SDK to `3.35.6`.
  * Upgraded pana to `0.23.0`.
+ * Added more explicitly public `cache-control` to content pages.
 
 ## `20251017t101000-all`
  * Bump runtimeVersion to `2025.10.17`.
