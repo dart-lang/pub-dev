@@ -25,8 +25,7 @@ import '../../shared/urls.dart';
 Future<shelf.Response> documentationHandler(shelf.Request request) async {
   final requestMethod = request.method.toUpperCase();
   if (requestMethod != 'HEAD' && requestMethod != 'GET') {
-    // TODO: Should probably be "method not supported"!
-    return notFoundHandler(request);
+    return methodNotAllowedHandler(request);
   }
 
   final docFilePath = parseRequestUri(request.requestedUri);
