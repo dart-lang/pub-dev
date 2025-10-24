@@ -14,7 +14,6 @@ const _publicFlags = <PublicFlag>{
 
 final _allFlags = <String>{
   'dark-as-default',
-  'manual-publishing',
   ..._publicFlags.map((x) => x.name),
 };
 
@@ -88,8 +87,6 @@ class ExperimentalFlags {
   }
 
   bool get isDarkModeDefault => isEnabled('dark-as-default');
-
-  bool get isManualPublishingConfigAvailable => isEnabled('manual-publishing');
 
   String encodedAsCookie() => _enabled.join(':');
 
