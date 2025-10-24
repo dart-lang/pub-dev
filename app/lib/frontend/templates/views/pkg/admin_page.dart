@@ -314,8 +314,8 @@ d.Node packageAdminPageNode({
 }
 
 d.Node _automatedPublishing(Package package) {
-  final github = package.automatedPublishing?.githubConfig;
-  final gcp = package.automatedPublishing?.gcpConfig;
+  final github = package.publishingConfig?.githubConfig;
+  final gcp = package.publishingConfig?.gcpConfig;
   final isGitHubEnabled = github?.isEnabled ?? false;
   return d.fragment([
     d.a(name: 'automated-publishing'),
@@ -469,7 +469,7 @@ d.Node _automatedPublishing(Package package) {
 }
 
 d.Node _manualPublishing(Package package) {
-  final manual = package.automatedPublishing?.manualConfig;
+  final manual = package.publishingConfig?.manualConfig;
   return d.fragment([
     d.a(name: 'manual-publishing'),
     d.h3(text: 'Manual publishing'),
