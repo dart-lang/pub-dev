@@ -29,9 +29,9 @@ Map<String, dynamic> _$PkgOptionsToJson(PkgOptions instance) =>
       'isUnlisted': instance.isUnlisted,
     };
 
-AutomatedPublishingConfig _$AutomatedPublishingConfigFromJson(
+PkgPublishingConfig _$PkgPublishingConfigFromJson(
   Map<String, dynamic> json,
-) => AutomatedPublishingConfig(
+) => PkgPublishingConfig(
   github: json['github'] == null
       ? null
       : GitHubPublishingConfig.fromJson(json['github'] as Map<String, dynamic>),
@@ -43,8 +43,8 @@ AutomatedPublishingConfig _$AutomatedPublishingConfigFromJson(
       : ManualPublishingConfig.fromJson(json['manual'] as Map<String, dynamic>),
 );
 
-Map<String, dynamic> _$AutomatedPublishingConfigToJson(
-  AutomatedPublishingConfig instance,
+Map<String, dynamic> _$PkgPublishingConfigToJson(
+  PkgPublishingConfig instance,
 ) => <String, dynamic>{
   'github': ?instance.github?.toJson(),
   'gcp': ?instance.gcp?.toJson(),

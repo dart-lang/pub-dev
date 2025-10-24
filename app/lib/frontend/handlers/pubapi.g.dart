@@ -595,9 +595,29 @@ Router _$PubApiRouter(PubApi service) {
       final _$result = await service.setAutomatedPublishing(
         request,
         package,
-        await $utilities.decodeJson<AutomatedPublishingConfig>(
+        await $utilities.decodeJson<PkgPublishingConfig>(
           request,
-          (o) => AutomatedPublishingConfig.fromJson(o),
+          (o) => PkgPublishingConfig.fromJson(o),
+        ),
+      );
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
+  router.add('PUT', r'/api/packages/<package>/publishing', (
+    Request request,
+    String package,
+  ) async {
+    try {
+      final _$result = await service.setPackagePublishing(
+        request,
+        package,
+        await $utilities.decodeJson<PkgPublishingConfig>(
+          request,
+          (o) => PkgPublishingConfig.fromJson(o),
         ),
       );
       return $utilities.jsonResponse(_$result.toJson());
