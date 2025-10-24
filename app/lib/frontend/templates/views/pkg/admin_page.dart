@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/data/package_api.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 
 import '../../../../account/models.dart';
 import '../../../../package/models.dart';
@@ -36,10 +35,7 @@ d.Node packageAdminPageNode({
         'Publishing',
         href: '#publishing',
         children: [
-          if (requestContext
-              .experimentalFlags
-              .isManualPublishingConfigAvailable)
-            TocNode('Manual publishing', href: '#manual-publishing'),
+          TocNode('Manual publishing', href: '#manual-publishing'),
           TocNode(
             'Automated publishing',
             href: '#automated-publishing',
@@ -239,8 +235,7 @@ d.Node packageAdminPageNode({
     ],
     d.a(name: 'publishing'),
     d.h2(text: 'Publishing'),
-    if (requestContext.experimentalFlags.isManualPublishingConfigAvailable)
-      _manualPublishing(package),
+    _manualPublishing(package),
     _automatedPublishing(package),
     d.a(name: 'version-retraction'),
     d.h2(text: 'Version retraction'),

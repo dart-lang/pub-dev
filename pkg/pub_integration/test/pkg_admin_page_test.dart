@@ -81,7 +81,6 @@ void main() {
 
       // disable manual publishing
       await user.withBrowserPage((page) async {
-        await page.gotoOrigin('/experimental?manual-publishing=1');
         await page.gotoOrigin('/packages/test_pkg/admin');
 
         await page.waitAndClick('#-pkg-admin-manual-publishing-enabled');

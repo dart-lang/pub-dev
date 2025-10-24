@@ -265,6 +265,9 @@
                         <a href="#publishing">Publishing</a>
                       </div>
                       <div class="pub-toc-node pub-toc-node-1">
+                        <a href="#manual-publishing">Manual publishing</a>
+                      </div>
+                      <div class="pub-toc-node pub-toc-node-1">
                         <a href="#automated-publishing">Automated publishing</a>
                       </div>
                       <div class="pub-toc-node pub-toc-node-2">
@@ -409,6 +412,32 @@
                   </div>
                   <a name="publishing"></a>
                   <h2>Publishing</h2>
+                  <a name="manual-publishing"></a>
+                  <h3>Manual publishing</h3>
+                  <p>
+                    Manual publishing, using personal credentials for the
+                    <code>pub</code>
+                    client (
+                    <code>pub login</code>
+                    ) .
+                  </p>
+                  <p>Disable to prevent accidental publication from the command line.</p>
+                  <p>It is recommended to disable when automated publishing is enabled.</p>
+                  <div class="-pub-form-checkbox-row">
+                    <div class="mdc-form-field">
+                      <div class="mdc-checkbox">
+                        <input id="-pkg-admin-manual-publishing-enabled" class="mdc-checkbox__native-control" type="checkbox" checked="checked"/>
+                        <div class="mdc-checkbox__background">
+                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
+                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
+                          </svg>
+                          <div class="mdc-checkbox__mixedmark"></div>
+                        </div>
+                        <div class="mdc-checkbox__ripple"></div>
+                      </div>
+                      <label for="-pkg-admin-manual-publishing-enabled">Enable manual publishing</label>
+                    </div>
+                  </div>
                   <a name="automated-publishing"></a>
                   <h3>Automated publishing</h3>
                   <p>
