@@ -35,7 +35,6 @@ import '../shared/versions.dart';
 import 'actions/actions.dart' show AdminAction;
 import 'tools/delete_all_staging.dart';
 import 'tools/list_tools.dart';
-import 'tools/notify_service.dart';
 import 'tools/recent_uploaders.dart';
 import 'tools/user_merger.dart';
 
@@ -53,7 +52,6 @@ typedef Tool = Future<String> Function(List<String> args);
 
 final Map<String, Tool> availableTools = {
   'delete-all-staging': executeDeleteAllStaging,
-  'notify-service': executeNotifyService,
   'recent-uploaders': executeRecentUploaders,
   'user-merger': executeUserMergerTool,
   'list-tools': executeListTools,
