@@ -58,20 +58,14 @@ class TestContextProvider {
     await _fakePubServerProcess.kill();
   }
 
-  Future<TestUser> createAnonymousTestUser({
-    bool expectAllResponsesToBeCacheControlPublic = true,
-  }) async {
+  Future<TestUser> createAnonymousTestUser() async {
     final session = await _testBrowser.createSession();
     return TestUser(
       email: '',
       browserApi: PubApiClient(pubHostedUrl),
       serverApi: PubApiClient(pubHostedUrl),
       withBrowserPage: <T>(Future<T> Function(Page) fn) async {
-        return await session.withPage<T>(
-          fn: fn,
-          expectAllResponsesToBeCacheControlPublic:
-              expectAllResponsesToBeCacheControlPublic,
-        );
+        return await session.withPage<T>(fn: fn);
       },
       readLatestEmail: () async => throw UnimplementedError(),
       createCredentials: () async => throw UnimplementedError(),

@@ -356,10 +356,7 @@ Future<shelf.Response> _handlePackagePage({
     }
     _packageDoneLatencyTracker.add(sw.elapsed);
   }
-  return htmlResponse(
-    cachedPage,
-    headers: cacheEnabled ? CacheControl.packageContentPage.headers : null,
-  );
+  return htmlResponse(cachedPage);
 }
 
 /// Returns the optionally lowercased version of [name], but only if there
