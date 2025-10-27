@@ -394,14 +394,28 @@ class PubApiClient {
     );
   }
 
-  Future<_i3.AutomatedPublishingConfig> setAutomatedPublishing(
+  Future<_i3.PkgPublishingConfig> setAutomatedPublishing(
     String package,
-    _i3.AutomatedPublishingConfig payload,
+    _i3.PkgPublishingConfig payload,
   ) async {
-    return _i3.AutomatedPublishingConfig.fromJson(
+    return _i3.PkgPublishingConfig.fromJson(
       await _client.requestJson(
         verb: 'put',
         path: '/api/packages/$package/automated-publishing',
+
+        body: payload.toJson(),
+      ),
+    );
+  }
+
+  Future<_i3.PkgPublishingConfig> setPackagePublishing(
+    String package,
+    _i3.PkgPublishingConfig payload,
+  ) async {
+    return _i3.PkgPublishingConfig.fromJson(
+      await _client.requestJson(
+        verb: 'put',
+        path: '/api/packages/$package/publishing',
 
         body: payload.toJson(),
       ),

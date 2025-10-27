@@ -290,7 +290,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 manual: ManualPublishingConfig(isEnabled: false),
               ),
             );
@@ -365,7 +365,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 gcp: GcpPublishingConfig(
                   isEnabled: true,
                   serviceAccountEmail: 'admin@x.gserviceaccount.com',
@@ -401,7 +401,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 gcp: GcpPublishingConfig(
                   isEnabled: true,
                   serviceAccountEmail: 'admin@x.gserviceaccount.com',
@@ -410,7 +410,7 @@ void main() {
             );
           });
           final pkg = await packageBackend.lookupPackage('oxygen');
-          pkg!.automatedPublishing!.gcpLock = GcpPublishingLock(
+          pkg!.publishingConfig!.gcpLock = GcpPublishingLock(
             oauthUserId: 'other-user-id',
           );
           await dbService.commit(inserts: [pkg]);
@@ -433,7 +433,7 @@ void main() {
           );
 
           final pkgAfter = await packageBackend.lookupPackage('oxygen');
-          expect(pkgAfter!.automatedPublishing!.gcpConfig!.toJson(), {
+          expect(pkgAfter!.publishingConfig!.gcpConfig!.toJson(), {
             'isEnabled': false,
             'serviceAccountEmail': 'admin@x.gserviceaccount.com',
           });
@@ -448,7 +448,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 gcp: GcpPublishingConfig(
                   isEnabled: true,
                   serviceAccountEmail: 'admin@x.gserviceaccount.com',
@@ -469,7 +469,7 @@ void main() {
           expect(rs.success.message, contains('Successfully uploaded'));
 
           final pkg = await packageBackend.lookupPackage('oxygen');
-          expect(pkg!.automatedPublishing!.gcpLock!.toJson(), {
+          expect(pkg!.publishingConfig!.gcpLock!.toJson(), {
             'oauthUserId': 'admin-x-gserviceaccount-com',
           });
         },
@@ -532,7 +532,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 github: GitHubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
@@ -570,7 +570,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 github: GitHubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
@@ -608,7 +608,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 github: GitHubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
@@ -647,7 +647,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 github: GitHubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
@@ -686,7 +686,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 github: GitHubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
@@ -725,7 +725,7 @@ void main() {
             ) async {
               await client.setAutomatedPublishing(
                 'oxygen',
-                AutomatedPublishingConfig(
+                PkgPublishingConfig(
                   github: GitHubPublishingConfig(
                     isEnabled: true,
                     repository: 'a/b',
@@ -735,7 +735,7 @@ void main() {
               );
             });
             final pkg = await packageBackend.lookupPackage('oxygen');
-            pkg!.automatedPublishing!.githubLock = GitHubPublishingLock(
+            pkg!.publishingConfig!.githubLock = GitHubPublishingLock(
               repositoryOwnerId: 'x',
               repositoryId: 'y',
             );
@@ -774,7 +774,7 @@ void main() {
                   'GitHub repository identifiers changed, disabling automated publishing',
             );
             final pkg = await packageBackend.lookupPackage('oxygen');
-            expect(pkg!.automatedPublishing!.githubConfig!.toJson(), {
+            expect(pkg!.publishingConfig!.githubConfig!.toJson(), {
               'isEnabled': false,
               'repository': 'a/b',
               'tagPattern': '{{version}}',
@@ -794,7 +794,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 github: GitHubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
@@ -826,7 +826,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 github: GitHubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
@@ -868,7 +868,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               '_dummy_pkg',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 github: GitHubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
@@ -893,7 +893,7 @@ void main() {
           expect(rs.success.message, contains('Successfully uploaded'));
 
           final pkg = await packageBackend.lookupPackage('_dummy_pkg');
-          expect(pkg!.automatedPublishing!.githubLock!.toJson(), {
+          expect(pkg!.publishingConfig!.githubLock!.toJson(), {
             'repositoryId': 'repo-id-1',
             'repositoryOwnerId': 'owner-id-234',
           });
@@ -953,7 +953,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 github: GitHubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
@@ -994,7 +994,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 github: GitHubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',
@@ -1036,7 +1036,7 @@ void main() {
           ) async {
             await client.setAutomatedPublishing(
               'oxygen',
-              AutomatedPublishingConfig(
+              PkgPublishingConfig(
                 github: GitHubPublishingConfig(
                   isEnabled: true,
                   repository: 'a/b',

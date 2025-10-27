@@ -149,9 +149,15 @@ class Package extends db.ExpandoModel<String> {
   @db.StringListProperty()
   List<String>? deletedVersions;
 
-  /// Scheduling state for all versions of this package.
-  @AutomatedPublishingProperty()
-  AutomatedPublishing? automatedPublishing;
+  /// The configuration for automated and manual publishing.
+  @PublishingConfigProperty()
+  PublishingConfig? automatedPublishing;
+
+  @PublishingConfigProperty(propertyName: 'publishingConfig')
+  PublishingConfig? newPublishingConfig;
+
+  PublishingConfig? get publishingConfig =>
+      newPublishingConfig ?? automatedPublishing;
 
   /// The latest point in time at which a security advisory that affects this
   /// package has been synchronized into pub.
@@ -455,14 +461,14 @@ class Release {
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
-class AutomatedPublishing {
+class PublishingConfig {
   GitHubPublishingConfig? githubConfig;
   GitHubPublishingLock? githubLock;
   GcpPublishingConfig? gcpConfig;
   GcpPublishingLock? gcpLock;
   ManualPublishingConfig? manualConfig;
 
-  AutomatedPublishing({
+  PublishingConfig({
     this.githubConfig,
     this.githubLock,
     this.gcpConfig,
@@ -470,18 +476,16 @@ class AutomatedPublishing {
     this.manualConfig,
   });
 
-  factory AutomatedPublishing.fromJson(Map<String, dynamic> json) =>
-      _$AutomatedPublishingFromJson(json);
+  factory PublishingConfig.fromJson(Map<String, dynamic> json) =>
+      _$PublishingConfigFromJson(json);
 
-  Map<String, dynamic> toJson() => _$AutomatedPublishingToJson(this);
+  Map<String, dynamic> toJson() => _$PublishingConfigToJson(this);
 }
 
-/// A [db.Property] encoding [AutomatedPublishing] as JSON.
-class AutomatedPublishingProperty extends db.Property {
-  const AutomatedPublishingProperty({
-    super.propertyName,
-    super.required = false,
-  }) : super(indexed: false);
+/// A [db.Property] encoding [PublishingConfig] as JSON.
+class PublishingConfigProperty extends db.Property {
+  const PublishingConfigProperty({super.propertyName, super.required = false})
+    : super(indexed: false);
 
   @override
   Object? encodeValue(
@@ -490,13 +494,13 @@ class AutomatedPublishingProperty extends db.Property {
     bool forComparison = false,
   }) {
     if (value == null) return null;
-    return json.encode(value as AutomatedPublishing);
+    return json.encode(value as PublishingConfig);
   }
 
   @override
   Object? decodePrimitiveValue(db.ModelDB mdb, Object? value) {
     if (value == null) return null;
-    return AutomatedPublishing.fromJson(
+    return PublishingConfig.fromJson(
       json.decode(value as String) as Map<String, dynamic>,
     );
   }
@@ -504,7 +508,7 @@ class AutomatedPublishingProperty extends db.Property {
   @override
   bool validate(db.ModelDB mdb, Object? value) =>
       super.validate(mdb, value) &&
-      (value == null || value is AutomatedPublishing);
+      (value == null || value is PublishingConfig);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)

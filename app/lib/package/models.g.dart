@@ -34,8 +34,8 @@ Map<String, dynamic> _$ReleaseToJson(Release instance) => <String, dynamic>{
   'published': instance.published.toIso8601String(),
 };
 
-AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
-    AutomatedPublishing(
+PublishingConfig _$PublishingConfigFromJson(Map<String, dynamic> json) =>
+    PublishingConfig(
       githubConfig: json['githubConfig'] == null
           ? null
           : GitHubPublishingConfig.fromJson(
@@ -61,15 +61,14 @@ AutomatedPublishing _$AutomatedPublishingFromJson(Map<String, dynamic> json) =>
             ),
     );
 
-Map<String, dynamic> _$AutomatedPublishingToJson(
-  AutomatedPublishing instance,
-) => <String, dynamic>{
-  'githubConfig': ?instance.githubConfig?.toJson(),
-  'githubLock': ?instance.githubLock?.toJson(),
-  'gcpConfig': ?instance.gcpConfig?.toJson(),
-  'gcpLock': ?instance.gcpLock?.toJson(),
-  'manualConfig': ?instance.manualConfig?.toJson(),
-};
+Map<String, dynamic> _$PublishingConfigToJson(PublishingConfig instance) =>
+    <String, dynamic>{
+      'githubConfig': ?instance.githubConfig?.toJson(),
+      'githubLock': ?instance.githubLock?.toJson(),
+      'gcpConfig': ?instance.gcpConfig?.toJson(),
+      'gcpLock': ?instance.gcpLock?.toJson(),
+      'manualConfig': ?instance.manualConfig?.toJson(),
+    };
 
 GitHubPublishingLock _$GitHubPublishingLockFromJson(
   Map<String, dynamic> json,
