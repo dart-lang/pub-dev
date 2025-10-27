@@ -93,7 +93,7 @@ Future<shelf.Response> handleDartDoc(
     if (htmlBytes != null) {
       return htmlBytesResponse(
         htmlBytes,
-        headers: CacheControl.packageContentPage.headers,
+        headers: CacheControl.documentationPage.headers,
       );
     }
 
@@ -217,7 +217,7 @@ Future<shelf.Response> handleDartDoc(
         await htmlBytesCacheEntry.set(bytes!);
         return htmlBytesResponse(
           bytes,
-          headers: CacheControl.packageContentPage.headers,
+          headers: CacheControl.documentationPage.headers,
         );
       case DocPageStatusCode.redirect:
         return redirectPathResponse(status.redirectPath!);
@@ -243,14 +243,14 @@ Future<shelf.Response> handleDartDoc(
   }
 
   if (request.method.toUpperCase() == 'HEAD') {
-    return htmlResponse('', headers: CacheControl.packageContentPage.headers);
+    return htmlResponse('', headers: CacheControl.documentationPage.headers);
   }
 
   final acceptsGzip = request.acceptsGzipEncoding();
   return shelf.Response.ok(
     acceptsGzip ? dataGz : gzip.decode(dataGz),
     headers: {
-      ...CacheControl.packageContentPage.headers,
+      ...CacheControl.documentationPage.headers,
       'Content-Type': mime,
       'Vary': 'Accept-Encoding', // body depends on accept-encoding!
       if (acceptsGzip) 'Content-Encoding': 'gzip',

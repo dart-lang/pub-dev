@@ -7,8 +7,6 @@ import 'dart:async';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/frontend/handlers/cache_control.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/name_tracker.dart';
@@ -96,9 +94,6 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
       openSections: openSections,
     ),
     status: statusCode,
-    headers: statusCode == 200 && requestContext.uiCacheEnabled
-        ? CacheControl.packageListingPage.headers
-        : null,
   );
   _searchOverallLatencyTracker.add(sw.elapsed);
   return result;

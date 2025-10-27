@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:_pub_shared/search/tags.dart';
-import 'package:pub_dev/frontend/handlers/cache_control.dart';
 import 'package:pub_dev/search/top_packages.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -50,10 +49,7 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
   }
 
   if (requestContext.uiCacheEnabled) {
-    return htmlResponse(
-      (await cache.uiIndexPage().get(_render))!,
-      headers: CacheControl.packageListingPage.headers,
-    );
+    return htmlResponse((await cache.uiIndexPage().get(_render))!);
   }
   return htmlResponse(await _render());
 }
