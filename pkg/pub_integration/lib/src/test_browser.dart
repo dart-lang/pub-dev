@@ -185,10 +185,7 @@ class TestBrowserSession {
   TestBrowserSession(this._browser, this._context);
 
   /// Creates a new page and setup overrides and tracking.
-  Future<R> withPage<R>({
-    required Future<R> Function(Page page) fn,
-    bool expectAllResponsesToBeCacheControlPublic = false,
-  }) async {
+  Future<R> withPage<R>({required Future<R> Function(Page page) fn}) async {
     final clientErrors = <ClientError>[];
     final serverErrors = <String>[];
     final page = await _context.newPage();
@@ -278,9 +275,7 @@ class TestBrowserSession {
         }
 
         final shouldBePublic =
-            firstPathSegment == 'static' ||
-            firstPathSegment == 'documentation' ||
-            expectAllResponsesToBeCacheControlPublic;
+            firstPathSegment == 'static' || firstPathSegment == 'documentation';
         final knownExemption =
             firstPathSegment == 'experimental' || firstPathSegment == 'report';
         if (shouldBePublic && !knownExemption) {

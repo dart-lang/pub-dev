@@ -62,17 +62,10 @@ final class CacheControl {
     public: true,
   );
 
-  /// `Cache-Control` headers for package content pages, returning content that
+  /// `Cache-Control` headers for documentation pages, returning content that
   /// is not updated frequently.
-  static const packageContentPage = CacheControl(
+  static const documentationPage = CacheControl(
     maxAge: Duration(minutes: 30),
-    public: true,
-  );
-
-  /// `Cache-Control` headers for package listing pages, returning content that
-  /// is may be updated frequently.
-  static const packageListingPage = CacheControl(
-    maxAge: Duration(minutes: 5),
     public: true,
   );
 
