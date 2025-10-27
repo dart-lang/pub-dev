@@ -17,7 +17,7 @@ void main() {
   group('Update value through API', () {
     setupTestsWithCallerAuthorizationIssues(
       (client) =>
-          client.setAutomatedPublishing('oxygen', AutomatedPublishingConfig()),
+          client.setAutomatedPublishing('oxygen', PkgPublishingConfig()),
     );
 
     testWithProfile(
@@ -29,7 +29,7 @@ void main() {
         await expectApiException(
           client.setAutomatedPublishing(
             'no_such_package',
-            AutomatedPublishingConfig(),
+            PkgPublishingConfig(),
           ),
           status: 404,
           code: 'NotFound',
@@ -44,7 +44,7 @@ void main() {
           email: userAtPubDevEmail,
         );
         await expectApiException(
-          client.setAutomatedPublishing('oxygen', AutomatedPublishingConfig()),
+          client.setAutomatedPublishing('oxygen', PkgPublishingConfig()),
           status: 403,
           code: 'InsufficientPermissions',
           message:
@@ -61,7 +61,7 @@ void main() {
         );
         final rs = await client.setAutomatedPublishing(
           'oxygen',
-          AutomatedPublishingConfig(
+          PkgPublishingConfig(
             github: GitHubPublishingConfig(
               isEnabled: true,
               repository: 'dart-lang/pub-dev',
@@ -81,10 +81,10 @@ void main() {
         });
         final p = await packageBackend.lookupPackage('oxygen');
         expect(
-          p!.automatedPublishing!.githubConfig!.toJson(),
+          p!.publishingConfig!.githubConfig!.toJson(),
           rs.github!.toJson(),
         );
-        expect(p.automatedPublishing!.gcpConfig, isNull);
+        expect(p.publishingConfig!.gcpConfig, isNull);
         final audits = await auditBackend.listRecordsForPackage('oxygen');
         // check audit log record exists
         final record = audits.records.firstWhere(
@@ -107,7 +107,7 @@ void main() {
         );
         final rs = await client.setAutomatedPublishing(
           'oxygen',
-          AutomatedPublishingConfig(
+          PkgPublishingConfig(
             gcp: GcpPublishingConfig(
               isEnabled: true,
               serviceAccountEmail: 'project-id@cloudbuild.gserviceaccount.com',
@@ -121,8 +121,8 @@ void main() {
           },
         });
         final p = await packageBackend.lookupPackage('oxygen');
-        expect(p!.automatedPublishing!.gcpConfig!.toJson(), rs.gcp!.toJson());
-        expect(p.automatedPublishing!.githubConfig, isNull);
+        expect(p!.publishingConfig!.gcpConfig!.toJson(), rs.gcp!.toJson());
+        expect(p.publishingConfig!.githubConfig, isNull);
         final audits = await auditBackend.listRecordsForPackage('oxygen');
         // check audit log record exists
         final record = audits.records.firstWhere(
@@ -147,7 +147,7 @@ void main() {
         for (final repository in badPaths) {
           final rs = client.setAutomatedPublishing(
             'oxygen',
-            AutomatedPublishingConfig(
+            PkgPublishingConfig(
               github: GitHubPublishingConfig(
                 isEnabled: repository.isEmpty,
                 repository: repository,
@@ -180,7 +180,7 @@ void main() {
         for (final pattern in badPatterns) {
           final rs = client.setAutomatedPublishing(
             'oxygen',
-            AutomatedPublishingConfig(
+            PkgPublishingConfig(
               github: GitHubPublishingConfig(
                 isEnabled: true,
                 repository: 'abcd/efgh',
@@ -208,7 +208,7 @@ void main() {
         for (final pattern in badPatterns) {
           final rs = client.setAutomatedPublishing(
             'oxygen',
-            AutomatedPublishingConfig(
+            PkgPublishingConfig(
               github: GitHubPublishingConfig(
                 isEnabled: false,
                 repository: 'abcd/efgh',
@@ -236,7 +236,7 @@ void main() {
         );
         final rs = client.setAutomatedPublishing(
           'oxygen',
-          AutomatedPublishingConfig(
+          PkgPublishingConfig(
             github: GitHubPublishingConfig(
               isEnabled: false,
               repository: 'abcd/efgh',
@@ -268,7 +268,7 @@ void main() {
         for (final value in badValues) {
           final rs = client.setAutomatedPublishing(
             'oxygen',
-            AutomatedPublishingConfig(
+            PkgPublishingConfig(
               gcp: GcpPublishingConfig(
                 isEnabled: value.isEmpty,
                 serviceAccountEmail: value,
@@ -294,7 +294,7 @@ void main() {
         );
         final rs = client.setAutomatedPublishing(
           'oxygen',
-          AutomatedPublishingConfig(
+          PkgPublishingConfig(
             gcp: GcpPublishingConfig(
               isEnabled: true,
               serviceAccountEmail: 'user@pub.dev',
@@ -325,7 +325,7 @@ void main() {
         }) async {
           final rs = await client.setAutomatedPublishing(
             'oxygen',
-            AutomatedPublishingConfig(github: github, gcp: gcp, manual: manual),
+            PkgPublishingConfig(github: github, gcp: gcp, manual: manual),
           );
           expect(rs.toJson(), expected);
         }

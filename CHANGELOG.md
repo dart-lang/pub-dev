@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Enabled manual publishing settings on package admin UI.
+ * Note: new `Package.publishingConfig` field in Datastore, new `PUT /api/packages/<package>/publishing` endpoint.
+ * Note: Reverted public `cache-control` headers except for `/documentation/` pages.
 
 ## `20251023t081900-all`
  * Bump runtimeVersion to `2025.10.22`.
