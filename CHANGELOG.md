@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2025.10.28`.
+ * Upgraded stable Flutter analysis SDK to `3.35.7`.
  * Enabled manual publishing settings on package admin UI.
  * Note: new `Package.publishingConfig` field in Datastore, new `PUT /api/packages/<package>/publishing` endpoint.
  * Note: Reverted public `cache-control` headers except for `/documentation/` pages.
