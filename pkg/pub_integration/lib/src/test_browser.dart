@@ -275,16 +275,36 @@ class TestBrowserSession {
         }
 
         final shouldBePublic =
-            firstPathSegment == 'static' || firstPathSegment == 'documentation';
+            firstPathSegment == 'static' ||
+            firstPathSegment == 'documentation' ||
+            uri.path == '/api/search-input-completion-data';
         final knownExemption =
             firstPathSegment == 'experimental' || firstPathSegment == 'report';
+        final cacheHeader = rs.headers[HttpHeaders.cacheControlHeader];
         if (shouldBePublic && !knownExemption) {
-          final cacheHeader = rs.headers[HttpHeaders.cacheControlHeader];
           if (cacheHeader == null ||
               !cacheHeader.contains('public') ||
               !cacheHeader.contains('max-age')) {
-            serverErrors.add('${rs.url} is without public caching.');
+            serverErrors.add(
+              '${rs.url} is without public cache-control header (was: $cacheHeader).',
+            );
           }
+        }
+        // NOTE: We have deliberately removed `cache-control: public` from pages that
+        //       are both public and can have custom content based on the signed-in
+        //       status (e.g. like button, admin links or the status in the header).
+        //       https://github.com/dart-lang/pub-dev/pull/9035
+        //
+        //       To fix this, we need to test with different CDN configuration (e.g. to
+        //       skip caching if the session cookie is present), or otherwise the
+        //       combination of public caching + sign-in could result stale pages at the
+        //       user's browser (see issue #9033).
+        if (!shouldBePublic &&
+            cacheHeader != null &&
+            cacheHeader.contains('public')) {
+          serverErrors.add(
+            '${rs.url} must have non-public cache-control header (was: $cacheHeader).',
+          );
         }
       }
     });
