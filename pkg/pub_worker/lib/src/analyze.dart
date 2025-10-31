@@ -73,28 +73,20 @@ Future<void> analyze(Payload payload) async {
         client: client.withAuthorization(() => p.token),
       );
 
-      void warnTaskAborted(Exception e, StackTrace st) {
-        _log.warning(
-          'Task was aborted when uploading ${payload.package} / ${p.version}',
-          e,
-          st,
-        );
+      void infoTaskAborted(Exception e, StackTrace st) {
+        final msg =
+            '[pub-task-aborted] Task was aborted when uploading ${payload.package} / ${p.version}';
+        _log.info(msg, e, st);
       }
 
       void warnTaskError(Exception e, StackTrace st) {
-        _log.warning(
-          'Failed to process ${payload.package} / ${p.version}',
-          e,
-          st,
-        );
+        final msg = 'Failed to process ${payload.package} / ${p.version}';
+        _log.warning(msg, e, st);
       }
 
       void shoutTaskError(Object e, StackTrace st) {
-        _log.shout(
-          'Failed to process ${payload.package} / ${p.version}',
-          e,
-          st,
-        );
+        final msg = 'Failed to process ${payload.package} / ${p.version}';
+        _log.shout(msg, e, st);
       }
 
       try {
@@ -123,7 +115,7 @@ Future<void> analyze(Payload payload) async {
           );
         }
       } on TaskAbortedException catch (e, st) {
-        warnTaskAborted(e, st);
+        infoTaskAborted(e, st);
       } on RequestException catch (e, st) {
         late final map = e.bodyAsJson();
         late final error = map['error'];
@@ -131,7 +123,7 @@ Future<void> analyze(Payload payload) async {
         if (e.status >= 500) {
           warnTaskError(e, st);
         } else if (e.status == 400 && code is String && code == 'TaskAborted') {
-          warnTaskAborted(e, st);
+          infoTaskAborted(e, st);
         } else {
           shoutTaskError(e, st);
         }
@@ -139,7 +131,7 @@ Future<void> analyze(Payload payload) async {
         if (e.status >= 500) {
           warnTaskError(e, st);
         } else if (e.status == 400 && e.code == 'TaskAborted') {
-          warnTaskAborted(e, st);
+          infoTaskAborted(e, st);
         } else {
           shoutTaskError(e, st);
         }
