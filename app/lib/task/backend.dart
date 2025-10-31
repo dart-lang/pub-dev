@@ -610,7 +610,9 @@ class TaskBackend {
 
     final state = await _db.tasks.lookupOrNull(package);
     if (state == null) {
-      throw NotFoundException.resource('$package/$version');
+      throw NotFoundException.resource(
+        'PackageState($runtimeVersion/$package)',
+      );
     }
     final versionState = _authorizeWorkerCallback(
       package,
@@ -686,7 +688,9 @@ class TaskBackend {
     await withRetryTransaction(_db, (tx) async {
       final state = await tx.tasks.lookupOrNull(package);
       if (state == null) {
-        throw NotFoundException.resource('$package/$version');
+        throw NotFoundException.resource(
+          'PackageState($runtimeVersion/$package)',
+        );
       }
       final versionState = _authorizeWorkerCallback(
         package,
