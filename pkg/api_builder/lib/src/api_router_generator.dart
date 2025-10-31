@@ -14,7 +14,7 @@ import 'package:source_gen/source_gen.dart' as g;
 import 'shared.dart' show EndPointGenerator, Handler;
 
 // Type checkers that we need later
-final _responseType = g.TypeChecker.fromRuntime(shelf.Response);
+final _responseType = g.TypeChecker.typeNamed(shelf.Response);
 
 class ApiRouterGenerator extends EndPointGenerator {
   @override

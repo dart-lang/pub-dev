@@ -5,8 +5,12 @@
 import 'package:clock/clock.dart';
 import 'package:postgres/postgres.dart';
 import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/env_config.dart';
+import 'package:pub_dev/shared/versions.dart';
+import 'package:pub_dev/task/models.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../shared/test_services.dart';
 
@@ -41,6 +45,42 @@ void main() {
       fn: () async {
         final name = await primaryDatabase!.verifyConnection();
         expect(name, contains('fake_pub_'));
+      },
+    );
+
+    testWithProfile(
+      'typed schema access',
+      fn: () async {
+        final db = primaryDatabase!.db;
+        await db.tasks
+            .insert(
+              runtimeVersion: runtimeVersion.asExpr,
+              package: 'foo'.asExpr,
+              state: TaskState(
+                versions: {
+                  '1.0.0': PackageVersionStateInfo(
+                    scheduled: clock.now(),
+                    attempts: 0,
+                  ),
+                },
+                abortedTokens: [],
+              ).asExpr,
+              pendingAt: clock.now().asExpr,
+              lastDependencyChanged: clock.now().asExpr,
+              finished: clock.now().asExpr,
+            )
+            .execute();
+
+        final rows = await db.tasks
+            .select((b) => (b.package, b.runtimeVersion, b.state))
+            .fetch();
+        expect(rows, hasLength(1));
+        expect(rows.first.$1, 'foo');
+        expect(rows.first.$2, runtimeVersion);
+        expect(rows.first.$3.toJson(), {
+          'versions': {'1.0.0': isNotNull},
+          'abortedTokens': [],
+        });
       },
     );
   });

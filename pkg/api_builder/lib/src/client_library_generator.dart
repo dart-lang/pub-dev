@@ -20,7 +20,7 @@ code.Reference _referToType(DartType type) => code.refer(
   type.element!.firstFragment.libraryFragment!.source.uri.toString(),
 );
 
-final _responseType = g.TypeChecker.fromRuntime(shelf.Response);
+final _responseType = g.TypeChecker.typeNamed(shelf.Response);
 
 /// Use the first Handler when a method has multiple EndPoint annotations.
 Iterable<Handler> _removeDuplicateHandlers(Iterable<Handler> handlers) {
