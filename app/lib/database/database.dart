@@ -10,9 +10,11 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:postgres/postgres.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/env_config.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 final _random = Random.secure();
 
@@ -27,8 +29,10 @@ PrimaryDatabase? get primaryDatabase =>
 /// Access to the primary database connection and object mapping.
 class PrimaryDatabase {
   final Pool _pg;
+  final DatabaseAdapter _adapter;
+  final Database<PrimarySchema> db;
 
-  PrimaryDatabase._(this._pg);
+  PrimaryDatabase._(this._pg, this._adapter, this.db);
 
   /// Gets the connection string either from the environment variable or from
   /// the secret backend, connects to it and registers the primary database
@@ -77,10 +81,14 @@ class PrimaryDatabase {
 
   static Future<PrimaryDatabase> _fromConnectionString(String value) async {
     final pg = Pool.withUrl(value);
-    return PrimaryDatabase._(pg);
+    final adapter = DatabaseAdapter.postgres(pg);
+    final db = Database<PrimarySchema>(adapter, SqlDialect.postgres());
+    await db.createTables();
+    return PrimaryDatabase._(pg, adapter, db);
   }
 
   Future<void> close() async {
+    await _adapter.close();
     await _pg.close();
   }
 

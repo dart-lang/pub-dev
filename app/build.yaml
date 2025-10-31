@@ -8,6 +8,7 @@ targets:
       - 'lib/account/models.dart'
       - 'lib/admin/models.dart'
       - 'lib/dartdoc/models.dart'
+      - 'lib/database/*.dart'
       - 'lib/frontend/handlers/pubapi.dart'
       - 'lib/frontend/handlers/routes.dart'
       - 'lib/frontend/handlers/redirects.dart'

@@ -15,7 +15,7 @@ import 'package:source_gen/source_gen.dart' as g;
 import '../api_builder.dart' show EndPoint;
 
 // Type checkers that we need later
-final _endPointType = g.TypeChecker.fromRuntime(EndPoint);
+final _endPointType = g.TypeChecker.typeNamed(EndPoint);
 
 /// A representation of a handler that was annotated with [EndPoint].
 class Handler {

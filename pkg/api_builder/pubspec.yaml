@@ -8,10 +8,10 @@ resolution: workspace
 
 dependencies:
   analyzer:  ^8.0.0
-  build: ^3.0.0
+  build: ^4.0.0
   build_config: ^1.0.0
   collection: ^1.18.0
-  source_gen: ^3.0.0
+  source_gen: ^4.0.0
   shelf_router: ^1.0.0
   code_builder: ^4.0.0
   shelf: ^1.0.0
