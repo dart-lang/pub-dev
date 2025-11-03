@@ -274,7 +274,7 @@ shelf.Handler _httpsWrapper(shelf.Handler handler) {
       rs = rs.change(
         headers: {
           'strict-transport-security':
-              'max-age=${_hstsDuration.inSeconds}; preload',
+              'max-age=${_hstsDuration.inSeconds}; includeSubDomains; preload',
         },
       );
     }
