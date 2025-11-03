@@ -160,89 +160,81 @@ Future<shelf.Response> handler(shelf.Request request) async {
     }
     final imageUrlBytes = utf8.encode(imageUrl);
 
-    if (_constantTimeEquals(hmacSign(secret, imageUrlBytes), signature)) {
-      final Uri parsedImageUrl;
+    if (!_constantTimeEquals(hmacSign(secret, imageUrlBytes), signature)) {
+      return shelf.Response.unauthorized('Bad hmac', headers: securityHeaders);
+    }
+    final Uri parsedImageUrl;
+    try {
+      parsedImageUrl = Uri.parse(imageUrl);
+    } on FormatException catch (e) {
+      return shelf.Response.badRequest(
+        body: 'Malformed proxied url $e',
+        headers: securityHeaders,
+      );
+    }
+    if (!(parsedImageUrl.isScheme('http') ||
+        parsedImageUrl.isScheme('https'))) {
+      return shelf.Response.badRequest(
+        body: 'Can only proxy http and https urls',
+        headers: securityHeaders,
+      );
+    }
+    if (!parsedImageUrl.isAbsolute) {
+      return shelf.Response.badRequest(
+        body: 'Can only proxy absolute urls',
+        headers: securityHeaders,
+      );
+    }
+
+    Future<
+      ({
+        int statusCode,
+        List<int> body,
+        String? contentType,
+        String? contentEncoding,
+      })
+    >
+    makeRequest(Uri url, {int redirectCount = 0}) async {
+      stderr.writeln('Requesting $url');
+      if (redirectCount > 10) {
+        throw RedirectException('Too many redirects.');
+      }
+      final request = await client.getUrl(url);
+      final timeout = Timer(timeoutDelay, () {
+        request.abort(RequestTimeoutException('No response'));
+      });
+      HttpClientResponse? response;
       try {
-        parsedImageUrl = Uri.parse(imageUrl);
-      } on FormatException catch (e) {
-        return shelf.Response.badRequest(
-          body: 'Malformed proxied url $e',
-          headers: securityHeaders,
+        request.headers.add(
+          'user-agent',
+          'Image proxy for pub.dev. See https://github.com/dart-lang/pub-dev/pkg/image-proxy. If you have any issues, contact support@pub.dev.',
         );
-      }
-      if (!(parsedImageUrl.isScheme('http') ||
-          parsedImageUrl.isScheme('https'))) {
-        return shelf.Response.badRequest(
-          body: 'Can only proxy http and https urls',
-          headers: securityHeaders,
-        );
-      }
-      if (!parsedImageUrl.isAbsolute) {
-        return shelf.Response.badRequest(
-          body: 'Can only proxy absolute urls',
-          headers: securityHeaders,
-        );
-      }
-
-      int statusCode;
-      List<int> bytes;
-      String? contentType;
-      String? contentEncoding;
-      try {
-        (statusCode, bytes, contentType, contentEncoding) = await retry(
-          maxDelay: timeoutDelay,
-          maxAttempts: isTesting ? 2 : 8,
-          () async {
-            final request = await client.getUrl(parsedImageUrl);
-            Timer? timeoutTimer;
-            void scheduleRequestTimeout() {
-              timeoutTimer?.cancel();
-              timeoutTimer = Timer(timeoutDelay, () {
-                request.abort(RequestTimeoutException('No response'));
-              });
-            }
-
-            request.headers.add(
-              'user-agent',
-              'Image proxy for pub.dev. See https://github.com/dart-lang/pub-dev/pkg/image-proxy. If you have any issues, contact support@pub.dev.',
-            );
-            request.followRedirects = false;
-            scheduleRequestTimeout();
-            var response = await request.close();
-            var redirectCount = 0;
-            while (response.isRedirect) {
-              await response.drain();
-              redirectCount++;
-              if (redirectCount > 10) {
-                throw RedirectException('Too many redirects.');
-              }
-              final location = response.headers.value(
-                HttpHeaders.locationHeader,
-              );
-              if (location == null) {
-                throw RedirectException('No location header in redirect.');
-              }
-              final uri = parsedImageUrl.resolve(location);
-              final request = await client.getUrl(uri);
-
-              request.headers.add('user-agent', 'pub-proxy');
-              // Set the body or headers as desired.
-              request.followRedirects = false;
-              scheduleRequestTimeout();
-              response = await request.close();
-            }
-            switch (response.statusCode) {
-              case final int statusCode && >= 500 && < 600:
-                throw ServerSideException(statusCode: statusCode);
-              case final int statusCode && >= 300 && < 400:
-                throw ServerSideException(statusCode: statusCode);
-            }
-            final contentLength = response.contentLength;
-            if (contentLength != -1 && contentLength > maxImageSize) {
-              throw TooLargeException();
-            }
-            return (
-              response.statusCode,
+        request.followRedirects = false;
+        response = await request.close();
+        if (response.isRedirect) {
+          await response.listen((_) => null).cancel();
+          final location = response.headers.value(HttpHeaders.locationHeader);
+          if (location == null) {
+            throw RedirectException('No location header in redirect.');
+          }
+          return makeRequest(
+            parsedImageUrl.resolve(location),
+            redirectCount: redirectCount + 1,
+          );
+        }
+        switch (response.statusCode) {
+          case final int statusCode && >= 500 && < 600:
+            throw ServerSideException(statusCode: statusCode);
+          case final int statusCode && >= 300 && < 400:
+            throw ServerSideException(statusCode: statusCode);
+        }
+        final contentLength = response.contentLength;
+        if (contentLength != -1 && contentLength > maxImageSize) {
+          throw TooLargeException();
+        }
+        return (
+          statusCode: response.statusCode,
+          body:
               await readAllBytes(
                 response,
                 contentLength == -1 ? maxImageSize : contentLength,
@@ -252,40 +244,33 @@ Future<shelf.Response> handler(shelf.Request request) async {
                   throw RequestTimeoutException('No response');
                 },
               ),
-              response.headers.value('content-type'),
-              response.headers.value('content-encoding'),
-            );
-          },
-          retryIf: (e) =>
-              e is SocketException ||
-              e is http.ClientException ||
-              e is ServerSideException,
+          contentType: response.headers.value('content-type'),
+          contentEncoding: response.headers.value('content-encoding'),
         );
-      } on TooLargeException {
-        return shelf.Response.badRequest(
-          body: 'Image too large',
-          headers: securityHeaders,
-        );
-      } on RedirectException catch (e) {
-        return shelf.Response.badRequest(
-          body: e.message,
-          headers: securityHeaders,
-        );
-      } on RequestTimeoutException catch (e) {
-        return shelf.Response.badRequest(
-          body: e.message,
-          headers: securityHeaders,
-        );
-      } on ServerSideException catch (e) {
-        return shelf.Response.badRequest(
-          body: 'Failed to retrieve image. Status code ${e.statusCode}',
-          headers: securityHeaders,
-        );
+      } finally {
+        timeout.cancel();
+        try {
+          // Attempt closing resources
+          request.abort();
+          await response?.listen((_) => null).cancel();
+        } catch (_) {}
       }
+    }
+
+    try {
+      final (:statusCode, :body, :contentType, :contentEncoding) = await retry(
+        maxDelay: timeoutDelay,
+        maxAttempts: isTesting ? 2 : 8,
+        () => makeRequest(parsedImageUrl),
+        retryIf: (e) =>
+            e is SocketException ||
+            e is http.ClientException ||
+            e is ServerSideException,
+      );
 
       return shelf.Response(
         statusCode,
-        body: bytes,
+        body: body,
         headers: {
           'Cache-control': 'max-age=180, public',
           'content-type': ?contentType,
@@ -293,8 +278,26 @@ Future<shelf.Response> handler(shelf.Request request) async {
           ...securityHeaders,
         },
       );
-    } else {
-      return shelf.Response.unauthorized('Bad hmac', headers: securityHeaders);
+    } on TooLargeException {
+      return shelf.Response.badRequest(
+        body: 'Image too large',
+        headers: securityHeaders,
+      );
+    } on RedirectException catch (e) {
+      return shelf.Response.badRequest(
+        body: e.message,
+        headers: securityHeaders,
+      );
+    } on RequestTimeoutException catch (e) {
+      return shelf.Response.badRequest(
+        body: e.message,
+        headers: securityHeaders,
+      );
+    } on ServerSideException catch (e) {
+      return shelf.Response.badRequest(
+        body: 'Failed to retrieve image. Status code ${e.statusCode}',
+        headers: securityHeaders,
+      );
     }
   } catch (e, st) {
     stderr.writeln('Uncaught error: $e $st');
