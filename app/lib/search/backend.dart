@@ -40,7 +40,6 @@ import '../shared/storage.dart';
 import '../shared/versions.dart';
 import '../task/backend.dart';
 import '../task/global_lock.dart';
-import '../task/models.dart';
 
 import 'models.dart';
 import 'result_combiner.dart';
@@ -254,18 +253,12 @@ class SearchBackend {
       }
     }
 
-    final q1 = _db.query<Package>()
-      ..filter('updated >=', updatedThreshold)
-      ..order('-updated');
-    await for (final p in q1.run()) {
-      addResult(p.name!, p.updated!);
+    await for (final e in _db.packages.listUpdatedSince(updatedThreshold)) {
+      addResult(e.name, e.updated);
     }
 
-    final q3 = _db.query<PackageState>()
-      ..filter('finished >=', updatedThreshold)
-      ..order('-finished');
-    await for (final s in q3.run()) {
-      addResult(s.package, s.finished);
+    await for (final e in _db.tasks.listFinishedSince(updatedThreshold)) {
+      addResult(e.package, e.finished);
     }
 
     return results;

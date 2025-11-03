@@ -1021,15 +1021,16 @@ class TaskBackend {
     Future<void> Function(Payload payload) processPayload,
   ) async {
     await backfillTrackingState();
-    await for (final state in _db.tasks.listAll()) {
+    await for (final state in _db.tasks.listAllForCurrentRuntime()) {
       final zone = taskWorkerCloudCompute.zones.first;
       // ignore: invalid_use_of_visible_for_testing_member
-      final payload = await updatePackageStateWithPendingVersions(
+      final updated = await updatePackageStateWithPendingVersions(
         _db,
-        state,
+        state.package,
         zone,
         taskWorkerCloudCompute.generateInstanceName(),
       );
+      final payload = updated?.$1;
       if (payload == null) continue;
       await processPayload(payload);
     }
@@ -1327,15 +1328,22 @@ final class _TaskDataAccess {
     );
   }
 
-  Stream<PackageState> listAll() {
-    return _db.query<PackageState>().run();
-  }
-
   Stream<({String package})> listAllForCurrentRuntime() async* {
     final query = _db.query<PackageState>()
       ..filter('runtimeVersion =', runtimeVersion);
     await for (final ps in query.run()) {
       yield (package: ps.package);
+    }
+  }
+
+  Stream<({String package, DateTime finished})> listFinishedSince(
+    DateTime since,
+  ) async* {
+    final query = _db.query<PackageState>()
+      ..filter('finished >=', since)
+      ..order('-finished');
+    await for (final s in query.run()) {
+      yield (package: s.package, finished: s.finished);
     }
   }
 
@@ -1346,6 +1354,17 @@ final class _TaskDataAccess {
     final query = _db.query<PackageState>()
       ..filter('dependencies =', package)
       ..filter('lastDependencyChanged <', publishedAt);
+    await for (final ps in query.run()) {
+      yield (package: ps.package);
+    }
+  }
+
+  Stream<({String package})> selectSomePending(int limit) async* {
+    final query = _db.query<PackageState>()
+      ..filter('runtimeVersion =', runtimeVersion)
+      ..filter('pendingAt <=', clock.now())
+      ..order('pendingAt')
+      ..limit(limit);
     await for (final ps in query.run()) {
       yield (package: ps.package);
     }
