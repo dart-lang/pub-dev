@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:_pub_shared/data/package_api.dart' as package_api;
 import 'package:_pub_shared/data/task_api.dart' as api;
 import 'package:_pub_shared/data/task_payload.dart';
 import 'package:_pub_shared/worker/limits.dart';
@@ -363,44 +364,31 @@ class TaskBackend {
   Future<void> trackPackage(
     String packageName, {
     bool updateDependents = false,
+    bool refreshVersionsCache = false,
   }) async {
     var lastVersionCreated = initialTimestamp;
     String? latestVersion;
-    final changed = await withRetryTransaction(_db, (tx) async {
-      // Lookup Package and PackageVersion in the same transaction.
-      final packageFuture = tx.packages.lookupOrNull(packageName);
-      final packageVersionsFuture = tx.versions.listVersionsOfPackage(
+    late package_api.PackageData data;
+    try {
+      data = await packageBackend.listVersionsCached(
         packageName,
+        refreshVersionsCache: refreshVersionsCache,
       );
-      final stateFuture = tx.tasks.lookupOrNull(packageName);
-      // Ensure we await all futures!
-      await Future.wait([packageFuture, packageVersionsFuture, stateFuture]);
-      final state = await stateFuture;
-      final package = await packageFuture;
-      final packageVersions = await packageVersionsFuture;
-
-      if (package == null) {
-        return false; // assume package was deleted!
-      }
-      latestVersion = package.latestVersion;
+    } on NotFoundException catch (_) {
+      // If package is not visible, we should remove it!
+      await _db.tasks.deleteAllStates(packageName);
+      return;
+    }
+    final versions = _versionsToTrack(
+      data,
+    ).map((v) => v.canonicalizedVersion).toList();
+    final changed = await withRetryTransaction(_db, (tx) async {
+      final state = await tx.tasks.lookupOrNull(packageName);
+      latestVersion = data.latest.version;
 
       // Update the timestamp for when the last version was published.
       // This is used if we need to update dependents.
-      lastVersionCreated = packageVersions.map((pv) => pv.created!).max;
-
-      // If package is not visible, we should remove it!
-      if (package.isNotVisible) {
-        await tx.tasks.deleteAllStates(
-          packageName,
-          currentRuntimeKey: state?.key,
-        );
-        return true;
-      }
-
-      // Determined the set of versions to track
-      final versions = _versionsToTrack(package, packageVersions).map(
-        (v) => v.canonicalizedVersion, // add extra sanity!
-      );
+      lastVersionCreated = data.versions.map((pv) => pv.published!).max;
 
       // Ensure we have PackageState entity
       if (state == null) {
@@ -1202,16 +1190,11 @@ PackageVersionStateInfo _authorizeWorkerCallback(
 ///  * Latest preview release (if newer than latest stable release);
 ///  * Latest prerelease (if newer than latest preview release);
 ///  * 5 latest major versions (if any).
-List<Version> _versionsToTrack(
-  Package package,
-  List<PackageVersion> packageVersions,
-) {
-  final visibleVersions = packageVersions
+List<Version> _versionsToTrack(package_api.PackageData data) {
+  final visibleVersions = data.versions
       // Ignore retracted versions
-      .where((pv) => !pv.isRetracted)
-      // Ignore moderated versions
-      .where((pv) => pv.isVisible)
-      .map((pv) => pv.semanticVersion)
+      .where((pv) => !(pv.retracted ?? false))
+      .map((pv) => Version.parse(pv.version))
       .toSet();
   final visibleStableVersions =
       visibleVersions
@@ -1219,17 +1202,37 @@ List<Version> _versionsToTrack(
           .where((v) => !v.isPreRelease)
           .toList()
         ..sort((a, b) => -a.compareTo(b));
+
+  final latestVersion = Version.parse(data.latest.version);
+
+  // consider preview version if it is newer than current latest release
+  final stableAfterLatest = visibleStableVersions
+      .where((a) => latestVersion.compareTo(a) < 0)
+      .toList();
+  final latestPreview = stableAfterLatest.isEmpty
+      ? null
+      : stableAfterLatest.reduce((a, b) => a.compareTo(b) < 0 ? b : a);
+
+  // consider prerelease version if it is newer than current latest release
+  final prereleaseAfterLatest = visibleVersions
+      .where((a) => a.isPreRelease)
+      .where((a) => latestVersion.compareTo(a) < 0)
+      .toList();
+  final latestPrerelease = prereleaseAfterLatest.isEmpty
+      ? null
+      : prereleaseAfterLatest.reduce((a, b) => a.compareTo(b) < 0 ? b : a);
   return {
     // Always analyze latest version (may be non-stable if package has only prerelease versions).
-    package.latestSemanticVersion,
+    latestVersion,
 
-    // Consider latest two stable versions to keep previously analyzed results on new package publishing.
-    ...visibleStableVersions.take(2),
+    // Consider latest two older stable versions to keep previously analyzed results on new package publishing.
+    ...visibleStableVersions
+        .where((a) => a.compareTo(latestVersion) <= 0)
+        .take(2),
 
-    // Only consider prerelease and preview versions, if they are newer than
-    // the current stable release.
-    if (package.showPrereleaseVersion) package.latestPrereleaseSemanticVersion,
-    if (package.showPreviewVersion) package.latestPreviewSemanticVersion,
+    // Consider the latest prerelease and preview version.
+    if (latestPrerelease != null) latestPrerelease,
+    if (latestPreview != null) latestPreview,
 
     // Consider 5 latest major versions, if any:
     ...visibleStableVersions
@@ -1374,6 +1377,18 @@ final class _TaskDataAccess {
     }
   }
 
+  Future<void> deleteAllStates(String name) async {
+    await withRetryTransaction(_db, (tx) async {
+      // also delete earlier runtime versions
+      for (final rv in acceptedRuntimeVersions) {
+        final s = await lookupOrNull(name, runtimeVersion: rv);
+        if (s != null) {
+          tx.delete(s.key);
+        }
+      }
+    });
+  }
+
   /// Returns whether the entry has been updated.
   Future<bool> updateDependencyChanged(
     String package,
@@ -1433,21 +1448,6 @@ class _TaskTransactionDataAcccess {
       name,
     );
     return await _tx.lookupOrNull<PackageState>(key);
-  }
-
-  Future<void> deleteAllStates(String name, {Key? currentRuntimeKey}) async {
-    if (currentRuntimeKey != null) {
-      _tx.delete(currentRuntimeKey);
-    }
-    // also delete earlier runtime versions
-    for (final rv in acceptedRuntimeVersions.where(
-      (rv) => rv != runtimeVersion,
-    )) {
-      final s = await lookupOrNull(name, runtimeVersion: rv);
-      if (s != null) {
-        _tx.delete(s.key);
-      }
-    }
   }
 
   Future<void> insert(PackageState state) async {

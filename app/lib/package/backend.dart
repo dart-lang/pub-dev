@@ -970,21 +970,34 @@ class PackageBackend {
   /// getting it from cache if available.
   ///
   /// This returns gzipped UTF-8 encoded JSON.
-  Future<List<int>> listVersionsGzCachedBytes(String package) async {
-    final body = await cache.packageDataGz(package).get(() async {
-      final data = await listVersions(package);
-      final raw = jsonUtf8Encoder.convert(data.toJson());
-      return gzip.encode(raw);
-    });
-    return body!;
+  Future<List<int>> listVersionsGzCachedBytes(
+    String package, {
+    bool refreshVersionsCache = false,
+  }) async {
+    final entry = cache.packageDataGz(package);
+    final cached = refreshVersionsCache ? null : await entry.get();
+    if (cached != null) {
+      return cached;
+    }
+    final data = await listVersions(package);
+    final raw = jsonUtf8Encoder.convert(data.toJson());
+    final zipped = gzip.encode(raw);
+    await entry.set(zipped);
+    return zipped;
   }
 
   /// Returns the known versions of [package] (via [listVersions]),
   /// getting it from the cache if available.
   ///
   ///  The available versions are sorted by their semantic version number (ascending).
-  Future<api.PackageData> listVersionsCached(String package) async {
-    final data = await listVersionsGzCachedBytes(package);
+  Future<api.PackageData> listVersionsCached(
+    String package, {
+    bool refreshVersionsCache = false,
+  }) async {
+    final data = await listVersionsGzCachedBytes(
+      package,
+      refreshVersionsCache: refreshVersionsCache,
+    );
     return api.PackageData.fromJson(
       utf8JsonDecoder.convert(gzip.decode(data)) as Map<String, dynamic>,
     );
@@ -2455,6 +2468,7 @@ class _VersionTransactionDataAcccess {
         () => taskBackend.trackPackage(
           package,
           updateDependents: taskUpdateDependents,
+          refreshVersionsCache: true,
         ),
       ),
     if (!skipExport)
