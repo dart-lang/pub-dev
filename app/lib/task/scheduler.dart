@@ -10,7 +10,6 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/utils.dart';
-import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
@@ -236,26 +235,11 @@ Future<void> schedule(
               // suppose to run on the instance we just failed to create.
               // If this doesn't work, we'll eventually retry. Hence, correctness
               // does not hinge on this transaction being successful.
-              await withRetryTransaction(db, (tx) async {
-                final s = await tx.lookupOrNull<PackageState>(
-                  PackageState.createKey(
-                    db.emptyKey,
-                    runtimeVersion,
-                    selected.package,
-                  ),
-                );
-                if (s == null) {
-                  return; // Presumably, the package was deleted.
-                }
-
-                s.versions!.addEntries(
-                  s.versions!.entries
-                      .where((e) => e.value.instance == instanceName)
-                      .map((e) => MapEntry(e.key, oldVersionsMap[e.key]!)),
-                );
-                s.derivePendingAt();
-                tx.insert(s);
-              });
+              await db.tasks.restorePreviousVersionsState(
+                selected.package,
+                instanceName,
+                oldVersionsMap,
+              );
             }
           }
         });
@@ -294,9 +278,7 @@ updatePackageStateWithPendingVersions(
   String instanceName,
 ) async {
   return await withRetryTransaction(db, (tx) async {
-    final s = await tx.lookupOrNull<PackageState>(
-      PackageState.createKey(db.emptyKey, runtimeVersion, package),
-    );
+    final s = await tx.tasks.lookupOrNull(package);
     if (s == null) {
       // presumably the package was deleted.
       return null;
@@ -323,7 +305,7 @@ updatePackageStateWithPendingVersions(
         ),
     });
     s.derivePendingAt();
-    tx.insert(s);
+    await tx.tasks.update(s);
 
     // Create payload
     final payload = Payload(
