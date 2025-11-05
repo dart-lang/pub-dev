@@ -506,6 +506,9 @@ void main() {
       expect(oxygenPkg!.latestAdvisory, syncTime);
       expect(neonPkg!.latestAdvisory, isNull);
 
+      // TODO(https://github.com/dart-lang/pub-dev/issues/9056): consider purging the package cache in `ingestSecurityAdvisory`.
+      await purgePackageCache('oxygen');
+
       final client = await createFakeAuthPubApiClient(
         email: adminAtPubDevEmail,
       );
