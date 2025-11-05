@@ -45,6 +45,9 @@ abstract class PackageTags {
 
   /// The `publisher:<publisherId>` tag.
   static String publisherTag(String publisherId) => 'publisher:$publisherId';
+
+  /// Package has more than one detected license.
+  static const String hasMultipleLicenses = 'has:multiple-licenses';
 }
 
 /// Collection of version-related tags.
