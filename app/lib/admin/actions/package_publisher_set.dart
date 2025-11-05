@@ -48,7 +48,7 @@ final packagePublisherSet = AdminAction(
       triggerPackagePostUpdates(
         packageName,
         skipReanalysis: true,
-        skipVersionsExport: true,
+        skipArchiveExport: true,
       );
       if (currentPublisherId != null) {
         await purgePublisherCache(publisherId: currentPublisherId);

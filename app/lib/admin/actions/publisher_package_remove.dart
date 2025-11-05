@@ -63,7 +63,7 @@ If the publisher has no members, the package will end up without uploaders.
     triggerPackagePostUpdates(
       packageName,
       skipReanalysis: true,
-      skipVersionsExport: true,
+      skipArchiveExport: true,
     );
     await purgePublisherCache(publisherId: currentPublisherId);
     return {
