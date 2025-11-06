@@ -8,6 +8,7 @@ import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/shared/utils.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../shared/datastore.dart' as db;
 import '../shared/versions.dart' as shared_versions;
@@ -167,7 +168,7 @@ class PackageState extends db.ExpandoModel<String> {
     final at_ = at ?? clock.now();
     Duration timeSince(DateTime past) => at_.difference(past);
 
-    return versions!.entries
+    final list = versions!.entries
         .where(
           // NOTE: Any changes here must be reflected in [derivePendingAt]
           (e) =>
@@ -185,7 +186,40 @@ class PackageState extends db.ExpandoModel<String> {
                       taskRetryDelay(e.value.attempts)),
         )
         .map((e) => e.key)
+        .map(Version.parse)
         .toList();
+
+    // Prioritize stable versions first, prereleases after them (in decreasing order), e.g.
+    // - 2.5.0
+    // - 2.4.0
+    // - 2.0.0
+    // - 1.2.0
+    // - 3.0.0-dev2
+    // - 3.0.0-dev1
+    // - 2.7.0-beta
+    // - 1.0.0-dev
+    list.sort((a, b) => compareSemanticVersionsDesc(a, b, true, true));
+
+    // Promote the first prerelease version to the second position, e.g.
+    // - 2.5.0
+    // - 3.0.0-dev2
+    // - 2.4.0
+    // - 2.0.0
+    // - 1.2.0
+    // - 3.0.0-dev1
+    // - 2.7.0-beta
+    // - 1.0.0-dev
+    //
+    // (applicable only when the second position is a stable version)
+    if (list.length > 2 && !list[1].isPreRelease) {
+      final firstPrereleaseIndex = list.indexWhere((v) => v.isPreRelease);
+      if (firstPrereleaseIndex > 1) {
+        final v = list.removeAt(firstPrereleaseIndex);
+        list.insert(1, v);
+      }
+    }
+
+    return list.map((s) => s.toString()).toList();
   }
 
   /// Returns true if the current [PackageState] instance is new, no version analysis
