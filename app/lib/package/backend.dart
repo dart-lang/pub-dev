@@ -567,7 +567,7 @@ class PackageBackend {
         ),
       );
     });
-    triggerPackagePostUpdates(package, skipVersionsExport: true);
+    triggerPackagePostUpdates(package, skipArchiveExport: true);
   }
 
   /// Updates [options] on [package]/[version], assuming the current user
@@ -929,7 +929,7 @@ class PackageBackend {
     triggerPackagePostUpdates(
       packageName,
       skipReanalysis: true,
-      skipVersionsExport: true,
+      skipArchiveExport: true,
     );
     return rs;
   }
@@ -2446,10 +2446,8 @@ class _VersionTransactionDataAcccess {
   /// Skip triggering a new export to the CDN bucket.
   bool skipExport = false,
 
-  /// Skip only the version-related exports to the CDN bucket, keeps the
-  /// package-related operations.
-  /// TODO: implement this in API exporter.
-  bool skipVersionsExport = false,
+  /// Skip only the archive-related exports to the CDN bucket.
+  bool skipArchiveExport = false,
 
   /// Pass the force-deletion flag to the package export operation.
   bool exportForceDelete = false,
@@ -2476,7 +2474,7 @@ class _VersionTransactionDataAcccess {
         () => apiExporter.synchronizePackage(
           package,
           forceDelete: exportForceDelete,
-          // TODO: implement and use [skipVersionsExport]
+          skipArchives: skipArchiveExport,
         ),
       ),
   ];

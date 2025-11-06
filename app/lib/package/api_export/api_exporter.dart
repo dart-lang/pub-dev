@@ -203,10 +203,14 @@ final class ApiExporter {
   ///
   /// When [forceDelete] is set, the age threshold limit for stray files is
   /// ignored, they will be deleted even if they were updated recently.
+  ///
+  /// When [skipArchives] is set, skip the archive-related exports
+  /// (e.g. public or canonical buckets).
   Future<void> synchronizePackage(
     String package, {
     bool forceWrite = false,
     bool forceDelete = false,
+    bool skipArchives = false,
   }) async {
     _log.info('synchronizePackage("$package")');
 
@@ -229,21 +233,25 @@ final class ApiExporter {
       skipCache: true, // Skipping the cache when fetching security advisories
     );
 
-    final versions = await packageBackend.tarballStorage
-        .listVersionsInCanonicalBucket(package);
+    if (!skipArchives) {
+      final versions = await packageBackend.tarballStorage
+          .listVersionsInCanonicalBucket(package);
 
-    // Remove versions that are not exposed in the public API.
-    versions.removeWhere(
-      (version, _) => !versionListing.versions.any((v) => v.version == version),
-    );
+      // Remove versions that are not exposed in the public API.
+      versions.removeWhere(
+        (version, _) =>
+            !versionListing.versions.any((v) => v.version == version),
+      );
 
-    await _api
-        .package(package)
-        .synchronizeTarballs(
-          versions,
-          forceWrite: forceWrite,
-          forceDelete: forceDelete,
-        );
+      await _api
+          .package(package)
+          .synchronizeTarballs(
+            versions,
+            forceWrite: forceWrite,
+            forceDelete: forceDelete,
+          );
+    }
+
     await _api
         .package(package)
         .advisories
