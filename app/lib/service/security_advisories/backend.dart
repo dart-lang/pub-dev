@@ -12,6 +12,7 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/entrypoint/analyzer.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -96,7 +97,8 @@ class SecurityAdvisoryBackend {
     OSV osv,
     DateTime syncTime,
   ) async {
-    return await withRetryTransaction(_db, (tx) async {
+    final updatedPackages = <String>{};
+    final result = await withRetryTransaction(_db, (tx) async {
       DateTime modified;
       try {
         modified = DateTime.parse(osv.modified);
@@ -150,7 +152,11 @@ class SecurityAdvisoryBackend {
         );
       } else {
         final packages = await _lookupAffectedPackages(newAdvisory, tx);
-        packages.forEach((pkg) => pkg.latestAdvisory = syncTime);
+        for (final pkg in packages) {
+          pkg.latestAdvisory = syncTime;
+          pkg.updated = clock.now().toUtc();
+          updatedPackages.add(pkg.name!);
+        }
         tx.queueMutations(
           // This is an upsert
           inserts: [newAdvisory, ...packages],
@@ -159,6 +165,16 @@ class SecurityAdvisoryBackend {
 
       return newAdvisory;
     });
+    await Future.wait(
+      updatedPackages.map(
+        (packageName) => triggerPackagePostUpdates(
+          packageName,
+          skipReanalysis: true,
+          skipVersionsExport: true,
+        ).future,
+      ),
+    );
+    return result;
   }
 
   String _computeDisplayUrl(List<String> idAndAliases) {
@@ -181,7 +197,8 @@ class SecurityAdvisoryBackend {
     SecurityAdvisory advisory,
     DateTime syncTime,
   ) async {
-    return await withRetryTransaction(_db, (tx) async {
+    final updatedPackages = <String>{};
+    final result = await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(SecurityAdvisory, id: advisory.id);
 
       if (advisory.affectedPackages!.length > 50) {
@@ -200,10 +217,24 @@ class SecurityAdvisoryBackend {
         tx.queueMutations(deletes: [key]);
       } else {
         final packages = await _lookupAffectedPackages(advisory, tx);
-        packages.forEach((pkg) => pkg.latestAdvisory = syncTime);
+        for (final pkg in packages) {
+          pkg.latestAdvisory = syncTime;
+          pkg.updated = clock.now().toUtc();
+          updatedPackages.add(pkg.name!);
+        }
         tx.queueMutations(inserts: packages, deletes: [key]);
       }
     });
+    await Future.wait(
+      updatedPackages.map(
+        (packageName) => triggerPackagePostUpdates(
+          packageName,
+          skipReanalysis: true,
+          skipVersionsExport: true,
+        ).future,
+      ),
+    );
+    return result;
   }
 
   Future<List<Package>> _lookupAffectedPackages(
@@ -212,8 +243,7 @@ class SecurityAdvisoryBackend {
   ) async {
     final packages = <Package>[];
     for (final packageName in advisory.affectedPackages!) {
-      final packageKey = _db.emptyKey.append(Package, id: packageName);
-      final package = await tx.lookupOrNull<Package>(packageKey);
+      final package = await tx.packages.lookupOrNull(packageName);
       if (package == null) {
         _logger.shout(
           'Package $packageName not found, while ingesting advisory '
