@@ -170,7 +170,7 @@ class SecurityAdvisoryBackend {
         (packageName) => triggerPackagePostUpdates(
           packageName,
           skipReanalysis: true,
-          skipVersionsExport: true,
+          skipArchiveExport: true,
         ).future,
       ),
     );
@@ -230,7 +230,7 @@ class SecurityAdvisoryBackend {
         (packageName) => triggerPackagePostUpdates(
           packageName,
           skipReanalysis: true,
-          skipVersionsExport: true,
+          skipArchiveExport: true,
         ).future,
       ),
     );
