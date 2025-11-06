@@ -30,7 +30,7 @@ Map<String, String> securityHeaders = {
   'X-Content-Type-Options': 'nosniff',
   'Content-Security-Policy':
       "default-src 'none'; img-src data:; style-src 'unsafe-inline'",
-  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
 };
 
 /// Ensure that [allowedKeys] contains keys for today and the two surrounding
