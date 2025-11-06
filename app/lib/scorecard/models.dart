@@ -126,6 +126,7 @@ class PanaReport {
     final reportStatus = summary == null
         ? ReportStatus.aborted
         : ReportStatus.success;
+    final licenses = summary?.result?.licenses;
     return PanaReport(
       timestamp: summary?.createdAt,
       panaRuntimeInfo: summary?.runtimeInfo,
@@ -137,10 +138,11 @@ class PanaReport {
           PackageVersionTags.isDart3Incompatible,
         if (packageStatus.isObsolete) PackageVersionTags.isObsolete,
         if (packageStatus.isDiscontinued) PackageTags.isDiscontinued,
+        if (licenses != null && licenses.length > 1)
+          PackageTags.hasMultipleLicenses,
       }.toList(),
       allDependencies: summary?.allDependencies,
-      // ignore: deprecated_member_use
-      licenses: summary?.result?.licenses,
+      licenses: licenses,
       report: summary?.report,
       result: summary?.result,
       urlProblems: summary?.urlProblems,
