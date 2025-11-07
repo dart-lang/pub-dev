@@ -183,28 +183,22 @@ class ArchiveBuilder {
   final _entries = <TarEntry>[];
 
   void addFile(String path, String content) {
-    final bytes = utf8.encode(content);
-    _entries.add(
-      TarEntry(
-        TarHeader(
-          name: path,
-          size: bytes.length,
-          mode: 420, // 644₈
-        ),
-        Stream<List<int>>.fromIterable([bytes]),
-      ),
-    );
+    addFileBytes(path, utf8.encode(content));
   }
 
   void addFileBytes(String path, List<int> bytes) {
+    addFileByteChunks(path, [bytes]);
+  }
+
+  void addFileByteChunks(String path, List<List<int>> chunks) {
     _entries.add(
       TarEntry(
         TarHeader(
           name: path,
-          size: bytes.length,
+          size: chunks.fold<int>(0, (a, b) => a + b.length),
           mode: 420, // 644₈
         ),
-        Stream<List<int>>.fromIterable([bytes]),
+        Stream<List<int>>.fromIterable(chunks),
       ),
     );
   }
