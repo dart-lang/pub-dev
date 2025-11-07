@@ -18,7 +18,6 @@ import '../../fake/backend/fake_auth_provider.dart';
 import '../../frontend/handlers/pubapi.client.dart';
 import '../../service/async_queue/async_queue.dart';
 import '../../shared/configuration.dart';
-import '../../shared/utils.dart';
 import '../utils/pub_api_client.dart';
 import 'import_source.dart';
 import 'models.dart';
@@ -294,14 +293,17 @@ Future<List<int>> _mayCleanupTarModeBits(List<int> bytes) async {
   var needsUpdate = false;
   while (await tarReader.moveNext()) {
     final current = tarReader.current;
-    if (current.header.mode != 420) {
+    if (current.header.mode & 420 != 420) {
       // 644₈
       needsUpdate = true;
     }
-    archiveBuilder.addFileBytes(
-      current.name,
-      await current.contents.foldBytes(),
-    );
+    if (current.header.typeFlag == TypeFlag.reg ||
+        current.header.typeFlag == TypeFlag.regA) {
+      archiveBuilder.addFileByteChunks(
+        current.name,
+        await current.contents.toList(),
+      );
+    }
   }
   return needsUpdate ? archiveBuilder.toTarGzBytes() : bytes;
 }
