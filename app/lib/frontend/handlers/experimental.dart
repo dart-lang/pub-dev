@@ -14,6 +14,7 @@ const _publicFlags = <PublicFlag>{
 
 final _allFlags = <String>{
   'dark-as-default',
+  'license',
   ..._publicFlags.map((x) => x.name),
 };
 
@@ -87,6 +88,8 @@ class ExperimentalFlags {
   }
 
   bool get isDarkModeDefault => isEnabled('dark-as-default');
+
+  late final isLicenseEnabled = isEnabled('license');
 
   String encodedAsCookie() => _enabled.join(':');
 

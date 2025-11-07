@@ -582,3 +582,25 @@
     }
   }
 }
+
+.license-op-delete {
+  background: rgba(255, 0, 0, 0.2);
+
+  &.license-op-delete-hidden {
+    .license-op-delete-content {
+      display: none;
+    }
+  }
+
+  .license-op-delete-icon {
+    cursor: pointer;
+  }
+}
+
+.license-op-insert {
+  background: rgba(255, 255, 0, 0.2);
+}
+
+.license-op-match {
+  background: rgba(0, 255, 0, 0.2);
+}

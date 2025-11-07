@@ -5,6 +5,8 @@
 import 'package:_pub_shared/data/page_data.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:pana/pana.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/liked_package_list.dart';
 
 import '../../package/models.dart';
@@ -378,13 +380,91 @@ Tab _installTab(PackagePageData data) {
 }
 
 Tab _licenseTab(PackagePageData data) {
-  final license = data.hasLicense
-      ? renderFile(data.asset!, urlResolverFn: data.urlResolverFn)
-      : d.text('No license file found.');
+  final licenses = data.scoreCard.panaReport?.licenses;
+  final hasEditOpData =
+      licenses != null &&
+      licenses.isNotEmpty &&
+      licenses.any((l) => l.operations?.isNotEmpty ?? false);
+  late d.Node content;
+  if (!data.hasLicense) {
+    content = d.text('No license file found.');
+  } else if (hasEditOpData &&
+      requestContext.experimentalFlags.isLicenseEnabled) {
+    final text = data.asset!.textContent!;
+    final opAndLicensePairs =
+        licenses
+            .expand((l) => (l.operations ?? []).map((op) => (op, l)))
+            .toList()
+          ..sort((a, b) => a.$1.start.compareTo(b.$1.start));
+    final nodes = <d.Node>[];
+    var offset = 0;
+    for (final (op, _) in opAndLicensePairs) {
+      if (offset < op.start) {
+        nodes.add(
+          d.span(
+            classes: ['license-op-insert'],
+            text: text.substring(offset, op.start),
+          ),
+        );
+        offset = op.start;
+      }
+      switch (op.type) {
+        case TextOpType.delete:
+          nodes.add(
+            d.span(
+              classes: ['license-op-delete', 'license-op-delete-hidden'],
+              children: [
+                d.span(
+                  classes: ['license-op-delete-icon'],
+                  text: '✄',
+                  attributes: {'tabindex': '-1'},
+                ),
+                d.span(
+                  classes: ['license-op-delete-content'],
+                  text: op.content,
+                ),
+              ],
+            ),
+          );
+          break;
+        case TextOpType.insert:
+          final end = op.start + op.length;
+          nodes.add(
+            d.span(
+              classes: ['license-op-insert'],
+              text: text.substring(op.start, end),
+            ),
+          );
+          offset = end;
+          break;
+        case TextOpType.match:
+          final end = op.start + op.length;
+          nodes.add(
+            d.span(
+              classes: ['license-op-match'],
+              text: text.substring(op.start, end),
+            ),
+          );
+          offset = end;
+          break;
+      }
+    }
+    if (offset < text.length) {
+      nodes.add(
+        d.span(classes: ['license-op-insert'], text: text.substring(offset)),
+      );
+    }
+    content = d.div(
+      classes: ['highlight'],
+      child: d.pre(children: nodes),
+    );
+  } else {
+    content = renderFile(data.asset!, urlResolverFn: data.urlResolverFn);
+  }
   return Tab.withContent(
     id: 'license',
     title: 'License',
-    contentNode: d.fragment([d.h2(text: 'License'), license]),
+    contentNode: d.fragment([d.h2(text: 'License'), content]),
     isMarkdown: true,
   );
 }
