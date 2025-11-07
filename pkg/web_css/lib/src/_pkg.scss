@@ -584,7 +584,7 @@
 }
 
 .license-op-delete {
-  background: rgba(255, 0, 0, 0.2);
+  background: var(--pub-license-editop-delete);
 
   &.license-op-delete-hidden {
     .license-op-delete-content {
@@ -598,9 +598,9 @@
 }
 
 .license-op-insert {
-  background: rgba(255, 255, 0, 0.2);
+  background: var(--pub-license-editop-insert);
 }
 
 .license-op-match {
-  background: rgba(0, 255, 0, 0.2);
+  background: var(--pub-license-editop-match);
 }
