@@ -286,7 +286,11 @@ updatePackageStateWithPendingVersions(
     final oldVersionsMap = {...?s.versions};
 
     final now = clock.now();
-    final pendingVersions = s.pendingVersions(at: now).toList();
+    final pendingVersions = derivePendingVersions(
+      versions: s.versions!,
+      lastDependencyChanged: s.lastDependencyChanged!,
+      at: now,
+    ).toList();
     if (pendingVersions.isEmpty) {
       // do not schedule anything
       return null;
@@ -304,7 +308,10 @@ updatePackageStateWithPendingVersions(
           finished: s.versions![v]!.finished,
         ),
     });
-    s.derivePendingAt();
+    s.pendingAt = derivePendingAt(
+      versions: s.versions!,
+      lastDependencyChanged: s.lastDependencyChanged!,
+    );
     await tx.tasks.update(s);
 
     // Create payload

@@ -50,6 +50,7 @@ import 'package:pub_dev/task/models.dart'
         PackageStateInfo,
         PackageVersionStateInfo,
         PackageVersionStatus,
+        derivePendingAt,
         initialTimestamp,
         maxTaskExecutionTime;
 import 'package:pub_dev/task/scheduler.dart';
@@ -394,21 +395,25 @@ class TaskBackend {
       if (state == null) {
         // Create [PackageState] entity to track the package
         _log.info('Started state tracking for $packageName');
+        final versionsMap = {
+          for (final version in versions)
+            version: PackageVersionStateInfo(
+              scheduled: initialTimestamp,
+              attempts: 0,
+            ),
+        };
         await tx.tasks.insert(
           PackageState()
             ..setId(runtimeVersion, packageName)
             ..runtimeVersion = runtimeVersion
-            ..versions = {
-              for (final version in versions)
-                version: PackageVersionStateInfo(
-                  scheduled: initialTimestamp,
-                  attempts: 0,
-                ),
-            }
+            ..versions = versionsMap
             ..dependencies = <String>[]
             ..lastDependencyChanged = initialTimestamp
             ..finished = initialTimestamp
-            ..derivePendingAt(),
+            ..pendingAt = derivePendingAt(
+              versions: versionsMap,
+              lastDependencyChanged: initialTimestamp,
+            ),
         );
         return true; // no more work for this package, state is synced
       }
@@ -464,7 +469,10 @@ class TaskBackend {
               attempts: 0,
             ),
         });
-      state.derivePendingAt();
+      state.pendingAt = derivePendingAt(
+        versions: state.versions!,
+        lastDependencyChanged: state.lastDependencyChanged!,
+      );
 
       _log.info('Update state tracking for $packageName');
       await tx.tasks.update(state);
@@ -726,7 +734,10 @@ class TaskBackend {
 
       // Ensure that we update [state.pendingAt], otherwise it might be
       // re-scheduled way too soon.
-      state.derivePendingAt();
+      state.pendingAt = derivePendingAt(
+        versions: state.versions!,
+        lastDependencyChanged: state.lastDependencyChanged!,
+      );
       state.finished = clock.now().toUtc();
 
       await tx.tasks.update(state);
@@ -1407,7 +1418,10 @@ final class _TaskDataAccess {
         tx.insert(
           s
             ..lastDependencyChanged = publishedAt
-            ..derivePendingAt(),
+            ..pendingAt = derivePendingAt(
+              versions: s.versions!,
+              lastDependencyChanged: publishedAt,
+            ),
         );
         return true;
       }
@@ -1442,7 +1456,10 @@ final class _TaskDataAccess {
             .where((e) => e.value.instance == instanceName)
             .map((e) => MapEntry(e.key, previousVersionsMap[e.key]!)),
       );
-      s.derivePendingAt();
+      s.pendingAt = derivePendingAt(
+        versions: s.versions!,
+        lastDependencyChanged: s.lastDependencyChanged!,
+      );
       await tx.tasks.update(s);
     });
   }
