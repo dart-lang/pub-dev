@@ -1397,9 +1397,7 @@ final class _TaskDataAccess {
     return await withRetryTransaction(_db, (tx) async {
       // Reload [state] within a transaction to avoid overwriting changes
       // made by others trying to update state for another package.
-      final s = await tx.lookupOrNull<PackageState>(
-        PackageState.createKey(_db.emptyKey, runtimeVersion, package),
-      );
+      final s = await tx.tasks.lookupOrNull(package);
       if (s == null) {
         // No entry has been created yet, probably because of a new deployment rolling out.
         // We can ignore it for now.
@@ -1419,16 +1417,33 @@ final class _TaskDataAccess {
 
   Future<void> bumpPriority(String packageName) async {
     await withRetryTransaction(_db, (tx) async {
-      final stateKey = PackageState.createKey(
-        _db.emptyKey,
-        runtimeVersion,
-        packageName,
-      );
-      final state = await tx.lookupOrNull<PackageState>(stateKey);
+      final state = await tx.tasks.lookupOrNull(packageName);
       if (state != null) {
         state.pendingAt = initialTimestamp;
         tx.insert(state);
       }
+    });
+  }
+
+  /// Restores the previous versions map state when starting the tasks on [instanceName] failed.
+  Future<void> restorePreviousVersionsState(
+    String packageName,
+    String instanceName,
+    Map<String, PackageVersionStateInfo> previousVersionsMap,
+  ) async {
+    await withRetryTransaction(_db, (tx) async {
+      final s = await tx.tasks.lookupOrNull(packageName);
+      if (s == null) {
+        return; // Presumably, the package was deleted.
+      }
+
+      s.versions!.addEntries(
+        s.versions!.entries
+            .where((e) => e.value.instance == instanceName)
+            .map((e) => MapEntry(e.key, previousVersionsMap[e.key]!)),
+      );
+      s.derivePendingAt();
+      await tx.tasks.update(s);
     });
   }
 }
