@@ -404,6 +404,7 @@ Tab _licenseTab(PackagePageData data) {
           d.span(
             classes: ['license-op-insert'],
             text: text.substring(offset, op.start),
+            attributes: {'title': 'inserted content'},
           ),
         );
         offset = op.start;
@@ -424,6 +425,7 @@ Tab _licenseTab(PackagePageData data) {
                   text: op.content,
                 ),
               ],
+              attributes: {'title': 'deleted content'},
             ),
           );
           break;
@@ -433,6 +435,7 @@ Tab _licenseTab(PackagePageData data) {
             d.span(
               classes: ['license-op-insert'],
               text: text.substring(op.start, end),
+              attributes: {'title': 'inserted content'},
             ),
           );
           offset = end;
@@ -443,6 +446,7 @@ Tab _licenseTab(PackagePageData data) {
             d.span(
               classes: ['license-op-match'],
               text: text.substring(op.start, end),
+              attributes: {'title': 'matched content'},
             ),
           );
           offset = end;
@@ -451,7 +455,11 @@ Tab _licenseTab(PackagePageData data) {
     }
     if (offset < text.length) {
       nodes.add(
-        d.span(classes: ['license-op-insert'], text: text.substring(offset)),
+        d.span(
+          classes: ['license-op-insert'],
+          text: text.substring(offset),
+          attributes: {'title': 'inserted content'},
+        ),
       );
     }
     content = d.div(
