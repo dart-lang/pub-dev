@@ -389,7 +389,7 @@ Tab _licenseTab(PackagePageData data) {
   if (!data.hasLicense) {
     content = d.text('No license file found.');
   } else if (hasEditOpData &&
-      requestContext.experimentalFlags.isLicenseEnabled) {
+      requestContext.experimentalFlags.isExposeLicenseDiffEnabled) {
     final text = data.asset!.textContent!;
     final opAndLicensePairs =
         licenses
