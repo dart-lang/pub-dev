@@ -12,6 +12,7 @@ import 'web_util.dart';
 void setupFoldable() {
   _setEventForFoldable();
   _setEventForCheckboxToggle();
+  _setEventForLicenseDeleteIcons();
 }
 
 /// Elements with the `foldable` class provide a folding content:
@@ -103,6 +104,18 @@ void _setEventForCheckboxToggle() {
     if (sibling == null) continue;
     input.onChange.listen((event) {
       sibling.classList.toggle('-pub-form-block-hidden');
+    });
+  }
+}
+
+/// Setup a toggle event for the delete operation icons in licenses.
+void _setEventForLicenseDeleteIcons() {
+  final icons = document.body!
+      .querySelectorAll('.license-op-delete-icon')
+      .toElementList();
+  for (final icon in icons) {
+    icon.onClick.listen((event) {
+      icon.parentElement!.classList.toggle('license-op-delete-hidden');
     });
   }
 }

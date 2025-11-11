@@ -582,3 +582,25 @@
     }
   }
 }
+
+.license-op-delete {
+  background: var(--pub-license-editop-delete);
+
+  &.license-op-delete-hidden {
+    .license-op-delete-content {
+      display: none;
+    }
+  }
+
+  .license-op-delete-icon {
+    cursor: pointer;
+  }
+}
+
+.license-op-insert {
+  background: var(--pub-license-editop-insert);
+}
+
+.license-op-match {
+  background: var(--pub-license-editop-match);
+}

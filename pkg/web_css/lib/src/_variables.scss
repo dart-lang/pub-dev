@@ -101,6 +101,11 @@
   // Opacity values used to display monochrome icons.
   --pub-monochrome-opacity-initial: 0.6;
   --pub-monochrome-opacity-hover: 1.0;
+
+  // Incomplete colors for license text edit ops.
+  --pub-license-editop-delete: rgba(255, 0, 0, 0.2);
+  --pub-license-editop-insert: rgba(255, 255, 0, 0.2);
+  --pub-license-editop-match: rgba(0, 255, 0, 0.2);
 }
 
 /// Variables that are specific to the light theme.
