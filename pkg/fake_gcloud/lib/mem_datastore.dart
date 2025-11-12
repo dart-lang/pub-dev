@@ -17,6 +17,7 @@ class MemDatastore implements Datastore {
 
   @override
   Future<List<Key>> allocateIds(List<Key> keys) async {
+    await Future.delayed(Duration(milliseconds: 10));
     throw UnimplementedError(
       'fake_gcloud.Datastore.allocateIds is not implemented.',
     );
@@ -24,6 +25,7 @@ class MemDatastore implements Datastore {
 
   @override
   Future<Transaction> beginTransaction({bool crossEntityGroup = false}) async {
+    await Future.delayed(Duration(milliseconds: 10));
     return _Transaction();
   }
 
@@ -34,6 +36,7 @@ class MemDatastore implements Datastore {
     List<Key> deletes = const [],
     Transaction? transaction,
   }) async {
+    await Future.delayed(Duration(milliseconds: 10));
     if (autoIdInserts.isNotEmpty) {
       throw UnimplementedError(
         'fake_gcloud.Datastore.autoIdInserts is not implemented.',
@@ -147,6 +150,7 @@ class MemDatastore implements Datastore {
     List<Key> keys, {
     Transaction? transaction,
   }) async {
+    await Future.delayed(Duration(milliseconds: 10));
     if (keys.any((k) => k.elements.any((e) => e.id == null))) {
       throw ArgumentError('Key contains null.');
     }
@@ -196,6 +200,7 @@ class MemDatastore implements Datastore {
     Partition partition = Partition.DEFAULT,
     Transaction? transaction,
   }) async {
+    await Future.delayed(Duration(milliseconds: 10));
     List<Entity> items = _entities.values
         .where((e) => e.key.elements.last.kind == query.kind)
         .where((e) {
@@ -278,6 +283,7 @@ class MemDatastore implements Datastore {
 
   @override
   Future<void> rollback(Transaction transaction) async {
+    await Future.delayed(Duration(milliseconds: 10));
     return null;
   }
 
@@ -413,6 +419,7 @@ class _Page implements Page<Entity> {
 
   @override
   Future<Page<Entity>> next({int? pageSize}) async {
+    await Future.delayed(Duration(milliseconds: 10));
     return _Page(_items, _offset + _pageSize, pageSize ?? _pageSize);
   }
 }
