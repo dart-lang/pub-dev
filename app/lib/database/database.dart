@@ -122,6 +122,7 @@ Future<(String, String?)> _startOrUseLocalPostgresInDocker() async {
       // - (while the service is running) the socket file seems to provide a bit faster connection.
       'host': await socketFile.exists() ? socketFile.path : 'localhost:55432',
       'sslmode': 'disable',
+      'max_connection_count': '8',
     },
   ).toString();
 
@@ -153,14 +154,14 @@ Future<String> _createCustomDatabase(String url) async {
       '${_customDbCount.toRadixString(36)}'
       '${clock.now().millisecondsSinceEpoch.toRadixString(36)}'
       '${_random.nextInt(1 << 32).toRadixString(36)}';
-  final conn = await Connection.openFromUrl(url);
+  final conn = Pool.withUrl(url);
   await conn.execute('CREATE DATABASE "$dbName";');
   await conn.close(force: true);
   return dbName;
 }
 
 Future<void> _dropCustomDatabase(String url, String dbName) async {
-  final conn = await Connection.openFromUrl(url);
+  final conn = Pool.withUrl(url);
   await conn.execute('DROP DATABASE "$dbName";');
   await conn.close(force: true);
 }
