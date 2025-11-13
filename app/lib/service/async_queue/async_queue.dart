@@ -46,7 +46,13 @@ class AsyncQueue {
 
   ({Future future}) addAsyncFn(AsyncFn fn) {
     if (_closed) {
-      throw StateError('AsyncQueue is closed, task was not accepted.');
+      // If we have ongoing processing, we want to accept the task,
+      // as the queue will pick it up as part of the `close()` call.
+      // This way the tests are covering all of the triggered events
+      // and don't leave the system in an inconsistent state.
+      if (_nextProcessing == null) {
+        throw StateError('AsyncQueue is closed, task was not accepted.');
+      }
     }
     final task = _Task(fn, StackTrace.current);
     _queue.add(task);
@@ -65,7 +71,7 @@ class AsyncQueue {
         await first.fn();
         first.completer.complete();
       } catch (e, st) {
-        final trace = Chain([Trace.from(first.origin), Trace.from(st)]).terse;
+        final trace = Chain([Trace.from(st), Trace.from(first.origin)]).terse;
         stderr.writeln('Error executing off-request function: $e\n$trace');
         _logger.severe('Error executing off-request function.', e, trace);
         first.completer.completeError(e, st);

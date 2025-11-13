@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
@@ -229,6 +230,7 @@ void main() {
           retractable: ['1.0.0', '1.2.0', '2.0.0-dev'],
           recentlyRetracted: [],
         );
+        await asyncQueue.ongoingProcessing;
         final p3Info = PackageData.fromJson(
           json.decode(utf8.decode(await client.listVersions('oxygen')))
               as Map<String, dynamic>,
