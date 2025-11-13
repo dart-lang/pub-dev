@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -68,7 +69,23 @@ final class InstalledSdk {
     required String kind,
     required String path,
   }) async {
-    final v = await File(p.join(path, 'version')).readAsString();
+    late String sdkVersion;
+    final rootVersionFile = File(p.join(path, 'version'));
+    if (await rootVersionFile.exists()) {
+      sdkVersion = await File(p.join(path, 'version')).readAsString();
+    } else if (kind == 'flutter') {
+      // Flutter removed the root-level `version` file and is using the following to store the version
+      final fallbackFile = File(
+        p.join(path, 'bin', 'cache', 'flutter.version.json'),
+      );
+      if (await fallbackFile.exists()) {
+        final map = json.decode(await fallbackFile.readAsString()) as Map;
+        final version =
+            (map['flutterVersion'] as String?) ??
+            (map['frameworkVersion'] as String?);
+        sdkVersion = version!;
+      }
+    }
     Version? embeddedDartSdkVersion;
     if (kind == 'flutter') {
       final embeddedFile = File(
@@ -84,7 +101,7 @@ final class InstalledSdk {
     return InstalledSdk(
       kind,
       path,
-      Version.parse(v.trim()),
+      Version.parse(sdkVersion.trim()),
       embeddedDartSdkVersion,
     );
   }
