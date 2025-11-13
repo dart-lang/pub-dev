@@ -20,6 +20,7 @@ import 'package:pana/src/dartdoc/pub_dartdoc_data.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/monitoring.dart';
+import 'package:pub_dev/task/clock_control.dart';
 import 'package:retry/retry.dart';
 
 import '../../publisher/backend.dart';
@@ -124,14 +125,14 @@ class SearchBackend {
         final elapsed = clock.now().difference(started);
         if (elapsed < Duration(hours: 1)) {
           _logger.warning('Waiting before rethrowing exception.', e, st);
-          await Future.delayed(Duration(hours: 1) - elapsed);
+          await clock.delayed(Duration(hours: 1) - elapsed);
         }
         // Throwing here will crash the VM and force the instance to restart.
         rethrow;
       }
 
       // Allow another instance to get the lock and build the index.
-      await Future.delayed(Duration(minutes: 1));
+      await clock.delayed(Duration(minutes: 1));
     }
   }
 
@@ -236,7 +237,7 @@ class SearchBackend {
         lastUploadedSnapshotTimestamp = snapshot.updated!;
       }
 
-      await Future.delayed(sleepDuration);
+      await clock.delayed(sleepDuration);
     }
     await pool.close();
   }
