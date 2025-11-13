@@ -71,20 +71,14 @@ final class InstalledSdk {
   }) async {
     late String sdkVersion;
     final rootVersionFile = File(p.join(path, 'version'));
-    if (await rootVersionFile.exists()) {
-      sdkVersion = await File(p.join(path, 'version')).readAsString();
-    } else if (kind == 'flutter') {
-      // Flutter removed the root-level `version` file and is using the following to store the version
-      final fallbackFile = File(
+    final String sdkVersion
+    if (kind == 'flutter') {
+      final versionFile = File(
         p.join(path, 'bin', 'cache', 'flutter.version.json'),
       );
-      if (await fallbackFile.exists()) {
-        final map = json.decode(await fallbackFile.readAsString()) as Map;
-        final version =
-            (map['flutterVersion'] as String?) ??
-            (map['frameworkVersion'] as String?);
-        sdkVersion = version!;
-      }
+      sdkVersion = (json.decode(await versionFile.readAsString()) as Map)['flutterVersion'] as String;
+    } else {
+      sdkVersion = await File(p.join(path, 'version')).readAsString().trim();
     }
     Version? embeddedDartSdkVersion;
     if (kind == 'flutter') {
