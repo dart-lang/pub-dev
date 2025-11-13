@@ -70,15 +70,14 @@ final class InstalledSdk {
     required String path,
   }) async {
     late String sdkVersion;
-    final rootVersionFile = File(p.join(path, 'version'));
-    final String sdkVersion
     if (kind == 'flutter') {
       final versionFile = File(
         p.join(path, 'bin', 'cache', 'flutter.version.json'),
       );
-      sdkVersion = (json.decode(await versionFile.readAsString()) as Map)['flutterVersion'] as String;
+      final content = await versionFile.readAsString();
+      sdkVersion = (json.decode(content) as Map)['flutterVersion'] as String;
     } else {
-      sdkVersion = await File(p.join(path, 'version')).readAsString().trim();
+      sdkVersion = (await File(p.join(path, 'version')).readAsString()).trim();
     }
     Version? embeddedDartSdkVersion;
     if (kind == 'flutter') {
