@@ -305,15 +305,22 @@ final class ClockController {
     Duration? minimumStep,
   }) async {
     final deadline = timeout != null ? clock.fromNowBy(timeout) : null;
-    while (_pendingTimers.isNotEmpty &&
+
+    bool shouldLoop() =>
+        _pendingTimers.isNotEmpty &&
         (deadline == null ||
-            _pendingTimers.first._elapsesAtInFakeTime.isBefore(deadline))) {
+            _pendingTimers.first._elapsesAtInFakeTime.isBefore(deadline));
+
+    while (shouldLoop()) {
       if (await condition()) {
         return;
       }
 
       // Wait for all microtasks to run
       await _waitForMicroTasks();
+      if (!shouldLoop()) {
+        break;
+      }
 
       // Jump into the future, until the point in time that the next timer is
       // pending.
@@ -371,10 +378,15 @@ final class ClockController {
   /// moving backwards in time. That allows [elapseTime] to be called with
   /// a zero duration.
   Future<void> _elapseTo(DateTime futureTime) async {
-    while (_pendingTimers.isNotEmpty &&
-        _pendingTimers.first._elapsesAtInFakeTime.isBefore(futureTime)) {
+    bool shouldLoop() =>
+        _pendingTimers.isNotEmpty &&
+        _pendingTimers.first._elapsesAtInFakeTime.isBefore(futureTime);
+    while (shouldLoop()) {
       // Wait for all microtasks to run
       await _waitForMicroTasks();
+      if (!shouldLoop()) {
+        break;
+      }
 
       // Jump into the future, until the point in time that the next timer is
       // pending.
