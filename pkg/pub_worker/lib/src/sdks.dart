@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -68,7 +69,16 @@ final class InstalledSdk {
     required String kind,
     required String path,
   }) async {
-    final v = await File(p.join(path, 'version')).readAsString();
+    late String sdkVersion;
+    if (kind == 'flutter') {
+      final versionFile = File(
+        p.join(path, 'bin', 'cache', 'flutter.version.json'),
+      );
+      final content = await versionFile.readAsString();
+      sdkVersion = (json.decode(content) as Map)['flutterVersion'] as String;
+    } else {
+      sdkVersion = (await File(p.join(path, 'version')).readAsString()).trim();
+    }
     Version? embeddedDartSdkVersion;
     if (kind == 'flutter') {
       final embeddedFile = File(
@@ -84,7 +94,7 @@ final class InstalledSdk {
     return InstalledSdk(
       kind,
       path,
-      Version.parse(v.trim()),
+      Version.parse(sdkVersion.trim()),
       embeddedDartSdkVersion,
     );
   }
