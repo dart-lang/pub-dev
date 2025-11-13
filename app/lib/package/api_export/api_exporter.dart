@@ -99,7 +99,7 @@ final class ApiExporter {
               st,
             );
             // Sleep 5 minutes to reduce risk of degenerate behavior
-            await Future.delayed(Duration(minutes: 5));
+            await clock.delayed(Duration(minutes: 5));
           }
         }
       } catch (e, st) {
