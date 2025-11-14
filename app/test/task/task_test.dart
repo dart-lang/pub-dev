@@ -58,7 +58,9 @@ void main() {
       await taskBackend.backfillTrackingState();
       await clockControl.elapse(minutes: 1);
 
+      final created = cloud.waitForCreated();
       await taskBackend.start();
+      await created;
       await clockControl.elapse(minutes: 5);
 
       // Check that the log is missing.
@@ -188,43 +190,48 @@ void main() {
 
       await taskBackend.start();
 
-      // We are going to let the task timeout, if this happens we should only
-      // try to scheduled it until we hit the [taskRetryLimit].
-      for (var i = 0; i < taskRetryLimit; i++) {
-        // Within 24 hours an instance should be created
-        await clockControl.elapseUntil(
-          () => cloud.listInstances().isNotEmpty,
-          timeout: Duration(days: 1),
-        );
+      int createdCount = 0;
 
+      final countSubscription = cloud.onCreated.listen((_) {
+        createdCount++;
+      });
+      final fewCreated = cloud.onCreated.take(taskRetryLimit).toList();
+      final fewDeleted = cloud.onDeleted.take(taskRetryLimit).toList();
+
+      // We are going to let the task timeout (by not uploading any result).
+      // If this happens we should only try to scheduled it until we hit the [taskRetryLimit].
+      for (var i = 0; i < taskRetryLimit; i++) {
+        // Allowing the microtasks to complete.
+        await _arbitraryRealClockWait();
+        // Within 24 hours an instance should be created
         // If nothing happens, then it should be killed within 24 hours.
         // Actually, it'll happen much sooner, like ~2 hours, but we'll leave the
         // test some wiggle room.
-        await clockControl.elapseUntil(
-          () => cloud.listInstances().isEmpty,
-          timeout: Duration(days: 1),
-        );
+        await clockControl.elapse(hours: 24);
       }
+      await Future.wait([fewCreated, fewDeleted]);
+      await _arbitraryRealClockWait();
+      expect(createdCount, taskRetryLimit);
 
       // Once we've exceeded the [taskRetryLimit], we shouldn't see any instances
-      // created for the next day...
-      assert(taskRetriggerInterval > Duration(days: 1));
-      await expectLater(
-        clockControl.elapseUntil(
-          () => cloud.listInstances().isNotEmpty,
-          timeout: Duration(days: 1),
-        ),
-        throwsA(isA<TimeoutException>()),
+      // created for the next few days...
+      assert(taskRetriggerInterval > Duration(days: taskRetryLimit + 1));
+      await _arbitraryRealClockWait();
+      await clockControl.elapseTime(
+        taskRetriggerInterval - Duration(days: taskRetryLimit),
       );
+      expect(createdCount, taskRetryLimit);
 
       // But the task should be retried after [taskRetriggerInterval], this is a
       // long time, but for sanity we do re-analyze everything occasionally.
-      await clockControl.elapseUntil(
-        () => cloud.listInstances().isNotEmpty,
-        timeout: taskRetriggerInterval + Duration(days: 1),
-      );
+      final retrigger = cloud.onCreated.take(1).first;
+      await _arbitraryRealClockWait();
+      await clockControl.elapseTime(Duration(days: 2));
+      await retrigger;
+      expect(createdCount, taskRetryLimit + 1);
 
       await taskBackend.stop();
+      await countSubscription.cancel();
 
       await clockControl.elapse(minutes: 10);
     },
@@ -246,7 +253,9 @@ void main() {
     fn: () async {
       await taskBackend.backfillTrackingState();
       await clockControl.elapse(minutes: 1);
+      final created = cloud.waitForCreated();
       await taskBackend.start();
+      await created;
       await clockControl.elapse(minutes: 15);
 
       // We expect there to be one instance with less than 10 versions to be
@@ -300,6 +309,7 @@ void main() {
       expect(await cloud.listInstances().toList(), hasLength(0));
 
       // Create a package
+      final created = cloud.waitForCreated();
       await importProfile(
         profile: TestProfile(
           defaultUser: 'admin@pub.dev',
@@ -314,6 +324,7 @@ void main() {
       );
 
       await clockControl.elapse(minutes: 15);
+      await created;
 
       expect(await cloud.listInstances().toList(), hasLength(1));
 
@@ -332,7 +343,9 @@ void main() {
     'analyzed packages stay idle',
     fn: () async {
       await taskBackend.backfillTrackingState();
+      final created = cloud.waitForCreated();
       await taskBackend.start();
+      await created;
       await clockControl.elapse(minutes: 15);
 
       final instances = await cloud.listInstances().toList();
@@ -417,7 +430,9 @@ void main() {
     'continued scan finds new versions',
     fn: () async {
       await taskBackend.backfillTrackingState();
+      final created = cloud.waitForCreated();
       await taskBackend.start();
+      await created;
       await clockControl.elapse(minutes: 15);
       {
         final instances = await cloud.listInstances().toList();
@@ -485,6 +500,7 @@ void main() {
       );
 
       // Create a new version of existing package, this should trigger analysis
+      final createdAfterImport = cloud.waitForCreated();
       await importProfile(
         profile: TestProfile(
           defaultUser: 'admin@pub.dev',
@@ -499,6 +515,7 @@ void main() {
       );
 
       await clockControl.elapse(minutes: 15);
+      await createdAfterImport;
 
       {
         final instances = await cloud.listInstances().toList();
@@ -541,7 +558,9 @@ void main() {
     're-analyzes when dependency is updated',
     fn: () async {
       await taskBackend.backfillTrackingState();
+      final created = cloud.waitForCreated();
       await taskBackend.start();
+      await created;
       await clockControl.elapse(minutes: 15);
 
       // There should be 2 packages for analysis now
@@ -626,6 +645,7 @@ void main() {
 
       // Create a new version of neon package, this should trigger analysis
       // of neon, but also of oxygen
+      final createdAfterImport = cloud.waitForCreated();
       await importProfile(
         profile: TestProfile(
           defaultUser: 'admin@pub.dev',
@@ -640,6 +660,7 @@ void main() {
       );
 
       await clockControl.elapse(minutes: 15);
+      await createdAfterImport;
 
       // Expect that neon is scheduled within 15 minutes
       expect(
@@ -657,9 +678,17 @@ void main() {
 
       // At some point oxygen must also be retriggered, by this can be offset by
       // the [taskDependencyRetriggerCoolOff] delay.
-      await clockControl.elapseUntil(
-        () => cloud.listInstances().any((i) => i.payload.package == 'oxygen'),
-        timeout: taskDependencyRetriggerCoolOff + Duration(minutes: 15),
+      final createdAfterCoolOff = cloud.onCreated
+          .where((i) => i.payload.package == 'oxygen')
+          .first;
+      await _arbitraryRealClockWait();
+      await clockControl.elapseTime(
+        taskDependencyRetriggerCoolOff + Duration(minutes: 15),
+      );
+      await createdAfterCoolOff;
+      expect(
+        await cloud.listInstances().any((i) => i.payload.package == 'oxygen'),
+        true,
       );
 
       await taskBackend.stop();
@@ -698,7 +727,9 @@ void main() {
     ),
     fn: () async {
       await taskBackend.backfillTrackingState();
+      final created = cloud.waitForCreated();
       await taskBackend.start();
+      await created;
       await clockControl.elapse(minutes: 15);
       late VersionTokenPair v;
       {
@@ -714,6 +745,7 @@ void main() {
         v = payload.versions.first;
 
         // Create new versions, removing the token from the first version
+        final createdAfterImport = cloud.waitForCreated();
         await importProfile(
           profile: TestProfile(
             defaultUser: 'admin@pub.dev',
@@ -734,6 +766,7 @@ void main() {
         );
 
         await clockControl.elapse(minutes: 15);
+        await createdAfterImport;
 
         // verify token is now aborted
         final ps = await dbService.lookupValue<PackageState>(
@@ -841,4 +874,11 @@ Future<void> upload(
 
   // Unhandled response code -> retry
   fail('Unhandled HTTP status = ${res.statusCode}, body: ${res.body}');
+}
+
+// NOTE: This arbitrary wait helps the task scheduling's microtask to catch up with
+//       the controlled elapsed time.
+// TODO: Rewrite task scheduling to expose internal events and use them instead. ()
+Future<void> _arbitraryRealClockWait() async {
+  await Future.delayed(Duration(seconds: 1));
 }
