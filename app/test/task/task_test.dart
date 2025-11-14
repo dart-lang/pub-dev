@@ -832,12 +832,6 @@ void main() {
   );
 }
 
-extension<T> on Stream<T> {
-  Future<bool> get isNotEmpty async {
-    return !await this.isEmpty;
-  }
-}
-
 Future<void> upload(
   http.Client client,
   UploadInfo destination,
