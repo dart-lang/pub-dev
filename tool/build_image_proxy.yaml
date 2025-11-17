@@ -6,6 +6,7 @@
 #   <project-id>@cloudbuild.gserviceaccount.com
 #
 # Reference: https://cloud.google.com/cloud-build/docs/build-config
+# https://docs.cloud.google.com/build/docs/deploying-builds/deploy-cloud-run
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     script: |
