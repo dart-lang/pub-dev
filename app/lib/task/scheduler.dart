@@ -243,6 +243,7 @@ Future<void> schedule(
       });
     }
 
+    // Creating an instance can be slow, we want to schedule them concurrently.
     await Future.wait(
       (await db.tasks.selectSomePending(selectLimit).toList()).map(
         scheduleInstance,
