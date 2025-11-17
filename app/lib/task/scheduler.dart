@@ -147,7 +147,8 @@ Future<void> schedule(
       _maxInstancesPerIteration,
       max(0, activeConfiguration.maxTaskInstances - instances),
     );
-    await for (final selected in db.tasks.selectSomePending(selectLimit)) {
+
+    Future<void> scheduleInstance(({String package}) selected) async {
       pendingPackagesReviewed += 1;
 
       final instanceName = compute.generateInstanceName();
@@ -241,6 +242,12 @@ Future<void> schedule(
         }
       });
     }
+
+    await Future.wait(
+      (await db.tasks.selectSomePending(selectLimit).toList()).map(
+        scheduleInstance,
+      ),
+    );
 
     // If there was no pending packages reviewed, and no instances currently
     // running, then we can easily sleep 5 minutes before we poll again.
