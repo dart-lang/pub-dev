@@ -1,0 +1,41 @@
+# Configuration for Google Cloud Build
+#
+# Triggers in the project kicks off a cloud build task based on the
+# configuration in this file. Permissions granted to this task is configured
+# by granting permissions to the service account:
+#   <project-id>@cloudbuild.gserviceaccount.com
+#
+# Reference: https://cloud.google.com/cloud-build/docs/build-config
+# https://docs.cloud.google.com/build/docs/deploying-builds/deploy-cloud-run
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      if [[ "$PROJECT_ID" != dartlang-pub  && "$PROJECT_ID" != dartlang-pub-dev]]; then
+        echo 'Only deploy from the dartlang-pub project'
+        exit 1;
+      fi
+      if [[ "$TAG_NAME" != image_proxy-* ]]; then
+        echo 'This script is only intended for use on image_proxy-<version> tags'
+        exit 1;
+      fi
+      docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy-server:$TAG_NAME . --file pkg/image_proxy/Dockerfile
+      docker push us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy-server:$TAG_NAME
+    env:
+      - 'PROJECT_ID=$PROJECT_ID'
+      - 'BRANCH_NAME=$BRANCH_NAME'
+      - 'TAG_NAME=$TAG_NAME'
+  - name: 'gcr.io/google-cloud-sdk'
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      gcloud run deploy image-proxy-server \
+        --image="us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy-server:$TAG_NAME" \
+        --region="us-central1" \
+        --platform="managed" \
+        --quiet
+    env:
+      - 'PROJECT_ID=$PROJECT_ID'
+      - 'TAG_NAME=$TAG_NAME'
+timeout: '5400s'
