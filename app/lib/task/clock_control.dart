@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
@@ -91,6 +92,24 @@ extension ClockDelayed on Clock {
       return Future.delayed(delay);
     }
   }
+
+  Future<K> run<K>(Future<K> Function() fn) async {
+    final clockCtrl = Zone.current[_clockCtrlKey];
+    if (clockCtrl is ClockController) {
+      final completer = Completer();
+      clockCtrl._pendingRuns.add(completer.future);
+      final delayFuture = delayed(Duration.zero);
+      try {
+        return await fn();
+      } finally {
+        completer.complete();
+        await clockCtrl.elapseTime(Duration.zero);
+        await delayFuture;
+      }
+    } else {
+      return await fn();
+    }
+  }
 }
 
 final class ClockController {
@@ -98,6 +117,8 @@ final class ClockController {
   Duration _offset;
 
   ClockController._(this._originalTime, this._offset);
+
+  final _pendingRuns = Queue<Future>();
 
   DateTime _controlledTime() => _originalTime().add(_offset);
 
@@ -438,6 +459,10 @@ final class ClockController {
 
   /// Wait for all scheduled microtasks to be done.
   Future<void> _waitForMicroTasks() async {
+    await Future.delayed(Duration(microseconds: 0));
+    while (_pendingRuns.isNotEmpty) {
+      await _pendingRuns.removeFirst();
+    }
     await Future.delayed(Duration(microseconds: 0));
   }
 }
