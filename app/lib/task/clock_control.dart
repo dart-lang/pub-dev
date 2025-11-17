@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
@@ -93,22 +92,14 @@ extension ClockDelayed on Clock {
     }
   }
 
-  Future<K> run<K>(Future<K> Function() fn) async {
+  Future<K> instant<K>(Future<K> Function() fn) {
     final clockCtrl = Zone.current[_clockCtrlKey];
     if (clockCtrl is ClockController) {
-      final completer = Completer();
-      clockCtrl._pendingRuns.add(completer.future);
-      final delayFuture = delayed(Duration.zero);
-      try {
-        return await fn();
-      } finally {
-        completer.complete();
-        await clockCtrl.elapseTime(Duration.zero);
-        await delayFuture;
-      }
-    } else {
-      return await fn();
+      final f = Future.microtask(fn);
+      clockCtrl._pendingInstants.add(f);
+      return f;
     }
+    return Future.sync(fn);
   }
 }
 
@@ -118,7 +109,7 @@ final class ClockController {
 
   ClockController._(this._originalTime, this._offset);
 
-  final _pendingRuns = Queue<Future>();
+  final _pendingInstants = <Future<void>>[];
 
   DateTime _controlledTime() => _originalTime().add(_offset);
 
@@ -402,6 +393,9 @@ final class ClockController {
     bool shouldLoop() =>
         _pendingTimers.isNotEmpty &&
         _pendingTimers.first._elapsesAtInFakeTime.isBefore(futureTime);
+
+    await _waitForMicroTasks();
+
     while (shouldLoop()) {
       // Wait for all microtasks to run
       await _waitForMicroTasks();
@@ -417,6 +411,8 @@ final class ClockController {
       // Trigger all timers that are pending, this cancels any actual timer
       // and creates a new pending timer.
       _triggerPendingTimers();
+
+      await _waitForMicroTasks();
     }
 
     await _waitForMicroTasks();
@@ -460,10 +456,18 @@ final class ClockController {
   /// Wait for all scheduled microtasks to be done.
   Future<void> _waitForMicroTasks() async {
     await Future.delayed(Duration(microseconds: 0));
-    while (_pendingRuns.isNotEmpty) {
-      await _pendingRuns.removeFirst();
+
+    while (_pendingInstants.isNotEmpty) {
+      final f = Future.wait(_pendingInstants);
+      _pendingInstants.clear();
+      try {
+        await f;
+      } catch (_) {
+        // ignore
+      }
+
+      await Future.delayed(Duration(microseconds: 0));
     }
-    await Future.delayed(Duration(microseconds: 0));
   }
 }
 

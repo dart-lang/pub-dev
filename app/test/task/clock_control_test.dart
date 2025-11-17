@@ -25,9 +25,10 @@ void main() {
       counter++;
       for (var i = 0; i < 3; i++) {
         // assuming some latency cannot be controlled
-        await Future.delayed(Duration(milliseconds: 10), () {
-          counter++;
-        });
+        await Future.delayed(Duration(milliseconds: 10));
+
+        counter++;
+
         // expected to speed time
         await clock.delayed(Duration(minutes: 1));
       }
@@ -67,11 +68,11 @@ void main() {
     scheduleMicrotask(() async {
       counter++;
       for (var i = 0; i < 3; i++) {
-        await clock.run(() async {
+        await clock.instant(() async {
           // assuming some latency cannot be controlled
-          await Future.delayed(Duration(milliseconds: 10), () {
-            counter++;
-          });
+          await Future.delayed(Duration(milliseconds: 50));
+
+          counter++;
         });
         // expected to speed time
         await clock.delayed(Duration(minutes: 1));
@@ -89,16 +90,64 @@ void main() {
 
     // loop
     await clockControl.elapse(minutes: 1, seconds: 1);
-    expect(counter, 1);
-
-    // loop
-    await clockControl.elapse(minutes: 1, seconds: 1);
     expect(counter, 2);
 
     // loop
     await clockControl.elapse(minutes: 1, seconds: 1);
+    expect(counter, 3);
+
+    // loop
+    await clockControl.elapse(minutes: 5, seconds: 1);
     expect(counter, 103);
 
     await done.future;
+  });
+
+  testWithClockControl('simple run + delayed', (clockControl) async {
+    var counter = -1;
+    final done = Completer();
+    scheduleMicrotask(() async {
+      counter++;
+      for (var i = 0; i < 3; i++) {
+        await clock.instant(() async {
+          // assuming some latency cannot be controlled
+          await Future.delayed(Duration(milliseconds: 50));
+
+          counter++;
+        });
+        // expected to speed time
+        await clock.delayed(Duration(minutes: 1));
+      }
+      counter += 100;
+      done.complete();
+    });
+
+    // microtask hasn't started
+    expect(counter, -1);
+
+    // loop
+    await clockControl.elapse(minutes: 5, seconds: 1);
+    expect(counter, 103);
+
+    await done.future;
+  });
+
+  testWithClockControl('delayed 3 times', (clockControl) async {
+    var counter = 0;
+
+    final done = Future.microtask(() async {
+      for (var i = 0; i < 30; i++) {
+        await clock.delayed(Duration(seconds: 2));
+        counter++;
+      }
+
+      print('done');
+      counter = 1000;
+    });
+
+    await clockControl.elapse(minutes: 10);
+
+    await done;
+    expect(counter, 1000);
   });
 }
