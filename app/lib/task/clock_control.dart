@@ -18,9 +18,66 @@ Future<T> withClockControl<T>(
 
   final clockCtrl = ClockController._(clock.now, initialTime.difference(now));
   return await runZoned(
-    () => withClock(
-      Clock(clockCtrl._controlledTime),
-      () async => await fn(clockCtrl),
+    () => runZoned(
+      () => withClock(
+        Clock(clockCtrl._controlledTime),
+        () async => await fn(clockCtrl),
+      ),
+      zoneSpecification: ZoneSpecification(
+        run: <R>(self, parent, zone, R Function() fn) {
+          if (R is Future) {
+            return parent.run(zone, () => clock.instant(() async => fn())) as R;
+          } else {
+            return parent.run(zone, fn);
+          }
+        },
+        runUnary: <R, T1>(self, parent, zone, R Function(T1) fn, T1 arg1) {
+          if (R is Future) {
+            return parent.runUnary(
+              zone,
+              (arg1) => clock.instant(() async => fn(arg1)) as R,
+              arg1,
+            );
+          } else {
+            return parent.runUnary(zone, fn, arg1);
+          }
+        },
+        runBinary:
+            <R, T1, T2>(
+              self,
+              parent,
+              zone,
+              R Function(T1, T2) fn,
+              T1 arg1,
+              T2 arg2,
+            ) {
+              if (R is Future) {
+                return parent.runBinary(
+                  zone,
+                  (arg1, arg2) =>
+                      clock.instant(() async => fn(arg1, arg2)) as R,
+                  arg1,
+                  arg2,
+                );
+              } else {
+                return parent.runBinary(zone, fn, arg1, arg2);
+              }
+            },
+        createTimer: (self, parent, zone, duration, f) {
+          final current = StackTrace.current.toString();
+          if (current.contains('ClockController._createTimer') ||
+              current.contains('ClockController._triggerPendingTimers') ||
+              current.contains('ClockController._cancelPendingTimer')) {
+            return parent.createTimer(zone, duration, f);
+          }
+          final clockCtrl = zone[_clockCtrlKey];
+          if (clockCtrl is ClockController) {
+            return clockCtrl._createTimer(duration, f);
+          } else {
+            return parent.createTimer(zone, duration, f);
+          }
+        },
+      ),
     ),
     zoneValues: {_clockCtrlKey: clockCtrl},
   );
@@ -319,9 +376,10 @@ final class ClockController {
     final deadline = timeout != null ? clock.fromNowBy(timeout) : null;
 
     bool shouldLoop() =>
-        _pendingTimers.isNotEmpty &&
-        (deadline == null ||
-            _pendingTimers.first._elapsesAtInFakeTime.isBefore(deadline));
+        _pendingInstants.isNotEmpty ||
+        (_pendingTimers.isNotEmpty &&
+            (deadline == null ||
+                _pendingTimers.first._elapsesAtInFakeTime.isBefore(deadline)));
 
     while (shouldLoop()) {
       if (await condition()) {
@@ -342,6 +400,7 @@ final class ClockController {
       // Trigger all timers that are pending, this cancels any actual timer
       // and creates a new pending timer.
       _triggerPendingTimers();
+      await _waitForMicroTasks();
     }
 
     await _waitForMicroTasks();
@@ -391,8 +450,9 @@ final class ClockController {
   /// a zero duration.
   Future<void> _elapseTo(DateTime futureTime) async {
     bool shouldLoop() =>
-        _pendingTimers.isNotEmpty &&
-        _pendingTimers.first._elapsesAtInFakeTime.isBefore(futureTime);
+        _pendingInstants.isNotEmpty ||
+        (_pendingTimers.isNotEmpty &&
+            _pendingTimers.first._elapsesAtInFakeTime.isBefore(futureTime));
 
     await _waitForMicroTasks();
 
@@ -455,7 +515,7 @@ final class ClockController {
 
   /// Wait for all scheduled microtasks to be done.
   Future<void> _waitForMicroTasks() async {
-    await Future.delayed(Duration(microseconds: 0));
+    await Future.microtask(() {});
 
     while (_pendingInstants.isNotEmpty) {
       final f = Future.wait(_pendingInstants);
@@ -466,12 +526,12 @@ final class ClockController {
         // ignore
       }
 
-      await Future.delayed(Duration(microseconds: 0));
+      await Future.microtask(() {});
     }
   }
 }
 
-final class _TravelingTimer {
+final class _TravelingTimer implements Timer {
   /// [ClockController] to which this [_TravelingTimer] belongs.
   final ClockController _owner;
 
@@ -485,12 +545,22 @@ final class _TravelingTimer {
   /// Duration for the timer to trigger.
   final Duration _duration;
 
+  final void Function() _triggerFn;
+
   /// Callback to be invoked when this [_TravelingTimer] is triggered.
-  final void Function(_TravelingTimer timer) _trigger;
+  void _trigger(_TravelingTimer timer) {
+    if (isActive) {
+      _isTriggered = true;
+      _triggerFn();
+    }
+  }
 
   /// [DateTime] when this [_TravelingTimer] is supposed to be triggered,
   /// measured in [ClockController._controlledTime].
   DateTime get _elapsesAtInFakeTime => _createdInControlledTime.add(_duration);
+
+  bool _isTriggered = false;
+  bool _isCancelled = false;
 
   _TravelingTimer({
     required ClockController owner,
@@ -502,7 +572,17 @@ final class _TravelingTimer {
        _createdInControlledTime = createdInControlledTime,
        _zone = zone,
        _duration = duration,
-       _trigger = ((_) => trigger());
+       _triggerFn = trigger;
 
-  void cancel() => _owner._cancelPendingTimer(this);
+  @override
+  void cancel() {
+    _isCancelled = true;
+    _owner._cancelPendingTimer(this);
+  }
+
+  @override
+  int get tick => throw UnimplementedError();
+
+  @override
+  bool get isActive => !_isTriggered && !_isCancelled;
 }
