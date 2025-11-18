@@ -43,6 +43,7 @@ import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/handlers.dart';
+import 'package:pub_dev/task/loops/scan_packages_updated.dart';
 import 'package:pub_dev/task/models.dart'
     show
         AbortedTokenInfo,
@@ -308,52 +309,30 @@ class TaskBackend {
   }) async {
     abort ??= Completer<void>();
 
-    // Map from package to updated that has been seen.
-    final seen = <String, DateTime>{};
+    var state = ScanPackagesUpdatedState.init();
+    bool isAbortedFn() => !claim.valid || abort!.isCompleted;
+    while (!isAbortedFn()) {
+      final sinceParamNow = state.since;
 
-    // We will schedule longer overlaps every 6 hours.
-    var nextLongScan = clock.fromNow(hours: 6);
+      final next = await calculateScanPackagesUpdatedLoop(
+        state,
+        _db.packages.listUpdatedSince(sinceParamNow),
+        isAbortedFn,
+      );
 
-    // In theory 30 minutes overlap should be enough. In practice we should
-    // allow an ample room for missed windows, and 3 days seems to be large enough.
-    var since = clock.ago(days: 3);
-    while (claim.valid && !abort.isCompleted) {
-      final sinceParamNow = since;
+      state = next.state;
 
-      if (clock.now().isAfter(nextLongScan)) {
-        // Next time we'll do a longer scan
-        since = clock.ago(days: 1);
-        nextLongScan = clock.fromNow(hours: 6);
-      } else {
-        // Next time we'll only consider changes since now - 30 minutes
-        since = clock.ago(minutes: 30);
-      }
-
-      // Look at all packages that has changed
-      await for (final p in _db.packages.listUpdatedSince(sinceParamNow)) {
-        // Abort, if claim is invalid or abort has been resolved!
-        if (!claim.valid || abort.isCompleted) {
+      for (final p in next.packages) {
+        if (isAbortedFn()) {
           return;
         }
-
-        // Check if the [updated] timestamp has been seen before.
-        // If so, we skip checking it!
-        final lastSeen = seen[p.name];
-        if (lastSeen != null && lastSeen.toUtc() == p.updated.toUtc()) {
-          continue;
-        }
-        // Remember the updated time for this package, so we don't check it
-        // again...
-        seen[p.name] = p.updated;
-
         // Check the package
-        await trackPackage(p.name, updateDependents: true);
+        await trackPackage(p, updateDependents: true);
       }
 
-      // Cleanup the [seen] map for anything older than [since], as this won't
-      // be relevant to the next iteration.
-      seen.removeWhere((_, updated) => updated.isBefore(since));
-
+      if (isAbortedFn()) {
+        return;
+      }
       // Wait until aborted or 10 minutes before scanning again!
       await abort.future.timeoutWithClock(
         Duration(minutes: 10),
