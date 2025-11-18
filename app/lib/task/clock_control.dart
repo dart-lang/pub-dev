@@ -24,52 +24,7 @@ Future<T> withClockControl<T>(
         () async => await fn(clockCtrl),
       ),
       zoneSpecification: ZoneSpecification(
-        run: <R>(self, parent, zone, R Function() fn) {
-          if (R is Future) {
-            return parent.run(zone, () => clock.instant(() async => fn())) as R;
-          } else {
-            return parent.run(zone, fn);
-          }
-        },
-        runUnary: <R, T1>(self, parent, zone, R Function(T1) fn, T1 arg1) {
-          if (R is Future) {
-            return parent.runUnary(
-              zone,
-              (arg1) => clock.instant(() async => fn(arg1)) as R,
-              arg1,
-            );
-          } else {
-            return parent.runUnary(zone, fn, arg1);
-          }
-        },
-        runBinary:
-            <R, T1, T2>(
-              self,
-              parent,
-              zone,
-              R Function(T1, T2) fn,
-              T1 arg1,
-              T2 arg2,
-            ) {
-              if (R is Future) {
-                return parent.runBinary(
-                  zone,
-                  (arg1, arg2) =>
-                      clock.instant(() async => fn(arg1, arg2)) as R,
-                  arg1,
-                  arg2,
-                );
-              } else {
-                return parent.runBinary(zone, fn, arg1, arg2);
-              }
-            },
         createTimer: (self, parent, zone, duration, f) {
-          final current = StackTrace.current.toString();
-          if (current.contains('ClockController._createTimer') ||
-              current.contains('ClockController._triggerPendingTimers') ||
-              current.contains('ClockController._cancelPendingTimer')) {
-            return parent.createTimer(zone, duration, f);
-          }
           final clockCtrl = zone[_clockCtrlKey];
           if (clockCtrl is ClockController) {
             return clockCtrl._createTimer(duration, f);
@@ -202,7 +157,7 @@ final class ClockController {
     // to create a new [_timerForFirstPendingTimer] timer.
     if (_pendingTimers.first == timer) {
       _timerForFirstPendingTimer?.cancel();
-      _timerForFirstPendingTimer = timer._zone.createTimer(
+      _timerForFirstPendingTimer = Zone.root.createTimer(
         timer._duration,
         _triggerPendingTimers,
       );
@@ -243,7 +198,7 @@ final class ClockController {
         delay = Duration.zero;
       }
 
-      _timerForFirstPendingTimer = nextTimer._zone.createTimer(
+      _timerForFirstPendingTimer = Zone.root.createTimer(
         delay,
         _triggerPendingTimers,
       );
@@ -289,7 +244,7 @@ final class ClockController {
           delay = Duration.zero;
         }
 
-        _timerForFirstPendingTimer = nextTimer._zone.createTimer(
+        _timerForFirstPendingTimer = Zone.root.createTimer(
           delay,
           _triggerPendingTimers,
         );
