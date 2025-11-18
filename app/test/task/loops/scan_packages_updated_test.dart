@@ -10,8 +10,10 @@ import 'package:test/test.dart';
 
 void main() {
   group('task scan: packages updated', () {
+    final referenceNow = clock.now();
+
     test('every new package gets updated', () async {
-      await withClock(Clock.fixed(DateTime.now()), () async {
+      await withClock(Clock.fixed(referenceNow), () async {
         final state = ScanPackagesUpdatedState.init();
         final next = await calculateScanPackagesUpdatedLoop(
           state,
@@ -32,7 +34,7 @@ void main() {
     });
 
     test('some packages will be updated', () async {
-      await withClock(Clock.fixed(DateTime.now()), () async {
+      await withClock(Clock.fixed(referenceNow), () async {
         final state = ScanPackagesUpdatedState.init(
           seen: {'a': clock.ago(minutes: 5), 'b': clock.ago(minutes: 4)},
         );
@@ -55,7 +57,7 @@ void main() {
     });
 
     test('some packages are removed from seen', () async {
-      await withClock(Clock.fixed(DateTime.now()), () async {
+      await withClock(Clock.fixed(referenceNow), () async {
         final state = ScanPackagesUpdatedState.init(
           seen: {'a': clock.ago(minutes: 5), 'b': clock.ago(minutes: 40)},
         );
@@ -70,7 +72,7 @@ void main() {
     });
 
     test('next long scan triggered', () async {
-      await withClock(Clock.fixed(DateTime.now()), () async {
+      await withClock(Clock.fixed(referenceNow), () async {
         final state = ScanPackagesUpdatedState(
           seen: {},
           since: clock.ago(minutes: 30),
@@ -88,7 +90,7 @@ void main() {
     });
 
     test('seen an older timestamp does trigger an update', () async {
-      await withClock(Clock.fixed(DateTime.now()), () async {
+      await withClock(Clock.fixed(referenceNow), () async {
         final state = ScanPackagesUpdatedState.init(
           seen: {'a': clock.ago(minutes: 5)},
         );
@@ -103,7 +105,7 @@ void main() {
     });
 
     test('abort signal stops processing', () async {
-      await withClock(Clock.fixed(DateTime.now()), () async {
+      await withClock(Clock.fixed(referenceNow), () async {
         final state = ScanPackagesUpdatedState.init();
         var stopped = false;
 
