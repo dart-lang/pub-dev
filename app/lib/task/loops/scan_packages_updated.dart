@@ -9,23 +9,29 @@ class ScanPackagesUpdatedState {
   /// The last time the algorithm checked on a package.
   final Map<String, DateTime> seen;
 
+  /// The cycle's reference timestamp.
   final DateTime since;
 
-  final DateTime nextLongScan;
+  /// Most scan cycle will process changes only from a short time period,
+  /// however, periodically we want to process a longer overlap window.
+  /// This timestamp indicates the future time when such longer scan should happen.
+  final DateTime nextLongerOverlap;
 
   ScanPackagesUpdatedState({
     required this.seen,
     required this.since,
-    required this.nextLongScan,
+    required this.nextLongerOverlap,
   });
 
-  factory ScanPackagesUpdatedState.init() => ScanPackagesUpdatedState(
-    seen: {},
+  factory ScanPackagesUpdatedState.init({
+    Map<String, DateTime>? seen,
+  }) => ScanPackagesUpdatedState(
+    seen: seen ?? {},
     // In theory 30 minutes overlap should be enough. In practice we should
     // allow an ample room for missed windows, and 3 days seems to be large enough.
     since: clock.ago(days: 3),
     // We will schedule longer overlaps every 6 hours.
-    nextLongScan: clock.fromNow(hours: 6),
+    nextLongerOverlap: clock.fromNow(hours: 6),
   );
 }
 
@@ -48,8 +54,8 @@ Future<ScanPackagesUpdatedNextState> calculateScanPackagesUpdatedLoop(
   bool Function() isAbortedFn,
 ) async {
   var since = state.since;
-  var nextLongScan = state.nextLongScan;
-  if (clock.now().isAfter(state.nextLongScan)) {
+  var nextLongScan = state.nextLongerOverlap;
+  if (clock.now().isAfter(state.nextLongerOverlap)) {
     // Next time we'll do a longer scan
     since = clock.ago(days: 1);
     nextLongScan = clock.fromNow(hours: 6);
@@ -86,7 +92,7 @@ Future<ScanPackagesUpdatedNextState> calculateScanPackagesUpdatedLoop(
     state: ScanPackagesUpdatedState(
       seen: seen,
       since: since,
-      nextLongScan: nextLongScan,
+      nextLongerOverlap: nextLongScan,
     ),
     packages: packages,
   );
