@@ -24,7 +24,9 @@ void registerPrimaryDatabase(PrimaryDatabase database) =>
     ss.register(#_primaryDatabase, database);
 
 /// The active primary database service.
-PrimaryDatabase? get primaryDatabase =>
+PrimaryDatabase? get primaryDatabase => _lookupPrimaryDatabase();
+
+PrimaryDatabase? _lookupPrimaryDatabase() =>
     ss.lookup(#_primaryDatabase) as PrimaryDatabase?;
 
 /// Access to the primary database connection and object mapping.
@@ -32,8 +34,9 @@ class PrimaryDatabase {
   final Pool _pg;
   final DatabaseAdapter _adapter;
   final Database<PrimarySchema> db;
+  final Future<void> Function()? _closeFn;
 
-  PrimaryDatabase._(this._pg, this._adapter, this.db);
+  PrimaryDatabase._(this._pg, this._adapter, this.db, this._closeFn);
 
   /// Gets the connection string either from the environment variable or from
   /// the secret backend, connects to it and registers the primary database
@@ -43,54 +46,71 @@ class PrimaryDatabase {
       // Production is not configured for postgresql yet.
       return;
     }
-    var connectionString =
+    if (_lookupPrimaryDatabase() != null) {
+      // Already initialized, must be in a local test environment.
+      assert(activeConfiguration.isFakeOrTest);
+      return;
+    }
+    final connectionString =
         envConfig.pubPostgresUrl ??
         (await secretBackend.lookup(SecretKey.postgresConnectionString));
     if (connectionString == null && activeConfiguration.isStaging) {
       // Staging may not have the connection string set yet.
       return;
     }
+    final database = connectionString != null
+        ? await _fromConnectionString(connectionString)
+        : await startOrUseLocalDatabase();
+    registerPrimaryDatabase(database);
+    ss.registerScopeExitCallback(database.close);
+  }
+
+  static Future<PrimaryDatabase> startOrUseLocalDatabase() async {
+    late String url;
     // The scope-specific custom database. We are creating a custom database for
     // each test run, in order to provide full isolation, however, this must not
     // be used in Appengine.
     String? customDb;
-    if (connectionString == null) {
-      (connectionString, customDb) = await _startOrUseLocalPostgresInDocker();
-    }
+    (url, customDb) = await _startOrUseLocalPostgresInDocker();
     if (customDb == null && !envConfig.isRunningInAppengine) {
-      customDb = await _createCustomDatabase(connectionString);
+      customDb = await _createCustomDatabase(url);
     }
 
+    final originalUrl = url;
     if (customDb != null) {
       if (envConfig.isRunningInAppengine) {
         throw StateError('Should not use custom database inside AppEngine.');
       }
 
-      final originalUrl = connectionString;
-      connectionString = Uri.parse(
-        connectionString,
-      ).replace(path: customDb).toString();
-      ss.registerScopeExitCallback(() async {
-        await _dropCustomDatabase(originalUrl, customDb!);
-      });
+      url = Uri.parse(url).replace(path: customDb).toString();
     }
 
-    final database = await _fromConnectionString(connectionString);
-    registerPrimaryDatabase(database);
-    ss.registerScopeExitCallback(database.close);
+    Future<void> closeFn() async {
+      if (customDb != null) {
+        await _dropCustomDatabase(originalUrl, customDb);
+      }
+    }
+
+    return await _fromConnectionString(url, closeFn: closeFn);
   }
 
-  static Future<PrimaryDatabase> _fromConnectionString(String value) async {
+  static Future<PrimaryDatabase> _fromConnectionString(
+    String value, {
+    Future<void> Function()? closeFn,
+  }) async {
     final pg = Pool.withUrl(value);
     final adapter = DatabaseAdapter.postgres(pg);
     final db = Database<PrimarySchema>(adapter, SqlDialect.postgres());
     await db.createTables();
-    return PrimaryDatabase._(pg, adapter, db);
+    return PrimaryDatabase._(pg, adapter, db, closeFn);
   }
 
   Future<void> close() async {
     await _adapter.close();
     await _pg.close();
+    if (_closeFn != null) {
+      await _closeFn();
+    }
   }
 
   @visibleForTesting
