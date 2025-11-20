@@ -145,6 +145,7 @@ Future<R> withFakeServices<R>({
   MemDatastore? datastore,
   MemStorage? storage,
   FakeCloudCompute? cloudCompute,
+  PrimaryDatabase? primaryDatabase,
 }) async {
   if (!envConfig.isRunningLocally) {
     throw StateError("Mustn't use fake services inside AppEngine.");
@@ -156,6 +157,9 @@ Future<R> withFakeServices<R>({
         register(#appengine.context, FakeClientContext());
         registerDbService(DatastoreDB(datastore!));
         registerStorageService(RetryEnforcerStorage(storage!));
+        if (primaryDatabase != null) {
+          registerPrimaryDatabase(primaryDatabase);
+        }
         IOServer? frontendServer;
         IOServer? searchServer;
         if (configuration == null) {

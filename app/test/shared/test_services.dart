@@ -11,6 +11,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
@@ -77,6 +78,28 @@ final class FakeAppengineEnv {
   final _storage = MemStorage();
   final _datastore = MemDatastore();
   final _cloudCompute = FakeCloudCompute();
+  final PrimaryDatabase _primaryDatabase;
+
+  FakeAppengineEnv._(this._primaryDatabase);
+
+  /// Initializes, provides and then disposes a fake environment, preserving
+  /// the backing databases, allowing the use of new runtimes and other dynamic
+  /// features.
+  static Future<T> withEnv<T>(
+    Future<T> Function(FakeAppengineEnv env) fn,
+  ) async {
+    final database = await PrimaryDatabase.createAndInit();
+    final env = FakeAppengineEnv._(database);
+    try {
+      return await fn(env);
+    } finally {
+      await env._dispose();
+    }
+  }
+
+  Future<void> _dispose() async {
+    await _primaryDatabase.close();
+  }
 
   /// Create a service scope with fake services and run [fn] in it.
   ///
@@ -102,6 +125,7 @@ final class FakeAppengineEnv {
               datastore: _datastore,
               storage: _storage,
               cloudCompute: _cloudCompute,
+              primaryDatabase: _primaryDatabase,
               fn: () async {
                 registerStaticFileCacheForTest(_staticFileCacheForTesting);
 
@@ -171,19 +195,19 @@ void testWithProfile(
   Iterable<Pattern>? expectedLogMessages,
   dynamic skip,
 }) {
-  final env = FakeAppengineEnv();
-
   scopedTest(
     name,
     () async {
       setupDebugEnvBasedLogging();
-      await env.run(
-        fn,
-        testProfile: testProfile ?? defaultTestProfile,
-        importSource: importSource,
-        processJobsWithFakeRunners: processJobsWithFakeRunners,
-        integrityProblem: integrityProblem,
-      );
+      await FakeAppengineEnv.withEnv((env) async {
+        await env.run(
+          fn,
+          testProfile: testProfile ?? defaultTestProfile,
+          importSource: importSource,
+          processJobsWithFakeRunners: processJobsWithFakeRunners,
+          integrityProblem: integrityProblem,
+        );
+      });
     },
     expectedLogMessages: expectedLogMessages,
     timeout: timeout,
