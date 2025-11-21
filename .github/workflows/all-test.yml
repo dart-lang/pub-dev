@@ -11,7 +11,7 @@ on:
 
 env:
   PUB_ENVIRONMENT: bot.github
-  DART_SDK_VERSION: '3.9.0'
+  DART_SDK_VERSION: '3.10.1'
 
 jobs:
   app_build_only:
