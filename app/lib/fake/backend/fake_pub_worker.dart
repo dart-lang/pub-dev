@@ -13,7 +13,6 @@ import 'package:_pub_shared/worker/docker_utils.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:http/http.dart';
-import 'package:http_parser/http_parser.dart';
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
