@@ -5,12 +5,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:path/path.dart' as p;
 import 'package:retry/retry.dart';
-
-final _random = Random.secure();
 
 /// The timeout factor that should be used in integration tests.
 final testTimeoutFactor = 6;
@@ -33,14 +30,13 @@ class FakePubServerProcess {
     this._coverageConfig,
   );
 
-  static Future<FakePubServerProcess> start({String? appDir, int? port}) async {
+  static Future<FakePubServerProcess> start({String? appDir}) async {
     appDir ??= p.join(Directory.current.path, '../../app');
-    // TODO: check for free port
-    port ??= 20000 + _random.nextInt(990);
-    final storagePort = port + 1;
-    final searchPort = port + 2;
-    final analyzerPort = port + 3;
-    final vmPort = port + 5;
+    final port = await _getFreePort();
+    final storagePort = await _getFreePort();
+    final searchPort = await _getFreePort();
+    final analyzerPort = await _getFreePort();
+    final vmPort = await _getFreePort();
     final coverageConfig = await _CoverageConfig.detect(vmPort);
 
     await _runPubGet(appDir);
@@ -315,4 +311,11 @@ void _writeLogs(Stream<List<int>> stream, String prefix) {
           print('  $prefix[DONE]');
         },
       );
+}
+
+Future<int> _getFreePort() async {
+  final server = await HttpServer.bind('localhost', 0);
+  final port = server.port;
+  await server.close();
+  return port;
 }
