@@ -28,7 +28,7 @@ void main() {
 
         final pubUri = Uri.parse(fakeTestScenario.pubHostedUrl);
         final storageUri = pubUri.replace(
-          port: pubUri.port + 1,
+          port: fakeTestScenario.storagePort,
           path: '/fake-exported-apis/latest',
         );
 

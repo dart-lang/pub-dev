@@ -53,6 +53,8 @@ class TestContextProvider {
     return TestContextProvider._(origin, fakePubServerProcess, testBrowser);
   }
 
+  int get storagePort => _fakePubServerProcess.storagePort;
+
   Future<void> close() async {
     await _testBrowser.close();
     await _fakePubServerProcess.kill();
