@@ -129,19 +129,13 @@ Future<(String, String?)> _startOrUseLocalPostgresInDocker() async {
     throw StateError('Missing connection URL in Appengine environment.');
   }
 
-  final socketFile = File('/tmp/pub_dev_postgres/run/.s.PGSQL.5432');
-
   // the default connection URL for local server
   final url = Uri(
     scheme: 'postgresql',
     path: 'postgres',
     userInfo: 'postgres:postgres',
     queryParameters: {
-      // If the socket file is present, let's try to use it, otherwise connect through the port.
-      // Both has benefits:
-      // - (during startup) calling the port is a blocking call and waits until the service is started,
-      // - (while the service is running) the socket file seems to provide a bit faster connection.
-      'host': await socketFile.exists() ? socketFile.path : 'localhost:55432',
+      'host': '.dart_tool/postgresql/run/.s.PGSQL.5432',
       'sslmode': 'disable',
       'max_connection_count': '8',
     },
