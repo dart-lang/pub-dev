@@ -8,7 +8,7 @@ set -e
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-PG_TEMP_DIR="${TMPDIR:-/tmp}/pub_dev_postgres/"
+PG_TEMP_DIR="${SCRIPT_DIR}/../.dart_tool/postgresql/"
 mkdir -p "${PG_TEMP_DIR}"
 
 # Create directory for exposing sockets
@@ -29,7 +29,6 @@ CONTAINER_ID=$((
       -e POSTGRES_PASSWORD=postgres \
       -v "${SCRIPT_DIR}/docker-postgres-timeout-entrypoint.sh":/pub-entrypoint.sh \
       -v "${SOCKET_DIR}":/var/run/postgresql/ \
-      -p 55432:5432 \
       --mount type=tmpfs,destination=/var/lib/postgresql/data \
       --entrypoint /pub-entrypoint.sh \
       postgres:17 \
