@@ -88,7 +88,7 @@ final class FakeAppengineEnv {
   static Future<T> withEnv<T>(
     Future<T> Function(FakeAppengineEnv env) fn,
   ) async {
-    final database = await PrimaryDatabase.startOrUseLocalDatabase();
+    final database = await PrimaryDatabase.createAndInit();
     final env = FakeAppengineEnv._(database);
     try {
       return await fn(env);

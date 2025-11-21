@@ -58,20 +58,27 @@ class PrimaryDatabase {
       // Staging may not have the connection string set yet.
       return;
     }
-    final database = connectionString != null
-        ? await _fromConnectionString(connectionString)
-        : await startOrUseLocalDatabase();
+    final database = await createAndInit(url: connectionString);
     registerPrimaryDatabase(database);
     ss.registerScopeExitCallback(database.close);
   }
 
-  static Future<PrimaryDatabase> startOrUseLocalDatabase() async {
-    late String url;
+  /// Creates and initializes a [PrimaryDatabase] instance.
+  ///
+  /// When [url] is not provided, it will start a new local postgresql instance, or
+  /// if it detects an existing one, connects to it.
+  ///
+  /// When NOT running in the AppEngine environment (e.g. testing or local fake),
+  /// the initilization will create a new database, which will be dropped when the
+  /// [close] method is called.
+  static Future<PrimaryDatabase> createAndInit({String? url}) async {
     // The scope-specific custom database. We are creating a custom database for
     // each test run, in order to provide full isolation, however, this must not
     // be used in Appengine.
     String? customDb;
-    (url, customDb) = await _startOrUseLocalPostgresInDocker();
+    if (url == null) {
+      (url, customDb) = await _startOrUseLocalPostgresInDocker();
+    }
     if (customDb == null && !envConfig.isRunningInAppengine) {
       customDb = await _createCustomDatabase(url);
     }
@@ -91,14 +98,7 @@ class PrimaryDatabase {
       }
     }
 
-    return await _fromConnectionString(url, closeFn: closeFn);
-  }
-
-  static Future<PrimaryDatabase> _fromConnectionString(
-    String value, {
-    Future<void> Function()? closeFn,
-  }) async {
-    final pg = Pool.withUrl(value);
+    final pg = Pool.withUrl(url);
     final adapter = DatabaseAdapter.postgres(pg);
     final db = Database<PrimarySchema>(adapter, SqlDialect.postgres());
     await db.createTables();
