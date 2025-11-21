@@ -15,6 +15,7 @@ final testTimeoutFactor = 6;
 /// Wrapper and helper methods around the fake server process.
 class FakePubServerProcess {
   final int port;
+  final int storagePort;
   final String _tmpDir;
   final Process _process;
   final _CoverageConfig? _coverageConfig;
@@ -25,6 +26,7 @@ class FakePubServerProcess {
 
   FakePubServerProcess._(
     this.port,
+    this.storagePort,
     this._tmpDir,
     this._process,
     this._coverageConfig,
@@ -66,6 +68,7 @@ class FakePubServerProcess {
     );
     final instance = FakePubServerProcess._(
       port,
+      storagePort,
       tmpDir.path,
       process,
       coverageConfig,
