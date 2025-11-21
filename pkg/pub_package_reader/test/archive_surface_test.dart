@@ -84,7 +84,7 @@ void main() {
 
       final summary = await summarizePackageArchive(
         archiveFile.path,
-        maxArchiveSize: 199999,
+        maxUncompressedSize: 199999,
       );
       expect(summary.issues, isNotEmpty);
       expect(

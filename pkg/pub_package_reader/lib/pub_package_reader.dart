@@ -77,9 +77,11 @@ Future<PackageSummary> summarizePackageArchive(
   /// The maximum length of the extracted content text.
   int maxContentLength = 256 * 1024,
 
-  /// The maximum file size of the archive (gzipped or compressed) and
-  /// the maximum total size of the files inside the archive.
+  /// The maximum file size of the archive (compressed).
   int maxArchiveSize = 100 * 1024 * 1024,
+
+  /// The maximum total size of the files inside the archive.
+  int maxUncompressedSize = 256 * 1024 * 1024,
 
   /// The maximum number of files in the archive.
   /// TODO: set this lower once we scan the existing archives
@@ -102,6 +104,7 @@ Future<PackageSummary> summarizePackageArchive(
     await scanArchiveSurface(
       archivePath,
       maxArchiveSize: maxArchiveSize,
+      maxUncompressedSize: maxUncompressedSize,
     ).toList(),
   );
   if (issues.isNotEmpty) {

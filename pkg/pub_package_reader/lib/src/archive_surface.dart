@@ -13,6 +13,7 @@ import 'package:pub_package_reader/pub_package_reader.dart' show ArchiveIssue;
 Stream<ArchiveIssue> scanArchiveSurface(
   String archivePath, {
   required int maxArchiveSize,
+  required int maxUncompressedSize,
 }) async* {
   // Some platforms may not be able to create an archive, only an empty file.
   final file = File(archivePath);
@@ -43,9 +44,9 @@ Stream<ArchiveIssue> scanArchiveSurface(
   if (uncompressedLength <= 0) {
     yield ArchiveIssue('Uncompressed archive is empty (size = 0).');
     return;
-  } else if (uncompressedLength > maxArchiveSize) {
+  } else if (uncompressedLength > maxUncompressedSize) {
     yield ArchiveIssue(
-      'Uncompressed package archive is too large (size > $maxArchiveSize).',
+      'Uncompressed package archive is too large (size > $maxUncompressedSize).',
     );
     return;
   }
