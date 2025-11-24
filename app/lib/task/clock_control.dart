@@ -495,7 +495,9 @@ final class ClockController {
 
   /// Wait for all scheduled microtasks to be done.
   Future<void> _waitForMicroTasks() async {
-    await Future.microtask(() {});
+    await Zone.root.run(() async {
+      await Future.delayed(Duration.zero);
+    });
 
     while (_pendingInstants.isNotEmpty) {
       final f = Future.wait(_pendingInstants);
@@ -506,7 +508,9 @@ final class ClockController {
         // ignore
       }
 
-      await Future.microtask(() {});
+      await Zone.root.run(() async {
+        await Future.delayed(Duration.zero);
+      });
     }
   }
 }
