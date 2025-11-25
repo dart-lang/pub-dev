@@ -2,10 +2,11 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bump runtimeVersion to `2025.11.21`.
+ * Bump runtimeVersion to `2025.11.25`.
  * Upgraded runtime Dart SDK to `3.10.1`
  * Upgraded stable Dart analysis SDK to `3.10.1`
  * Upgraded stable Flutter analysis SDK to `3.38.2`.
+ * Upgraded pana to `0.23.3`.
  * Note: accepted uncompressed archive total size is increased to 256 MiB.
 
 ## `20251120t084200-all`
