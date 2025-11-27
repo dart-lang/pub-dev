@@ -500,8 +500,7 @@ final class ClockController {
     });
 
     while (_pendingInstants.isNotEmpty) {
-      final f = Future.wait(_pendingInstants);
-      _pendingInstants.clear();
+      final f = _pendingInstants.removeLast();
       try {
         await f;
       } catch (_) {
