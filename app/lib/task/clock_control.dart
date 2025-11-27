@@ -18,9 +18,39 @@ Future<T> withClockControl<T>(
 
   final clockCtrl = ClockController._(clock.now, initialTime.difference(now));
   return await runZoned(
-    () => withClock(
-      Clock(clockCtrl._controlledTime),
-      () async => await fn(clockCtrl),
+    () => runZoned(
+      () => withClock(
+        Clock(clockCtrl._controlledTime),
+        () async => await fn(clockCtrl),
+      ),
+      zoneSpecification: ZoneSpecification(
+        createTimer: (self, parent, zone, duration, f) {
+          final clockCtrl = zone[_clockCtrlKey];
+          if (clockCtrl is ClockController) {
+            return clockCtrl._createTimer(duration, (_) => f());
+          } else {
+            return parent.createTimer(zone, duration, f);
+          }
+        },
+        createPeriodicTimer: (self, parent, zone, duration, f) {
+          final clockCtrl = zone[_clockCtrlKey];
+          if (clockCtrl is ClockController) {
+            late _TravelingTimer timer;
+            timer = clockCtrl._createTimer(duration, (_) {
+              try {
+                f(timer);
+              } finally {
+                if (timer.isActive) {
+                  timer._reschedule();
+                }
+              }
+            }, periodic: true);
+            return timer;
+          } else {
+            return parent.createPeriodicTimer(zone, duration, f);
+          }
+        },
+      ),
     ),
     zoneValues: {_clockCtrlKey: clockCtrl},
   );
@@ -42,7 +72,7 @@ extension FutureTimeout<T> on Future<T> {
     final clockCtrl = Zone.current[_clockCtrlKey];
     if (clockCtrl is ClockController) {
       final c = Completer<T>();
-      final timer = clockCtrl._createTimer(timeLimit, () {
+      final timer = clockCtrl._createTimer(timeLimit, (_) {
         if (!c.isCompleted) {
           if (onTimeout != null) {
             c.complete(onTimeout());
@@ -85,7 +115,7 @@ extension ClockDelayed on Clock {
     final clockCtrl = Zone.current[_clockCtrlKey];
     if (clockCtrl is ClockController) {
       final c = Completer<void>();
-      clockCtrl._createTimer(delay, c.complete);
+      clockCtrl._createTimer(delay, (_) => c.complete());
       return c.future;
     } else {
       return Future.delayed(delay);
@@ -130,28 +160,35 @@ final class ClockController {
   /// This value is `null` when [_pendingTimers] is empty.
   Timer? _timerForFirstPendingTimer;
 
-  _TravelingTimer _createTimer(Duration duration, void Function() fn) {
+  _TravelingTimer _createTimer(
+    Duration duration,
+    void Function(Timer) fn, {
+    bool periodic = false,
+  }) {
     final timer = _TravelingTimer(
       owner: this,
       createdInControlledTime: _controlledTime(),
       zone: Zone.current,
       duration: duration,
       trigger: fn,
+      periodic: periodic,
     );
+    _appendTimer(timer);
+    return timer;
+  }
 
+  void _appendTimer(_TravelingTimer timer) {
     _pendingTimers.add(timer);
 
     // If the newly added [timer] is the first timer in the queue, then we have
     // to create a new [_timerForFirstPendingTimer] timer.
     if (_pendingTimers.first == timer) {
       _timerForFirstPendingTimer?.cancel();
-      _timerForFirstPendingTimer = timer._zone.createTimer(
+      _timerForFirstPendingTimer = Zone.root.createTimer(
         timer._duration,
         _triggerPendingTimers,
       );
     }
-
-    return timer;
   }
 
   /// This will cancel [_timerForFirstPendingTimer] if active, and trigger all
@@ -186,7 +223,7 @@ final class ClockController {
         delay = Duration.zero;
       }
 
-      _timerForFirstPendingTimer = nextTimer._zone.createTimer(
+      _timerForFirstPendingTimer = Zone.root.createTimer(
         delay,
         _triggerPendingTimers,
       );
@@ -232,7 +269,7 @@ final class ClockController {
           delay = Duration.zero;
         }
 
-        _timerForFirstPendingTimer = nextTimer._zone.createTimer(
+        _timerForFirstPendingTimer = Zone.root.createTimer(
           delay,
           _triggerPendingTimers,
         );
@@ -319,9 +356,10 @@ final class ClockController {
     final deadline = timeout != null ? clock.fromNowBy(timeout) : null;
 
     bool shouldLoop() =>
-        _pendingTimers.isNotEmpty &&
-        (deadline == null ||
-            _pendingTimers.first._elapsesAtInFakeTime.isBefore(deadline));
+        _pendingInstants.isNotEmpty ||
+        (_pendingTimers.isNotEmpty &&
+            (deadline == null ||
+                _pendingTimers.first._elapsesAtInFakeTime.isBefore(deadline)));
 
     while (shouldLoop()) {
       if (await condition()) {
@@ -342,6 +380,7 @@ final class ClockController {
       // Trigger all timers that are pending, this cancels any actual timer
       // and creates a new pending timer.
       _triggerPendingTimers();
+      await _waitForMicroTasks();
     }
 
     await _waitForMicroTasks();
@@ -391,8 +430,9 @@ final class ClockController {
   /// a zero duration.
   Future<void> _elapseTo(DateTime futureTime) async {
     bool shouldLoop() =>
-        _pendingTimers.isNotEmpty &&
-        _pendingTimers.first._elapsesAtInFakeTime.isBefore(futureTime);
+        _pendingInstants.isNotEmpty ||
+        (_pendingTimers.isNotEmpty &&
+            _pendingTimers.first._elapsesAtInFakeTime.isBefore(futureTime));
 
     await _waitForMicroTasks();
 
@@ -455,23 +495,26 @@ final class ClockController {
 
   /// Wait for all scheduled microtasks to be done.
   Future<void> _waitForMicroTasks() async {
-    await Future.delayed(Duration(microseconds: 0));
+    await Zone.root.run(() async {
+      await Future.delayed(Duration.zero);
+    });
 
     while (_pendingInstants.isNotEmpty) {
-      final f = Future.wait(_pendingInstants);
-      _pendingInstants.clear();
+      final f = _pendingInstants.removeLast();
       try {
         await f;
       } catch (_) {
         // ignore
       }
 
-      await Future.delayed(Duration(microseconds: 0));
+      await Zone.root.run(() async {
+        await Future.delayed(Duration.zero);
+      });
     }
   }
 }
 
-final class _TravelingTimer {
+final class _TravelingTimer implements Timer {
   /// [ClockController] to which this [_TravelingTimer] belongs.
   final ClockController _owner;
 
@@ -485,24 +528,61 @@ final class _TravelingTimer {
   /// Duration for the timer to trigger.
   final Duration _duration;
 
+  final void Function(Timer) _triggerFn;
+  final bool _periodic;
+
   /// Callback to be invoked when this [_TravelingTimer] is triggered.
-  final void Function(_TravelingTimer timer) _trigger;
+  void _trigger(_TravelingTimer timer) {
+    if (_isCancelled) {
+      return;
+    }
+    if (!_periodic) {
+      _isCancelled = true;
+    }
+    _triggerFn(this);
+  }
 
   /// [DateTime] when this [_TravelingTimer] is supposed to be triggered,
   /// measured in [ClockController._controlledTime].
   DateTime get _elapsesAtInFakeTime => _createdInControlledTime.add(_duration);
+
+  bool _isCancelled = false;
 
   _TravelingTimer({
     required ClockController owner,
     required DateTime createdInControlledTime,
     required Zone zone,
     required Duration duration,
-    required void Function() trigger,
+    required void Function(Timer) trigger,
+    required bool periodic,
   }) : _owner = owner,
        _createdInControlledTime = createdInControlledTime,
        _zone = zone,
        _duration = duration,
-       _trigger = ((_) => trigger());
+       _triggerFn = trigger,
+       _periodic = periodic;
 
-  void cancel() => _owner._cancelPendingTimer(this);
+  void _reschedule() {
+    final newInstance = _TravelingTimer(
+      owner: _owner,
+      createdInControlledTime: _owner._controlledTime(),
+      zone: _zone,
+      duration: _duration,
+      trigger: _triggerFn,
+      periodic: _periodic,
+    );
+    _owner._appendTimer(newInstance);
+  }
+
+  @override
+  void cancel() {
+    _isCancelled = true;
+    _owner._cancelPendingTimer(this);
+  }
+
+  @override
+  int get tick => throw UnimplementedError();
+
+  @override
+  bool get isActive => !_isCancelled;
 }
