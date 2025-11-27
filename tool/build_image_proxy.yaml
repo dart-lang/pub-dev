@@ -20,8 +20,8 @@ steps:
         echo 'This script is only intended for use on image_proxy-<version> tags'
         exit 1;
       fi
-      docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy-server:$TAG_NAME . --file pkg/image_proxy/Dockerfile
-      docker push us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy-server:$TAG_NAME
+      docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy/image-proxy:$TAG_NAME . --file pkg/image_proxy/Dockerfile
+      docker push us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy/image-proxy:$TAG_NAME
     env:
       - 'PROJECT_ID=$PROJECT_ID'
       - 'BRANCH_NAME=$BRANCH_NAME'
@@ -31,7 +31,7 @@ steps:
       #!/usr/bin/env bash
       set -x
       gcloud run deploy image-proxy-server \
-        --image="us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy-server:$TAG_NAME" \
+        --image="us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy/image-proxy:$TAG_NAME" \
         --region="us-central1" \
         --platform="managed" \
         --quiet
