@@ -266,9 +266,13 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
             rethrow;
           }
         }
+
+        await setupCache();
+
         registerAccountBackend(AccountBackend(dbService));
         registerAdminBackend(AdminBackend(dbService));
         registerAnnouncementBackend(AnnouncementBackend());
+        registerScopeExitCallback(announcementBackend.close);
         registerApiExporter(
           ApiExporter(
             dbService,
@@ -279,15 +283,19 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
           ),
         );
         registerAsyncQueue(AsyncQueue());
+        registerScopeExitCallback(asyncQueue.close);
+
         registerAuditBackend(AuditBackend(dbService));
         registerConsentBackend(ConsentBackend(dbService));
         registerEmailBackend(EmailBackend(dbService));
         registerLikeBackend(LikeBackend(dbService));
         registerNameTracker(NameTracker(dbService));
+        registerScopeExitCallback(() async => nameTracker.stopTracking());
         registerPackageIndexHolder(PackageIndexHolder());
         registerIndexUpdater(IndexUpdater(dbService));
         registerPublisherBackend(PublisherBackend(dbService));
         registerScoreCardBackend(ScoreCardBackend(dbService));
+        registerScopeExitCallback(scoreCardBackend.close);
         registerSearchBackend(
           SearchBackend(
             dbService,
@@ -296,7 +304,9 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
             ),
           ),
         );
+        registerScopeExitCallback(searchBackend.close);
         registerSearchClient(SearchClient());
+        registerScopeExitCallback(searchClient.close);
         registerSearchAdapter(SearchAdapter());
 
         registerImageStorage(
@@ -305,7 +315,9 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
           ),
         );
         registerTopPackages(TopPackages());
+        registerScopeExitCallback(topPackages.close);
         registerYoutubeBackend(YoutubeBackend());
+        registerScopeExitCallback(youtubeBackend.close);
 
         // depends on previously registered services
         registerPackageBackend(
@@ -329,21 +341,10 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
             storageService.bucket(activeConfiguration.taskResultBucketName!),
           ),
         );
+        registerScopeExitCallback(taskBackend.stop);
         registerSecurityAdvisoryBackend(SecurityAdvisoryBackend(dbService));
         registerDownloadCountsBackend(DownloadCountsBackend(dbService));
-
-        await setupCache();
-
-        registerScopeExitCallback(taskBackend.stop);
-        registerScopeExitCallback(announcementBackend.close);
-        registerScopeExitCallback(searchBackend.close);
-        registerScopeExitCallback(() async => nameTracker.stopTracking());
-        registerScopeExitCallback(scoreCardBackend.close);
-        registerScopeExitCallback(searchClient.close);
-        registerScopeExitCallback(topPackages.close);
-        registerScopeExitCallback(youtubeBackend.close);
         registerScopeExitCallback(downloadCountsBackend.close);
-        registerScopeExitCallback(asyncQueue.close);
 
         // Create a zone-local flag to indicate that services setup has been completed.
         return await fork(
