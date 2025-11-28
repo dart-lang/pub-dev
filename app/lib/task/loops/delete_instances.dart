@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
-import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 

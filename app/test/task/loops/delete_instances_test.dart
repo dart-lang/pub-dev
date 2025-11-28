@@ -188,12 +188,11 @@ class _CloudInstance implements CloudInstance {
   @override
   final InstanceState state;
   @override
-  final String zone;
+  final String zone = 'z1';
 
   _CloudInstance({
     required this.created,
     required this.instanceName,
     this.state = InstanceState.running,
-    this.zone = 'z1',
   });
 }
