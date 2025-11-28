@@ -199,6 +199,8 @@ final class FakeCloudCompute extends CloudCompute {
   /// Events for when an instance is deleted.
   Stream<FakeCloudInstance> get onDeleted => _onDeletedController.stream;
 
+  Future<FakeCloudInstance> waitForCreated() => onCreated.take(1).first;
+
   /// Stop execution of instances.
   Future<void> stopInstanceExecution() async {
     if (!_running) {
