@@ -14,6 +14,7 @@ import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
+import 'package:pub_dev/task/loops/delete_instances.dart';
 import 'package:pub_dev/task/models.dart';
 
 final _log = Logger('pub.task.schedule');
@@ -27,6 +28,7 @@ Future<void> schedule(
   CloudCompute compute,
   DatastoreDB db, {
   required Completer<void> abort,
+  required Sink<TaskEvent> eventSink,
 }) async {
   /// Sleep [delay] time [since] timestamp, or now if not given.
   Future<void> sleepOrAborted(Duration delay, {DateTime? since}) async {
@@ -60,60 +62,37 @@ Future<void> schedule(
     }
   }
 
-  // Set of `CloudInstance.instanceName`s currently being deleted.
-  // This to avoid deleting instances where the deletion process is still
-  // running.
-  final deletionInProgress = <String>{};
+  var deleteInstancesState = DeleteInstancesState.init();
 
   // Create a fast RNG with random seed for picking zones.
   final rng = Random(Random.secure().nextInt(2 << 31));
 
+  bool isAbortedFn() => !claim.valid || abort.isCompleted;
+
   // Run scheduling iterations, so long as we have a valid claim
-  while (claim.valid && !abort.isCompleted) {
+  while (!isAbortedFn()) {
     final iterationStart = clock.now();
     _log.info('Starting scheduling cycle');
 
-    // Count number of instances, and delete old instances
-    var instances = 0;
-    await for (final instance in compute.listInstances()) {
-      instances += 1; // count the instance
-
-      // If terminated or older than maxInstanceAge, delete the instance...
-      final isTerminated = instance.state == InstanceState.terminated;
-      final isTooOld = instance.created
-          .add(Duration(hours: activeConfiguration.maxTaskRunHours))
-          .isBefore(clock.now());
-      // Also check deletionInProgress to prevent multiple calls to delete the
-      // same instance
-      final isBeingDeleted = deletionInProgress.contains(instance.instanceName);
-      if ((isTerminated || isTooOld) && !isBeingDeleted) {
-        if (isTooOld) {
-          // This indicates that something is wrong the with the instance,
-          // ideally it should have detected its own deadline being violated
-          // and terminated on its own. Of course, this can fail for arbitrary
-          // reasons in a distributed system.
-          _log.warning('terminating $instance for being too old!');
-        } else if (isTerminated) {
-          _log.info('deleting $instance as it has terminated.');
-        }
-
-        deletionInProgress.add(instance.instanceName);
-        scheduleMicrotask(() async {
-          final deletionStart = clock.now();
-          try {
-            await compute.delete(instance.zone, instance.instanceName);
-          } catch (e, st) {
-            _log.severe('Failed to delete $instance', e, st);
-          } finally {
-            // Wait at-least 5 minutes from start of deletion until we remove
-            // it from [deletionInProgress] that way we give the API some time
-            // reconcile state.
-            await sleepOrAborted(Duration(minutes: 5), since: deletionStart);
-            deletionInProgress.remove(instance.instanceName);
-          }
-        });
-      }
+    final nextDeleteInstancesState = await scanAndDeleteInstances(
+      deleteInstancesState,
+      compute.listInstances(),
+      (zone, name) async {
+        await compute.delete(zone, name);
+        eventSink.add(
+          TaskEvent('delete-instance', {'name': name, 'zone': zone}),
+        );
+      },
+      isAbortedFn,
+      maxTaskRunHours: activeConfiguration.maxTaskInstances,
+    );
+    deleteInstancesState = nextDeleteInstancesState.state;
+    if (isAbortedFn()) {
+      break;
     }
+    await deleteInstancesState.waitSomeSeconds(5);
+
+    final instances = nextDeleteInstancesState.instances;
     _log.info('Found $instances instances');
 
     // If we are not allowed to create new instances within the allowed quota,
@@ -187,6 +166,9 @@ Future<void> schedule(
             dockerImage: activeConfiguration.taskWorkerImage!,
             arguments: [json.encode(payload)],
             description: description,
+          );
+          eventSink.add(
+            TaskEvent('create-instance', {'name': instanceName, 'zone': zone}),
           );
           rollbackPackageState = false;
         } on ZoneExhaustedException catch (e, st) {
@@ -267,6 +249,8 @@ Future<void> schedule(
     // If we are waiting for quota, then we sleep a minute before checking again
     await sleepOrAborted(Duration(minutes: 1), since: iterationStart);
   }
+
+  await deleteInstancesState.waitSomeSeconds(5);
 }
 
 /// Updates the package state with versions that are already pending or
