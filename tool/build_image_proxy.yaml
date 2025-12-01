@@ -35,6 +35,8 @@ steps:
         --region="us-central1" \
         --platform="managed" \
         --quiet
+        --set-env-vars HMAC_KEY_ID='projects/$PROJECT_ID/locations/us-central1/keyRings/image-proxy-key-ring/cryptoKeys/image-proxy-mac-key/cryptoKeyVersions/1'
+        --service-account=image-proxy@$PROJECT_ID.iam.gserviceaccount.com
     env:
       - 'PROJECT_ID=$PROJECT_ID'
       - 'TAG_NAME=$TAG_NAME'
