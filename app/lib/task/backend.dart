@@ -17,6 +17,7 @@ import 'package:gcloud/storage.dart' show Bucket;
 import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:indexed_blob/indexed_blob.dart' show BlobIndex, FileRange;
 import 'package:logging/logging.dart' show Logger;
+import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
 import 'package:pub_dev/package/api_export/api_exporter.dart';
@@ -84,6 +85,20 @@ void registerTaskBackend(TaskBackend backend) =>
 /// The active task backend service.
 TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 
+/// Describes an event that happened inside the task backend (e.g. scheduling).
+class TaskEvent {
+  final DateTime timestamp;
+  final String kind;
+  final Map<String, dynamic> parameters;
+
+  TaskEvent(this.kind, this.parameters) : timestamp = clock.now();
+
+  @override
+  String toString() {
+    return '$timestamp $kind $parameters';
+  }
+}
+
 class TaskBackend {
   final DatastoreDB _db;
   final Bucket _bucket;
@@ -99,7 +114,13 @@ class TaskBackend {
   /// `null` when not started yet.
   Completer<void>? _stopped;
 
+  /// Event log for test verification.
+  final _events = StreamController<TaskEvent>.broadcast();
+
   TaskBackend(this._db, this._bucket);
+
+  @visibleForTesting
+  Stream<TaskEvent> get events => _events.stream;
 
   /// Start continuous background processes for scheduling of tasks.
   ///
@@ -175,6 +196,7 @@ class TaskBackend {
                 taskWorkerCloudCompute,
                 _db,
                 abort: aborted,
+                eventSink: _events.sink,
               );
             }, abort: aborted);
           } catch (e, st) {
@@ -218,6 +240,7 @@ class TaskBackend {
       aborted.complete();
     }
     await _stopped!.future;
+    await _events.close();
     _aborted = null;
     _stopped = null;
   }

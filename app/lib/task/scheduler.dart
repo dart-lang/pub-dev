@@ -27,6 +27,7 @@ Future<void> schedule(
   CloudCompute compute,
   DatastoreDB db, {
   required Completer<void> abort,
+  required Sink<TaskEvent> eventSink,
 }) async {
   /// Sleep [delay] time [since] timestamp, or now if not given.
   Future<void> sleepOrAborted(Duration delay, {DateTime? since}) async {
@@ -102,6 +103,12 @@ Future<void> schedule(
           final deletionStart = clock.now();
           try {
             await compute.delete(instance.zone, instance.instanceName);
+            eventSink.add(
+              TaskEvent('delete-instance', {
+                'name': instance.instanceName,
+                'zone': instance.zone,
+              }),
+            );
           } catch (e, st) {
             _log.severe('Failed to delete $instance', e, st);
           } finally {
@@ -187,6 +194,9 @@ Future<void> schedule(
             dockerImage: activeConfiguration.taskWorkerImage!,
             arguments: [json.encode(payload)],
             description: description,
+          );
+          eventSink.add(
+            TaskEvent('create-instance', {'name': instanceName, 'zone': zone}),
           );
           rollbackPackageState = false;
         } on ZoneExhaustedException catch (e, st) {

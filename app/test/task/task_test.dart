@@ -186,45 +186,44 @@ void main() {
       await taskBackend.backfillTrackingState();
       await clockControl.elapse(minutes: 1);
 
+      final collector = _TaskEventCollector();
       await taskBackend.start();
 
       // We are going to let the task timeout, if this happens we should only
       // try to scheduled it until we hit the [taskRetryLimit].
-      for (var i = 0; i < taskRetryLimit; i++) {
-        // Within 24 hours an instance should be created
-        await clockControl.elapseUntil(
-          () => cloud.listInstances().isNotEmpty,
-          timeout: Duration(days: 1),
-        );
-
-        // If nothing happens, then it should be killed within 24 hours.
-        // Actually, it'll happen much sooner, like ~2 hours, but we'll leave the
-        // test some wiggle room.
-        await clockControl.elapseUntil(
-          () => cloud.listInstances().isEmpty,
-          timeout: Duration(days: 1),
-        );
-      }
+      await clockControl.elapse(hours: 36);
+      expect(collector.createdCount, taskRetryLimit);
+      expect(collector.deletedCount, taskRetryLimit);
+      expect(
+        collector.events.map(
+          (e) => (e.timestamp.difference(collector.startTime).inHours, e.kind),
+        ),
+        [
+          (0, 'create-instance'),
+          (2, 'delete-instance'),
+          (3, 'create-instance'),
+          (5, 'delete-instance'),
+          (15, 'create-instance'),
+          (17, 'delete-instance'),
+        ],
+      );
 
       // Once we've exceeded the [taskRetryLimit], we shouldn't see any instances
       // created for the next day...
       assert(taskRetriggerInterval > Duration(days: 1));
-      await expectLater(
-        clockControl.elapseUntil(
-          () => cloud.listInstances().isNotEmpty,
-          timeout: Duration(days: 1),
-        ),
-        throwsA(isA<TimeoutException>()),
-      );
+      await clockControl.elapse(days: 1);
+      expect(collector.createdCount, taskRetryLimit);
+      expect(collector.deletedCount, taskRetryLimit);
 
       // But the task should be retried after [taskRetriggerInterval], this is a
       // long time, but for sanity we do re-analyze everything occasionally.
-      await clockControl.elapseUntil(
-        () => cloud.listInstances().isNotEmpty,
-        timeout: taskRetriggerInterval + Duration(days: 1),
-      );
+      await clockControl.elapseTime(taskRetriggerInterval);
+      await clockControl.elapse(days: 1);
+      expect(collector.createdCount, taskRetryLimit + 1);
+      expect(collector.deletedCount, taskRetryLimit + 1);
 
       await taskBackend.stop();
+      await collector.close();
 
       await clockControl.elapse(minutes: 10);
     },
@@ -799,12 +798,6 @@ void main() {
   );
 }
 
-extension<T> on Stream<T> {
-  Future<bool> get isNotEmpty async {
-    return !await this.isEmpty;
-  }
-}
-
 Future<void> upload(
   http.Client client,
   UploadInfo destination,
@@ -841,4 +834,29 @@ Future<void> upload(
 
   // Unhandled response code -> retry
   fail('Unhandled HTTP status = ${res.statusCode}, body: ${res.body}');
+}
+
+class _TaskEventCollector {
+  final DateTime startTime;
+  final List<TaskEvent> events;
+  late final StreamSubscription _subscription;
+
+  _TaskEventCollector._(this.startTime, this.events, this._subscription);
+
+  factory _TaskEventCollector() {
+    final events = <TaskEvent>[];
+    return _TaskEventCollector._(
+      clock.now(),
+      events,
+      taskBackend.events.listen(events.add),
+    );
+  }
+
+  int get createdCount =>
+      events.where((e) => e.kind == 'create-instance').length;
+
+  int get deletedCount =>
+      events.where((e) => e.kind == 'delete-instance').length;
+
+  Future<void> close() => _subscription.cancel();
 }
