@@ -17,6 +17,7 @@ import 'package:gcloud/storage.dart' show Bucket;
 import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:indexed_blob/indexed_blob.dart' show BlobIndex, FileRange;
 import 'package:logging/logging.dart' show Logger;
+import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
 import 'package:pub_dev/package/api_export/api_exporter.dart';
@@ -98,6 +99,9 @@ class TaskBackend {
   /// This won't be resolved if [start] has not been called!
   /// `null` when not started yet.
   Completer<void>? _stopped;
+
+  ScanPackagesUpdatedState _scanPackagesUpdatedState =
+      ScanPackagesUpdatedState.init();
 
   TaskBackend(this._db, this._bucket);
 
@@ -309,26 +313,9 @@ class TaskBackend {
   }) async {
     abort ??= Completer<void>();
 
-    var state = ScanPackagesUpdatedState.init();
     bool isAbortedFn() => !claim.valid || abort!.isCompleted;
     while (!isAbortedFn()) {
-      final sinceParamNow = state.since;
-
-      final next = await calculateScanPackagesUpdatedLoop(
-        state,
-        _db.packages.listUpdatedSince(sinceParamNow),
-        isAbortedFn,
-      );
-
-      state = next.state;
-
-      for (final p in next.packages) {
-        if (isAbortedFn()) {
-          return;
-        }
-        // Check the package
-        await trackPackage(p, updateDependents: true);
-      }
+      await _runOneScanPackagesUpdate(isAbortedFn: isAbortedFn);
 
       if (isAbortedFn()) {
         return;
@@ -339,6 +326,34 @@ class TaskBackend {
         onTimeout: () => null,
       );
     }
+  }
+
+  Future<void> _runOneScanPackagesUpdate({
+    required bool Function() isAbortedFn,
+  }) async {
+    final next = await calculateScanPackagesUpdatedLoop(
+      _scanPackagesUpdatedState,
+      _db.packages.listUpdatedSince(_scanPackagesUpdatedState.since),
+      isAbortedFn,
+    );
+    _scanPackagesUpdatedState = next.state;
+
+    for (final p in next.packages) {
+      if (isAbortedFn()) {
+        return;
+      }
+      // Check the package
+      await trackPackage(p, updateDependents: true);
+    }
+  }
+
+  @visibleForTesting
+  Future<void> runOneIterationOfBackgroundLoops() async {
+    bool isAbortedFn() => false;
+
+    await _runOneScanPackagesUpdate(isAbortedFn: isAbortedFn);
+
+    // TODO: rewrite the scheduling loops
   }
 
   Future<void> trackPackage(
