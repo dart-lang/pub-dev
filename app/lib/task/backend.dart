@@ -347,15 +347,6 @@ class TaskBackend {
     }
   }
 
-  @visibleForTesting
-  Future<void> runOneIterationOfBackgroundLoops() async {
-    bool isAbortedFn() => false;
-
-    await _runOneScanPackagesUpdate(isAbortedFn: isAbortedFn);
-
-    // TODO: rewrite the scheduling loops
-  }
-
   Future<void> trackPackage(
     String packageName, {
     bool updateDependents = false,
