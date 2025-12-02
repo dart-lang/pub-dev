@@ -99,6 +99,9 @@ class TaskBackend {
   /// `null` when not started yet.
   Completer<void>? _stopped;
 
+  ScanPackagesUpdatedState _scanPackagesUpdatedState =
+      ScanPackagesUpdatedState.init();
+
   TaskBackend(this._db, this._bucket);
 
   /// Start continuous background processes for scheduling of tasks.
@@ -309,26 +312,9 @@ class TaskBackend {
   }) async {
     abort ??= Completer<void>();
 
-    var state = ScanPackagesUpdatedState.init();
     bool isAbortedFn() => !claim.valid || abort!.isCompleted;
     while (!isAbortedFn()) {
-      final sinceParamNow = state.since;
-
-      final next = await calculateScanPackagesUpdatedLoop(
-        state,
-        _db.packages.listUpdatedSince(sinceParamNow),
-        isAbortedFn,
-      );
-
-      state = next.state;
-
-      for (final p in next.packages) {
-        if (isAbortedFn()) {
-          return;
-        }
-        // Check the package
-        await trackPackage(p, updateDependents: true);
-      }
+      await _runOneScanPackagesUpdate(isAbortedFn: isAbortedFn);
 
       if (isAbortedFn()) {
         return;
@@ -338,6 +324,25 @@ class TaskBackend {
         Duration(minutes: 10),
         onTimeout: () => null,
       );
+    }
+  }
+
+  Future<void> _runOneScanPackagesUpdate({
+    required bool Function() isAbortedFn,
+  }) async {
+    final next = await calculateScanPackagesUpdatedLoop(
+      _scanPackagesUpdatedState,
+      _db.packages.listUpdatedSince(_scanPackagesUpdatedState.since),
+      isAbortedFn,
+    );
+    _scanPackagesUpdatedState = next.state;
+
+    for (final p in next.packages) {
+      if (isAbortedFn()) {
+        return;
+      }
+      // Check the package
+      await trackPackage(p, updateDependents: true);
     }
   }
 
