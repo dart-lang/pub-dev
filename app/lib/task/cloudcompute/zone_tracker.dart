@@ -14,7 +14,7 @@ class ComputeZoneTracker {
   final List<String> _zones;
   final _bannedUntil = <String, DateTime>{};
 
-  int _cursor = 0;
+  int _nextZoneIndex = 0;
 
   ComputeZoneTracker(this._zones);
 
@@ -47,8 +47,8 @@ class ComputeZoneTracker {
     _pruneBans();
     // cursor may be moved at most the number of zones times
     for (var i = 0; i < _zones.length; i++) {
-      final zone = _zones[_cursor];
-      _cursor = (_cursor + 1) % _zones.length;
+      final zone = _zones[_nextZoneIndex];
+      _nextZoneIndex = (_nextZoneIndex + 1) % _zones.length;
       if (!_bannedUntil.containsKey(zone)) {
         return zone;
       }
