@@ -121,91 +121,66 @@ class TaskBackend {
     final aborted = _aborted = Completer();
     final stopped = _stopped = Completer();
 
-    // Start scanning for packages to be tracked
-    final _doneScanning = Completer<void>();
-    scheduleMicrotask(() async {
-      try {
-        // Create a lock for task scheduling, so tasks
-        final lock = GlobalLock.create(
-          '$runtimeVersion/task/scanning',
-          expiration: Duration(minutes: 25),
-        );
-
-        while (!aborted.isCompleted) {
-          // Acquire the global lock and scan for package changes while lock is
-          // valid.
-          try {
-            await lock.withClaim((claim) async {
-              await _scanForPackageUpdates(claim, abort: aborted);
-            }, abort: aborted);
-          } catch (e, st) {
-            // Log this as very bad, and then move on. Nothing good can come
-            // from straight up stopping.
-            _log.shout(
-              'scanning failed (will retry when lock becomes free)',
-              e,
-              st,
-            );
-            // Sleep 5 minutes to reduce risk of degenerate behavior
-            await clock.delayed(Duration(minutes: 5));
-          }
-        }
-      } catch (e, st) {
-        _log.severe('scanning loop crashed', e, st);
-      } finally {
-        _log.info('scanning loop stopped');
-        _doneScanning.complete();
-      }
-    });
-
-    // Start background task to schedule tasks
-    final _doneScheduling = Completer<void>();
-    scheduleMicrotask(() async {
-      try {
-        // Create a lock for task scheduling, so tasks
-        final lock = GlobalLock.create(
-          '$runtimeVersion/task/scheduler',
-          expiration: Duration(minutes: 25),
-        );
-
-        while (!aborted.isCompleted) {
-          // Acquire the global lock and create VMs for pending packages, and
-          // kill overdue VMs.
-          try {
-            await lock.withClaim((claim) async {
-              await schedule(
-                claim,
-                taskWorkerCloudCompute,
-                _db,
-                abort: aborted,
-              );
-            }, abort: aborted);
-          } catch (e, st) {
-            // Log this as very bad, and then move on. Nothing good can come
-            // from straight up stopping.
-            _log.shout(
-              'scheduling iteration failed (will retry when lock becomes free)',
-              e,
-              st,
-            );
-            // Sleep 5 minutes to reduce risk of degenerate behavior
-            await clock.delayed(Duration(minutes: 5));
-          }
-        }
-      } catch (e, st) {
-        _log.severe('scheduling loop crashed', e, st);
-      } finally {
-        _log.info('scheduling loop stopped');
-        _doneScheduling.complete();
-      }
-    });
+    final scanLoop = _createLoop(
+      name: 'scan-packages',
+      aborted: aborted,
+      fn: (claim, aborted) async {
+        await _scanForPackageUpdates(claim, abort: aborted);
+      },
+    );
+    final scheduleLoop = _createLoop(
+      name: 'schedule',
+      aborted: aborted,
+      fn: (claim, aborted) async {
+        await schedule(claim, taskWorkerCloudCompute, _db, abort: aborted);
+      },
+    );
 
     scheduleMicrotask(() async {
       // Wait for background process to finish
-      await Future.wait([_doneScanning.future, _doneScheduling.future]);
+      await Future.wait([scanLoop, scheduleLoop]);
 
       // Report background processes as stopped
       stopped.complete();
+    });
+  }
+
+  Future<void> _createLoop({
+    required String name,
+    required Completer aborted,
+    required Future<void> Function(GlobalLockClaim claim, Completer aborted) fn,
+  }) {
+    return Future.microtask(() async {
+      try {
+        // A lock for this task loop makes sure we only have one
+        // process at the time that tries to update the state.
+        final lock = GlobalLock.create(
+          '$runtimeVersion/task/$name-loop',
+          expiration: Duration(minutes: 25),
+        );
+
+        while (!aborted.isCompleted) {
+          try {
+            await lock.withClaim((claim) async {
+              await fn(claim, aborted);
+            }, abort: aborted);
+          } catch (e, st) {
+            // Log this as very bad, and then move on. Nothing good can come
+            // from straight up stopping.
+            _log.shout(
+              'task loop $name failed (will retry when lock becomes free)',
+              e,
+              st,
+            );
+            // Sleep 5 minutes to reduce risk of degenerate behavior
+            await clock.delayed(Duration(minutes: 5));
+          }
+        }
+      } catch (e, st) {
+        _log.severe('task loop $name crashed', e, st);
+      } finally {
+        _log.info('task loop $name stopped');
+      }
     });
   }
 
