@@ -115,13 +115,18 @@ runSchedulingIteration(
         }
 
         deletionsInProgress[instance.instanceName] = clock.now();
-        scheduleMicrotask(() async {
-          try {
-            await compute.delete(instance.zone, instance.instanceName);
-          } catch (e, st) {
-            _log.severe('Failed to delete $instance', e, st);
-          }
-        });
+        try {
+          final f = compute.delete(instance.zone, instance.instanceName);
+          scheduleMicrotask(() async {
+            try {
+              await f;
+            } catch (e, st) {
+              _log.severe('Failed to delete $instance', e, st);
+            }
+          });
+        } catch (e, st) {
+          _log.severe('Failed to delete $instance', e, st);
+        }
       }
     }
     _log.info('Found $instances instances');
