@@ -96,3 +96,9 @@ void main() {
     });
   });
 }
+
+extension on ComputeZoneTracker {
+  List<String?> tryPickZones(int n) {
+    return List.generate(n, (_) => tryPickZone());
+  }
+}

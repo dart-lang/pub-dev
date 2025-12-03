@@ -10,7 +10,7 @@ import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 final _log = Logger('pub.task.zone_tracker');
 
 /// Tracks compute zones and custom ban periods.
-class ComputeZoneTracker {
+final class ComputeZoneTracker {
   final List<String> _zones;
   final _bannedUntil = <String, DateTime>{};
 
@@ -54,11 +54,6 @@ class ComputeZoneTracker {
       }
     }
     return null;
-  }
-
-  @visibleForTesting
-  List<String?> tryPickZones(int n) {
-    return List.generate(n, (_) => tryPickZone());
   }
 
   /// Executes [fn] in compute [zone] and handles zone-related exceptions
