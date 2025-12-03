@@ -13,6 +13,7 @@ import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
+import 'package:pub_dev/task/cloudcompute/zone_tracker.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/models.dart';
 
@@ -43,30 +44,12 @@ Future<void> schedule(
     }
   }
 
-  // Map from zone to DateTime when zone is allowed again
-  final zoneBannedUntil = <String, DateTime>{
-    for (final zone in compute.zones) zone: DateTime(0),
-  };
-  void banZone(String zone, {int minutes = 0, int hours = 0, int days = 0}) {
-    if (!zoneBannedUntil.containsKey(zone)) {
-      throw ArgumentError.value(zone, 'zone');
-    }
-
-    final until = clock.now().add(
-      Duration(minutes: minutes, hours: hours, days: days),
-    );
-    if (zoneBannedUntil[zone]!.isBefore(until)) {
-      zoneBannedUntil[zone] = until;
-    }
-  }
+  final zoneTracker = ComputeZoneTracker(compute.zones);
 
   // Set of `CloudInstance.instanceName`s currently being deleted.
   // This to avoid deleting instances where the deletion process is still
   // running.
   final deletionInProgress = <String>{};
-
-  // Create a fast RNG with random seed for picking zones.
-  final rng = Random(Random.secure().nextInt(2 << 31));
 
   // Run scheduling iterations, so long as we have a valid claim
   while (claim.valid && !abort.isCompleted) {
@@ -124,18 +107,8 @@ Future<void> schedule(
       continue; // skip the rest of the iteration
     }
 
-    // Determine which zones are not banned
-    final allowedZones =
-        zoneBannedUntil.entries
-            .where((e) => e.value.isBefore(clock.now()))
-            .map((e) => e.key)
-            .toList()
-          ..shuffle(rng);
-    var nextZoneIndex = 0;
-    String pickZone() => allowedZones[nextZoneIndex++ % allowedZones.length];
-
     // If no zones are available, we sleep and try again later.
-    if (allowedZones.isEmpty) {
+    if (!zoneTracker.hasAvailableZone()) {
       _log.info('All compute-engine zones are banned, trying again in 30s');
       await sleepOrAborted(Duration(seconds: 30), since: iterationStart);
       continue;
@@ -152,7 +125,10 @@ Future<void> schedule(
       pendingPackagesReviewed += 1;
 
       final instanceName = compute.generateInstanceName();
-      final zone = pickZone();
+      final zone = zoneTracker.tryPickZone();
+      if (zone == null) {
+        return;
+      }
 
       final updated = await updatePackageStateWithPendingVersions(
         db,
@@ -171,7 +147,7 @@ Future<void> schedule(
 
       await Future.microtask(() async {
         var rollbackPackageState = true;
-        try {
+        await zoneTracker.withZoneAndInstance(zone, instanceName, () async {
           // Purging cache is important for the edge case, where the new upload happens
           // on a different runtime version, and the current one's cache is still stale
           // and does not have the version yet.
@@ -189,56 +165,18 @@ Future<void> schedule(
             description: description,
           );
           rollbackPackageState = false;
-        } on ZoneExhaustedException catch (e, st) {
-          // A zone being exhausted is normal operations, we just use another
-          // zone for 15 minutes.
-          _log.info(
-            'zone resources exhausted, banning ${e.zone} for 30 minutes',
-            e,
-            st,
+        });
+        if (rollbackPackageState) {
+          final oldVersionsMap = updated?.$2 ?? const {};
+          // Restore the state of the PackageState for versions that were
+          // suppose to run on the instance we just failed to create.
+          // If this doesn't work, we'll eventually retry. Hence, correctness
+          // does not hinge on this transaction being successful.
+          await db.tasks.restorePreviousVersionsState(
+            selected.package,
+            instanceName,
+            oldVersionsMap,
           );
-          // Ban usage of zone for 30 minutes
-          banZone(e.zone, minutes: 30);
-        } on QuotaExhaustedException catch (e, st) {
-          // Quota exhausted, this can happen, but it shouldn't. We'll just stop
-          // doing anything for 10 minutes. Hopefully that'll resolve the issue.
-          // We log severe, because this is a reason to adjust the quota or
-          // instance limits.
-          _log.severe(
-            'Quota exhausted trying to create $instanceName, banning all zones '
-            'for 10 minutes',
-            e,
-            st,
-          );
-
-          // Ban all zones for 10 minutes
-          for (final zone in compute.zones) {
-            banZone(zone, minutes: 10);
-          }
-        } on Exception catch (e, st) {
-          // No idea what happened, but for robustness we'll stop using the zone
-          // and shout into the logs
-          _log.shout(
-            'Failed to create instance $instanceName, banning zone "$zone" for '
-            '15 minutes',
-            e,
-            st,
-          );
-          // Ban usage of zone for 15 minutes
-          banZone(zone, minutes: 15);
-        } finally {
-          if (rollbackPackageState) {
-            final oldVersionsMap = updated?.$2 ?? const {};
-            // Restore the state of the PackageState for versions that were
-            // suppose to run on the instance we just failed to create.
-            // If this doesn't work, we'll eventually retry. Hence, correctness
-            // does not hinge on this transaction being successful.
-            await db.tasks.restorePreviousVersionsState(
-              selected.package,
-              instanceName,
-              oldVersionsMap,
-            );
-          }
         }
       });
     }
