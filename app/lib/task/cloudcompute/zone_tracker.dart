@@ -4,7 +4,6 @@
 
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 
 final _log = Logger('pub.task.zone_tracker');
