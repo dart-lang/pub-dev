@@ -357,11 +357,9 @@ class TaskBackend {
   Future<void> _runOneInstanceDeletion({
     required bool Function() isAbortedFn,
   }) async {
-    final instances = await taskWorkerCloudCompute.listInstances().toList();
     _deleteInstancesState = await scanAndDeleteInstances(
       _deleteInstancesState,
-      instances,
-      taskWorkerCloudCompute.delete,
+      taskWorkerCloudCompute,
       isAbortedFn,
       maxTaskRunHours: activeConfiguration.maxTaskRunHours,
     );

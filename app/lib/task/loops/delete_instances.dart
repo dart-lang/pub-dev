@@ -23,11 +23,10 @@ final class DeleteInstancesState {
 }
 
 /// Calculates the next state of delete instances loop by processing
-/// the input [instances].
+/// the input from [cloudCompute].
 Future<DeleteInstancesState> scanAndDeleteInstances(
   DeleteInstancesState state,
-  List<CloudInstance> instances,
-  Future<void> Function(String zone, String instanceName) deleteInstanceFn,
+  CloudCompute cloudCompute,
   bool Function() isAbortedFn, {
   required int maxTaskRunHours,
 }) async {
@@ -37,7 +36,7 @@ Future<DeleteInstancesState> scanAndDeleteInstances(
   };
 
   final futures = <Future>[];
-  for (final instance in instances) {
+  await for (final instance in cloudCompute.listInstances()) {
     if (isAbortedFn()) {
       break;
     }
@@ -70,7 +69,7 @@ Future<DeleteInstancesState> scanAndDeleteInstances(
 
     final future = Future.microtask(() async {
       try {
-        await deleteInstanceFn(instance.zone, instance.instanceName);
+        await cloudCompute.delete(instance.zone, instance.instanceName);
       } catch (e, st) {
         _log.severe('Failed to delete $instance', e, st);
       }

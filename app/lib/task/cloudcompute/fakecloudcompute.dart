@@ -26,6 +26,9 @@ final class FakeCloudCompute extends CloudCompute {
   FakeCloudCompute({InstanceRunner? instanceRunner})
     : _instanceRunner = instanceRunner ?? _defaultInstanceRunner;
 
+  factory FakeCloudCompute.noop() =>
+      FakeCloudCompute(instanceRunner: (_) async {});
+
   @override
   final List<String> zones = const ['zone-a', 'zone-b'];
 
@@ -103,6 +106,26 @@ final class FakeCloudCompute extends CloudCompute {
     for (final i in removed) {
       scheduleMicrotask(() => _onDeletedController.add(i));
     }
+  }
+
+  /// Creates a fake instance with a running (or terminated) state.
+  /// There is no scheduling or other state update, it only registers the instance.
+  void fakeCreateRunningInstance({
+    required String zone,
+    required String instanceName,
+    required Duration ago,
+    bool isTerminated = false,
+  }) {
+    final instance = FakeCloudInstance._(
+      instanceName: instanceName,
+      zone: zone,
+      created: clock.now().subtract(ago),
+      state: isTerminated ? InstanceState.terminated : InstanceState.pending,
+      dockerImage: 'fake-docker-image',
+      arguments: [],
+      description: 'fake-description',
+    );
+    _instances.add(instance);
   }
 
   /// Change state of instance with [instanceName] to [InstanceState.running].

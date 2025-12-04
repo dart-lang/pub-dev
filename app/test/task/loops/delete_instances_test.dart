@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:clock/clock.dart';
-import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
+import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/task/loops/delete_instances.dart';
 import 'package:test/test.dart';
 
@@ -13,146 +13,121 @@ void main() {
 
     test('fresh instance is not deleted', () async {
       await withClock(Clock.fixed(referenceNow), () async {
-        final deletions = <String, String>{};
+        final cloudCompute = FakeCloudCompute.noop();
+        cloudCompute.fakeCreateRunningInstance(
+          zone: 'zone-a',
+          instanceName: 'a',
+          ago: Duration(minutes: 18),
+        );
         final next = await scanAndDeleteInstances(
           DeleteInstancesState.init(),
-          [
-            _CloudInstance(
-              instanceName: 'a',
-              created: referenceNow.subtract(Duration(minutes: 18)),
-            ),
-          ],
-          (zone, name) async {
-            deletions[name] = zone;
-          },
+          cloudCompute,
           () => false,
           maxTaskRunHours: 1,
         );
         expect(next.deletions, isEmpty);
-        expect(deletions, {});
+        expect(await cloudCompute.listInstances().toList(), hasLength(1));
       });
     });
 
     test('old instance is deleted', () async {
       await withClock(Clock.fixed(referenceNow), () async {
-        final deletions = <String, String>{};
+        final cloudCompute = FakeCloudCompute.noop();
+        cloudCompute.fakeCreateRunningInstance(
+          zone: 'zone-a',
+          instanceName: 'a',
+          ago: Duration(minutes: 78),
+        );
+
         final next = await scanAndDeleteInstances(
           DeleteInstancesState.init(),
-          [
-            _CloudInstance(
-              instanceName: 'a',
-              created: referenceNow.subtract(Duration(minutes: 78)),
-            ),
-          ],
-          (zone, name) async {
-            deletions[name] = zone;
-          },
+          cloudCompute,
           () => false,
           maxTaskRunHours: 1,
         );
         expect(next.deletions, hasLength(1));
         expect(next.deletions.containsKey('a'), isTrue);
-        expect(deletions, {'a': 'z1'});
+        expect(await cloudCompute.listInstances().toList(), isEmpty);
       });
     });
 
     test('terminated instance is deleted', () async {
       await withClock(Clock.fixed(referenceNow), () async {
-        final deletions = <String, String>{};
+        final cloudCompute = FakeCloudCompute.noop();
+        cloudCompute.fakeCreateRunningInstance(
+          zone: 'zone-a',
+          instanceName: 'a',
+          ago: Duration(minutes: 18),
+          isTerminated: true,
+        );
         final next = await scanAndDeleteInstances(
           DeleteInstancesState.init(),
-          [
-            _CloudInstance(
-              instanceName: 'a',
-              created: referenceNow.subtract(Duration(minutes: 18)),
-              state: InstanceState.terminated,
-            ),
-          ],
-          (zone, name) async {
-            deletions[name] = zone;
-          },
+          cloudCompute,
           () => false,
           maxTaskRunHours: 1,
         );
         expect(next.deletions, hasLength(1));
         expect(next.deletions.containsKey('a'), isTrue);
-
-        expect(deletions, {'a': 'z1'});
+        expect(await cloudCompute.listInstances().toList(), isEmpty);
       });
     });
 
     test('pending delete is kept within 5 minutes', () async {
       await withClock(Clock.fixed(referenceNow), () async {
-        final deletions = <String, String>{};
+        final cloudCompute = FakeCloudCompute.noop();
+        cloudCompute.fakeCreateRunningInstance(
+          zone: 'zone-a',
+          instanceName: 'a',
+          ago: Duration(minutes: 78),
+        );
         final next = await scanAndDeleteInstances(
           DeleteInstancesState(deletions: {'a': clock.ago(minutes: 3)}),
-          [
-            _CloudInstance(
-              instanceName: 'a',
-              created: referenceNow.subtract(Duration(minutes: 78)),
-            ),
-          ],
-          (zone, name) async {
-            deletions[name] = zone;
-          },
+          cloudCompute,
           () => false,
           maxTaskRunHours: 1,
         );
         expect(next.deletions, hasLength(1));
-        expect(deletions, {});
+        expect(await cloudCompute.listInstances().toList(), hasLength(1));
       });
     });
 
     test('pending delete is removed after 5 minutes', () async {
       await withClock(Clock.fixed(referenceNow), () async {
-        final deletions = <String, String>{};
+        final cloudCompute = FakeCloudCompute.noop();
+        cloudCompute.fakeCreateRunningInstance(
+          zone: 'zone-a',
+          instanceName: 'b',
+          ago: Duration(minutes: 18),
+        );
         final next = await scanAndDeleteInstances(
           DeleteInstancesState(deletions: {'a': clock.ago(minutes: 8)}),
-          [_CloudInstance(created: clock.now(), instanceName: 'b')],
-          (zone, name) async {
-            deletions[name] = zone;
-          },
+          cloudCompute,
           () => false,
           maxTaskRunHours: 1,
         );
         expect(next.deletions, isEmpty);
-        expect(deletions, {});
+        expect(await cloudCompute.listInstances().toList(), hasLength(1));
       });
     });
 
     test('pending delete is refreshed after 5 minutes', () async {
       await withClock(Clock.fixed(referenceNow), () async {
-        final deletions = <String, String>{};
+        final cloudCompute = FakeCloudCompute.noop();
+        cloudCompute.fakeCreateRunningInstance(
+          zone: 'zone-a',
+          instanceName: 'a',
+          ago: Duration(minutes: 78),
+        );
         final next = await scanAndDeleteInstances(
           DeleteInstancesState(deletions: {'a': clock.ago(minutes: 8)}),
-          [_CloudInstance(created: clock.ago(minutes: 78), instanceName: 'a')],
-          (zone, name) async {
-            deletions[name] = zone;
-          },
+          cloudCompute,
           () => false,
           maxTaskRunHours: 1,
         );
         expect(next.deletions, hasLength(1));
         next.deletions['a']!.isAfter(clock.ago(minutes: 2));
-        expect(deletions, {'a': 'z1'});
+        expect(await cloudCompute.listInstances().toList(), isEmpty);
       });
     });
-  });
-}
-
-class _CloudInstance implements CloudInstance {
-  @override
-  final DateTime created;
-  @override
-  final String instanceName;
-  @override
-  final InstanceState state;
-  @override
-  final String zone = 'z1';
-
-  _CloudInstance({
-    required this.created,
-    required this.instanceName,
-    this.state = InstanceState.running,
   });
 }
