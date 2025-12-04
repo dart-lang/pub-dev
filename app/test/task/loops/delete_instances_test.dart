@@ -28,7 +28,7 @@ void main() {
           () => false,
           maxTaskRunHours: 1,
         );
-        expect(next.state.deletions, isEmpty);
+        expect(next.deletions, isEmpty);
         expect(deletions, {});
       });
     });
@@ -50,11 +50,8 @@ void main() {
           () => false,
           maxTaskRunHours: 1,
         );
-        expect(next.state.deletions, hasLength(1));
-        expect(next.state.deletions.containsKey('a'), isTrue);
-
-        // Wait for the async deletion to complete
-        await next.deletionsDone;
+        expect(next.deletions, hasLength(1));
+        expect(next.deletions.containsKey('a'), isTrue);
         expect(deletions, {'a': 'z1'});
       });
     });
@@ -77,11 +74,9 @@ void main() {
           () => false,
           maxTaskRunHours: 1,
         );
-        expect(next.state.deletions, hasLength(1));
-        expect(next.state.deletions.containsKey('a'), isTrue);
+        expect(next.deletions, hasLength(1));
+        expect(next.deletions.containsKey('a'), isTrue);
 
-        // Wait for the async deletion to complete
-        await next.deletionsDone;
         expect(deletions, {'a': 'z1'});
       });
     });
@@ -103,9 +98,7 @@ void main() {
           () => false,
           maxTaskRunHours: 1,
         );
-        expect(next.state.deletions, hasLength(1));
-        // Wait for the async deletion to complete
-        await next.deletionsDone;
+        expect(next.deletions, hasLength(1));
         expect(deletions, {});
       });
     });
@@ -122,8 +115,7 @@ void main() {
           () => false,
           maxTaskRunHours: 1,
         );
-        expect(next.state.deletions, isEmpty);
-        await next.deletionsDone;
+        expect(next.deletions, isEmpty);
         expect(deletions, {});
       });
     });
@@ -140,9 +132,8 @@ void main() {
           () => false,
           maxTaskRunHours: 1,
         );
-        expect(next.state.deletions, hasLength(1));
-        next.state.deletions['a']!.isAfter(clock.ago(minutes: 2));
-        await next.deletionsDone;
+        expect(next.deletions, hasLength(1));
+        next.deletions['a']!.isAfter(clock.ago(minutes: 2));
         expect(deletions, {'a': 'z1'});
       });
     });

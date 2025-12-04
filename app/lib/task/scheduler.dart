@@ -74,14 +74,13 @@ Future<void> schedule(
     _log.info('Starting scheduling cycle');
 
     final instances = await compute.listInstances().toList();
-    final nextDeleteInstancesState = await scanAndDeleteInstances(
+    deleteInstancesState = await scanAndDeleteInstances(
       deleteInstancesState,
       instances,
       compute.delete,
       isAbortedFn,
       maxTaskRunHours: activeConfiguration.maxTaskRunHours,
     );
-    deleteInstancesState = nextDeleteInstancesState.state;
     if (isAbortedFn()) {
       break;
     }

@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 
 final _log = Logger('pub.task.scan_instances');
@@ -23,23 +22,9 @@ final class DeleteInstancesState {
   factory DeleteInstancesState.init() => DeleteInstancesState(deletions: {});
 }
 
-/// The result of the scan and delete instances operation.
-final class DeleteInstancesNextState {
-  /// The next state of the data.
-  final DeleteInstancesState state;
-
-  /// Completes when the microtask-scheduled deletion operations are completed.
-  ///
-  /// It is not feasible to wait for this in production, but can be used in tests.
-  @visibleForTesting
-  final Future<void> deletionsDone;
-
-  DeleteInstancesNextState({required this.state, required this.deletionsDone});
-}
-
 /// Calculates the next state of delete instances loop by processing
 /// the input [instances].
-Future<DeleteInstancesNextState> scanAndDeleteInstances(
+Future<DeleteInstancesState> scanAndDeleteInstances(
   DeleteInstancesState state,
   List<CloudInstance> instances,
   Future<void> Function(String zone, String instanceName) deleteInstanceFn,
@@ -83,21 +68,16 @@ Future<DeleteInstancesNextState> scanAndDeleteInstances(
 
     deletionInProgress[instance.instanceName] = clock.now();
 
-    final completer = Completer();
-    scheduleMicrotask(() async {
+    final future = Future.microtask(() async {
       try {
         await deleteInstanceFn(instance.zone, instance.instanceName);
       } catch (e, st) {
         _log.severe('Failed to delete $instance', e, st);
-      } finally {
-        completer.complete();
       }
     });
-    futures.add(completer.future);
+    futures.add(future);
   }
 
-  return DeleteInstancesNextState(
-    state: DeleteInstancesState(deletions: deletionInProgress),
-    deletionsDone: futures.isEmpty ? Future.value() : Future.wait(futures),
-  );
+  await Future.wait(futures);
+  return DeleteInstancesState(deletions: deletionInProgress);
 }
