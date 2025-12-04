@@ -311,7 +311,12 @@ void main(List<String> args) async {
   final server = await serve(
     handler,
     InternetAddress.anyIPv6,
-    int.tryParse(Platform.environment['IMAGE_PROXY_PORT'] ?? '') ?? 80,
+    int.tryParse(
+          Platform.environment['IMAGE_PROXY_PORT'] ??
+              Platform.environment['PORT'] ??
+              '',
+        ) ??
+        8080,
   );
   print('Serving image proxy on ${server.address}:${server.port}');
 }
