@@ -169,78 +169,75 @@ Future<void> schedule(
           'package:${payload.package} analysis of ${payload.versions.length} '
           'versions.';
 
-      await Future.microtask(() async {
-        var rollbackPackageState = true;
-        try {
-          // Purging cache is important for the edge case, where the new upload happens
-          // on a different runtime version, and the current one's cache is still stale
-          // and does not have the version yet.
-          // TODO(https://github.com/dart-lang/pub-dev/issues/7268) remove after it gets fixed.
-          await purgePackageCache(payload.package);
-          _log.info(
-            'creating instance $instanceName in $zone for '
-            'package:${selected.package}',
-          );
-          await compute.createInstance(
-            zone: zone,
-            instanceName: instanceName,
-            dockerImage: activeConfiguration.taskWorkerImage!,
-            arguments: [json.encode(payload)],
-            description: description,
-          );
-          rollbackPackageState = false;
-        } on ZoneExhaustedException catch (e, st) {
-          // A zone being exhausted is normal operations, we just use another
-          // zone for 15 minutes.
-          _log.info(
-            'zone resources exhausted, banning ${e.zone} for 30 minutes',
-            e,
-            st,
-          );
-          // Ban usage of zone for 30 minutes
-          banZone(e.zone, minutes: 30);
-        } on QuotaExhaustedException catch (e, st) {
-          // Quota exhausted, this can happen, but it shouldn't. We'll just stop
-          // doing anything for 10 minutes. Hopefully that'll resolve the issue.
-          // We log severe, because this is a reason to adjust the quota or
-          // instance limits.
-          _log.severe(
-            'Quota exhausted trying to create $instanceName, banning all zones '
-            'for 10 minutes',
-            e,
-            st,
-          );
+      var rollbackPackageState = true;
+      try {
+        // Purging cache is important for the edge case, where the new upload happens
+        // on a different runtime version, and the current one's cache is still stale
+        // and does not have the version yet.
+        // TODO(https://github.com/dart-lang/pub-dev/issues/7268) remove after it gets fixed.
+        await purgePackageCache(payload.package);
+        _log.info(
+          'creating instance $instanceName in $zone for '
+          'package:${selected.package}',
+        );
+        await compute.createInstance(
+          zone: zone,
+          instanceName: instanceName,
+          dockerImage: activeConfiguration.taskWorkerImage!,
+          arguments: [json.encode(payload)],
+          description: description,
+        );
+        rollbackPackageState = false;
+      } on ZoneExhaustedException catch (e, st) {
+        // A zone being exhausted is normal operations, we just use another
+        // zone for 15 minutes.
+        _log.info(
+          'zone resources exhausted, banning ${e.zone} for 30 minutes',
+          e,
+          st,
+        );
+        // Ban usage of zone for 30 minutes
+        banZone(e.zone, minutes: 30);
+      } on QuotaExhaustedException catch (e, st) {
+        // Quota exhausted, this can happen, but it shouldn't. We'll just stop
+        // doing anything for 10 minutes. Hopefully that'll resolve the issue.
+        // We log severe, because this is a reason to adjust the quota or
+        // instance limits.
+        _log.severe(
+          'Quota exhausted trying to create $instanceName, banning all zones '
+          'for 10 minutes',
+          e,
+          st,
+        );
 
-          // Ban all zones for 10 minutes
-          for (final zone in compute.zones) {
-            banZone(zone, minutes: 10);
-          }
-        } on Exception catch (e, st) {
-          // No idea what happened, but for robustness we'll stop using the zone
-          // and shout into the logs
-          _log.shout(
-            'Failed to create instance $instanceName, banning zone "$zone" for '
-            '15 minutes',
-            e,
-            st,
-          );
-          // Ban usage of zone for 15 minutes
-          banZone(zone, minutes: 15);
-        } finally {
-          if (rollbackPackageState) {
-            final oldVersionsMap = updated?.$2 ?? const {};
-            // Restore the state of the PackageState for versions that were
-            // suppose to run on the instance we just failed to create.
-            // If this doesn't work, we'll eventually retry. Hence, correctness
-            // does not hinge on this transaction being successful.
-            await db.tasks.restorePreviousVersionsState(
-              selected.package,
-              instanceName,
-              oldVersionsMap,
-            );
-          }
+        // Ban all zones for 10 minutes
+        for (final zone in compute.zones) {
+          banZone(zone, minutes: 10);
         }
-      });
+      } on Exception catch (e, st) {
+        // No idea what happened, but for robustness we'll stop using the zone
+        // and shout into the logs
+        _log.shout(
+          'Failed to create instance $instanceName, banning zone "$zone" for '
+          '15 minutes',
+          e,
+          st,
+        );
+        // Ban usage of zone for 15 minutes
+        banZone(zone, minutes: 15);
+      }
+      if (rollbackPackageState) {
+        final oldVersionsMap = updated?.$2 ?? const {};
+        // Restore the state of the PackageState for versions that were
+        // suppose to run on the instance we just failed to create.
+        // If this doesn't work, we'll eventually retry. Hence, correctness
+        // does not hinge on this transaction being successful.
+        await db.tasks.restorePreviousVersionsState(
+          selected.package,
+          instanceName,
+          oldVersionsMap,
+        );
+      }
     }
 
     // Creating an instance can be slow, we want to schedule them concurrently.
