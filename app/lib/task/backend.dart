@@ -24,6 +24,7 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/scorecard/backend.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
@@ -43,6 +44,7 @@ import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/handlers.dart';
+import 'package:pub_dev/task/loops/delete_instances.dart';
 import 'package:pub_dev/task/loops/scan_packages_updated.dart';
 import 'package:pub_dev/task/models.dart'
     show
@@ -101,6 +103,7 @@ class TaskBackend {
 
   ScanPackagesUpdatedState _scanPackagesUpdatedState =
       ScanPackagesUpdatedState.init();
+  DeleteInstancesState _deleteInstancesState = DeleteInstancesState.init();
 
   TaskBackend(this._db, this._bucket);
 
@@ -128,6 +131,13 @@ class TaskBackend {
         await _scanForPackageUpdates(claim, abort: aborted);
       },
     );
+    final deleteLoop = _createLoop(
+      name: 'delete-instances',
+      aborted: aborted,
+      fn: (claim, aborted) async {
+        await _scanForInstanceDeletion(claim, abort: aborted);
+      },
+    );
     final scheduleLoop = _createLoop(
       name: 'schedule',
       aborted: aborted,
@@ -138,7 +148,7 @@ class TaskBackend {
 
     scheduleMicrotask(() async {
       // Wait for background process to finish
-      await Future.wait([scanLoop, scheduleLoop]);
+      await Future.wait([scanLoop, deleteLoop, scheduleLoop]);
 
       // Report background processes as stopped
       stopped.complete();
@@ -319,6 +329,42 @@ class TaskBackend {
       // Check the package
       await trackPackage(p, updateDependents: true);
     }
+  }
+
+  /// Scan for compute instances that can be deleted until [abort] is resolved,
+  /// or [claim] is lost.
+  Future<void> _scanForInstanceDeletion(
+    GlobalLockClaim claim, {
+    Completer<void>? abort,
+  }) async {
+    abort ??= Completer<void>();
+
+    bool isAbortedFn() => !claim.valid || abort!.isCompleted;
+    while (!isAbortedFn()) {
+      await _runOneInstanceDeletion(isAbortedFn: isAbortedFn);
+
+      if (isAbortedFn()) {
+        return;
+      }
+      // Wait until aborted or 10 minutes before scanning again!
+      await abort.future.timeoutWithClock(
+        Duration(minutes: 10),
+        onTimeout: () => null,
+      );
+    }
+  }
+
+  Future<void> _runOneInstanceDeletion({
+    required bool Function() isAbortedFn,
+  }) async {
+    final instances = await taskWorkerCloudCompute.listInstances().toList();
+    _deleteInstancesState = await scanAndDeleteInstances(
+      _deleteInstancesState,
+      instances,
+      taskWorkerCloudCompute.delete,
+      isAbortedFn,
+      maxTaskRunHours: activeConfiguration.maxTaskRunHours,
+    );
   }
 
   Future<void> trackPackage(

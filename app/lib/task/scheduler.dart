@@ -14,7 +14,6 @@ import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
-import 'package:pub_dev/task/loops/delete_instances.dart';
 import 'package:pub_dev/task/models.dart';
 
 final _log = Logger('pub.task.schedule');
@@ -61,8 +60,6 @@ Future<void> schedule(
     }
   }
 
-  var deleteInstancesState = DeleteInstancesState.init();
-
   // Create a fast RNG with random seed for picking zones.
   final rng = Random(Random.secure().nextInt(2 << 31));
 
@@ -74,13 +71,6 @@ Future<void> schedule(
     _log.info('Starting scheduling cycle');
 
     final instances = await compute.listInstances().toList();
-    deleteInstancesState = await scanAndDeleteInstances(
-      deleteInstancesState,
-      instances,
-      compute.delete,
-      isAbortedFn,
-      maxTaskRunHours: activeConfiguration.maxTaskRunHours,
-    );
     if (isAbortedFn()) {
       break;
     }
