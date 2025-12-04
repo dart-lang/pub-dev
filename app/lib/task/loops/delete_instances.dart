@@ -30,6 +30,8 @@ Future<DeleteInstancesState> scanAndDeleteInstances(
   bool Function() isAbortedFn, {
   required int maxTaskRunHours,
 }) async {
+  // Purge deletionsInProgress after 5 minutes, if instance has not disappeared
+  // after 5 minutes we'll try to delete it again.
   final keepTreshold = clock.ago(minutes: 5);
   final deletionInProgress = {
     ...state.deletions.whereValue((v) => v.isAfter(keepTreshold)),
