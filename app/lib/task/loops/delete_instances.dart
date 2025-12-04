@@ -69,13 +69,15 @@ Future<DeleteInstancesState> scanAndDeleteInstances(
 
     deletionInProgress[instance.instanceName] = clock.now();
 
-    futures.add(Future.microtask(() async {
-      try {
-        await cloudCompute.delete(instance.zone, instance.instanceName);
-      } catch (e, st) {
-        _log.severe('Failed to delete $instance', e, st);
-      }
-    }));
+    futures.add(
+      Future.microtask(() async {
+        try {
+          await cloudCompute.delete(instance.zone, instance.instanceName);
+        } catch (e, st) {
+          _log.severe('Failed to delete $instance', e, st);
+        }
+      }),
+    );
   }
 
   await Future.wait(futures);
