@@ -16,8 +16,9 @@ steps:
         echo 'Only deploy from the dartlang-pub project'
         exit 1;
       fi
-      if [[ "$TAG_NAME" != image_proxy-* ]]; then
+      if [[ ! "$TAG_NAME" =~ ^image_proxy-.*$ ]]; then
         echo 'This script is only intended for use on image_proxy-<version> tags'
+        echo 'Current tag': $TAG_NAME
         exit 1;
       fi
       docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy/image-proxy:$TAG_NAME . --file pkg/image_proxy/Dockerfile
