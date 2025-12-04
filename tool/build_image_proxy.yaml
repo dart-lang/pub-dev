@@ -12,7 +12,7 @@ steps:
     script: |
       #!/usr/bin/env bash
       set -x
-      if [[ "$PROJECT_ID" != dartlang-pub  && "$PROJECT_ID" != dartlang-pub-dev]]; then
+      if [[ "$PROJECT_ID" != dartlang-pub  && "$PROJECT_ID" != dartlang-pub-dev ]]; then
         echo 'Only deploy from the dartlang-pub project'
         exit 1;
       fi
