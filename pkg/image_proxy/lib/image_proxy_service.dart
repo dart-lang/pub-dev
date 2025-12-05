@@ -56,7 +56,7 @@ Future<void> updateAllowedKeys() async {
   assert(allowedKeys.length == 3);
 }
 
-late auth.AuthClient? _apiClient;
+auth.AuthClient? _apiClient;
 
 /// The client used for communicating with the google apis.
 Future<AuthClient> authClient() async {
