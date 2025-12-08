@@ -24,7 +24,7 @@ final class DeleteInstancesState {
 
 /// Calculates the next state of delete instances loop by processing
 /// the input from [cloudCompute].
-Future<DeleteInstancesState> scanAndDeleteInstances(
+Future<DeleteInstancesState> runOneDeleteInstancesCycle(
   DeleteInstancesState state,
   CloudCompute cloudCompute,
   bool Function() isAbortedFn, {

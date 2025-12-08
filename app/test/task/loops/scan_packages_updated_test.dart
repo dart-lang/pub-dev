@@ -15,7 +15,7 @@ void main() {
     test('every new package gets updated', () async {
       await withClock(Clock.fixed(referenceNow), () async {
         final state = ScanPackagesUpdatedState.init();
-        final next = await calculateScanPackagesUpdatedLoop(
+        final next = await runOneScanPackagesUpdatedCycle(
           state,
           Stream.fromIterable([
             (name: 'a', updated: clock.ago(minutes: 3)),
@@ -38,7 +38,7 @@ void main() {
         final state = ScanPackagesUpdatedState.init(
           seen: {'a': clock.ago(minutes: 5), 'b': clock.ago(minutes: 4)},
         );
-        final next = await calculateScanPackagesUpdatedLoop(
+        final next = await runOneScanPackagesUpdatedCycle(
           state,
           Stream.fromIterable([
             (name: 'a', updated: clock.ago(minutes: 5)), // same
@@ -61,7 +61,7 @@ void main() {
         final state = ScanPackagesUpdatedState.init(
           seen: {'a': clock.ago(minutes: 5), 'b': clock.ago(minutes: 40)},
         );
-        final next = await calculateScanPackagesUpdatedLoop(
+        final next = await runOneScanPackagesUpdatedCycle(
           state,
           Stream.empty(),
           () => false,
@@ -78,7 +78,7 @@ void main() {
           since: clock.ago(minutes: 30),
           nextLongerOverlap: clock.ago(minutes: 1),
         );
-        final next = await calculateScanPackagesUpdatedLoop(
+        final next = await runOneScanPackagesUpdatedCycle(
           state,
           Stream.empty(),
           () => false,
@@ -94,7 +94,7 @@ void main() {
         final state = ScanPackagesUpdatedState.init(
           seen: {'a': clock.ago(minutes: 5)},
         );
-        final next = await calculateScanPackagesUpdatedLoop(
+        final next = await runOneScanPackagesUpdatedCycle(
           state,
           Stream.fromIterable([(name: 'a', updated: clock.ago(minutes: 7))]),
           () => false,
@@ -111,7 +111,7 @@ void main() {
 
         final controller =
             StreamController<({String name, DateTime updated})>();
-        final nextFuture = calculateScanPackagesUpdatedLoop(
+        final nextFuture = runOneScanPackagesUpdatedCycle(
           state,
           controller.stream,
           () => stopped,
