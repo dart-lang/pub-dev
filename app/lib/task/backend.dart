@@ -314,7 +314,7 @@ class TaskBackend {
       await trackPackage(p, updateDependents: true);
     }
 
-    return Duration(minutes: 10);
+    return Duration(minutes: 10); // TODO: consider if we scan more frequently.
   }
 
   Future<Duration> _runOneInstanceDeletion(bool Function() isAbortedFn) async {
