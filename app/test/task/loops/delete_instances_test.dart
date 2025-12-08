@@ -19,7 +19,7 @@ void main() {
           instanceName: 'a',
           ago: Duration(minutes: 18),
         );
-        final next = await scanAndDeleteInstances(
+        final next = await runOneDeleteInstancesCycle(
           DeleteInstancesState.init(),
           cloudCompute,
           () => false,
@@ -39,7 +39,7 @@ void main() {
           ago: Duration(minutes: 78),
         );
 
-        final next = await scanAndDeleteInstances(
+        final next = await runOneDeleteInstancesCycle(
           DeleteInstancesState.init(),
           cloudCompute,
           () => false,
@@ -60,7 +60,7 @@ void main() {
           ago: Duration(minutes: 18),
           isTerminated: true,
         );
-        final next = await scanAndDeleteInstances(
+        final next = await runOneDeleteInstancesCycle(
           DeleteInstancesState.init(),
           cloudCompute,
           () => false,
@@ -80,7 +80,7 @@ void main() {
           instanceName: 'a',
           ago: Duration(minutes: 78),
         );
-        final next = await scanAndDeleteInstances(
+        final next = await runOneDeleteInstancesCycle(
           DeleteInstancesState(deletions: {'a': clock.ago(minutes: 3)}),
           cloudCompute,
           () => false,
@@ -99,7 +99,7 @@ void main() {
           instanceName: 'b',
           ago: Duration(minutes: 18),
         );
-        final next = await scanAndDeleteInstances(
+        final next = await runOneDeleteInstancesCycle(
           DeleteInstancesState(deletions: {'a': clock.ago(minutes: 8)}),
           cloudCompute,
           () => false,
@@ -118,7 +118,7 @@ void main() {
           instanceName: 'a',
           ago: Duration(minutes: 78),
         );
-        final next = await scanAndDeleteInstances(
+        final next = await runOneDeleteInstancesCycle(
           DeleteInstancesState(deletions: {'a': clock.ago(minutes: 8)}),
           cloudCompute,
           () => false,

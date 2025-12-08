@@ -299,7 +299,7 @@ class TaskBackend {
   Future<Duration> _runOneScanPackagesUpdate(
     bool Function() isAbortedFn,
   ) async {
-    final next = await calculateScanPackagesUpdatedLoop(
+    final next = await runOneScanPackagesUpdatedCycle(
       _scanPackagesUpdatedState,
       _db.packages.listUpdatedSince(_scanPackagesUpdatedState.since),
       isAbortedFn,
@@ -318,7 +318,7 @@ class TaskBackend {
   }
 
   Future<Duration> _runOneInstanceDeletion(bool Function() isAbortedFn) async {
-    _deleteInstancesState = await scanAndDeleteInstances(
+    _deleteInstancesState = await runOneDeleteInstancesCycle(
       _deleteInstancesState,
       taskWorkerCloudCompute,
       isAbortedFn,
@@ -328,7 +328,7 @@ class TaskBackend {
   }
 
   Future<Duration> _runOneInstanceCreation(bool Function() isAbortedFn) async {
-    final result = await schedule(
+    final result = await runOneCreateInstancesCycle(
       taskWorkerCloudCompute,
       _db,
       state: _createInstanesState,

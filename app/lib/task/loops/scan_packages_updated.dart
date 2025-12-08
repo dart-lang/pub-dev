@@ -48,7 +48,7 @@ class ScanPackagesUpdatedNextState {
 
 /// Calculates the next state of scan packages updated loop by
 /// processing the input [stream].
-Future<ScanPackagesUpdatedNextState> calculateScanPackagesUpdatedLoop(
+Future<ScanPackagesUpdatedNextState> runOneScanPackagesUpdatedCycle(
   ScanPackagesUpdatedState state,
   Stream<({String name, DateTime updated})> stream,
   bool Function() isAbortedFn,

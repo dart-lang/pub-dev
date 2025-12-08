@@ -28,8 +28,8 @@ final class CreateInstancesState {
       CreateInstancesState(zoneBannedUntil: {});
 }
 
-/// Schedule tasks from [PackageState].
-Future<(CreateInstancesState, Duration)> schedule(
+/// Schedule tasks from [PackageState], creating cloud compute worker instances.
+Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
   CloudCompute compute,
   DatastoreDB db, {
   required CreateInstancesState state,
