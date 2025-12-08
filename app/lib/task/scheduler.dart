@@ -138,7 +138,7 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
       rollbackPackageState = false;
     } on ZoneExhaustedException catch (e, st) {
       // A zone being exhausted is normal operations, we just use another
-      // zone for 15 minutes.
+      // zone for 30 minutes.
       _log.info(
         'zone resources exhausted, banning ${e.zone} for 30 minutes',
         e,
