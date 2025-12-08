@@ -324,7 +324,7 @@ class TaskBackend {
       isAbortedFn,
       maxTaskRunHours: activeConfiguration.maxTaskRunHours,
     );
-    return Duration(minutes: 10);
+    return Duration(minutes: 10); // TODO: consider if this should be dynamic
   }
 
   Future<Duration> _runOneInstanceCreation(bool Function() isAbortedFn) async {
