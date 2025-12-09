@@ -469,6 +469,31 @@ final class ClockController {
       await Future.delayed(Duration(microseconds: 0));
     }
   }
+
+  void incrOffset({int hours = 0, int minutes = 0, int seconds = 0}) {
+    _offset += Duration(hours: hours, minutes: minutes, seconds: seconds);
+  }
+
+  Future<void> incrUntil(
+    FutureOr<bool> Function() condition, {
+    Duration? timeout,
+    Duration? minimumStep,
+  }) async {
+    final deadline = timeout != null ? clock.fromNowBy(timeout) : null;
+
+    bool shouldLoop() => deadline == null || clock.now().isBefore(deadline);
+
+    while (shouldLoop()) {
+      if (await condition()) {
+        return;
+      }
+      _offset += minimumStep ?? Duration(minutes: 1);
+    }
+    throw TimeoutException(
+      'Condition given to ClockController.incrUntil was not satisfied'
+      ' before timeout: $timeout',
+    );
+  }
 }
 
 final class _TravelingTimer {

@@ -17,6 +17,7 @@ import 'package:gcloud/storage.dart' show Bucket;
 import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:indexed_blob/indexed_blob.dart' show BlobIndex, FileRange;
 import 'package:logging/logging.dart' show Logger;
+import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
 import 'package:pub_dev/package/api_export/api_exporter.dart';
@@ -128,17 +129,17 @@ class TaskBackend {
     final scanLoop = _createLoop(
       name: 'scan-packages',
       aborted: aborted,
-      fn: _runOneScanPackagesUpdate,
+      fn: runOneScanPackagesUpdate,
     );
     final deleteLoop = _createLoop(
       name: 'delete-instances',
       aborted: aborted,
-      fn: _runOneInstanceDeletion,
+      fn: runOneInstanceDeletion,
     );
     final createLoop = _createLoop(
       name: 'create-instances',
       aborted: aborted,
-      fn: _runOneInstanceCreation,
+      fn: runOneInstanceCreation,
     );
 
     scheduleMicrotask(() async {
@@ -296,9 +297,8 @@ class TaskBackend {
     }
   }
 
-  Future<Duration> _runOneScanPackagesUpdate(
-    bool Function() isAbortedFn,
-  ) async {
+  @visibleForTesting
+  Future<Duration> runOneScanPackagesUpdate(bool Function() isAbortedFn) async {
     final next = await runOneScanPackagesUpdatedCycle(
       _scanPackagesUpdatedState,
       _db.packages.listUpdatedSince(_scanPackagesUpdatedState.since),
@@ -317,7 +317,8 @@ class TaskBackend {
     return Duration(minutes: 10); // TODO: consider if we scan more frequently.
   }
 
-  Future<Duration> _runOneInstanceDeletion(bool Function() isAbortedFn) async {
+  @visibleForTesting
+  Future<Duration> runOneInstanceDeletion(bool Function() isAbortedFn) async {
     _deleteInstancesState = await runOneDeleteInstancesCycle(
       _deleteInstancesState,
       taskWorkerCloudCompute,
@@ -327,7 +328,8 @@ class TaskBackend {
     return Duration(minutes: 10); // TODO: consider if this should be dynamic
   }
 
-  Future<Duration> _runOneInstanceCreation(bool Function() isAbortedFn) async {
+  @visibleForTesting
+  Future<Duration> runOneInstanceCreation(bool Function() isAbortedFn) async {
     final result = await runOneCreateInstancesCycle(
       taskWorkerCloudCompute,
       _db,
@@ -335,6 +337,14 @@ class TaskBackend {
     );
     _createInstanesState = result.$1;
     return result.$2;
+  }
+
+  @visibleForTesting
+  Future<void> runOneLoopCycle() async {
+    bool isAbortedFn() => false;
+    await runOneScanPackagesUpdate(isAbortedFn);
+    await runOneInstanceDeletion(isAbortedFn);
+    await runOneInstanceCreation(isAbortedFn);
   }
 
   Future<void> trackPackage(
