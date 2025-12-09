@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:_pub_shared/data/task_payload.dart';
+import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
@@ -36,18 +37,14 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
 }) async {
   // Map from zone to DateTime when zone is allowed again
   final zoneBannedUntil = <String, DateTime>{
-    for (final zone in compute.zones) zone: DateTime(0),
-    ...state.zoneBannedUntil,
+    ...state.zoneBannedUntil.whereValue((v) => v.isAfter(clock.now())),
   };
   void banZone(String zone, {int minutes = 0, int hours = 0, int days = 0}) {
-    if (!zoneBannedUntil.containsKey(zone)) {
-      throw ArgumentError.value(zone, 'zone');
-    }
-
     final until = clock.now().add(
       Duration(minutes: minutes, hours: hours, days: days),
     );
-    if (zoneBannedUntil[zone]!.isBefore(until)) {
+    if (!zoneBannedUntil.containsKey(zone) ||
+        zoneBannedUntil[zone]!.isBefore(until)) {
       zoneBannedUntil[zone] = until;
     }
   }
@@ -72,9 +69,11 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
 
   // Determine which zones are not banned
   final allowedZones =
-      zoneBannedUntil.entries
-          .where((e) => e.value.isBefore(clock.now()))
-          .map((e) => e.key)
+      compute.zones
+          .where(
+            (zone) =>
+                (zoneBannedUntil[zone] ?? DateTime(0)).isBefore(clock.now()),
+          )
           .toList()
         ..shuffle(rng);
   var nextZoneIndex = 0;
