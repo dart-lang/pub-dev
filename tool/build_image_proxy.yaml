@@ -28,16 +28,24 @@ steps:
       - 'BRANCH_NAME=$BRANCH_NAME'
       - 'TAG_NAME=$TAG_NAME'
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    # Deploy latest version to Cloud Run. Depends on an existing version having
+    # been configured in terraform. The terraform configuration should ignore
+    # changes to:
+    # - image URL
+    #
+    # It should set up and manage:
+    # - HMAC_KEY_ID environment variable
+    # - service account with permissions to access the secret manager.
+    # - appropriate CPU/Memory settings. And this new deployment will inherit
+    #   those settings.
+    #
+    # Be careful when changing this script, as modifying non-ignored settings
+    # will cause inconsistency in the terraform state.
     script: |
       #!/usr/bin/env bash
       set -x
       gcloud run deploy image-proxy-server \
         --image="us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy/image-proxy:$TAG_NAME" \
-        --region="us-central1" \
-        --platform="managed" \
-        --quiet \
-        --set-env-vars HMAC_KEY_ID="projects/$PROJECT_ID/locations/us-central1/keyRings/image-proxy-key-ring/cryptoKeys/image-proxy-mac-key/cryptoKeyVersions/1" \
-        --service-account="image-proxy@$PROJECT_ID.iam.gserviceaccount.com"
     env:
       - 'PROJECT_ID=$PROJECT_ID'
       - 'TAG_NAME=$TAG_NAME'
