@@ -695,17 +695,9 @@ class TaskBackend {
 
       zone = versionState.zone!;
       instance = versionState.instance!;
-
-      // Remove instanceName, zone, secretToken, and set attempts = 0
-      state.versions![version] = PackageVersionStateInfo(
-        scheduled: versionState.scheduled,
+      state.versions![version] = versionState.complete(
         docs: hasDocIndexHtml,
         pana: summary != null,
-        finished: true,
-        attempts: 0,
-        instance: null, // version is no-longer running on this instance
-        secretToken: null, // TODO: Consider retaining this for idempotency
-        zone: null,
       );
 
       // Determine if something else was running on the instance
@@ -1009,13 +1001,12 @@ class TaskBackend {
     await for (final state in _db.tasks.listAllForCurrentRuntime()) {
       final zone = taskWorkerCloudCompute.zones.first;
       // ignore: invalid_use_of_visible_for_testing_member
-      final updated = await updatePackageStateWithPendingVersions(
+      final payload = await updatePackageStateWithPendingVersions(
         _db,
         state.package,
         zone,
         taskWorkerCloudCompute.generateInstanceName(),
       );
-      final payload = updated?.$1;
       if (payload == null) continue;
       await processPayload(payload);
     }
@@ -1425,7 +1416,6 @@ final class _TaskDataAccess {
   Future<void> restorePreviousVersionsState(
     String packageName,
     String instanceName,
-    Map<String, PackageVersionStateInfo> previousVersionsMap,
   ) async {
     await withRetryTransaction(_db, (tx) async {
       final s = await tx.tasks.lookupOrNull(packageName);
@@ -1436,7 +1426,7 @@ final class _TaskDataAccess {
       s.versions!.addEntries(
         s.versions!.entries
             .where((e) => e.value.instance == instanceName)
-            .map((e) => MapEntry(e.key, previousVersionsMap[e.key]!)),
+            .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
       );
       s.pendingAt = derivePendingAt(
         versions: s.versions!,
