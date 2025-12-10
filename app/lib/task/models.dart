@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show json;
+import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -249,7 +250,7 @@ List<String> derivePendingVersions({
 }
 
 /// State of a given `version` within a [PackageState].
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class PackageVersionStateInfo {
   PackageVersionStatus get status {
     if (attempts == 0 && scheduled == initialTimestamp) {
@@ -319,6 +320,9 @@ class PackageVersionStateInfo {
   /// comparison. Please use [isAuthorized] for validating a request.
   final String? secretToken;
 
+  /// The previous scheduled timestamp (if we are currently in an active schedule).
+  final DateTime? previousScheduled;
+
   /// Return true, if [token] matches [secretToken] and it has not expired.
   ///
   /// This does a fixed-time comparison to mitigate timing attacks.
@@ -347,6 +351,7 @@ class PackageVersionStateInfo {
     this.docs = false,
     this.pana = false,
     this.finished = false,
+    this.previousScheduled,
   });
 
   factory PackageVersionStateInfo.fromJson(Map<String, dynamic> m) =>
@@ -364,6 +369,53 @@ class PackageVersionStateInfo {
         'secretToken: $secretToken',
       ].join(', ') +
       ')';
+
+  // Remove instanceName, zone, secretToken, and set attempts = 0
+  PackageVersionStateInfo complete({required bool pana, required bool docs}) {
+    return PackageVersionStateInfo(
+      scheduled: scheduled,
+      attempts: 0,
+      docs: docs,
+      pana: pana,
+      finished: true,
+      zone: null,
+      instance: null, // version is no-longer running on this instance
+      secretToken: null, // TODO: Consider retaining this for idempotency
+      previousScheduled: null,
+    );
+  }
+
+  /// Derives a new version state with scheduling information.
+  PackageVersionStateInfo scheduleNew({
+    required String zone,
+    required String instanceName,
+  }) {
+    return PackageVersionStateInfo(
+      scheduled: clock.now(),
+      attempts: attempts + 1,
+      zone: zone,
+      instance: instanceName,
+      secretToken: createUuid(),
+      finished: finished,
+      docs: docs,
+      pana: pana,
+      previousScheduled: scheduled,
+    );
+  }
+
+  /// Reverts the status of the last scheduling attempt, which has presumably failed.
+  PackageVersionStateInfo resetAfterFailedAttempt() {
+    return PackageVersionStateInfo(
+      scheduled: previousScheduled ?? initialTimestamp,
+      attempts: max(0, attempts - 1),
+      zone: null,
+      instance: null,
+      secretToken: null,
+      finished: finished,
+      docs: docs,
+      pana: pana,
+    );
+  }
 }
 
 /// A [db.Property] encoding a Map from version to [PackageVersionStateInfo] as JSON.

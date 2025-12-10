@@ -17,6 +17,9 @@ PackageVersionStateInfo _$PackageVersionStateInfoFromJson(
   docs: json['docs'] as bool? ?? false,
   pana: json['pana'] as bool? ?? false,
   finished: json['finished'] as bool? ?? false,
+  previousScheduled: json['previousScheduled'] == null
+      ? null
+      : DateTime.parse(json['previousScheduled'] as String),
 );
 
 Map<String, dynamic> _$PackageVersionStateInfoToJson(
@@ -27,9 +30,10 @@ Map<String, dynamic> _$PackageVersionStateInfoToJson(
   'finished': instance.finished,
   'scheduled': instance.scheduled.toIso8601String(),
   'attempts': instance.attempts,
-  'zone': instance.zone,
-  'instance': instance.instance,
-  'secretToken': instance.secretToken,
+  'zone': ?instance.zone,
+  'instance': ?instance.instance,
+  'secretToken': ?instance.secretToken,
+  'previousScheduled': ?instance.previousScheduled?.toIso8601String(),
 };
 
 PackageStateInfo _$PackageStateInfoFromJson(Map<String, dynamic> json) =>
