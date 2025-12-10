@@ -70,7 +70,10 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
   // Determine which zones are not banned
   final allowedZones =
       compute.zones
-          .where((zone) => (zoneBannedUntil[zone] ?? DateTime(0)).isBefore(now))
+          .where(
+            (zone) =>
+                (zoneBannedUntil[zone] ?? DateTime(0)).isBefore(clock.now()),
+          )
           .toList()
         ..shuffle(rng);
   var nextZoneIndex = 0;
