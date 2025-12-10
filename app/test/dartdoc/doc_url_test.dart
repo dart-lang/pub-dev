@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
@@ -123,6 +124,7 @@ void main() {
             pubspecContent: generatePubspecYaml('oxygen', '2.5.0'),
           ),
         );
+        await asyncQueue.ongoingProcessing;
         await expectRedirectResponse(
           await issueGet('/documentation/oxygen/1.0.0/'),
           '/documentation/oxygen/1.1.0/',

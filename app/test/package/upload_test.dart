@@ -1577,6 +1577,7 @@ void main() {
             'Please contact support@pub.dev',
           ),
         );
+        await asyncQueue.ongoingProcessing;
         expect(
           fakeEmailSender.sentMessages.last.bodyText,
           contains('has 0 versions left before reaching the limit'),

@@ -72,6 +72,7 @@ void main() {
             .execute();
 
         final rows = await db.tasks
+            .where((b) => b.package.equalsValue('foo'))
             .select((b) => (b.package, b.runtimeVersion, b.state))
             .fetch();
         expect(rows, hasLength(1));
