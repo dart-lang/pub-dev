@@ -14,7 +14,9 @@ import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/env_config.dart';
+import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/task/clock_control.dart';
+import 'package:retry/retry.dart';
 import 'package:typed_sql/typed_sql.dart';
 
 final _random = Random.secure();
@@ -179,4 +181,24 @@ Future<void> _dropCustomDatabase(String url, String dbName) async {
   final conn = Pool.withUrl(url);
   await conn.execute('DROP DATABASE "$dbName";');
   await conn.close(force: true);
+}
+
+extension DatabaseExt on Database {
+  Future<K> transactWithRetry<K>(Future<K> Function() fn) async {
+    return await retry(
+      () async {
+        try {
+          return await transact(fn);
+        } on TransactionAbortedException catch (e) {
+          if (e.reason is ResponseException) {
+            // TODO: we should keep and use the original stacktrace in typed_sql's exception
+            throw e.reason;
+          }
+          rethrow;
+        }
+      },
+      maxAttempts: 3,
+      retryIf: (e) => e is DatabaseException,
+    );
+  }
 }
