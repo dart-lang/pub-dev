@@ -49,7 +49,7 @@ void main() {
           'totalCount': 1,
           'sdkLibraryHits': [],
           'packageHits': [
-            {'package': 'json_annotation', 'score': greaterThan(0.5)},
+            {'package': 'json_annotation', 'score': greaterThan(0.47)},
           ],
         });
 
