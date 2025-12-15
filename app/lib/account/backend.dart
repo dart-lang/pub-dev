@@ -662,6 +662,7 @@ Future<void> purgeAccountCache({required String userId}) async {
   await Future.wait([
     cache.userPackageLikes(userId).purgeAndRepeat(),
     cache.publisherPage(userId).purgeAndRepeat(),
+    cache.userUploaderOfPackages(userId).purgeAndRepeat(),
   ]);
 }
 
