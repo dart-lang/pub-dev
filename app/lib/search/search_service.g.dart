@@ -137,6 +137,7 @@ PackageHit _$PackageHitFromJson(Map<String, dynamic> json) => PackageHit(
   apiPages: (json['apiPages'] as List<dynamic>?)
       ?.map((e) => ApiPageRef.fromJson(e as Map<String, dynamic>))
       .toList(),
+  debug: json['debug'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$PackageHitToJson(PackageHit instance) =>
@@ -144,6 +145,7 @@ Map<String, dynamic> _$PackageHitToJson(PackageHit instance) =>
       'package': instance.package,
       'score': ?instance.score,
       'apiPages': ?instance.apiPages?.map((e) => e.toJson()).toList(),
+      'debug': ?instance.debug,
     };
 
 ApiPageRef _$ApiPageRefFromJson(Map<String, dynamic> json) => ApiPageRef(

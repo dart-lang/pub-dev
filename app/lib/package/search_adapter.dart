@@ -50,6 +50,7 @@ class SearchAdapter {
           .map((h) => views[h.package])
           .nonNulls
           .toList(),
+      packageDebugs: result.packageHits.map((h) => h.debug).toList(),
       errorMessage: result.errorMessage,
       statusCode: result.statusCode ?? 200,
     );
@@ -158,6 +159,8 @@ class SearchResultPage {
   /// The current list of packages on the page.
   final List<PackageView> packageHits;
 
+  final List<Map<String, dynamic>?>? packageDebugs;
+
   /// An optional message from the search service / client library, in case
   /// the query was not processed entirely.
   final String? errorMessage;
@@ -171,6 +174,7 @@ class SearchResultPage {
     this.nameMatches,
     List<SdkLibraryHit>? sdkLibraryHits,
     List<PackageView>? packageHits,
+    this.packageDebugs,
     this.errorMessage,
     this.statusCode = 200,
   }) : sdkLibraryHits = sdkLibraryHits ?? <SdkLibraryHit>[],

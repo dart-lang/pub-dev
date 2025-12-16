@@ -351,7 +351,9 @@ class InMemoryPackageIndex {
       timestamp: clock.now().toUtc(),
       totalCount: totalCount,
       nameMatches: indicateNameMatch ? [bestNameMatch] : null,
-      packageHits: packageHits,
+      packageHits: packageHits
+          .map((h) => h.change(debug: _pkgDebug(h.package)))
+          .toList(),
       errorMessage: textResults?.errorMessage,
     );
   }
@@ -548,6 +550,15 @@ class InMemoryPackageIndex {
     }
 
     return _TextResults(topApiPages);
+  }
+
+  Map<String, dynamic> _pkgDebug(String name, [PackageDocument? doc]) {
+    doc ??= _documents[_nameToIndex[name]!];
+    return {
+      'likeScore': doc.likeScore,
+      'downloadScore': doc.downloadScore,
+      'overallScore': doc.overallScore,
+    };
   }
 
   Iterable<IndexedPackageHit> _rankWithValues(
