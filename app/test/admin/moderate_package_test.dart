@@ -18,6 +18,7 @@ import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/versions.dart';
@@ -52,7 +53,7 @@ void main() {
       bool? state,
     }) async {
       final api = createPubApiClient(authToken: siteAdminToken);
-      return await api.adminInvokeAction(
+      final rs = await api.adminInvokeAction(
         'moderate-package',
         AdminInvokeActionArguments(
           arguments: {
@@ -62,6 +63,8 @@ void main() {
           },
         ),
       );
+      await asyncQueue.ongoingProcessing;
+      return rs;
     }
 
     testWithProfile(
