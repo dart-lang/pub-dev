@@ -298,6 +298,18 @@ class CachePatterns {
         ),
       )[userId];
 
+  Entry<List<String>> userUploaderOfPackages(String userId) => _cache
+      .withPrefix('user-uploader-of-packages/')
+      .withTTL(Duration(minutes: 60))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(
+        wrapAsCodec(
+          encode: (List<String> l) => l,
+          decode: (d) => (d as List).cast<String>(),
+        ),
+      )[userId];
+
   Entry<String> secretValue(String secretId) => _cache
       .withPrefix('secret-value/')
       .withTTL(Duration(minutes: 60))

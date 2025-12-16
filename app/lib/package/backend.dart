@@ -250,8 +250,11 @@ class PackageBackend {
   }
 
   /// Streams package names where the [userId] is an uploader.
-  Stream<String> streamPackagesWhereUserIsUploader(String userId) async* {
-    var page = await listPackagesForUser(userId);
+  Stream<String> streamPackagesWhereUserIsUploader(
+    String userId, {
+    int pageSize = 100,
+  }) async* {
+    var page = await listPackagesForUser(userId, limit: pageSize);
     while (page.packages.isNotEmpty) {
       yield* Stream.fromIterable(page.packages);
       if (page.nextPackage == null) {
@@ -260,6 +263,17 @@ class PackageBackend {
         page = await listPackagesForUser(userId, next: page.nextPackage);
       }
     }
+  }
+
+  /// Returns the cached list of package names, where the [userId] is an uploader
+  /// (package is not under a publisher).
+  Future<List<String>> cachedPackagesWhereUserIsUploader(String userId) async {
+    final list = await cache.userUploaderOfPackages(userId).get(() async {
+      return await streamPackagesWhereUserIsUploader(
+        userId,
+      ).take(1000).toList();
+    });
+    return list as List<String>;
   }
 
   /// Returns the latest releases info of a package.
@@ -1522,6 +1536,11 @@ class PackageBackend {
     asyncQueue.addAsyncFn(
       () => _postUploadTasks(package, newVersion, outgoingEmail),
     );
+    if (isNew && agent is AuthenticatedUser) {
+      asyncQueue.addAsyncFn(
+        () => cache.userUploaderOfPackages(agent.userId).purge(),
+      );
+    }
 
     _logger.info('Post-upload tasks completed in ${sw.elapsed}.');
     return (pv, uploadMessages);
@@ -1865,7 +1884,7 @@ class PackageBackend {
     User uploader, {
     required String consentRequestFromAgent,
   }) async {
-    await withRetryTransaction(db, (tx) async {
+    final uploaderUserId = await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
 
@@ -1878,7 +1897,7 @@ class PackageBackend {
       }
       if (package.containsUploader(uploader.userId)) {
         // The requested uploaderEmail is already part of the uploaders.
-        return;
+        return uploader.userId;
       }
 
       // Add [uploaderEmail] to uploaders and commit.
@@ -1892,7 +1911,9 @@ class PackageBackend {
           package: packageName,
         ),
       );
+      return uploader.userId;
     });
+    await purgeAccountCache(userId: uploaderUserId);
     triggerPackagePostUpdates(
       packageName,
       skipReanalysis: true,
@@ -1923,7 +1944,7 @@ class PackageBackend {
     uploaderEmail = uploaderEmail.toLowerCase();
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
-    await withRetryTransaction(db, (tx) async {
+    final uploaderUserId = await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
@@ -1976,7 +1997,9 @@ class PackageBackend {
           uploaderUser: uploader,
         ),
       );
+      return uploader.userId;
     });
+    await purgeAccountCache(userId: uploaderUserId);
     triggerPackagePostUpdates(
       packageName,
       skipReanalysis: true,

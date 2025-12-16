@@ -110,6 +110,12 @@ void main() {
       testWithProfile(
         'successful new package',
         fn: () async {
+          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+          expect(
+            await packageBackend.cachedPackagesWhereUserIsUploader(user.userId),
+            isEmpty,
+          );
+
           final dateBeforeTest = clock.now().toUtc();
           final pubspecContent = generatePubspecYaml('new_package', '1.2.3');
           final message = await createPubApiClient(authToken: userClientToken)
@@ -121,8 +127,6 @@ void main() {
           expect(message.success.message, contains('1.2.3'));
 
           // verify state
-          final user = await accountBackend.lookupUserByEmail('user@pub.dev');
-
           final pkgKey = dbService.emptyKey.append(Package, id: 'new_package');
           final package = (await dbService.lookup<Package>([pkgKey])).single!;
           expect(package.name, 'new_package');
@@ -143,6 +147,11 @@ void main() {
           expect(pv.publisherId, isNull);
 
           await asyncQueue.ongoingProcessing;
+          expect(
+            await packageBackend.cachedPackagesWhereUserIsUploader(user.userId),
+            ['new_package'],
+          );
+
           expect(fakeEmailSender.sentMessages, hasLength(1));
           final email = fakeEmailSender.sentMessages.single;
           expect(email.recipients.single.email, user.email);
