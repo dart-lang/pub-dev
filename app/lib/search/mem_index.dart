@@ -352,7 +352,7 @@ class InMemoryPackageIndex {
       totalCount: totalCount,
       nameMatches: indicateNameMatch ? [bestNameMatch] : null,
       packageHits: packageHits
-          .map((h) => h.change(debug: _pkgDebug(h.package)))
+          .map((h) => h.change(debug: _pkgDebug(h.package, h.score)))
           .toList(),
       errorMessage: textResults?.errorMessage,
     );
@@ -552,12 +552,14 @@ class InMemoryPackageIndex {
     return _TextResults(topApiPages);
   }
 
-  Map<String, dynamic> _pkgDebug(String name, [PackageDocument? doc]) {
-    doc ??= _documents[_nameToIndex[name]!];
+  Map<String, dynamic> _pkgDebug(String name, double? score) {
+    final doc = _documents[_nameToIndex[name]!];
     return {
       'likeScore': doc.likeScore,
       'downloadScore': doc.downloadScore,
+      'popularity': ((doc.likeScore ?? 0.0) + (doc.downloadScore ?? 0.0)) / 2,
       'overallScore': doc.overallScore,
+      'score': score,
     };
   }
 
