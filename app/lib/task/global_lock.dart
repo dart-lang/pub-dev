@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/global_lock_models.dart';
 import 'package:ulid/ulid.dart' show Ulid;
 
@@ -58,7 +57,7 @@ class GlobalLock {
           // refresh, before it's truly expired.
 
           // Wait for done or delay
-          await done.future.timeoutWithClock(delay, onTimeout: () => null);
+          await done.future.timeout(delay, onTimeout: () => null);
 
           // Try to refresh, if claim is still valid and we're not done.
           if (c.valid && !done.isCompleted) {
@@ -156,7 +155,7 @@ class GlobalLock {
           delay = _expiration * 0.1;
         }
         // Wait for delay or abort
-        await abort.future.timeoutWithClock(delay, onTimeout: () => null);
+        await abort.future.timeout(delay, onTimeout: () => null);
       }
       e = await _tryClaimOrGet(claimId);
     }

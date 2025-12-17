@@ -14,7 +14,6 @@ import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/parallel_foreach.dart';
-import 'package:pub_dev/task/clock_control.dart';
 
 import '../../search/backend.dart';
 import '../../shared/datastore.dart';
@@ -99,7 +98,7 @@ final class ApiExporter {
               st,
             );
             // Sleep 5 minutes to reduce risk of degenerate behavior
-            await clock.delayed(Duration(minutes: 5));
+            await Future.delayed(Duration(minutes: 5));
           }
         }
       } catch (e, st) {
@@ -355,10 +354,7 @@ final class ApiExporter {
       seen.removeWhere((_, updated) => updated.isBefore(since));
 
       // Wait until aborted or 10 minutes before scanning again!
-      await abort.future.timeoutWithClock(
-        Duration(minutes: 10),
-        onTimeout: () => null,
-      );
+      await abort.future.timeout(Duration(minutes: 10), onTimeout: () => null);
     }
   }
 

@@ -14,7 +14,6 @@ import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/env_config.dart';
-import 'package:pub_dev/task/clock_control.dart';
 import 'package:typed_sql/typed_sql.dart';
 
 final _random = Random.secure();
@@ -155,7 +154,7 @@ Future<(String, String?)> _startOrUseLocalPostgresInDocker() async {
     }
     // The socket file may be present sooner than the server is accepting connections.
     // This arbitrary wait is probably enough to have a working server at this point.
-    await clock.delayed(Duration(seconds: 2));
+    await Future.delayed(Duration(seconds: 2));
   }
   return (url, null);
 }

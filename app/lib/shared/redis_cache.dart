@@ -8,7 +8,6 @@ import 'dart:math';
 
 import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/data/package_api.dart' show VersionScore;
-import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/youtube/v3.dart';
 import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
@@ -16,7 +15,6 @@ import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
-import 'package:pub_dev/task/clock_control.dart';
 
 import '../../../service/async_queue/async_queue.dart';
 import '../../../service/security_advisories/models.dart';
@@ -632,7 +630,7 @@ extension EntryPurgeExt<T> on Entry<T> {
   Future purgeAndRepeat({int retries = 0, Duration? delay}) async {
     await purge(retries: retries);
     asyncQueue.addAsyncFn(() async {
-      await clock.delayed(delay ?? Duration.zero);
+      await Future.delayed(delay ?? Duration.zero);
       await purge();
     });
   }
