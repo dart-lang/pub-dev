@@ -351,19 +351,21 @@ class PackageHit {
   final String package;
   final double? score;
   final List<ApiPageRef>? apiPages;
+  final Map<String, dynamic>? debug;
 
-  PackageHit({required this.package, this.score, this.apiPages});
+  PackageHit({required this.package, this.score, this.apiPages, this.debug});
 
   factory PackageHit.fromJson(Map<String, dynamic> json) =>
       _$PackageHitFromJson(json);
 
   Map<String, dynamic> toJson() => _$PackageHitToJson(this);
 
-  PackageHit change({List<ApiPageRef>? apiPages}) {
+  PackageHit change({List<ApiPageRef>? apiPages, Map<String, dynamic>? debug}) {
     return PackageHit(
       package: package,
       score: score,
       apiPages: apiPages ?? this.apiPages,
+      debug: debug ?? this.debug,
     );
   }
 }

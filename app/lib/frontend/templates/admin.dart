@@ -60,6 +60,7 @@ String renderAccountPackagesPage({
       searchForm: null,
       sdkLibraryHits: [],
       packageHits: packageHits,
+      packageDebugs: [],
       nameMatches: null,
     ),
     if (nextPackage != null)
