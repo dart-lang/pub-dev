@@ -28,7 +28,7 @@ void main() {
     final ts1 = clock.now();
     final f = clockControl.elapseUntil(
       () async => false,
-      minimumStep: Duration(minutes: 15),
+      step: Duration(minutes: 15),
       timeout: Duration(days: 1),
     );
     await expectLater(f, throwsA(isA<TimeoutException>()));
@@ -40,7 +40,7 @@ void main() {
     int counter = 0;
     await clockControl.elapseUntil(
       () async => counter++ > 12,
-      minimumStep: Duration(minutes: 15),
+      step: Duration(minutes: 15),
       timeout: Duration(days: 1),
     );
     expect(clock.now().difference(ts1).inHours, 3);

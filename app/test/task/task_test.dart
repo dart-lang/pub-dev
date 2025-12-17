@@ -192,7 +192,7 @@ void main() {
             return cloud.listInstances().isNotEmpty;
           },
           timeout: Duration(days: 1),
-          minimumStep: Duration(minutes: 15),
+          step: Duration(minutes: 15),
         );
 
         // If nothing happens, then it should be killed within 24 hours.
@@ -204,7 +204,7 @@ void main() {
             return cloud.listInstances().isEmpty;
           },
           timeout: Duration(days: 1),
-          minimumStep: Duration(minutes: 15),
+          step: Duration(minutes: 15),
         );
       }
 
@@ -218,7 +218,7 @@ void main() {
             return cloud.listInstances().isNotEmpty;
           },
           timeout: Duration(days: 1),
-          minimumStep: Duration(minutes: 10),
+          step: Duration(minutes: 10),
         ),
         throwsA(isA<TimeoutException>()),
       );
@@ -231,7 +231,7 @@ void main() {
           return cloud.listInstances().isNotEmpty;
         },
         timeout: taskRetriggerInterval + Duration(days: 1),
-        minimumStep: Duration(hours: 2),
+        step: Duration(hours: 2),
       );
     },
     testProfile: TestProfile(
@@ -389,7 +389,7 @@ void main() {
           return cloud.listInstances().isEmpty;
         },
         timeout: Duration(days: 7),
-        minimumStep: Duration(minutes: 5),
+        step: Duration(minutes: 5),
       );
     },
     testProfile: TestProfile(
@@ -657,7 +657,7 @@ void main() {
           );
         },
         timeout: taskDependencyRetriggerCoolOff + Duration(minutes: 15),
-        minimumStep: Duration(hours: 2),
+        step: Duration(hours: 2),
       );
     },
     testProfile: TestProfile(

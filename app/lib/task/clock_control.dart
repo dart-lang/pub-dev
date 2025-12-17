@@ -63,7 +63,7 @@ final class ClockController {
       if (await condition()) {
         return;
       }
-      _offset += minimumStep ?? Duration(minutes: 1);
+      _offset += step ?? Duration(minutes: 1);
     }
     throw TimeoutException(
       'Condition given to ClockController.incrUntil was not satisfied'
