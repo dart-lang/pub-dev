@@ -33,6 +33,9 @@ final class ClockController {
 
   DateTime _controlledTime() => _originalTime().add(_offset);
 
+  /// Advance [clock] by given [days], [hours], [minutes] and [seconds].
+  ///
+  /// This makes a discrete jump in time as observed through [clock].
   void elapse({int days = 0, int hours = 0, int minutes = 0, int seconds = 0}) {
     _offset += Duration(
       days: days,
