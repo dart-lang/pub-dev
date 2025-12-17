@@ -42,10 +42,15 @@ final class ClockController {
     );
   }
 
+  /// Elapse time in discrete increments of [step] until [condition] is `true`.
+  ///
+  /// This will call [elapse] with [step] until [condition] returns `true`.
+  /// Throws [TimeoutException], if [condition] is not satisfied with-in
+  /// [timeout].
   Future<void> elapseUntil(
     FutureOr<bool> Function() condition, {
     Duration? timeout,
-    Duration? minimumStep,
+    Duration? step,
   }) async {
     final deadline = timeout != null ? clock.fromNowBy(timeout) : null;
 
