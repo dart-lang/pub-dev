@@ -10,7 +10,6 @@ import 'package:collection/collection.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/frontend/static_files.dart';
-import 'package:pub_dev/task/clock_control.dart';
 
 import 'cloudcompute.dart';
 
@@ -95,7 +94,7 @@ final class FakeCloudCompute extends CloudCompute {
 
     // Let's make the operation take a second, and then remove the instance!
     _log.info('Deleting instance "$instanceName"');
-    await clock.delayed(Duration(seconds: 1));
+    await Future.delayed(Duration(seconds: 1));
     final removed = _instances
         .where((i) => i.instanceName == instanceName && i.zone == zone)
         .toList();

@@ -70,7 +70,7 @@ void main() {
       expect(dartdoc1, isNull);
 
       // 5 minutes after start of scheduling we expect there to be 3 instances
-      clockControl.incrOffset(minutes: 5);
+      clockControl.elapse(minutes: 5);
       await taskBackend.runOneLoopCycle();
       final instances = await cloud.listInstances().toList();
       expect(instances, hasLength(3));
@@ -80,7 +80,7 @@ void main() {
       }
 
       for (final instance in instances) {
-        clockControl.incrOffset(minutes: 1);
+        clockControl.elapse(minutes: 1);
         final payload = instance.payload;
 
         for (final v in payload.versions) {
@@ -166,7 +166,7 @@ void main() {
       // All instances should be terminated, api.taskUploadFinished terminate
       // when all versions for the instance is done. And fake instances take 1
       // minute to simulate termination.
-      clockControl.incrOffset(minutes: 15);
+      clockControl.elapse(minutes: 15);
       await taskBackend.runOneLoopCycle();
       expect(await cloud.listInstances().toList(), hasLength(0));
     },
@@ -186,25 +186,25 @@ void main() {
         await taskBackend.runOneScanPackagesUpdate(_isNotAborted);
 
         // Within 24 hours an instance should be created
-        await clockControl.incrUntil(
+        await clockControl.elapseUntil(
           () async {
             await taskBackend.runOneInstanceCreation(_isNotAborted);
             return cloud.listInstances().isNotEmpty;
           },
           timeout: Duration(days: 1),
-          minimumStep: Duration(minutes: 15),
+          step: Duration(minutes: 15),
         );
 
         // If nothing happens, then it should be killed within 24 hours.
         // Actually, it'll happen much sooner, like ~2 hours, but we'll leave the
         // test some wiggle room.
-        await clockControl.incrUntil(
+        await clockControl.elapseUntil(
           () async {
             await taskBackend.runOneInstanceDeletion(_isNotAborted);
             return cloud.listInstances().isEmpty;
           },
           timeout: Duration(days: 1),
-          minimumStep: Duration(minutes: 15),
+          step: Duration(minutes: 15),
         );
       }
 
@@ -212,26 +212,26 @@ void main() {
       // created for the next day...
       assert(taskRetriggerInterval > Duration(days: 1));
       await expectLater(
-        clockControl.incrUntil(
+        clockControl.elapseUntil(
           () async {
             await taskBackend.runOneLoopCycle();
             return cloud.listInstances().isNotEmpty;
           },
           timeout: Duration(days: 1),
-          minimumStep: Duration(minutes: 10),
+          step: Duration(minutes: 10),
         ),
         throwsA(isA<TimeoutException>()),
       );
 
       // But the task should be retried after [taskRetriggerInterval], this is a
       // long time, but for sanity we do re-analyze everything occasionally.
-      await clockControl.incrUntil(
+      await clockControl.elapseUntil(
         () async {
           await taskBackend.runOneLoopCycle();
           return cloud.listInstances().isNotEmpty;
         },
         timeout: taskRetriggerInterval + Duration(days: 1),
-        minimumStep: Duration(hours: 2),
+        step: Duration(hours: 2),
       );
     },
     testProfile: TestProfile(
@@ -379,17 +379,17 @@ void main() {
       await api.taskUploadFinished(payload.package, v.version);
 
       // Leave time for the instance to be deleted (takes 1 min in fake cloud)
-      clockControl.incrOffset(minutes: 5);
+      clockControl.elapse(minutes: 5);
       await taskBackend.runOneLoopCycle();
 
       // We don't expect anything to be scheduled for the next 7 days.
-      await clockControl.incrUntil(
+      await clockControl.elapseUntil(
         () async {
           await taskBackend.runOneLoopCycle();
           return cloud.listInstances().isEmpty;
         },
         timeout: Duration(days: 7),
-        minimumStep: Duration(minutes: 5),
+        step: Duration(minutes: 5),
       );
     },
     testProfile: TestProfile(
@@ -468,11 +468,11 @@ void main() {
       }
 
       // Leave time for the instance to be deleted (takes 1 min in fake cloud)
-      clockControl.incrOffset(minutes: 5);
+      clockControl.elapse(minutes: 5);
       await taskBackend.runOneLoopCycle();
 
       // We don't expect anything to be scheduled for the next 3 days.
-      await clockControl.incrUntil(() async {
+      await clockControl.elapseUntil(() async {
         await taskBackend.runOneLoopCycle();
         return cloud.listInstances().isEmpty;
       }, timeout: Duration(days: 3));
@@ -491,7 +491,7 @@ void main() {
         ),
       );
 
-      clockControl.incrOffset(minutes: 15);
+      clockControl.elapse(minutes: 15);
       await taskBackend.runOneLoopCycle();
 
       {
@@ -608,7 +608,7 @@ void main() {
       }
 
       // Leave time for the instance to be deleted (takes 1 min in fake cloud)
-      clockControl.incrOffset(minutes: 15);
+      clockControl.elapse(minutes: 15);
       await taskBackend.runOneLoopCycle();
 
       // We don't expect anything to be scheduled now
@@ -629,7 +629,7 @@ void main() {
         ),
       );
 
-      clockControl.incrOffset(minutes: 15);
+      clockControl.elapse(minutes: 15);
       await taskBackend.runOneLoopCycle();
 
       // Expect that neon is scheduled within 15 minutes
@@ -640,7 +640,7 @@ void main() {
 
       // Since oxygen was recently scheduled, we expect that it won't have been
       // scheduled yet.
-      clockControl.incrOffset(minutes: 15);
+      clockControl.elapse(minutes: 15);
       await taskBackend.runOneLoopCycle();
       expect(
         await cloud.listInstances().map((i) => i.payload.package).toList(),
@@ -649,7 +649,7 @@ void main() {
 
       // At some point oxygen must also be retriggered, by this can be offset by
       // the [taskDependencyRetriggerCoolOff] delay.
-      await clockControl.incrUntil(
+      await clockControl.elapseUntil(
         () async {
           await taskBackend.runOneLoopCycle();
           return cloud.listInstances().any(
@@ -657,7 +657,7 @@ void main() {
           );
         },
         timeout: taskDependencyRetriggerCoolOff + Duration(minutes: 15),
-        minimumStep: Duration(hours: 2),
+        step: Duration(hours: 2),
       );
     },
     testProfile: TestProfile(
@@ -726,7 +726,7 @@ void main() {
           ),
         );
 
-        clockControl.incrOffset(minutes: 15);
+        clockControl.elapse(minutes: 15);
         await taskBackend.runOneLoopCycle();
 
         // verify token is now aborted
@@ -755,11 +755,11 @@ void main() {
         );
       }
       // Leave time for the instance to be deleted (takes 1 min in fake cloud)
-      clockControl.incrOffset(minutes: 5);
+      clockControl.elapse(minutes: 5);
       await taskBackend.runOneLoopCycle();
 
       {
-        clockControl.incrOffset(minutes: maxTaskExecutionTime.inMinutes + 1);
+        clockControl.elapse(minutes: maxTaskExecutionTime.inMinutes + 1);
         // Create new version, removing the token from the aborted list
         await importProfile(
           profile: TestProfile(

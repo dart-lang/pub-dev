@@ -41,7 +41,6 @@ import 'package:pub_dev/shared/versions.dart'
 import 'package:pub_dev/shared/versions.dart'
     as shared_versions
     show runtimeVersion;
-import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/global_lock.dart';
 import 'package:pub_dev/task/handlers.dart';
@@ -176,10 +175,7 @@ class TaskBackend {
                   return;
                 }
                 // Wait until aborted or [delay] before doing it again!
-                await aborted.future.timeoutWithClock(
-                  delay,
-                  onTimeout: () => null,
-                );
+                await aborted.future.timeout(delay, onTimeout: () => null);
               }
             }, abort: aborted);
           } catch (e, st) {
@@ -191,7 +187,7 @@ class TaskBackend {
               st,
             );
             // Sleep 5 minutes to reduce risk of degenerate behavior
-            await clock.delayed(Duration(minutes: 5));
+            await Future.delayed(Duration(minutes: 5));
           }
         }
       } catch (e, st) {
