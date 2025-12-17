@@ -9,6 +9,7 @@ import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/models.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
 
@@ -72,6 +73,7 @@ void main() {
             .execute();
 
         final rows = await db.tasks
+            .where((b) => b.package.equalsValue('foo'))
             .select((b) => (b.package, b.runtimeVersion, b.state))
             .fetch();
         expect(rows, hasLength(1));
