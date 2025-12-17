@@ -91,16 +91,6 @@ extension ClockDelayed on Clock {
       return Future.delayed(delay);
     }
   }
-
-  Future<K> instant<K>(Future<K> Function() fn) {
-    final clockCtrl = Zone.current[_clockCtrlKey];
-    if (clockCtrl is ClockController) {
-      final f = Future.microtask(fn);
-      clockCtrl._pendingInstants.add(f);
-      return f;
-    }
-    return Future.sync(fn);
-  }
 }
 
 final class ClockController {
@@ -108,8 +98,6 @@ final class ClockController {
   Duration _offset;
 
   ClockController._(this._originalTime, this._offset);
-
-  final _pendingInstants = <Future<void>>[];
 
   DateTime _controlledTime() => _originalTime().add(_offset);
 
@@ -250,231 +238,16 @@ final class ClockController {
     _pendingTimers.remove(timer);
   }
 
-  Future<void> elapse({
-    int days = 0,
-    int hours = 0,
-    int minutes = 0,
-    int seconds = 0,
-    int milliseconds = 0,
-    int microseconds = 0,
-  }) => elapseTime(
-    Duration(
+  void elapse({int days = 0, int hours = 0, int minutes = 0, int seconds = 0}) {
+    _offset += Duration(
       days: days,
       hours: hours,
       minutes: minutes,
       seconds: seconds,
-      milliseconds: milliseconds,
-      microseconds: microseconds,
-    ),
-  );
-
-  void elapseSync({
-    int days = 0,
-    int hours = 0,
-    int minutes = 0,
-    int seconds = 0,
-    int milliseconds = 0,
-    int microseconds = 0,
-  }) => elapseTimeSync(
-    Duration(
-      days: days,
-      hours: hours,
-      minutes: minutes,
-      seconds: seconds,
-      milliseconds: milliseconds,
-      microseconds: microseconds,
-    ),
-  );
-
-  Future<void> elapseTime(Duration duration) {
-    if (duration.isNegative) {
-      throw ArgumentError.value(
-        duration,
-        'duration',
-        'ClockController.elapseTime can only move forward in time',
-      );
-    }
-    return _elapseTo(_controlledTime().add(duration));
+    );
   }
 
-  Future<void> elapseTo(DateTime futureTime) {
-    if (_controlledTime().isAfter(futureTime)) {
-      throw StateError(
-        'ClockController.elapseTo(futureTime) cannot travel backwards in time, '
-        'futureTime > now cannot be allowed',
-      );
-    }
-    return _elapseTo(futureTime);
-  }
-
-  /// Elapse time until [condition] returns `true`.
-  ///
-  /// Throws [TimeoutException], if [condition] is not satisfied with-in
-  /// [timeout],
   Future<void> elapseUntil(
-    FutureOr<bool> Function() condition, {
-    Duration? timeout,
-    Duration? minimumStep,
-  }) async {
-    final deadline = timeout != null ? clock.fromNowBy(timeout) : null;
-
-    bool shouldLoop() =>
-        _pendingTimers.isNotEmpty &&
-        (deadline == null ||
-            _pendingTimers.first._elapsesAtInFakeTime.isBefore(deadline));
-
-    while (shouldLoop()) {
-      if (await condition()) {
-        return;
-      }
-
-      // Wait for all microtasks to run
-      await _waitForMicroTasks();
-      if (!shouldLoop()) {
-        break;
-      }
-
-      // Jump into the future, until the point in time that the next timer is
-      // pending.
-      final nextTimerElapsesAt = _pendingTimers.first._elapsesAtInFakeTime;
-      _offset += nextTimerElapsesAt.difference(_controlledTime());
-
-      // Trigger all timers that are pending, this cancels any actual timer
-      // and creates a new pending timer.
-      _triggerPendingTimers();
-    }
-
-    await _waitForMicroTasks();
-
-    if (await condition()) {
-      return;
-    }
-
-    if (deadline != null) {
-      // Jump into the desired future point in time.
-      _offset += deadline.difference(_controlledTime());
-
-      // Ensure that we cancel the current actual timer, trigger any pending
-      // timers, and create a new actual timer.
-      _triggerPendingTimers();
-
-      await _waitForMicroTasks();
-    }
-
-    if (!await condition()) {
-      throw TimeoutException(
-        'Condition given to ClockController.elapseUntil was not satisfied'
-        ' before timeout: $timeout',
-      );
-    }
-  }
-
-  /// Expect [condition] to return `true` until [duration] has elapsed.
-  Future<void> expectUntil(
-    FutureOr<bool> Function() condition,
-    Duration duration,
-  ) async {
-    try {
-      await elapseUntil(() async {
-        return !await condition();
-      }, timeout: duration);
-      throw AssertionError('Condition failed before $duration expired');
-    } on TimeoutException {
-      return;
-    }
-  }
-
-  /// Elapse time until [futureTime].
-  ///
-  /// This is an implementation of [elapseTo] without checks that we are not
-  /// moving backwards in time. That allows [elapseTime] to be called with
-  /// a zero duration.
-  Future<void> _elapseTo(DateTime futureTime) async {
-    bool shouldLoop() =>
-        _pendingTimers.isNotEmpty &&
-        _pendingTimers.first._elapsesAtInFakeTime.isBefore(futureTime);
-
-    await _waitForMicroTasks();
-
-    while (shouldLoop()) {
-      // Wait for all microtasks to run
-      await _waitForMicroTasks();
-      if (!shouldLoop()) {
-        break;
-      }
-
-      // Jump into the future, until the point in time that the next timer is
-      // pending.
-      final nextTimerElapsesAt = _pendingTimers.first._elapsesAtInFakeTime;
-      _offset += nextTimerElapsesAt.difference(_controlledTime());
-
-      // Trigger all timers that are pending, this cancels any actual timer
-      // and creates a new pending timer.
-      _triggerPendingTimers();
-
-      await _waitForMicroTasks();
-    }
-
-    await _waitForMicroTasks();
-
-    // Jump into the desired future point in time.
-    _offset += futureTime.difference(_controlledTime());
-    // Ensure that we cancel the current actual timer, trigger any pending
-    // timers, and create a new actual timer.
-    _triggerPendingTimers();
-  }
-
-  void elapseTimeSync(Duration duration) {
-    if (duration.isNegative) {
-      throw ArgumentError.value(
-        duration,
-        'duration',
-        'ClockController.elapseTimeSync can only move forward in time',
-      );
-    }
-    _offset += duration;
-    // Ensure that we cancel the current actual timer, trigger any pending
-    // timers, and create a new actual timer.
-    _triggerPendingTimers();
-  }
-
-  void elapseToSync(DateTime futureTime) {
-    final controlledNow = _controlledTime();
-    if (controlledNow.isAfter(futureTime)) {
-      throw StateError(
-        'FakeTime.elapseToSync(futureTime) cannot travel backwards in '
-        'time, futureTime > now cannot be allowed',
-      );
-    }
-
-    _offset += futureTime.difference(controlledNow);
-    // Ensure that we cancel the current actual timer, trigger any pending
-    // timers, and create a new actual timer.
-    _triggerPendingTimers();
-  }
-
-  /// Wait for all scheduled microtasks to be done.
-  Future<void> _waitForMicroTasks() async {
-    await Future.delayed(Duration(microseconds: 0));
-
-    while (_pendingInstants.isNotEmpty) {
-      final f = Future.wait(_pendingInstants);
-      _pendingInstants.clear();
-      try {
-        await f;
-      } catch (_) {
-        // ignore
-      }
-
-      await Future.delayed(Duration(microseconds: 0));
-    }
-  }
-
-  void incrOffset({int hours = 0, int minutes = 0, int seconds = 0}) {
-    _offset += Duration(hours: hours, minutes: minutes, seconds: seconds);
-  }
-
-  Future<void> incrUntil(
     FutureOr<bool> Function() condition, {
     Duration? timeout,
     Duration? minimumStep,
