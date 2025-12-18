@@ -332,7 +332,8 @@ d.Node _item({
             ),
         ],
       ),
-      if (debug != null) d.pre(child: d.code(text: json.encode(debug))),
+      if (debug != null)
+        d.pre(child: d.code(text: JsonEncoder.withIndent('  ').convert(debug))),
     ],
   );
 }
