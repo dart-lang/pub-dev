@@ -556,8 +556,14 @@ class InMemoryPackageIndex {
     final doc = _documents[_nameToIndex[name]!];
     return {
       'likeScore': doc.likeScore,
+      'flatLikeScore': math.pow(doc.likeScore ?? 0.0, 0.5),
       'downloadScore': doc.downloadScore,
+      'flatDownloadScore': math.pow(doc.downloadScore ?? 0.0, 0.5),
       'popularity': ((doc.likeScore ?? 0.0) + (doc.downloadScore ?? 0.0)) / 2,
+      'flatPopularity':
+          ((math.pow(doc.downloadScore ?? 0.0, 0.5)) +
+              math.pow(doc.likeScore ?? 0.0, 0.5)) /
+          2,
       'overallScore': doc.overallScore,
       'score': score,
     };
