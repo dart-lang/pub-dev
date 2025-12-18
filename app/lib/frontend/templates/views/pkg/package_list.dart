@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/liked_package_list.dart';
 
 import '../../../../package/models.dart';
@@ -28,6 +31,7 @@ d.Node listOfPackagesNode({
   required SearchForm? searchForm,
   required List<SdkLibraryHit> sdkLibraryHits,
   required List<PackageView> packageHits,
+  required List<Map?>? packageDebugs,
   required List<String>? nameMatches,
 }) {
   final bestNameMatch = (nameMatches == null || nameMatches.isEmpty)
@@ -42,12 +46,15 @@ d.Node listOfPackagesNode({
     classes: ['packages'],
     children: [
       ...sdkLibraryHits.map(_sdkLibraryItem),
-      ...packageHits.map(
-        (hit) => _packageItem(
+      ...packageHits.mapIndexed(
+        (i, hit) => _packageItem(
           hit,
           searchForm: searchForm,
           isNameMatch: hit.name == bestNameMatch,
           isLiked: listingPackagesLikedByMe,
+          debug: packageDebugs == null
+              ? null
+              : (i < packageDebugs.length ? packageDebugs[i] : null),
         ),
       ),
       imageCarousel(),
@@ -89,6 +96,7 @@ d.Node _packageItem(
   required SearchForm? searchForm,
   required bool isNameMatch,
   required bool isLiked,
+  required Map? debug,
 }) {
   final isFlutterFavorite = view.tags.contains(PackageTags.isFlutterFavorite);
   final isDart3Incompatible = view.tags.contains(
@@ -226,6 +234,7 @@ d.Node _packageItem(
         )
         .toList(),
     topics: _topicsNode(view.topics),
+    debug: debug,
   );
 }
 
@@ -246,6 +255,7 @@ d.Node _item({
   d.Node? copyIcon,
   required String? replacedBy,
   required List<_ApiPageUrl>? apiPages,
+  Map? debug,
 }) {
   final age = newTimestamp == null
       ? null
@@ -322,6 +332,7 @@ d.Node _item({
             ),
         ],
       ),
+      if (debug != null) d.pre(child: d.code(text: json.encode(debug))),
     ],
   );
 }

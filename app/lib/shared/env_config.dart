@@ -69,6 +69,7 @@ class _EnvConfig {
   /// Environment variables that are exposed in the `/debug` endpoint.
   Map<String, dynamic> debugMap({bool includeInstanceHash = false}) {
     return {
+      'GAE_SERVICE': _gaeService ?? '-',
       'GAE_VERSION': _gaeVersion ?? '-',
       'GAE_MEMORY_MB': Platform.environment['GAE_MEMORY_MB'],
       if (includeInstanceHash)

@@ -27,6 +27,7 @@ d.Node packageList(SearchResultPage searchResultPage) {
     searchForm: searchResultPage.form,
     sdkLibraryHits: searchResultPage.sdkLibraryHits,
     packageHits: searchResultPage.packageHits,
+    packageDebugs: searchResultPage.packageDebugs,
     nameMatches: searchResultPage.nameMatches,
   );
 }
