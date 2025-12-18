@@ -71,3 +71,5 @@ rateLimits:
     scope: package
     burst: 10
     daily: 24
+imageProxyHmacKeyVersion: projects/dartlang-pub-dev/locations/global/keyRings/image-proxy-key-ring/cryptoKeys/image-proxy-hmac-key/cryptoKeyVersions/1
+imageProxyServiceBaseUrl: https://external-images-staging.pub.dev
