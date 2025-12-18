@@ -68,8 +68,8 @@ class InMemoryPackageIndex {
       if (apiDocPages != null) {
         for (final page in apiDocPages) {
           if (page.symbols != null && page.symbols!.isNotEmpty) {
-            apiDocPageKeys.add(IndexedApiDocPage(i, page));
-            apiDocPageValues.add(page.symbols!);
+            // apiDocPageKeys.add(IndexedApiDocPage(i, page));
+            // apiDocPageValues.add(page.symbols!);
           }
         }
       }
