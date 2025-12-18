@@ -89,14 +89,14 @@ class InMemoryPackageIndex {
     _apiSymbolIndex = TokenIndex.fromValues(apiDocPageKeys, apiDocPageValues);
 
     // update download scores only if they were not set (should happen on old runtime's snapshot and local tests)
-    if (_documents.any((e) => e.downloadScore == null)) {
+    // if (_documents.any((e) => e.downloadScore == null)) {
       _documents.updateDownloadScores();
-    }
+    // }
 
     // update like scores only if they were not set (should happen only in local tests)
-    if (_documents.any((e) => e.likeScore == null)) {
+    // if (_documents.any((e) => e.likeScore == null)) {
       _documents.updateLikeScores();
-    }
+    // }
     _updateOverallScores();
     _lastUpdated = clock.now().toUtc();
     _overallOrderedHits = _rankWithComparator(
