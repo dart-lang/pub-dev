@@ -46,6 +46,7 @@ Configuration _$ConfigurationFromJson(
       'tools',
       'rateLimits',
       'imageProxyHmacKeyVersion',
+      'imageProxyServiceBaseUrl',
     ],
   );
   final val = Configuration(
@@ -217,6 +218,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'tools': instance.tools?.toJson(),
       'rateLimits': instance.rateLimits?.map((e) => e.toJson()).toList(),
       'imageProxyHmacKeyVersion': instance.imageProxyHmacKeyVersion,
+      'imageProxyServiceBaseUrl': instance.imageProxyServiceBaseUrl,
     };
 
 AdminId _$AdminIdFromJson(Map json) => $checkedCreate('AdminId', json, (
