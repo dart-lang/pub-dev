@@ -87,7 +87,7 @@ void main() {
 
       await _testExportedApiSynchronization(
         bucket,
-        () async => await clockControl.elapse(minutes: 15),
+        () async => clockControl.elapse(minutes: 15),
       );
 
       await apiExporter.stop();
@@ -345,7 +345,7 @@ Future<void> _testExportedApiSynchronization(
   {
     // Elapse time before moderating package, because exported-api won't delete
     // recently created files as a guard against race conditions.
-    clockControl.elapseSync(days: 1);
+    clockControl.elapse(days: 1);
 
     await withRetryPubApiClient(
       authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),
@@ -425,7 +425,7 @@ Future<void> _testExportedApiSynchronization(
   {
     // Elapse time before moderating package, because exported-api won't delete
     // recently created files as a guard against race conditions.
-    clockControl.elapseSync(days: 1);
+    clockControl.elapse(days: 1);
 
     await withRetryPubApiClient(
       authToken: createFakeServiceAccountToken(email: 'admin@pub.dev'),

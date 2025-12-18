@@ -13,7 +13,6 @@ import 'package:googleapis/compute/v1.dart' as compute_v1 show Duration;
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/shared/utils.dart' show createUuid;
-import 'package:pub_dev/task/clock_control.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:retry/retry.dart';
 import 'package:ulid/ulid.dart';
@@ -606,7 +605,7 @@ runcmd:
           final elapsed = clock.now().difference(start);
           final remainder = Duration(minutes: 2) - elapsed;
           if (!remainder.isNegative) {
-            await clock.delayed(remainder);
+            await Future.delayed(remainder);
           }
         }
       }
