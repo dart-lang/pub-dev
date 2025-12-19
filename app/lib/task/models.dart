@@ -366,7 +366,7 @@ class PackageVersionStateInfo {
       ].join(', ') +
       ')';
 
-  // Remove instanceName, zone, secretToken, and set attempts = 0
+  /// Remove instanceName, zone, secretToken, and set attempts = 0
   PackageVersionStateInfo complete({required bool pana, required bool docs}) {
     return PackageVersionStateInfo(
       scheduled: scheduled,
