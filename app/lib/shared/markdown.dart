@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
+import 'package:googleapis/cloudkms/v1.dart' as kms;
 import 'package:html/dom.dart' as html;
 import 'package:html/dom_parsing.dart' as html_parsing;
 import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
 import 'package:pub_dev/frontend/static_files.dart';
+import 'package:pub_dev/service/image_proxy/backend.dart';
 import 'package:pub_dev/shared/changelog.dart';
 import 'package:sanitize_html/sanitize_html.dart';
 
@@ -124,6 +128,7 @@ String _postProcessHtml(
   var root = html_parser.parseFragment(rawHtml);
 
   _RelativeUrlRewriter(urlResolverFn, relativeFrom).visit(root);
+  _ImageProxyRewriter().visit(root);
 
   if (isChangelog) {
     final oldNodes = [...root.nodes];
@@ -200,6 +205,27 @@ class _UnsafeUrlFilter extends html_parsing.TreeVisitor {
       return true;
     }
     return false;
+  }
+}
+
+class _ImageProxyRewriter extends html_parsing.TreeVisitor {
+  @override
+  void visitElement(html.Element element) {
+    super.visitElement(element);
+
+    if (element.localName == 'img') {
+      final src = element.attributes['src'];
+      final uri = Uri.tryParse(src ?? '');
+      if (uri == null || uri.isInvalid) {
+        // TODO: consider removing the element entirely
+        return;
+      }
+      if ((uri.isScheme('http') || uri.isScheme('https')) &&
+          !uri.isTrustedHost) {
+        final proxiedUrl = imageProxyBackend.imageProxyUrl(uri);
+        element.attributes['src'] = proxiedUrl;
+      }
+    }
   }
 }
 
