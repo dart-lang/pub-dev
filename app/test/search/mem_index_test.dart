@@ -106,7 +106,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'async', 'score': closeTo(0.71, 0.01)},
+          {'package': 'async', 'score': closeTo(0.68, 0.01)},
         ],
       });
     });
@@ -134,7 +134,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'chrome_net', 'score': closeTo(0.33, 0.01)},
+          {'package': 'chrome_net', 'score': closeTo(0.30, 0.01)},
         ],
       });
     });
@@ -148,8 +148,8 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 2,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'async', 'score': closeTo(0.71, 0.01)},
           {'package': 'http', 'score': closeTo(0.69, 0.01)},
+          {'package': 'async', 'score': closeTo(0.67, 0.01)},
         ],
       });
     });
@@ -163,7 +163,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'async', 'score': closeTo(0.37, 0.01)},
+          {'package': 'async', 'score': closeTo(0.35, 0.01)},
         ],
       });
     });
@@ -348,7 +348,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'http', 'score': closeTo(0.92, 0.01)},
-          {'package': 'async', 'score': closeTo(0.52, 0.01)},
+          {'package': 'async', 'score': closeTo(0.46, 0.01)},
         ],
       });
 
@@ -368,7 +368,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'chrome_net', 'score': closeTo(0.08, 0.01)},
+          {'package': 'chrome_net', 'score': closeTo(0.03, 0.01)},
         ],
       });
     });
@@ -383,7 +383,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'sdkLibraryHits': [],
         'packageHits': [
           {'package': 'http', 'score': closeTo(0.92, 0.01)},
-          {'package': 'chrome_net', 'score': closeTo(0.08, 0.01)},
+          {'package': 'chrome_net', 'score': closeTo(0.03, 0.01)},
         ],
       });
 
@@ -443,7 +443,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'async', 'score': closeTo(0.52, 0.01)},
+          {'package': 'async', 'score': closeTo(0.46, 0.01)},
         ],
       });
 
@@ -677,7 +677,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'totalCount': 2,
             'sdkLibraryHits': [],
             'packageHits': [
-              {'package': 'def', 'score': closeTo(0.85, 0.01)},
+              {'package': 'def', 'score': closeTo(0.78, 0.01)},
               {'package': 'abc', 'score': closeTo(0.70, 0.01)},
             ],
           },
@@ -693,7 +693,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'packageHits': [
               // `abc` is at the first position, score is kept
               {'package': 'abc', 'score': closeTo(0.70, 0.01)},
-              {'package': 'def', 'score': closeTo(0.85, 0.01)},
+              {'package': 'def', 'score': closeTo(0.78, 0.01)},
             ],
           },
         );
@@ -705,7 +705,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'totalCount': 2,
             'sdkLibraryHits': [],
             'packageHits': [
-              {'package': 'def', 'score': closeTo(0.85, 0.01)},
+              {'package': 'def', 'score': closeTo(0.78, 0.01)},
               {'package': 'abc', 'score': closeTo(0.70, 0.01)},
             ],
           },
@@ -721,7 +721,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'sdkLibraryHits': [],
             'packageHits': [
               // `abc` is at the original position
-              {'package': 'def', 'score': closeTo(0.85, 0.01)},
+              {'package': 'def', 'score': closeTo(0.78, 0.01)},
               {'package': 'abc', 'score': closeTo(0.70, 0.01)},
             ],
           },
@@ -737,7 +737,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
             'sdkLibraryHits': [],
             'packageHits': [
               // `abc` is absent
-              {'package': 'def', 'score': closeTo(0.85, 0.01)},
+              {'package': 'def', 'score': closeTo(0.78, 0.01)},
             ],
           },
         );
@@ -775,7 +775,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
           'nameMatches': ['abc_def'],
           'sdkLibraryHits': [],
           'packageHits': [
-            {'package': 'abc_def', 'score': closeTo(0.55, 0.01)},
+            {'package': 'abc_def', 'score': closeTo(0.48, 0.01)},
             {'package': 'abc_def_xyz', 'score': closeTo(1.0, 0.01)},
           ],
         });

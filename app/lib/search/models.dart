@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -68,7 +70,7 @@ extension UpdateLikesExt on Iterable<PackageDocument> {
       if (i > 0 && list[i - 1].downloadCount == list[i].downloadCount) {
         list[i].downloadScore = list[i - 1].downloadScore;
       } else {
-        list[i].downloadScore = (i + 1) / list.length;
+        list[i].downloadScore = pow((i + 1) / list.length, 2).toDouble();
       }
     }
   }
@@ -77,13 +79,12 @@ extension UpdateLikesExt on Iterable<PackageDocument> {
   /// The score is normalized into the range of [0.0 - 1.0] using the
   /// ordered list of packages by like counts (same like count gets the same score).
   void updateLikeScores() {
-    final sortedByLikes = sorted((a, b) => a.likeCount.compareTo(b.likeCount));
-    for (var i = 0; i < sortedByLikes.length; i++) {
-      if (i > 0 &&
-          sortedByLikes[i - 1].likeCount == sortedByLikes[i].likeCount) {
-        sortedByLikes[i].likeScore = sortedByLikes[i - 1].likeScore;
+    final list = sorted((a, b) => a.likeCount.compareTo(b.likeCount));
+    for (var i = 0; i < list.length; i++) {
+      if (i > 0 && list[i - 1].likeCount == list[i].likeCount) {
+        list[i].likeScore = list[i - 1].likeScore;
       } else {
-        sortedByLikes[i].likeScore = (i + 1) / sortedByLikes.length;
+        list[i].likeScore = pow((i + 1) / list.length, 2).toDouble();
       }
     }
   }
