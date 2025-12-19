@@ -320,9 +320,6 @@ class PackageVersionStateInfo {
   /// comparison. Please use [isAuthorized] for validating a request.
   final String? secretToken;
 
-  /// The previous scheduled timestamp (if we are currently in an active schedule).
-  final DateTime? previousScheduled;
-
   /// Return true, if [token] matches [secretToken] and it has not expired.
   ///
   /// This does a fixed-time comparison to mitigate timing attacks.
@@ -351,7 +348,6 @@ class PackageVersionStateInfo {
     this.docs = false,
     this.pana = false,
     this.finished = false,
-    this.previousScheduled,
   });
 
   factory PackageVersionStateInfo.fromJson(Map<String, dynamic> m) =>
@@ -381,7 +377,6 @@ class PackageVersionStateInfo {
       zone: null,
       instance: null, // version is no-longer running on this instance
       secretToken: null, // TODO: Consider retaining this for idempotency
-      previousScheduled: null,
     );
   }
 
@@ -399,14 +394,13 @@ class PackageVersionStateInfo {
       finished: finished,
       docs: docs,
       pana: pana,
-      previousScheduled: scheduled,
     );
   }
 
   /// Reverts the status of the last scheduling attempt, which has presumably failed.
   PackageVersionStateInfo resetAfterFailedAttempt() {
     return PackageVersionStateInfo(
-      scheduled: previousScheduled ?? initialTimestamp,
+      scheduled: initialTimestamp,
       attempts: max(0, attempts - 1),
       zone: null,
       instance: null,
