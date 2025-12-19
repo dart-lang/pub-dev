@@ -380,10 +380,6 @@ class PackageVersionStateInfo {
     );
   }
 
-  /// Derives a new version state with scheduling information.
-  PackageVersionStateInfo scheduleNew({
-    required String zone,
-    required String instanceName,
   /// Create updated [PackageVersionStateInfo] for when a new instance have been
   /// scheduled.
   ///
@@ -400,11 +396,11 @@ class PackageVersionStateInfo {
     required String secretToken,
   }) {
     return PackageVersionStateInfo(
-      scheduled: clock.now(),
+      scheduled: scheduled,
       attempts: attempts + 1,
       zone: zone,
       instance: instanceName,
-      secretToken: createUuid(),
+      secretToken: secretToken,
       finished: finished,
       docs: docs,
       pana: pana,
@@ -414,7 +410,7 @@ class PackageVersionStateInfo {
   /// Reverts the status of the last scheduling attempt, when it is known that scheduling failed.
   ///
   /// > [!WARNING]
-  /// > This state transition **may only** be used if it's 
+  /// > This state transition **may only** be used if it's
   /// > **known with certainty** that scheduling failed.
   /// >
   /// > If an instance _may_ have been scheduled, but we suspect
@@ -422,7 +418,7 @@ class PackageVersionStateInfo {
   /// > As we otherwise risk leaving an instance unable to call back,
   /// > which will leave the instance logging errors that indicate
   /// > internal errors in our system.
-  PackageVersionStateInfo resetAfterFailedAttempt({required DateTime previousScheduled}) {
+  PackageVersionStateInfo resetAfterFailedAttempt() {
     return PackageVersionStateInfo(
       scheduled: initialTimestamp,
       attempts: max(0, attempts - 1),
