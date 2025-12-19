@@ -27,9 +27,9 @@ Map<String, dynamic> _$PackageVersionStateInfoToJson(
   'finished': instance.finished,
   'scheduled': instance.scheduled.toIso8601String(),
   'attempts': instance.attempts,
-  'zone': instance.zone,
-  'instance': instance.instance,
-  'secretToken': instance.secretToken,
+  'zone': ?instance.zone,
+  'instance': ?instance.instance,
+  'secretToken': ?instance.secretToken,
 };
 
 PackageStateInfo _$PackageStateInfoFromJson(Map<String, dynamic> json) =>
