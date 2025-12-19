@@ -384,6 +384,20 @@ class PackageVersionStateInfo {
   PackageVersionStateInfo scheduleNew({
     required String zone,
     required String instanceName,
+  /// Create updated [PackageVersionStateInfo] for when a new instance have been
+  /// scheduled.
+  ///
+  /// You must supply:
+  ///  * [scheduled] when the instance was scheduled.
+  ///  * [zone] within which the instance was scheduled.
+  ///  * [instanceName] as name of the of the isntance scheduled.
+  ///  * [secretToken] passed to the instance for authentication when
+  ///    the instance wants to callback.
+  PackageVersionStateInfo scheduleNew({
+    required DateTime scheduled,
+    required String zone,
+    required String instanceName,
+    required String secretToken,
   }) {
     return PackageVersionStateInfo(
       scheduled: clock.now(),
