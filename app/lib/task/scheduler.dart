@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/models.dart';
@@ -245,7 +246,12 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     // Update PackageState
     s.versions!.addAll({
       for (final v in pendingVersions.map((v) => v.toString()))
-        v: s.versions![v]!.scheduleNew(zone: zone, instanceName: instanceName),
+        v: s.versions![v]!.scheduleNew(
+          scheduled: clock.now(),
+          zone: zone,
+          instanceName: instanceName,
+          secretToken: createUuid(),
+        ),
     });
     s.pendingAt = derivePendingAt(
       versions: s.versions!,
