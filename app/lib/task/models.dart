@@ -411,8 +411,18 @@ class PackageVersionStateInfo {
     );
   }
 
-  /// Reverts the status of the last scheduling attempt, which has presumably failed.
-  PackageVersionStateInfo resetAfterFailedAttempt() {
+  /// Reverts the status of the last scheduling attempt, when it is known that scheduling failed.
+  ///
+  /// > [!WARNING]
+  /// > This state transition **may only** be used if it's 
+  /// > **known with certainty** that scheduling failed.
+  /// >
+  /// > If an instance _may_ have been scheduled, but we suspect
+  /// > scheduling failed, we have to wait for a retry.
+  /// > As we otherwise risk leaving an instance unable to call back,
+  /// > which will leave the instance logging errors that indicate
+  /// > internal errors in our system.
+  PackageVersionStateInfo resetAfterFailedAttempt({required DateTime previousScheduled}) {
     return PackageVersionStateInfo(
       scheduled: initialTimestamp,
       attempts: max(0, attempts - 1),
