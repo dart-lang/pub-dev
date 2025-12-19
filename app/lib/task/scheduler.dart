@@ -247,7 +247,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     s.versions!.addAll({
       for (final v in pendingVersions.map((v) => v.toString()))
         v: s.versions![v]!.scheduleNew(
-          scheduled: clock.now(),
+          scheduled: now,
           zone: zone,
           instanceName: instanceName,
           secretToken: createUuid(),
