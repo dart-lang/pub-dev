@@ -27,12 +27,24 @@ class TokenMatch {
   }
 }
 
+/// Tracks the weight of a given document by its index.
+class _WeightedDoc {
+  /// The index of the document.
+
+  final int index;
+
+  /// The weight of the document.
+  double weight;
+
+  _WeightedDoc(this.index, this.weight);
+}
+
 /// Stores a token -> documentId inverted index with weights.
 class TokenIndex<K> {
   final List<K> _ids;
 
   /// Maps token Strings to a weighted documents (addressed via indexes).
-  final _inverseIds = <String, Map<int, double>>{};
+  final _inverseIds = <String, List<_WeightedDoc>>{};
 
   late final _length = _ids.length;
 
@@ -83,8 +95,16 @@ class TokenIndex<K> {
     final dw = skipDocumentWeight ? 1.0 : 1 + math.log(1 + tokens.length) / 100;
     for (final e in tokens.entries) {
       final token = e.key;
-      final weights = _inverseIds.putIfAbsent(token, () => {});
-      weights[i] = math.max(weights[i] ?? 0.0, e.value / dw);
+      final weight = e.value / dw;
+      final weights = _inverseIds.putIfAbsent(token, () => []);
+      if (weights.isNotEmpty && weights.last.index == i) {
+        weights.last.weight = math.max(weights.last.weight, weight);
+      } else {
+        // Ensuring that we always update or increment the index.
+        // TODO: refactor this to be self-evident from the call sequence
+        assert(weights.isEmpty || weights.last.index < i);
+        weights.add(_WeightedDoc(i, weight));
+      }
     }
   }
 
@@ -163,8 +183,8 @@ class TokenIndex<K> {
       final token = entry.key;
       final matchWeight = entry.value;
       final tokenWeight = _inverseIds[token]!;
-      for (final e in tokenWeight.entries) {
-        score.setValueMaxOf(e.key, matchWeight * e.value * weight);
+      for (final e in tokenWeight) {
+        score.setValueMaxOf(e.index, matchWeight * e.weight * weight);
       }
     }
   }
