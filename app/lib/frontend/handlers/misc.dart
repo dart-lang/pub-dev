@@ -78,13 +78,9 @@ Future<shelf.Response> securityPageHandler(shelf.Request request) async {
 /// Handles requests for /readiness_check
 Future<shelf.Response> readinessCheckHandler(shelf.Request request) async {
   if (nameTracker.isReady) {
-    return htmlResponse('OK', headers: CacheControl.explicitlyPrivate.headers);
+    return healthCheckOkResponse();
   } else {
-    return htmlResponse(
-      'Service Unavailable',
-      status: 503,
-      headers: CacheControl.explicitlyPrivate.headers,
-    );
+    return healthCheckNotReadyResponse();
   }
 }
 

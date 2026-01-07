@@ -23,7 +23,7 @@ final Duration _slowSearchThreshold = const Duration(milliseconds: 200);
 Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
   final router = Router(notFoundHandler: notFoundHandler)
     ..get('/debug', _debugHandler)
-    ..get('/liveness_check', _livenessCheckHandler)
+    ..get('/liveness_check', (_) => healthCheckOkResponse())
     ..get('/readiness_check', _readinessCheckHandler)
     ..get('/search', _searchHandler)
     ..post('/search', _searchHandler)
@@ -31,17 +31,12 @@ Future<shelf.Response> searchServiceHandler(shelf.Request request) async {
   return await router.call(request);
 }
 
-/// Handles GET /liveness_check requests.
-Future<shelf.Response> _livenessCheckHandler(shelf.Request request) async {
-  return htmlResponse('OK');
-}
-
 /// Handles GET /readiness_check requests.
 Future<shelf.Response> _readinessCheckHandler(shelf.Request request) async {
   if (await searchIndex.isReady()) {
-    return htmlResponse('OK');
+    return healthCheckOkResponse();
   } else {
-    return htmlResponse('Service Unavailable', status: 503);
+    return healthCheckNotReadyResponse();
   }
 }
 

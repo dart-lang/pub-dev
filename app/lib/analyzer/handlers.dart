@@ -13,8 +13,8 @@ Future<shelf.Response> analyzerServiceHandler(shelf.Request request) async {
   final path = request.requestedUri.path;
   final handler = {
     '/debug': _debugHandler,
-    '/liveness_check': (_) => htmlResponse('OK'),
-    '/readiness_check': (_) => htmlResponse('OK'),
+    '/liveness_check': (_) => healthCheckOkResponse(),
+    '/readiness_check': (_) => healthCheckOkResponse(),
     '/robots.txt': rejectRobotsHandler,
   }[path];
 

@@ -16,7 +16,6 @@ import '../../shared/handlers.dart';
 
 import 'account.dart';
 import 'atom_feed.dart';
-import 'cache_control.dart';
 import 'documentation.dart';
 import 'landing.dart';
 import 'listing.dart';
@@ -37,7 +36,7 @@ class PubSiteService {
 
   @Route.get('/liveness_check')
   Future<Response> livenessCheck(Request request) async =>
-      htmlResponse('OK', headers: CacheControl.explicitlyPrivate.headers);
+      healthCheckOkResponse();
 
   @Route.get('/readiness_check')
   Future<Response> readinessCheck(Request request) async =>
