@@ -695,6 +695,6 @@ void checkPublisherIdParam(String publisherId) {
     publisherId,
     'publisherId',
     minimum: 3,
-    maximum: 64,
+    maximum: maxPublisherIdLength,
   );
 }

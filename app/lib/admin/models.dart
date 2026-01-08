@@ -9,6 +9,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/service/email/email_templates.dart';
 import 'package:pub_dev/shared/utils.dart';
+import 'package:pub_package_reader/pub_package_reader.dart';
 
 import '../shared/datastore.dart' as db;
 import '../shared/urls.dart' as urls;
@@ -380,7 +381,7 @@ class ModerationSubject {
     switch (kind) {
       case ModerationSubjectKind.package:
         final package = parts[1];
-        if (package.length > 64) {
+        if (package.length > maxPackageNameLength) {
           return null;
         }
         return ModerationSubject._(
@@ -396,7 +397,8 @@ class ModerationSubject {
         }
         final package = pvParts.first;
         final version = pvParts[1];
-        if (package.length > 64 || version.length > 64) {
+        if (package.length > maxPackageNameLength ||
+            version.length > maxPackageVersionLength) {
           return null;
         }
         return ModerationSubject._(
