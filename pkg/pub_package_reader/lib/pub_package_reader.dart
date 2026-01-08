@@ -25,6 +25,12 @@ import 'src/yaml_utils.dart';
 
 final _logger = Logger('pub_package_reader');
 
+/// The maximum number of characters in a package name.
+const maxPackageNameLength = 64;
+
+/// The maximum number of characters in a package version.
+const maxPackageVersionLength = 64;
+
 /// A validation issue in the package archive.
 class ArchiveIssue {
   /// An error message that will be displayed to the developer or pub client.
@@ -327,9 +333,9 @@ Iterable<ArchiveIssue> validatePackageName(String name) sync* {
     yield ArchiveIssue('Package name must begin with a letter or underscore.');
   }
 
-  if (name.length > 64) {
+  if (name.length > maxPackageNameLength) {
     yield ArchiveIssue(
-      'Package name must not exceed 64 characters. '
+      'Package name must not exceed $maxPackageNameLength characters. '
       '(Please file an issue if you think you have a good reason for a longer name.)',
     );
   }
@@ -360,9 +366,9 @@ Iterable<ArchiveIssue> validateNewPackageName(String name) sync* {
 
 /// Sanity checks for the package's version.
 Iterable<ArchiveIssue> validatePackageVersion(Version? version) sync* {
-  if (version.toString().length > 64) {
+  if (version.toString().length > maxPackageVersionLength) {
     yield ArchiveIssue(
-      'Package version must not exceed 64 characters. '
+      'Package version must not exceed $maxPackageVersionLength characters. '
       '(Please file an issue if you think you have a good reason for a longer version.)',
     );
   }

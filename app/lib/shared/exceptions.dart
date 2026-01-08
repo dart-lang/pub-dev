@@ -18,6 +18,7 @@ import 'dart:io';
 import 'package:api_builder/api_builder.dart' show ApiResponseException;
 import 'package:pub_dev/shared/urls.dart';
 import 'package:pub_dev/shared/utils.dart';
+import 'package:pub_package_reader/pub_package_reader.dart';
 
 /// Base class for all exceptions that are intercepted by HTTP handler wrappers.
 abstract class ResponseException extends ApiResponseException {
@@ -205,7 +206,12 @@ class InvalidInputException extends ResponseException {
     // TODO: Reuse logic from validatePackageName in pub_package_reader.dart
     //       This is for new and existing packages! Not only new packages!
     checkNotNull(package, 'package');
-    checkStringLength(package!, 'package', minimum: 1, maximum: 64);
+    checkStringLength(
+      package!,
+      'package',
+      minimum: 1,
+      maximum: maxPackageNameLength,
+    );
     checkMatchPattern(package, 'package', _packageNamePattern);
   }
 

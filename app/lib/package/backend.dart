@@ -2382,7 +2382,7 @@ void checkPackageVersionParams(String package, [String? version]) {
       version,
       'version',
       minimum: 1,
-      maximum: 64,
+      maximum: maxPackageVersionLength,
     );
     if (version != 'latest') {
       InvalidInputException.checkSemanticVersion(version);
