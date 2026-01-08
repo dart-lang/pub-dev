@@ -70,6 +70,19 @@ void main() {
     );
 
     testWithProfile(
+      'page with too long package',
+      fn: () async {
+        final name = 'abc' * 64;
+        await expectHtmlResponse(
+          await issueGet('/report?subject=$name'),
+          present: ['Invalid '],
+          absent: ['Please describe the issue you want to report:'],
+          status: 400,
+        );
+      },
+    );
+
+    testWithProfile(
       'page with package version subject',
       fn: () async {
         await expectHtmlResponse(

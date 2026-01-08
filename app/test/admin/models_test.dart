@@ -15,6 +15,25 @@ void main() {
       expect(ModerationSubject.tryParse('package:'), null);
     });
 
+    test('too long package name or version', () {
+      final name = 'abc' * 100;
+      expect(ModerationSubject.tryParse('package:$name'), null);
+      expect(ModerationSubject.tryParse('package-version:$name/1.0.0'), null);
+      expect(
+        ModerationSubject.tryParse('package-version:abc/1.0.${'0' * 100}'),
+        null,
+      );
+    });
+
+    test('too long publisher', () {
+      final name = 'abc' * 1000;
+      expect(ModerationSubject.tryParse('publisher:$name.com'), null);
+    });
+
+    test('invalid email', () {
+      expect(ModerationSubject.tryParse('user:example.com'), null);
+    });
+
     test('package', () {
       final ms = ModerationSubject.tryParse('package:x');
       expect(ms!.kind, ModerationSubjectKind.package);

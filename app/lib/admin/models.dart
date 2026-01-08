@@ -6,6 +6,8 @@ import 'dart:convert';
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:pub_dev/publisher/backend.dart';
+import 'package:pub_dev/service/email/email_templates.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 import '../shared/datastore.dart' as db;
@@ -378,6 +380,9 @@ class ModerationSubject {
     switch (kind) {
       case ModerationSubjectKind.package:
         final package = parts[1];
+        if (package.length > 64) {
+          return null;
+        }
         return ModerationSubject._(
           kind: kind,
           localName: package,
@@ -391,6 +396,9 @@ class ModerationSubject {
         }
         final package = pvParts.first;
         final version = pvParts[1];
+        if (package.length > 64 || version.length > 64) {
+          return null;
+        }
         return ModerationSubject._(
           kind: kind,
           localName: localName,
@@ -399,6 +407,9 @@ class ModerationSubject {
         );
       case ModerationSubjectKind.publisher:
         final publisherId = parts[1];
+        if (publisherId.isEmpty || publisherId.length > maxPublisherIdLength) {
+          return null;
+        }
         return ModerationSubject._(
           kind: kind,
           localName: publisherId,
@@ -406,6 +417,9 @@ class ModerationSubject {
         );
       case ModerationSubjectKind.user:
         final email = parts[1];
+        if (!looksLikeEmail(email)) {
+          return null;
+        }
         return ModerationSubject._(kind: kind, localName: email, email: email);
       default:
         return null;
