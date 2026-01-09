@@ -243,7 +243,7 @@ Future<shelf.Response> handleDartDoc(
   }
 
   if (request.method.toUpperCase() == 'HEAD') {
-    return htmlResponse('', headers: CacheControl.documentationPage.headers);
+    return headHtmlResponse(headers: CacheControl.documentationPage.headers);
   }
 
   final acceptsGzip = request.acceptsGzipEncoding();
@@ -316,7 +316,7 @@ Future<shelf.Response> handleTaskResource(
   }
 
   if (request.method.toUpperCase() == 'HEAD') {
-    return htmlResponse('');
+    return headHtmlResponse();
   }
 
   final acceptsGzip = request.acceptsGzipEncoding();

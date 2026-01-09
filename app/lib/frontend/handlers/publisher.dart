@@ -172,7 +172,7 @@ Future<shelf.Response> publisherAdminPageHandler(
     requestContext.authenticatedUserId,
   );
   if (!isAdmin) {
-    return htmlResponse(renderUnauthorizedPage());
+    return htmlResponse(renderUnauthorizedPage(), status: 403);
   }
 
   return htmlResponse(
@@ -204,7 +204,7 @@ Future<shelf.Response> publisherActivityLogPageHandler(
     requestContext.authenticatedUserId,
   );
   if (!isAdmin) {
-    return htmlResponse(renderUnauthorizedPage());
+    return htmlResponse(renderUnauthorizedPage(), status: 403);
   }
 
   final before = auditBackend.parseBeforeQueryParameter(

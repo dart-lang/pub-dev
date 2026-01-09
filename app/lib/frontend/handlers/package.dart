@@ -396,7 +396,7 @@ Future<shelf.Response> packageAdminHandler(
         return unauthenticatedRs;
       }
       if (!data.isAdmin) {
-        return htmlResponse(renderUnauthorizedPage());
+        return htmlResponse(renderUnauthorizedPage(), status: 403);
       }
       final page = await publisherBackend.listPublishersForUser(
         requestContext.authenticatedUserId!,
@@ -437,7 +437,7 @@ Future<shelf.Response> packageActivityLogHandler(
         return unauthenticatedRs;
       }
       if (!data.isAdmin) {
-        return htmlResponse(renderUnauthorizedPage());
+        return htmlResponse(renderUnauthorizedPage(), status: 403);
       }
       final before = auditBackend.parseBeforeQueryParameter(
         request.requestedUri.queryParameters['before'],

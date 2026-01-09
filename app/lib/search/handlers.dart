@@ -51,10 +51,9 @@ Future<shelf.Response> _debugHandler(shelf.Request request) async {
 Future<shelf.Response> _searchHandler(shelf.Request request) async {
   final info = await searchIndex.indexInfo();
   if (!info.isReady) {
-    return htmlResponse(
-      searchIndexNotReadyText,
-      status: searchIndexNotReadyCode,
-    );
+    return jsonResponse({
+      'error': searchIndexNotReadyText,
+    }, status: searchIndexNotReadyCode);
   }
   final Stopwatch sw = Stopwatch()..start();
   final query = request.method == 'POST'
