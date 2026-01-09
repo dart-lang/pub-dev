@@ -91,6 +91,11 @@ shelf.Response htmlBytesResponse(
   );
 }
 
+/// Response give to HTTP HEAD requests (contains metadata headers).
+shelf.Response headHtmlResponse({Map<String, String>? headers}) {
+  return htmlResponse('', headers: headers);
+}
+
 final _healthCheckHeaders = {
   ...CacheControl.explicitlyPrivate.headers,
   HttpHeaders.contentTypeHeader: 'text/plain; charset="utf-8"',
