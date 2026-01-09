@@ -16,6 +16,7 @@ workspace:
   - pkg/pub_package_reader
   - pkg/puppeteer_screenshots
   - pkg/image_proxy
+  - pkg/runsc
 
 dev_dependencies:
   lints: ^6.0.0
