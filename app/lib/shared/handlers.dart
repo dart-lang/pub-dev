@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:pub_dev/shared/env_config.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../frontend/handlers/cache_control.dart';
 import '../frontend/request_context.dart';
 
 import 'urls.dart' as urls;
@@ -89,6 +90,20 @@ shelf.Response htmlBytesResponse(
     headers: _htmlResponseHeaders(headers, noReferrer),
   );
 }
+
+final _healthCheckHeaders = {
+  ...CacheControl.explicitlyPrivate.headers,
+  HttpHeaders.contentTypeHeader: 'text/plain; charset="utf-8"',
+};
+
+shelf.Response healthCheckOkResponse() =>
+    shelf.Response.ok('OK', headers: _healthCheckHeaders);
+
+shelf.Response healthCheckNotReadyResponse() => shelf.Response(
+  503,
+  body: 'Service Unavailable',
+  headers: _healthCheckHeaders,
+);
 
 shelf.Response badRequestHandler(shelf.Request request) =>
     htmlResponse(default400BadRequest, status: 400);
