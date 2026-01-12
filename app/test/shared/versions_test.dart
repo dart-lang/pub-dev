@@ -150,7 +150,7 @@ and do not format to also bump the runtimeVersion.''',
 
   test('dartdoc version should match pkg/pub_worker', () async {
     final content = await File(
-      '../pkg/pub_worker/lib/src/bin/pana_wrapper.dart',
+      '../pkg/pub_worker/lib/src/bin/process.dart',
     ).readAsString();
     expect(content, contains("const _dartdocVersion = '$dartdocVersion';"));
   });
