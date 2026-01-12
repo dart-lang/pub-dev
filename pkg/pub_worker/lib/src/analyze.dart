@@ -28,9 +28,9 @@ final _log = Logger('pub_worker.process_payload');
 /// processing takes more than 55 minutes.
 const _workerTimeout = Duration(minutes: 55);
 
-/// Stop pana if it takes more than 50 minutes.
-/// This also includes pana running dartdoc.
-const _panaTimeout = Duration(minutes: 50);
+/// Stop processing if it takes more than 50 minutes.
+/// This also includes pana, analyzer, dartdoc.
+const _processTimeout = Duration(minutes: 50);
 
 List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
 
@@ -170,13 +170,13 @@ Future<void> _analyzePackage(
 
     // Run the analysis
     {
-      log.writeln('### Starting pana');
-      final panaWrapper = await Isolate.resolvePackageUri(
-        Uri.parse('package:pub_worker/src/bin/pana_wrapper.dart'),
+      log.writeln('### Starting processing');
+      final processUri = await Isolate.resolvePackageUri(
+        Uri.parse('package:pub_worker/src/bin/process.dart'),
       );
-      final pana = await Process.start(
+      final process = await Process.start(
         Platform.resolvedExecutable,
-        [panaWrapper!.toFilePath(), outDir.path, package, version],
+        [processUri!.toFilePath(), outDir.path, package, version],
         workingDirectory: outDir.path,
         includeParentEnvironment: true,
         environment: {
@@ -186,24 +186,24 @@ Future<void> _analyzePackage(
           'PANA_CACHE': panaCache,
         },
       );
-      await pana.stdin.close();
+      await process.stdin.close();
 
       await Future.wait<void>([
-        pana.stderr
+        process.stderr
             .transform(Utf8Decoder(allowMalformed: true))
             .transform(LineSplitter())
             .forEach(log.writeln),
-        pana.stdout
+        process.stdout
             .transform(Utf8Decoder(allowMalformed: true))
             .transform(LineSplitter())
             .forEach(log.writeln),
-        pana.exitOrTimeout(_panaTimeout, () {
-          log.writeln('TIMEOUT: pana sending SIGTERM/SIGKILL');
+        process.exitOrTimeout(_processTimeout, () {
+          log.writeln('TIMEOUT: process sending SIGTERM/SIGKILL');
         }),
       ]).catchError((e) => const [/* ignore */]);
-      final exitCode = await pana.exitCode;
+      final exitCode = await process.exitCode;
 
-      log.writeln('### Execution of pana exited $exitCode');
+      log.writeln('### Execution of process exited $exitCode');
       log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
     }
 
