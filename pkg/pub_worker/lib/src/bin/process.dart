@@ -14,12 +14,12 @@ import 'package:logging/logging.dart' show Logger, Level, LogRecord;
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
-import 'package:pub_worker/src/bin/dartdoc_wrapper.dart';
+import 'package:pub_worker/src/dartdoc_postprocess.dart';
 import 'package:pub_worker/src/sdks.dart';
 import 'package:pub_worker/src/utils.dart';
 import 'package:retry/retry.dart';
 
-final _log = Logger('pana');
+final _log = Logger('process');
 
 /// The maximum of the compressed pana report. Larger reports will be dropped and
 /// replaced with a placeholder report.
@@ -35,12 +35,12 @@ const _totalTimeout = Duration(minutes: 50);
 /// keep in-sync with app/lib/shared/versions.dart
 const _dartdocVersion = '9.0.0';
 
-/// Program to be used as subprocess for running pana, ensuring that we capture
-/// all the output, and only run analysis in a subprocess that can timeout and
-/// be killed.
+/// Program to be used as subprocess for processing packages, ensuring that we
+/// capture all the output, and only run analysis in a subprocess that can
+/// timeout and be killed.
 Future<void> main(List<String> args) async {
   if (args.length != 3) {
-    print('Usage: pana_wrapper.dart <output-folder> <package> <version>');
+    print('Usage: process.dart <output-folder> <package> <version>');
     exit(1);
   }
 
@@ -127,7 +127,7 @@ Future<void> main(List<String> args) async {
       resourcesOutputDir: resourcesOutputDir.path,
       totalTimeout: _totalTimeout,
     ),
-    logger: _log,
+    logger: Logger('pana'),
   );
 
   // sanity check on pana report size
