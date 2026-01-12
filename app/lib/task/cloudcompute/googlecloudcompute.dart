@@ -409,6 +409,11 @@ final class _GoogleCloudCompute extends CloudCompute {
     // not writable on Container-Optimized OS, see:
     // https://cloud.google.com/container-optimized-os/docs/concepts/disks-and-filesystem
     //
+    // We use `iptables` to block traffic from worker to link-local addresses,
+    // and configure the worker container to use 8.8.8.8 for DNS, as GCE VMs are
+    // otherwise configured to use the metadata-service that we block access to
+    // when blocking link-local addresses.
+    //
     // Once the `worker.service` is done, the `ExecStartPost` command is
     // configured to terminate the instance. This should terminate regardless of
     // the exit-code.
@@ -439,10 +444,15 @@ write_files:
 
     [Service]
     Type=oneshot
+    TimeoutStartSec=7200
     Environment="HOME=/home/worker"
+    ExecStartPre=/bin/sh -c 'iptables -N DOCKER-USER || true'
+    ExecStartPre=/bin/sh -c 'iptables -I DOCKER-USER -d 169.254.0.0/16 -j DROP'
+    ExecStartPre=/bin/sh -c 'ip6tables -N DOCKER-USER || true'
+    ExecStartPre=/bin/sh -c 'ip6tables -I DOCKER-USER -d fe80::/10 -j DROP'
     ExecStartPre=/usr/bin/docker-credential-gcr configure-docker --registries="us-central1-docker.pkg.dev"
-    ExecStart=/usr/bin/docker run --rm -u worker:2000 --name=worker $dockerImage ${arguments.map(_shellSingleQuote).join(' ')}
-    ExecStartPost=/sbin/shutdown now
+    ExecStart=/usr/bin/docker run --rm --dns 8.8.8.8 --dns 8.8.4.4 -u worker:2000 --name=worker $dockerImage ${arguments.map(_shellSingleQuote).join(' ')}
+    ExecStopPost=/sbin/poweroff
     StandardOutput=journal+console
     StandardError=journal+console
 runcmd:
