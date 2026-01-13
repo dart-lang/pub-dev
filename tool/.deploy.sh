@@ -99,6 +99,16 @@ echo ''
 echo '### Site updated, see:'
 echo "https://$APP_VERSION-dot-$PROJECT_ID.appspot.com/"
 echo ''
-echo 'Traffic must be migrated manually.'
+
+if [ "$PROJECT_ID" = 'dartlang-pub' ]; then
+  echo 'Traffic must be migrated manually.'
+else
+  echo '### Migrating traffic'
+  time -p gcloud --project "$PROJECT_ID" app versions migrate "$APP_VERSION"
+
+  OLD_VERSIONS=$(gcloud --project "$PROJECT_ID" app versions list --format='value(version.id)' | sort | uniq | grep -v "$APP_VERSION")
+  echo "### Deleting old versions: ${OLD_VERSIONS}"
+  time -p gcloud --project "$PROJECT_ID" app versions delete $OLD_VERSIONS
+fi
 
 message 'Build complete'
