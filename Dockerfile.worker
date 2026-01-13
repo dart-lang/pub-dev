@@ -42,6 +42,10 @@ ENV PATH="/home/worker/bin:/home/worker/dart/stable/bin:${PATH}"
 WORKDIR /home/worker/pub-dev/pkg/pub_worker
 RUN dart pub get
 
+# Compile sandbox runner and test pass-through behavior
+RUN dart compile exe -o bin/sandbox_runner bin/sandbox_runner.dart
+RUN DEBUG_SANDBOX_RUNNER=true bin/sandbox_runner ls
+
 # This container image is launched by cloud-init, and cloud-init is responsible
 # for shutting down the VM when the container exits.
 ENTRYPOINT ["dart", "bin/pub_worker.dart"]
