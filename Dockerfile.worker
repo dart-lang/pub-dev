@@ -31,6 +31,9 @@ RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /ho
 # Setup webp
 RUN tool/setup-webp.sh /home/worker/bin
 
+# Setup gvisor
+RUN tool/setup-gvisor.sh /home/worker/gvisor
+
 # Configure SDKs to be used for analysis
 ENV DART_SDK="/home/worker/dart/stable"
 ENV FLUTTER_ROOT="/home/worker/flutter/stable"
