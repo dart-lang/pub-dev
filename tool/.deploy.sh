@@ -104,7 +104,7 @@ if [ "$PROJECT_ID" = 'dartlang-pub' ]; then
   echo 'Traffic must be migrated manually.'
 else
   echo '### Migrating traffic'
-  time -p gcloud --project "$PROJECT_ID" app versions migrate "$APP_VERSION"
+  time -p gcloud --project "$PROJECT_ID" app services set-traffic --splits="$APP_VERSION=1"
 
   OLD_VERSIONS=$(gcloud --project "$PROJECT_ID" app versions list --format='value(version.id)' | sort | uniq | grep -v "$APP_VERSION")
   echo "### Deleting old versions: ${OLD_VERSIONS}"
