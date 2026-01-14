@@ -22,37 +22,29 @@ Future<void> main(List<String> args) async {
     Platform.environment.entries.where((e) => passThroughKeys.contains(e.key)),
   );
 
-  final processKind = Platform.environment['SANDBOX_PROCESS_KIND'] ?? '-';
-
-  final pubProcessKinds = {
-    'pub-get',
-    'pub-upgrade',
-    'pub-downgrade',
-    'pub-unpack',
-    'pub-outdated',
-  };
-  final isPubCommand = pubProcessKinds.contains(processKind);
-
-  /// The current working directory / package directory (may be writable, depends on `SANDBOX_PROCESS_KIND`).
+  /// The current working directory / package directory.
   final currentWorkingDir = await Directory.current.absolute
       .resolveSymbolicLinks();
-  final writableCurrentWorkingDir = isPubCommand;
 
-  /// The directory identified by `PUB_CACHE` (may be writable, depends on `SANDBOX_PROCESS_KIND`).
+  /// The directory identified by `PUB_CACHE`.
   final pubCacheDir = _resolveDirectoryByEnvVar('PUB_CACHE');
-  final writablePubCacheDir = isPubCommand;
 
-  /// The directory identified by `SANDBOX_OUTPUT_FOLDER` (if present, is writable).
-  final outputDir = _resolveDirectoryByEnvVar('SANDBOX_OUTPUT_FOLDER');
+  /// The directories identified by `SANDBOX_OUTPUT_FOLDER` (if present, is writable).
+  final outputFolderDirs = (Platform.environment['SANDBOX_OUTPUT_FOLDER'] ?? '')
+      .split(':')
+      .toSet()
+      .where((e) => e.isNotEmpty)
+      .map(_resolveDirectory)
+      .nonNulls
+      .toList();
 
   /// The directory identified by `XDG_CONFIG_HOME` (may be writable, depends on `SANDBOX_PROCESS_KIND`).
   final configHomeDir = _resolveDirectoryByEnvVar('XDG_CONFIG_HOME');
-  final writableConfigHomeDir = isPubCommand;
 
-  final readMounts = <String>{
-    if (!writableCurrentWorkingDir) currentWorkingDir,
-    if (pubCacheDir != null && !writablePubCacheDir) pubCacheDir,
-    if (configHomeDir != null && !writableConfigHomeDir) configHomeDir,
+  final allMounts = <String>{
+    currentWorkingDir,
+    ?pubCacheDir,
+    ?configHomeDir,
 
     /// The Dart and Flutter SDKs that pana is using (may contain more than one after download).
     ?_resolveDirectory('/home/worker/dart'),
@@ -60,24 +52,24 @@ Future<void> main(List<String> args) async {
 
     /// The `webp` binaries.
     ?_resolveDirectory('/home/worker/bin'),
+
+    // output directories
+    ...outputFolderDirs,
   };
 
-  final writeMounts = <String>{
-    if (writableCurrentWorkingDir) currentWorkingDir,
-    if (pubCacheDir != null && writablePubCacheDir) pubCacheDir,
-    if (configHomeDir != null && writableConfigHomeDir) configHomeDir,
-    ?outputDir,
-  };
+  final readOnlyMounts = allMounts
+      .where((e) => !outputFolderDirs.contains(e))
+      .toList();
 
   // TODO: use gvisor
   if (Platform.environment['DEBUG_SANDBOX_RUNNER'] == 'true') {
     print('Read mounts:');
-    for (final m in readMounts) {
+    for (final m in readOnlyMounts) {
       print('- $m');
     }
 
     print('Write mounts:');
-    for (final m in writeMounts) {
+    for (final m in outputFolderDirs) {
       print('- $m');
     }
 
