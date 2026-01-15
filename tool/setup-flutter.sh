@@ -27,6 +27,7 @@ else
     echo "Could not create temporary directory."
     exit 1
   fi
+  trap 'rm -rf "$WORK_DIR"' EXIT
 
   # Download and extract Flutter SDK
   cd "$WORK_DIR"
