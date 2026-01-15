@@ -29,8 +29,8 @@ Future<void> main(List<String> args) async {
   /// The directory identified by `PUB_CACHE`.
   final pubCacheDir = _resolveDirectoryByEnvVar('PUB_CACHE');
 
-  /// The directories identified by `SANDBOX_OUTPUT_FOLDER` (if present, is writable).
-  final outputFolderDirs = (Platform.environment['SANDBOX_OUTPUT_FOLDER'] ?? '')
+  /// The directories identified by `SANDBOX_OUTPUT` (if present, is writable).
+  final outputFolders = (Platform.environment['SANDBOX_OUTPUT'] ?? '')
       .split(':')
       .toSet()
       .where((e) => e.isNotEmpty)
@@ -54,11 +54,11 @@ Future<void> main(List<String> args) async {
     ?_resolveDirectory('/home/worker/bin'),
 
     // output directories
-    ...outputFolderDirs,
+    ...outputFolders,
   };
 
   final readOnlyMounts = allMounts
-      .where((e) => !outputFolderDirs.contains(e))
+      .where((e) => !outputFolders.contains(e))
       .toList();
 
   // TODO: use gvisor
@@ -69,7 +69,7 @@ Future<void> main(List<String> args) async {
     }
 
     print('Write mounts:');
-    for (final m in outputFolderDirs) {
+    for (final m in outputFolders) {
       print('- $m');
     }
 
