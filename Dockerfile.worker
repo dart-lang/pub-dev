@@ -18,6 +18,9 @@ USER worker:2000
 COPY --chown=worker:worker . /home/worker/pub-dev
 WORKDIR /home/worker/pub-dev
 
+# Setup a rootfs for use in sandboxes
+RUN tool/setup-distroless-rootfs.sh /home/worker/sandbox-rootfs
+
 # A config directory for preview SDKs.
 RUN mkdir -p /home/worker/config/dart-stable
 RUN mkdir -p /home/worker/config/flutter-stable
