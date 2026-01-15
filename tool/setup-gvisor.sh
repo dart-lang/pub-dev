@@ -13,9 +13,13 @@ mkdir -p "${TARGET_DIRECTORY}"
 cd "${TARGET_DIRECTORY}"
 
 ARCH=$(uname -m)
-URL=https://storage.googleapis.com/gvisor/releases/release/latest/${ARCH}
 
-wget ${URL}/runsc ${URL}/runsc.sha512
+# Release dates can be found on https://github.com/google/gvisor/tags
+# See more: https://gvisor.dev/docs/user_guide/install/#specific-release
+URL=https://storage.googleapis.com/gvisor/releases/release/20260112/${ARCH}
+
+curl -o runsc "${URL}"
+curl -o runsc.sha512 "${URL}.sha512"
 sha512sum -c runsc.sha512
 rm -f runsc.sha512
 
