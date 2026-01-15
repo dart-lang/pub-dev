@@ -101,13 +101,12 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
     final instanceName = compute.generateInstanceName();
     final zone = pickZone();
 
-    final updated = await updatePackageStateWithPendingVersions(
+    final payload = await updatePackageStateWithPendingVersions(
       db,
       selected.package,
       zone,
       instanceName,
     );
-    final payload = updated?.$1;
     if (payload == null) {
       return;
     }
@@ -174,15 +173,13 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
       banZone(zone, minutes: 15);
     }
     if (rollbackPackageState) {
-      final oldVersionsMap = updated?.$2 ?? const {};
-      // Restore the state of the PackageState for versions that were
+      // Restire the state of the PackageState for versions that were
       // suppose to run on the instance we just failed to create.
       // If this doesn't work, we'll eventually retry. Hence, correctness
       // does not hinge on this transaction being successful.
       await db.tasks.restorePreviousVersionsState(
         selected.package,
         instanceName,
-        oldVersionsMap,
       );
     }
   }
@@ -221,11 +218,8 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
 
 /// Updates the package state with versions that are already pending or
 /// will be pending soon.
-///
-/// Returns the payload and the old status of the state info version map
 @visibleForTesting
-Future<(Payload, Map<String, PackageVersionStateInfo>)?>
-updatePackageStateWithPendingVersions(
+Future<Payload?> updatePackageStateWithPendingVersions(
   DatastoreDB db,
   String package,
   String zone,
@@ -237,7 +231,6 @@ updatePackageStateWithPendingVersions(
       // presumably the package was deleted.
       return null;
     }
-    final oldVersionsMap = {...?s.versions};
 
     final now = clock.now();
     final pendingVersions = derivePendingVersions(
@@ -253,13 +246,11 @@ updatePackageStateWithPendingVersions(
     // Update PackageState
     s.versions!.addAll({
       for (final v in pendingVersions.map((v) => v.toString()))
-        v: PackageVersionStateInfo(
+        v: s.versions![v]!.scheduleNew(
           scheduled: now,
-          attempts: s.versions![v]!.attempts + 1,
           zone: zone,
-          instance: instanceName,
+          instanceName: instanceName,
           secretToken: createUuid(),
-          finished: s.versions![v]!.finished,
         ),
     });
     s.pendingAt = derivePendingAt(
@@ -279,6 +270,6 @@ updatePackageStateWithPendingVersions(
         ),
       ),
     );
-    return (payload, oldVersionsMap);
+    return payload;
   });
 }
