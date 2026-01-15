@@ -34,6 +34,7 @@ Future<Process> startDockerAnalysis(Payload payload) async {
     '--network=host',
     '--entrypoint=dart',
     '--rm',
+    '--privileged',
     'pub_worker',
     'bin/pub_worker.dart',
     json.encode(payload),
