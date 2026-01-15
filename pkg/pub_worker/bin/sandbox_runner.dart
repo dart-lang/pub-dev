@@ -75,7 +75,7 @@ Future<void> main(List<String> args) async {
     platform: InterceptionPlatform.systrap,
     resourceLimits: ResourceLimit.simpleSandboxLimits,
     rootless: true,
-    rootFileSystemPath: 'rootfs',
+    rootFileSystemPath: '/home/worker/sandbox-rootfs',
     mounts: [
       ...readOnlyMounts.map(
         (v) => Mount.sandboxReadOnly(source: v, destination: v),
