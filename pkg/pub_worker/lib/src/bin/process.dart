@@ -109,6 +109,10 @@ Future<void> main(List<String> args) async {
     ),
     pubCacheDir: pubCache,
     dartdocVersion: _dartdocVersion,
+    sandboxRunner:
+        Platform.environment['PUB_ENVIRONMENT'] == 'bot.pub_dev.pub_worker'
+        ? '/home/worker/pub-dev/pkg/pub_worker/bin/sandbox_runner'
+        : null,
   );
 
   //final dartdocOutputDir =

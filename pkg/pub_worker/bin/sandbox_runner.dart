@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:runsc/runsc.dart';
+
 /// Runs the provided [args] list and runs it in a sandbox.
 Future<void> main(List<String> args) async {
   final needsNetwork =
@@ -38,17 +40,9 @@ Future<void> main(List<String> args) async {
       .nonNulls
       .toList();
 
-  /// The directory identified by `XDG_CONFIG_HOME` (may be writable, depends on `SANDBOX_PROCESS_KIND`).
-  final configHomeDir = _resolveDirectoryByEnvVar('XDG_CONFIG_HOME');
-
   final allMounts = <String>{
     currentWorkingDir,
     ?pubCacheDir,
-    ?configHomeDir,
-
-    /// The Dart and Flutter SDKs that pana is using (may contain more than one after download).
-    ?_resolveDirectory('/home/worker/dart'),
-    ?_resolveDirectory('/home/worker/flutter'),
 
     /// The `webp` binaries.
     ?_resolveDirectory('/home/worker/bin'),
@@ -61,30 +55,30 @@ Future<void> main(List<String> args) async {
       .where((e) => !outputFolders.contains(e))
       .toList();
 
-  // TODO: use gvisor
-  if (Platform.environment['DEBUG_SANDBOX_RUNNER'] == 'true') {
-    print('Read mounts:');
-    for (final m in readOnlyMounts) {
-      print('- $m');
-    }
-
-    print('Write mounts:');
-    for (final m in outputFolders) {
-      print('- $m');
-    }
-
-    print('Needs network: $needsNetwork');
-  }
-
-  final p = await Process.start(
-    args.first,
-    args.skip(1).toList(),
-    mode: ProcessStartMode.inheritStdio,
-    environment: environment,
-    includeParentEnvironment: false,
-    runInShell: false,
-    workingDirectory: currentWorkingDir,
+  final p = await runsc(
+    runscExecutable: '/home/worker/gvisor/runsc',
+    env: {'TERM': 'xterm', ...environment},
+    command: args.first,
+    args: args.skip(1).toList(),
+    cwd: currentWorkingDir,
+    hostname: 'sandbox',
+    network: needsNetwork ? NetworkMode.host : NetworkMode.sandbox,
+    memoryLimit: 4 * 1024 * 1024 * 1024,
+    platform: InterceptionPlatform.systrap,
+    resourceLimits: ResourceLimit.simpleSandboxLimits,
+    rootless: true,
+    rootFileSystemPath: '/home/worker/sandbox-rootfs',
+    mounts: [
+      ...readOnlyMounts.map(
+        (v) => Mount.sandboxReadOnly(source: v, destination: v),
+      ),
+      ...outputFolders.map(
+        (v) => Mount.sandboxReadWrite(source: v, destination: v),
+      ),
+    ],
+    processStartMode: ProcessStartMode.inheritStdio,
   );
+
   exit(await p.exitCode);
 }
 
