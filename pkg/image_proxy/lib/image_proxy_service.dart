@@ -65,13 +65,13 @@ Map<String, String> securityHeaders = {
 /// Ensure that [allowedKeys] contains keys for today and the two surrounding
 /// days.
 Future<void> updateAllowedKeys() async {
-  final now = DateTime.now();
+  final now = DateTime.now().toUtc();
   if (now.difference(_lastAllowedKeysUpdate) < Duration(minutes: 5)) {
     return;
   }
-  final yesterday = DateTime(now.year, now.month, now.day - 1);
-  final today = DateTime(now.year, now.month, now.day);
-  final tomorrow = DateTime(now.year, now.month, now.day + 1);
+  final yesterday = DateTime.utc(now.year, now.month, now.day - 1);
+  final today = DateTime.utc(now.year, now.month, now.day);
+  final tomorrow = DateTime.utc(now.year, now.month, now.day + 1);
 
   for (final d in [yesterday, today, tomorrow]) {
     if (!_allowedKeys.containsKey(d.millisecondsSinceEpoch)) {
@@ -86,6 +86,7 @@ Future<void> updateAllowedKeys() async {
     _allowedKeys.remove(dates.first);
   }
   assert(_allowedKeys.length == 3);
+  _lastAllowedKeysUpdate = now;
 }
 
 auth.AuthClient? _apiClient;
