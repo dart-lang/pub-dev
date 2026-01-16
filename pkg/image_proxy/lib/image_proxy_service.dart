@@ -193,6 +193,11 @@ Future<shelf.Response> handler(shelf.Request request) async {
     final imageUrlBytes = utf8.encode(imageUrl);
 
     if (!_constantTimeEquals(hmacSign(secret, imageUrlBytes), signature)) {
+      log(
+        '$secret $imageUrlBytes ${hmacSign(secret, imageUrlBytes)}, $signature',
+      );
+
+      /// XXX remove
       return shelf.Response.unauthorized('Bad hmac', headers: securityHeaders);
     }
     final Uri parsedImageUrl;
