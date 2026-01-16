@@ -79,7 +79,9 @@ Future<void> updateAllowedKeys() async {
           ? await getDailySecretMock(d)
           : await getDailySecret(d);
       log('Generating new key for ${d.toIso8601String()}');
-      log('Key: ${_allowedKeys[d.millisecondsSinceEpoch]!}');
+      log(
+        'Key: ${_allowedKeys[d.millisecondsSinceEpoch]!} isTesting: $isTesting',
+      );
 
       /// XXX remove
     }
@@ -126,7 +128,7 @@ Future<Uint8List> getDailySecret(DateTime day) async {
           ),
         Platform.environment['HMAC_KEY_ID']!,
       );
-  print(
+  log(
     'hmaccing ${utf8.encode(DateTime(day.year, day.month, day.day).toUtc().toIso8601String())}',
   );
   return response.macAsBytes as Uint8List;
