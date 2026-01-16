@@ -16,12 +16,41 @@ import 'package:retry/retry.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
+enum Severity {
+  notice,
+  warning,
+  error;
+
+  String get name {
+    switch (this) {
+      case Severity.notice:
+        return 'NOTICE';
+      case Severity.warning:
+        return 'WARNING';
+      case Severity.error:
+        return 'ERROR';
+    }
+  }
+}
+
+void log(String message, {Severity severity = Severity.notice}) {
+  final object = {severity: severity.name, message: message};
+  stdout.writeln(object);
+}
+
 bool isTesting = Platform.environment['IMAGE_PROXY_TESTING'] == 'true';
 
 Duration timeoutDelay = Duration(seconds: isTesting ? 1 : 8);
 
 /// The keys we currently allow the url to be signed with.
-Map<int, Uint8List> allowedKeys = {};
+Map<int, Uint8List> _allowedKeys = {};
+
+DateTime _lastAllowedKeysUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+
+Future<Map<int, Uint8List>> get allowedKeys async {
+  await updateAllowedKeys();
+  return _allowedKeys;
+}
 
 // Inspired by https://github.com/atmos/camo/blob/master/server.coffee#L39.
 Map<String, String> securityHeaders = {
@@ -36,24 +65,33 @@ Map<String, String> securityHeaders = {
 /// Ensure that [allowedKeys] contains keys for today and the two surrounding
 /// days.
 Future<void> updateAllowedKeys() async {
-  final now = DateTime.now();
-  final yesterday = DateTime(now.year, now.month, now.day - 1);
-  final today = DateTime(now.year, now.month, now.day);
-  final tomorrow = DateTime(now.year, now.month, now.day + 1);
+  final now = DateTime.now().toUtc();
+  if (now.difference(_lastAllowedKeysUpdate) < Duration(minutes: 5)) {
+    return;
+  }
+  final yesterday = DateTime.utc(now.year, now.month, now.day - 1);
+  final today = DateTime.utc(now.year, now.month, now.day);
+  final tomorrow = DateTime.utc(now.year, now.month, now.day + 1);
 
   for (final d in [yesterday, today, tomorrow]) {
-    if (!allowedKeys.containsKey(d.millisecondsSinceEpoch)) {
-      allowedKeys[d.millisecondsSinceEpoch] = isTesting
+    if (!_allowedKeys.containsKey(d.millisecondsSinceEpoch)) {
+      _allowedKeys[d.millisecondsSinceEpoch] = isTesting
           ? await getDailySecretMock(d)
           : await getDailySecret(d);
-      print('Generating new key for ${d.toIso8601String()}');
+      log('Generating new key for ${d.toIso8601String()}');
+      log(
+        'Key: ${_allowedKeys[d.millisecondsSinceEpoch]!} isTesting: $isTesting',
+      );
+
+      /// XXX remove
     }
   }
-  while (allowedKeys.length > 3) {
-    final dates = allowedKeys.keys.toList()..sort();
-    allowedKeys.remove(dates.first);
+  while (_allowedKeys.length > 3) {
+    final dates = _allowedKeys.keys.toList()..sort();
+    _allowedKeys.remove(dates.first);
   }
-  assert(allowedKeys.length == 3);
+  assert(_allowedKeys.length == 3);
+  _lastAllowedKeysUpdate = now;
 }
 
 auth.AuthClient? _apiClient;
@@ -85,11 +123,12 @@ Future<Uint8List> getDailySecret(DateTime day) async {
       .cryptoKeyVersions
       .macSign(
         kms.MacSignRequest()
-          ..dataAsBytes = utf8.encode(
-            DateTime(day.year, day.month, day.day).toUtc().toIso8601String(),
-          ),
+          ..dataAsBytes = utf8.encode(day.millisecondsSinceEpoch.toString()),
         Platform.environment['HMAC_KEY_ID']!,
       );
+  log(
+    'hmaccing ${utf8.encode(DateTime(day.year, day.month, day.day).toUtc().toIso8601String())}',
+  );
   return response.macAsBytes as Uint8List;
 }
 
@@ -143,7 +182,7 @@ Future<shelf.Response> handler(shelf.Request request) async {
         headers: securityHeaders,
       );
     }
-    final secret = allowedKeys[date];
+    final secret = (await allowedKeys)[date];
     if (secret == null) {
       return shelf.Response.badRequest(
         body: 'malformed request, proxy url expired',
@@ -161,6 +200,10 @@ Future<shelf.Response> handler(shelf.Request request) async {
     final imageUrlBytes = utf8.encode(imageUrl);
 
     if (!_constantTimeEquals(hmacSign(secret, imageUrlBytes), signature)) {
+      log(
+        /// XXX remove
+        'secret $secret imageUrl $imageUrl imageUrlBytes $imageUrlBytes signed ${hmacSign(secret, imageUrlBytes)}, $signature',
+      );
       return shelf.Response.unauthorized('Bad hmac', headers: securityHeaders);
     }
     final Uri parsedImageUrl;
@@ -306,8 +349,6 @@ Future<shelf.Response> handler(shelf.Request request) async {
 }
 
 void main(List<String> args) async {
-  await updateAllowedKeys();
-  Timer.periodic(Duration(hours: 1), (_) => updateAllowedKeys());
   final server = await serve(
     handler,
     InternetAddress.anyIPv6,
@@ -318,7 +359,7 @@ void main(List<String> args) async {
         ) ??
         8080,
   );
-  print('Serving image proxy on ${server.address}:${server.port}');
+  log('Serving image proxy on ${server.address}:${server.port}');
 }
 
 class TooLargeException implements Exception {
