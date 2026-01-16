@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: constant_identifier_names
+
 import 'dart:async';
 import 'dart:convert' show json, jsonEncode;
 import 'dart:io' show exit;
 
 import 'package:_pub_shared/data/task_payload.dart';
-import 'package:appengine/appengine.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_worker/src/analyze.dart' show analyze;
 import 'package:stack_trace/stack_trace.dart';
@@ -45,6 +46,22 @@ Future<void> main(List<String> args) async {
 }
 
 // TODO: Consider making a proper structure logging library
+class LogLevel {
+  static const LogLevel CRITICAL = LogLevel._('Critical', 4);
+  static const LogLevel ERROR = LogLevel._('Error', 3);
+  static const LogLevel WARNING = LogLevel._('Warning', 2);
+  static const LogLevel INFO = LogLevel._('Info', 1);
+  static const LogLevel DEBUG = LogLevel._('Debug', 0);
+
+  final String name;
+  final int level;
+
+  const LogLevel._(this.name, this.level);
+
+  @override
+  String toString() => name;
+}
+
 final Map<Level, LogLevel?> _loggingLevel2AppengineLoggingLevel = {
   Level.OFF: null,
   Level.ALL: LogLevel.DEBUG,
