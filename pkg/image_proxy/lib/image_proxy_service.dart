@@ -195,7 +195,7 @@ Future<shelf.Response> handler(shelf.Request request) async {
     if (!_constantTimeEquals(hmacSign(secret, imageUrlBytes), signature)) {
       log(
         /// XXX remove
-        '$secret $imageUrlBytes ${hmacSign(secret, imageUrlBytes)}, $signature',
+        'secret $secret imageUrl $imageUrl imageUrlBytes $imageUrlBytes signed ${hmacSign(secret, imageUrlBytes)}, $signature',
       );
       return shelf.Response.unauthorized('Bad hmac', headers: securityHeaders);
     }
