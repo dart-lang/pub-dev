@@ -50,11 +50,7 @@ class ImageProxyBackend {
           .macSign(
             kms.MacSignRequest()
               ..dataAsBytes = utf8.encode(
-                DateTime(
-                  day.year,
-                  day.month,
-                  day.day,
-                ).toUtc().toIso8601String(),
+                day.millisecondsSinceEpoch.toString(),
               ),
             activeConfiguration.imageProxyHmacKeyVersion!,
           );
@@ -69,7 +65,7 @@ class ImageProxyBackend {
     timeout: Duration(hours: 12),
     updateFn: () async {
       final now = DateTime.now().toUtc();
-      final today = DateTime(now.year, now.month, now.day);
+      final today = DateTime.utc(now.year, now.month, now.day);
       return (
         today,
         await _getDailySecret(

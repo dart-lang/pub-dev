@@ -123,9 +123,7 @@ Future<Uint8List> getDailySecret(DateTime day) async {
       .cryptoKeyVersions
       .macSign(
         kms.MacSignRequest()
-          ..dataAsBytes = utf8.encode(
-            DateTime(day.year, day.month, day.day).toUtc().toIso8601String(),
-          ),
+          ..dataAsBytes = utf8.encode(day.millisecondsSinceEpoch.toString()),
         Platform.environment['HMAC_KEY_ID']!,
       );
   log(
