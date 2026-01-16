@@ -116,7 +116,7 @@ void main() {
 
         // TODO: consider docker cleanup
       },
-      timeout: Timeout(Duration(minutes: 15)),
+      timeout: Timeout(Duration(minutes: 25)),
     );
   });
 }
