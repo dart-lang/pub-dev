@@ -20,6 +20,7 @@ import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
+import 'package:pub_dev/service/image_proxy/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
@@ -318,6 +319,8 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
         registerScopeExitCallback(topPackages.close);
         registerYoutubeBackend(YoutubeBackend());
         registerScopeExitCallback(youtubeBackend.close);
+
+        registerImageProxyBackend(await ImageProxyBackend.create());
 
         // depends on previously registered services
         registerPackageBackend(
