@@ -8,7 +8,8 @@ set -e
 CRANE_VERSION='v0.20.7'
 
 # Docker image to use for rootfs
-DOCKER_IMAGE='gcr.io/distroless/base-debian12'
+# DOCKER_IMAGE='gcr.io/distroless/base-debian12'
+DOCKER_IMAGE='debian:12-slim'
 
 # Check we have a target directory
 if [[ -z "$1" ]];
@@ -35,3 +36,5 @@ curl -sL "https://github.com/google/go-containerregistry/releases/download/${CRA
 # Download and extract rootfs
 mkdir -p "$TARGET_DIRECTORY"
 "$WORK_DIR/crane" export "$DOCKER_IMAGE" - | tar -xf - -C "$TARGET_DIRECTORY"
+
+proot -r "$TARGET_DIRECTORY" -0 -b /etc/resolv.conf:/etc/resolv.conf /bin/bash -c "apt-get update && apt-get upgrade -y && apt-get install -y unzip ca-certificates curl bash git xz-utils && rm -rf /var/lib/apt/lists/*"

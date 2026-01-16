@@ -40,17 +40,9 @@ Future<void> main(List<String> args) async {
       .nonNulls
       .toList();
 
-  /// The directory identified by `XDG_CONFIG_HOME` (may be writable, depends on `SANDBOX_PROCESS_KIND`).
-  final configHomeDir = _resolveDirectoryByEnvVar('XDG_CONFIG_HOME');
-
   final allMounts = <String>{
     currentWorkingDir,
     ?pubCacheDir,
-    ?configHomeDir,
-
-    /// The Dart and Flutter SDKs that pana is using (may contain more than one after download).
-    ?_resolveDirectory('/home/worker/dart'),
-    ?_resolveDirectory('/home/worker/flutter'),
 
     /// The `webp` binaries.
     ?_resolveDirectory('/home/worker/bin'),

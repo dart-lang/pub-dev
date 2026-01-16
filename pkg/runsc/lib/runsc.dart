@@ -6,8 +6,8 @@
 library;
 
 import 'dart:async' show unawaited;
-import 'dart:convert' show json;
-import 'dart:io' show Directory, File, Process, ProcessStartMode;
+import 'dart:convert' show JsonEncoder, json;
+import 'dart:io' show Directory, File, Platform, Process, ProcessStartMode;
 
 final class Mount {
   final String source;
@@ -258,6 +258,11 @@ Future<Process> runsc({
 
     // Add the command verb and a container ID (using "sandbox" or random string)
     processArgs.addAll(['run', 'sandbox']);
+
+    if (Platform.environment['DEBUG'] == '1') {
+      print(processArgs);
+      print(JsonEncoder.withIndent('  ').convert(json.decode(config)));
+    }
 
     final proc = await Process.start(
       executable,

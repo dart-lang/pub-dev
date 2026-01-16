@@ -2,7 +2,7 @@ FROM docker.io/debian:12
 
 RUN apt-get update && \
   apt-get upgrade -y && \
-  apt-get install -y unzip ca-certificates curl bash git xz-utils && \
+  apt-get install -y unzip ca-certificates curl bash git xz-utils proot && \
   rm -rf /var/lib/apt/lists/*
 
 ENV PUB_ENVIRONMENT="bot.pub_dev.pub_worker"
@@ -19,17 +19,25 @@ COPY --chown=worker:worker . /home/worker/pub-dev
 WORKDIR /home/worker/pub-dev
 
 # Setup a rootfs for use in sandboxes
-RUN tool/setup-distroless-rootfs.sh /home/worker/sandbox-rootfs
+ARG SANDBOX_ROOT=/home/worker/sandbox-rootfs
+ARG SANDBOX_HOME=${SANDBOX_ROOT}/home/worker
+RUN tool/setup-sandbox-rootfs.sh ${SANDBOX_ROOT}
 
 # A config directory for preview SDKs.
-RUN mkdir -p /home/worker/config/dart-stable
-RUN mkdir -p /home/worker/config/flutter-stable
+RUN mkdir -p ${SANDBOX_HOME}/config/dart-stable
+RUN mkdir -p ${SANDBOX_HOME}/config/flutter-stable
 
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
-RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.10.7
+RUN XDG_CONFIG_HOME=${SANDBOX_HOME}/config/dart-stable tool/setup-dart.sh ${SANDBOX_HOME}/dart/stable 3.10.7
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
-RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.38.6
+RUN XDG_CONFIG_HOME=${SANDBOX_HOME}/config/flutter-stable tool/setup-flutter.sh ${SANDBOX_HOME}/flutter/stable 3.38.6
+
+# Make sure that some resolved paths are the same both inside and outside of the sandbox
+RUN ln -s ${SANDBOX_HOME}/config /home/worker/config
+RUN ln -s ${SANDBOX_HOME}/dart /home/worker/dart
+RUN ln -s ${SANDBOX_HOME}/flutter /home/worker/flutter
+RUN mkdir -p ${SANDBOX_ROOT}/${SANDBOX_ROOT} && cd ${SANDBOX_ROOT}/${SANDBOX_ROOT} && ln -s ../../../home .
 
 # Setup webp
 RUN tool/setup-webp.sh /home/worker/bin
