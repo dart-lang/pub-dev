@@ -9,10 +9,13 @@ import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/cloudkms/v1.dart' as kms;
 import 'package:googleapis_auth/auth_io.dart';
+import 'package:logging/logging.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:retry/retry.dart';
 
 import '../../shared/cached_value.dart';
+
+final Logger logger = Logger('pub.image_proxy.backend');
 
 /// Sets the Image proxy backend service.
 void registerImageProxyBackend(ImageProxyBackend backend) =>
@@ -86,13 +89,13 @@ class ImageProxyBackend {
       throw StateError('Image proxy HMAC secret is not available.');
     }
     final (today, secret) = dailySecret;
-
     final hmac = Hmac(
       sha256,
       secret,
     ).convert(utf8.encode(originalUrl.toString())).bytes;
     activeConfiguration.imageProxyServiceBaseUrl;
 
+    logger.info('Generating image proxy url for $originalUrl $secret $hmac');
     return '${activeConfiguration.imageProxyServiceBaseUrl}/${Uri.encodeComponent(base64Encode(hmac))}/${today.millisecondsSinceEpoch}/${Uri.encodeComponent(originalUrl.toString())}';
   }
 }
