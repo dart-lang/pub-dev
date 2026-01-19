@@ -50,11 +50,7 @@ class ImageProxyBackend {
           .macSign(
             kms.MacSignRequest()
               ..dataAsBytes = utf8.encode(
-                DateTime(
-                  day.year,
-                  day.month,
-                  day.day,
-                ).toUtc().toIso8601String(),
+                day.millisecondsSinceEpoch.toString(),
               ),
             activeConfiguration.imageProxyHmacKeyVersion!,
           );
@@ -69,7 +65,7 @@ class ImageProxyBackend {
     timeout: Duration(hours: 12),
     updateFn: () async {
       final now = DateTime.now().toUtc();
-      final today = DateTime(now.year, now.month, now.day);
+      final today = DateTime.utc(now.year, now.month, now.day);
       return (
         today,
         await _getDailySecret(
@@ -82,11 +78,10 @@ class ImageProxyBackend {
     },
   );
 
-  String imageProxyUrl(Uri originalUrl) {
+  String? imageProxyUrl(Uri originalUrl) {
     final dailySecret = _dailySecret.value;
-    // TODO handle the null case more gracefully.
     if (dailySecret == null) {
-      throw StateError('Image proxy HMAC secret is not available.');
+      return null;
     }
     final (today, secret) = dailySecret;
     final hmac = Hmac(
@@ -95,7 +90,6 @@ class ImageProxyBackend {
     ).convert(utf8.encode(originalUrl.toString())).bytes;
     activeConfiguration.imageProxyServiceBaseUrl;
 
-    logger.info('Generating image proxy url for $originalUrl $secret $hmac');
     return '${activeConfiguration.imageProxyServiceBaseUrl}/${Uri.encodeComponent(base64Encode(hmac))}/${today.millisecondsSinceEpoch}/${Uri.encodeComponent(originalUrl.toString())}';
   }
 }

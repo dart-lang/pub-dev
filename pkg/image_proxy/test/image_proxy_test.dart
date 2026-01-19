@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:async/async.dart';
 import 'package:crypto/crypto.dart';
 import 'package:pub_dev_image_proxy/image_proxy_service.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -18,11 +18,25 @@ Future<int> startImageProxy() async {
     ['run', '-r', 'bin/server.dart'],
     environment: {'IMAGE_PROXY_TESTING': 'true', 'IMAGE_PROXY_PORT': '0'},
   );
-  addTearDown(() => p.kill());
+  final StringBuffer logBuffer = StringBuffer();
+  addTearDown(() {
+    p.kill();
+    printOnFailure(logBuffer.toString());
+  });
   int? port;
-  await for (final line in LineSplitter().bind(Utf8Decoder().bind(p.stdout))) {
-    if (line.startsWith('Serving image proxy on')) {
-      port = int.parse(line.split(':').last);
+  final splitter = StreamSplitter(p.stdout);
+  splitter.split().listen((data) {
+    logBuffer.write(utf8.decode(data));
+  });
+  p.stderr.transform(utf8.decoder).listen((data) {
+    logBuffer.write(data);
+  });
+  await for (final line in LineSplitter().bind(
+    Utf8Decoder().bind(splitter.split()),
+  )) {
+    if (RegExp(r'Serving image proxy on port (\d+)\D').firstMatch(line)
+        case final Match match) {
+      port = int.parse(match[1]!);
       break;
     }
   }
@@ -136,10 +150,10 @@ final jpgImagePath = 'test/test_data/image.jpg';
 final pngImagePath = 'test/test_data/image.png';
 final svgImagePath = 'test/test_data/image.svg';
 
-final now = DateTime.now();
-final yesterday = DateTime(now.year, now.month, now.day - 1);
-final today = DateTime(now.year, now.month, now.day);
-final tomorrow = DateTime(now.year, now.month, now.day + 1);
+final now = DateTime.timestamp();
+final yesterday = DateTime.utc(now.year, now.month, now.day - 1);
+final today = DateTime.utc(now.year, now.month, now.day);
+final tomorrow = DateTime.utc(now.year, now.month, now.day + 1);
 
 Future<HttpClientResponse> getImage({
   required int imageProxyPort,
@@ -150,7 +164,7 @@ Future<HttpClientResponse> getImage({
 }) async {
   final client = HttpClient();
   day ??= today;
-  final dailySecret = await getDailySecretMock(day);
+  final dailySecret = await getDailySecretMock(day.millisecondsSinceEpoch);
   final imageUrl = 'http://localhost:$imageServerPort/$pathToImage';
   final signature = hmacSign(dailySecret, utf8.encode(imageUrl));
   if (disturbSignature) {

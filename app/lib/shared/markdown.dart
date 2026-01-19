@@ -214,12 +214,17 @@ class _ImageProxyRewriter extends html_parsing.TreeVisitor {
       final src = element.attributes['src'];
       final uri = Uri.tryParse(src ?? '');
       if (uri == null || uri.isInvalid) {
-        // TODO: consider removing the element entirely
+        // TODO: is this the right approach? Should we just have an empty source?
+        element.remove();
         return;
       }
       if ((uri.isScheme('http') || uri.isScheme('https')) &&
           !uri.isTrustedHost) {
         final proxiedUrl = imageProxyBackend.imageProxyUrl(uri);
+        if (proxiedUrl == null) {
+          element.remove();
+          return;
+        }
         element.attributes['src'] = proxiedUrl;
       }
     }

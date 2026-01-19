@@ -18,6 +18,7 @@ import 'package:shelf/shelf_io.dart';
 
 enum Severity {
   notice,
+  info,
   warning,
   error;
 
@@ -29,13 +30,16 @@ enum Severity {
         return 'WARNING';
       case Severity.error:
         return 'ERROR';
+      case Severity.info:
+        return 'INFO';
     }
   }
 }
 
 void log(String message, {Severity severity = Severity.notice}) {
-  final object = {severity: severity.name, message: message};
-  stdout.writeln(object);
+  final object = {'severity': severity.name, 'message': message};
+  stdout.writeln(json.encode(object));
+  // stdout.writeln(object);
 }
 
 bool isTesting = Platform.environment['IMAGE_PROXY_TESTING'] == 'true';
@@ -65,20 +69,22 @@ Map<String, String> securityHeaders = {
 /// Ensure that [allowedKeys] contains keys for today and the two surrounding
 /// days.
 Future<void> updateAllowedKeys() async {
-  final now = DateTime.now();
+  final now = DateTime.timestamp();
   if (now.difference(_lastAllowedKeysUpdate) < Duration(minutes: 5)) {
     return;
   }
-  final yesterday = DateTime(now.year, now.month, now.day - 1);
-  final today = DateTime(now.year, now.month, now.day);
-  final tomorrow = DateTime(now.year, now.month, now.day + 1);
+  final yesterday = DateTime.utc(now.year, now.month, now.day - 1);
+  final today = DateTime.utc(now.year, now.month, now.day);
+  final tomorrow = DateTime.utc(now.year, now.month, now.day + 1);
 
   for (final d in [yesterday, today, tomorrow]) {
     if (!_allowedKeys.containsKey(d.millisecondsSinceEpoch)) {
       _allowedKeys[d.millisecondsSinceEpoch] = isTesting
-          ? await getDailySecretMock(d)
-          : await getDailySecret(d);
-      log('Generating new key for ${d.toIso8601String()}');
+          ? await getDailySecretMock(d.millisecondsSinceEpoch)
+          : await getDailySecret(d.millisecondsSinceEpoch);
+      log(
+        'Generating new key for ${d.toIso8601String()} using ${Platform.environment['HMAC_KEY_ID']}',
+      );
     }
   }
   while (_allowedKeys.length > 3) {
@@ -86,6 +92,7 @@ Future<void> updateAllowedKeys() async {
     _allowedKeys.remove(dates.first);
   }
   assert(_allowedKeys.length == 3);
+  _lastAllowedKeysUpdate = now;
 }
 
 auth.AuthClient? _apiClient;
@@ -97,17 +104,15 @@ Future<AuthClient> authClient() async {
   }))!;
 }
 
-Future<Uint8List> getDailySecretMock(DateTime day) async {
+Future<Uint8List> getDailySecretMock(int timestamp) async {
   return hmacSign(
     utf8.encode('fake secret'),
-    utf8.encode(
-      DateTime(day.year, day.month, day.day).toUtc().toIso8601String(),
-    ),
+    utf8.encode(timestamp.toString()),
   );
 }
 
-/// Requests a derived hmac key corresponding to [day] using.
-Future<Uint8List> getDailySecret(DateTime day) async {
+/// Requests a derived hmac key corresponding to [timestamp].
+Future<Uint8List> getDailySecret(int timestamp) async {
   final api = kms.CloudKMSApi(await authClient());
   final response = await api
       .projects
@@ -116,10 +121,7 @@ Future<Uint8List> getDailySecret(DateTime day) async {
       .cryptoKeys
       .cryptoKeyVersions
       .macSign(
-        kms.MacSignRequest()
-          ..dataAsBytes = utf8.encode(
-            DateTime(day.year, day.month, day.day).toUtc().toIso8601String(),
-          ),
+        kms.MacSignRequest()..dataAsBytes = utf8.encode(timestamp.toString()),
         Platform.environment['HMAC_KEY_ID']!,
       );
   return response.macAsBytes as Uint8List;
@@ -193,10 +195,6 @@ Future<shelf.Response> handler(shelf.Request request) async {
     final imageUrlBytes = utf8.encode(imageUrl);
 
     if (!_constantTimeEquals(hmacSign(secret, imageUrlBytes), signature)) {
-      log(
-        /// XXX remove
-        '$secret $imageUrlBytes ${hmacSign(secret, imageUrlBytes)}, $signature',
-      );
       return shelf.Response.unauthorized('Bad hmac', headers: securityHeaders);
     }
     final Uri parsedImageUrl;
@@ -352,7 +350,7 @@ void main(List<String> args) async {
         ) ??
         8080,
   );
-  log('Serving image proxy on ${server.address}:${server.port}');
+  log('Serving image proxy on port ${server.port}');
 }
 
 class TooLargeException implements Exception {
