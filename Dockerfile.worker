@@ -53,7 +53,8 @@ RUN dart compile exe -o bin/sandbox_runner bin/sandbox_runner.dart
 RUN DEBUG_SANDBOX_RUNNER=true bin/sandbox_runner ls
 
 # AOT compile pub_worker
-RUN tool/build.sh
+RUN mkdir -p build
+RUN dart compile exe -o "build/pub_worker" "bin/pub_worker.dart"
 ENV PATH="/home/worker/pub-dev/pkg/pub_worker/build:${PATH}"
 
 # This container image is launched by cloud-init, and cloud-init is responsible

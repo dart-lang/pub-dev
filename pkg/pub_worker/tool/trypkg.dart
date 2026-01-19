@@ -68,17 +68,12 @@ void main(List<String> args) async {
     }
     worker = await startDockerAnalysis(payload);
   } else {
-    worker = await Process.start(
-      Platform.resolvedExecutable,
-      [
-        'run',
-        if (argResults['observe'] == true) '--observe',
-        'pub_worker',
-        json.encode(payload),
-      ],
-      mode: ProcessStartMode.inheritStdio,
-      environment: {'PATH': '${Platform.environment['PATH'] ?? ''}: TOOD'},
-    );
+    worker = await Process.start(Platform.resolvedExecutable, [
+      'run',
+      if (argResults['observe'] == true) '--observe',
+      'pub_worker',
+      json.encode(payload),
+    ], mode: ProcessStartMode.inheritStdio);
   }
   try {
     print('Starting worker');
