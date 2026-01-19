@@ -79,7 +79,7 @@ Future<void> updateAllowedKeys() async {
           ? await getDailySecretMock(d)
           : await getDailySecret(d);
       log(
-        'Generating new key for ${d.toIso8601String()} ${d.millisecondsSinceEpoch} Key: ${_allowedKeys[d.millisecondsSinceEpoch]!}',
+        'Generating new key for ${d.toIso8601String()} using ${Platform.environment['HMAC_KEY_ID']} ${d.millisecondsSinceEpoch} Key: ${_allowedKeys[d.millisecondsSinceEpoch]!}',
       ); // XXX remove
     }
   }
