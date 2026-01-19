@@ -65,7 +65,7 @@ Map<String, String> securityHeaders = {
 /// Ensure that [allowedKeys] contains keys for today and the two surrounding
 /// days.
 Future<void> updateAllowedKeys() async {
-  final now = DateTime.now().toUtc();
+  final now = DateTime.timestamp();
   if (now.difference(_lastAllowedKeysUpdate) < Duration(minutes: 5)) {
     return;
   }
@@ -78,12 +78,9 @@ Future<void> updateAllowedKeys() async {
       _allowedKeys[d.millisecondsSinceEpoch] = isTesting
           ? await getDailySecretMock(d)
           : await getDailySecret(d);
-      log('Generating new key for ${d.toIso8601String()}');
       log(
-        'Key: ${_allowedKeys[d.millisecondsSinceEpoch]!} isTesting: $isTesting',
-      );
-
-      /// XXX remove
+        'Generating new key for ${d.toIso8601String()} ${d.millisecondsSinceEpoch} Key: ${_allowedKeys[d.millisecondsSinceEpoch]!}',
+      ); // XXX remove
     }
   }
   while (_allowedKeys.length > 3) {
