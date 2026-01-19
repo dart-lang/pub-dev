@@ -34,9 +34,6 @@ RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /ho
 # Setup webp
 RUN tool/setup-webp.sh /home/worker/bin
 
-# Setup dartdoc
-RUN tool/setup-dartdoc.sh /home/worker/bin/dartdoc 9.0.1
-
 # Setup gvisor
 RUN tool/setup-gvisor.sh /home/worker/gvisor
 
@@ -46,6 +43,9 @@ ENV FLUTTER_ROOT="/home/worker/flutter/stable"
 
 # Use stable Dart-SDK in PATH
 ENV PATH="/home/worker/bin:/home/worker/dart/stable/bin:${PATH}"
+
+# Setup dartdoc
+RUN tool/setup-dartdoc.sh /home/worker/bin/dartdoc 9.0.1
 
 # Install dependencies for pub_worker
 WORKDIR /home/worker/pub-dev/pkg/pub_worker
