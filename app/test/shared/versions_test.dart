@@ -155,6 +155,16 @@ and do not format to also bump the runtimeVersion.''',
     expect(content, contains("const _dartdocVersion = '$dartdocVersion';"));
   });
 
+  test('dartdoc version should match Dockerfile.worker', () async {
+    final content = await File('../Dockerfile.worker').readAsString();
+    expect(
+      content,
+      contains(
+        'RUN tool/setup-dartdoc.sh /home/worker/bin/dartdoc $dartdocVersion\n',
+      ),
+    );
+  });
+
   scopedTest('GC is not deleting currently accepted versions', () {
     for (final version in acceptedRuntimeVersions) {
       expect(shouldGCVersion(version), isFalse);

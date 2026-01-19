@@ -34,6 +34,9 @@ RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /ho
 # Setup webp
 RUN tool/setup-webp.sh /home/worker/bin
 
+# Setup dartdoc
+RUN tool/setup-dartdoc.sh /home/worker/bin/dartdoc 9.0.1
+
 # Setup gvisor
 RUN tool/setup-gvisor.sh /home/worker/gvisor
 
