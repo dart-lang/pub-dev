@@ -39,7 +39,7 @@ class ImageProxyBackend {
     DateTime day,
     AuthClient client,
   ) async {
-    return await retry(() async {
+    await retry(() async {
       final api = kms.CloudKMSApi(client);
       final response = await api
           .projects
@@ -54,6 +54,9 @@ class ImageProxyBackend {
               ),
             activeConfiguration.imageProxyHmacKeyVersion!,
           );
+      logger.info(
+        'Fetched new image proxy daily secret for ${day.millisecondsSinceEpoch} ${response.macAsBytes} ',
+      );
       return response.macAsBytes;
     });
   }
