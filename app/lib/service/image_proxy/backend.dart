@@ -39,7 +39,7 @@ class ImageProxyBackend {
     DateTime day,
     AuthClient client,
   ) async {
-    await retry(() async {
+    return await retry(() async {
       final api = kms.CloudKMSApi(client);
       final response = await api
           .projects

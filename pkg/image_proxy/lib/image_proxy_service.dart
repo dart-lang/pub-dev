@@ -127,7 +127,7 @@ Future<Uint8List> getDailySecret(DateTime day) async {
         Platform.environment['HMAC_KEY_ID']!,
       );
   log(
-    'hmaccing ${utf8.encode(day.millisecondsSinceEpoch.toString())} to get daily secret ${response.macAsBytes}',
+    'hmaccing ${day.toIso8601String()} ${utf8.encode(day.millisecondsSinceEpoch.toString())} to get daily secret ${response.macAsBytes}',
   );
   return response.macAsBytes as Uint8List;
 }
