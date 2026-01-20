@@ -98,6 +98,15 @@ Future<void> main(List<String> args) async {
   final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
   final detected = await _detectSdks(pkgDir.path);
 
+  final dartdocDirEnvValue = Platform.environment['DARTDOC_DIR'];
+  final dartdocCommand = dartdocDirEnvValue == null
+      ? null
+      : <String>[
+          p.join(dartdocDirEnvValue, 'build', 'dartdoc'),
+          '--resources-dir',
+          p.join(dartdocDirEnvValue, 'lib', 'resources'),
+        ];
+
   final toolEnv = await ToolEnvironment.create(
     dartSdkConfig: SdkConfig(
       rootPath: detected.dartSdkPath,
@@ -108,6 +117,7 @@ Future<void> main(List<String> args) async {
       configHomePath: _configHomePath('flutter', detected.configKind),
     ),
     pubCacheDir: pubCache,
+    dartdocCommand: dartdocCommand,
     dartdocVersion: _dartdocVersion,
   );
 
