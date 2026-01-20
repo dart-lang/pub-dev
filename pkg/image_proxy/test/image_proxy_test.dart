@@ -198,7 +198,7 @@ Future<void> main() async {
       validateSecurityHeaders(response);
       expect(response.statusCode, 200);
       expect(response.headers['content-type']!.single, 'image/jpeg');
-      expect(response.headers['cache-control']!.single, 'max-age=180, public');
+      expect(response.headers['cache-control']!.single, 'max-age=3600, public');
       final hash = await sha256.bind(response).single;
       final expected = sha256.convert(File(jpgImagePath).readAsBytesSync());
       expect(hash, expected);
@@ -413,7 +413,7 @@ Future<void> main() async {
 
       expect(response.statusCode, 200);
       // The proxy doesn't cache as long time as the original.
-      expect(response.headers['cache-control']!.single, 'max-age=180, public');
+      expect(response.headers['cache-control']!.single, 'max-age=3600, public');
       final hash = await sha256.bind(response).single;
       final expected = sha256.convert(File(jpgImagePath).readAsBytesSync());
       expect(hash, expected);
