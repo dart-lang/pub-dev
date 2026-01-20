@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:async/async.dart';
 import 'package:crypto/crypto.dart';
 import 'package:pub_dev_image_proxy/image_proxy_service.dart';
 import 'package:shelf/shelf.dart' as shelf;
