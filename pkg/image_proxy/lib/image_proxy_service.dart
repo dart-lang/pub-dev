@@ -306,7 +306,7 @@ Future<shelf.Response> handler(shelf.Request request) async {
         statusCode,
         body: body,
         headers: {
-          'Cache-control': 'max-age=180, public',
+          'Cache-control': 'max-age=3600, public',
           'content-type': ?contentType,
           'content-encoding': ?contentEncoding,
           ...securityHeaders,
