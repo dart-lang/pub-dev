@@ -2,8 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bump runtimeVersion to `2026.01.15`.
- * Upgraded pana to `0.23.6`.
+ * Bump runtimeVersion to `2026.01.20`.
+ * Upgraded pana to `0.23.7`.
 
 ## `20260115t114900-all`
  * Bump runtimeVersion to `2026.01.13`.
