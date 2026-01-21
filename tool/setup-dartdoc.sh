@@ -5,7 +5,7 @@
 
 set -e
 
-TARGET_PATH=$1
+TARGET_DIR=$1
 DARTDOC_VERSION=$2
 
 # Create a temporary directory
@@ -20,5 +20,7 @@ trap 'rm -rf "$WORK_DIR"' EXIT
 dart pub unpack "dartdoc:${DARTDOC_VERSION}" --output=${WORK_DIR}
 
 # Compile executable
-cd "${WORK_DIR}/dartdoc-${DARTDOC_VERSION}"
-dart compile exe -o "${TARGET_PATH}" bin/dartdoc.dart
+mv "${WORK_DIR}/dartdoc-${DARTDOC_VERSION}" "${TARGET_DIR}"
+cd "${TARGET_DIR}"
+mkdir build
+dart compile exe -o build/dartdoc bin/dartdoc.dart

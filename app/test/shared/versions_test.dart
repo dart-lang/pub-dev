@@ -159,9 +159,7 @@ and do not format to also bump the runtimeVersion.''',
     final content = await File('../Dockerfile.worker').readAsString();
     expect(
       content,
-      contains(
-        'RUN tool/setup-dartdoc.sh /home/worker/bin/dartdoc $dartdocVersion\n',
-      ),
+      contains('RUN tool/setup-dartdoc.sh "\${DARTDOC_DIR}" $dartdocVersion\n'),
     );
   });
 
