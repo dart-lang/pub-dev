@@ -7,7 +7,7 @@ library;
 
 import 'dart:async' show unawaited;
 import 'dart:convert' show json;
-import 'dart:io' show Directory, Process, File;
+import 'dart:io' show Directory, File, Process, ProcessStartMode;
 
 final class Mount {
   final String source;
@@ -151,6 +151,7 @@ Future<Process> runsc({
   InterceptionPlatform platform = InterceptionPlatform.systrap,
   bool rootless = false,
   int? memoryLimit,
+  ProcessStartMode? processStartMode,
 }) async {
   if (env.keys.any((k) => k.contains('='))) {
     throw ArgumentError.value(
@@ -268,6 +269,9 @@ Future<Process> runsc({
       executable,
       processArgs,
       workingDirectory: tmp.path,
+      includeParentEnvironment: false,
+      runInShell: false,
+      mode: processStartMode ?? ProcessStartMode.normal,
     );
     unawaited(
       proc.exitCode.whenComplete(() async {

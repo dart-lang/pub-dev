@@ -30,6 +30,8 @@ dependencies:
   collection: ^1.18.0
   mime: ^2.0.0
   pub_semver: ^2.1.4
+  runsc:
+    path: ../runsc
   sanitize_html: ^2.1.0
   stream_transform: ^2.0.0
   stack_trace: ^1.11.1

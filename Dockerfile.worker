@@ -54,14 +54,14 @@ ENV DARTDOC_RESOURCES_DIR="${DARTDOC_DIR}/lib/resources"
 WORKDIR /home/worker/pub-dev/pkg/pub_worker
 RUN dart pub get
 
-# Compile sandbox runner and test pass-through behavior
-RUN dart compile exe -o bin/sandbox_runner bin/sandbox_runner.dart
-RUN DEBUG_SANDBOX_RUNNER=true bin/sandbox_runner ls
-
 # AOT compile pub_worker
 RUN mkdir -p build
 RUN dart compile exe -o "build/pub_worker" "bin/pub_worker.dart"
 ENV PATH="/home/worker/pub-dev/pkg/pub_worker/build:${PATH}"
+
+# AOT compile sandbox runner
+RUN dart compile exe -o "build/sandbox_runner" "bin/sandbox_runner.dart"
+ENV SANDBOX_RUNNER=/home/worker/pub-dev/pkg/pub_worker/build/sandbox_runner
 
 # This container image is launched by cloud-init, and cloud-init is responsible
 # for shutting down the VM when the container exits.

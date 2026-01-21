@@ -4,17 +4,18 @@
 
 import 'dart:io';
 
+import 'package:runsc/runsc.dart';
+
 /// Runs the provided [args] list and runs it in a sandbox.
 Future<void> main(List<String> args) async {
-  final needsNetwork =
-      Platform.environment['SANDBOX_NETWORK_ENABLED'] == 'true';
-
   final passThroughKeys = {
     'CI',
     'NO_COLOR',
     'PATH',
+    'HOME',
     'XDG_CONFIG_HOME',
     'FLUTTER_ROOT',
+    'PUB_CACHE',
     'PUB_ENVIRONMENT',
     'PUB_HOSTED_URL',
   };
@@ -25,6 +26,24 @@ Future<void> main(List<String> args) async {
   /// The current working directory / package directory.
   final currentWorkingDir = await Directory.current.absolute
       .resolveSymbolicLinks();
+
+  final needsNetwork =
+      Platform.environment['SANDBOX_NETWORK_ENABLED'] == 'true';
+
+  // NOTE: bypassing sandbox if the process needs network
+  // TODO: investigate and fix networked sandbox
+  if (needsNetwork) {
+    final p = await Process.start(
+      args.first,
+      args.skip(1).toList(),
+      mode: ProcessStartMode.inheritStdio,
+      environment: environment,
+      includeParentEnvironment: false,
+      runInShell: false,
+      workingDirectory: currentWorkingDir,
+    );
+    exit(await p.exitCode);
+  }
 
   /// The directory identified by `PUB_CACHE`.
   final pubCacheDir = _resolveDirectoryByEnvVar('PUB_CACHE');
@@ -47,6 +66,7 @@ Future<void> main(List<String> args) async {
     ?configHomeDir,
 
     /// The Dart and Flutter SDKs that pana is using (may contain more than one after download).
+    ?_resolveDirectory('/home/worker/dartdoc'),
     ?_resolveDirectory('/home/worker/dart'),
     ?_resolveDirectory('/home/worker/flutter'),
 
@@ -61,30 +81,30 @@ Future<void> main(List<String> args) async {
       .where((e) => !outputFolders.contains(e))
       .toList();
 
-  // TODO: use gvisor
-  if (Platform.environment['DEBUG_SANDBOX_RUNNER'] == 'true') {
-    print('Read mounts:');
-    for (final m in readOnlyMounts) {
-      print('- $m');
-    }
-
-    print('Write mounts:');
-    for (final m in outputFolders) {
-      print('- $m');
-    }
-
-    print('Needs network: $needsNetwork');
-  }
-
-  final p = await Process.start(
-    args.first,
-    args.skip(1).toList(),
-    mode: ProcessStartMode.inheritStdio,
-    environment: environment,
-    includeParentEnvironment: false,
-    runInShell: false,
-    workingDirectory: currentWorkingDir,
+  final p = await runsc(
+    runscExecutable: '/home/worker/gvisor/runsc',
+    env: {'TERM': 'xterm', ...environment},
+    command: args.first,
+    args: args.skip(1).toList(),
+    cwd: currentWorkingDir,
+    hostname: 'sandbox',
+    network: needsNetwork ? NetworkMode.host : NetworkMode.sandbox,
+    memoryLimit: 4 * 1024 * 1024 * 1024,
+    platform: InterceptionPlatform.systrap,
+    resourceLimits: ResourceLimit.simpleSandboxLimits,
+    rootless: true,
+    rootFileSystemPath: '/home/worker/sandbox-rootfs',
+    mounts: [
+      ...readOnlyMounts.map(
+        (v) => Mount.sandboxReadOnly(source: v, destination: v),
+      ),
+      ...outputFolders.map(
+        (v) => Mount.sandboxReadWrite(source: v, destination: v),
+      ),
+    ],
+    processStartMode: ProcessStartMode.inheritStdio,
   );
+
   exit(await p.exitCode);
 }
 

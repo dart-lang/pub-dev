@@ -115,6 +115,8 @@ jobs:
       matrix:
         package: ${{ fromJson(needs.define_pkg_list.outputs.packages) }}
     steps:
+    - name: Enable unprivileged user namespaces
+      run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
     - name: Cache PUB_CACHE
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
