@@ -98,14 +98,11 @@ Future<void> main(List<String> args) async {
   final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
   final detected = await _detectSdks(pkgDir.path);
 
-  final dartdocDirEnvValue = Platform.environment['DARTDOC_DIR'];
-  final dartdocCommand = dartdocDirEnvValue == null
-      ? null
-      : <String>[
-          p.join(dartdocDirEnvValue, 'build', 'dartdoc'),
-          '--resources-dir',
-          p.join(dartdocDirEnvValue, 'lib', 'resources'),
-        ];
+  final dartdocBinary = Platform.environment['DARTDOC_BINARY'];
+  final dartdocResourcesDir = Platform.environment['DARTDOC_RESOURCES_DIR'];
+  final dartdocCommand = (dartdocBinary != null && dartdocResourcesDir != null)
+      ? <String>[dartdocBinary, '--resources-dir', dartdocResourcesDir]
+      : null;
 
   final toolEnv = await ToolEnvironment.create(
     dartSdkConfig: SdkConfig(
