@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: `pub_worker` started to run some subprocess in gvisor sandbox (`analyze` and `dartdoc`).
 
 ## `20260122t090500-all`
  * Bump runtimeVersion to `2026.01.20`.

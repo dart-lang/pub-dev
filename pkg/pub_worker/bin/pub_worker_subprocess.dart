@@ -116,6 +116,7 @@ Future<void> main(List<String> args) async {
     pubCacheDir: pubCache,
     dartdocCommand: dartdocCommand,
     dartdocVersion: _dartdocVersion,
+    sandboxRunner: Platform.environment['SANDBOX_RUNNER'],
   );
 
   //final dartdocOutputDir =
