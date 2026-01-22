@@ -207,7 +207,7 @@ Future<Process> runsc({
     'linux': {
       'namespaces': [
         {'type': 'pid'},
-        {'type': 'network'},
+        if (network != NetworkMode.host) {'type': 'network'},
         {'type': 'ipc'},
         {'type': 'uts'},
         {'type': 'mount'},
@@ -251,7 +251,13 @@ Future<Process> runsc({
 
     if (rootless) {
       // If rootless, 'unshare' is the executable, runsc becomes an argument
-      processArgs = ['-rn', executable, ...processArgs, '--ignore-cgroups'];
+      processArgs = [
+        '-r',
+        if (network != NetworkMode.host) '-n',
+        executable,
+        ...processArgs,
+        '--ignore-cgroups',
+      ];
       executable = 'unshare';
     }
 
