@@ -152,6 +152,7 @@ Future<Process> runsc({
   bool rootless = false,
   int? memoryLimit,
   ProcessStartMode? processStartMode,
+  String? debugLogDir,
 }) async {
   if (env.keys.any((k) => k.contains('='))) {
     throw ArgumentError.value(
@@ -224,6 +225,7 @@ Future<Process> runsc({
         '/proc/bus',
         '/proc/fs',
         '/proc/irq',
+        if (network == NetworkMode.host) '/proc/net',
         '/proc/sys',
         '/proc/sysrq-trigger',
       ],
@@ -244,6 +246,11 @@ Future<Process> runsc({
 
     var executable = runscExecutable;
     var processArgs = [
+      if (debugLogDir != null) ...[
+        '--debug',
+        '--debug-log=/tmp/runsc/',
+        '--strace',
+      ],
       '--network=${network.name}',
       '--platform=${platform.name}',
       '--root=${stateDir.path}',
