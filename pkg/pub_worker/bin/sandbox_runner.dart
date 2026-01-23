@@ -30,21 +30,6 @@ Future<void> main(List<String> args) async {
   final needsNetwork =
       Platform.environment['SANDBOX_NETWORK_ENABLED'] == 'true';
 
-  // NOTE: bypassing sandbox if the process needs network
-  // TODO: investigate and fix networked sandbox
-  if (needsNetwork) {
-    final p = await Process.start(
-      args.first,
-      args.skip(1).toList(),
-      mode: ProcessStartMode.inheritStdio,
-      environment: environment,
-      includeParentEnvironment: false,
-      runInShell: false,
-      workingDirectory: currentWorkingDir,
-    );
-    exit(await p.exitCode);
-  }
-
   /// The directory identified by `PUB_CACHE`.
   final pubCacheDir = _resolveDirectoryByEnvVar('PUB_CACHE');
 
