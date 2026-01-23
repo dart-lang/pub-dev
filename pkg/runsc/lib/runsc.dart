@@ -246,7 +246,6 @@ Future<Process> runsc({
 
     var executable = runscExecutable;
     var processArgs = [
-      if (rootless) '--rootless',
       if (debugLogDir != null) ...[
         '--debug',
         '--debug-log=/tmp/runsc/',
