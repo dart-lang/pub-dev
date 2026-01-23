@@ -103,6 +103,7 @@ Future<void> main(List<String> args) async {
       ),
     ],
     processStartMode: ProcessStartMode.inheritStdio,
+    debugLogDir: Platform.environment['SANDBOX_DEBUG_LOG_DIR'],
   );
 
   exit(await p.exitCode);
