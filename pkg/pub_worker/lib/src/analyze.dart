@@ -38,6 +38,10 @@ List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
 /// This preserves *where* and *why* analysis failed instead of silently
 /// swallowing errors.
 ///
+/// This exception must NOT abort the worker task lifecycle.
+/// Callers are expected to convert this into a skipped task
+/// so pub.dev always receives a terminal task result.
+///
 /// Future extension:
 /// - add stderr snippet
 /// - add phase enum
@@ -60,6 +64,14 @@ class AnalyzeProcessException implements Exception {
       'AnalyzeProcessException(package=$package, version=$version, '
       'exitCode=$exitCode, log=$logPath)';
 }
+
+/// Formats a consistent skip reason for [AnalyzeProcessException].
+///
+/// This ensures deterministic, test-friendly failure messages.
+String _analyzeFailureReason(AnalyzeProcessException e) =>
+    'Analyzer subprocess failed.\n'
+    'exitCode: ${e.exitCode}\n'
+    'logPath: ${e.logPath}';
 
 /// Retry requests with a longer delay between them.
 final _retryOptions = RetryOptions(
@@ -168,6 +180,14 @@ Future<void> analyze(
         }
       } on AnalyzeProcessException catch (e, st) {
         shoutTaskError(e, st);
+
+        await _reportPackageSkipped(
+          client,
+          api,
+          payload.package,
+          p.version,
+          reason: _analyzeFailureReason(e),
+        );
       } catch (e, st) {
         shoutTaskError(e, st);
       }
@@ -231,7 +251,9 @@ Future<void> _analyzePackage(
         process.exitOrTimeout(_processTimeout, () {
           log.writeln('TIMEOUT: process sending SIGTERM/SIGKILL');
         }),
-      ]).catchError((e) => const [/* ignore */]);
+      ]).catchError((e, st) {
+        log.writeln('ERROR: Failed to capture subprocess output: $e');
+      });
       final exitCode = await process.exitCode;
 
       log.writeln('### Execution of process exited $exitCode');
@@ -408,6 +430,8 @@ extension on Process {
         onTimeout();
       }
       // Send SIGTERM
+      // NOTE: SIGTERM / SIGKILL are best-effort on Windows.
+      // CI environments run on Linux where signals are reliable.
       kill(ProcessSignal.sigterm);
 
       // Wait 30s and then SIGKILL
