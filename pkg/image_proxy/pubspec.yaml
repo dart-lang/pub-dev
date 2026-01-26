@@ -13,6 +13,7 @@ dependencies:
   googleapis_auth: ^2.0.0
   googleapis: ^14.0.0
   yaml: ^3.1.3
+  async: ^2.13.0
 dev_dependencies:
   test:
   lints:
