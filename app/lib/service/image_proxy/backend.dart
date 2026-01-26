@@ -21,7 +21,7 @@ final Logger logger = Logger('pub.image_proxy.backend');
 void registerImageProxyBackend(ImageProxyBackend backend) =>
     ss.register(#_imageProxyBackend, backend);
 
-/// The active Youtube backend service.
+/// The active image_proxy backend service.
 ImageProxyBackend get imageProxyBackend =>
     ss.lookup(#_imageProxyBackend) as ImageProxyBackend;
 
