@@ -7,8 +7,12 @@ import 'package:html/dom_parsing.dart' as html_parsing;
 import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
+import 'package:pub_dev/frontend/handlers/experimental.dart';
+import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/static_files.dart';
+import 'package:pub_dev/service/image_proxy/backend.dart';
 import 'package:pub_dev/shared/changelog.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:sanitize_html/sanitize_html.dart';
 
 import 'urls.dart' show UriExt;
@@ -124,6 +128,10 @@ String _postProcessHtml(
   var root = html_parser.parseFragment(rawHtml);
 
   _RelativeUrlRewriter(urlResolverFn, relativeFrom).visit(root);
+  if (requestContext.experimentalFlags.isImageProxyEnabled &&
+      activeConfiguration.imageProxyServiceBaseUrl != null) {
+    _ImageProxyRewriter().visit(root);
+  }
 
   if (isChangelog) {
     final oldNodes = [...root.nodes];
@@ -200,6 +208,35 @@ class _UnsafeUrlFilter extends html_parsing.TreeVisitor {
       return true;
     }
     return false;
+  }
+}
+
+/// Replaces img src URLS with proxied URLs.
+///
+/// Removes the img tag if proxying is not possible.
+class _ImageProxyRewriter extends html_parsing.TreeVisitor {
+  @override
+  void visitElement(html.Element element) {
+    super.visitElement(element);
+
+    if (element.localName == 'img') {
+      final src = element.attributes['src'];
+      final uri = Uri.tryParse(src ?? '');
+      if (uri == null || uri.isInvalid) {
+        // TODO: is this the right approach? Should we just have an empty source?
+        element.remove();
+        return;
+      }
+      if ((uri.isScheme('http') || uri.isScheme('https')) &&
+          !uri.isTrustedHost) {
+        final proxiedUrl = imageProxyBackend.imageProxyUrl(uri);
+        if (proxiedUrl == null) {
+          element.remove();
+          return;
+        }
+        element.attributes['src'] = proxiedUrl;
+      }
+    }
   }
 }
 

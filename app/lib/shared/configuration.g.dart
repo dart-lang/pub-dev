@@ -45,6 +45,8 @@ Configuration _$ConfigurationFromJson(
       'admins',
       'tools',
       'rateLimits',
+      'imageProxyHmacKeyVersion',
+      'imageProxyServiceBaseUrl',
     ],
   );
   final val = Configuration(
@@ -168,6 +170,14 @@ Configuration _$ConfigurationFromJson(
           ?.map((e) => RateLimit.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList(),
     ),
+    imageProxyHmacKeyVersion: $checkedConvert(
+      'imageProxyHmacKeyVersion',
+      (v) => v as String?,
+    ),
+    imageProxyServiceBaseUrl: $checkedConvert(
+      'imageProxyServiceBaseUrl',
+      (v) => v as String?,
+    ),
   );
   return val;
 });
@@ -207,6 +217,8 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'admins': instance.admins?.map((e) => e.toJson()).toList(),
       'tools': instance.tools?.toJson(),
       'rateLimits': instance.rateLimits?.map((e) => e.toJson()).toList(),
+      'imageProxyHmacKeyVersion': instance.imageProxyHmacKeyVersion,
+      'imageProxyServiceBaseUrl': instance.imageProxyServiceBaseUrl,
     };
 
 AdminId _$AdminIdFromJson(Map json) => $checkedCreate('AdminId', json, (

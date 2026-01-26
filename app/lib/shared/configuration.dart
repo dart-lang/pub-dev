@@ -218,6 +218,10 @@ final class Configuration {
   /// The rate limits for auditable operations.
   final List<RateLimit>? rateLimits;
 
+  /// The Cloud KMS HMAC key version used to sign image proxy URLs.
+  final String? imageProxyHmacKeyVersion;
+  final String? imageProxyServiceBaseUrl;
+
   /// Load [Configuration] from YAML file at [path] substituting `{{ENV}}` for
   /// the value of environment variable `ENV`.
   factory Configuration.fromYamlFile(final String path) {
@@ -285,6 +289,8 @@ final class Configuration {
     required this.defaultServiceBaseUrl,
     required this.tools,
     required this.rateLimits,
+    required this.imageProxyHmacKeyVersion,
+    required this.imageProxyServiceBaseUrl,
   });
 
   /// Load configuration from `app/config/<projectId>.yaml` where `projectId`
@@ -356,6 +362,8 @@ final class Configuration {
       ],
       tools: null,
       rateLimits: null,
+      imageProxyHmacKeyVersion: null,
+      imageProxyServiceBaseUrl: null,
     );
   }
 
@@ -406,6 +414,8 @@ final class Configuration {
       ],
       tools: null,
       rateLimits: null,
+      imageProxyHmacKeyVersion: null,
+      imageProxyServiceBaseUrl: null,
     );
   }
 
