@@ -33,6 +33,34 @@ const _processTimeout = Duration(minutes: 50);
 
 List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
 
+/// Structured failure for analysis subprocesses.
+///
+/// This preserves *where* and *why* analysis failed instead of silently
+/// swallowing errors.
+///
+/// Future extension:
+/// - add stderr snippet
+/// - add phase enum
+/// - add retryability hint
+class AnalyzeProcessException implements Exception {
+  final String package;
+  final String version;
+  final int exitCode;
+  final String logPath;
+
+  AnalyzeProcessException({
+    required this.package,
+    required this.version,
+    required this.exitCode,
+    required this.logPath,
+  });
+
+  @override
+  String toString() =>
+      'AnalyzeProcessException(package=$package, version=$version, '
+      'exitCode=$exitCode, log=$logPath)';
+}
+
 /// Retry requests with a longer delay between them.
 final _retryOptions = RetryOptions(
   maxAttempts: 4,
@@ -138,6 +166,8 @@ Future<void> analyze(
         } else {
           shoutTaskError(e, st);
         }
+      } on AnalyzeProcessException catch (e, st) {
+        shoutTaskError(e, st);
       } catch (e, st) {
         shoutTaskError(e, st);
       }
@@ -206,6 +236,21 @@ Future<void> _analyzePackage(
 
       log.writeln('### Execution of process exited $exitCode');
       log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
+
+      // Non-zero exit codes previously resulted in silent failures.
+      // Fail fast here to preserve analyzer error context.
+      if (exitCode != 0) {
+        // Ensure log is flushed before failing
+        await log.flush();
+        await log.close();
+
+        throw AnalyzeProcessException(
+          package: package,
+          version: version,
+          exitCode: exitCode,
+          logPath: logFile.path,
+        );
+      }
     }
 
     // Create a file to store the blob, and add everything to it.
