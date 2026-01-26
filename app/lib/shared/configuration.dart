@@ -373,6 +373,7 @@ final class Configuration {
     Uri? primaryApiUri,
     Uri? primarySiteUri,
     String? searchServicePrefix,
+    String? imageProxyServiceBaseUrl,
   }) {
     return Configuration(
       canonicalPackagesBucketName: 'fake-canonical-packages',
@@ -415,7 +416,7 @@ final class Configuration {
       tools: null,
       rateLimits: null,
       imageProxyHmacKeyVersion: null,
-      imageProxyServiceBaseUrl: null,
+      imageProxyServiceBaseUrl: imageProxyServiceBaseUrl,
     );
   }
 
