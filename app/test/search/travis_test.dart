@@ -5,13 +5,9 @@
 import 'dart:convert';
 
 import 'package:_pub_shared/search/search_form.dart';
-import 'package:pub_dev/frontend/handlers/experimental.dart';
-import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/search/text_utils.dart';
-import 'package:pub_dev/service/image_proxy/backend.dart';
-import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
 import '../shared/utils.dart';
