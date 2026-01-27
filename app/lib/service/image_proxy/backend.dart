@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/cloudkms/v1.dart' as kms;
@@ -64,7 +65,7 @@ class ImageProxyBackend {
     maxAge: Duration(hours: 12),
     timeout: Duration(hours: 12),
     updateFn: () async {
-      final now = DateTime.now().toUtc();
+      final now = clock.now().toUtc();
       final today = DateTime.utc(now.year, now.month, now.day);
       return (
         today,
