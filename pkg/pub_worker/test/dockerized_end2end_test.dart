@@ -60,7 +60,8 @@ void main() {
       () async {
         await buildDockerImage();
 
-        final packages = ['retry', 'url_launcher'];
+        final packagesWithScreenshots = {'google_fonts'};
+        final packages = ['retry', ...packagesWithScreenshots];
         final versions = await Future.wait(
           packages.map((p) => analyzePackage(p)),
         );
@@ -90,6 +91,14 @@ void main() {
           );
           final report = summary.report!;
           expect(report.maxPoints, greaterThan(100));
+
+          if (packagesWithScreenshots.contains(package)) {
+            expect(
+              summary.screenshots ?? [],
+              isNotEmpty,
+              reason: '$package must have screenshots, see log:\n$logTxt',
+            );
+          }
 
           final failingReportSections = report.sections
               .where((s) => s.grantedPoints != s.maxPoints)
