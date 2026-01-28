@@ -33,6 +33,46 @@ const _processTimeout = Duration(minutes: 50);
 
 List<int> encodeJson(Object json) => JsonUtf8Encoder().convert(json);
 
+/// Structured failure for analysis subprocesses.
+///
+/// This preserves *where* and *why* analysis failed instead of silently
+/// swallowing errors.
+///
+/// This exception must NOT abort the worker task lifecycle.
+/// Callers are expected to convert this into a skipped task
+/// so pub.dev always receives a terminal task result.
+///
+/// Future extension:
+/// - add stderr snippet
+/// - add phase enum
+/// - add retryability hint
+class AnalyzeProcessException implements Exception {
+  final String package;
+  final String version;
+  final int exitCode;
+  final String logPath;
+
+  AnalyzeProcessException({
+    required this.package,
+    required this.version,
+    required this.exitCode,
+    required this.logPath,
+  });
+
+  @override
+  String toString() =>
+      'AnalyzeProcessException(package=$package, version=$version, '
+      'exitCode=$exitCode, log=$logPath)';
+}
+
+/// Formats a consistent skip reason for [AnalyzeProcessException].
+///
+/// This ensures deterministic, test-friendly failure messages.
+String _analyzeFailureReason(AnalyzeProcessException e) =>
+    'Analyzer subprocess failed.\n'
+    'exitCode: ${e.exitCode}\n'
+    'logPath: ${e.logPath}';
+
 /// Retry requests with a longer delay between them.
 final _retryOptions = RetryOptions(
   maxAttempts: 4,
@@ -138,6 +178,16 @@ Future<void> analyze(
         } else {
           shoutTaskError(e, st);
         }
+      } on AnalyzeProcessException catch (e, st) {
+        shoutTaskError(e, st);
+
+        await _reportPackageSkipped(
+          client,
+          api,
+          payload.package,
+          p.version,
+          reason: _analyzeFailureReason(e),
+        );
       } catch (e, st) {
         shoutTaskError(e, st);
       }
@@ -201,11 +251,28 @@ Future<void> _analyzePackage(
         process.exitOrTimeout(_processTimeout, () {
           log.writeln('TIMEOUT: process sending SIGTERM/SIGKILL');
         }),
-      ]).catchError((e) => const [/* ignore */]);
+      ]).catchError((e, st) {
+        log.writeln('ERROR: Failed to capture subprocess output: $e');
+      });
       final exitCode = await process.exitCode;
 
       log.writeln('### Execution of process exited $exitCode');
       log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
+
+      // Non-zero exit codes previously resulted in silent failures.
+      // Fail fast here to preserve analyzer error context.
+      if (exitCode != 0) {
+        // Ensure log is flushed before failing
+        await log.flush();
+        await log.close();
+
+        throw AnalyzeProcessException(
+          package: package,
+          version: version,
+          exitCode: exitCode,
+          logPath: logFile.path,
+        );
+      }
     }
 
     // Create a file to store the blob, and add everything to it.
@@ -363,6 +430,8 @@ extension on Process {
         onTimeout();
       }
       // Send SIGTERM
+      // NOTE: SIGTERM / SIGKILL are best-effort on Windows.
+      // CI environments run on Linux where signals are reliable.
       kill(ProcessSignal.sigterm);
 
       // Wait 30s and then SIGKILL
