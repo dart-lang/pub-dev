@@ -19,7 +19,7 @@ void main() {
       fallbackPubHostedUrl: 'https://pub.dev',
     );
     setUpAll(() async {
-      await server.start();
+      await server.start(listenOnAllInterface: true);
     });
 
     tearDownAll(() async {

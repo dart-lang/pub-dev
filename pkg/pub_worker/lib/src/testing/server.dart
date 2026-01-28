@@ -52,14 +52,16 @@ class PubWorkerTestServer {
     : _fallbackPubHostedUrl = fallbackPubHostedUrl;
 
   /// Start the server, returns when the server has started.
-  Future<void> start() async {
+  Future<void> start({bool listenOnAllInterface = false}) async {
     if (started) {
       throw StateError('Server have already been started');
     }
     started = true;
 
-    final server = await io.serve(_router.call, 'localhost', 0);
-    _baseUrl = Uri.parse('http://localhost:${server.port}');
+    final bindHost = listenOnAllInterface ? '0.0.0.0' : 'localhost';
+    final clientHost = listenOnAllInterface ? '127.0.0.1' : 'localhost';
+    final server = await io.serve(_router.call, bindHost, 0);
+    _baseUrl = Uri.parse('http://$clientHost:${server.port}');
     _server = server;
   }
 

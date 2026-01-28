@@ -8,7 +8,8 @@ set -e
 CRANE_VERSION='v0.20.7'
 
 # Docker image to use for rootfs
-DOCKER_IMAGE='gcr.io/distroless/base-debian12'
+# TODO: investigate how we could shrink this to `gcr.io/distroless/base-debian12`
+DOCKER_IMAGE='debian:12-slim'
 
 # Check we have a target directory
 if [[ -z "$1" ]];
