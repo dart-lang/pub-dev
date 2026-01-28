@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/task_api.dart';
 import 'package:async/async.dart';
@@ -140,6 +141,15 @@ class PubWorkerTestServer {
             )
             .toList(),
       }),
+      headers: {'Content-Type': 'application/json'},
+    );
+  }
+
+  @Route.get('/api/packages/<package>/advisories')
+  Future<Response> getPackageAdvisories(Request request, String package) async {
+    // TODO: Implement advisory pass-through and configurable local advisories.
+    return Response.ok(
+      json.encode([]),
       headers: {'Content-Type': 'application/json'},
     );
   }

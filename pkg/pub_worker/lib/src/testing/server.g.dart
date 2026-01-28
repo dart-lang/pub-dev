@@ -11,6 +11,11 @@ Router _$PubWorkerTestServerRouter(PubWorkerTestServer service) {
   router.add('GET', r'/api/packages/<package>', service._listPackageVersions);
   router.add(
     'GET',
+    r'/api/packages/<package>/advisories',
+    service.getPackageAdvisories,
+  );
+  router.add(
+    'GET',
     r'/api/packages/<package>/versions/<version>.tar.gz',
     service._downloadPackage,
   );
