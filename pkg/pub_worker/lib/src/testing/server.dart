@@ -146,7 +146,28 @@ class PubWorkerTestServer {
 
   @Route.get('/api/packages/<package>/advisories')
   Future<Response> getPackageAdvisories(Request request, String package) async {
-    // TODO: Implement advisory pass-through and configurable local advisories.
+    // TODO: Implement local advisories.
+    if (_fallbackPubHostedUrl != null) {
+      return await retry(
+        () async {
+          final u = Uri.parse(
+            '$_fallbackPubHostedUrl/api/packages/$package/advisories',
+          );
+          final res = await _client.get(u);
+          if (res.statusCode == 404) {
+            return Response.notFound('no such package: "$package"');
+          }
+          if (res.statusCode == 200) {
+            return Response.ok(
+              res.bodyBytes,
+              headers: {'Content-Type': 'application/json'},
+            );
+          }
+          throw Exception('status: ${res.statusCode} from "$u"');
+        },
+        retryIf: (e) => true,
+      ).catchError((_) => Response.notFound('no such package: "$package"'));
+    }
     return Response.ok(
       json.encode([]),
       headers: {'Content-Type': 'application/json'},
