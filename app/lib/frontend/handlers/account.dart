@@ -8,6 +8,7 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/frontend/handlers/cache_control.dart';
 import 'package:pub_dev/package/search_adapter.dart';
+import 'package:pub_dev/shared/markdown.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -73,7 +74,10 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
   final params = request.requestedUri.queryParameters;
   final error = params['error'];
   if (error != null && error.isNotEmpty) {
-    return htmlResponse('There was an error: $error', status: 401);
+    return htmlResponse(
+      markdownToHtml('There was an error:\n\n```\n$error\n```\n'),
+      status: 401,
+    );
   }
 
   final code = params['code'];
