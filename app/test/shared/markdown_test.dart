@@ -6,20 +6,22 @@ import 'package:pana/pana.dart';
 import 'package:pub_dev/shared/markdown.dart';
 import 'package:test/test.dart';
 
+import 'utils.dart';
+
 void main() {
   group('markup', () {
-    test('emoji support', () {
+    scopedTest('emoji support', () {
       expect(markdownToHtml(':white_check_mark:'), '<p>✅</p>\n');
     });
 
-    test('render link id and class', () {
+    scopedTest('render link id and class', () {
       expect(
         markdownToHtml('# ABC def'),
         '<h1 id="abc-def" class="hash-header">ABC def <a href="#abc-def" class="hash-link">#</a></h1>\n',
       );
     });
 
-    test('task list', () {
+    scopedTest('task list', () {
       expect(
         markdownToHtml('- [ ] a\n- [X] b\n- [ ] c\n'),
         '<ul>\n'
@@ -30,14 +32,14 @@ void main() {
       );
     });
 
-    test('named anchor', () {
+    scopedTest('named anchor', () {
       expect(
         markdownToHtml('<a name="abc"></a>'),
         '<p><a name="abc"></a></p>\n',
       );
     });
 
-    test('named anchor with other content', () {
+    scopedTest('named anchor with other content', () {
       expect(markdownToHtml('<a name="abc" other="1"></a>'), '<p></p>\n');
       expect(markdownToHtml('<a name="abc">x</a>'), '<p>x</p>\n');
     });
@@ -47,7 +49,7 @@ void main() {
     final baseUrl = 'https://github.com/example/project';
     final urlResolverFn = Repository.parseUrl(baseUrl).resolveUrl;
 
-    test('relative link within page', () {
+    scopedTest('relative link within page', () {
       expect(
         markdownToHtml('[text](#relative)'),
         '<p><a href="#relative">text</a></p>\n',
@@ -58,7 +60,7 @@ void main() {
       );
     });
 
-    test('absolute link URL', () {
+    scopedTest('absolute link URL', () {
       expect(
         markdownToHtml('[text](http://dartlang.org/)'),
         '<p><a href="http://dartlang.org/" rel="ugc">text</a></p>\n',
@@ -72,7 +74,7 @@ void main() {
       );
     });
 
-    test('absolute image URL', () {
+    scopedTest('absolute image URL', () {
       expect(
         markdownToHtml('![text](http://dartlang.org/image.png)'),
         '<p><img src="http://dartlang.org/image.png" alt="text"></p>\n',
@@ -86,7 +88,7 @@ void main() {
       );
     });
 
-    test('sibling link within site', () {
+    scopedTest('sibling link within site', () {
       expect(markdownToHtml('[text](README.md)'), '<p>text</p>\n');
       expect(
         markdownToHtml('[text](README.md)', urlResolverFn: urlResolverFn),
@@ -94,7 +96,7 @@ void main() {
       );
     });
 
-    test('sibling image within site', () {
+    scopedTest('sibling image within site', () {
       expect(markdownToHtml('![text](image.png)'), '<p>[text]</p>\n');
       expect(
         markdownToHtml('![text](image.png)', urlResolverFn: urlResolverFn),
@@ -102,7 +104,7 @@ void main() {
       );
     });
 
-    test('sibling image inside a relative directory', () {
+    scopedTest('sibling image inside a relative directory', () {
       expect(
         markdownToHtml('![text](image.png)', relativeFrom: 'example/README.md'),
         '<p>[text]</p>\n',
@@ -117,7 +119,7 @@ void main() {
       );
     });
 
-    test('sibling link plus relative link', () {
+    scopedTest('sibling link plus relative link', () {
       expect(markdownToHtml('[text](README.md#section)'), '<p>text</p>\n');
       expect(
         markdownToHtml(
@@ -128,7 +130,7 @@ void main() {
       );
     });
 
-    test('child link within site', () {
+    scopedTest('child link within site', () {
       expect(markdownToHtml('[text](example/README.md)'), '<p>text</p>\n');
       expect(
         markdownToHtml(
@@ -139,7 +141,7 @@ void main() {
       );
     });
 
-    test('child image within site', () {
+    scopedTest('child image within site', () {
       expect(markdownToHtml('![text](example/image.png)'), '<p>[text]</p>\n');
       expect(
         markdownToHtml(
@@ -150,7 +152,7 @@ void main() {
       );
     });
 
-    test('relative image using html tag', () {
+    scopedTest('relative image using html tag', () {
       expect(
         markdownToHtml(
           '[<img src="../../../assets/flutter-favorite-badge.png" width="100" />]'
@@ -170,7 +172,7 @@ void main() {
       );
     });
 
-    test('root link within site', () {
+    scopedTest('root link within site', () {
       expect(markdownToHtml('[text](/README.md)'), '<p>text</p>\n');
       expect(
         markdownToHtml(
@@ -181,7 +183,7 @@ void main() {
       );
     });
 
-    test('root image within site', () {
+    scopedTest('root image within site', () {
       expect(markdownToHtml('![text](/image.png)'), '<p>[text]</p>\n');
       expect(
         markdownToHtml(
@@ -192,7 +194,7 @@ void main() {
       );
     });
 
-    test('email', () {
+    scopedTest('email', () {
       expect(
         markdownToHtml('[me](mailto:email@example.com)'),
         '<p><a href="mailto:email@example.com">me</a></p>\n',
@@ -212,27 +214,27 @@ void main() {
   });
 
   group('Unsafe markdown', () {
-    test('javascript link', () {
+    scopedTest('javascript link', () {
       expect(markdownToHtml('[a](javascript:alert("x"))'), '<p>a</p>\n');
     });
   });
 
   group('Bad markdown', () {
-    test('bad link, keeping link text', () {
+    scopedTest('bad link, keeping link text', () {
       expect(
         markdownToHtml('[my illegal url](http://illegal@@thing)'),
         '<p>my illegal url</p>\n',
       );
     });
 
-    test('complex link inside a quote, keeping link content', () {
+    scopedTest('complex link inside a quote, keeping link content', () {
       expect(
         markdownToHtml('> [**awesome**](href="https://github.com/a/b/c.gif")'),
         '<blockquote>\n<p><strong>awesome</strong></p>\n</blockquote>\n',
       );
     });
 
-    test('bad image link with attribute', () {
+    scopedTest('bad image link with attribute', () {
       expect(
         markdownToHtml('![demo](src="https://github.com/a/b/c.gif")'),
         '<p>[demo]</p>\n',
@@ -241,27 +243,27 @@ void main() {
   });
 
   group('non-whitelisted inline HTML', () {
-    test('script', () {
+    scopedTest('script', () {
       expect(markdownToHtml('<script></script>'), '\n');
     });
   });
 
   group('whitelisted inline HTML', () {
-    test('a', () {
+    scopedTest('a', () {
       expect(
         markdownToHtml('<a href="https://google.com">link</a>'),
         '<p><a href="https://google.com" rel="ugc">link</a></p>\n',
       );
     });
 
-    test('<br/>', () {
+    scopedTest('<br/>', () {
       expect(markdownToHtml('a <br>b'), '<p>a <br>b</p>\n');
       expect(markdownToHtml('a <br  />b'), '<p>a <br>b</p>\n');
     });
   });
 
   group('<summary>', () {
-    test('FIXME: <summary> must not exists in a list item', () {
+    scopedTest('FIXME: <summary> must not exists in a list item', () {
       expect(
         markdownToHtml('- a<summary>b\n- c'),
         '<ul>\n'
@@ -271,21 +273,21 @@ void main() {
       );
     });
 
-    test('FIXME: <summary> must not exists without <details>', () {
+    scopedTest('FIXME: <summary> must not exists without <details>', () {
       expect(
         markdownToHtml('A <summary>b</summary>.'),
         '<p>A </p><summary>b</summary>.<p></p>\n',
       );
     });
 
-    test('FIXME: <summary> should be the first child of details', () {
+    scopedTest('FIXME: <summary> should be the first child of details', () {
       expect(
         markdownToHtml('A <details> <b>bold</b> <summary>b</summary>.'),
         '<p>A </p><details> <b>bold</b> <summary>b</summary>.<p></p></details>\n',
       );
     });
 
-    test('FIXME: <summary> should render <code> blocks inside', () {
+    scopedTest('FIXME: <summary> should render <code> blocks inside', () {
       expect(
         '<details>\n'
             '<summary>\n'
@@ -302,7 +304,7 @@ void main() {
       );
     });
 
-    test('<details> and <summary>', () {
+    scopedTest('<details> and <summary>', () {
       expect(
         markdownToHtml('<details><summary>A</summary>B</details>'),
         '<details><summary>A</summary>B</details>\n',
@@ -311,7 +313,7 @@ void main() {
   });
 
   group('GitHub rewrites', () {
-    test('absolute url: http://[..]/blob/master/[path].gif', () {
+    scopedTest('absolute url: http://[..]/blob/master/[path].gif', () {
       expect(
         markdownToHtml(
           '![text](https://github.com/rcpassos/progress_hud/blob/master/progress_hud.gif)',
@@ -320,7 +322,7 @@ void main() {
       );
     });
 
-    test('root path: /[..]/blob/master/[path].gif', () {
+    scopedTest('root path: /[..]/blob/master/[path].gif', () {
       expect(
         markdownToHtml(
           '![text](/rcpassos/progress_hud/blob/master/progress_hud.gif)',
@@ -332,7 +334,7 @@ void main() {
       );
     });
 
-    test('relative path: [path].gif', () {
+    scopedTest('relative path: [path].gif', () {
       expect(
         markdownToHtml(
           '![text](progress_hud.gif)',
@@ -346,7 +348,7 @@ void main() {
   });
 
   group('changelog', () {
-    test('no structure', () {
+    scopedTest('no structure', () {
       expect(
         markdownToHtml(
           'a\n\n'
@@ -360,7 +362,7 @@ void main() {
       );
     });
 
-    test('single entry', () {
+    scopedTest('single entry', () {
       expect(
         markdownToHtml(
           '# Changelog\n\n'
@@ -381,7 +383,7 @@ void main() {
       );
     });
 
-    test('multiple entries', () {
+    scopedTest('multiple entries', () {
       expect(
         markdownToHtml(
           '# Changelog\n\n'
@@ -408,7 +410,7 @@ void main() {
       );
     });
 
-    test('zebras', () {
+    scopedTest('zebras', () {
       final output = markdownToHtml('''# 2.1.0
  * Zebras can now encode bar-codes
 ## Upgrading from
@@ -437,7 +439,7 @@ void main() {
       ]);
     });
 
-    test('extra text after version', () {
+    scopedTest('extra text after version', () {
       final output = markdownToHtml(
         '# Changelog\n\n'
         '## 1.0.0 (retracted)\n'
@@ -458,7 +460,7 @@ void main() {
       );
     });
 
-    test('fancy format', () {
+    scopedTest('fancy format', () {
       final output = markdownToHtml(
         '# Changelog\n\n'
         '## [1.0.0] - 2022-05-30\n'
@@ -479,7 +481,7 @@ void main() {
       );
     });
 
-    test('custom html', () {
+    scopedTest('custom html', () {
       final input = '''<h1>1.0.0</h1><hr><ul><li>a</li></ul>
 <h1>0.2.9</h1><hr><ul><li>b</li></ul>
 ''';
@@ -498,7 +500,7 @@ void main() {
   });
 
   group('alert blocks', () {
-    test('note', () {
+    scopedTest('note', () {
       final output = markdownToHtml('> [!NOTE]\n> Extra information.');
       expect(output.split('\n').toList(), [
         '<div class="markdown-alert markdown-alert-note">',

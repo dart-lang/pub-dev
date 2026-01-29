@@ -5,9 +5,11 @@
 import 'package:pub_dev/search/text_utils.dart';
 import 'package:test/test.dart';
 
+import '../shared/utils.dart';
+
 void main() {
   group('text preparation', () {
-    test('readme text extraction', () {
+    scopedTest('readme text extraction', () {
       final String input = '''Currently supports the following methods:
 
 - camelize
@@ -37,27 +39,27 @@ Other useful methods will be added soon...
   });
 
   group('exact phrases', () {
-    test('no phrase', () {
+    scopedTest('no phrase', () {
       expect(extractExactPhrases(''), isEmpty);
       expect(extractExactPhrases('abc cde'), isEmpty);
     });
 
-    test('no phrase with single "', () {
+    scopedTest('no phrase with single "', () {
       expect(extractExactPhrases('"'), isEmpty);
       expect(extractExactPhrases('abc cde "'), isEmpty);
     });
 
-    test('no empty phrases', () {
+    scopedTest('no empty phrases', () {
       expect(extractExactPhrases('""'), isEmpty);
       expect(extractExactPhrases('abc "" cde'), isEmpty);
     });
 
-    test('entire text is a phrase', () {
+    scopedTest('entire text is a phrase', () {
       expect(extractExactPhrases('"abc"'), ['abc']);
       expect(extractExactPhrases('" abc cde "'), [' abc cde ']);
     });
 
-    test('mixed phrase + non-phrase', () {
+    scopedTest('mixed phrase + non-phrase', () {
       expect(extractExactPhrases('"abc" cde'), ['abc']);
       expect(extractExactPhrases('123 "abc"'), ['abc']);
       expect(extractExactPhrases('123 "abc" cde'), ['abc']);
@@ -69,7 +71,7 @@ Other useful methods will be added soon...
       );
     });
 
-    test('multiple phrases', () {
+    scopedTest('multiple phrases', () {
       expect(extractExactPhrases('"abc" "cde" "123 456"'), [
         'abc',
         'cde',
@@ -79,11 +81,11 @@ Other useful methods will be added soon...
   });
 
   group('compact readme', () {
-    test('No formatting', () {
+    scopedTest('No formatting', () {
       expect(compactReadme('abc  123 '), 'abc 123');
     });
 
-    test('link', () {
+    scopedTest('link', () {
       expect(
         compactReadme('some [link](http://example.com) with text'),
         'some link with text',
@@ -92,11 +94,11 @@ Other useful methods will be added soon...
   });
 
   group('tokenize', () {
-    test('dart:async', () {
+    scopedTest('dart:async', () {
       expect(tokenize('dart:async'), {'dart': 1.0, 'async': 1.0});
     });
 
-    test('simple text', () {
+    scopedTest('simple text', () {
       expect(tokenize('The quick brown fox jumps over the lazy dog.'), {
         'the': 1.0,
         'quick': 1.0,
@@ -109,7 +111,7 @@ Other useful methods will be added soon...
       });
     });
 
-    test('Cased words', () {
+    scopedTest('Cased words', () {
       expect(tokenize('snake_case'), {'snake': 1.0, 'case': 1.0});
 
       expect(tokenize('CamelCase snake_case firstLowerCase'), {
@@ -132,18 +134,18 @@ Other useful methods will be added soon...
   });
 
   group('trigrams', () {
-    test('small input', () {
+    scopedTest('small input', () {
       expect(trigrams(''), isEmpty);
       expect(trigrams('a'), isEmpty);
       expect(trigrams('ab'), isEmpty);
     });
 
-    test('small inputs', () {
+    scopedTest('small inputs', () {
       expect(trigrams('abc'), ['abc']);
       expect(trigrams('abcd'), ['abc', 'bcd']);
     });
 
-    test('repeated values', () {
+    scopedTest('repeated values', () {
       expect(trigrams('aaaab'), ['aaa', 'aaa', 'aab']);
     });
   });
