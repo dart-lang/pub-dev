@@ -44,8 +44,9 @@ steps:
     script: |
       #!/usr/bin/env bash
       set -x
-      gcloud run deploy image_proxy_server \
+      gcloud run deploy image-proxy-server \
         --image="us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy/image-proxy:$TAG_NAME" \
+        --region=us-central1 \
     env:
       - 'PROJECT_ID=$PROJECT_ID'
       - 'TAG_NAME=$TAG_NAME'
