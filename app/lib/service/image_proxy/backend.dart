@@ -32,7 +32,8 @@ class ImageProxyBackend {
 
   static Future<ImageProxyBackend> create() async {
     final instance = ImageProxyBackend._();
-    await instance._dailySecret.update();
+
+    unawaited(instance._dailySecret.update());
     return instance;
   }
 
