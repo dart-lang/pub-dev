@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2026.01.29`.
+ * Note: reverted sandbox subprocess.
 
 ## `20260129t090900-all`
  * Bump runtimeVersion to `2026.01.28`.
