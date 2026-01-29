@@ -2,7 +2,9 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bump runtimeVersion to `2026.01.26`.
+ * Bump runtimeVersion to `2026.01.28`.
+ * Upgraded stable Dart analysis SDK to `3.10.8`
+ * Upgraded stable Flutter analysis SDK to `3.38.8`.
  * Note: `pub_worker` started to run `pana` subprocesses in gvisor sandbox (`pub`, `analyze`, `dartdoc`).
 
 ## `20260122t090500-all`
