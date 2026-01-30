@@ -451,11 +451,13 @@ write_files:
     ExecStartPre=/bin/sh -c 'ip6tables -N DOCKER-USER || true'
     ExecStartPre=/bin/sh -c 'ip6tables -I DOCKER-USER -d fe80::/10 -j DROP'
     ExecStartPre=/usr/bin/docker-credential-gcr configure-docker --registries="us-central1-docker.pkg.dev"
-    ExecStart=/usr/bin/docker run --rm --dns 8.8.8.8 --dns 8.8.4.4 -u worker:2000 --name=worker $dockerImage ${arguments.map(_shellSingleQuote).join(' ')}
+    ExecStart=/usr/bin/docker run --rm --privileged --dns 8.8.8.8 --dns 8.8.4.4 -u worker:2000 --name=worker $dockerImage ${arguments.map(_shellSingleQuote).join(' ')}
     ExecStopPost=/sbin/poweroff
     StandardOutput=journal+console
     StandardError=journal+console
 runcmd:
+- sysctl -w user.max_user_namespaces=15000
+- sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 - systemctl daemon-reload
 - systemctl start worker.service
 ''';
