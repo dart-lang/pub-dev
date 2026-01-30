@@ -116,8 +116,7 @@ Future<void> main(List<String> args) async {
     pubCacheDir: pubCache,
     dartdocCommand: dartdocCommand,
     dartdocVersion: _dartdocVersion,
-    // TODO: re-enable once the worker issue is fixed
-    // sandboxRunner: Platform.environment['SANDBOX_RUNNER'],
+    sandboxRunner: Platform.environment['SANDBOX_RUNNER'],
   );
 
   //final dartdocOutputDir =
