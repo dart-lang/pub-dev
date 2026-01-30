@@ -342,6 +342,7 @@ class SearchBackend {
       ...?scoreCard.panaReport?.derivedTags,
       ...prereleaseTags,
       ...previewTags,
+      'is:runtime-${scoreCard.runtimeVersion?.replaceAll('.', '')}',
     };
 
     List<ApiDocPage>? apiDocPages;
