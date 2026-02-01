@@ -4,6 +4,33 @@
 
 import 'package:pub_package_reader/pub_package_reader.dart';
 
+/// Returns true if the URL is a GitHub blob image URL
+bool isGitHubBlobImageUrl(String url) {
+  return url.contains('github.com') && url.contains('/blob/');
+}
+
+/// Rewrites a GitHub blob URL to raw.githubusercontent.com
+String rewriteToRawGitHubUrl(String url) {
+  return url
+      .replaceFirst('github.com', 'raw.githubusercontent.com')
+      .replaceFirst('/blob/', '/');
+}
+
+/// Rewrites all GitHub blob image URLs in markdown content
+String rewriteGithubImagesInMarkdown(String markdown) {
+  final regex = RegExp(
+    r'!\[([^\]]*)\]\((https://github\.com/[^)]+/blob/[^)]+)\)',
+    multiLine: true,
+    caseSensitive: true,
+  );
+  return markdown.replaceAllMapped(regex, (match) {
+    final altText = match[1];
+    final url = match[2]!;
+    final newUrl = rewriteToRawGitHubUrl(url);
+    return '![$altText]($newUrl)';
+  });
+}
+
 const _knownTemplateDescriptions = <String>{
   // ex-stagehand templates, check latest versions in dart-lang/sdk's
   // pkg/dartdev/lib/src/templates/ directory:
@@ -66,11 +93,18 @@ Iterable<ArchiveIssue> validateKnownTemplateReadme(
   if (path == null || content == null) {
     return;
   }
-  final lower = content.toLowerCase();
+
+  // rewrite image URLs
+  final rewrittenContent = rewriteGithubImagesInMarkdown(content);
+
+  final lower = rewrittenContent.toLowerCase();
   for (final text in _knownTemplateReadmes) {
     final firstIndex = lower.indexOf(text);
     if (firstIndex >= 0) {
-      final origText = content.substring(firstIndex, firstIndex + text.length);
+      final origText = rewrittenContent.substring(
+        firstIndex,
+        firstIndex + text.length,
+      );
       yield ArchiveIssue(
         '`$path` contains a generic text fragment coming from package templates (`$origText`).\n'
         'Please follow the guides to write great package pages:\n'
