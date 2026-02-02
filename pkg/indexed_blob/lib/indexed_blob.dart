@@ -53,6 +53,7 @@ final class IndexedBlobBuilder {
   final Map<String, dynamic> _index = {};
   bool _isAdding = false;
   bool _finished = false;
+  int _indexUpperLength = 0;
 
   /// Create an [IndexedBlobBuilder] that writes the blob to [blob].
   IndexedBlobBuilder(StreamSink<List<int>> blob) : _blob = blob;
@@ -81,7 +82,9 @@ final class IndexedBlobBuilder {
   /// after the threshold is reached.
   ///
   /// If an exception is thrown generated blob is not valid.
-  Future<void> addFile(
+  ///
+  /// Returns `true` if the [content] was added successfully.
+  Future<bool> addFile(
     String path,
     Stream<List<int>> content, {
     int skipAfterSize = 0,
@@ -105,14 +108,20 @@ final class IndexedBlobBuilder {
       );
 
       if (skipAfterSize > 0 && totalSize > skipAfterSize) {
-        return;
+        return false;
       }
 
       var target = _index;
       final segments = path.split('/');
       for (var i = 0; i < segments.length - 1; i++) {
         final segment = segments[i];
-        final next = target[segment] ??= <String, dynamic>{};
+        var next = target[segment];
+        if (next == null) {
+          next = <String, dynamic>{};
+          target[segment] = next;
+          _indexUpperLength +=
+              utf8.encode(segment).length + 6; // extra length: "<key>":{},
+        }
         if (next is Map<String, dynamic>) {
           target = next;
         } else {
@@ -126,11 +135,25 @@ final class IndexedBlobBuilder {
         // This really shouldn't be possible, if we're adding files
         throw StateError('File at "$path" conflicts with existing file/folder');
       }
-      target[segments.last] = '$start:$_offset';
+      final value = '$start:$_offset';
+      target[segments.last] = value;
+      _indexUpperLength +=
+          utf8.encode(segments.last).length +
+          3 + // extra length: "<key>":
+          value.length +
+          3; // extra length: "<value>",
+      return true;
     } finally {
       _isAdding = false;
     }
   }
+
+  /// Get the upper limit of the estimated index length, which includes:
+  /// - the wrapper object `{}` (2)
+  /// - the version: `"version":1,` (12)
+  /// - the blobId: `"blobId":"<36-char-uuid>",` (48)
+  /// - keys and values of the file paths: `"index":{},` (11)
+  int get indexUpperLength => _indexUpperLength + 2 + 12 + 48 + 11;
 
   /// Build an index for the blob constructed, calling [addFile] after this
   /// is not allowed.
@@ -144,6 +167,7 @@ final class IndexedBlobBuilder {
     await _blob.close();
 
     final bytes = _buildIndexBytes(blobId: blobId, index: _index);
+    assert(bytes.length < indexUpperLength + blobId.length);
     return BlobIndex.fromBytes(bytes);
   }
 

@@ -4,3 +4,6 @@
 
 /// The maximum size of the compressed blob content that we want to store and serve.
 const blobContentSizeLimit = 10 * 1024 * 1024;
+
+/// The maximum size of the blob index file.
+const blobIndexSizeLimit = blobContentSizeLimit;

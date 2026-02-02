@@ -189,20 +189,45 @@ Future<void> _analyzePackage(
       );
       await process.stdin.close();
 
+      int bytesFromProcess = 0;
+      bool processExceededLogLimit = false;
+      void writeLogLineFromProcess(String line) {
+        if (processExceededLogLimit) {
+          return;
+        }
+        final bytes = utf8.encode('$line\n');
+        bytesFromProcess += bytes.length;
+
+        // Note: The size limit is for the compressed size, and the log should
+        //       compress well, so we could probably give a larger limit here.
+        if (bytesFromProcess > blobContentSizeLimit) {
+          processExceededLogLimit = true;
+          return;
+        }
+        log.writeln(line);
+      }
+
       await Future.wait<void>([
         process.stderr
             .transform(Utf8Decoder(allowMalformed: true))
             .transform(LineSplitter())
-            .forEach(log.writeln),
+            .forEach(writeLogLineFromProcess),
         process.stdout
             .transform(Utf8Decoder(allowMalformed: true))
             .transform(LineSplitter())
-            .forEach(log.writeln),
+            .forEach(writeLogLineFromProcess),
         process.exitOrTimeout(_processTimeout, () {
           log.writeln('TIMEOUT: process sending SIGTERM/SIGKILL');
         }),
       ]).catchError((e) => const [/* ignore */]);
       final exitCode = await process.exitCode;
+
+      if (processExceededLogLimit) {
+        log.writeln(
+          '\nSUBPROCESS ERROR: The subprocess exceeded log output limit, '
+          'the end of the log is not shown here.\n',
+        );
+      }
 
       log.writeln('### Execution of process exited $exitCode');
       log.writeln('STOPPED: ${clock.now().toUtc().toIso8601String()}');
@@ -212,21 +237,47 @@ Future<void> _analyzePackage(
     final blobFile = File(p.join(tempDir.path, 'files.blob'));
     final builder = IndexedBlobBuilder(blobFile.openWrite());
 
+    final missingBlobFiles = <String>[];
     await for (final f in outDir.list(recursive: true, followLinks: false)) {
       if (f is File) {
         final path = p.relative(f.path, from: outDir.path);
         if (path == 'log.txt') {
           continue; // We'll add this at the very end!
         }
+        // Over-estimate with the current file and also additional bytes for the the `log.txt`.
+        if (builder.indexUpperLength + path.length + 128 > blobIndexSizeLimit) {
+          missingBlobFiles.add('Index file limit reached at "$path"');
+          continue;
+        }
         try {
-          await builder.addFile(
+          final added = await builder.addFile(
             path,
             f.openRead().transform(gzip.encoder),
             skipAfterSize: blobContentSizeLimit,
           );
+          if (!added) {
+            missingBlobFiles.add('Too large output file at "$path"');
+          }
         } on IOException {
-          log.writeln('ERROR: Failed to read output file at "$path"');
+          missingBlobFiles.add('Failed to read output file at "$path"');
         }
+      }
+    }
+    if (missingBlobFiles.isNotEmpty) {
+      log.writeln();
+      log.writeln('BLOB ERROR: ${missingBlobFiles.length} file(s) missing.');
+      late List<String> reportedLines;
+      if (missingBlobFiles.length < 20) {
+        reportedLines = missingBlobFiles;
+      } else {
+        reportedLines = [
+          ...missingBlobFiles.take(10),
+          '...',
+          ...missingBlobFiles.skip(missingBlobFiles.length - 10),
+        ];
+      }
+      for (final line in reportedLines) {
+        log.writeln('- $line');
       }
     }
 
@@ -251,6 +302,7 @@ Future<void> _analyzePackage(
 
     // Create BlobIndex
     final index = await builder.buildIndex(r.blobId);
+    final indexBytes = index.asBytes();
 
     // Upload blob and index
     await upload(
@@ -267,8 +319,8 @@ Future<void> _analyzePackage(
     await upload(
       client,
       r.index,
-      () => Stream.value(index.asBytes()),
-      index.asBytes().length,
+      () => Stream.value(indexBytes),
+      indexBytes.length,
       filename: 'index.json',
       contentType: 'application/json',
     );
