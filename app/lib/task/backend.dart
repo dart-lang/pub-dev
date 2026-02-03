@@ -755,13 +755,14 @@ class TaskBackend {
     String path, {
     int? offset,
     int? length,
+    int? maxSize,
   }) async {
     try {
       return await _bucket.readAsBytes(
         path,
         offset: offset,
         length: length,
-        maxSize: blobContentSizeLimit, // sanity limit
+        maxSize: maxSize ?? blobContentSizeLimit, // sanity limit
       );
     } on DetailedApiRequestError catch (e) {
       if (e.status == 404) {
@@ -817,7 +818,7 @@ class TaskBackend {
   }) async {
     final pathPrefix = '$runtimeVersion/$package/$version';
     final path = '$pathPrefix/index.json';
-    final bytes = await _readFromBucket(path);
+    final bytes = await _readFromBucket(path, maxSize: blobIndexSizeLimit);
     if (bytes == null) {
       return BlobIndex.empty(blobId: '');
     }

@@ -97,7 +97,9 @@ void main() {
     await b.addFile('lib/src/test-b.dart', Stream.value([101]));
     await b.addFile('log.txt', Stream.value([0, 0]));
 
+    expect(b.indexUpperLength, 184);
     final index = await b.buildIndex('42');
+    expect(index.asBytes().length, 146);
 
     final files = index.files.toList();
     expect(files, hasLength(5));
@@ -107,16 +109,25 @@ void main() {
     final controller = StreamController<List<int>>();
     final result = controller.stream.toList();
     final b = IndexedBlobBuilder(controller);
-    await b.addFile('a', Stream.value([0, 1]), skipAfterSize: 3);
-    await b.addFile(
-      'b',
-      Stream.fromIterable([
-        [0],
-        [1, 2, 3], // will be removed,
-      ]),
-      skipAfterSize: 3,
+    expect(
+      await b.addFile('a', Stream.value([0, 1]), skipAfterSize: 3),
+      isTrue,
     );
-    await b.addFile('c', Stream.value([8, 9]), skipAfterSize: 3);
+    expect(
+      await b.addFile(
+        'b',
+        Stream.fromIterable([
+          [0],
+          [1, 2, 3], // will be removed,
+        ]),
+        skipAfterSize: 3,
+      ),
+      isFalse,
+    );
+    expect(
+      await b.addFile('c', Stream.value([8, 9]), skipAfterSize: 3),
+      isTrue,
+    );
     final index = await b.buildIndex('1');
     final files = index.files.toList();
     expect(files, hasLength(2));
