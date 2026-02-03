@@ -605,10 +605,10 @@ packages:
     dependency: transitive
     description:
       name: pana
-      sha256: "27954f86caed3c2cef4318cb540c4ba6ba1145c17141bdb9018e284dc76a4535"
+      sha256: "8505825414005c57ba477874b98c4d47ec3e12fccb54af43730c055980bfa143"
       url: "https://pub.dev"
     source: hosted
-    version: "0.23.8"
+    version: "0.23.9"
   path:
     dependency: transitive
     description:
