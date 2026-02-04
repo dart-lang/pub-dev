@@ -56,14 +56,23 @@ ENV DARTDOC_RESOURCES_DIR="${DARTDOC_DIR}/lib/resources"
 WORKDIR /home/worker/pub-dev/pkg/pub_worker
 RUN dart pub get
 
+# Setup pana using the resolved version from pkg/pub_worker
+RUN /home/worker/pub-dev/tool/setup-pana.sh /home/worker/pana
+ENV PANA_LICENSE_DATA_DIR="/home/worker/pana/lib/src/third_party/spdx/licenses"
+
 # AOT compile pub_worker
-RUN mkdir -p build
+ENV PUB_WORKER_BUILD_DIR="/home/worker/pub-dev/pkg/pub_worker/build"
+RUN mkdir -p "${PUB_WORKER_BUILD_DIR}"
 RUN dart compile exe -o "build/pub_worker" "bin/pub_worker.dart"
-ENV PATH="/home/worker/pub-dev/pkg/pub_worker/build:${PATH}"
+ENV PATH="${PUB_WORKER_BUILD_DIR}:${PATH}"
+
+# AOT compile the pub_worker_subprocess
+RUN dart compile exe -o "build/pub_worker_subprocess" "bin/pub_worker_subprocess.dart"
+ENV PUB_WORKER_SUBPROCESS_BINARY="${PUB_WORKER_BUILD_DIR}/pub_worker_subprocess"
 
 # AOT compile sandbox runner
 RUN dart compile exe -o "build/sandbox_runner" "bin/sandbox_runner.dart"
-ENV SANDBOX_RUNNER=/home/worker/pub-dev/pkg/pub_worker/build/sandbox_runner
+ENV SANDBOX_RUNNER="${PUB_WORKER_BUILD_DIR}/sandbox_runner"
 
 # This container image is launched by cloud-init, and cloud-init is responsible
 # for shutting down the VM when the container exits.

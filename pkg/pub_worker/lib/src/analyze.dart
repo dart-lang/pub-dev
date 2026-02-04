@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:convert' show JsonUtf8Encoder, LineSplitter, Utf8Decoder, utf8;
 import 'dart:io'
-    show Directory, File, IOException, Process, ProcessSignal, gzip;
+    show Directory, File, IOException, Platform, Process, ProcessSignal, gzip;
 
 import 'package:_pub_shared/data/task_payload.dart';
 import 'package:_pub_shared/pubapi.dart';
@@ -47,10 +47,7 @@ bool _retryIf(Exception e) =>
     e is ClientException ||
     e is TimeoutException;
 
-Future<void> analyze(
-  Payload payload, {
-  String pubWorkerSubprocessPath = './bin/pub_worker_subprocess.dart',
-}) async {
+Future<void> analyze(Payload payload) async {
   _log.info('Running analyze for payload with package:${payload.package}');
 
   // Create a single PUB_CACHE and PANA_CACHE that can be reused for analysis
@@ -102,7 +99,6 @@ Future<void> analyze(
             pubHostedUrl: payload.pubHostedUrl,
             pubCache: pubCacheDir.path,
             panaCache: panaCacheDir.path,
-            pubWorkerSubprocessPath: pubWorkerSubprocessPath,
           );
         } else {
           await _reportPackageSkipped(
@@ -157,7 +153,6 @@ Future<void> _analyzePackage(
   required String pubHostedUrl,
   required String pubCache,
   required String panaCache,
-  required String pubWorkerSubprocessPath,
 }) async {
   _log.info('Running analyze for $package / $version');
 
@@ -170,14 +165,28 @@ Future<void> _analyzePackage(
 
     log.writeln('## Running analysis for "$package" version "$version"');
     log.writeln('STARTED: ${clock.now().toUtc().toIso8601String()}');
-    log.writeln(''); // empty-line before the next headline
 
+    var subprocessCommand = 'dart';
+    var subprocessParams = <String>[
+      p.absolute('./bin/pub_worker_subprocess.dart'),
+    ];
+    final subprocessBinary =
+        Platform.environment['PUB_WORKER_SUBPROCESS_BINARY'];
+    if (subprocessBinary != null) {
+      subprocessCommand = subprocessBinary;
+      subprocessParams = <String>[];
+    }
+    log.writeln(
+      'PUB_WORKER_SUBPROCESS_BINARY: $subprocessCommand ${subprocessParams.join(' ')}',
+    );
+
+    log.writeln(''); // empty-line before the next headline
     // Run the analysis
     {
       log.writeln('### Starting processing');
       final process = await Process.start(
-        'dart',
-        [p.absolute(pubWorkerSubprocessPath), outDir.path, package, version],
+        subprocessCommand,
+        [...subprocessParams, outDir.path, package, version],
         workingDirectory: outDir.path,
         includeParentEnvironment: true,
         environment: {

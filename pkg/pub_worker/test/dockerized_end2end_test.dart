@@ -76,6 +76,20 @@ void main() {
               ? '[no log.txt]'
               : utf8.decode(gzip.decode(logTxtBytes));
 
+          // verify log for sandboxed executions
+          final expectedFragments = [
+            // the exact binary location is not imporant, we must not see `dart ./bin/...`
+            'PUB_WORKER_SUBPROCESS_BINARY: /home/worker/',
+            'build/sandbox_runner /home/worker/dart/stable/bin/dart pub',
+            'build/sandbox_runner git',
+            'sandbox_runner /home/worker/dartdoc/build/dartdoc',
+            if (packagesWithScreenshots.contains(package))
+              'build/sandbox_runner webpinfo',
+          ];
+          for (final fragment in expectedFragments) {
+            expect(logTxt, contains(fragment));
+          }
+
           final docIndex = result.index.lookup('doc/index.html');
           expect(
             docIndex,
@@ -91,6 +105,16 @@ void main() {
           );
           final report = summary.report!;
           expect(report.maxPoints, greaterThan(100));
+
+          // check the presence of a license
+          expect(summary.tags, isNotNull);
+          expect(
+            summary.tags!.any(
+              (tag) => tag.startsWith('license:') && tag != 'license:unknown',
+            ),
+            isTrue,
+            reason: summary.tags.toString(),
+          );
 
           if (packagesWithScreenshots.contains(package)) {
             expect(
