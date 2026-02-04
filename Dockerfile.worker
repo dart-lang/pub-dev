@@ -21,7 +21,7 @@ WORKDIR /home/worker/pub-dev
 # Setup a rootfs for use in sandboxes
 ENV SANDBOX_ROOTFS=/home/worker/sandbox-rootfs
 RUN tool/setup-sandbox-rootfs.sh "${SANDBOX_ROOTFS}"
-RUN proot -0 -r "${SANDBOX_ROOTFS}" -b /dev -b /proc -b /sys /bin/bash -c "apt update &&  apt install -y --no-install-recommends git && apt clean"
+RUN proot -0 -r "${SANDBOX_ROOTFS}" -b /dev -b /proc -b /sys /bin/bash -c "apt update &&  apt install -y --no-install-recommends git ca-certificates && apt clean"
 
 # A config directory for preview SDKs.
 RUN mkdir -p /home/worker/config/dart-stable
