@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:_pub_shared/data/task_payload.dart';
 import 'package:_pub_shared/worker/docker_utils.dart';
@@ -75,6 +76,18 @@ void main() {
           final logTxt = logTxtBytes == null
               ? '[no log.txt]'
               : utf8.decode(gzip.decode(logTxtBytes));
+
+          // verify unexpected failures
+          final unexpectedFragments = [
+            'Failed to run',
+            'certificate verification failed',
+            'access denied',
+          ];
+          for (final fragment in unexpectedFragments) {
+            if (logTxt.toLowerCase().contains(fragment.toLowerCase())) {
+              fail('Log contains "$fragment":\n$logTxt');
+            }
+          }
 
           // verify log for sandboxed executions
           final expectedFragments = [
