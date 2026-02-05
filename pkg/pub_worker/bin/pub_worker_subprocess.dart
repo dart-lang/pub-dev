@@ -134,6 +134,7 @@ Future<void> main(List<String> args) async {
       panaCacheDir: Platform.environment['PANA_CACHE'],
       resourcesOutputDir: resourcesOutputDir.path,
       totalTimeout: _totalTimeout,
+      licenseDataDir: Platform.environment['PANA_LICENSE_DATA_DIR'],
     ),
     logger: Logger('pana'),
   );
