@@ -90,8 +90,6 @@ void main() {
 
           // verify log for sandboxed executions
           final expectedFragments = [
-            // the exact binary location is not imporant, we must not see `dart ./bin/...`
-            'PUB_WORKER_SUBPROCESS_BINARY: /home/worker/',
             'build/sandbox_runner /home/worker/dart/stable/bin/dart pub',
             'build/sandbox_runner git',
             'sandbox_runner /home/worker/dartdoc/build/dartdoc',

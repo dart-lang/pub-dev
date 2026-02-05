@@ -176,9 +176,6 @@ Future<void> _analyzePackage(
       subprocessCommand = subprocessBinary;
       subprocessParams = <String>[];
     }
-    log.writeln(
-      'PUB_WORKER_SUBPROCESS_BINARY: $subprocessCommand ${subprocessParams.join(' ')}',
-    );
 
     log.writeln(''); // empty-line before the next headline
     // Run the analysis
