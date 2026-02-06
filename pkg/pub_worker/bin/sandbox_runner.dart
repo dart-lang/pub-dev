@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:runsc/runsc.dart';
 
 /// Runs the provided [args] list and runs it in a sandbox.
@@ -64,6 +65,8 @@ Future<void> main(List<String> args) async {
 
   final readOnlyMounts = allMounts
       .where((e) => !outputFolders.contains(e))
+      // do not mount read only folders inside an output folder
+      .where((e) => !outputFolders.any((o) => path.isWithin(o, e)))
       .toList();
 
   final p = await runsc(

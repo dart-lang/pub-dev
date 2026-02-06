@@ -52,11 +52,16 @@ Future<void> main(List<String> args) async {
   final pubHostedUrl =
       Platform.environment['PUB_HOSTED_URL'] ?? 'https://pub.dartlang.org';
   final pubCache = Platform.environment['PUB_CACHE']!;
-  final tempDir = await Directory.systemTemp.createTemp('pana-$package');
-  final rawDartdocOutputFolder = Directory(p.join(tempDir.path, 'raw-dartdoc'));
+  final tempDir = (await Directory.systemTemp.createTemp(
+    'pana-$package',
+  )).resolveSymbolicLinksSync();
+  final rawDartdocOutputFolder = Directory(p.join(tempDir, 'raw-dartdoc'));
   await rawDartdocOutputFolder.create(recursive: true);
-  final pkgDownloadDir = Directory(p.join(tempDir.path, package));
+  final pkgDownloadDir = Directory(p.join(tempDir, package));
   await pkgDownloadDir.create(recursive: true);
+  // Temporary pub cache directory for pub unpack, allowing the move of the folder.
+  final unpackPubCacheDir = Directory(p.join(tempDir, 'unpack-pub-cache'));
+  await unpackPubCacheDir.create(recursive: true);
 
   // Setup logging
   Logger.root.level = Level.INFO;
@@ -79,10 +84,13 @@ Future<void> main(List<String> args) async {
     }
   });
 
+  final sandboxRunner = Platform.environment['SANDBOX_RUNNER'];
+
   // Download package using the Dart SDK in the path, output will be
   // `<output-dir>/<package>-<version>`
   await runConstrained(
     [
+      ?sandboxRunner,
       'dart',
       'pub',
       'unpack',
@@ -91,10 +99,17 @@ Future<void> main(List<String> args) async {
       pkgDownloadDir.path,
       '--no-resolve',
     ],
-    environment: {'PUB_HOSTED_URL': pubHostedUrl},
+    environment: {
+      'PUB_CACHE': unpackPubCacheDir.path,
+      'PUB_HOSTED_URL': pubHostedUrl,
+      'SANDBOX_OUTPUT': tempDir,
+      'SANDBOX_NETWORK_ENABLED': 'true',
+    },
     throwOnError: true,
     retryOptions: RetryOptions(maxAttempts: 3),
+    workingDirectory: rawDartdocOutputFolder.path,
   );
+  await unpackPubCacheDir.delete(recursive: true);
   final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
   final detected = await _detectSdks(pkgDir.path);
 
@@ -116,7 +131,7 @@ Future<void> main(List<String> args) async {
     pubCacheDir: pubCache,
     dartdocCommand: dartdocCommand,
     dartdocVersion: _dartdocVersion,
-    sandboxRunner: Platform.environment['SANDBOX_RUNNER'],
+    sandboxRunner: sandboxRunner,
   );
 
   //final dartdocOutputDir =
@@ -188,7 +203,7 @@ Future<void> main(List<String> args) async {
     docDir: rawDartdocOutputFolder.path,
   );
 
-  await tempDir.delete(recursive: true);
+  await Directory(tempDir).delete(recursive: true);
 }
 
 final _workerConfigDirectory = Directory('/home/worker/config');
