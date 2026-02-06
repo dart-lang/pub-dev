@@ -34,19 +34,6 @@ void main() {
       }
     });
 
-    void testAllowedLink(String from, String to) {
-      test('`$from` -> `$to`', () async {
-        await writeTarGzFile(
-          archiveFile,
-          textFiles: minimalTextFiles,
-          symlinks: {from: to},
-        );
-
-        final summary = await summarizePackageArchive(archiveFile.path);
-        expect(summary.hasIssues, isFalse);
-      });
-    }
-
     void testBrokenLink(String from, String to) {
       test('`$from` -> `$to`', () async {
         await writeTarGzFile(
