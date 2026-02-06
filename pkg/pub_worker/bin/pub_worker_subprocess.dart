@@ -59,7 +59,7 @@ Future<void> main(List<String> args) async {
   await rawDartdocOutputFolder.create(recursive: true);
   final pkgDownloadDir = Directory(p.join(tempDir, package));
   await pkgDownloadDir.create(recursive: true);
-  // Temporary pub cache directory for pub unpack.
+  // Temporary pub cache directory for pub unpack, allowing the move of the folder.
   final unpackPubCacheDir = Directory(p.join(tempDir, 'unpack-pub-cache'));
   await unpackPubCacheDir.create(recursive: true);
 
@@ -102,7 +102,7 @@ Future<void> main(List<String> args) async {
     environment: {
       'PUB_CACHE': unpackPubCacheDir.path,
       'PUB_HOSTED_URL': pubHostedUrl,
-      'SANDBOX_OUTPUT': [unpackPubCacheDir.path, pkgDownloadDir.path].join(':'),
+      'SANDBOX_OUTPUT': tempDir,
       'SANDBOX_NETWORK_ENABLED': 'true',
     },
     throwOnError: true,
