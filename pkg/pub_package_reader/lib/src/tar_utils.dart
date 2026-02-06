@@ -22,24 +22,10 @@ class TarArchive {
   /// Maps the normalized names to their original value;
   final Map<String, String> _normalizedNames;
 
-  /// The map of files that are symlinks, using normalized names
-  /// in both parts of the map entries.
-  final Map<String, String> _symlinks;
+  TarArchive._(this._path, this._normalizedNames);
 
-  TarArchive._(this._path, this._normalizedNames, this._symlinks);
-
-  TarArchive._normalize(
-    String path,
-    List<String> names,
-    Map<String, String> symlinks,
-  ) : this._(
-        path,
-        _normalizeNames(names),
-        symlinks.map(
-          (key, value) =>
-              MapEntry<String, String>(_normalize(key), _normalize(value)),
-        ),
-      );
+  TarArchive._normalize(String path, List<String> names)
+    : this._(path, _normalizeNames(names));
 
   /// The list of normalized file names.
   late final fileNames = (_normalizedNames.keys.toList()..sort()).toSet();
@@ -109,24 +95,6 @@ class TarArchive {
     return null;
   }
 
-  /// Returns the broken links (that point outside, or to a nonexistent file).
-  Map<String, String> brokenSymlinks() {
-    final broken = <String, String>{};
-    for (final from in _symlinks.keys) {
-      final to = _symlinks[from]!;
-      final toAsUri = Uri.tryParse(to);
-      if (toAsUri == null || toAsUri.isAbsolute) {
-        broken[from] = to;
-        continue;
-      }
-      final resolvedPath = p.normalize(Uri(path: from).resolve(to).path);
-      if (!fileNames.contains(resolvedPath)) {
-        broken[from] = to;
-      }
-    }
-    return broken;
-  }
-
   /// Creates a new instance by scanning the archive at [path].
   static Future<TarArchive> scan(
     String path, {
@@ -134,7 +102,6 @@ class TarArchive {
     int? maxTotalLengthBytes,
   }) async {
     final names = <String>{};
-    final symlinks = <String, String>{};
     final reader = TarReader(
       File(path).openRead().transform(gzip.decoder),
       disallowTrailingData: true,
@@ -188,11 +155,11 @@ class TarArchive {
         throw TarException('Duplicate tar entry: `${entry.name}`.');
       }
       if (entry.header.linkName != null) {
-        symlinks[entry.name] = entry.header.linkName!;
+        throw TarException('Symlinks not allowed: `${entry.name}`.');
       }
     }
     await reader.cancel();
-    return TarArchive._normalize(path, names.toList(), symlinks);
+    return TarArchive._normalize(path, names.toList());
   }
 }
 

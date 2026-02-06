@@ -58,16 +58,13 @@ void main() {
         final summary = await summarizePackageArchive(archiveFile.path);
         expect(
           summary.issues.single.message,
-          'Package archive contains a broken symlink: `$from` -> `$to`.',
+          'Failed to scan tar archive. (Symlinks not allowed: `$from`.)',
         );
       });
     }
 
-    testAllowedLink('README.txt', 'README.md');
-    // This test-case should fail, but it for simplicity it is accepted by pub.
-    // TODO: fix verification to detect circular links
-    testAllowedLink('README.txt', 'README.txt');
-
+    testBrokenLink('README.txt', 'README.md');
+    testBrokenLink('README.txt', 'README.txt');
     testBrokenLink('README.txt', 'not-a-file.txt');
     testBrokenLink('README.txt', '../README.txt');
     testBrokenLink('README.txt', '/README.txt');
