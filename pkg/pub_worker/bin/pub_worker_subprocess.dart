@@ -79,10 +79,13 @@ Future<void> main(List<String> args) async {
     }
   });
 
+  final sandboxRunner = Platform.environment['SANDBOX_RUNNER'];
+
   // Download package using the Dart SDK in the path, output will be
   // `<output-dir>/<package>-<version>`
   await runConstrained(
     [
+      ?sandboxRunner,
       'dart',
       'pub',
       'unpack',
@@ -91,7 +94,10 @@ Future<void> main(List<String> args) async {
       pkgDownloadDir.path,
       '--no-resolve',
     ],
-    environment: {'PUB_HOSTED_URL': pubHostedUrl},
+    environment: {
+      'PUB_HOSTED_URL': pubHostedUrl,
+      'SANDBOX_OUTPUT': pkgDownloadDir.path,
+    },
     throwOnError: true,
     retryOptions: RetryOptions(maxAttempts: 3),
   );
@@ -116,7 +122,7 @@ Future<void> main(List<String> args) async {
     pubCacheDir: pubCache,
     dartdocCommand: dartdocCommand,
     dartdocVersion: _dartdocVersion,
-    sandboxRunner: Platform.environment['SANDBOX_RUNNER'],
+    sandboxRunner: sandboxRunner,
   );
 
   //final dartdocOutputDir =
