@@ -174,6 +174,16 @@ class TarArchive {
         );
       }
 
+      final normalizedName = _normalize(entry.name);
+      if (p.isAbsolute(normalizedName)) {
+        throw TarException('Tar entry has absolute name: `${entry.name}`.');
+      }
+      if (p.split(normalizedName).contains('..')) {
+        throw TarException(
+          'Tar entry points outside of the archive: `${entry.name}`.',
+        );
+      }
+
       if (!names.add(entry.name)) {
         throw TarException('Duplicate tar entry: `${entry.name}`.');
       }

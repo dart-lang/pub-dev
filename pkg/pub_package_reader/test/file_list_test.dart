@@ -4,7 +4,9 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:pub_package_reader/pub_package_reader.dart';
+import 'package:pub_package_reader/src/tar_utils.dart';
 import 'package:test/test.dart';
 
 import '_tar_writer.dart';
@@ -96,4 +98,64 @@ void main() {
       );
     });
   });
+
+  group('tar entry test', () {
+    test('absolue path in the tar entry', () async {
+      final alternatives = [
+        '/abc/def',
+        '/abc/../../def',
+        '/abc/./abc/../../def',
+      ];
+      for (final path in alternatives) {
+        await _withTempDir((tempDir) async {
+          final file = File(p.join(tempDir, 'x.tar.gz'));
+          await writeTarGzFile(file, textFiles: {path: 'content'});
+          await expectLater(
+            TarArchive.scan(file.path),
+            throwsA(
+              isA<TarException>().having(
+                (e) => e.message,
+                'message',
+                contains('absolute name'),
+              ),
+            ),
+          );
+        });
+      }
+    });
+
+    test('pointing outside of the archive', () async {
+      final alternatives = [
+        '../abc',
+        'abc/../..',
+        'abc/../def/../../ghi',
+        './abc/.../../../..',
+      ];
+      for (final path in alternatives) {
+        await _withTempDir((tempDir) async {
+          final file = File(p.join(tempDir, 'x.tar.gz'));
+          await writeTarGzFile(file, textFiles: {path: 'content'});
+          await expectLater(
+            TarArchive.scan(file.path),
+            throwsA(
+              isA<TarException>().having(
+                (e) => e.message,
+                'message',
+                contains('points outside'),
+              ),
+            ),
+          );
+        });
+      }
+    });
+  });
+}
+
+Future<K> _withTempDir<K>(Future<K> Function(String tempDir) fn) async {
+  final dir = await Directory.systemTemp.createTemp();
+  try {
+    return await fn(dir.path);
+  } finally {
+    await dir.delete(recursive: true);
+  }
 }
