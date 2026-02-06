@@ -52,15 +52,17 @@ Future<void> main(List<String> args) async {
   final pubHostedUrl =
       Platform.environment['PUB_HOSTED_URL'] ?? 'https://pub.dartlang.org';
   final pubCache = Platform.environment['PUB_CACHE']!;
-  final tempDir = await Directory.systemTemp.createTemp('pana-$package');
-  final rawDartdocOutputFolder = Directory(p.join(tempDir.path, 'raw-dartdoc'));
+  final tempDir = (await Directory.systemTemp.createTemp(
+    'pana-$package',
+  )).resolveSymbolicLinksSync();
+  final rawDartdocOutputFolder = Directory(p.join(tempDir, 'raw-dartdoc'));
   await rawDartdocOutputFolder.create(recursive: true);
-  final pkgDownloadDir = Directory(p.join(tempDir.path, package));
+  final pkgDownloadDir = Directory(p.join(tempDir, package));
   await pkgDownloadDir.create(recursive: true);
   // Sandbox does not allow moving files between unrealted mounts.
   // This temporary directory allows `dart pub` to unpack the package and move to the right place.
   final pkgDownloadPubCacheDir = Directory(
-    p.join(tempDir.path, 'download-pub-cache'),
+    p.join(tempDir, 'download-pub-cache'),
   );
   await pkgDownloadPubCacheDir.create(recursive: true);
 
@@ -103,7 +105,7 @@ Future<void> main(List<String> args) async {
     environment: {
       'PUB_CACHE': pkgDownloadPubCacheDir.path,
       'PUB_HOSTED_URL': pubHostedUrl,
-      'SANDBOX_OUTPUT': [tempDir.path].join(':'),
+      'SANDBOX_OUTPUT': [tempDir].join(':'),
       'SANDBOX_NETWORK_ENABLED': 'true',
     },
     throwOnError: true,
@@ -204,7 +206,7 @@ Future<void> main(List<String> args) async {
     docDir: rawDartdocOutputFolder.path,
   );
 
-  await tempDir.delete(recursive: true);
+  await Directory(tempDir).delete(recursive: true);
 }
 
 final _workerConfigDirectory = Directory('/home/worker/config');
