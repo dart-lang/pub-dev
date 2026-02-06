@@ -95,12 +95,14 @@ Future<void> main(List<String> args) async {
       '--no-resolve',
     ],
     environment: {
+      'PUB_CACHE': pubCache,
       'PUB_HOSTED_URL': pubHostedUrl,
       'SANDBOX_OUTPUT': [pkgDownloadDir.path, pubCache].join(':'),
       'SANDBOX_NETWORK_ENABLED': 'true',
     },
     throwOnError: true,
     retryOptions: RetryOptions(maxAttempts: 3),
+    workingDirectory: pkgDownloadDir.path,
   );
   final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
   final detected = await _detectSdks(pkgDir.path);
