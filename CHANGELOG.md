@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20260206t131300-all`
  * Bump runtimeVersion to `2026.02.04`.
  * Upgraded pana to `0.23.9`.
  * Note: `pub_worker` started to run more `pana` subprocess in gvisor sandbox (`git`, `webp`).
