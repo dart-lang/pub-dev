@@ -57,6 +57,12 @@ Future<void> main(List<String> args) async {
   await rawDartdocOutputFolder.create(recursive: true);
   final pkgDownloadDir = Directory(p.join(tempDir.path, package));
   await pkgDownloadDir.create(recursive: true);
+  // Sandbox does not allow moving files between unrealted mounts.
+  // This temporary directory allows `dart pub` to unpack the package and move to the right place.
+  final pkgDownloadPubCacheDir = Directory(
+    p.join(tempDir.path, 'download-pub-cache'),
+  );
+  await pkgDownloadPubCacheDir.create(recursive: true);
 
   // Setup logging
   Logger.root.level = Level.INFO;
@@ -95,15 +101,16 @@ Future<void> main(List<String> args) async {
       '--no-resolve',
     ],
     environment: {
-      'PUB_CACHE': pubCache,
+      'PUB_CACHE': pkgDownloadPubCacheDir.path,
       'PUB_HOSTED_URL': pubHostedUrl,
-      'SANDBOX_OUTPUT': [pkgDownloadDir.path, pubCache].join(':'),
+      'SANDBOX_OUTPUT': [tempDir.path].join(':'),
       'SANDBOX_NETWORK_ENABLED': 'true',
     },
     throwOnError: true,
     retryOptions: RetryOptions(maxAttempts: 3),
     workingDirectory: pkgDownloadDir.path,
   );
+  await pkgDownloadPubCacheDir.delete(recursive: true);
   final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
   final detected = await _detectSdks(pkgDir.path);
 
