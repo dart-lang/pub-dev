@@ -108,7 +108,6 @@ Future<void> main(List<String> args) async {
     },
     throwOnError: true,
     retryOptions: RetryOptions(maxAttempts: 3),
-    workingDirectory: tempDir,
   );
   await unpackPubCacheDir.delete(recursive: true);
   final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$version'));
