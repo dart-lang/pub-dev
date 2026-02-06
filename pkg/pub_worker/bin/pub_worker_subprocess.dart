@@ -59,8 +59,7 @@ Future<void> main(List<String> args) async {
   await rawDartdocOutputFolder.create(recursive: true);
   final pkgDownloadDir = Directory(p.join(tempDir, package));
   await pkgDownloadDir.create(recursive: true);
-  // Sandbox does not allow moving files between unrealted mounts.
-  // This temporary directory allows `dart pub` to unpack the package and move to the right place.
+  // Temporary pub cache directory for pub unpack.
   final unpackPubCacheDir = Directory(p.join(tempDir, 'unpack-pub-cache'));
   await unpackPubCacheDir.create(recursive: true);
 
@@ -103,7 +102,7 @@ Future<void> main(List<String> args) async {
     environment: {
       'PUB_CACHE': unpackPubCacheDir.path,
       'PUB_HOSTED_URL': pubHostedUrl,
-      'SANDBOX_OUTPUT': tempDir,
+      'SANDBOX_OUTPUT': [unpackPubCacheDir.path, pkgDownloadDir.path].join(':'),
       'SANDBOX_NETWORK_ENABLED': 'true',
     },
     throwOnError: true,
