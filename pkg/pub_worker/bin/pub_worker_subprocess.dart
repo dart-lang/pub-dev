@@ -96,7 +96,7 @@ Future<void> main(List<String> args) async {
     ],
     environment: {
       'PUB_HOSTED_URL': pubHostedUrl,
-      'SANDBOX_OUTPUT': pkgDownloadDir.path,
+      'SANDBOX_OUTPUT': [pkgDownloadDir.path, pubCache].join(':'),
       'SANDBOX_NETWORK_ENABLED': 'true',
     },
     throwOnError: true,
