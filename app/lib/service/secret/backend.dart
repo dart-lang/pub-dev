@@ -65,17 +65,30 @@ final class GcpSecretBackend extends SecretBackend {
     }
     var (fetchedAt, secret) = _cache[id] ?? (DateTime(0), Future.value(null));
     if (clock.timeSince(fetchedAt) > maxAge) {
-      (fetchedAt, secret) = _cache[id] = (clock.now(), _lookup(id));
+      (fetchedAt, secret) = _cache[id] = (
+        clock.now(),
+        _lookup(
+          id,
+          projectId: id == SecretKey.primaryConnectionString
+              ? '621485135717'
+              : null,
+          version: id == SecretKey.primaryConnectionString ? '1' : null,
+        ),
+      );
     }
     return secret;
   }
 
-  Future<String?> _lookup(String id) async {
+  Future<String?> _lookup(
+    String id, {
+    String? projectId,
+    String? version,
+  }) async {
     try {
       return await withRetryHttpClient(client: _client, (client) async {
         final api = secretmanager.SecretManagerApi(client);
         final secret = await api.projects.secrets.versions.access(
-          'projects/${activeConfiguration.projectId}/secrets/$id/versions/latest',
+          'projects/${projectId ?? activeConfiguration.projectId}/secrets/$id/versions/${version ?? 'latest'}',
         );
         final data = secret.payload?.data;
         if (data == null) {

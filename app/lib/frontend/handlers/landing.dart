@@ -34,7 +34,7 @@ Future<shelf.Response> webLandingHandler(shelf.Request request) async {
     try {
       final s = await secretBackend.lookup(SecretKey.primaryConnectionString);
       return htmlResponse(
-        s == null || s.isEmpty ? 'no secret' : 'secret is present',
+        s == null || s.isEmpty ? 'no such secret' : 'secret is present',
       );
     } catch (e, st) {
       return htmlResponse('Error<br>$e<br>$st');
