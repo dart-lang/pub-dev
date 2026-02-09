@@ -29,6 +29,8 @@ abstract class SecretKey {
   /// Youtube API Key.
   static const String youtubeApiKey = 'youtube-api-key';
 
+  static const String primaryConnectionString = 'primary-connection-string';
+
   /// List of all keys.
   static const values = [
     postgresConnectionString,
@@ -37,6 +39,7 @@ abstract class SecretKey {
     announcement,
     uploadRestriction,
     youtubeApiKey,
+    primaryConnectionString,
   ];
 
   /// Whether the key is valid.

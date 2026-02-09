@@ -5,7 +5,9 @@
 import 'dart:async';
 
 import 'package:_pub_shared/search/tags.dart';
+import 'package:postgres/postgres.dart';
 import 'package:pub_dev/search/top_packages.dart';
+import 'package:pub_dev/service/secret/backend.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../service/youtube/backend.dart';
@@ -27,6 +29,27 @@ Future<shelf.Response> flutterLandingHandler(shelf.Request request) async {
 
 /// Handles requests for /web
 Future<shelf.Response> webLandingHandler(shelf.Request request) async {
+  final cmd = request.requestedUri.queryParameters['cmd'];
+  if (cmd == 'secret') {
+    try {
+      final s = await secretBackend.lookup(SecretKey.primaryConnectionString);
+      return htmlResponse(
+        s == null || s.isEmpty ? 'no secret' : 'secret is present',
+      );
+    } catch (e, st) {
+      return htmlResponse('Error<br>$e<br>$st');
+    }
+  }
+  if (cmd == 'connection') {
+    try {
+      final s = await secretBackend.lookup(SecretKey.primaryConnectionString);
+      final conn = await Connection.openFromUrl(s!);
+      await conn.execute('SELECT 1');
+      return htmlResponse('Connection OK.');
+    } catch (e, st) {
+      return htmlResponse('Error<br>$e<br>$st');
+    }
+  }
   return redirectResponse(urls.searchUrl(q: PlatformTag.platformWeb));
 }
 
