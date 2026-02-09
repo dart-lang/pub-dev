@@ -4,7 +4,7 @@
 
 ## How it runs
 
-During deployment, a `pub_worker` container image is built using `Dockerfile.worker`. The `pub.dev` main application tracks package analysis tasks and, when scheduling a task, launches a Google Cloud Compute instance with the built container image. The analysis instructions are passed as command-line arguments.
+During deployment, a `pub_worker` container image is built using `Dockerfile.worker`. The `pub.dev` main application tracks package analysis tasks and, when scheduling a task, launches a Google Cloud Compute instance with the built container image. The analysis instructions (which package to analyze) are passed as command-line arguments to the docker invocation via the cloud config that starts each individual instance.
 
 The entry point, `bin/pub_worker.dart`, reads the payload, initiates the analysis, and uploads the results to the URLs specified in the payload.
 
