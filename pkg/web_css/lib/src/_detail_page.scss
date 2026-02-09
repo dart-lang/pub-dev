@@ -271,7 +271,7 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   position: absolute;
 
   /* center above mouse cursor (use `translateY(-200%)` to hover slightly further north) */
-  transform: translateY(-3rem) translateX(-50%);
+  transform: translateY(-3rem) translateX(10%);
   /* disable breaking up (affects larger numbers to the right edge of the graph) */
   white-space: pre;
   /* ensure tooltip isn't immediately hidden if it is somehow rendered underneath the mouse */
