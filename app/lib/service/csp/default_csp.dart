@@ -40,7 +40,6 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
     'https://adservice.google.com/',
     'https://ajax.googleapis.com/',
     'https://apis.google.com/',
-    'https://unpkg.com/',
     'https://www.gstatic.com/',
     'https://gstatic.com',
     // required by Google Identity Services library
@@ -49,7 +48,6 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
   ],
   'style-src': <String>[
     "'self'",
-    'https://unpkg.com/',
     'https://pub.dartlang.org/static/', // older dartdoc content requires it
     "'unsafe-inline'", // package page (esp. analysis tab) required is
     'https://fonts.googleapis.com/',
