@@ -269,6 +269,12 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   opacity: 1;
   z-index: 100000;
   position: absolute;
+  /* above and to the right of the mouse cursor (use `translateY(-200%)` to hover slightly further north) */
+  transform: translateY(-3rem) translateX(10%);
+  /* disable breaking up (affects larger numbers to the right edge of the graph) */
+  white-space: pre;
+  /* ensure tooltip isn't immediately hidden if it is somehow rendered underneath the mouse */
+  pointer-events: none;
 }
 
 .weekly-sparkline {
