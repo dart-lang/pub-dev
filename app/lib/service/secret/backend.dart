@@ -71,17 +71,26 @@ final class GcpSecretBackend extends SecretBackend {
   }
 
   Future<String?> _lookup(String id) async {
+    final x = await directLookup(id);
+    return x.$1;
+  }
+
+  Future<(String?, String?)> directLookup(
+    String id, {
+    String? projectId,
+    String? version,
+  }) async {
     try {
       return await withRetryHttpClient(client: _client, (client) async {
         final api = secretmanager.SecretManagerApi(client);
         final secret = await api.projects.secrets.versions.access(
-          'projects/${activeConfiguration.projectId}/secrets/$id/versions/latest',
+          'projects/${projectId ?? activeConfiguration.projectId}/secrets/$id/versions/${version ?? 'latest'}',
         );
         final data = secret.payload?.data;
         if (data == null) {
-          return null;
+          return (null, 'no payload data');
         }
-        return utf8.decode(base64.decode(data));
+        return (utf8.decode(base64.decode(data)), null);
       });
     } catch (e, st) {
       // Log the issue
@@ -94,7 +103,7 @@ final class GcpSecretBackend extends SecretBackend {
       // clear any cached value
       _cache.remove(id);
       // Return null, and hope the world survives a bit longer
-      return null;
+      return (null, '$e, $st');
     }
   }
 }
