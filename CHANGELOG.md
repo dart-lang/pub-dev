@@ -7,7 +7,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bump runtimeVersion to `2026.02.10`.
  * Upgraded stable Dart analysis SDK to `3.11.0`
  * Upgraded stable Flutter analysis SDK to `3.38.9`.
-
  * Upgraded _Container Optimized OS_ to [Milestone 125](https://docs.cloud.google.com/container-optimized-os/docs/release-notes/m125)
 
 ## `20260206t131300-all`
