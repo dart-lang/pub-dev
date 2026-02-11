@@ -154,12 +154,15 @@ final String _defaultPageDescription =
     'libraries & packages for Flutter and general Dart programs.';
 
 const _schemaOrgSearchAction = {
-  '@context': 'http://schema.org',
+  '@context': 'https://schema.org',
   '@type': 'WebSite',
   'url': '${urls.siteRoot}/',
   'potentialAction': {
     '@type': 'SearchAction',
-    'target': '${urls.siteRoot}/packages?q={search_term_string}',
+    'target': {
+      '@type': 'EntryPoint',
+      'urlTemplate': '${urls.siteRoot}/packages?q={search_term_string}',
+    },
     'query-input': 'required name=search_term_string',
   },
 };
