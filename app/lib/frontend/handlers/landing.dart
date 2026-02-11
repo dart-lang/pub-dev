@@ -12,9 +12,7 @@ import '../../service/youtube/backend.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
-
-import '../request_context.dart';
-import '../templates/landing.dart';
+import '../templates/views/landing/page.dart';
 
 /// Handles requests for /dart
 Future<shelf.Response> dartLandingHandler(shelf.Request request) async =>
@@ -37,8 +35,8 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
     return redirectResponse(urls.searchUrl(q: queryText));
   }
 
-  Future<String> _render() async {
-    return renderLandingPage(
+  final content = await cache.uiLandingPageContent().get(() async {
+    return landingPageContentNode(
       ffPackages: topPackages.flutterFavorites(),
       mostPopularPackages: topPackages.mostPopular(),
       topFlutterPackages: topPackages.topFlutter(),
@@ -46,10 +44,7 @@ Future<shelf.Response> indexLandingHandler(shelf.Request request) async {
       trendingPackages: topPackages.trending(),
       topPoWVideos: youtubeBackend.getTopPackageOfWeekVideos(count: 4),
     );
-  }
+  });
 
-  if (requestContext.uiCacheEnabled) {
-    return htmlResponse((await cache.uiIndexPage().get(_render))!);
-  }
-  return htmlResponse(await _render());
+  return htmlResponse(renderLandingPage(content!));
 }
