@@ -1,5 +1,5 @@
 # Use latest stable channel SDK.
-FROM dart:3.10.1 AS build
+FROM mirror.gcr.io/library/dart:3.10.1 AS build
 
 ENV PUB_ENVIRONMENT="bot"
 ENV PUB_CACHE="/project/.pub-cache"

@@ -79,13 +79,13 @@ void main() {
 
   test('runtime sdk version should match CI and dockerfiles', () async {
     final String docker = await File('../Dockerfile.app').readAsString();
-    expect(docker, contains('\nFROM dart:$runtimeSdkVersion\n'));
+    expect(docker, contains('\nFROM mirror.gcr.io/library/dart:$runtimeSdkVersion\n'));
     final ci = await File('../.github/workflows/all-test.yml').readAsString();
     expect(ci, contains("DART_SDK_VERSION: '$runtimeSdkVersion'"));
     final imageProxyDocker = await File(
       '../pkg/image_proxy/Dockerfile',
     ).readAsString();
-    expect(imageProxyDocker, contains('\nFROM dart:$runtimeSdkVersion '));
+    expect(imageProxyDocker, contains('\nFROM mirror.gcr.io/library/dart:$runtimeSdkVersion '));
   });
 
   test('Dart SDK versions should match Dockerfile.worker', () async {
