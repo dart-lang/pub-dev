@@ -9,7 +9,7 @@ CRANE_VERSION='v0.20.7'
 
 # Docker image to use for rootfs
 # TODO: investigate how we could shrink this to `gcr.io/distroless/base-debian12`
-DOCKER_IMAGE='mirror.gcr.io/library/debian:12-slim'
+DOCKER_IMAGE='mirror.gcr.io/library/debian:13-slim'
 
 # Check we have a target directory
 if [[ -z "$1" ]];
