@@ -48,7 +48,6 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
   ],
   'style-src': <String>[
     "'self'",
-    'https://pub.dartlang.org/static/', // older dartdoc content requires it
     "'unsafe-inline'", // package page (esp. analysis tab) required is
     'https://fonts.googleapis.com/',
     'https://gstatic.com',
