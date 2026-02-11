@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2026.02.11`.
+ * Note: upgraded `pub_worker` to `debian:13`.
 
 ## `20260210t134300-all`
  * Bump runtimeVersion to `2026.02.10`.
