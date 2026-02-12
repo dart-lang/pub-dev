@@ -181,6 +181,8 @@ d.Node pageLayoutNode({
                 ),
                 as: 'script',
               ),
+            if (schemaOrgSearchActionJson != null)
+              d.ldJson(schemaOrgSearchActionJson),
           ],
         ),
         d.element(
@@ -291,8 +293,6 @@ d.Node pageLayoutNode({
                   defer: true,
                 ),
               ]),
-            if (schemaOrgSearchActionJson != null)
-              d.ldJson(schemaOrgSearchActionJson),
           ],
         ),
       ],
