@@ -2132,7 +2132,7 @@ Future<void> purgePackageCache(String package) async {
     cache.uiPackageInstall(package, null).purge(),
     cache.uiPackageScore(package, null).purge(),
     cache.uiPackageVersions(package).purge(),
-    cache.uiIndexPage().purge(),
+    cache.uiLandingPageContent().purge(),
     cache.allPackagesAtomFeedXml().purge(),
   ]);
 }

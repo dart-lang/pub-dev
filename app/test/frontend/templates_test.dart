@@ -20,13 +20,13 @@ import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/frontend/templates/admin.dart';
 import 'package:pub_dev/frontend/templates/consent.dart';
-import 'package:pub_dev/frontend/templates/landing.dart';
 import 'package:pub_dev/frontend/templates/listing.dart';
 import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:pub_dev/frontend/templates/package.dart';
 import 'package:pub_dev/frontend/templates/package_admin.dart';
 import 'package:pub_dev/frontend/templates/publisher.dart';
 import 'package:pub_dev/frontend/templates/report.dart';
+import 'package:pub_dev/frontend/templates/views/landing/page.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/score_tab.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -148,21 +148,23 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         final html = renderLandingPage(
-          ffPackages: [
-            (await scoreCardBackend.getPackageView('flutter_titanium'))!,
-          ],
-          mostPopularPackages: [
-            (await scoreCardBackend.getPackageView('neon'))!,
-            (await scoreCardBackend.getPackageView('oxygen'))!,
-          ],
-          topPoWVideos: [
-            PkgOfWeekVideo(
-              videoId: 'video-id',
-              title: 'POW Title',
-              description: 'POW description',
-              thumbnailUrl: 'http://youtube.com/image/thumbnail?i=123&s=4',
-            ),
-          ],
+          landingPageContentNode(
+            ffPackages: [
+              (await scoreCardBackend.getPackageView('flutter_titanium'))!,
+            ],
+            mostPopularPackages: [
+              (await scoreCardBackend.getPackageView('neon'))!,
+              (await scoreCardBackend.getPackageView('oxygen'))!,
+            ],
+            topPoWVideos: [
+              PkgOfWeekVideo(
+                videoId: 'video-id',
+                title: 'POW Title',
+                description: 'POW description',
+                thumbnailUrl: 'http://youtube.com/image/thumbnail?i=123&s=4',
+              ),
+            ],
+          ),
         );
         expectGoldenFile(html, 'landing_page.html');
       },

@@ -4,6 +4,7 @@
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
+import 'package:pub_dev/frontend/templates/layout.dart';
 
 import '../../../../package/models.dart';
 import '../../../../service/youtube/backend.dart';
@@ -14,8 +15,19 @@ import '../../../static_files.dart';
 import 'mini_list.dart';
 import 'pow_video_list.dart';
 
-/// Renders the landing page content.
-d.Node landingPageNode({
+/// Renders the landing page with the specified [content].
+String renderLandingPage(d.Node content) {
+  return renderLayoutPage(
+    PageType.landing,
+    content,
+    title: 'The official repository for Dart and Flutter packages.',
+    canonicalUrl: '/',
+    mainClasses: ['landing-main'],
+  );
+}
+
+/// Renders the landing page content node.
+d.Node landingPageContentNode({
   List<PackageView>? ffPackages,
   List<PackageView>? mostPopularPackages,
   List<PackageView>? topFlutterPackages,

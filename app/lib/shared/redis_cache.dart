@@ -21,6 +21,7 @@ import '../../../service/security_advisories/models.dart';
 import '../../dartdoc/models.dart';
 import '../../shared/env_config.dart';
 import '../account/models.dart' show Consent, LikeData, SessionData;
+import '../frontend/dom/dom.dart' as d;
 import '../package/models.dart' show PackageView;
 import '../publisher/models.dart' show PublisherPage;
 import '../scorecard/models.dart' show ScoreCardData;
@@ -105,10 +106,10 @@ class CachePatterns {
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package'];
 
-  Entry<String> uiIndexPage() => _cache
-      .withPrefix('ui-indexpage/')
+  Entry<d.Node> uiLandingPageContent() => _cache
+      .withPrefix('ui-landing-page-content/')
       .withTTL(Duration(minutes: 60))
-      .withCodec(utf8)['/'];
+      .withCodec(_domNodeCodec)['/'];
 
   Entry<String> uiPublisherListPage() => _cache
       .withPrefix('ui-publisherpage/')
@@ -655,4 +656,24 @@ extension EntryPurgeExt<T> on Entry<T> {
     }
     return await get(create);
   }
+}
+
+final _domNodeCodec = _DomNodeCodec();
+
+class _DomNodeCodec extends Codec<d.Node, List<int>> {
+  @override
+  final decoder = _DomNodeDecoder();
+
+  @override
+  final encoder = _DomNodeEncoder();
+}
+
+class _DomNodeDecoder extends Converter<List<int>, d.Node> {
+  @override
+  d.Node convert(List<int> input) => d.unsafeRawHtml(utf8.decode(input));
+}
+
+class _DomNodeEncoder extends Converter<d.Node, List<int>> {
+  @override
+  List<int> convert(d.Node input) => utf8.encode(input.toString());
 }
