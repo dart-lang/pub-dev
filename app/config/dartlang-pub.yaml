@@ -92,7 +92,7 @@ rateLimits:
     burst: 10
     hourly: 100
     daily: 200
-  
+
   # Updating options
   - operation: package-options-updated
     scope: package
@@ -129,7 +129,7 @@ rateLimits:
     burst: 20
     hourly: 100
     daily: 200
-  
+
   # Invites
   - operation: publisher-contact-invited
     scope: user
@@ -151,3 +151,5 @@ rateLimits:
     burst: 10
     hourly: 100
     daily: 200
+imageProxyHmacKeyVersion:
+imageProxyServiceBaseUrl:
