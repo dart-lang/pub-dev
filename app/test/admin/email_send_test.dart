@@ -69,6 +69,7 @@ void main() {
           'ccRecipients': [],
           'subject': 'Test email',
           'bodyText': 'Test body',
+          'bodyHtml': 'Test body',
           'replyTos': ['other1@pub.dev', 'other2@pub.dev'],
         });
       },
