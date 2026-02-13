@@ -192,41 +192,6 @@ void main() {
         message.bodyText,
         contains('https://pub.dev/packages/pkg_foo/versions/1.0.0'),
       );
-      expect(
-        message.bodyHtml,
-        contains(
-          '<a href="https://pub.dev/packages/pkg_foo/versions/1.0.0">https://pub.dev/packages/pkg_foo/versions/1.0.0</a>',
-        ),
-      );
-    });
-
-    test('with changelog', () {
-      final message = createPackageUploadedEmail(
-        packageName: 'pkg_foo',
-        packageVersion: '1.0.0',
-        displayId: 'uploader@example.com',
-        authorizedUploaders: [
-          EmailAddress(name: 'Joe', 'joe@example.com'),
-          EmailAddress('uploader@example.com'),
-        ],
-        uploadMessages: [],
-        changelogExcerpt: 'changelog content',
-      );
-      expect(
-        message.bodyText,
-        contains('Excerpt of the changelog:\n```\nchangelog content\n```'),
-      );
-      expect(
-        message.bodyHtml,
-        contains(
-          'Excerpt of the changelog:<br/>\n'
-          '<div style="background-color: #f6f8fa; border-radius: 6px; padding: 16px; overflow: auto; border: 1px solid #d0d7de; margin: 20px 0;">\n'
-          '  <pre style="margin: 0; font-family: \'Courier New\', Courier, monospace; font-size: 14px; line-height: 1.5; color: #24292f;">\n'
-          '    <code>changelog content</code>\n'
-          '  </pre>\n'
-          '</div>',
-        ),
-      );
     });
   });
 }

@@ -1321,7 +1321,6 @@ class PackageBackend {
     final sw = Stopwatch()..start();
     final uploadMessages = <String>[];
     // messages that are sent in the email but not returned as upload messages to the pub client
-    final additionalEmailMessages = <String>[];
     final newVersion = entities.packageVersion;
     final [currentDartSdk, currentFlutterSdk] = await Future.wait([
       getCachedDartSdkVersion(lastKnownStable: toolStableDartSdkVersion),
@@ -1372,11 +1371,6 @@ class PackageBackend {
       versionKey: newVersion.qualifiedVersionKey,
       changelogContent: entities.changelogAsset?.textContent,
     );
-    if (changelogExcerpt != null && changelogExcerpt.isNotEmpty) {
-      additionalEmailMessages.add(
-        'Excerpt of the changelog:\n```\n$changelogExcerpt\n```',
-      );
-    }
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
@@ -1492,7 +1486,8 @@ class PackageBackend {
         authorizedUploaders: uploaderEmails
             .map((email) => EmailAddress(email))
             .toList(),
-        uploadMessages: [...uploadMessages, ...additionalEmailMessages],
+        uploadMessages: uploadMessages,
+        changelogExcerpt: changelogExcerpt,
       );
       final outgoingEmail = emailBackend.prepareEntity(email);
 

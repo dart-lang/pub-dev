@@ -39,6 +39,15 @@ Thanks for your contributions to the Dart community!
 With appreciation, the Dart package site admin''';
 }
 
+String _changeLogDiv(String excerpt) =>
+    '''
+Excerpt of the changelog:<br/>
+<div style="background-color: #f6f8fa; border-radius: 6px; padding: 16px; overflow: auto; border: 1px solid #d0d7de; margin: 20px 0;">
+  <pre style="margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.5; color: #24292f;">
+    <code>$excerpt</code>
+  </pre>
+</div>''';
+
 /// Represents a parsed email address.
 class EmailAddress {
   final String email;
@@ -121,6 +130,7 @@ class EmailMessage {
   final List<EmailAddress> ccRecipients;
   final String subject;
   final String bodyText;
+  final String bodyHtml;
   final List<String> replyTos;
 
   EmailMessage(
@@ -128,11 +138,14 @@ class EmailMessage {
     this.recipients,
     this.subject,
     String bodyText, {
+    String? bodyHtml,
     this.inReplyToLocalMessageId,
     this.localMessageId,
     this.ccRecipients = const <EmailAddress>[],
     this.replyTos = const <String>[],
-  }) : bodyText = reflowBodyText(bodyText);
+  }) : bodyText = reflowBodyText(bodyText),
+       bodyHtml =
+           bodyHtml ?? reflowBodyText(bodyText).replaceAll('\n', '<br/>');
 
   /// Throws [ArgumentError] if the [localMessageId] or the
   /// [inReplyToLocalMessageId] field doesn't look like an approved ID.
@@ -160,6 +173,7 @@ class EmailMessage {
       'ccRecipients': ccRecipients.map((e) => e.email).toList(),
       'subject': subject,
       'bodyText': bodyText,
+      'bodyHtml': bodyHtml,
       if (replyTos.isNotEmpty) 'replyTos': replyTos,
     };
   }
@@ -209,6 +223,7 @@ EmailMessage createPackageUploadedEmail({
   required String displayId,
   required List<EmailAddress> authorizedUploaders,
   required List<String> uploadMessages,
+  String? changelogExcerpt,
 }) {
   final url = pkgPageUrl(
     packageName,
@@ -221,7 +236,18 @@ EmailMessage createPackageUploadedEmail({
     '$displayId has published a new version ($packageVersion) of the $packageName package to the Dart package site ($primaryHost).',
     'For details, go to $url',
     ...uploadMessages,
+    if (changelogExcerpt != null)
+      'Excerpt of the changelog:\n```\n$changelogExcerpt\n```',
     _footer('package'),
+  ];
+
+  final htmlParagraphs = [
+    'Dear package maintainer,',
+    '$displayId has published a new version ($packageVersion) of the $packageName package to the Dart package site ($primaryHost).',
+    'For details, go to <a href="$url">$url</a>',
+    ...uploadMessages,
+    if (changelogExcerpt != null) _changeLogDiv(changelogExcerpt),
+    _footer('package').replaceAll('\n', '<br/>\n'),
   ];
 
   return EmailMessage(
@@ -229,6 +255,7 @@ EmailMessage createPackageUploadedEmail({
     authorizedUploaders,
     subject,
     paragraphs.join('\n\n'),
+    bodyHtml: htmlParagraphs.map((e) => '<p>$e</p>').join('\n'),
   );
 }
 
