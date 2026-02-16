@@ -53,6 +53,16 @@ Future<shelf.Response> webLandingHandler(shelf.Request request) async {
       return htmlResponse('Error<br>$e<br>$st');
     }
   }
+  if (cmd == 'connection1') {
+    try {
+      final s = await secretBackend.lookup('primary-connection-string');
+      final conn = await Connection.openFromUrl(s!);
+      await conn.execute('SELECT 1');
+      return htmlResponse('Connection OK.');
+    } catch (e, st) {
+      return htmlResponse('Error<br>$e<br>$st');
+    }
+  }
   return redirectResponse(urls.searchUrl(q: PlatformTag.platformWeb));
 }
 
