@@ -29,7 +29,7 @@ abstract class SecretKey {
   /// Youtube API Key.
   static const String youtubeApiKey = 'youtube-api-key';
 
-  static const String primaryConnectionString = 'primary-connection-string';
+  static const String databaseConnectionString = 'database-connection-string';
 
   /// List of all keys.
   static const values = [
@@ -39,7 +39,8 @@ abstract class SecretKey {
     announcement,
     uploadRestriction,
     youtubeApiKey,
-    primaryConnectionString,
+    databaseConnectionString,
+    'primary-connection-string',
   ];
 
   /// Whether the key is valid.

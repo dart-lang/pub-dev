@@ -31,20 +31,21 @@ Future<shelf.Response> webLandingHandler(shelf.Request request) async {
   if (cmd == 'secret') {
     try {
       final sb = (secretBackend as GcpSecretBackend);
-      final s1 = await sb.directLookup(SecretKey.primaryConnectionString);
+      final s1 = await sb.directLookup(SecretKey.databaseConnectionString);
       final s2 = await sb.directLookup(
-        SecretKey.primaryConnectionString,
+        SecretKey.databaseConnectionString,
         projectId: '621485135717',
         version: '1',
       );
-      return htmlResponse([s1.$2, '<br><br>', s2.$2].join());
+      final s3 = await sb.directLookup('primary-connection-string');
+      return htmlResponse([s1.$2, s2.$2, s3.$2].join('<br><br>'));
     } catch (e, st) {
       return htmlResponse('Error<br>$e<br>$st');
     }
   }
   if (cmd == 'connection') {
     try {
-      final s = await secretBackend.lookup(SecretKey.primaryConnectionString);
+      final s = await secretBackend.lookup(SecretKey.databaseConnectionString);
       final conn = await Connection.openFromUrl(s!);
       await conn.execute('SELECT 1');
       return htmlResponse('Connection OK.');
