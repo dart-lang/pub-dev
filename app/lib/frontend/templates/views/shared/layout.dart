@@ -206,12 +206,12 @@ d.Node pageLayoutNode({
               'noscript',
               child: d.element(
                 'iframe',
+                classes: ['-gtm-iframe'],
                 attributes: {
                   'src':
                       'https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9',
                   'height': '0',
                   'width': '0',
-                  'style': 'display:none;visibility:hidden',
                 },
               ),
             ),

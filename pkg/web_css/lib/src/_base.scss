@@ -321,6 +321,34 @@ pre {
   }
 }
 
+.-gtm-iframe {
+  display: none;
+  visibility: hidden;
+}
+
+.-monospace {
+  font-family: var(--pub-font-family-code);
+}
+
+.-dart-logo-img {
+  height: 30px;
+  margin-right: 1em;
+}
+
+.-gtm-iframe {
+  display: none;
+  visibility: hidden;
+}
+
+.-monospace {
+  font-family: var(--pub-font-family-code);
+}
+
+.-dart-logo-img {
+  height: 30px;
+  margin-right: 1em;
+}
+
 .-pub-publisher-shield {
   vertical-align: middle;
   margin: -1px 3px 0 0;
