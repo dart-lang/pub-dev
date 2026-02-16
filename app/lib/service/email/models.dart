@@ -49,12 +49,17 @@ class OutgoingEmail extends db.Model {
   @db.StringProperty(required: true, indexed: false)
   String? bodyText;
 
+  /// The body text (in HTML format) of the email.
+  @db.StringProperty(required: true, indexed: false)
+  String? bodyHtml;
+
   OutgoingEmail();
   OutgoingEmail.init({
     required this.fromEmail,
     required this.recipientEmails,
     required this.subject,
     required this.bodyText,
+    required this.bodyHtml,
   }) {
     id = createUuid();
     created = clock.now().toUtc();

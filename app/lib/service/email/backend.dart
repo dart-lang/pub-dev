@@ -39,6 +39,7 @@ class EmailBackend {
       recipientEmails: recipientEmails,
       subject: msg.subject,
       bodyText: msg.bodyText,
+      bodyHtml: msg.bodyHtml,
     );
   }
 
@@ -121,6 +122,7 @@ class EmailBackend {
             [EmailAddress(recipientEmail)],
             entry.subject!,
             entry.bodyText!,
+            bodyHtml: entry.bodyHtml,
           ),
         );
         sent.add(recipientEmail);
