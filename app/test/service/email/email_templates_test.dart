@@ -221,9 +221,8 @@ void main() {
         contains(
           'Excerpt of the changelog:<br/>\n'
           '<div style="background-color: #f6f8fa; border-radius: 6px; padding: 16px; overflow: auto; border: 1px solid #d0d7de; margin: 20px 0;">\n'
-          '  <pre style="margin: 0; font-family: \'Courier New\', Courier, monospace; font-size: 14px; line-height: 1.5; color: #24292f;">\n'
-          '    <code>changelog content</code>\n'
-          '  </pre>\n'
+          '  <pre style="margin: 0; font-family: \'Courier New\', Courier, monospace; font-size: 14px; line-height: 1.5; color: #24292f;">'
+          '<code>changelog content</code></pre>\n'
           '</div>',
         ),
       );
