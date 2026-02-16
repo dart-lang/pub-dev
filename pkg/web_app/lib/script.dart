@@ -27,7 +27,6 @@ void main() {
   EventStreamProviders.pageShowEvent.forTarget(window).listen((_) {
     adjustQueryTextAfterPageShow();
   });
-  _setupDarkThemeButton();
 }
 
 void _setupAllEvents() {
@@ -40,6 +39,7 @@ void _setupAllEvents() {
   setupLikesList();
   setupScreenshotCarousel();
   setupWidgets();
+  _setupDarkThemeButton();
 }
 
 void _setupDarkThemeButton() {
