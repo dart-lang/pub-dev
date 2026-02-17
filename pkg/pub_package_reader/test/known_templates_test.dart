@@ -44,5 +44,12 @@ void main() {
         isNotEmpty,
       );
     });
+
+    test('rewrite Github blob image URLs', (){
+      final input = '![example](https://github.com/org/repo/blob/main/img.png)';
+      final expected = '![example](https://raw.githubusercontent.com/org/repo/main/img.png)';
+      final output = rewriteGithubImagesInMarkdown(input);
+      expect(output, expected);
+    });
   });
 }
