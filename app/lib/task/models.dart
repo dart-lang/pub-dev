@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show json;
+import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -249,7 +250,7 @@ List<String> derivePendingVersions({
 }
 
 /// State of a given `version` within a [PackageState].
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false)
 class PackageVersionStateInfo {
   PackageVersionStatus get status {
     if (attempts == 0 && scheduled == initialTimestamp) {
@@ -364,6 +365,71 @@ class PackageVersionStateInfo {
         'secretToken: $secretToken',
       ].join(', ') +
       ')';
+
+  /// Remove instanceName, zone, secretToken, and set attempts = 0
+  PackageVersionStateInfo complete({required bool pana, required bool docs}) {
+    return PackageVersionStateInfo(
+      scheduled: scheduled,
+      attempts: 0,
+      docs: docs,
+      pana: pana,
+      finished: true,
+      zone: null,
+      instance: null, // version is no-longer running on this instance
+      secretToken: null, // TODO: Consider retaining this for idempotency
+    );
+  }
+
+  /// Create updated [PackageVersionStateInfo] for when a new instance have been
+  /// scheduled.
+  ///
+  /// You must supply:
+  ///  * [scheduled] when the instance was scheduled.
+  ///  * [zone] within which the instance was scheduled.
+  ///  * [instanceName] as name of the of the isntance scheduled.
+  ///  * [secretToken] passed to the instance for authentication when
+  ///    the instance wants to callback.
+  PackageVersionStateInfo scheduleNew({
+    required DateTime scheduled,
+    required String zone,
+    required String instanceName,
+    required String secretToken,
+  }) {
+    return PackageVersionStateInfo(
+      scheduled: scheduled,
+      attempts: attempts + 1,
+      zone: zone,
+      instance: instanceName,
+      secretToken: secretToken,
+      finished: finished,
+      docs: docs,
+      pana: pana,
+    );
+  }
+
+  /// Reverts the status of the last scheduling attempt, when it is known that scheduling failed.
+  ///
+  /// > [!WARNING]
+  /// > This state transition **may only** be used if it's
+  /// > **known with certainty** that scheduling failed.
+  /// >
+  /// > If an instance _may_ have been scheduled, but we suspect
+  /// > scheduling failed, we have to wait for a retry.
+  /// > As we otherwise risk leaving an instance unable to call back,
+  /// > which will leave the instance logging errors that indicate
+  /// > internal errors in our system.
+  PackageVersionStateInfo resetAfterFailedAttempt() {
+    return PackageVersionStateInfo(
+      scheduled: initialTimestamp,
+      attempts: max(0, attempts - 1),
+      zone: null,
+      instance: null,
+      secretToken: null,
+      finished: finished,
+      docs: docs,
+      pana: pana,
+    );
+  }
 }
 
 /// A [db.Property] encoding a Map from version to [PackageVersionStateInfo] as JSON.
