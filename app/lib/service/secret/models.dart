@@ -29,7 +29,7 @@ abstract class SecretKey {
   /// Youtube API Key.
   static const String youtubeApiKey = 'youtube-api-key';
 
-  static const String databaseConnectionString = 'database-connection-string';
+  static const String databaseConnectionString = 'database_connection_string';
 
   /// List of all keys.
   static const values = [
