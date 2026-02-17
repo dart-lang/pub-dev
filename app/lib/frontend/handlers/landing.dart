@@ -56,7 +56,7 @@ Future<shelf.Response> webLandingHandler(shelf.Request request) async {
   if (cmd == 'connection1') {
     try {
       final s = await secretBackend.lookup('primary-connection-string');
-      final conn = await Connection.openFromUrl(s!);
+      final conn = await Connection.openFromUrl(s!.substring(0, s.length - 1));
       await conn.execute('SELECT 1');
       return htmlResponse('Connection OK.');
     } catch (e, st) {
