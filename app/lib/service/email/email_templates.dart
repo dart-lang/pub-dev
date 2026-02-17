@@ -42,8 +42,8 @@ With appreciation, the Dart package site admin''';
 String _changeLogDiv(String excerpt) =>
     '''
 Excerpt of the changelog:<br/>
-<div style="background-color: #f6f8fa; border-radius: 6px; padding: 16px; overflow: auto; border: 1px solid #d0d7de; margin: 20px 0;">
-  <pre style="margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.5; color: #24292f;"><code>$excerpt</code></pre>
+<div style="background-color: #f6f8fa; border-radius: 0.25rem; padding: 1rem; overflow: auto; border: 1px solid #d0d7de; margin: 1rem 0;">
+  <pre style="margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 1rem; line-height: 1.5; color: #24292f;"><code>$excerpt</code></pre>
 </div>''';
 
 /// Represents a parsed email address.

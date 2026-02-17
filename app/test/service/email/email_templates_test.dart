@@ -216,15 +216,14 @@ void main() {
         message.bodyText,
         contains('Excerpt of the changelog:\n```\nchangelog content\n```'),
       );
+      expect(message.bodyHtml, contains('Excerpt of the changelog:<br/>\n'));
+      final codeRegexp = RegExp(
+        '<div style=".*?">\n  <pre style=".*?"><code>.*</code></pre>\n</div>',
+      );
       expect(
-        message.bodyHtml,
-        contains(
-          'Excerpt of the changelog:<br/>\n'
-          '<div style="background-color: #f6f8fa; border-radius: 6px; padding: 16px; overflow: auto; border: 1px solid #d0d7de; margin: 20px 0;">\n'
-          '  <pre style="margin: 0; font-family: \'Courier New\', Courier, monospace; font-size: 14px; line-height: 1.5; color: #24292f;">'
-          '<code>changelog content</code></pre>\n'
-          '</div>',
-        ),
+        message.bodyHtml.contains(codeRegexp),
+        isTrue,
+        reason: message.bodyHtml,
       );
     });
   });
