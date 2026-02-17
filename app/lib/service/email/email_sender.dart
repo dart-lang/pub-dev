@@ -184,7 +184,8 @@ Message _toMessage(EmailMessage input) {
     ..recipients = input.recipients.map(_toAddress).toList()
     ..ccRecipients = input.ccRecipients.map(_toAddress).toList()
     ..subject = input.subject
-    ..text = input.bodyText;
+    ..text = input.bodyText
+    ..html = input.bodyHtml;
 }
 
 Address? _toAddress(EmailAddress? input) =>

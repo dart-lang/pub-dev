@@ -192,6 +192,39 @@ void main() {
         message.bodyText,
         contains('https://pub.dev/packages/pkg_foo/versions/1.0.0'),
       );
+      expect(
+        message.bodyHtml,
+        contains(
+          '<a href="https://pub.dev/packages/pkg_foo/versions/1.0.0">https://pub.dev/packages/pkg_foo/versions/1.0.0</a>',
+        ),
+      );
+    });
+
+    test('with changelog', () {
+      final message = createPackageUploadedEmail(
+        packageName: 'pkg_foo',
+        packageVersion: '1.0.0',
+        displayId: 'uploader@example.com',
+        authorizedUploaders: [
+          EmailAddress(name: 'Joe', 'joe@example.com'),
+          EmailAddress('uploader@example.com'),
+        ],
+        uploadMessages: [],
+        changelogExcerpt: 'changelog content',
+      );
+      expect(
+        message.bodyText,
+        contains('Excerpt of the changelog:\n```\nchangelog content\n```'),
+      );
+      expect(message.bodyHtml, contains('Excerpt of the changelog:<br/>\n'));
+      final codeRegexp = RegExp(
+        '<div style=".*?">\n  <pre style=".*?"><code>.*</code></pre>\n</div>',
+      );
+      expect(
+        message.bodyHtml.contains(codeRegexp),
+        isTrue,
+        reason: message.bodyHtml,
+      );
     });
   });
 }
