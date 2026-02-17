@@ -136,7 +136,7 @@ shelf.Response debugResponse([Map<String, dynamic>? data]) {
   final map = <String, dynamic>{
     'env': envConfig.debugMap(),
     'vm': {
-      'x': 1,
+      'x': 2,
       'numberOfProcessors': Platform.numberOfProcessors,
       'currentRss': ProcessInfo.currentRss,
       'maxRss': ProcessInfo.maxRss,

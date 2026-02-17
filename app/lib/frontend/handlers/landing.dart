@@ -46,17 +46,13 @@ Future<shelf.Response> webLandingHandler(shelf.Request request) async {
   if (cmd == 'connection') {
     try {
       final s = await secretBackend.lookup(SecretKey.databaseConnectionString);
-      final conn = await Connection.openFromUrl(s!);
-      await conn.execute('SELECT 1');
-      return htmlResponse('Connection OK.');
-    } catch (e, st) {
-      return htmlResponse('Error<br>$e<br>$st');
-    }
-  }
-  if (cmd == 'connection1') {
-    try {
-      final s = await secretBackend.lookup('primary-connection-string');
-      final conn = await Connection.openFromUrl(s!.substring(0, s.length - 1));
+      final uri = Uri.tryParse(s?.trim() ?? '');
+      final newUri = uri?.replace(
+        queryParameters: uri.queryParameters.map(
+          (k, v) => MapEntry(k, v.toString().trim()),
+        ),
+      );
+      final conn = await Connection.openFromUrl(newUri?.toString() ?? '');
       await conn.execute('SELECT 1');
       return htmlResponse('Connection OK.');
     } catch (e, st) {
