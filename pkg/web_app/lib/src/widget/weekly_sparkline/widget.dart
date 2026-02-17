@@ -146,12 +146,11 @@ void drawChart(
 
   DateTime? lastSelectedDay;
   chart.onMouseMove.listen((e) {
-    sparklineCursor.setAttribute('style', 'opacity:1');
-    toolTip.setAttribute(
-      'style',
-      'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;'
-          'left:${e.x}px;',
-    );
+    sparklineCursor.style.opacity = '1';
+    toolTip.style.opacity = '1';
+    toolTip.style.top =
+        '${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px';
+    toolTip.style.left = '${e.x}px';
 
     final s =
         (e.x - (chart.getBoundingClientRect().x + padding)) / drawingWidth;
@@ -181,8 +180,8 @@ void drawChart(
   });
 
   void hideSparklineCursor(_) {
-    sparklineCursor.setAttribute('style', 'opacity:0');
-    toolTip.setAttribute('style', 'opacity:0;position:absolute;');
+    sparklineCursor.style.opacity = '0';
+    toolTip.style.opacity = '0';
     chartSubText.textContent =
         '${formatDate(firstDay)} - ${formatDate(lastDate)}';
     lastSelectedDay = null;

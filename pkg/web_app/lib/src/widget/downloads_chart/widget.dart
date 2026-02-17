@@ -473,8 +473,8 @@ void drawChart(
   chart.append(cursor);
 
   void hideCursor(_) {
-    cursor.setAttribute('style', 'opacity:0');
-    toolTip.setAttribute('style', 'opacity:0;position:absolute;');
+    cursor.style.opacity = '0';
+    toolTip.style.opacity = '0';
   }
 
   hideCursor(1);
@@ -630,7 +630,7 @@ void drawChart(
 
     // Show cursor
 
-    cursor.setAttribute('style', 'opacity:1');
+    cursor.style.opacity = '1';
     final cursorPosition = computeCoordinates(selectedDay, 0);
     cursor.setAttribute('transform', 'translate(${cursorPosition.$1}, 0)');
 
@@ -658,14 +658,14 @@ void drawChart(
     // Setup tooltip
 
     final startDay = selectedDay.subtract(Duration(days: 7));
-    final horizontalPosition =
-        e.x + toolTip.getBoundingClientRect().width > width
-        ? 'left:${e.x - toolTip.getBoundingClientRect().width}px;'
-        : 'left:${e.x}px;';
-    toolTip.setAttribute(
-      'style',
-      'top:${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px;$horizontalPosition',
-    );
+    toolTip.style.top =
+        '${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px';
+    if (e.x + toolTip.getBoundingClientRect().width > width) {
+      toolTip.style.left = '${e.x - toolTip.getBoundingClientRect().width}px';
+    } else {
+      toolTip.style.left = '${e.x}px';
+    }
+    toolTip.style.opacity = '1';
     toolTip.replaceChildren(
       HTMLDivElement()
         ..setAttribute('class', 'downloads-chart-tooltip-date')
