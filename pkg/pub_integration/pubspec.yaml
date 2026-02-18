@@ -12,7 +12,7 @@ dependencies:
   http: ^1.0.0
   path: ^1.8.0
   pub_semver: ^2.0.0
-  puppeteer: 3.16.0
+  puppeteer: 3.20.0
   puppeteer_screenshots:
   retry: ^3.1.2
   oauth2: ^2.0.0

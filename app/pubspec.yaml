@@ -49,10 +49,10 @@ dependencies:
   # pana version to be pinned
   pana: '0.23.10'
   # 3rd-party packages with pinned versions
-  mailer: '6.5.0'
+  mailer: '6.6.0'
   postgres: '3.5.9'
   ulid: '2.0.1'
-  tar: '2.0.0'
+  tar: '2.0.2'
   api_builder:
 
 dev_dependencies:

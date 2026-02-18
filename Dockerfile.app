@@ -1,5 +1,5 @@
 # Keep version in-sync with .github/workflows/all-test.yml and app/lib/shared/versions.dart
-FROM mirror.gcr.io/library/dart:3.10.1
+FROM mirror.gcr.io/library/dart:3.11.0
 
 # After install we remove the apt-index again to keep the docker image diff small.
 RUN apt-get update && \
