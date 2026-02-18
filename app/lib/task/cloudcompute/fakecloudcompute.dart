@@ -135,7 +135,6 @@ final class FakeCloudCompute extends CloudCompute {
     if (!_instances.any((i) => i.instanceName == instanceName)) {
       throw StateError('instance "$instanceName" does not exist');
     }
-
     final instance = _instances.firstWhere(
       (i) => i.instanceName == instanceName,
     );
