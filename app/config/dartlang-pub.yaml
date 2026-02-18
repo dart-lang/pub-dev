@@ -151,5 +151,5 @@ rateLimits:
     burst: 10
     hourly: 100
     daily: 200
-imageProxyHmacKeyVersion:
-imageProxyServiceBaseUrl:
+imageProxyHmacKeyVersion: projects/dartlang-pub/locations/us-central1/keyRings/image-proxy-key-ring/cryptoKeys/image-proxy-mac-key/cryptoKeyVersions/2
+imageProxyServiceBaseUrl: https://external-images.pub.dev
