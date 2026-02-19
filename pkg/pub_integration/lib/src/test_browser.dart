@@ -278,7 +278,8 @@ class TestBrowserSession {
             firstPathSegment == 'static' ||
             firstPathSegment == 'documentation' ||
             uri.path == '/api/search-input-completion-data' ||
-            firstPathSegment == 'favicon.ico';
+            (firstPathSegment == 'favicon.ico' &&
+                uri.queryParameters.containsKey('hash'));
         final knownExemption =
             firstPathSegment == 'experimental' || firstPathSegment == 'report';
         final cacheHeader = rs.headers[HttpHeaders.cacheControlHeader];
