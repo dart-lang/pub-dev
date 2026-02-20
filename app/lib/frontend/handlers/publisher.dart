@@ -66,6 +66,8 @@ Future<shelf.Response> publisherPackagesPageHandler(
   String publisherId, {
   required PublisherPackagesPageKind kind,
 }) async {
+  checkPublisherIdParam(publisherId);
+
   // Redirect in case of empty search query.
   if (request.requestedUri.query == 'q=') {
     return redirectResponse(request.requestedUri.path);

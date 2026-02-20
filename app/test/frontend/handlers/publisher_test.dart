@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -51,6 +52,7 @@ void main() {
         );
         p.updateIsModerated(isModerated: true);
         await dbService.commit(inserts: [p]);
+        await purgePublisherCache(publisherId: 'example.com');
         await expectHtmlResponse(
           await issueGet('/publishers/example.com/packages'),
           status: 404,
