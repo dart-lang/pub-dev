@@ -8,6 +8,7 @@ import 'dart:math';
 
 import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/data/package_api.dart' show VersionScore;
+import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/youtube/v3.dart';
 import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
@@ -23,7 +24,7 @@ import '../../shared/env_config.dart';
 import '../account/models.dart' show Consent, LikeData, SessionData;
 import '../frontend/dom/dom.dart' as d;
 import '../package/models.dart' show PackageView;
-import '../publisher/models.dart' show PublisherPage;
+import '../publisher/models.dart' show PublisherPage, PublisherStatus;
 import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
 import '../service/openid/openid_models.dart' show OpenIdData;
@@ -342,13 +343,17 @@ class CachePatterns {
         ),
       )['$userId'];
 
-  Entry<bool> publisherVisible(String publisherId) => _cache
-      .withPrefix('publisher-visible/')
+  Entry<PublisherStatus> publisherStatus(String publisherId) => _cache
+      .withPrefix('publisher-status/')
       .withTTL(Duration(hours: 12))
       .withCodec(utf8)
-      .withCodec(json)
       .withCodec(
-        wrapAsCodec(encode: (bool value) => value, decode: (d) => d as bool),
+        wrapAsCodec(
+          encode: (PublisherStatus value) => value.name,
+          decode: (d) =>
+              PublisherStatus.values.firstWhereOrNull((ps) => ps.name == d) ??
+              PublisherStatus.missing,
+        ),
       )[publisherId];
 
   Entry<String> allPackagesAtomFeedXml() => _cache

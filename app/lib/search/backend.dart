@@ -275,10 +275,10 @@ class SearchBackend {
       throw RemovedPackageException();
     }
     if (p.publisherId != null) {
-      final publisherVisible = await publisherBackend.isPublisherVisible(
+      final publisherStatus = await publisherBackend.getPublisherStatus(
         p.publisherId!,
       );
-      if (!publisherVisible) {
+      if (!publisherStatus.isVisible) {
         throw RemovedPackageException();
       }
     }
@@ -430,10 +430,8 @@ class SearchBackend {
     await for (final p in query.run()) {
       if (p.isNotVisible) continue;
       if (p.publisherId != null) {
-        final publisherVisible = await publisherBackend.isPublisherVisible(
-          p.publisherId!,
-        );
-        if (!publisherVisible) continue;
+        final ps = await publisherBackend.getPublisherStatus(p.publisherId!);
+        if (!ps.isVisible) continue;
       }
       final releases = await packageBackend.latestReleases(p);
       yield PackageDocument(

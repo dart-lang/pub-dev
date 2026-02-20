@@ -1,7 +1,7 @@
 name: pub_dev
 description: The pub.dartlang.org website.
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.10.0
 resolution: workspace
 dependencies:
   _pub_shared:

@@ -66,9 +66,40 @@ Future<shelf.Response> publisherPackagesPageHandler(
   String publisherId, {
   required PublisherPackagesPageKind kind,
 }) async {
+  checkPublisherIdParam(publisherId);
+
   // Redirect in case of empty search query.
   if (request.requestedUri.query == 'q=') {
     return redirectResponse(request.requestedUri.path);
+  }
+
+  final status = await publisherBackend.getPublisherStatus(publisherId);
+  switch (status) {
+    case .missing:
+      // We may introduce search for publishers (e.g. somebody just mistyped a
+      // domain name), but now we just have a formatted error page.
+      return formattedNotFoundHandler(request);
+    case .moderated:
+      final message = 'The publisher `$publisherId` has been moderated.';
+      return htmlResponse(
+        renderErrorPage(default404NotFound, message),
+        status: 404,
+      );
+    case .abandoned:
+    case .active:
+      // continue rendering
+      break;
+  }
+
+  final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
+  // redirect to the search page when any search or pagination is present
+  if (searchForm.isNotEmpty) {
+    final redirectForm = searchForm.addRequiredTagIfAbsent(
+      PackageTags.publisherTag(publisherId),
+    );
+    return redirectResponse(
+      redirectForm.toSearchLink(page: searchForm.currentPage),
+    );
   }
 
   // Reply with cached page if available.
@@ -83,29 +114,6 @@ Future<shelf.Response> publisherPackagesPageHandler(
   }
 
   final publisher = await publisherBackend.lookupPublisher(publisherId);
-  if (publisher == null) {
-    // We may introduce search for publishers (e.g. somebody just mistyped a
-    // domain name), but now we just have a formatted error page.
-    return formattedNotFoundHandler(request);
-  }
-  if (publisher.isModerated) {
-    final message = 'The publisher `$publisherId` has been moderated.';
-    return htmlResponse(
-      renderErrorPage(default404NotFound, message),
-      status: 404,
-    );
-  }
-
-  final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
-  // redirect to the search page when any search or pagination is present
-  if (searchForm.isNotEmpty) {
-    final redirectForm = searchForm.addRequiredTagIfAbsent(
-      PackageTags.publisherTag(publisherId),
-    );
-    return redirectResponse(
-      redirectForm.toSearchLink(page: searchForm.currentPage),
-    );
-  }
 
   SearchForm appliedSearchForm;
   switch (kind) {
@@ -130,7 +138,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
   final links = PageLinks(appliedSearchForm, totalCount);
 
   final html = renderPublisherPackagesPage(
-    publisher: publisher,
+    publisher: publisher!,
     kind: kind,
     searchResultPage: searchResult,
     pageLinks: links,
