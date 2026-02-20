@@ -674,7 +674,7 @@ Future purgePublisherCache({String? publisherId}) async {
     if (publisherId != null)
       cache.uiPublisherPackagesPage(publisherId).purgeAndRepeat(),
     if (publisherId != null) cache.publisherVisible(publisherId).purge(),
-    cache.uiPublisherListPage().purge(),
+    cache.uiPublisherListPageContent().purge(),
   ]);
 }
 

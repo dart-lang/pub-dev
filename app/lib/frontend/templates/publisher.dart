@@ -19,7 +19,6 @@ import 'listing.dart';
 import 'views/publisher/admin_page.dart';
 import 'views/publisher/create_page.dart';
 import 'views/publisher/header_metadata.dart';
-import 'views/publisher/publisher_list.dart';
 
 /// Renders the create publisher page.
 String renderCreatePublisherPage({required String? domain}) {
@@ -32,8 +31,7 @@ String renderCreatePublisherPage({required String? domain}) {
 }
 
 /// Renders the global publisher list page.
-String renderPublisherListPage(List<PublisherSummary> publishers) {
-  final content = publisherListNode(publishers: publishers, isGlobal: true);
+String renderPublisherListPage(d.Node content) {
   return renderLayoutPage(
     PageType.listing,
     content,
