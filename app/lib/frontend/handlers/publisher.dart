@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
+import 'package:pub_dev/frontend/templates/views/publisher/publisher_list.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/auth_provider.dart';
@@ -40,18 +41,14 @@ Future<shelf.Response> createPublisherPageHandler(shelf.Request request) async {
 
 /// Handles requests for GET /publishers
 Future<shelf.Response> publisherListHandler(shelf.Request request) async {
-  if (requestContext.uiCacheEnabled) {
-    final content = await cache.uiPublisherListPage().get(() async {
-      final page = await publisherBackend.listPublishers();
-      return renderPublisherListPage(page.publishers!);
-    });
-    return htmlResponse(content!);
-  }
-
-  // no caching for logged-in user
-  final page = await publisherBackend.listPublishers();
-  final content = renderPublisherListPage(page.publishers!);
-  return htmlResponse(content);
+  final content = await cache.uiPublisherListPageContent().get(() async {
+    final page = await publisherBackend.listPublishers();
+    return publisherListNode(
+      publishers: page.publishers ?? <PublisherSummary>[],
+      isGlobal: true,
+    );
+  });
+  return htmlResponse(renderPublisherListPage(content!));
 }
 
 /// Handles requests for `GET /publishers/<publisherId>`.

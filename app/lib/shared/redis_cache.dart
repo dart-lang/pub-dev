@@ -111,10 +111,10 @@ class CachePatterns {
       .withTTL(Duration(minutes: 60))
       .withCodec(_domNodeCodec)['/'];
 
-  Entry<String> uiPublisherListPage() => _cache
-      .withPrefix('ui-publisherpage/')
+  Entry<d.Node> uiPublisherListPageContent() => _cache
+      .withPrefix('ui-publisherlist-page-content/')
       .withTTL(Duration(minutes: 60))
-      .withCodec(utf8)['/publishers'];
+      .withCodec(_domNodeCodec)['/'];
 
   /// The first, non-search page for publisher's packages.
   Entry<String> uiPublisherPackagesPage(String publisherId) => _cache

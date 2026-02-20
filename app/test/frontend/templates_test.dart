@@ -28,6 +28,7 @@ import 'package:pub_dev/frontend/templates/publisher.dart';
 import 'package:pub_dev/frontend/templates/report.dart';
 import 'package:pub_dev/frontend/templates/views/landing/page.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/score_tab.dart';
+import 'package:pub_dev/frontend/templates/views/publisher/publisher_list.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/search_adapter.dart';
@@ -681,16 +682,21 @@ void main() {
     testWithProfile(
       'publisher list page',
       fn: () async {
-        final html = renderPublisherListPage([
-          PublisherSummary(
-            publisherId: 'example.com',
-            created: DateTime(2019, 09, 13),
+        final html = renderPublisherListPage(
+          publisherListNode(
+            publishers: [
+              PublisherSummary(
+                publisherId: 'example.com',
+                created: DateTime(2019, 09, 13),
+              ),
+              PublisherSummary(
+                publisherId: 'other-domain.com',
+                created: DateTime(2019, 09, 19),
+              ),
+            ],
+            isGlobal: true,
           ),
-          PublisherSummary(
-            publisherId: 'other-domain.com',
-            created: DateTime(2019, 09, 19),
-          ),
-        ]);
+        );
         expectGoldenFile(
           html,
           'publisher_list_page.html',
