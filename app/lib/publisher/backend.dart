@@ -48,14 +48,14 @@ class PublisherBackend {
 
   PublisherBackend(this._db);
 
-  /// Returns true for publishers that we may display.
-  Future<bool> isPublisherVisible(String publisherId) async {
-    final visible = await cache.publisherVisible(publisherId).get(() async {
+  /// Returns the cached publisher status.
+  Future<PublisherStatus> getPublisherStatus(String publisherId) async {
+    final status = await cache.publisherStatus(publisherId).get(() async {
       final pKey = _db.emptyKey.append(Publisher, id: publisherId);
       final p = await _db.lookupOrNull<Publisher>(pKey);
-      return p?.isVisible ?? false;
+      return p?.status ?? PublisherStatus.missing;
     });
-    return visible!;
+    return status!;
   }
 
   /// Loads a [Publisher] entity or `null` if there is no such entity.
@@ -673,7 +673,7 @@ Future purgePublisherCache({String? publisherId}) async {
   await Future.wait([
     if (publisherId != null)
       cache.uiPublisherPackagesPage(publisherId).purgeAndRepeat(),
-    if (publisherId != null) cache.publisherVisible(publisherId).purge(),
+    if (publisherId != null) cache.publisherStatus(publisherId).purge(),
     cache.uiPublisherListPageContent().purge(),
   ]);
 }

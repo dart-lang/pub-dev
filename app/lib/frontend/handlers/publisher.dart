@@ -71,29 +71,22 @@ Future<shelf.Response> publisherPackagesPageHandler(
     return redirectResponse(request.requestedUri.path);
   }
 
-  // Reply with cached page if available.
-  final isLanding =
-      kind == PublisherPackagesPageKind.listed &&
-      request.requestedUri.queryParameters.isEmpty;
-  if (isLanding && requestContext.uiCacheEnabled) {
-    final html = await cache.uiPublisherPackagesPage(publisherId).get();
-    if (html != null) {
-      return htmlResponse(html);
-    }
-  }
-
-  final publisher = await publisherBackend.lookupPublisher(publisherId);
-  if (publisher == null) {
-    // We may introduce search for publishers (e.g. somebody just mistyped a
-    // domain name), but now we just have a formatted error page.
-    return formattedNotFoundHandler(request);
-  }
-  if (publisher.isModerated) {
-    final message = 'The publisher `$publisherId` has been moderated.';
-    return htmlResponse(
-      renderErrorPage(default404NotFound, message),
-      status: 404,
-    );
+  final status = await publisherBackend.getPublisherStatus(publisherId);
+  switch (status) {
+    case .missing:
+      // We may introduce search for publishers (e.g. somebody just mistyped a
+      // domain name), but now we just have a formatted error page.
+      return formattedNotFoundHandler(request);
+    case .moderated:
+      final message = 'The publisher `$publisherId` has been moderated.';
+      return htmlResponse(
+        renderErrorPage(default404NotFound, message),
+        status: 404,
+      );
+    case .abandoned:
+    case .active:
+      // continue rendering
+      break;
   }
 
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
@@ -106,6 +99,19 @@ Future<shelf.Response> publisherPackagesPageHandler(
       redirectForm.toSearchLink(page: searchForm.currentPage),
     );
   }
+
+  // Reply with cached page if available.
+  final isLanding =
+      kind == PublisherPackagesPageKind.listed &&
+      request.requestedUri.queryParameters.isEmpty;
+  if (isLanding && requestContext.uiCacheEnabled) {
+    final html = await cache.uiPublisherPackagesPage(publisherId).get();
+    if (html != null) {
+      return htmlResponse(html);
+    }
+  }
+
+  final publisher = await publisherBackend.lookupPublisher(publisherId);
 
   SearchForm appliedSearchForm;
   switch (kind) {
@@ -130,7 +136,7 @@ Future<shelf.Response> publisherPackagesPageHandler(
   final links = PageLinks(appliedSearchForm, totalCount);
 
   final html = renderPublisherPackagesPage(
-    publisher: publisher,
+    publisher: publisher!,
     kind: kind,
     searchResultPage: searchResult,
     pageLinks: links,

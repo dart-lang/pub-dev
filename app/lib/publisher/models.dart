@@ -92,6 +92,16 @@ class Publisher extends db.ExpandoModel<String> {
     moderatedAt = isModerated ? clock.now().toUtc() : null;
     updated = clock.now().toUtc();
   }
+
+  PublisherStatus get status {
+    if (isModerated) {
+      return PublisherStatus.moderated;
+    } else if (isAbandoned) {
+      return PublisherStatus.abandoned;
+    } else {
+      return PublisherStatus.active;
+    }
+  }
 }
 
 /// Derived publisher data.
@@ -187,3 +197,14 @@ class PublisherSummary {
 }
 
 String defaultPublisherWebsite(String domain) => 'https://$domain/';
+
+/// The visibility / availability status of a publisher.
+enum PublisherStatus {
+  missing,
+  abandoned,
+  moderated,
+  active;
+
+  /// Whether the publisher is listed on the listing page or has its own page visible.
+  bool get isVisible => this == active || this == abandoned;
+}
