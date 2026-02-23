@@ -45,20 +45,19 @@ String renderPublisherPackagesPage({
   required Publisher publisher,
   required PublisherPackagesPageKind kind,
   required SearchResultPage searchResultPage,
-  required String? messageFromBackend,
-  required PageLinks pageLinks,
-  required SearchForm searchForm,
-  required int totalCount,
   required bool isAdmin,
 }) {
-  final title = 'Packages of publisher ${publisher.publisherId}';
+  final pageLinks = PageLinks(
+    searchResultPage.form,
+    searchResultPage.totalCount,
+  );
 
   final tabContent = d.fragment([
     listingInfo(
-      searchForm: searchForm,
-      totalCount: totalCount,
+      searchForm: searchResultPage.form,
+      totalCount: searchResultPage.totalCount,
       ownedBy: publisher.publisherId,
-      messageFromBackend: messageFromBackend,
+      messageFromBackend: searchResultPage.errorMessage,
     ),
     if (kind == PublisherPackagesPageKind.unlisted)
       d.markdown(
@@ -70,11 +69,9 @@ String renderPublisherPackagesPage({
     paginationNode(pageLinks),
   ]);
 
-  String canonicalUrl;
   List<Tab> packagesTabs;
   switch (kind) {
     case PublisherPackagesPageKind.listed:
-      canonicalUrl = urls.publisherPackagesUrl(publisher.publisherId);
       packagesTabs = <Tab>[
         Tab.withContent(
           id: 'packages',
@@ -85,7 +82,6 @@ String renderPublisherPackagesPage({
       ];
       break;
     case PublisherPackagesPageKind.unlisted:
-      canonicalUrl = urls.publisherUnlistedPackagesUrl(publisher.publisherId);
       packagesTabs = <Tab>[
         _packagesLinkTab(publisher.publisherId),
         Tab.withContent(
@@ -109,6 +105,17 @@ String renderPublisherPackagesPage({
     infoBoxNode: null,
   );
 
+  final title = 'Packages of publisher ${publisher.publisherId}';
+  String canonicalUrl;
+  switch (kind) {
+    case PublisherPackagesPageKind.listed:
+      canonicalUrl = urls.publisherPackagesUrl(publisher.publisherId);
+      break;
+    case PublisherPackagesPageKind.unlisted:
+      canonicalUrl = urls.publisherUnlistedPackagesUrl(publisher.publisherId);
+      break;
+  }
+
   return renderLayoutPage(
     PageType.publisher,
     mainContent,
@@ -116,14 +123,13 @@ String renderPublisherPackagesPage({
     pageData: PageData(
       publisher: PublisherData(publisherId: publisher.publisherId),
     ),
-    searchForm: searchForm,
+    searchForm: searchResultPage.form,
     canonicalUrl: canonicalUrl,
-    // index only the first listed page, if it has packages displayed without search query
     noIndex:
+        isAdmin ||
         publisher.isUnlisted ||
         kind == PublisherPackagesPageKind.unlisted ||
-        searchResultPage.hasNoHit ||
-        pageLinks.currentPage! > 1,
+        searchResultPage.hasNoHit,
     mainClasses: [wideHeaderDetailPageClassName],
   );
 }

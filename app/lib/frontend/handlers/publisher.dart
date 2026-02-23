@@ -18,7 +18,6 @@ import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
 import '../request_context.dart';
-import '../templates/listing.dart' show PageLinks;
 import '../templates/misc.dart';
 import '../templates/publisher.dart';
 
@@ -134,21 +133,15 @@ Future<shelf.Response> publisherPackagesPageHandler(
     // Do not apply rate limit here.
     rateLimitKey: null,
   );
-  final int totalCount = searchResult.totalCount;
-  final links = PageLinks(appliedSearchForm, totalCount);
 
   final html = renderPublisherPackagesPage(
     publisher: publisher!,
     kind: kind,
     searchResultPage: searchResult,
-    pageLinks: links,
-    searchForm: appliedSearchForm,
-    totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
       publisher,
       requestContext.authenticatedUserId,
     ),
-    messageFromBackend: searchResult.errorMessage,
   );
   if (isLanding && requestContext.uiCacheEnabled) {
     await cache.uiPublisherPackagesPage(publisherId).set(html);

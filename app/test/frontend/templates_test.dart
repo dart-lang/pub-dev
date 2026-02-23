@@ -728,11 +728,7 @@ void main() {
             2,
             packageHits: [neon, titanium],
           ),
-          totalCount: 2,
-          searchForm: searchForm,
-          pageLinks: PageLinks(searchForm, 10),
           isAdmin: true,
-          messageFromBackend: null,
         );
         expectGoldenFile(
           html,
@@ -767,11 +763,7 @@ void main() {
             2,
             packageHits: [neon, titanium],
           ),
-          totalCount: 2,
-          searchForm: searchForm,
-          pageLinks: PageLinks(searchForm, 10),
           isAdmin: true,
-          messageFromBackend: null,
         );
         expectGoldenFile(
           html,
