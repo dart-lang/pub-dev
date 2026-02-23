@@ -872,14 +872,15 @@ class PackageBackend {
     String packageName,
     api.PackagePublisherInfo request,
   ) async {
-    InvalidInputException.checkNotNull(request.publisherId, 'publisherId');
+    final newPublisherId = request.publisherId;
+    InvalidInputException.checkNotNull(newPublisherId, 'publisherId');
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
 
     final key = db.emptyKey.append(Package, id: packageName);
     final preTxPackage = await _requirePackageAdmin(packageName, user.userId);
-    await requirePublisherAdmin(request.publisherId, user.userId);
-    if (preTxPackage.publisherId == request.publisherId) {
+    await requirePublisherAdmin(newPublisherId!, user.userId);
+    if (preTxPackage.publisherId == newPublisherId) {
       // If desired publisherId is already the current publisherId, then we're already done.
       return _asPackagePublisherInfo(preTxPackage);
     }
@@ -888,7 +889,7 @@ class PackageBackend {
       preTxPackage,
     );
     final newPublisherAdminEmails = await publisherBackend.getAdminMemberEmails(
-      request.publisherId!,
+      newPublisherId,
     );
     final allAdminEmails = <String>{
       ...preTxUploaderEmails,
@@ -899,12 +900,12 @@ class PackageBackend {
     String? currentPublisherId;
     final rs = await withRetryTransaction(db, (tx) async {
       final package = await tx.lookupValue<Package>(key);
-      if (package.publisherId == request.publisherId) {
+      if (package.publisherId == newPublisherId) {
         // If desired publisherId is already the current publisherId, then we're already done.
         return _asPackagePublisherInfo(package);
       }
       currentPublisherId = package.publisherId;
-      package.publisherId = request.publisherId;
+      package.publisherId = newPublisherId;
       package.uploaders?.clear();
       package.updated = clock.now().toUtc();
 
@@ -932,13 +933,13 @@ class PackageBackend {
       tx.insert(email!);
       return _asPackagePublisherInfo(package);
     });
-    await purgePublisherCache(publisherId: request.publisherId);
+    await purgePublisherCache(newPublisherId);
 
     if (email != null) {
       await emailBackend.trySendOutgoingEmail(email!);
     }
     if (currentPublisherId != null) {
-      await purgePublisherCache(publisherId: currentPublisherId);
+      await purgePublisherCache(currentPublisherId!);
     }
     triggerPackagePostUpdates(
       packageName,

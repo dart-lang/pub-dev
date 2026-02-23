@@ -65,7 +65,7 @@ If the publisher has no members, the package will end up without uploaders.
       skipReanalysis: true,
       skipArchiveExport: true,
     );
-    await purgePublisherCache(publisherId: currentPublisherId);
+    await purgePublisherCache(currentPublisherId);
     return {
       'previousPublisher': currentPublisherId,
       'package': package.name,

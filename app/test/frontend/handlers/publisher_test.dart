@@ -52,7 +52,7 @@ void main() {
         );
         p.updateIsModerated(isModerated: true);
         await dbService.commit(inserts: [p]);
-        await purgePublisherCache(publisherId: 'example.com');
+        await purgePublisherCache('example.com');
         await expectHtmlResponse(
           await issueGet('/publishers/example.com/packages'),
           status: 404,

@@ -44,14 +44,14 @@ final packagePublisherSet = AdminAction(
         pkg.updated = clock.now().toUtc();
         tx.insert(pkg);
       });
-      await purgePublisherCache(publisherId: publisherId);
+      await purgePublisherCache(publisherId);
       triggerPackagePostUpdates(
         packageName,
         skipReanalysis: true,
         skipArchiveExport: true,
       );
       if (currentPublisherId != null) {
-        await purgePublisherCache(publisherId: currentPublisherId);
+        await purgePublisherCache(currentPublisherId);
       }
     }
 

@@ -370,7 +370,7 @@ class PublisherBackend {
       return p;
     });
 
-    await purgePublisherCache(publisherId: publisherId);
+    await purgePublisherCache(publisherId);
     return _asPublisherInfo(p);
   }
 
@@ -552,7 +552,7 @@ class PublisherBackend {
       });
     }
     final updated = await _db.lookupValue<PublisherMember>(key);
-    await purgePublisherCache(publisherId: publisherId);
+    await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);
     return await _asPublisherMember(updated);
   }
@@ -578,7 +578,7 @@ class PublisherBackend {
       );
       await _db.commit(inserts: [auditLogRecord], deletes: [pm.key]);
     }
-    await purgePublisherCache(publisherId: publisherId);
+    await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);
   }
 
@@ -617,7 +617,7 @@ class PublisherBackend {
         ],
       );
     });
-    await purgePublisherCache(publisherId: publisherId);
+    await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);
   }
 
@@ -669,11 +669,10 @@ Future<Publisher> requirePublisherAdmin(
 }
 
 /// Purge [cache] entries for given [publisherId].
-Future purgePublisherCache({String? publisherId}) async {
+Future purgePublisherCache(String publisherId) async {
   await Future.wait([
-    if (publisherId != null)
-      cache.uiPublisherPackagesPage(publisherId).purgeAndRepeat(),
-    if (publisherId != null) cache.publisherStatus(publisherId).purge(),
+    cache.uiPublisherPackagesPage(publisherId).purgeAndRepeat(),
+    cache.publisherStatus(publisherId).purge(),
     cache.uiPublisherListPageContent().purge(),
   ]);
 }
