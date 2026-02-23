@@ -720,14 +720,21 @@ void main() {
         final titanium = (await scoreCardBackend.getPackageView(
           'flutter_titanium',
         ))!;
+        final searchResult = SearchResultPage(
+          searchForm,
+          2,
+          packageHits: [neon, titanium],
+        );
         final html = renderPublisherPackagesPage(
           publisher: publisher,
           kind: PublisherPackagesPageKind.listed,
-          searchResultPage: SearchResultPage(
-            searchForm,
-            2,
-            packageHits: [neon, titanium],
+          searchForm: searchForm,
+          tabContent: publisherPackagesListTabContentNode(
+            publisherId: publisher.publisherId,
+            kind: .listed,
+            searchResultPage: searchResult,
           ),
+          totalCount: searchResult.totalCount,
           isAdmin: true,
         );
         expectGoldenFile(
@@ -755,14 +762,21 @@ void main() {
         final titanium = (await scoreCardBackend.getPackageView(
           'flutter_titanium',
         ))!;
+        final searchResult = SearchResultPage(
+          searchForm,
+          2,
+          packageHits: [neon, titanium],
+        );
         final html = renderPublisherPackagesPage(
           publisher: publisher,
           kind: PublisherPackagesPageKind.unlisted,
-          searchResultPage: SearchResultPage(
-            searchForm,
-            2,
-            packageHits: [neon, titanium],
+          searchForm: searchForm,
+          tabContent: publisherPackagesListTabContentNode(
+            publisherId: publisher.publisherId,
+            kind: .unlisted,
+            searchResultPage: searchResult,
           ),
+          totalCount: searchResult.totalCount,
           isAdmin: true,
         );
         expectGoldenFile(

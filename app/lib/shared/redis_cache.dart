@@ -24,7 +24,8 @@ import '../../shared/env_config.dart';
 import '../account/models.dart' show Consent, LikeData, SessionData;
 import '../frontend/dom/dom.dart' as d;
 import '../package/models.dart' show PackageView;
-import '../publisher/models.dart' show PublisherPage, PublisherStatus;
+import '../publisher/models.dart'
+    show PublisherPackagesPageKind, PublisherPage, PublisherStatus;
 import '../scorecard/models.dart' show ScoreCardData;
 import '../search/search_service.dart' show PackageSearchResult;
 import '../service/openid/openid_models.dart' show OpenIdData;
@@ -118,10 +119,24 @@ class CachePatterns {
       .withCodec(_domNodeCodec)['/'];
 
   /// The first, non-search page for publisher's packages.
-  Entry<String> uiPublisherPackagesPage(String publisherId) => _cache
-      .withPrefix('ui-publisherpage/')
+  Entry<(d.Node tabContent, int totalCount)> publisherPackagesTabContent(
+    String publisherId,
+    PublisherPackagesPageKind kind,
+  ) => _cache
+      .withPrefix('publisher-packages-tab-content/')
       .withTTL(Duration(minutes: 60))
-      .withCodec(utf8)[publisherId];
+      .withCodec(utf8)
+      .withCodec(
+        wrapAsCodec(
+          encode: ((d.Node tabContent, int totalCount) e) {
+            return json.encode([e.$1.toString(), e.$2]);
+          },
+          decode: (v) {
+            final x = json.decode(v) as List;
+            return (d.unsafeRawHtml(x[0] as String), x[1] as int);
+          },
+        ),
+      )['$publisherId/${kind.name}'];
 
   Entry<bool> packageVisible(String package) => _cache
       .withPrefix('package-visible/')

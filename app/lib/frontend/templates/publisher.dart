@@ -40,23 +40,21 @@ String renderPublisherListPage(d.Node content) {
   );
 }
 
-/// Renders the search results on the publisher's packages page.
-String renderPublisherPackagesPage({
-  required Publisher publisher,
+/// The tab content of the search results on the publisher's packages page.
+d.Node publisherPackagesListTabContentNode({
+  required String publisherId,
   required PublisherPackagesPageKind kind,
   required SearchResultPage searchResultPage,
-  required bool isAdmin,
 }) {
   final pageLinks = PageLinks(
     searchResultPage.form,
     searchResultPage.totalCount,
   );
-
-  final tabContent = d.fragment([
+  return d.fragment([
     listingInfo(
       searchForm: searchResultPage.form,
       totalCount: searchResultPage.totalCount,
-      ownedBy: publisher.publisherId,
+      ownedBy: publisherId,
       messageFromBackend: searchResultPage.errorMessage,
     ),
     if (kind == PublisherPackagesPageKind.unlisted)
@@ -68,7 +66,17 @@ String renderPublisherPackagesPage({
     if (searchResultPage.hasHit) packageList(searchResultPage),
     paginationNode(pageLinks),
   ]);
+}
 
+/// Renders the search results on the publisher's packages page.
+String renderPublisherPackagesPage({
+  required Publisher publisher,
+  required PublisherPackagesPageKind kind,
+  required SearchForm searchForm,
+  required d.Node tabContent,
+  required int totalCount,
+  required bool isAdmin,
+}) {
   List<Tab> packagesTabs;
   switch (kind) {
     case PublisherPackagesPageKind.listed:
@@ -123,13 +131,13 @@ String renderPublisherPackagesPage({
     pageData: PageData(
       publisher: PublisherData(publisherId: publisher.publisherId),
     ),
-    searchForm: searchResultPage.form,
+    searchForm: searchForm,
     canonicalUrl: canonicalUrl,
     noIndex:
         isAdmin ||
         publisher.isUnlisted ||
         kind == PublisherPackagesPageKind.unlisted ||
-        searchResultPage.hasNoHit,
+        totalCount == 0,
     mainClasses: [wideHeaderDetailPageClassName],
   );
 }

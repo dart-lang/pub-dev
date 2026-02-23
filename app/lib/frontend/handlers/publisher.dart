@@ -17,6 +17,7 @@ import '../../publisher/models.dart';
 import '../../shared/handlers.dart';
 import '../../shared/redis_cache.dart' show cache;
 import '../../shared/urls.dart' as urls;
+import '../dom/dom.dart' as d;
 import '../request_context.dart';
 import '../templates/misc.dart';
 import '../templates/publisher.dart';
@@ -101,19 +102,6 @@ Future<shelf.Response> publisherPackagesPageHandler(
     );
   }
 
-  // Reply with cached page if available.
-  final isLanding =
-      kind == PublisherPackagesPageKind.listed &&
-      request.requestedUri.queryParameters.isEmpty;
-  if (isLanding && requestContext.uiCacheEnabled) {
-    final html = await cache.uiPublisherPackagesPage(publisherId).get();
-    if (html != null) {
-      return htmlResponse(html);
-    }
-  }
-
-  final publisher = await publisherBackend.lookupPublisher(publisherId);
-
   SearchForm appliedSearchForm;
   switch (kind) {
     case PublisherPackagesPageKind.listed:
@@ -128,24 +116,34 @@ Future<shelf.Response> publisherPackagesPageHandler(
       break;
   }
 
-  final searchResult = await searchAdapter.search(
-    appliedSearchForm,
-    // Do not apply rate limit here.
-    rateLimitKey: null,
-  );
+  final publisher = await publisherBackend.lookupPublisher(publisherId);
+  final (tabContent, totalCount) =
+      await cache.publisherPackagesTabContent(publisherId, kind).get(() async {
+            final searchResult = await searchAdapter.search(
+              appliedSearchForm,
+              // Do not apply rate limit here.
+              rateLimitKey: null,
+            );
+            final tabContent = publisherPackagesListTabContentNode(
+              publisherId: publisherId,
+              kind: kind,
+              searchResultPage: searchResult,
+            );
+            return (tabContent, searchResult.totalCount);
+          })
+          as (d.Node, int);
 
   final html = renderPublisherPackagesPage(
     publisher: publisher!,
     kind: kind,
-    searchResultPage: searchResult,
+    searchForm: appliedSearchForm,
+    tabContent: tabContent,
+    totalCount: totalCount,
     isAdmin: await publisherBackend.isMemberAdmin(
       publisher,
       requestContext.authenticatedUserId,
     ),
   );
-  if (isLanding && requestContext.uiCacheEnabled) {
-    await cache.uiPublisherPackagesPage(publisherId).set(html);
-  }
   return htmlResponse(html);
 }
 

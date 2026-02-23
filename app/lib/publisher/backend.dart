@@ -671,7 +671,8 @@ Future<Publisher> requirePublisherAdmin(
 /// Purge [cache] entries for given [publisherId].
 Future purgePublisherCache(String publisherId) async {
   await Future.wait([
-    cache.uiPublisherPackagesPage(publisherId).purgeAndRepeat(),
+    cache.publisherPackagesTabContent(publisherId, .listed).purgeAndRepeat(),
+    cache.publisherPackagesTabContent(publisherId, .unlisted).purgeAndRepeat(),
     cache.publisherStatus(publisherId).purge(),
     cache.uiPublisherListPageContent().purge(),
   ]);
