@@ -157,9 +157,7 @@ extension DartDocPageRender on DartDocPage {
         classes: ['hidden-xs'],
         child: d.img(
           classes: ['-dart-logo-img'],
-          attributes: {
-            'aria-label': 'Go to the landing page of pub.dev',
-          },
+          attributes: {'aria-label': 'Go to the landing page of pub.dev'},
           image: d.Image.decorative(
             src: staticUrls.dartLogoSvg,
             height: 30,

@@ -79,11 +79,15 @@ String _serializeCSP(Map<String, String>? extraValues) {
     ..._defaultContentSecurityPolicyMap.keys,
     ...?extraValues?.keys,
   };
-  return keys.map((key) {
-    final list = _defaultContentSecurityPolicyMap[key] ?? <String>[];
-    final extra = extraValues == null ? null : extraValues[key];
-    final extraStr = (extra == null || extra.trim().isEmpty) ? '' : ' $extra';
-    final content = '${list.join(' ')}$extraStr'.trim();
-    return content.isEmpty ? key : '$key $content';
-  }).join('; ');
+  return keys
+      .map((key) {
+        final list = _defaultContentSecurityPolicyMap[key] ?? <String>[];
+        final extra = extraValues == null ? null : extraValues[key];
+        final extraStr = (extra == null || extra.trim().isEmpty)
+            ? ''
+            : ' $extra';
+        final content = '${list.join(' ')}$extraStr'.trim();
+        return content.isEmpty ? key : '$key $content';
+      })
+      .join('; ');
 }
