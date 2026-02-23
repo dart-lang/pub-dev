@@ -49,7 +49,7 @@ import 'handlers/_utils.dart';
 
 const String goldenDir = 'test/frontend/golden';
 
-final _regenerateGoldens = true;
+final _regenerateGoldens = false;
 
 void main() {
   group('templates', () {
