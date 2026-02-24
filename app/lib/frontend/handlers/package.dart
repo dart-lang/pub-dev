@@ -267,7 +267,10 @@ Future<shelf.Response> packageScoreLogTxtHandler(
   return shelf.Response(
     log == null || log.startsWith('no log -') ? 404 : 200,
     body: log ?? 'no log',
-    headers: {'content-type': 'text/plain;charset=UTF-8'},
+    headers: {
+      'content-type': 'text/plain;charset=UTF-8',
+      'x-robots-tag': 'noindex',
+    },
   );
 }
 

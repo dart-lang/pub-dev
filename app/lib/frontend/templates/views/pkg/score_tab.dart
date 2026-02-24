@@ -97,6 +97,7 @@ d.Node scoreTabNode({
               version: isLatestStable ? null : version,
             ),
             text: 'analysis log',
+            rel: 'nofollow',
           ),
           d.text(' for details.'),
         ],
