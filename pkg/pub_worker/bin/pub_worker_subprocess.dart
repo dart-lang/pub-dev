@@ -33,7 +33,7 @@ const _totalTimeout = Duration(minutes: 50);
 
 /// The dartdoc version to use.
 /// keep in-sync with app/lib/shared/versions.dart
-const _dartdocVersion = '9.0.1';
+const _dartdocVersion = '9.0.3';
 
 /// Program to be used as subprocess for processing packages, ensuring that we
 /// capture all the output, and only run analysis in a subprocess that can

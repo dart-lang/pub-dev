@@ -6,13 +6,13 @@ resolution: workspace
 dependencies:
   _pub_shared:
   appengine: ^0.13.8
-  args: '^2.0.0'
+  args: "^2.0.0"
   basics: ^0.10.0
   chunked_stream: ^1.1.0
   clock: ^1.1.0
   collection: ^1.18.0
-  convert: '^3.0.0'
-  crypto: '^3.0.0'
+  convert: "^3.0.0"
+  crypto: "^3.0.0"
   fake_async: ^1.2.0
   fake_gcloud:
     path: ../pkg/fake_gcloud
@@ -23,23 +23,23 @@ dependencies:
   http: ^1.0.0
   http_parser: ^4.0.0
   indexed_blob:
-  intl: '^0.20.0'
-  json_annotation: '^4.3.0'
-  logging: '>=0.9.3 <2.0.0'
+  intl: "^0.20.0"
+  json_annotation: "^4.3.0"
+  logging: ">=0.9.3 <2.0.0"
   markdown: ^7.2.2
   meta: ^1.1.2
   mime: ^2.0.0
   neat_cache: ^2.0.5
   neat_periodic_task: ^2.0.0
-  path: '^1.8.0'
+  path: "^1.8.0"
   pem: ^2.0.1
-  pool: '^1.5.0'
+  pool: "^1.5.0"
   pub_package_reader:
-  pub_semver: '^2.0.0'
+  pub_semver: "^2.0.0"
   pubspec_parse: ^1.2.1
   retry: ^3.1.0
   sanitize_html: ^2.1.0
-  shelf: '^1.0.0'
+  shelf: "^1.0.0"
   shelf_router: ^1.1.0
   stack_trace: ^1.10.0
   stream_transform: ^2.0.0
@@ -47,21 +47,21 @@ dependencies:
   watcher: ^1.0.0
   yaml: ^3.1.0
   # pana version to be pinned
-  pana: '0.23.9'
+  pana: "0.23.10"
   # 3rd-party packages with pinned versions
-  mailer: '6.5.0'
-  postgres: '3.5.9'
-  ulid: '2.0.1'
-  tar: '2.0.0'
+  mailer: "6.5.0"
+  postgres: "3.5.9"
+  ulid: "2.0.1"
+  tar: "2.0.0"
   api_builder:
 
 dev_dependencies:
-  build_runner: '^2.0.0'
+  build_runner: "^2.0.0"
   build_verify: ^3.0.0
   coverage: any # test already depends on it
   json_serializable: ^6.0.1
   shelf_router_generator: ^1.1.3
-  source_gen: '^4.0.0'
+  source_gen: "^4.0.0"
   test: ^1.16.5
   xml: ^6.0.0
 

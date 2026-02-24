@@ -22,5 +22,6 @@ dart pub unpack "dartdoc:${DARTDOC_VERSION}" --output=${WORK_DIR}
 # Compile executable
 mv "${WORK_DIR}/dartdoc-${DARTDOC_VERSION}" "${TARGET_DIR}"
 cd "${TARGET_DIR}"
+dart pub get
 mkdir build
 dart compile exe -o build/dartdoc bin/dartdoc.dart
