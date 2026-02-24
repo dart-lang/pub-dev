@@ -48,7 +48,7 @@ ENV PATH="/home/worker/bin:/home/worker/dart/stable/bin:${PATH}"
 
 # Setup dartdoc
 ENV DARTDOC_DIR=/home/worker/dartdoc
-RUN tool/setup-dartdoc.sh "${DARTDOC_DIR}" 9.0.1
+RUN tool/setup-dartdoc.sh "${DARTDOC_DIR}" 9.0.3
 ENV DARTDOC_BINARY="${DARTDOC_DIR}/build/dartdoc"
 ENV DARTDOC_RESOURCES_DIR="${DARTDOC_DIR}/lib/resources"
 
