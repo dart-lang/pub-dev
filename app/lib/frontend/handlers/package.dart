@@ -82,12 +82,10 @@ Future<shelf.Response> packageVersionsListHandler(
     packageName: packageName,
     versionName: null,
     assetKind: null,
+    requiresAdmin: false,
     canonicalUrlFn: (p, v) => urls.pkgVersionsUrl(p),
     renderFn: (data) async {
       final versions = await packageBackend.listVersionsCached(packageName);
-      if (versions.versions.isEmpty) {
-        return redirectToSearch(packageName);
-      }
 
       final dartSdkVersion = await getCachedDartSdkVersion(
         lastKnownStable: toolStableDartSdkVersion,
@@ -123,13 +121,9 @@ Future<shelf.Response> packageChangelogHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.changelog,
+    requiresAdmin: false,
     canonicalUrlFn: (p, v) => urls.pkgChangelogUrl(p, version: v),
     renderFn: (data) {
-      if (!data.hasChangelog) {
-        return redirectResponse(
-          urls.pkgPageUrl(packageName, version: versionName),
-        );
-      }
       return renderPkgChangelogPage(data);
     },
     cacheEntry: cache.uiPackageChangelog(packageName, versionName),
@@ -150,13 +144,9 @@ Future<shelf.Response> packageExampleHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.example,
+    requiresAdmin: false,
     canonicalUrlFn: (p, v) => urls.pkgExampleUrl(p, version: v),
     renderFn: (data) {
-      if (!data.hasExample) {
-        return redirectResponse(
-          urls.pkgPageUrl(packageName, version: versionName),
-        );
-      }
       return renderPkgExamplePage(data);
     },
     cacheEntry: cache.uiPackageExample(packageName, versionName),
@@ -177,6 +167,7 @@ Future<shelf.Response> packageInstallHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: null,
+    requiresAdmin: false,
     canonicalUrlFn: (p, v) => urls.pkgInstallUrl(p, version: v),
     renderFn: (data) => renderPkgInstallPage(data),
     cacheEntry: cache.uiPackageInstall(packageName, versionName),
@@ -197,6 +188,7 @@ Future<shelf.Response> packageLicenseHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.license,
+    requiresAdmin: false,
     canonicalUrlFn: (p, v) => urls.pkgLicenseUrl(p, version: v),
     renderFn: (data) => renderPkgLicensePage(data),
     cacheEntry: cache.uiPackageLicense(packageName, versionName),
@@ -217,6 +209,7 @@ Future<shelf.Response> packagePubspecHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.pubspec,
+    requiresAdmin: false,
     canonicalUrlFn: (p, v) => urls.pkgPubspecUrl(p, version: v),
     renderFn: (data) => renderPkgPubspecPage(data),
     cacheEntry: cache.uiPackagePubspec(packageName, versionName),
@@ -237,6 +230,7 @@ Future<shelf.Response> packageScoreHandler(
     packageName: packageName,
     versionName: versionName,
     assetKind: null,
+    requiresAdmin: false,
     canonicalUrlFn: (p, v) => urls.pkgScoreUrl(p, version: v),
     renderFn: (data) => renderPkgScorePage(data),
     cacheEntry: cache.uiPackageScore(packageName, versionName),
@@ -288,6 +282,7 @@ Future<shelf.Response> packageVersionHandlerHtml(
     packageName: packageName,
     versionName: versionName,
     assetKind: AssetKind.readme,
+    requiresAdmin: false,
     canonicalUrlFn: (p, v) => urls.pkgReadmeUrl(p, version: v),
     renderFn: (data) => renderPkgShowPage(data),
     cacheEntry: cache.uiPackagePage(packageName, versionName),
@@ -300,7 +295,8 @@ Future<shelf.Response> _handlePackagePage({
   required String? versionName,
   required String? assetKind,
   required String Function(String package, String? version) canonicalUrlFn,
-  required FutureOr Function(PackagePageData data) renderFn,
+  required FutureOr<String> Function(PackagePageData data) renderFn,
+  required bool requiresAdmin,
   Entry<String>? cacheEntry,
 }) async {
   checkPackageVersionParams(packageName, versionName);
@@ -317,49 +313,57 @@ Future<shelf.Response> _handlePackagePage({
     return redirectResponse(sdkPackageUrls[packageName]!);
   }
   final Stopwatch sw = Stopwatch()..start();
-  String? cachedPage;
   if (cacheEnabled) {
-    cachedPage = await cacheEntry.get();
+    final cachedPage = await cacheEntry.get();
+    if (cachedPage != null) {
+      return htmlResponse(cachedPage);
+    }
   }
 
-  if (cachedPage == null) {
-    final package = await packageBackend.lookupPackage(packageName);
-    if (package == null) {
-      return formattedNotFoundHandler(request);
-    }
-    if (package.isNotVisible) {
-      final content = renderModeratedPackagePage(packageName);
-      return htmlResponse(content, status: 404);
-    }
-    final serviceSw = Stopwatch()..start();
-    final PackagePageData data;
-    try {
-      data = await loadPackagePageData(package, versionName, assetKind);
-    } on ModeratedException {
-      final content = renderModeratedPackagePage(packageName);
-      return htmlResponse(content, status: 404);
-    } on NotFoundException {
-      return formattedNotFoundHandler(request);
-    }
-    if (data.version.isNotVisible) {
-      final content = renderModeratedPackagePage(packageName);
-      return htmlResponse(content, status: 404);
-    }
-    _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
-    final renderedResult = await renderFn(data);
-    if (renderedResult is String) {
-      cachedPage = renderedResult;
-    } else if (renderedResult is shelf.Response) {
-      return renderedResult;
-    } else {
-      throw StateError('Unknown result type: ${renderedResult.runtimeType}');
-    }
-    if (cacheEnabled) {
-      await cacheEntry.set(cachedPage);
-    }
-    _packageDoneLatencyTracker.add(sw.elapsed);
+  final package = await packageBackend.lookupPackage(packageName);
+  if (package == null) {
+    return formattedNotFoundHandler(request);
   }
-  return htmlResponse(cachedPage);
+  if (package.isNotVisible) {
+    final content = renderModeratedPackagePage(packageName);
+    return htmlResponse(content, status: 404);
+  }
+  final serviceSw = Stopwatch()..start();
+  final PackagePageData data;
+  try {
+    data = await loadPackagePageData(package, versionName, assetKind);
+  } on ModeratedException {
+    final content = renderModeratedPackagePage(packageName);
+    return htmlResponse(content, status: 404);
+  } on NotFoundException {
+    return formattedNotFoundHandler(request);
+  }
+  if (data.version.isNotVisible) {
+    final content = renderModeratedPackagePage(packageName);
+    return htmlResponse(content, status: 404);
+  }
+  _packageDataLoadLatencyTracker.add(serviceSw.elapsed);
+
+  if (requiresAdmin) {
+    final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
+    if (unauthenticatedRs != null) {
+      return unauthenticatedRs;
+    }
+    if (!data.isAdmin) {
+      return htmlResponse(renderUnauthorizedPage(), status: 403);
+    }
+  }
+
+  if (assetKind != null && data.asset == null) {
+    return redirectResponse(urls.pkgPageUrl(packageName, version: versionName));
+  }
+
+  final renderedResult = await renderFn(data);
+  if (cacheEnabled) {
+    await cacheEntry.set(renderedResult);
+  }
+  _packageDoneLatencyTracker.add(sw.elapsed);
+  return htmlResponse(renderedResult);
 }
 
 /// Returns the optionally lowercased version of [name], but only if there
@@ -392,15 +396,9 @@ Future<shelf.Response> packageAdminHandler(
     packageName: packageName,
     versionName: null,
     assetKind: null,
+    requiresAdmin: true,
     canonicalUrlFn: (p, v) => urls.pkgAdminUrl(p),
     renderFn: (data) async {
-      final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
-      if (unauthenticatedRs != null) {
-        return unauthenticatedRs;
-      }
-      if (!data.isAdmin) {
-        return htmlResponse(renderUnauthorizedPage(), status: 403);
-      }
       final page = await publisherBackend.listPublishersForUser(
         requestContext.authenticatedUserId!,
       );
@@ -433,15 +431,9 @@ Future<shelf.Response> packageActivityLogHandler(
     packageName: packageName,
     versionName: null,
     assetKind: null,
+    requiresAdmin: true,
     canonicalUrlFn: (p, v) => urls.pkgActivityLogUrl(p),
     renderFn: (data) async {
-      final unauthenticatedRs = await checkAuthenticatedPageRequest(request);
-      if (unauthenticatedRs != null) {
-        return unauthenticatedRs;
-      }
-      if (!data.isAdmin) {
-        return htmlResponse(renderUnauthorizedPage(), status: 403);
-      }
       final before = auditBackend.parseBeforeQueryParameter(
         request.requestedUri.queryParameters['before'],
       );
