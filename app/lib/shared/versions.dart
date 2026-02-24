@@ -62,8 +62,8 @@ bool shouldGCVersion(String version) =>
 
 // keep in-sync with SDK version in .github/workflows/all-test.yml and Dockerfile.app
 final String runtimeSdkVersion = '3.11.0';
-final String toolStableDartSdkVersion = '3.11.0';
-final String toolStableFlutterSdkVersion = '3.41.0';
+final String toolStableDartSdkVersion = '3.11.1';
+final String toolStableFlutterSdkVersion = '3.41.2';
 
 final semanticToolStableDartSdkVersion = Version.parse(
   toolStableDartSdkVersion,
