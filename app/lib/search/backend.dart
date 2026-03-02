@@ -84,6 +84,7 @@ void registerSearchIndex(SearchIndex index) =>
 /// Datastore-related access methods for the search service
 class SearchBackend {
   final DatastoreDB _db;
+
   final VersionedJsonStorage _snapshotStorage;
 
   SearchBackend(this._db, Bucket snapshotBucket)
@@ -257,7 +258,7 @@ class SearchBackend {
       addResult(e.name, e.updated);
     }
 
-    await for (final e in _db.tasks.listFinishedSince(updatedThreshold)) {
+    await for (final e in taskBackend.listFinishedSince(updatedThreshold)) {
       addResult(e.package, e.finished);
     }
 
