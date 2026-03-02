@@ -31,10 +31,10 @@ Map<String, dynamic> _$TaskStateToJson(TaskState instance) => <String, dynamic>{
 extension PrimarySchemaSchema on Database<PrimarySchema> {
   static const _$tables = [_$Task._$table, _$TaskDependency._$table];
 
-  Table<Task> get tasks => ExposedForCodeGen.declareTable(this, _$Task._$table);
+  Table<Task> get tasks => $ForGeneratedCode.declareTable(this, _$Task._$table);
 
   Table<TaskDependency> get taskDependencies =>
-      ExposedForCodeGen.declareTable(this, _$TaskDependency._$table);
+      $ForGeneratedCode.declareTable(this, _$TaskDependency._$table);
 
   /// Create tables defined in [PrimarySchema].
   ///
@@ -49,7 +49,7 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
   /// > If the database is **not empty** behavior is undefined, most
   /// > likely this operation will fail.
   Future<void> createTables() async =>
-      ExposedForCodeGen.createTables(context: this, tables: _$tables);
+      $ForGeneratedCode.createTables(context: this, tables: _$tables);
 }
 
 /// Get SQL [DDL statements][1] for tables defined in [PrimarySchema].
@@ -63,11 +63,8 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 /// external tools.
 ///
 /// [1]: https://en.wikipedia.org/wiki/Data_definition_language
-String createPrimarySchemaTables(SqlDialect dialect) =>
-    ExposedForCodeGen.createTableSchema(
-      dialect: dialect,
-      tables: PrimarySchemaSchema._$tables,
-    );
+String createPrimarySchemaTables(SqlDialect dialect) => $ForGeneratedCode
+    .createTableSchema(dialect: dialect, tables: PrimarySchemaSchema._$tables);
 
 final class _$Task extends Task {
   _$Task._(
@@ -114,43 +111,50 @@ final class _$Task extends Task {
             bool isNotNull,
             Object? defaultValue,
             bool autoIncrement,
+            List<SqlOverride> overrides,
           })
         >[
           (
-            type: ExposedForCodeGen.text,
+            type: $ForGeneratedCode.text,
             isNotNull: true,
             defaultValue: null,
             autoIncrement: false,
+            overrides: <SqlOverride>[],
           ),
           (
-            type: ExposedForCodeGen.text,
+            type: $ForGeneratedCode.text,
             isNotNull: true,
             defaultValue: null,
             autoIncrement: false,
+            overrides: <SqlOverride>[],
           ),
           (
-            type: ExposedForCodeGen.text,
+            type: $ForGeneratedCode.text,
             isNotNull: true,
             defaultValue: null,
             autoIncrement: false,
+            overrides: <SqlOverride>[],
           ),
           (
-            type: ExposedForCodeGen.dateTime,
+            type: $ForGeneratedCode.dateTime,
             isNotNull: true,
             defaultValue: null,
             autoIncrement: false,
+            overrides: <SqlOverride>[],
           ),
           (
-            type: ExposedForCodeGen.dateTime,
+            type: $ForGeneratedCode.dateTime,
             isNotNull: true,
             defaultValue: null,
             autoIncrement: false,
+            overrides: <SqlOverride>[],
           ),
           (
-            type: ExposedForCodeGen.dateTime,
+            type: $ForGeneratedCode.dateTime,
             isNotNull: true,
             defaultValue: null,
             autoIncrement: false,
+            overrides: <SqlOverride>[],
           ),
         ],
     primaryKey: <String>['runtimeVersion', 'package'],
@@ -170,7 +174,7 @@ final class _$Task extends Task {
   static Task? _$fromDatabase(RowReader row) {
     final runtimeVersion = row.readString();
     final package = row.readString();
-    final state = ExposedForCodeGen.customDataTypeOrNull(
+    final state = $ForGeneratedCode.customDataTypeOrNull(
       row.readString(),
       TaskState.fromDatabase,
     );
@@ -213,7 +217,7 @@ extension TableTaskExt on Table<Task> {
     required Expr<DateTime> pendingAt,
     required Expr<DateTime> lastDependencyChanged,
     required Expr<DateTime> finished,
-  }) => ExposedForCodeGen.insertInto(
+  }) => $ForGeneratedCode.insertInto(
     table: this,
     values: [
       runtimeVersion,
@@ -235,7 +239,7 @@ extension TableTaskExt on Table<Task> {
   /// should be deleted. If you wish to delete all rows, use
   /// `.where((_) => toExpr(true)).delete()`.
   DeleteSingle<Task> delete(String runtimeVersion, String package) =>
-      ExposedForCodeGen.deleteSingle(
+      $ForGeneratedCode.deleteSingle(
         byKey(runtimeVersion, package),
         _$Task._$table,
       );
@@ -295,7 +299,7 @@ extension QueryTaskExt on Query<(Expr<Task>,)> {
       set,
     )
     updateBuilder,
-  ) => ExposedForCodeGen.update<Task>(
+  ) => $ForGeneratedCode.update<Task>(
     this,
     _$Task._$table,
     (task) => updateBuilder(
@@ -307,7 +311,7 @@ extension QueryTaskExt on Query<(Expr<Task>,)> {
         Expr<DateTime>? pendingAt,
         Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
-      }) => ExposedForCodeGen.buildUpdate<Task>([
+      }) => $ForGeneratedCode.buildUpdate<Task>([
         runtimeVersion,
         package,
         state,
@@ -322,7 +326,7 @@ extension QueryTaskExt on Query<(Expr<Task>,)> {
   ///
   /// Returns a [Delete] statement on which `.execute()` must be called
   /// for the rows to be deleted.
-  Delete<Task> delete() => ExposedForCodeGen.delete(this, _$Task._$table);
+  Delete<Task> delete() => $ForGeneratedCode.delete(this, _$Task._$table);
 }
 
 /// Extension methods for building point queries against the `tasks` table.
@@ -370,7 +374,7 @@ extension QuerySingleTaskExt on QuerySingle<(Expr<Task>,)> {
       set,
     )
     updateBuilder,
-  ) => ExposedForCodeGen.updateSingle<Task>(
+  ) => $ForGeneratedCode.updateSingle<Task>(
     this,
     _$Task._$table,
     (task) => updateBuilder(
@@ -382,7 +386,7 @@ extension QuerySingleTaskExt on QuerySingle<(Expr<Task>,)> {
         Expr<DateTime>? pendingAt,
         Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
-      }) => ExposedForCodeGen.buildUpdate<Task>([
+      }) => $ForGeneratedCode.buildUpdate<Task>([
         runtimeVersion,
         package,
         state,
@@ -399,32 +403,32 @@ extension QuerySingleTaskExt on QuerySingle<(Expr<Task>,)> {
   /// for the row to be deleted. The resulting statement will **not**
   /// fail, if there are no rows matching this query exists.
   DeleteSingle<Task> delete() =>
-      ExposedForCodeGen.deleteSingle(this, _$Task._$table);
+      $ForGeneratedCode.deleteSingle(this, _$Task._$table);
 }
 
 /// Extension methods for expressions on a row in the `tasks` table.
 extension ExpressionTaskExt on Expr<Task> {
   /// Runtime version this [Task] belongs to.
   Expr<String> get runtimeVersion =>
-      ExposedForCodeGen.field(this, 0, ExposedForCodeGen.text);
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   Expr<String> get package =>
-      ExposedForCodeGen.field(this, 1, ExposedForCodeGen.text);
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
   Expr<TaskState> get state =>
-      ExposedForCodeGen.field(this, 2, TaskStateExt._exprType);
+      $ForGeneratedCode.field(this, 2, TaskStateExt._exprType);
 
   /// Next [DateTime] at which point some package version becomes pending.
   Expr<DateTime> get pendingAt =>
-      ExposedForCodeGen.field(this, 3, ExposedForCodeGen.dateTime);
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// Last [DateTime] a dependency was updated.
   Expr<DateTime> get lastDependencyChanged =>
-      ExposedForCodeGen.field(this, 4, ExposedForCodeGen.dateTime);
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
 
   /// The last time the a worker completed with a failure or success.
   Expr<DateTime> get finished =>
-      ExposedForCodeGen.field(this, 5, ExposedForCodeGen.dateTime);
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
 
   /// Get [SubQuery] of rows from the `taskDependencies` table which
   /// reference this row.
@@ -433,8 +437,9 @@ extension ExpressionTaskExt on Expr<Task> {
   /// where [TaskDependency.runtimeVersion], [TaskDependency.package]
   /// references [Task.runtimeVersion], [Task.package]
   /// in this row.
-  SubQuery<(Expr<TaskDependency>,)> get dependencies =>
-      ExposedForCodeGen.subqueryTable(_$TaskDependency._$table).where(
+  SubQuery<(Expr<TaskDependency>,)> get dependencies => $ForGeneratedCode
+      .subqueryTable(_$TaskDependency._$table)
+      .where(
         (r) =>
             r.runtimeVersion.equals(runtimeVersion) & r.package.equals(package),
       );
@@ -443,25 +448,25 @@ extension ExpressionTaskExt on Expr<Task> {
 extension ExpressionNullableTaskExt on Expr<Task?> {
   /// Runtime version this [Task] belongs to.
   Expr<String?> get runtimeVersion =>
-      ExposedForCodeGen.field(this, 0, ExposedForCodeGen.text);
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   Expr<String?> get package =>
-      ExposedForCodeGen.field(this, 1, ExposedForCodeGen.text);
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
   Expr<TaskState?> get state =>
-      ExposedForCodeGen.field(this, 2, TaskStateExt._exprType);
+      $ForGeneratedCode.field(this, 2, TaskStateExt._exprType);
 
   /// Next [DateTime] at which point some package version becomes pending.
   Expr<DateTime?> get pendingAt =>
-      ExposedForCodeGen.field(this, 3, ExposedForCodeGen.dateTime);
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// Last [DateTime] a dependency was updated.
   Expr<DateTime?> get lastDependencyChanged =>
-      ExposedForCodeGen.field(this, 4, ExposedForCodeGen.dateTime);
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
 
   /// The last time the a worker completed with a failure or success.
   Expr<DateTime?> get finished =>
-      ExposedForCodeGen.field(this, 5, ExposedForCodeGen.dateTime);
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
 
   /// Get [SubQuery] of rows from the `taskDependencies` table which
   /// reference this row.
@@ -472,8 +477,9 @@ extension ExpressionNullableTaskExt on Expr<Task?> {
   /// in this row, if any.
   ///
   /// If this row is `NULL` the subquery is always be empty.
-  SubQuery<(Expr<TaskDependency>,)> get dependencies =>
-      ExposedForCodeGen.subqueryTable(_$TaskDependency._$table).where(
+  SubQuery<(Expr<TaskDependency>,)> get dependencies => $ForGeneratedCode
+      .subqueryTable(_$TaskDependency._$table)
+      .where(
         (r) =>
             r.runtimeVersion.equalsUnlessNull(runtimeVersion).asNotNull() &
             r.package.equalsUnlessNull(package).asNotNull(),
@@ -551,25 +557,29 @@ final class _$TaskDependency extends TaskDependency {
             bool isNotNull,
             Object? defaultValue,
             bool autoIncrement,
+            List<SqlOverride> overrides,
           })
         >[
           (
-            type: ExposedForCodeGen.text,
+            type: $ForGeneratedCode.text,
             isNotNull: true,
             defaultValue: null,
             autoIncrement: false,
+            overrides: <SqlOverride>[],
           ),
           (
-            type: ExposedForCodeGen.text,
+            type: $ForGeneratedCode.text,
             isNotNull: true,
             defaultValue: null,
             autoIncrement: false,
+            overrides: <SqlOverride>[],
           ),
           (
-            type: ExposedForCodeGen.text,
+            type: $ForGeneratedCode.text,
             isNotNull: true,
             defaultValue: null,
             autoIncrement: false,
+            overrides: <SqlOverride>[],
           ),
         ],
     primaryKey: <String>['runtimeVersion', 'package', 'dependency'],
@@ -618,7 +628,7 @@ extension TableTaskDependencyExt on Table<TaskDependency> {
     required Expr<String> runtimeVersion,
     required Expr<String> package,
     required Expr<String> dependency,
-  }) => ExposedForCodeGen.insertInto(
+  }) => $ForGeneratedCode.insertInto(
     table: this,
     values: [runtimeVersion, package, dependency],
   );
@@ -636,7 +646,7 @@ extension TableTaskDependencyExt on Table<TaskDependency> {
     String runtimeVersion,
     String package,
     String dependency,
-  ) => ExposedForCodeGen.deleteSingle(
+  ) => $ForGeneratedCode.deleteSingle(
     byKey(runtimeVersion, package, dependency),
     _$TaskDependency._$table,
   );
@@ -697,7 +707,7 @@ extension QueryTaskDependencyExt on Query<(Expr<TaskDependency>,)> {
       set,
     )
     updateBuilder,
-  ) => ExposedForCodeGen.update<TaskDependency>(
+  ) => $ForGeneratedCode.update<TaskDependency>(
     this,
     _$TaskDependency._$table,
     (taskDependency) => updateBuilder(
@@ -706,7 +716,7 @@ extension QueryTaskDependencyExt on Query<(Expr<TaskDependency>,)> {
         Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? dependency,
-      }) => ExposedForCodeGen.buildUpdate<TaskDependency>([
+      }) => $ForGeneratedCode.buildUpdate<TaskDependency>([
         runtimeVersion,
         package,
         dependency,
@@ -719,7 +729,7 @@ extension QueryTaskDependencyExt on Query<(Expr<TaskDependency>,)> {
   /// Returns a [Delete] statement on which `.execute()` must be called
   /// for the rows to be deleted.
   Delete<TaskDependency> delete() =>
-      ExposedForCodeGen.delete(this, _$TaskDependency._$table);
+      $ForGeneratedCode.delete(this, _$TaskDependency._$table);
 }
 
 /// Extension methods for building point queries against the `taskDependencies` table.
@@ -764,7 +774,7 @@ extension QuerySingleTaskDependencyExt on QuerySingle<(Expr<TaskDependency>,)> {
       set,
     )
     updateBuilder,
-  ) => ExposedForCodeGen.updateSingle<TaskDependency>(
+  ) => $ForGeneratedCode.updateSingle<TaskDependency>(
     this,
     _$TaskDependency._$table,
     (taskDependency) => updateBuilder(
@@ -773,7 +783,7 @@ extension QuerySingleTaskDependencyExt on QuerySingle<(Expr<TaskDependency>,)> {
         Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? dependency,
-      }) => ExposedForCodeGen.buildUpdate<TaskDependency>([
+      }) => $ForGeneratedCode.buildUpdate<TaskDependency>([
         runtimeVersion,
         package,
         dependency,
@@ -787,21 +797,21 @@ extension QuerySingleTaskDependencyExt on QuerySingle<(Expr<TaskDependency>,)> {
   /// for the row to be deleted. The resulting statement will **not**
   /// fail, if there are no rows matching this query exists.
   DeleteSingle<TaskDependency> delete() =>
-      ExposedForCodeGen.deleteSingle(this, _$TaskDependency._$table);
+      $ForGeneratedCode.deleteSingle(this, _$TaskDependency._$table);
 }
 
 /// Extension methods for expressions on a row in the `taskDependencies` table.
 extension ExpressionTaskDependencyExt on Expr<TaskDependency> {
   Expr<String> get runtimeVersion =>
-      ExposedForCodeGen.field(this, 0, ExposedForCodeGen.text);
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   Expr<String> get package =>
-      ExposedForCodeGen.field(this, 1, ExposedForCodeGen.text);
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
   /// Name of a package that is either a direct or transitive dependency of
   /// [package].
   Expr<String> get dependency =>
-      ExposedForCodeGen.field(this, 2, ExposedForCodeGen.text);
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   /// Do a subquery lookup of the row from table
   /// `tasks` referenced in
@@ -810,7 +820,8 @@ extension ExpressionTaskDependencyExt on Expr<TaskDependency> {
   /// The gets the row from table `tasks` where
   /// [Task.runtimeVersion], [Task.package]
   /// is equal to [runtimeVersion], [package].
-  Expr<Task> get task => ExposedForCodeGen.subqueryTable(_$Task._$table)
+  Expr<Task> get task => $ForGeneratedCode
+      .subqueryTable(_$Task._$table)
       .where(
         (r) =>
             r.runtimeVersion.equals(runtimeVersion) & r.package.equals(package),
@@ -821,15 +832,15 @@ extension ExpressionTaskDependencyExt on Expr<TaskDependency> {
 
 extension ExpressionNullableTaskDependencyExt on Expr<TaskDependency?> {
   Expr<String?> get runtimeVersion =>
-      ExposedForCodeGen.field(this, 0, ExposedForCodeGen.text);
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   Expr<String?> get package =>
-      ExposedForCodeGen.field(this, 1, ExposedForCodeGen.text);
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
   /// Name of a package that is either a direct or transitive dependency of
   /// [package].
   Expr<String?> get dependency =>
-      ExposedForCodeGen.field(this, 2, ExposedForCodeGen.text);
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   /// Do a subquery lookup of the row from table
   /// `tasks` referenced in
@@ -840,7 +851,8 @@ extension ExpressionNullableTaskDependencyExt on Expr<TaskDependency?> {
   /// is equal to [runtimeVersion], [package], if any.
   ///
   /// If this row is `NULL` the subquery is always return `NULL`.
-  Expr<Task?> get task => ExposedForCodeGen.subqueryTable(_$Task._$table)
+  Expr<Task?> get task => $ForGeneratedCode
+      .subqueryTable(_$Task._$table)
       .where(
         (r) =>
             r.runtimeVersion.equalsUnlessNull(runtimeVersion).asNotNull() &
@@ -902,15 +914,15 @@ extension RightJoinTaskDependencyTaskExt
 /// Wrap this [TaskState] as [Expr<TaskState>] for use queries with
 /// `package:typed_sql`.
 extension TaskStateExt on TaskState {
-  static final _exprType = ExposedForCodeGen.customDataType(
-    ExposedForCodeGen.text,
+  static final _exprType = $ForGeneratedCode.customDataType(
+    $ForGeneratedCode.text,
     TaskState.fromDatabase,
   );
 
   /// Wrap this [TaskState] as [Expr<TaskState>] for use queries with
   /// `package:typed_sql`.
   Expr<TaskState> get asExpr =>
-      ExposedForCodeGen.literalCustomDataType(this, _exprType).asNotNull();
+      $ForGeneratedCode.literalCustomDataType(this, _exprType).asNotNull();
 }
 
 /// Wrap this [TaskState] as [Expr<TaskState>] for use queries with
@@ -919,5 +931,5 @@ extension TaskStateNullableExt on TaskState? {
   /// Wrap this [TaskState] as [Expr<TaskState?>] for use queries with
   /// `package:typed_sql`.
   Expr<TaskState?> get asExpr =>
-      ExposedForCodeGen.literalCustomDataType(this, TaskStateExt._exprType);
+      $ForGeneratedCode.literalCustomDataType(this, TaskStateExt._exprType);
 }
