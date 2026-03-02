@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
-
 import 'package:_pub_shared/search/search_form.dart';
+import 'package:web/web.dart';
 
 import 'gtm_js.dart';
 import 'page_updater.dart';
+import 'web_util.dart';
 
 void setupSearch() {
   _setEventForKeyboardShortcut();
@@ -20,7 +18,7 @@ void setupSearch() {
 
 void _setEventForKeyboardShortcut() {
   final inputElem = document.querySelector('input.site-header-search-input');
-  if (inputElem != null && inputElem is InputElement) {
+  if (inputElem != null && inputElem is HTMLInputElement) {
     window.onKeyPress.listen((e) {
       // Ignore keys other than the shortcut key:
       if (e.key != '/') return;
@@ -28,7 +26,8 @@ void _setEventForKeyboardShortcut() {
       // Only trigger the input field and steal focus when nothing is focused,
       // or when the focused element is not an input element.
       final active = document.activeElement;
-      final isRestricted = active is InputElement || active is TextAreaElement;
+      final isRestricted =
+          active is HTMLInputElement || active is HTMLTextAreaElement;
       if (!isRestricted) {
         inputElem.focus();
 
@@ -49,7 +48,7 @@ void _setEventForKeyboardShortcut() {
 /// This method adjusts the input field's text to match the query parameter,
 /// as if the page was freshly loaded.
 void adjustQueryTextAfterPageShow() {
-  final q = document.querySelector('input[name="q"]') as InputElement?;
+  final q = document.querySelector('input[name="q"]') as HTMLInputElement?;
   if (q == null) return null;
   final uri = Uri.tryParse(window.location.href);
   final qParameter = uri?.queryParameters['q'];
@@ -61,30 +60,34 @@ void adjustQueryTextAfterPageShow() {
 void _setEventsForSearchForm() {
   // When a search form checkbox has a linked search label,
   // checking the checkbox will trigger a click on the link.
-  document.querySelectorAll('.search-form-linked-checkbox').forEach((e) {
-    final checkbox = e.querySelector('input');
-    final link = e.querySelector('a');
-    if (checkbox != null && link != null) {
-      final tag = link.dataset['tag'];
-      final action = link.dataset['action'];
-      if (tag == null) return;
+  document
+      .querySelectorAll('.search-form-linked-checkbox')
+      .toElementList()
+      .cast<HTMLElement>()
+      .forEach((e) {
+        final checkbox = e.querySelector('input') as HTMLElement?;
+        final link = e.querySelector('a') as HTMLElement?;
+        if (checkbox != null && link != null) {
+          final tag = link.getAttribute('data-tag');
+          final action = link.getAttribute('data-action');
+          if (tag == null || tag.isEmpty) return;
 
-      Future<void> handleClick(Event event) async {
-        await _handleInputFieldUpdate(
-          event,
-          newQueryFn: (parsedQuery) => parsedQuery.change(
-            tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag),
-          ),
-          gtmActionFn: (o, n) =>
-              o.tagsPredicate.hasTag(tag) ? '$action-off' : '$action-on',
-        );
-      }
+          Future<void> handleClick(Event event) async {
+            await _handleInputFieldUpdate(
+              event,
+              newQueryFn: (parsedQuery) => parsedQuery.change(
+                tagsPredicate: parsedQuery.tagsPredicate.toggleRequired(tag),
+              ),
+              gtmActionFn: (o, n) =>
+                  o.tagsPredicate.hasTag(tag) ? '$action-off' : '$action-on',
+            );
+          }
 
-      checkbox.onChange.listen(handleClick);
-      link.onClick.listen(handleClick);
-      e.onClick.listen(handleClick);
-    }
-  });
+          checkbox.onChange.listen(handleClick);
+          link.onClick.listen(handleClick);
+          e.onClick.listen(handleClick);
+        }
+      });
 }
 
 // Shared state for concurrent click events.
@@ -102,9 +105,11 @@ Future<void> _handleInputFieldUpdate(
   // create new URL based on the window state
   final windowUri = Uri.parse(window.location.href);
   final inputQElem =
-      document.body!.querySelector('input[name="q"]') as InputElement;
-  var queryText = inputQElem.value ?? windowUri.queryParameters['q'] ?? '';
-  queryText = queryText.trim();
+      document.body!.querySelector('input[name="q"]') as HTMLInputElement;
+  var queryText = inputQElem.value.trim();
+  if (queryText.isEmpty) {
+    queryText = windowUri.queryParameters['q']?.trim() ?? '';
+  }
   final parsedQuery = ParsedQueryText.parse(queryText);
   final newQuery = newQueryFn(parsedQuery);
   queryText = newQuery.toString();
@@ -138,25 +143,25 @@ Future<void> _handleInputFieldUpdate(
 String _openSectionParams() {
   return document
       .querySelectorAll('.search-form-section')
-      .where(
-        (e) =>
-            e.dataset.containsKey('section-tag') &&
-            e.classes.contains('-active'),
-      )
-      .map((e) => e.dataset['section-tag'])
+      .toElementList()
+      .cast<HTMLElement>()
+      .where((e) => e.classList.contains('-active'))
+      .map((e) => e.getAttribute('data-section-tag'))
       .nonNulls
+      .where((t) => t.isNotEmpty)
       .join(' ');
 }
 
 void _setEventForFiltersToggle() {
-  document.querySelectorAll('.search-filters-btn').forEach((e) {
+  document.querySelectorAll('.search-filters-btn').toElementList().forEach((e) {
     e.onClick.listen((_) {
       document
           .querySelectorAll('.search-filters-btn-wrapper')
-          .forEach((e) => e.classes.toggle('-active'));
+          .toElementList()
+          .forEach((e) => e.classList.toggle('-active'));
       document
           .querySelector('.search-form-container')
-          ?.classes
+          ?.classList
           .toggle('-active-on-mobile');
     });
   });
@@ -164,21 +169,29 @@ void _setEventForFiltersToggle() {
 
 void _setEventForSortControl() {
   // HTML-based dropdown
-  document.querySelectorAll('.sort-control-option').forEach((e) {
-    final isFirst = e.previousElementSibling == null;
-    final value = isFirst ? null : e.dataset['value'];
-    e.onClick.listen((_) => _updateSortField(value));
-  });
+  document
+      .querySelectorAll('.sort-control-option')
+      .toElementList()
+      .cast<HTMLElement>()
+      .forEach((e) {
+        final isFirst = e.previousElementSibling == null;
+        final value = isFirst ? null : e.getAttribute('data-value');
+        e.onClick.listen((_) => _updateSortField(value));
+      });
 }
 
 /// Updates the form's `sort` field and submits the form.
 /// When [value] is `null`, the `sort` field will be removed.
 void _updateSortField(String? value) {
-  final queryText = document.querySelector('input[name="q"]') as InputElement;
-  var sortInput = document.querySelector('input[name="sort"]') as InputElement?;
+  final queryText =
+      document.querySelector('input[name="q"]') as HTMLInputElement;
+  var sortInput =
+      document.querySelector('input[name="sort"]') as HTMLInputElement?;
   if (sortInput == null) {
-    sortInput = InputElement(type: 'hidden')..name = 'sort';
-    queryText.parent!.append(sortInput);
+    sortInput = HTMLInputElement()
+      ..type = 'hidden'
+      ..name = 'sort';
+    queryText.parentElement!.append(sortInput);
   }
   if (value == null) {
     sortInput.remove();
@@ -187,7 +200,7 @@ void _updateSortField(String? value) {
   }
 
   // Removes the q= part from the URL
-  if (queryText.value!.isEmpty) {
+  if (queryText.value.isEmpty) {
     queryText.name = '';
   }
 
