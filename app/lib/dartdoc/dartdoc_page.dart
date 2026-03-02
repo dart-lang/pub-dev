@@ -156,11 +156,8 @@ extension DartDocPageRender on DartDocPage {
         href: '/',
         classes: ['hidden-xs'],
         child: d.img(
-          attributes: {
-            'aria-label': 'Go to the landing page of pub.dev',
-            // TODO: Move this into a class
-            'style': 'height: 30px; margin-right: 1em;',
-          },
+          classes: ['-dart-logo-img'],
+          attributes: {'aria-label': 'Go to the landing page of pub.dev'},
           image: d.Image.decorative(
             src: staticUrls.dartLogoSvg,
             height: 30,
@@ -312,11 +309,11 @@ extension DartDocPageRender on DartDocPage {
           'noscript',
           child: d.element(
             'iframe',
+            classes: ['-gtm-iframe'],
             attributes: {
               'src': 'https://www.googletagmanager.com/ns.html?id=GTM-MX6DBN9',
               'height': '0',
               'width': '0',
-              'style': 'display:none;visibility:hidden',
             },
           ),
         ),

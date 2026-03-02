@@ -14,7 +14,7 @@ final _none = <String>["'none'"];
 final defaultContentSecurityPolicySerialized = _serializeCSP(null);
 
 final _defaultContentSecurityPolicyMap = <String, List<String>>{
-  'default-src': <String>["'self'", 'https:'],
+  'default-src': <String>["'self'"],
   'font-src': <String>[
     "'self'",
     'data:',
@@ -57,6 +57,20 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
     // https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#content_security_policy
     'https://accounts.google.com/gsi/style',
   ],
+  'frame-src': <String>[
+    "'self'",
+    'https://www.googletagmanager.com/',
+    'https://accounts.google.com/',
+  ],
+  'connect-src': <String>[
+    "'self'",
+    'https://www.google-analytics.com/',
+    'https://stats.g.doubleclick.net/',
+  ],
+  'frame-ancestors': _none,
+  'base-uri': <String>["'self'"],
+  'form-action': <String>["'self'"],
+  'upgrade-insecure-requests': <String>[],
 };
 
 /// Returns the serialized string of the CSP header.
@@ -67,12 +81,13 @@ String _serializeCSP(Map<String, String>? extraValues) {
   };
   return keys
       .map((key) {
-        final list = _defaultContentSecurityPolicyMap[key];
+        final list = _defaultContentSecurityPolicyMap[key] ?? <String>[];
         final extra = extraValues == null ? null : extraValues[key];
         final extraStr = (extra == null || extra.trim().isEmpty)
             ? ''
             : ' $extra';
-        return '$key ${list!.join(' ')}$extraStr';
+        final content = '${list.join(' ')}$extraStr'.trim();
+        return content.isEmpty ? key : '$key $content';
       })
-      .join(';');
+      .join('; ');
 }

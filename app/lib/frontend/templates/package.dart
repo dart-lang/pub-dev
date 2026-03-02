@@ -347,7 +347,7 @@ Tab? _exampleTab(PackagePageData data) {
     title: 'Example',
     contentNode: d.fragment([
       d.p(
-        attributes: {'style': 'font-family: monospace'},
+        classes: ['-monospace'],
         child: d.b(
           child: url == null
               ? d.text(exampleFilename!)

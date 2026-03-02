@@ -90,6 +90,7 @@ void main() {
         ...await Directory(
           '../web_app/lib',
         ).list(recursive: true).where((f) => f is File).cast<File>().toList(),
+        File('../../app/lib/dartdoc/dartdoc_page.dart'),
       ];
 
       for (final file in files) {
