@@ -16,10 +16,7 @@ build/
 /static/css/dartdoc.css.map
 /static/css/style.css
 /static/css/style.css.map
-/static/js/script.dart.js
-/static/js/script.dart.js.info.json
-/static/js/script.dart.js.map
-/static/js/script.dart.js_*
+/static/js/script.dart.js*
 
 # Or local files with secrets
 key.json
