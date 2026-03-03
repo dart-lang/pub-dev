@@ -37,6 +37,8 @@ Stream<ArchiveIssue> scanArchiveSurface(
         .transform(gzip.decoder)
         .fold<int>(0, (length, element) => length + element.length);
   } on FormatException catch (e) {
+    // This will among other things catch trailing junk in the gzip stream.
+    // See https://github.com/dart-lang/pub-dev/issues/9247.
     yield ArchiveIssue('gzip decoder failed: $e.');
     return;
   }

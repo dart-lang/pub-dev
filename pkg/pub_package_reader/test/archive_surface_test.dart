@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:pub_package_reader/pub_package_reader.dart';
+import 'package:tar/tar.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -50,6 +52,32 @@ void main() {
 
     test('file has garbage bytes', () async {
       await archiveFile.writeAsBytes(<int>[1, 2, 3, 4, 5, 6, 7]);
+      final summary = await summarizePackageArchive(archiveFile.path);
+      expect(summary.issues, isNotEmpty);
+      expect(
+        summary.issues.single.message,
+        'gzip decoder failed: FormatException: Filter error, bad data.',
+      );
+    });
+
+    test('file has trailing junk', () async {
+      final entriesStream = Stream.fromIterable([
+        TarEntry(
+          TarHeader(name: 'pubspec.yaml', mode: int.parse('644', radix: 8)),
+          Stream.fromIterable([utf8.encode('name: foo')]),
+        ),
+      ]);
+      final tarStream = tarWriter.bind(entriesStream);
+      final gzipStream = gzip.encoder.bind(tarStream);
+      final sink = archiveFile.openWrite();
+      await sink.addStream(gzipStream);
+      await sink.addStream(
+        Stream.fromIterable([
+          [0, 0, 0],
+        ]),
+      ); // trailing junk
+      await sink.close();
+
       final summary = await summarizePackageArchive(archiveFile.path);
       expect(summary.issues, isNotEmpty);
       expect(
