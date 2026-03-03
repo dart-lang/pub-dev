@@ -41,7 +41,7 @@ abstract final class TaskDependency extends Row {
 
 @immutable
 @JsonSerializable()
-final class TaskState implements CustomDataType<String> {
+final class TaskState implements CustomDataType<JsonValue> {
   /// Scheduling state for all versions of this package.
   final Map<String, PackageVersionStateInfo> versions;
 
@@ -55,8 +55,9 @@ final class TaskState implements CustomDataType<String> {
   factory TaskState.fromJson(Map<String, dynamic> m) => _$TaskStateFromJson(m);
   Map<String, dynamic> toJson() => _$TaskStateToJson(this);
 
-  factory TaskState.fromDatabase(String value) =>
-      TaskState.fromJson(json.decode(value) as Map<String, dynamic>);
+  factory TaskState.fromDatabase(JsonValue value) =>
+      TaskState.fromJson(value.value as Map<String, dynamic>);
+
   @override
-  String toDatabase() => json.encode(toJson());
+  JsonValue toDatabase() => JsonValue(toJson());
 }
