@@ -129,7 +129,7 @@ final class _$Task extends Task {
             overrides: <SqlOverride>[],
           ),
           (
-            type: $ForGeneratedCode.text,
+            type: $ForGeneratedCode.jsonValue,
             isNotNull: true,
             defaultValue: null,
             autoIncrement: false,
@@ -175,7 +175,7 @@ final class _$Task extends Task {
     final runtimeVersion = row.readString();
     final package = row.readString();
     final state = $ForGeneratedCode.customDataTypeOrNull(
-      row.readString(),
+      row.readJsonValue(),
       TaskState.fromDatabase,
     );
     final pendingAt = row.readDateTime();
@@ -915,7 +915,7 @@ extension RightJoinTaskDependencyTaskExt
 /// `package:typed_sql`.
 extension TaskStateExt on TaskState {
   static final _exprType = $ForGeneratedCode.customDataType(
-    $ForGeneratedCode.text,
+    $ForGeneratedCode.jsonValue,
     TaskState.fromDatabase,
   );
 
