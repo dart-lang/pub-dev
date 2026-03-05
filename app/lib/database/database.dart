@@ -97,6 +97,7 @@ class PrimaryDatabase {
       }
     }
 
+    url = _expandConnectionUrl(url);
     final pg = Pool.withUrl(url);
     final adapter = DatabaseAdapter.postgres(pg);
     final db = Database<PrimarySchema>(adapter, SqlDialect.postgres());
@@ -122,6 +123,21 @@ class PrimaryDatabase {
   }
 }
 
+/// Expand the connection URL to override default parameters, unless specified in the provided URL.
+String _expandConnectionUrl(String url) {
+  final uri = Uri.parse(url);
+  return uri
+      .replace(
+        queryParameters: {
+          // replace connections after an hour (value is in seconds)
+          'max_connection_age': '3600',
+          'max_connection_count': '8',
+          ...uri.queryParameters,
+        },
+      )
+      .toString();
+}
+
 Future<(String, String?)> _startOrUseLocalPostgresInDocker() async {
   // sanity check
   if (envConfig.isRunningInAppengine) {
@@ -136,7 +152,6 @@ Future<(String, String?)> _startOrUseLocalPostgresInDocker() async {
     queryParameters: {
       'host': '.dart_tool/postgresql/run/.s.PGSQL.5432',
       'sslmode': 'disable',
-      'max_connection_count': '8',
     },
   ).toString();
 
