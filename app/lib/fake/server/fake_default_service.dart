@@ -8,6 +8,7 @@ import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/fake/backend/fake_topics.dart';
 import 'package:pub_dev/frontend/handlers.dart';
@@ -25,12 +26,14 @@ final _logger = Logger('fake_server');
 
 class FakePubServer {
   final MemDatastore _datastore;
+  final PrimaryDatabase _database;
   final MemStorage _storage;
   final bool _watch;
   final FakeCloudCompute _cloudCompute;
 
   FakePubServer(
     this._datastore,
+    this._database,
     this._storage,
     this._cloudCompute, {
     bool? watch,
@@ -46,6 +49,7 @@ class FakePubServer {
       datastore: _datastore,
       storage: _storage,
       cloudCompute: _cloudCompute,
+      primaryDatabase: _database,
       fn: () async {
         if (_watch) {
           await watchForResourceChanges();

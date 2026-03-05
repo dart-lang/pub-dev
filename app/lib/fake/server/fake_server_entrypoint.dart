@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:args/command_runner.dart';
 import 'package:http/http.dart';
+import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/fake/server/fake_analyzer_service.dart';
@@ -89,17 +90,25 @@ class FakeServerCommand extends Command {
     final datastore = state.datastore;
 
     final cloudCompute = FakeCloudCompute();
+    final database = await PrimaryDatabase.createAndInit();
 
     final storageServer = FakeStorageServer(storage);
     final pubServer = FakePubServer(
       datastore,
+      database,
       storage,
       cloudCompute,
       watch: watch,
     );
-    final searchService = FakeSearchService(datastore, storage, cloudCompute);
+    final searchService = FakeSearchService(
+      datastore,
+      database,
+      storage,
+      cloudCompute,
+    );
     final analyzerService = FakeAnalyzerService(
       datastore,
+      database,
       storage,
       cloudCompute,
     );
@@ -172,6 +181,7 @@ class FakeServerCommand extends Command {
     if (!readOnly && dataFile != null) {
       await state.save(dataFile);
     }
+    await database.close();
     print('Server processes completed.');
   }
 }
