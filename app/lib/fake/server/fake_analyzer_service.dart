@@ -28,7 +28,12 @@ class FakeAnalyzerService {
   final MemStorage _storage;
   final FakeCloudCompute _cloudCompute;
 
-  FakeAnalyzerService(this._datastore, this._database, this._storage, this._cloudCompute);
+  FakeAnalyzerService(
+    this._datastore,
+    this._database,
+    this._storage,
+    this._cloudCompute,
+  );
 
   Future<void> run({
     int port = 8083,

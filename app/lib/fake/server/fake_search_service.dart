@@ -32,7 +32,12 @@ class FakeSearchService {
   final MemStorage _storage;
   final FakeCloudCompute _cloudCompute;
 
-  FakeSearchService(this._datastore, this._database, this._storage, this._cloudCompute);
+  FakeSearchService(
+    this._datastore,
+    this._database,
+    this._storage,
+    this._cloudCompute,
+  );
 
   Future<void> run({
     int port = 8082,
