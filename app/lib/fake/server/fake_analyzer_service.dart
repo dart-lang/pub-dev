@@ -10,6 +10,7 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/analyzer/handlers.dart';
+import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -23,10 +24,11 @@ final _logger = Logger('fake_analyzer_service');
 
 class FakeAnalyzerService {
   final MemDatastore _datastore;
+  final PrimaryDatabase _database;
   final MemStorage _storage;
   final FakeCloudCompute _cloudCompute;
 
-  FakeAnalyzerService(this._datastore, this._storage, this._cloudCompute);
+  FakeAnalyzerService(this._datastore, this._database, this._storage, this._cloudCompute);
 
   Future<void> run({
     int port = 8083,
@@ -37,6 +39,7 @@ class FakeAnalyzerService {
       datastore: _datastore,
       storage: _storage,
       cloudCompute: _cloudCompute,
+      primaryDatabase: _database,
       fn: () async {
         await generateFakeDownloadCountsInDatastore();
 
