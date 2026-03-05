@@ -278,6 +278,10 @@ pre {
       background-color: inherit; /* overrides github-markdown.css */
     }
   }
+
+  img {
+    height: auto; /* Preserves aspect ratio when img has height and a wider width attribute set. */
+  }
 }
 
 ._banner-bg {
