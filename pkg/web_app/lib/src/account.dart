@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
+
+import 'package:web/web.dart';
 
 import 'admin_pages.dart' deferred as admin_pages;
 import 'api_client/api_client.dart' deferred as api_client;
@@ -35,7 +34,7 @@ void _initSessionMonitor() {
   final maxDurationBetweenChecks = authenticationThreshold - minCheckDelay;
   final sessionExpiresThreshold = authenticationThreshold - (minCheckDelay * 2);
 
-  DivElement? lastDiv;
+  HTMLDivElement? lastDiv;
   String? lastMessage;
   void removeLast() {
     lastDiv?.remove();
@@ -65,12 +64,12 @@ void _initSessionMonitor() {
       lastMessage = displayMessage;
 
       if (displayMessage != null) {
-        final div = DivElement()
-          ..classes.add('-pub-session-warning')
+        final div = HTMLDivElement()
+          ..classList.add('-pub-session-warning')
           ..innerText = displayMessage
           ..append(
-            ButtonElement()
-              ..text = 'X'
+            HTMLButtonElement()
+              ..innerText = 'X'
               ..onClick.listen((_) => removeLast()),
           );
         document.body!.append(div);
@@ -116,7 +115,7 @@ void _initSessionMonitor() {
 
 void _doSignIn({bool selectAccount = false}) {
   // fake sign-in hook for integration tests
-  final fakeEmail = _signInButton?.dataset['fake-email'];
+  final fakeEmail = _signInButton?.getAttribute('data-fake-email');
   final uri = Uri.parse(window.location.href);
   final relativeUri = Uri(
     path: uri.path,
