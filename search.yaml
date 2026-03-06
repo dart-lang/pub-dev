@@ -17,8 +17,13 @@ resources:
 #  instances: 1
 
 automatic_scaling:
-  min_num_instances: 6
+  min_num_instances: 10
   max_num_instances: 30
+  # The service does most of the work on a single-core CPU, and because of that, the utilization
+  # metrics is usually under 0.05. Full single-core utilization is about 0.125, and with the
+  # isolate-switching mechanism it goes up to 0.20.
+  cpu_utilization:
+    target_utilization: 0.08
 
 skip_files:
 - ^\.git/.*$
