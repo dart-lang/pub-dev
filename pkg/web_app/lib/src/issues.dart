@@ -2,20 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
+import 'dart:js_interop';
+
+import 'package:web/web.dart';
+import 'package:web_app/src/web_util.dart';
 
 void setupIssues() {
   _guardReportIssue();
-  window.onHashChange.listen((_) {
-    _fixIssueLinks();
-  });
+  window.addEventListener(
+    'hashchange',
+    (HashChangeEvent _) {
+      _fixIssueLinks();
+    }.toJS,
+  );
   _fixIssueLinks();
 }
 
 void _guardReportIssue() {
-  for (final bugLink in document.querySelectorAll('a.github_issue')) {
+  for (final bugLink
+      in document.querySelectorAll('a.github_issue').toElementList()) {
     bugLink.onClick.listen((event) {
       if (!window.confirm(
         'This link is for reporting issues for the pub site. '
@@ -30,8 +35,11 @@ void _guardReportIssue() {
 
 void _fixIssueLinks() {
   for (final bugLink
-      in document.querySelectorAll('a.github_issue').cast<AnchorElement>()) {
-    var url = Uri.parse(bugLink.href!);
+      in document
+          .querySelectorAll('a.github_issue')
+          .toElementList()
+          .cast<HTMLAnchorElement>()) {
+    var url = Uri.parse(bugLink.href);
     final lines = <String>[
       'URL: ${window.location.href}',
       '',
@@ -39,15 +47,7 @@ void _fixIssueLinks() {
     ];
 
     final issueLabels = ['Area: site feedback'];
-
-    var bugTitle = '<Summarize your issues here>';
-    final bugTag = bugLink.dataset['bugTag'];
-    if (bugTag != null) {
-      bugTitle = '[$bugTag] $bugTitle';
-      if (bugTag == 'analysis') {
-        issueLabels.add('Area: package analysis');
-      }
-    }
+    final bugTitle = '<Summarize your issues here>';
 
     final queryParams = {
       'body': lines.join('\n'),
