@@ -20,10 +20,17 @@ automatic_scaling:
   min_num_instances: 10
   max_num_instances: 30
   # The service does most of the work on a single-core CPU, and because of that, the utilization
-  # metrics is usually under 0.05. Full single-core utilization is about 0.125, and with the
-  # isolate-switching mechanism it goes up to 0.20.
+  # metrics is usually under 0.05.
+  # Full single-core utilization is about 0.125 (1/cpu_count):
+  # - starting a new isolate maxes out that utilization during the index loading
+  # - serving requests may max it out too
+  # This metrics is observed to go up to 0.20.
+  # Threshold is calibrated to be triggered if the new isolate is starting + the existing is above 50% load.
   cpu_utilization:
-    target_utilization: 0.08
+    target_utilization: 0.19
+  # The number of seconds that the autoscaler should wait before it starts collecting information from a new instance.
+  # Skipping the collection in the first 20 minutes.
+  cool_down_period_sec: 1200
 
 skip_files:
 - ^\.git/.*$
