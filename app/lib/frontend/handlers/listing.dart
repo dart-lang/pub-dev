@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/frontend/request_context.dart';
+import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/name_tracker.dart';
@@ -73,6 +75,9 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
   final canonicalForm = canonicalizeSearchForm(searchForm);
   if (canonicalForm != null) {
     return redirectResponse(canonicalForm.toSearchLink());
+  }
+  if ((searchForm.currentPage ?? 0) > 5 && requestContext.isNotAuthenticated) {
+    return htmlResponse(renderUnauthenticatedPage(), status: 401);
   }
   final searchResult = await searchAdapter.search(
     searchForm,
