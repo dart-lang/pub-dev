@@ -10,6 +10,7 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/search/handlers.dart';
 import 'package:pub_dev/search/models.dart';
@@ -27,10 +28,16 @@ final _logger = Logger('fake_search_service');
 
 class FakeSearchService {
   final MemDatastore _datastore;
+  final PrimaryDatabase _database;
   final MemStorage _storage;
   final FakeCloudCompute _cloudCompute;
 
-  FakeSearchService(this._datastore, this._storage, this._cloudCompute);
+  FakeSearchService(
+    this._datastore,
+    this._database,
+    this._storage,
+    this._cloudCompute,
+  );
 
   Future<void> run({
     int port = 8082,
@@ -41,6 +48,7 @@ class FakeSearchService {
       datastore: _datastore,
       storage: _storage,
       cloudCompute: _cloudCompute,
+      primaryDatabase: _database,
       fn: () async {
         registerSdkIndex(await createSdkMemIndex());
         final handler = wrapHandler(_logger, searchServiceHandler);
