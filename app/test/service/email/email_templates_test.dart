@@ -210,15 +210,15 @@ void main() {
           EmailAddress('uploader@example.com'),
         ],
         uploadMessages: [],
-        changelogExcerpt: 'changelog content',
+        changelogExcerpt: 'changelog <content>',
       );
       expect(
         message.bodyText,
-        contains('Excerpt of the changelog:\n```\nchangelog content\n```'),
+        contains('Excerpt of the changelog:\n```\nchangelog <content>\n```'),
       );
       expect(message.bodyHtml, contains('Excerpt of the changelog:<br/>\n'));
       final codeRegexp = RegExp(
-        '<div style=".*?">\n  <pre style=".*?"><code>.*</code></pre>\n</div>',
+        '<div style=".*?">\n  <pre style=".*?"><code>changelog &lt;content&gt;</code></pre>\n</div>',
       );
       expect(
         message.bodyHtml.contains(codeRegexp),
