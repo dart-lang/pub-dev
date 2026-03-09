@@ -153,19 +153,15 @@ d.Node renderPkgHeader(PackagePageData data) {
 
 /// Renders the package detail page.
 String renderPkgShowPage(PackagePageData data) {
-  return _renderPkgPage(
-    data: data,
-    tabs: buildPackageTabs(data: data, readmeTab: _readmeTab(data)),
-    pkgPageTab: urls.PkgPageTab.readme,
-  );
+  return _renderPkgPage(data: data, tab: .readme, tabContent: _readmeTab(data));
 }
 
 /// Renders the package changelog page.
 String renderPkgChangelogPage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(data: data, changelogTab: _changelogTab(data)),
-    pkgPageTab: urls.PkgPageTab.changelog,
+    tab: .changelog,
+    tabContent: _changelogTab(data),
   );
 }
 
@@ -173,8 +169,8 @@ String renderPkgChangelogPage(PackagePageData data) {
 String renderPkgExamplePage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(data: data, exampleTab: _exampleTab(data)),
-    pkgPageTab: urls.PkgPageTab.example,
+    tab: .example,
+    tabContent: _exampleTab(data),
   );
 }
 
@@ -182,8 +178,8 @@ String renderPkgExamplePage(PackagePageData data) {
 String renderPkgInstallPage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(data: data, installingTab: _installTab(data)),
-    pkgPageTab: urls.PkgPageTab.install,
+    tab: .install,
+    tabContent: _installTab(data),
   );
 }
 
@@ -191,8 +187,8 @@ String renderPkgInstallPage(PackagePageData data) {
 String renderPkgLicensePage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(data: data, licenseTab: _licenseTab(data)),
-    pkgPageTab: urls.PkgPageTab.license,
+    tab: .license,
+    tabContent: _licenseTab(data),
   );
 }
 
@@ -200,18 +196,14 @@ String renderPkgLicensePage(PackagePageData data) {
 String renderPkgPubspecPage(PackagePageData data) {
   return _renderPkgPage(
     data: data,
-    tabs: buildPackageTabs(data: data, pubspecTab: _pubspecTab(data)),
-    pkgPageTab: urls.PkgPageTab.pubspec,
+    tab: .pubspec,
+    tabContent: _pubspecTab(data),
   );
 }
 
 /// Renders the package score page.
 String renderPkgScorePage(PackagePageData data) {
-  return _renderPkgPage(
-    data: data,
-    tabs: buildPackageTabs(data: data, scoreTab: _scoreTab(data)),
-    pkgPageTab: urls.PkgPageTab.score,
-  );
+  return _renderPkgPage(data: data, tab: .score, tabContent: _scoreTab(data));
 }
 
 final _pageTitleTabIdentifiers = <urls.PkgPageTab, String>{
@@ -228,14 +220,14 @@ final _pageTitleTabIdentifiers = <urls.PkgPageTab, String>{
 
 String _renderPkgPage({
   required PackagePageData data,
-  required List<Tab> tabs,
-  required urls.PkgPageTab pkgPageTab,
+  required urls.PkgPageTab tab,
+  required Tab tabContent,
 }) {
   final card = data.scoreCard;
 
-  final content = renderDetailPage(
+  final pageContent = renderDetailPage(
     headerNode: renderPkgHeader(data),
-    tabs: tabs,
+    tabs: buildPackageTabs(data: data, tab: tab, content: tabContent),
     infoBoxLead: data.version.ellipsizedDescription,
     infoBoxNode: renderPkgInfoBox(data),
     footerNode: renderPackageSchemaOrgHtml(data),
@@ -245,7 +237,7 @@ String _renderPkgPage({
   final packageAndVersion = data.isLatestStable
       ? data.package.name!
       : '${data.package.name} ${data.version.version}';
-  final pageTitleTabIdentifier = _pageTitleTabIdentifiers[pkgPageTab];
+  final pageTitleTabIdentifier = _pageTitleTabIdentifiers[tab];
   final pageTitle = <String>[
     packageAndVersion,
     if (pageTitleTabIdentifier != null) pageTitleTabIdentifier,
@@ -257,17 +249,17 @@ String _renderPkgPage({
     data.package.name!,
     version: data.isLatestStable ? null : data.version.version,
     includeHost: true,
-    pkgPageTab: pkgPageTab,
+    pkgPageTab: tab,
   );
   final noIndex =
-      pkgPageTab == urls.PkgPageTab.install ||
-      pkgPageTab == urls.PkgPageTab.score ||
+      tab == urls.PkgPageTab.install ||
+      tab == urls.PkgPageTab.score ||
       card.hasNoTaskStatus ||
       (card.grantedPubPoints == 0) ||
       data.package.isExcludedInRobots;
   return renderLayoutPage(
     PageType.package,
-    content,
+    pageContent,
     title: pageTitle,
     pageDescription: data.version.ellipsizedDescription,
     faviconUrl: isFlutterPackage ? staticUrls.flutterLogo32x32 : null,
@@ -276,7 +268,7 @@ String _renderPkgPage({
     pageData: pkgPageData(
       data.package,
       data.version,
-      editable: pkgPageTab == urls.PkgPageTab.admin,
+      editable: tab == urls.PkgPageTab.admin,
     ),
     versionsFeedUrl: urls.pkgFeedUrl(data.package.name!),
     versionsFeedTitle:
@@ -316,9 +308,10 @@ Tab _readmeTab(PackagePageData data) {
   );
 }
 
-Tab? _changelogTab(PackagePageData data) {
-  if (!data.hasChangelog) return null;
-  if (data.asset?.kind != AssetKind.changelog) return null;
+Tab _changelogTab(PackagePageData data) {
+  if (!data.hasChangelog || data.asset?.kind != AssetKind.changelog) {
+    throw AssertionError('Invalid changelog tab rendering.');
+  }
   final content = renderFile(
     data.asset!,
     urlResolverFn: data.urlResolverFn,
@@ -332,9 +325,10 @@ Tab? _changelogTab(PackagePageData data) {
   );
 }
 
-Tab? _exampleTab(PackagePageData data) {
-  if (!data.hasExample) return null;
-  if (data.asset?.kind != AssetKind.example) return null;
+Tab _exampleTab(PackagePageData data) {
+  if (!data.hasExample || data.asset?.kind != AssetKind.example) {
+    throw AssertionError('Invalid example tab rendering.');
+  }
 
   final exampleFilename = data.asset!.path;
   final renderedExample = renderFile(
@@ -530,66 +524,76 @@ d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
 /// Unspecified tab content will be filled with links to the corresponding page.
 List<Tab> buildPackageTabs({
   required PackagePageData data,
-  Tab? readmeTab,
-  Tab? changelogTab,
-  Tab? exampleTab,
-  Tab? installingTab,
-  Tab? licenseTab,
-  Tab? pubspecTab,
-  Tab? versionsTab,
-  Tab? scoreTab,
-  Tab? adminTab,
-  Tab? activityLogTab,
+  required urls.PkgPageTab tab,
+  required Tab content,
 }) {
+  Tab? contentIf(urls.PkgPageTab active) => active == tab ? content : null;
+
   final package = data.package;
   final linkVersion = data.isLatestStable ? null : data.version.version;
-  readmeTab ??= Tab.withLink(
-    id: 'readme',
-    title: 'Readme',
-    href: urls.pkgReadmeUrl(package.name!, version: linkVersion),
-  );
-  changelogTab ??= Tab.withLink(
-    id: 'changelog',
-    title: 'Changelog',
-    href: urls.pkgChangelogUrl(package.name!, version: linkVersion),
-  );
-  exampleTab ??= Tab.withLink(
-    id: 'example',
-    title: 'Example',
-    href: urls.pkgExampleUrl(package.name!, version: linkVersion),
-  );
-  installingTab ??= Tab.withLink(
-    id: 'installing',
-    title: 'Installing',
-    href: urls.pkgInstallUrl(package.name!, version: linkVersion),
-  );
-  versionsTab ??= Tab.withLink(
-    id: 'versions',
-    title: 'Versions',
-    href: urls.pkgVersionsUrl(package.name!),
-  );
-  scoreTab ??= Tab.withLink(
-    id: 'analysis',
-    title: 'Scores',
-    href: urls.pkgScoreUrl(package.name!, version: linkVersion),
-  );
-  adminTab ??= Tab.withLink(
-    id: 'admin',
-    title: 'Admin',
-    href: urls.pkgAdminUrl(package.name!),
-  );
-  activityLogTab ??= Tab.withLink(
-    id: 'activity-log',
-    title: 'Activity log',
-    href: urls.pkgActivityLogUrl(package.name!),
-  );
+  final readmeTab =
+      contentIf(.readme) ??
+      Tab.withLink(
+        id: 'readme',
+        title: 'Readme',
+        href: urls.pkgReadmeUrl(package.name!, version: linkVersion),
+      );
+  final changelogTab =
+      contentIf(.changelog) ??
+      Tab.withLink(
+        id: 'changelog',
+        title: 'Changelog',
+        href: urls.pkgChangelogUrl(package.name!, version: linkVersion),
+      );
+  final exampleTab =
+      contentIf(.example) ??
+      Tab.withLink(
+        id: 'example',
+        title: 'Example',
+        href: urls.pkgExampleUrl(package.name!, version: linkVersion),
+      );
+  final installingTab =
+      contentIf(.install) ??
+      Tab.withLink(
+        id: 'installing',
+        title: 'Installing',
+        href: urls.pkgInstallUrl(package.name!, version: linkVersion),
+      );
+  final versionsTab =
+      contentIf(.versions) ??
+      Tab.withLink(
+        id: 'versions',
+        title: 'Versions',
+        href: urls.pkgVersionsUrl(package.name!),
+      );
+  final scoreTab =
+      contentIf(.score) ??
+      Tab.withLink(
+        id: 'analysis',
+        title: 'Scores',
+        href: urls.pkgScoreUrl(package.name!, version: linkVersion),
+      );
+  final adminTab =
+      contentIf(.admin) ??
+      Tab.withLink(
+        id: 'admin',
+        title: 'Admin',
+        href: urls.pkgAdminUrl(package.name!),
+      );
+  final activityLogTab =
+      contentIf(.activityLog) ??
+      Tab.withLink(
+        id: 'activity-log',
+        title: 'Activity log',
+        href: urls.pkgActivityLogUrl(package.name!),
+      );
   return <Tab>[
     readmeTab,
     if (data.hasChangelog) changelogTab,
     if (data.hasExample) exampleTab,
     installingTab,
-    if (licenseTab != null) licenseTab,
-    if (pubspecTab != null) pubspecTab,
+    if (tab == .license) content,
+    if (tab == .pubspec) content,
     versionsTab,
     scoreTab,
     if (data.isAdmin) adminTab,
