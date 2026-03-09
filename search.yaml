@@ -18,7 +18,7 @@ resources:
 
 automatic_scaling:
   min_num_instances: 10
-  max_num_instances: 30
+  max_num_instances: 20
   # The service does most of the work on a single-core CPU, and because of that, the utilization
   # metrics is usually under 0.05.
   # Full single-core utilization is about 0.125 (1/cpu_count):
