@@ -148,7 +148,8 @@ String renderPkgVersionsPage(
 
   final tabs = buildPackageTabs(
     data: data,
-    versionsTab: Tab.withContent(
+    tab: .versions,
+    content: Tab.withContent(
       id: 'versions',
       title: 'Versions',
       contentNode: d.fragment(blocks),

@@ -23,7 +23,8 @@ String renderPkgAdminPage(
 ) {
   final tabs = buildPackageTabs(
     data: data,
-    adminTab: Tab.withContent(
+    tab: .admin,
+    content: Tab.withContent(
       id: 'admin',
       title: 'Admin',
       contentNode: packageAdminPageNode(
@@ -64,7 +65,8 @@ String renderPkgActivityLogPage(
   );
   final tabs = buildPackageTabs(
     data: data,
-    activityLogTab: Tab.withContent(
+    tab: .activityLog,
+    content: Tab.withContent(
       id: 'activity-log',
       title: 'Activity Log',
       contentNode: activityLog,
