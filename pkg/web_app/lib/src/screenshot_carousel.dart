@@ -7,7 +7,7 @@ import 'dart:convert';
 // ignore: deprecated_member_use
 import 'dart:html';
 
-import '_dom_helper.dart';
+import '_focusability.dart';
 
 void setupScreenshotCarousel() {
   _setEventForScreenshot();
