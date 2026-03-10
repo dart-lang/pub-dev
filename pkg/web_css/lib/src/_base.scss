@@ -23,6 +23,17 @@ body {
   font-feature-settings: "liga" 0;
 }
 
+// Ensure form elements inherit ligature settings from the parent, otherwise
+// the browser's default stylesheet will be applied, which will override the
+// body's setting.
+button,
+input,
+select,
+textarea {
+  font-variant-ligatures: inherit;
+  font-feature-settings: inherit;
+}
+
 p {
   font-size: 16px;
 }
