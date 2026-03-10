@@ -452,6 +452,11 @@ const _commonLicenses = [
 /// Handles requests for /api/search
 Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
+  if (searchForm.isBeyondMinimalUsage) {
+    return jsonResponse({
+      'error': 'Search query complexity is above the permitted threshold.',
+    }, status: 400);
+  }
   final sr = await searchClient.search(searchForm.toServiceQuery());
   final packages = sr.packageHits.map((ps) => {'package': ps.package}).toList();
   final hasNextPage = sr.totalCount > searchForm.pageSize! + searchForm.offset;
@@ -459,7 +464,8 @@ Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
     'packages': packages,
     if (sr.errorMessage != null) 'message': sr.errorMessage,
   };
-  if (hasNextPage) {
+  // limit page count to 10
+  if (hasNextPage && (searchForm.currentPage ?? 0) < 10) {
     final newParams = {...request.requestedUri.queryParameters};
     newParams['page'] = (searchForm.currentPage! + 1).toString();
     final nextPageUrl = request.requestedUri

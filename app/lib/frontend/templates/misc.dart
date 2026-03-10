@@ -54,10 +54,10 @@ final _sideImage = d.Image.decorative(
 );
 
 /// Renders the response where the real content is only provided for logged-in users.
-String renderUnauthenticatedPage() {
+String renderUnauthenticatedPage({String? message}) {
   return renderLayoutPage(
     PageType.standalone,
-    unauthenticatedNode,
+    unauthenticatedNode(message: message),
     title: 'Authentication required',
     noIndex: true,
   );

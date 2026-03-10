@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:_pub_shared/search/tags.dart';
 import 'package:logging/logging.dart';
+import 'package:pub_dev/frontend/request_context.dart';
+import 'package:pub_dev/frontend/templates/misc.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../package/name_tracker.dart';
@@ -66,10 +68,17 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 /// - /packages - package listing
 Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
   final sw = Stopwatch()..start();
-  final openSections = request.requestedUri.queryParameters['open-sections']
-      ?.split(' ')
-      .toSet();
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
+  if (searchForm.isBeyondMinimalUsage && requestContext.isNotAuthenticated) {
+    return htmlResponse(
+      renderUnauthenticatedPage(
+        message:
+            'Because of the high volume of bot traffic that ignores semantic tags, '
+            'complex search queries are restricted to authenticated users only.',
+      ),
+      status: 401,
+    );
+  }
   final canonicalForm = canonicalizeSearchForm(searchForm);
   if (canonicalForm != null) {
     return redirectResponse(canonicalForm.toSearchLink());
@@ -86,6 +95,9 @@ Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
   }
 
   final links = PageLinks(searchForm, totalCount);
+  final openSections = request.requestedUri.queryParameters['open-sections']
+      ?.split(' ')
+      .toSet();
   final result = htmlResponse(
     renderPkgIndexPage(
       searchResult,
