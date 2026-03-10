@@ -467,6 +467,13 @@ class SearchForm {
       queryParameters: params.isEmpty ? null : params,
     ).toString();
   }
+
+  /// Whether the query is above the expected low-resource usage threshold.
+  ///
+  /// Bot traffic usually increases complexity (component count) or page number
+  /// in excessive amounts.
+  late final isBeyondMinimalUsage =
+      ((currentPage ?? 0) > 10) || (parsedQuery.componentCount > 5);
 }
 
 String? _stringToNull(String? v) => (v == null || v.isEmpty) ? null : v;
