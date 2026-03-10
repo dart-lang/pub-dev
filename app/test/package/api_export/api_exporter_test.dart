@@ -13,6 +13,7 @@ import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
@@ -85,10 +86,10 @@ void main() {
 
       await apiExporter.start();
 
-      await _testExportedApiSynchronization(
-        bucket,
-        () async => clockControl.elapse(minutes: 15),
-      );
+      await _testExportedApiSynchronization(bucket, () async {
+        clockControl.elapse(minutes: 15);
+        await asyncQueue.ongoingProcessing;
+      });
 
       await apiExporter.stop();
     },
