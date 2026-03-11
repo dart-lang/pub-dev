@@ -257,7 +257,7 @@ class SearchBackend {
       addResult(e.name, e.updated);
     }
 
-    await for (final e in _db.tasks.listFinishedSince(updatedThreshold)) {
+    await for (final e in taskBackend.listFinishedSince(updatedThreshold)) {
       addResult(e.package, e.finished);
     }
 

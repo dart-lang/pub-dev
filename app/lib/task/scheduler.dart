@@ -7,13 +7,16 @@ import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/utils.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/models.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 final _log = Logger('pub.task.schedule');
 
@@ -32,7 +35,7 @@ final class CreateInstancesState {
 /// Schedule tasks from [PackageState], creating cloud compute worker instances.
 Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
   CloudCompute compute,
-  DatastoreDB db, {
+  Database<PrimarySchema> db, {
   required CreateInstancesState state,
 }) async {
   // Map from zone to DateTime when zone is allowed again
@@ -177,7 +180,7 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
       // suppose to run on the instance we just failed to create.
       // If this doesn't work, we'll eventually retry. Hence, correctness
       // does not hinge on this transaction being successful.
-      await db.tasks.restorePreviousVersionsState(
+      await db.tasksAccess.restorePreviousVersionsState(
         selected.package,
         instanceName,
       );
@@ -186,7 +189,7 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
 
   // Creating an instance can be slow, we want to schedule them concurrently.
   await Future.wait(
-    (await db.tasks.selectSomePending(selectLimit).toList()).map(
+    (await db.tasksAccess.selectSomePending(selectLimit).toList()).map(
       scheduleInstance,
     ),
   );
@@ -220,22 +223,22 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
 /// will be pending soon.
 @visibleForTesting
 Future<Payload?> updatePackageStateWithPendingVersions(
-  DatastoreDB db,
+  Database<PrimarySchema> schema,
   String package,
   String zone,
   String instanceName,
 ) async {
-  return await withRetryTransaction(db, (tx) async {
-    final s = await tx.tasks.lookupOrNull(package);
-    if (s == null) {
+  return schema.transactWithRetry(() async {
+    final task = await schema.tasksAccess.lookupOrNull(package);
+    if (task == null) {
       // presumably the package was deleted.
       return null;
     }
 
     final now = clock.now();
     final pendingVersions = derivePendingVersions(
-      versions: s.versions!,
-      lastDependencyChanged: s.lastDependencyChanged!,
+      versions: task.state.versions,
+      lastDependencyChanged: task.lastDependencyChanged,
       at: now,
     ).toList();
     if (pendingVersions.isEmpty) {
@@ -244,29 +247,40 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     }
 
     // Update PackageState
-    s.versions!.addAll({
+    final newVersions = {
+      ...task.state.versions,
       for (final v in pendingVersions.map((v) => v.toString()))
-        v: s.versions![v]!.scheduleNew(
+        v: task.state.versions[v]!.scheduleNew(
           scheduled: now,
           zone: zone,
           instanceName: instanceName,
           secretToken: createUuid(),
         ),
-    });
-    s.pendingAt = derivePendingAt(
-      versions: s.versions!,
-      lastDependencyChanged: s.lastDependencyChanged!,
-    );
-    await tx.tasks.update(s);
+    };
+    await schema.tasks
+        .byKey(runtimeVersion, package)
+        .update(
+          (_, set) => set(
+            state: TaskState(
+              versions: newVersions,
+              abortedTokens: task.state.abortedTokens,
+            ).asExpr,
+            pendingAt: derivePendingAt(
+              versions: newVersions,
+              lastDependencyChanged: task.lastDependencyChanged,
+            ).asExpr,
+          ),
+        )
+        .execute();
 
     // Create payload
     final payload = Payload(
-      package: s.package,
+      package: task.package,
       pubHostedUrl: activeConfiguration.defaultServiceBaseUrl,
       versions: pendingVersions.map(
         (v) => VersionTokenPair(
           version: v.toString(),
-          token: s.versions![v.toString()]!.secretToken!,
+          token: newVersions[v.toString()]!.secretToken!,
         ),
       ),
     );
