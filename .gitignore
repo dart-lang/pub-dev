@@ -9,7 +9,6 @@ build/
 *.js_
 *.js.deps
 # *.js.map
-*.sum
 
 # Ignore files built when the server is started
 /static/css/dartdoc.css
