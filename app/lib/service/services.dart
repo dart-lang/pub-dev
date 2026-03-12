@@ -320,6 +320,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
         registerYoutubeBackend(YoutubeBackend());
         registerScopeExitCallback(youtubeBackend.close);
         registerImageProxyBackend(await ImageProxyBackend.create());
+        registerScopeExitCallback(imageProxyBackend.close);
 
         // depends on previously registered services
         registerPackageBackend(

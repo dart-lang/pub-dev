@@ -48,7 +48,7 @@ class ImageProxyBackend {
     return instance;
   }
 
-  Future<void> destroy() async {
+  Future<void> close() async {
     _stopped = true;
   }
 
