@@ -33,7 +33,16 @@ class ImageProxyBackend {
   static Future<ImageProxyBackend> create() async {
     final instance = ImageProxyBackend._();
 
-    unawaited(instance._dailySecret.update());
+    scheduleMicrotask(() async {
+      while (true) {
+        try {
+          await instance._dailySecret.update();
+        } catch (e, st) {
+          logger.severe('Failed to update daily secret', e, st);
+        }
+        await Future.delayed(Duration(minutes: 15));
+      }
+    });
     return instance;
   }
 
@@ -64,7 +73,6 @@ class ImageProxyBackend {
     name: 'image-proxy-daily-secret',
     interval: Duration(minutes: 15),
     maxAge: Duration(hours: 12),
-    timeout: Duration(hours: 12),
     updateFn: () async {
       final now = clock.now().toUtc();
       final today = DateTime.utc(now.year, now.month, now.day);
