@@ -12,6 +12,7 @@ import 'package:googleapis/cloudkms/v1.dart' as kms;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:retry/retry.dart';
 
 import '../../shared/cached_value.dart';
@@ -30,26 +31,33 @@ ImageProxyBackend get imageProxyBackend =>
 class ImageProxyBackend {
   ImageProxyBackend._();
 
-  bool _stopped = false;
+  bool _abort = false;
+  final Completer<void> _stopped = Completer<void>();
 
   static Future<ImageProxyBackend> create() async {
     final instance = ImageProxyBackend._();
 
     scheduleMicrotask(() async {
-      while (!instance._stopped) {
+      while (!instance._abort) {
         try {
           await instance._dailySecret.update();
         } catch (e, st) {
           logger.severe('Failed to update daily secret', e, st);
         }
-        await Future.delayed(Duration(minutes: 15));
+        await Future.delayed(
+          envConfig.isRunningLocally
+              ? Duration(seconds: 10)
+              : Duration(minutes: 15),
+        );
       }
+      instance._stopped.complete();
     });
     return instance;
   }
 
   Future<void> close() async {
-    _stopped = true;
+    _abort = true;
+    await _stopped.future;
   }
 
   static Future<List<int>> _getDailySecret(
