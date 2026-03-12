@@ -221,6 +221,47 @@ version: 1.0.9
       });
     });
 
+    group('SwiftPM ready', () {
+      test('no plugin', () {
+        expect(Pubspec(pubspecBase).isSwiftpmReady, isFalse);
+      });
+      test('plugin without swiftpm', () {
+        final p = Pubspec(
+          pubspecBase +
+              'flutter:\n'
+                  '  plugin:\n'
+                  '    platforms:\n'
+                  '      ios:\n'
+                  '        pluginClass: SwiftIosPlugin\n',
+        );
+        expect(p.isSwiftpmReady, isFalse);
+      });
+      test('plugin with swiftpm', () {
+        final p = Pubspec(
+          pubspecBase +
+              'flutter:\n'
+                  '  plugin:\n'
+                  '    platforms:\n'
+                  '      ios:\n'
+                  '        swift_package: true\n',
+        );
+        expect(p.isSwiftpmReady, isTrue);
+      });
+    });
+
+    test('getTags()', () {
+      final p = PackageVersion()
+        ..pubspec = Pubspec(
+          pubspecBase +
+              'flutter:\n'
+                  '  plugin:\n'
+                  '    platforms:\n'
+                  '      ios:\n'
+                  '        swift_package: true\n',
+        );
+      expect(p.getTags(), contains('is:swiftpm-ready'));
+    });
+
     group('preview analysis SDK', () {
       final nextDartSdk = semanticToolStableDartSdkVersion.nextMinor.toString();
       final nextFlutterSdk = semanticToolStableFlutterSdkVersion.nextMinor

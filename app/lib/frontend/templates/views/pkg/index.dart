@@ -163,6 +163,13 @@ d.Node _searchFormContainer({
                 searchForm: searchForm,
                 title: 'Show only WASM ready packages.',
               ),
+              _tagBasedCheckbox(
+                tagPrefix: 'is',
+                tagValue: 'swiftpm-ready',
+                label: 'SwiftPM ready',
+                searchForm: searchForm,
+                title: 'Show only SwiftPM ready packages.',
+              ),
             ],
           ),
         ],

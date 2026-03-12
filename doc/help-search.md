@@ -31,6 +31,10 @@
 
   - `has:executable`: Search for packages with Dart files in their `bin/` directory.
 
+  - `is:wasm-ready`: Search for packages that are ready for WebAssembly.
+
+  - `is:swiftpm-ready`: Search for Flutter plugins that support Swift Package Manager.
+
 ## Filters
 
 The search UI also supports filters.

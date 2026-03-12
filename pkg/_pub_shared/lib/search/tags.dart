@@ -91,6 +91,9 @@ abstract class PackageVersionTags {
   /// Package version may be used in WASM compilation.
   static const String isWasmReady = 'is:wasm-ready';
 
+  /// Package version supports SwiftPM.
+  static const String isSwiftpmReady = 'is:swiftpm-ready';
+
   /// Package version has an entry indicating it implements a federated plugin.
   static const String hasImplementsFederatedPlugin =
       'has:implements-federated-plugin';
@@ -109,6 +112,7 @@ abstract class PackageVersionTags {
   static const _futurePackageVersionTags = {
     PackageVersionTags.isPlugin,
     PackageVersionTags.isWasmReady,
+    PackageVersionTags.isSwiftpmReady,
     PackageVersionTags.hasFundingLink,
     PackageVersionTags.hasScreenshot,
   };

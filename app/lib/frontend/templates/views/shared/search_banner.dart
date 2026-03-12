@@ -122,6 +122,7 @@ String completionDataJson({
             'null-safe',
             'plugin',
             'swiftpm-plugin',
+            'swiftpm-ready',
             'unlisted',
             'wasm-ready',
           ],

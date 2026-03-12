@@ -658,6 +658,7 @@ class PackageVersion extends db.ExpandoModel<String> {
       ],
       if (pubspec!.funding.isNotEmpty) PackageVersionTags.hasFundingLink,
       if (pubspec!.hasTopic) PackageVersionTags.hasTopic,
+      if (pubspec!.isSwiftpmReady) PackageVersionTags.isSwiftpmReady,
       if (pluginForName != null) ...[
         PackageVersionTags.hasImplementsFederatedPlugin,
         PackageVersionTags.implementsFederatedPlugin(pluginForName),

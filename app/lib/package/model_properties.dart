@@ -218,6 +218,23 @@ class Pubspec {
       return null;
     }
   }();
+
+  /// Whether the package is a Flutter plugin and supports SwiftPM.
+  late final isSwiftpmReady = () {
+    if (_flutterPluginMap == null) {
+      return false;
+    }
+    final platforms = _flutterPluginMap['platforms'];
+    if (platforms is! Map) {
+      return false;
+    }
+    for (final platform in platforms.values) {
+      if (platform is Map && platform['swift_package'] == true) {
+        return true;
+      }
+    }
+    return false;
+  }();
 }
 
 class MinSdkVersion {
