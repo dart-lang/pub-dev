@@ -92,13 +92,13 @@ d.Node packageInfoBoxNode({
           collectionsIcon(),
         ],
       ),
+    if (docLinks.isNotEmpty)
+      _block('Documentation', d.fragment(docLinks.map(_linkAndBr))),
     _publisher(package.publisherId),
     if (data.weeklyDownloadCounts != null)
       _downloadsChart(data.weeklyDownloadCounts!),
     _metadata(description: version.pubspec!.description, metaLinks: metaLinks),
     if (topics != null) _block('Topics', topics),
-    if (docLinks.isNotEmpty)
-      _block('Documentation', d.fragment(docLinks.map(_linkAndBr))),
     if (fundingLinks.isNotEmpty)
       _block(
         'Funding',
