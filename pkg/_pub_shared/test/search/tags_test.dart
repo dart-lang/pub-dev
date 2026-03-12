@@ -12,6 +12,7 @@ void main() {
         'runtime:native-jit',
         'sdk:dart',
         'is:wasm-ready',
+        'is:swiftpm-plugin',
         'platform:linux',
       ];
       final excluded = ['license:x', 'is:other'];
