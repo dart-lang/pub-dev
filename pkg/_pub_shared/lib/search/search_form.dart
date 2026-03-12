@@ -443,6 +443,7 @@ class SearchForm {
       parsedQuery.tagsPredicate.hasTag(PackageTags.showUnlisted) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.hasScreenshot) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isPlugin) ||
+      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isSwiftpmReady) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isWasmReady);
 
   /// Whether any of the non-query settings are non-default
