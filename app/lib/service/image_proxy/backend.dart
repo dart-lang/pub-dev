@@ -30,11 +30,13 @@ ImageProxyBackend get imageProxyBackend =>
 class ImageProxyBackend {
   ImageProxyBackend._();
 
+  bool _stopped = false;
+
   static Future<ImageProxyBackend> create() async {
     final instance = ImageProxyBackend._();
 
     scheduleMicrotask(() async {
-      while (true) {
+      while (!instance._stopped) {
         try {
           await instance._dailySecret.update();
         } catch (e, st) {
@@ -44,6 +46,10 @@ class ImageProxyBackend {
       }
     });
     return instance;
+  }
+
+  Future<void> destroy() async {
+    _stopped = true;
   }
 
   static Future<List<int>> _getDailySecret(
