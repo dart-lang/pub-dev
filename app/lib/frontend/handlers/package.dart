@@ -354,7 +354,10 @@ Future<shelf.Response> _handlePackagePage({
     }
   }
 
-  if (assetKind != null && data.asset == null) {
+  // If the asset does not exists (e.g. package without a changelog or example), redirect to the readme page.
+  if (assetKind != null &&
+      assetKind != AssetKind.readme &&
+      data.asset == null) {
     return redirectResponse(urls.pkgPageUrl(packageName, version: versionName));
   }
 
