@@ -135,19 +135,19 @@ d.Node _searchFormContainer({
                 title: 'Show only Flutter Favorite packages.',
               ),
               _tagBasedCheckbox(
+                tagPrefix: 'has',
+                tagValue: 'screenshot',
+                label: 'Has screenshot',
+                searchForm: searchForm,
+                title: 'Show only packages with screenshots.',
+              ),
+              _tagBasedCheckbox(
                 tagPrefix: 'show',
                 tagValue: 'unlisted',
                 label: 'Include unlisted',
                 searchForm: searchForm,
                 title:
                     'Show unlisted, discontinued and legacy Dart 1.x packages.',
-              ),
-              _tagBasedCheckbox(
-                tagPrefix: 'has',
-                tagValue: 'screenshot',
-                label: 'Has screenshot',
-                searchForm: searchForm,
-                title: 'Show only packages with screenshots.',
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'is',
@@ -158,17 +158,20 @@ d.Node _searchFormContainer({
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'is',
-                tagValue: 'wasm-ready',
-                label: 'WASM ready',
-                searchForm: searchForm,
-                title: 'Show only WASM ready packages.',
-              ),
-              _tagBasedCheckbox(
-                tagPrefix: 'is',
                 tagValue: 'swiftpm-plugin',
                 label: 'SwiftPM plugin',
                 searchForm: searchForm,
                 title: 'Show only packages with SwiftPM plugins.',
+                seeMoreUrl:
+                    'https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-app-developers',
+              ),
+              _tagBasedCheckbox(
+                tagPrefix: 'is',
+                tagValue: 'wasm-ready',
+                label: 'WASM ready',
+                searchForm: searchForm,
+                title: 'Show only WASM ready packages.',
+                seeMoreUrl: 'https://dart.dev/interop/js-interop/package-web',
               ),
             ],
           ),
@@ -213,6 +216,7 @@ d.Node _tagBasedCheckbox({
   required String label,
   required SearchForm searchForm,
   required String title,
+  String? seeMoreUrl,
 }) {
   final tag = '$tagPrefix:$tagValue';
   final toggledSearchForm = searchForm.toggleRequiredTag(tag);
@@ -225,6 +229,7 @@ d.Node _tagBasedCheckbox({
     tag: tag,
     action: 'filter-$tagPrefix-$tagValue',
     title: title,
+    seeMoreUrl: seeMoreUrl,
   );
 }
 
@@ -237,14 +242,12 @@ d.Node _formLinkedCheckbox({
   String? tag,
   required String? action,
   String? title,
+  String? seeMoreUrl,
 }) {
-  return d.div(
-    classes: ['search-form-linked-checkbox'],
-    attributes: {if (title != null) 'title': title},
-    child: material.checkbox(
-      id: id,
-      label: label,
-      labelNodeContent: (label) => d.a(
+  d.Node labelNodeContent(String label) {
+    return d.fragment([
+      d.a(
+        classes: ['link-tag'],
         href: toggledSearchForm.toSearchLink(),
         text: label,
         attributes: {
@@ -253,6 +256,24 @@ d.Node _formLinkedCheckbox({
         },
         rel: 'nofollow',
       ),
+      if (seeMoreUrl != null)
+        d.a(
+          classes: ['link-more'],
+          href: seeMoreUrl,
+          child: d.element('sup', text: '(?)'),
+          target: '_blank',
+          rel: 'nofollow noopener',
+        ),
+    ]);
+  }
+
+  return d.div(
+    classes: ['search-form-linked-checkbox'],
+    attributes: {if (title != null) 'title': title},
+    child: material.checkbox(
+      id: id,
+      label: label,
+      labelNodeContent: labelNodeContent,
       checked: isChecked,
       indeterminate: isIndeterminate,
     ),
