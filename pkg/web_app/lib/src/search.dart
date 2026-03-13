@@ -66,10 +66,11 @@ void _setEventsForSearchForm() {
       .cast<HTMLElement>()
       .forEach((e) {
         final checkbox = e.querySelector('input') as HTMLElement?;
-        final link = e.querySelector('a') as HTMLElement?;
-        if (checkbox != null && link != null) {
-          final tag = link.getAttribute('data-tag');
-          final action = link.getAttribute('data-action');
+        final tagLink = e.querySelector('a.link-tag') as HTMLElement?;
+        final seeMoreLink = e.querySelector('a.link-more') as HTMLElement?;
+        if (checkbox != null && tagLink != null) {
+          final tag = tagLink.getAttribute('data-tag');
+          final action = tagLink.getAttribute('data-action');
           if (tag == null || tag.isEmpty) return;
 
           Future<void> handleClick(Event event) async {
@@ -84,8 +85,12 @@ void _setEventsForSearchForm() {
           }
 
           checkbox.onChange.listen(handleClick);
-          link.onClick.listen(handleClick);
+          tagLink.onClick.listen(handleClick);
           e.onClick.listen(handleClick);
+          seeMoreLink?.onClick.listen((Event event) {
+            // prevent the event to also be triggered on parent elements
+            event.cancelBubble = true;
+          });
         }
       });
 }
