@@ -124,9 +124,15 @@ class _FakeImageProxyBackend implements ImageProxyBackend {
   String? imageProxyUrl(Uri originalUrl) {
     return 'https://proxy.pub.dev/proxied/${Uri.encodeComponent(originalUrl.toString())}';
   }
+
+  @override
+  Future<void> close() async {}
 }
 
 class _NullImageProxyBackend implements ImageProxyBackend {
   @override
   String? imageProxyUrl(Uri originalUrl) => null;
+
+  @override
+  Future<void> close() async {}
 }

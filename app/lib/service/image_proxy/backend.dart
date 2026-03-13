@@ -12,6 +12,7 @@ import 'package:googleapis/cloudkms/v1.dart' as kms;
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/shared/env_config.dart';
 import 'package:retry/retry.dart';
 
 import '../../shared/cached_value.dart';
@@ -28,13 +29,52 @@ ImageProxyBackend get imageProxyBackend =>
 
 /// Represents the backend for the Youtube handling and related utilities.
 class ImageProxyBackend {
-  ImageProxyBackend._();
+  ImageProxyBackend._() {
+    _dailySecret = CachedValue(
+      name: 'image-proxy-daily-secret',
+      interval: Duration(minutes: 15),
+      maxAge: Duration(hours: 12),
+      updateFn: () async {
+        final now = clock.now().toUtc();
+        final today = DateTime.utc(now.year, now.month, now.day);
+        _client ??= await clientViaApplicationDefaultCredentials(
+          scopes: [kms.CloudKMSApi.cloudPlatformScope],
+        );
+        return (today, await _getDailySecret(today, _client!));
+      },
+    );
+  }
+
+  final Completer<void> _abort = Completer<void>();
+  final Completer<void> _stopped = Completer<void>();
 
   static Future<ImageProxyBackend> create() async {
     final instance = ImageProxyBackend._();
-
-    unawaited(instance._dailySecret.update());
+    scheduleMicrotask(() async {
+      while (!instance._abort.isCompleted) {
+        try {
+          await instance._dailySecret.update().timeout(Duration(seconds: 10));
+        } catch (e, st) {
+          logger.severe('Failed to update daily secret', e, st);
+        }
+        await instance._abort.future.timeout(
+          envConfig.isRunningLocally
+              ? Duration(seconds: 10)
+              : Duration(minutes: 15),
+          onTimeout: () => null,
+        );
+      }
+      instance._stopped.complete();
+    });
     return instance;
+  }
+
+  Future<void> close() async {
+    _client?.close();
+    if (!_abort.isCompleted) {
+      _abort.complete();
+      await _stopped.future;
+    }
   }
 
   static Future<List<int>> _getDailySecret(
@@ -60,25 +100,8 @@ class ImageProxyBackend {
     });
   }
 
-  final _dailySecret = CachedValue(
-    name: 'image-proxy-daily-secret',
-    interval: Duration(minutes: 15),
-    maxAge: Duration(hours: 12),
-    timeout: Duration(hours: 12),
-    updateFn: () async {
-      final now = clock.now().toUtc();
-      final today = DateTime.utc(now.year, now.month, now.day);
-      return (
-        today,
-        await _getDailySecret(
-          today,
-          await clientViaApplicationDefaultCredentials(
-            scopes: [kms.CloudKMSApi.cloudPlatformScope],
-          ),
-        ),
-      );
-    },
-  );
+  AuthClient? _client;
+  late final CachedValue<(DateTime, List<int>)> _dailySecret;
 
   String? imageProxyUrl(Uri originalUrl) {
     final dailySecret = _dailySecret.value;
