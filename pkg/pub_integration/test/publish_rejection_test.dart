@@ -75,6 +75,9 @@ void main() {
           await File(
             p.join(pkgDir, 'LICENSE'),
           ).writeAsString('No real license.');
+          await File(
+            p.join(pkgDir, 'README.md'),
+          ).writeAsString('Placeholder README.');
           if (d == 'test') {
             final file = File(p.join(pkgDir, 'lib/test.dart'));
             await file.parent.create(recursive: true);

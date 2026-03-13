@@ -41,6 +41,7 @@ environment:
   sdk: '>=2.10.0 <3.0.0'
 ''',
           'LICENSE': 'All rights reserved...',
+          'README.md': 'mypkg is awesome',
         }),
       );
 
@@ -58,6 +59,7 @@ dev_dependencies:
   bar: *v
 ''',
           'LICENSE': 'All rights reserved...',
+          'README.md': 'mypkg is awesome',
         }),
       );
 
@@ -88,6 +90,7 @@ dependency_overrides:
   test: ^1:0:0
 ''',
           'LICENSE': 'All rights reserved...',
+          'README.md': 'mypkg is awesome',
         }),
       );
 

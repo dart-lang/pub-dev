@@ -667,6 +667,21 @@ dev_dependencies:
     });
   });
 
+  group('require readme', () {
+    test('no readme file', () {
+      expect(requireReadme(null, null), isNotEmpty);
+    });
+
+    test('empty file', () {
+      expect(requireReadme('README.md', ''), isNotEmpty);
+      expect(requireReadme('README.md', '\n  \n'), isNotEmpty);
+    });
+
+    test('valid-looking readme', () {
+      expect(requireReadme('README.md', 'some content'), isEmpty);
+    });
+  });
+
   group('pubspec.yaml to json conversion', () {
     test('pubspec.yaml to json conversion valid', () {
       final pubspec = '''
