@@ -27,7 +27,7 @@ automatic_scaling:
   # This metrics is observed to go up to 0.20.
   # Threshold is calibrated to be triggered if the new isolate is starting + the existing is above 50% load.
   cpu_utilization:
-    target_utilization: 0.19
+    target_utilization: 0.175
   # The number of seconds that the autoscaler should wait before it starts collecting information from a new instance.
   # Skipping the collection in the first 20 minutes.
   cool_down_period_sec: 1200
