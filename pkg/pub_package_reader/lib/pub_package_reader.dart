@@ -263,6 +263,7 @@ Future<PackageSummary> summarizePackageArchive(
   if (licenseContent == null) {
     licensePath = null;
   }
+  issues.addAll(requireReadme(readmePath, readmeContent));
 
   final libraries = tar.fileNames
       .where((file) => file.startsWith('lib/'))
@@ -753,6 +754,15 @@ Iterable<ArchiveIssue> requireNonEmptyLicense(
   if (content.toLowerCase().contains('todo: add your license here.')) {
     yield ArchiveIssue('`LICENSE` file contains generic TODO.');
     return;
+  }
+}
+
+/// Validates that the package has a non-empty `README.md`.
+Iterable<ArchiveIssue> requireReadme(String? path, String? content) sync* {
+  if (path == null) {
+    yield ArchiveIssue('README.md is missing.');
+  } else if (content == null || content.trim().isEmpty) {
+    yield ArchiveIssue('README.md is empty.');
   }
 }
 
