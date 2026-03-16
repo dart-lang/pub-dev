@@ -30,19 +30,34 @@ extension on ArgParser {
     addOption(
       '${prefix}api-access-token-callback',
       help: 'The command to execute to get API access token for $name',
-      mandatory: true,
+      mandatory: false,
+    );
+    addOption(
+      '${prefix}api-access-token',
+      help: 'The API access token for $name',
+      mandatory: false,
     );
     addOption(
       '${prefix}client-credentials-json-callback',
       help:
           'The command to execute to get pub client credentials.json content for $name',
-      mandatory: true,
+      mandatory: false,
+    );
+    addOption(
+      '${prefix}client-credentials-json',
+      help: 'The pub client credentials.json content for $name',
+      mandatory: false,
     );
     addOption(
       '${prefix}browser-cookies-callback',
       help:
           'The command to execute to get the browser cookies (serialized as JSON)',
-      mandatory: true,
+      mandatory: false,
+    );
+    addOption(
+      '${prefix}browser-cookies',
+      help: 'The the browser cookies (serialized as JSON)',
+      mandatory: false,
     );
     addOption(
       '${prefix}last-email-callback',
@@ -97,11 +112,12 @@ Future<TestUser> _initializeUser(
   Map<String, String> map,
 ) async {
   final email = map['email']!;
-  final apiAccessToken = await _callback(map['api-access-token-callback']!);
-  final credentialsJsonContent = await _callback(
-    map['client-credentials-json-callback']!,
+  final apiAccessToken = await _useOrCallback(map, 'api-access-token');
+  final credentialsJsonContent = await _useOrCallback(
+    map,
+    'client-credentials-json',
   );
-  final cookiesString = await _callback(map['browser-cookies-callback']!);
+  final cookiesString = await _useOrCallback(map, 'browser-cookies');
   List<CookieParam>? cookies;
   if (cookiesString.trim().isNotEmpty) {
     final list = json.decode(cookiesString);
@@ -146,6 +162,13 @@ Future<TestUser> _initializeUser(
     createCredentials: () =>
         json.decode(credentialsJsonContent) as Map<String, dynamic>,
   );
+}
+
+Future<String> _useOrCallback(Map<String, String> map, String name) async {
+  if (map.containsKey(name)) {
+    return map[name]!;
+  }
+  return await _callback(map['$name-callback']!);
 }
 
 Future<String> _callback(String command) async {
