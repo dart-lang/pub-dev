@@ -26,9 +26,7 @@ void main() {
 
         final result = await client.adminInvokeAction(
           'create-session-cookie',
-          AdminInvokeActionArguments(arguments: {
-            'access-token': accessToken,
-          }),
+          AdminInvokeActionArguments(arguments: {'access-token': accessToken}),
         );
 
         expect(result.output, contains('cookie'));
@@ -36,11 +34,21 @@ void main() {
         expect(cookieHeaders, contains('set-cookie'));
         final setCookies = cookieHeaders['set-cookie'] as List;
         expect(setCookies, hasLength(2));
-        expect(setCookies[0], contains('${session_cookie.clientSessionLaxCookieName}='));
-        expect(setCookies[1], contains('${session_cookie.clientSessionStrictCookieName}='));
+        expect(
+          setCookies[0],
+          contains('${session_cookie.clientSessionLaxCookieName}='),
+        );
+        expect(
+          setCookies[1],
+          contains('${session_cookie.clientSessionStrictCookieName}='),
+        );
 
         // Verify the session is actually created and authenticated
-        final sessionId = (setCookies[0] as String).split(';').first.split('=').last;
+        final sessionId = (setCookies[0] as String)
+            .split(';')
+            .first
+            .split('=')
+            .last;
         final sessionData = await accountBackend.getSessionData(sessionId);
         expect(sessionData, isNotNull);
         expect(sessionData!.isAuthenticated, isTrue);
@@ -54,9 +62,9 @@ void main() {
         final client = createPubApiClient(authToken: siteAdminToken);
         final rs = client.adminInvokeAction(
           'create-session-cookie',
-          AdminInvokeActionArguments(arguments: {
-            'access-token': 'invalid-token',
-          }),
+          AdminInvokeActionArguments(
+            arguments: {'access-token': 'invalid-token'},
+          ),
         );
         await expectApiException(rs, status: 400, code: 'InvalidInput');
       },

@@ -13,9 +13,7 @@ final createSessionCookie = AdminAction(
 Validates the given oauth access token and creates a session cookie for the user.
 Returns the cookie headers that can be used to authenticate the user in the browser.
 ''',
-  options: {
-    'access-token': 'The oauth access token to validate.',
-  },
+  options: {'access-token': 'The oauth access token to validate.'},
   invoke: (options) async {
     final accessToken = options['access-token'];
     InvalidInputException.check(
@@ -39,8 +37,6 @@ Returns the cookie headers that can be used to authenticate the user in the brow
       maxAge: session.maxAge,
     );
 
-    return {
-      'cookie': cookieHeaders,
-    };
+    return {'cookie': cookieHeaders};
   },
 );
