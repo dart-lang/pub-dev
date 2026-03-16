@@ -4,8 +4,8 @@
 
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/account/session_cookie.dart' as session_cookie;
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
