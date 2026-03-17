@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../shared/exceptions.dart';
+import 'create_session_cookie.dart';
 import 'download_counts_backfill.dart';
 import 'download_counts_delete.dart';
 import 'email_send.dart';
@@ -94,6 +95,7 @@ final class AdminAction {
   }
 
   static List<AdminAction> actions = [
+    createSessionCookie,
     downloadCountsBackfill,
     downloadCountsDelete,
     emailSend,
