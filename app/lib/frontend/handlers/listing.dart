@@ -69,12 +69,12 @@ Future<shelf.Response> webPackagesHandlerHtml(shelf.Request request) async {
 Future<shelf.Response> _packagesHandlerHtmlCore(shelf.Request request) async {
   final sw = Stopwatch()..start();
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
-  if (searchForm.isBeyondMinimalUsage && requestContext.isNotAuthenticated) {
+  if (searchForm.isRestrictedForAuthOnly && requestContext.isNotAuthenticated) {
     return htmlResponse(
       renderUnauthenticatedPage(
         message:
-            'Because of the high volume of bot traffic that ignores semantic tags, '
-            'complex search queries are restricted to authenticated users only.',
+            'Because of the high volume of bot traffic, '
+            'some search queries are restricted to authenticated users only.',
       ),
       status: 401,
     );

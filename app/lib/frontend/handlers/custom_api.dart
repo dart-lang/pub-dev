@@ -452,7 +452,7 @@ const _commonLicenses = [
 /// Handles requests for /api/search
 Future<shelf.Response> apiSearchHandler(shelf.Request request) async {
   final searchForm = SearchForm.parse(request.requestedUri.queryParameters);
-  if (searchForm.isBeyondMinimalUsage) {
+  if (searchForm.isRestrictedForAuthOnly) {
     return jsonResponse({
       'error': 'Search query complexity is above the permitted threshold.',
     }, status: 400);

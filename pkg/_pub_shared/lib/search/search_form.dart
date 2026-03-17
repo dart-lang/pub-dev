@@ -473,7 +473,7 @@ class SearchForm {
   ///
   /// Bot traffic usually increases complexity (component count) or page number
   /// in excessive amounts.
-  late final isBeyondMinimalUsage =
+  late final isRestrictedForAuthOnly =
       ((currentPage ?? 0) > 10) || (parsedQuery.componentCount > 5);
 }
 
