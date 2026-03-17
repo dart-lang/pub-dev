@@ -20,7 +20,7 @@ void main() {
       fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
         final accessToken = createFakeServiceAccountToken(
-          email: 'user@pub.dev',
+          email: 'pub.dev.testing1@gmail.com',
           audience: activeConfiguration.pubClientAudience,
         );
 
@@ -52,7 +52,29 @@ void main() {
         final sessionData = await accountBackend.getSessionData(sessionId);
         expect(sessionData, isNotNull);
         expect(sessionData!.isAuthenticated, isTrue);
-        expect(sessionData.email, 'user@pub.dev');
+        expect(sessionData.email, 'pub.dev.testing1@gmail.com');
+      },
+    );
+
+    testWithProfile(
+      'non-pub.dev.testing email fails',
+      fn: () async {
+        final client = createPubApiClient(authToken: siteAdminToken);
+        final accessToken = createFakeServiceAccountToken(
+          email: 'user@pub.dev',
+          audience: activeConfiguration.pubClientAudience,
+        );
+        final rs = client.adminInvokeAction(
+          'create-session-cookie',
+          AdminInvokeActionArguments(arguments: {'access-token': accessToken}),
+        );
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'InvalidInput',
+          message:
+              'Can only obtain cookies for users with email in the form pub.dev.testing[something]@gmail.com',
+        );
       },
     );
 

@@ -8,10 +8,13 @@ import 'package:pub_dev/admin/actions/actions.dart';
 
 final createSessionCookie = AdminAction(
   name: 'create-session-cookie',
-  summary: 'Create a session cookie for a given oauth access token.',
+  summary:
+      'Create a session cookie for an oauth access token belonging to a test account.',
   description: '''
 Validates the given oauth access token and creates a session cookie for the user.
 Returns the cookie headers that can be used to authenticate the user in the browser.
+
+The test account must have an email in the form pub.dev.testing[something]@gmail.com.
 ''',
   options: {'access-token': 'The oauth access token to validate.'},
   invoke: (options) async {
@@ -25,7 +28,11 @@ Returns the cookie headers that can be used to authenticate the user in the brow
     if (authResult == null) {
       throw InvalidInputException('Invalid access-token');
     }
-
+    if (!RegExp(r'^pub.dev.testing.*@gmail.com$').hasMatch(authResult.email)) {
+      throw InvalidInputException(
+        'Can only obtain cookies for users with email in the form pub.dev.testing[something]@gmail.com',
+      );
+    }
     final session = await accountBackend.createOrUpdateClientSession();
     await accountBackend.updateClientSessionWithProfile(
       sessionId: session.sessionId,
