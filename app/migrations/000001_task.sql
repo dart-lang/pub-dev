@@ -1,5 +1,5 @@
 -- Create "tasks" table
-CREATE TABLE "public"."tasks" (
+CREATE TABLE "tasks" (
   "runtimeVersion" text NOT NULL,
   "package" text NOT NULL,
   "state" jsonb NOT NULL,
@@ -10,10 +10,10 @@ CREATE TABLE "public"."tasks" (
 );
 
 -- Create "taskDependencies" table
-CREATE TABLE "public"."taskDependencies" (
+CREATE TABLE "taskDependencies" (
   "runtimeVersion" text NOT NULL,
   "package" text NOT NULL,
   "dependency" text NOT NULL,
   PRIMARY KEY ("runtimeVersion", "package", "dependency"),
-  CONSTRAINT "taskDependencies_runtimeVersion_package_fkey" FOREIGN KEY ("runtimeVersion", "package") REFERENCES "public"."tasks" ("runtimeVersion", "package") ON UPDATE NO ACTION ON DELETE NO ACTION
+  CONSTRAINT "taskDependencies_runtimeVersion_package_fkey" FOREIGN KEY ("runtimeVersion", "package") REFERENCES "tasks" ("runtimeVersion", "package") ON UPDATE NO ACTION ON DELETE NO ACTION
 );

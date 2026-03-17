@@ -34,8 +34,6 @@ cat >$TEMP_CONFIG <<EOF
 env "local" {
   migration {
     dir                 = "file://migrations"
-    format              = "atlas"
-    versioning_strategy = "sequential"
   }
   src = "file://schema.sql"
   dev = "postgres://postgres:pass@localhost:5432/postgres?sslmode=disable"
@@ -96,10 +94,12 @@ if [[ ! "$LATEST_FILE_NAME" =~ ^[0-9]{6}_ ]]; then
   COUNT=$(ls -1 ${MIGRATIONS_DIR}/*.sql 2>/dev/null | wc -l)
   NEXT_VAL=$(printf "%06d" $COUNT)
 
-
   # Rename the file to your desired format
   NEW_NAME="${MIGRATIONS_DIR}/${NEXT_VAL}_${MIGRATION_NAME}.sql"
   mv "$LATEST_FILE" "$NEW_NAME"
+
+  # Remove the "public". schema prefix
+  sed -i 's/"public"\.//g' $NEW_NAME
 
   FORMAT_FILE_NAME=$(basename "$NEW_NAME")
   docker run --rm \
