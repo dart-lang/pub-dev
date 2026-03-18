@@ -391,3 +391,66 @@ extension ExpressionNullableSchemaMigrationExt on Expr<SchemaMigration?> {
   /// to check if the referencing field is `NULL`.
   Expr<bool> isNull() => isNotNull().not();
 }
+
+/// Extension methods for building queries projected to a named record.
+extension QueryContentNameNamed<A, B>
+    on Query<({Expr<A> content, Expr<B> name})> {
+  Query<(Expr<A>, Expr<B>)> get _asPositionalQuery =>
+      $ForGeneratedCode.renamedRecord(this, (e) => (e.content, e.name));
+
+  static Query<({Expr<A> content, Expr<B> name})> _fromPositionalQuery<A, B>(
+    Query<(Expr<A>, Expr<B>)> query,
+  ) => $ForGeneratedCode.renamedRecord(
+    query,
+    (e) => (content: e.$1, name: e.$2),
+  );
+
+  static T Function(Expr<A> a, Expr<B> b) _wrapBuilder<T, A, B>(
+    T Function(({Expr<A> content, Expr<B> name}) e) builder,
+  ) =>
+      (a, b) => builder((content: a, name: b));
+
+  /// Query the database for rows in this [Query] as a [Stream].
+  Stream<({A content, B name})> stream() async* {
+    yield* _asPositionalQuery.stream().map((e) => (content: e.$1, name: e.$2));
+  }
+
+  /// Query the database for rows in this [Query] as a [List].
+  Future<List<({A content, B name})>> fetch() async => await stream().toList();
+
+  /// Offset [Query] using `OFFSET` clause.
+  ///
+  /// The resulting [Query] will skip the first [offset] rows.
+  Query<({Expr<A> content, Expr<B> name})> offset(int offset) =>
+      _fromPositionalQuery(_asPositionalQuery.offset(offset));
+
+  /// Limit [Query] using `LIMIT` clause.
+  ///
+  /// The resulting [Query] will only return the first [limit] rows.
+  Query<({Expr<A> content, Expr<B> name})> limit(int limit) =>
+      _fromPositionalQuery(_asPositionalQuery.limit(limit));
+
+  /// Create a projection of this [Query] using `SELECT` clause.
+  ///
+  /// The [projectionBuilder] **must** return a [Record] where all the
+  /// values are [Expr] objects. If something else is returned you will
+  /// get a [Query] object which doesn't have any methods!
+  ///
+  /// All methods and properties on [Query<T>] are extension methods and
+  /// they are only defined for records `T` where all the values are
+  /// [Expr] objects.
+  Query<T> select<T extends Record>(
+    T Function(({Expr<A> content, Expr<B> name}) expr) projectionBuilder,
+  ) => _asPositionalQuery.select(_wrapBuilder(projectionBuilder));
+
+  /// Filter [Query] using `WHERE` clause.
+  ///
+  /// Returns a [Query] retaining rows from this [Query] where the expression
+  /// returned by [conditionBuilder] evaluates to `true`.
+  Query<({Expr<A> content, Expr<B> name})> where(
+    Expr<bool> Function(({Expr<A> content, Expr<B> name}) expr)
+    conditionBuilder,
+  ) => _fromPositionalQuery(
+    _asPositionalQuery.where(_wrapBuilder(conditionBuilder)),
+  );
+}
