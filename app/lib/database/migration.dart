@@ -120,7 +120,7 @@ Future<void> migrateScripts({
       }
 
       // Execute migration and log exection.
-      await tx.script(script.name);
+      await tx.script(script.content);
 
       // QUESTION: can we scope this with schema prefix so that it is part of the same transaction?
       await table
