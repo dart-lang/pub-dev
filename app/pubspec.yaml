@@ -26,7 +26,7 @@ dependencies:
   intl: '^0.20.0'
   json_annotation: '^4.3.0'
   logging: '>=0.9.3 <2.0.0'
-  markdown: ^7.2.2
+  markdown: ^7.3.1
   meta: ^1.1.2
   mime: ^2.0.0
   neat_cache: ^2.0.5
@@ -49,7 +49,7 @@ dependencies:
   # pana version to be pinned
   pana: '0.23.11'
   # 3rd-party packages with pinned versions
-  mailer: '6.6.0'
+  mailer: '7.1.0'
   postgres: '3.5.9'
   ulid: '2.0.1'
   tar: '2.0.2'
