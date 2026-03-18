@@ -4,6 +4,7 @@ include: package:lints/core.yaml
 analyzer:
   exclude:
     - pkg/pub_integration/test_data/
+    - app/lib/database/*.g.dart
   language:
     strict-casts: true
 
