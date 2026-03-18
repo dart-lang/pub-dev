@@ -1,19 +1,19 @@
 -- Create "tasks" table
 CREATE TABLE "tasks" (
-  "runtimeVersion" text NOT NULL,
+  "runtime_version" text NOT NULL,
   "package" text NOT NULL,
   "state" jsonb NOT NULL,
-  "pendingAt" timestamptz NOT NULL,
-  "lastDependencyChanged" timestamptz NOT NULL,
+  "pending_at" timestamptz NOT NULL,
+  "last_dependency_changed" timestamptz NOT NULL,
   "finished" timestamptz NOT NULL,
-  PRIMARY KEY ("runtimeVersion", "package")
+  PRIMARY KEY ("runtime_version", "package")
 );
 
--- Create "taskDependencies" table
-CREATE TABLE "taskDependencies" (
-  "runtimeVersion" text NOT NULL,
+-- Create "task_dependencies" table
+CREATE TABLE "task_dependencies" (
+  "runtime_version" text NOT NULL,
   "package" text NOT NULL,
   "dependency" text NOT NULL,
-  PRIMARY KEY ("runtimeVersion", "package", "dependency"),
-  CONSTRAINT "taskDependencies_runtimeVersion_package_fkey" FOREIGN KEY ("runtimeVersion", "package") REFERENCES "tasks" ("runtimeVersion", "package") ON UPDATE NO ACTION ON DELETE NO ACTION
+  PRIMARY KEY ("runtime_version", "package", "dependency"),
+  CONSTRAINT "task_dependencies_runtime_version_package_fkey" FOREIGN KEY ("runtime_version", "package") REFERENCES "tasks" ("runtime_version", "package") ON UPDATE NO ACTION ON DELETE NO ACTION
 );
