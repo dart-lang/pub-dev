@@ -44,7 +44,7 @@ String _changeLogDiv(String excerpt) =>
     '''
 Excerpt of the changelog:<br/>
 <div style="background-color: #f6f8fa; border-radius: 0.25rem; padding: 1rem; overflow: auto; border: 1px solid #d0d7de; margin: 1rem 0;">
-  <pre style="margin: 0; font-family: 'Courier New', Courier, monospace; font-size: 0.85em; line-height: 1.5; color: #24292f;"><code>${htmlEscape.convert(excerpt)}</code></pre>
+  <pre style="margin: 0; font-family: 'Courier New', Courier, monospace; line-height: 1.5; color: #24292f;"><code>${htmlEscape.convert(excerpt)}</code></pre>
 </div>''';
 
 /// Represents a parsed email address.
@@ -245,17 +245,27 @@ EmailMessage createPackageUploadedEmail({
     '$displayId has published a new version ($packageVersion) of the $packageName package to the Dart package site ($primaryHost).',
     'For details, go to <a href="$url">$url</a>',
     ...uploadMessages,
-    if (changelogExcerpt != null) _changeLogDiv(changelogExcerpt),
-    _footer('package').replaceAll('\n', '<br/>\n'),
   ];
+
+  final bodyHtmlBuffer = StringBuffer();
+  for (final p in htmlParagraphs) {
+    bodyHtmlBuffer.writeln('<p>$p</p>');
+  }
+  if (changelogExcerpt != null) {
+    bodyHtmlBuffer.writeln(_changeLogDiv(changelogExcerpt));
+  }
+  bodyHtmlBuffer.writeln(
+    '<p>${_footer('package').replaceAll('\n', '<br/>\n')}</p>',
+  );
 
   return EmailMessage(
     _notificationsFrom,
     authorizedUploaders,
     subject,
     paragraphs.join('\n\n'),
-    bodyHtml: htmlParagraphs.map((e) => '<p>$e</p>').join('\n'),
+    bodyHtml: bodyHtmlBuffer.toString(),
   );
+
 }
 
 /// Creates the [EmailMessage] that will be sent to users about new invitations
