@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+<<<<<<< migrations
 // TODO: remove this after typed_sql supports automatic snake_case convention
+=======
+// TODO(https://github.com/google/dart-neats/issues/347): remove this after typed_sql supports automatic snake_case convention
+>>>>>>> master
 // ignore_for_file: non_constant_identifier_names
 
 part of 'schema.dart';
