@@ -3,7 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2026.03.18`.
- * Upgraded dependencies (incl. `mailer`, `markdown`)
+ * Upgraded dependencies (incl. `markdown`)
 
 ## `20260317t122600-all`
  * Bump runtimeVersion to `2026.03.17`.

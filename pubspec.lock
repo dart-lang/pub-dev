@@ -501,10 +501,10 @@ packages:
     dependency: transitive
     description:
       name: mailer
-      sha256: "7b8691b080809ea1b2fa2f1b0d49c7c089fb328bd23e68aa5818b9cf5f4b420d"
+      sha256: c3b934c0e800ddc946167c0123a900eba5acd009abb73648d0191a742542f2b4
       url: "https://pub.dev"
     source: hosted
-    version: "7.1.0"
+    version: "6.6.0"
   markdown:
     dependency: transitive
     description:
@@ -697,14 +697,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
-  punycoder:
-    dependency: transitive
-    description:
-      name: punycoder
-      sha256: aed79c05986a18782caa9bad649a4a786e840e1baaf6a2e1aa3a25d143d28e6e
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.2"
   puppeteer:
     dependency: transitive
     description:
@@ -953,14 +945,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
-  unorm_dart:
-    dependency: transitive
-    description:
-      name: unorm_dart
-      sha256: "0c69186b03ca6addab0774bcc0f4f17b88d4ce78d9d4d8f0619e30a99ead58e7"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.2"
   uuid:
     dependency: transitive
     description:
