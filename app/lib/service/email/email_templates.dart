@@ -265,7 +265,6 @@ EmailMessage createPackageUploadedEmail({
     paragraphs.join('\n\n'),
     bodyHtml: bodyHtmlBuffer.toString(),
   );
-
 }
 
 /// Creates the [EmailMessage] that will be sent to users about new invitations
