@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO: remove this after typed_sql supports automatic snake_case convention
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:json_annotation/json_annotation.dart' hide JsonValue;
 import 'package:meta/meta.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
@@ -14,5 +17,5 @@ part 'schema.task.dart';
 abstract final class PrimarySchema extends Schema {
   Table<Task> get tasks;
 
-  Table<TaskDependency> get taskDependencies;
+  Table<TaskDependency> get task_dependencies;
 }
