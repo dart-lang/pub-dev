@@ -121,6 +121,7 @@ class PrimaryDatabase {
     );
 
     // create migration_schema table (if not exists)
+    // TODO(https://github.com/google/dart-neats/issues/348): use the output as-is after typed_sql supports it
     final createSql = createSchemaMigrationSchemaTables(
       _dialect,
     ).replaceFirst('CREATE TABLE "', 'CREATE TABLE IF NOT EXISTS "');

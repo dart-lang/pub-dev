@@ -5,7 +5,7 @@
 // NOTE: We want this tool to be part of the typed_sql package, do not depend
 //       on libraries that typed_sql itself wouldn't depend.
 
-// TODO: remove this after typed_sql supports automatic snake_case convention
+// TODO(https://github.com/google/dart-neats/issues/347): remove this after typed_sql supports automatic snake_case convention
 // ignore_for_file: non_constant_identifier_names
 
 import 'dart:convert';
