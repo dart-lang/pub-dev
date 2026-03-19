@@ -9,6 +9,7 @@ import 'dart:math';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 import 'package:postgres/postgres.dart';
 import 'package:pub_dev/database/migration.dart';
 import 'package:pub_dev/database/schema.dart';
@@ -127,14 +128,22 @@ class PrimaryDatabase {
     ).replaceFirst('CREATE TABLE "', 'CREATE TABLE IF NOT EXISTS "');
     await _pg.execute(createSql);
 
-    // TODO: replace with real migration SQL files
+    // Read SQL migration files
+    final files = Directory('migrations')
+        .listSync()
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.sql'))
+        .toList();
+    files.sort((a, b) => a.path.compareTo(b.path));
+    final scripts = files
+        .map((f) => (name: p.basename(f.path), content: f.readAsStringSync()))
+        .toList();
+
     await migrateScripts(
       target: _adapter,
       table: migrationDb.schema_migrations,
       migrationsName: 'pub-dev',
-      scripts: [
-        (name: 'primary.sql', content: createPrimarySchemaTables(_dialect)),
-      ],
+      scripts: scripts,
     );
   }
 
