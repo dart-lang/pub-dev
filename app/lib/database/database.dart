@@ -10,6 +10,7 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:meta/meta.dart';
 import 'package:postgres/postgres.dart';
+import 'package:pub_dev/database/migration.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -31,11 +32,13 @@ PrimaryDatabase? _lookupPrimaryDatabase() =>
 /// Access to the primary database connection and object mapping.
 class PrimaryDatabase {
   final Pool _pg;
-  final DatabaseAdapter _adapter;
-  final Database<PrimarySchema> db;
   final Future<void> Function()? _closeFn;
 
-  PrimaryDatabase._(this._pg, this._adapter, this.db, this._closeFn);
+  PrimaryDatabase._(this._pg, this._closeFn);
+
+  late final _adapter = DatabaseAdapter.postgres(_pg);
+  late final _dialect = SqlDialect.postgres();
+  late final db = Database<PrimarySchema>(_adapter, _dialect);
 
   /// Gets the connection string either from the environment variable or from
   /// the secret backend, connects to it and registers the primary database
@@ -98,11 +101,9 @@ class PrimaryDatabase {
     }
 
     url = _expandConnectionUrl(url);
-    final pg = Pool.withUrl(url);
-    final adapter = DatabaseAdapter.postgres(pg);
-    final db = Database<PrimarySchema>(adapter, SqlDialect.postgres());
-    await db.createTables();
-    return PrimaryDatabase._(pg, adapter, db, closeFn);
+    final db = PrimaryDatabase._(Pool.withUrl(url), closeFn);
+    await db.migrateSchema();
+    return db;
   }
 
   Future<void> close() async {
@@ -111,6 +112,30 @@ class PrimaryDatabase {
     if (_closeFn != null) {
       await _closeFn();
     }
+  }
+
+  Future<void> migrateSchema() async {
+    final migrationDb = Database<SchemaMigrationSchema>(
+      _adapter,
+      SqlDialect.postgres(),
+    );
+
+    // create migration_schema table (if not exists)
+    // TODO(https://github.com/google/dart-neats/issues/348): use the output as-is after typed_sql supports it
+    final createSql = createSchemaMigrationSchemaTables(
+      _dialect,
+    ).replaceFirst('CREATE TABLE "', 'CREATE TABLE IF NOT EXISTS "');
+    await _pg.execute(createSql);
+
+    // TODO: replace with real migration SQL files
+    await migrateScripts(
+      target: _adapter,
+      table: migrationDb.schema_migrations,
+      migrationsName: 'pub-dev',
+      scripts: [
+        (name: 'primary.sql', content: createPrimarySchemaTables(_dialect)),
+      ],
+    );
   }
 
   @visibleForTesting
