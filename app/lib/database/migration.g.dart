@@ -348,7 +348,7 @@ extension ExpressionSchemaMigrationExt on Expr<SchemaMigration> {
   Expr<String> get script_name =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
-  /// The SSH-256 of the script at the time of execution.
+  /// The SHA-256 of the script at the time of execution.
   Expr<String> get script_sha256 =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
@@ -366,7 +366,7 @@ extension ExpressionNullableSchemaMigrationExt on Expr<SchemaMigration?> {
   Expr<String?> get script_name =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
-  /// The SSH-256 of the script at the time of execution.
+  /// The SHA-256 of the script at the time of execution.
   Expr<String?> get script_sha256 =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
