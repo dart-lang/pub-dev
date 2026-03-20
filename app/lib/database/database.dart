@@ -49,6 +49,10 @@ class PrimaryDatabase {
       // Production is not configured for postgresql yet.
       return;
     }
+    if (activeConfiguration.isStaging) {
+      // Staging may not have the connection string set yet.
+      return;
+    }
     if (_lookupPrimaryDatabase() != null) {
       // Already initialized, must be in a local test environment.
       assert(activeConfiguration.isFakeOrTest);
@@ -56,11 +60,7 @@ class PrimaryDatabase {
     }
     final connectionString =
         envConfig.pubPostgresUrl ??
-        (await secretBackend.lookup(SecretKey.postgresConnectionString));
-    if (connectionString == null && activeConfiguration.isStaging) {
-      // Staging may not have the connection string set yet.
-      return;
-    }
+        (await secretBackend.lookup(SecretKey.databaseConnectionString));
     final database = await createAndInit(url: connectionString);
     registerPrimaryDatabase(database);
     ss.registerScopeExitCallback(database.close);
