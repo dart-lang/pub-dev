@@ -53,6 +53,9 @@ The publisher can be regenerated later (no tombstoning).
     });
 
     await purgePublisherCache(publisherId);
+    for (final userId in memberIds) {
+      await purgeAccountCache(userId: userId);
+    }
 
     return {
       'message': 'Publisher and all members deleted.',
