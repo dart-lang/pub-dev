@@ -48,14 +48,14 @@ String createSchemaMigrationSchemaTables(SqlDialect dialect) =>
 
 final class _$SchemaMigration extends SchemaMigration {
   _$SchemaMigration._(
-    this.definition_name,
+    this.schema_name,
     this.script_name,
     this.script_sha256,
-    this.executed_on,
+    this.executed_at,
   );
 
   @override
-  final String definition_name;
+  final String schema_name;
 
   @override
   final String script_name;
@@ -64,15 +64,15 @@ final class _$SchemaMigration extends SchemaMigration {
   final String script_sha256;
 
   @override
-  final DateTime executed_on;
+  final DateTime executed_at;
 
   static const _$table = (
     tableName: 'schema_migrations',
     columns: <String>[
-      'definition_name',
+      'schema_name',
       'script_name',
       'script_sha256',
-      'executed_on',
+      'executed_at',
     ],
     columnInfo:
         <
@@ -113,7 +113,7 @@ final class _$SchemaMigration extends SchemaMigration {
             overrides: <SqlOverride>[],
           ),
         ],
-    primaryKey: <String>['definition_name', 'script_name'],
+    primaryKey: <String>['schema_name', 'script_name'],
     unique: <List<String>>[],
     foreignKeys:
         <
@@ -128,27 +128,27 @@ final class _$SchemaMigration extends SchemaMigration {
   );
 
   static SchemaMigration? _$fromDatabase(RowReader row) {
-    final definition_name = row.readString();
+    final schema_name = row.readString();
     final script_name = row.readString();
     final script_sha256 = row.readString();
-    final executed_on = row.readDateTime();
-    if (definition_name == null &&
+    final executed_at = row.readDateTime();
+    if (schema_name == null &&
         script_name == null &&
         script_sha256 == null &&
-        executed_on == null) {
+        executed_at == null) {
       return null;
     }
     return _$SchemaMigration._(
-      definition_name!,
+      schema_name!,
       script_name!,
       script_sha256!,
-      executed_on!,
+      executed_at!,
     );
   }
 
   @override
   String toString() =>
-      'SchemaMigration(definition_name: "$definition_name", script_name: "$script_name", script_sha256: "$script_sha256", executed_on: "$executed_on")';
+      'SchemaMigration(schema_name: "$schema_name", script_name: "$script_name", script_sha256: "$script_sha256", executed_at: "$executed_at")';
 }
 
 /// Extension methods for table defined in [SchemaMigration].
@@ -158,13 +158,13 @@ extension TableSchemaMigrationExt on Table<SchemaMigration> {
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
   InsertSingle<SchemaMigration> insert({
-    required Expr<String> definition_name,
+    required Expr<String> schema_name,
     required Expr<String> script_name,
     required Expr<String> script_sha256,
-    required Expr<DateTime> executed_on,
+    required Expr<DateTime> executed_at,
   }) => $ForGeneratedCode.insertInto(
     table: this,
-    values: [definition_name, script_name, script_sha256, executed_on],
+    values: [schema_name, script_name, script_sha256, executed_at],
   );
 
   /// Delete a single row from the `schema_migrations` table, specified by
@@ -177,10 +177,10 @@ extension TableSchemaMigrationExt on Table<SchemaMigration> {
   /// should be deleted. If you wish to delete all rows, use
   /// `.where((_) => toExpr(true)).delete()`.
   DeleteSingle<SchemaMigration> delete(
-    String definition_name,
+    String schema_name,
     String script_name,
   ) => $ForGeneratedCode.deleteSingle(
-    byKey(definition_name, script_name),
+    byKey(schema_name, script_name),
     _$SchemaMigration._$table,
   );
 }
@@ -192,11 +192,11 @@ extension QuerySchemaMigrationExt on Query<(Expr<SchemaMigration>,)> {
   /// Returns a [QuerySingle] object, which returns at-most one row,
   /// when `.fetch()` is called.
   QuerySingle<(Expr<SchemaMigration>,)> byKey(
-    String definition_name,
+    String schema_name,
     String script_name,
   ) => where(
     (schemaMigration) =>
-        schemaMigration.definition_name.equalsValue(definition_name) &
+        schemaMigration.schema_name.equalsValue(schema_name) &
         schemaMigration.script_name.equalsValue(script_name),
   ).first;
 
@@ -231,10 +231,10 @@ extension QuerySchemaMigrationExt on Query<(Expr<SchemaMigration>,)> {
     UpdateSet<SchemaMigration> Function(
       Expr<SchemaMigration> schemaMigration,
       UpdateSet<SchemaMigration> Function({
-        Expr<String> definition_name,
+        Expr<String> schema_name,
         Expr<String> script_name,
         Expr<String> script_sha256,
-        Expr<DateTime> executed_on,
+        Expr<DateTime> executed_at,
       })
       set,
     )
@@ -245,15 +245,15 @@ extension QuerySchemaMigrationExt on Query<(Expr<SchemaMigration>,)> {
     (schemaMigration) => updateBuilder(
       schemaMigration,
       ({
-        Expr<String>? definition_name,
+        Expr<String>? schema_name,
         Expr<String>? script_name,
         Expr<String>? script_sha256,
-        Expr<DateTime>? executed_on,
+        Expr<DateTime>? executed_at,
       }) => $ForGeneratedCode.buildUpdate<SchemaMigration>([
-        definition_name,
+        schema_name,
         script_name,
         script_sha256,
-        executed_on,
+        executed_at,
       ]),
     ),
   );
@@ -302,10 +302,10 @@ extension QuerySingleSchemaMigrationExt
     UpdateSet<SchemaMigration> Function(
       Expr<SchemaMigration> schemaMigration,
       UpdateSet<SchemaMigration> Function({
-        Expr<String> definition_name,
+        Expr<String> schema_name,
         Expr<String> script_name,
         Expr<String> script_sha256,
-        Expr<DateTime> executed_on,
+        Expr<DateTime> executed_at,
       })
       set,
     )
@@ -316,15 +316,15 @@ extension QuerySingleSchemaMigrationExt
     (schemaMigration) => updateBuilder(
       schemaMigration,
       ({
-        Expr<String>? definition_name,
+        Expr<String>? schema_name,
         Expr<String>? script_name,
         Expr<String>? script_sha256,
-        Expr<DateTime>? executed_on,
+        Expr<DateTime>? executed_at,
       }) => $ForGeneratedCode.buildUpdate<SchemaMigration>([
-        definition_name,
+        schema_name,
         script_name,
         script_sha256,
-        executed_on,
+        executed_at,
       ]),
     ),
   );
@@ -340,8 +340,8 @@ extension QuerySingleSchemaMigrationExt
 
 /// Extension methods for expressions on a row in the `schema_migrations` table.
 extension ExpressionSchemaMigrationExt on Expr<SchemaMigration> {
-  /// The name of the migrations (or the identifier of a module).
-  Expr<String> get definition_name =>
+  /// The name of the schema (major group, e.g. `main`, `accounts`...).
+  Expr<String> get schema_name =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   /// The name of the script.
@@ -353,13 +353,13 @@ extension ExpressionSchemaMigrationExt on Expr<SchemaMigration> {
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   /// The timestamp of the execution.
-  Expr<DateTime> get executed_on =>
+  Expr<DateTime> get executed_at =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 }
 
 extension ExpressionNullableSchemaMigrationExt on Expr<SchemaMigration?> {
-  /// The name of the migrations (or the identifier of a module).
-  Expr<String?> get definition_name =>
+  /// The name of the schema (major group, e.g. `main`, `accounts`...).
+  Expr<String?> get schema_name =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   /// The name of the script.
@@ -371,7 +371,7 @@ extension ExpressionNullableSchemaMigrationExt on Expr<SchemaMigration?> {
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   /// The timestamp of the execution.
-  Expr<DateTime?> get executed_on =>
+  Expr<DateTime?> get executed_at =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// Check if the row is not `NULL`.
@@ -380,8 +380,7 @@ extension ExpressionNullableSchemaMigrationExt on Expr<SchemaMigration?> {
   ///
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
-  Expr<bool> isNotNull() =>
-      definition_name.isNotNull() & script_name.isNotNull();
+  Expr<bool> isNotNull() => schema_name.isNotNull() & script_name.isNotNull();
 
   /// Check if the row is `NULL`.
   ///

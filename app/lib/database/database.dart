@@ -142,7 +142,7 @@ class PrimaryDatabase {
     await migrateScripts(
       target: _adapter,
       table: migrationDb.schema_migrations,
-      definitionName: 'pub-dev-primary',
+      schemaName: 'pub-dev-primary',
       scripts: scripts,
     );
   }
