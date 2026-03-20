@@ -352,10 +352,7 @@ extension DartDocSidebarRender on DartDocSidebar {
 
 String _replaceImageMarkers(String html, String imageProxyNonce) {
   final imageMarkerRegExp = RegExp(
-    r'src="[^"]*\{\{' +
-        RegExp.escape(imageProxyNonce) +
-        ':([^"'
-            ' ]+)\}\}"',
+    RegExp.escape('{$imageProxyNonce}:{') + r'([^} ]+)' + RegExp.escape('}'),
   );
   return html.replaceAllMapped(imageMarkerRegExp, (match) {
     final originalUrl = Uri.decodeComponent(match.group(1)!);
@@ -367,6 +364,6 @@ String _replaceImageMarkers(String html, String imageProxyNonce) {
         replacementUrl = imageProxyBackend.imageProxyUrl(uri) ?? originalUrl;
       }
     }
-    return 'src="$replacementUrl"';
+    return replacementUrl;
   });
 }

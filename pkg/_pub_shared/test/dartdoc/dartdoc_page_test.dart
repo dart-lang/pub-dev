@@ -10,7 +10,7 @@ void main() {
     expect(
       sidebar.content,
       contains(
-        'src="https://pub.dev/img/image-proxy-placeholder.png#{{$imageProxyNonce:https%3A%2F%2Fexample.com%2Fimage.png}}"',
+        'src="{$imageProxyNonce}:{https%3A%2F%2Fexample.com%2Fimage.png}"',
       ),
     );
   });

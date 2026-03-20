@@ -155,7 +155,7 @@ final class DartDocPage {
     } else {
       html = '';
     }
-    return sanitizeHtml(
+    final sanitized = sanitizeHtml(
       html,
       allowClassName: (_) => true,
       allowElementId: (_) => true,
@@ -171,6 +171,7 @@ final class DartDocPage {
         return ['ugc', 'nofollow'];
       },
     );
+    return sanitized.replaceAll('https://pub.dev/image-proxy-marker/', '');
   }
 
   /// Marks images for proxying by replacing the src attribute with a marker.
@@ -190,7 +191,7 @@ final class DartDocPage {
             (uri.scheme == 'http' || uri.scheme == 'https') &&
             !uri.isTrustedHost) {
           img.attributes['src'] =
-              'https://pub.dev/img/image-proxy-placeholder.png#{{$imageProxyNonce:${Uri.encodeComponent(src)}}}';
+              'https://pub.dev/image-proxy-marker/{$imageProxyNonce}:{${Uri.encodeComponent(src)}}';
         }
       }
     }

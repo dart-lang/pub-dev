@@ -27,7 +27,7 @@ void main() {
     final imageProxyNonce = '1234567890abcdef1234567890abcdef';
     final sidebar = DartDocSidebar(
       content:
-          '<img src="https://pub.dev/img/image-proxy-placeholder.png#{{$imageProxyNonce:https%3A%2F%2Fexample.com%2Fimage.png}}">',
+          '<img src="{$imageProxyNonce}:{https%3A%2F%2Fexample.com%2Fimage.png}">',
       imageProxyNonce: imageProxyNonce,
     );
     final rendered = sidebar.render();
@@ -67,7 +67,7 @@ void main() {
     final imageProxyNonce = 'imageProxyNonce';
     final sidebar = DartDocSidebar(
       content:
-          '<img src="https://pub.dev/img/image-proxy-placeholder.png#{{$imageProxyNonce:https%3A%2F%2Fexample.com%2Fimage.png}}">',
+          '<img src="{$imageProxyNonce}:{https%3A%2F%2Fexample.com%2Fimage.png}">',
       imageProxyNonce: imageProxyNonce,
     );
     final rendered = sidebar.render();
