@@ -4,6 +4,7 @@
 
 import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
@@ -50,6 +51,8 @@ The publisher can be regenerated later (no tombstoning).
         tx.delete(m.key);
       }
     });
+
+    await purgePublisherCache(publisherId);
 
     return {
       'message': 'Publisher and all members deleted.',
