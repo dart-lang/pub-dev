@@ -19,10 +19,10 @@ abstract final class SchemaMigrationSchema extends Schema {
   Table<SchemaMigration> get schema_migrations;
 }
 
-@PrimaryKey(['migrations_name', 'script_name'])
+@PrimaryKey(['definition_name', 'script_name'])
 abstract final class SchemaMigration extends Row {
   /// The name of the migrations (or the identifier of a module).
-  String get migrations_name;
+  String get definition_name;
 
   /// The name of the script.
   String get script_name;
@@ -31,7 +31,7 @@ abstract final class SchemaMigration extends Row {
   String get script_sha256;
 
   /// The timestamp of the execution.
-  DateTime get executed;
+  DateTime get executed_on;
 }
 
 /// Executes migrations [scripts] in order into the [target] database,
@@ -39,14 +39,14 @@ abstract final class SchemaMigration extends Row {
 Future<void> migrateScripts({
   required DatabaseAdapter target,
   required Table<SchemaMigration> table,
-  required String migrationsName,
+  required String definitionName,
   required List<({String name, String content})> scripts,
 }) async {
   scripts.sort((a, b) => a.name.compareTo(b.name));
 
   // sanity check on the table, no update attempts
   final existingRows = await table
-      .where((m) => m.migrations_name.equalsValue(migrationsName))
+      .where((m) => m.definition_name.equalsValue(definitionName))
       .fetch();
 
   final hashes = <String, String>{};
@@ -96,7 +96,7 @@ Future<void> migrateScripts({
       // QUESTION: can we scope this with schema prefix so that it is part of the same transaction?
       final unexpectedRows = await table
           .where((m) {
-            final mn = m.migrations_name.equalsValue(migrationsName);
+            final mn = m.definition_name.equalsValue(definitionName);
             if (i == 0) {
               return mn;
             }
@@ -125,10 +125,10 @@ Future<void> migrateScripts({
       // QUESTION: can we scope this with schema prefix so that it is part of the same transaction?
       await table
           .insert(
-            migrations_name: migrationsName.asExpr,
+            definition_name: definitionName.asExpr,
             script_name: script.name.asExpr,
             script_sha256: hash.asExpr,
-            executed: Expr.currentTimestamp,
+            executed_on: Expr.currentTimestamp,
           )
           .execute();
     });
