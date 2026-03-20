@@ -13,10 +13,13 @@ Map<String, dynamic> _$BreadcrumbToJson(Breadcrumb instance) =>
     <String, dynamic>{'title': instance.title, 'href': instance.href};
 
 DartDocSidebar _$DartDocSidebarFromJson(Map<String, dynamic> json) =>
-    DartDocSidebar(content: json['content'] as String);
+    DartDocSidebar(
+      content: json['content'] as String,
+      nonce: json['nonce'] as String,
+    );
 
 Map<String, dynamic> _$DartDocSidebarToJson(DartDocSidebar instance) =>
-    <String, dynamic>{'content': instance.content};
+    <String, dynamic>{'content': instance.content, 'nonce': instance.nonce};
 
 DartDocPage _$DartDocPageFromJson(Map<String, dynamic> json) => DartDocPage(
   title: json['title'] as String,
@@ -32,6 +35,7 @@ DartDocPage _$DartDocPageFromJson(Map<String, dynamic> json) => DartDocPage(
   aboveSidebarUrl: json['aboveSidebarUrl'] as String?,
   belowSidebarUrl: json['belowSidebarUrl'] as String?,
   redirectPath: json['redirectPath'] as String?,
+  nonce: json['nonce'] as String,
 );
 
 Map<String, dynamic> _$DartDocPageToJson(DartDocPage instance) =>
@@ -47,4 +51,5 @@ Map<String, dynamic> _$DartDocPageToJson(DartDocPage instance) =>
       'aboveSidebarUrl': instance.aboveSidebarUrl,
       'belowSidebarUrl': instance.belowSidebarUrl,
       'redirectPath': instance.redirectPath,
+      'nonce': instance.nonce,
     };

@@ -2,12 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:html/dom.dart' show Element;
+import 'dart:math';
+
+import 'package:html/dom.dart' as html_dom;
 import 'package:html/parser.dart' as html_parser;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:sanitize_html/sanitize_html.dart';
 
 part 'dartdoc_page.g.dart';
+
+/// Generates a random nonce used for image proxying markers.
+///
+/// This makes it practically impossible for an attacker to guess the nonce
+/// and inject malicious image markers into the documentation content.
+String _generateNonce() {
+  final random = Random.secure();
+  final values = List<int>.generate(16, (i) => random.nextInt(256));
+  return values.map((e) => e.toRadixString(16).padLeft(2, '0')).join();
+}
 
 @JsonSerializable()
 final class Breadcrumb {
@@ -36,10 +48,18 @@ class DartDocSidebar {
   /// Sanitized HTML content of the sidebar.
   final String content;
 
-  DartDocSidebar({required this.content});
+  /// The nonce used for image proxying markers.
+  final String nonce;
+
+  DartDocSidebar({required this.content, required this.nonce});
 
   static DartDocSidebar parse(String rawHtml) {
-    return DartDocSidebar(content: DartDocPage._sanitize(rawHtml));
+    final nonce = _generateNonce();
+    final fragment = html_parser.parseFragment(rawHtml);
+    return DartDocSidebar(
+      content: DartDocPage._sanitizeAndMarkImages(fragment, nonce),
+      nonce: nonce,
+    );
   }
 
   factory DartDocSidebar.fromJson(Map<String, dynamic> json) =>
@@ -91,6 +111,9 @@ final class DartDocPage {
   /// The path URL this page redirects to.
   final String? redirectPath;
 
+  /// The nonce used for marking image urls for image proxying.
+  final String nonce;
+
   DartDocPage({
     required this.title,
     required this.description,
@@ -103,6 +126,7 @@ final class DartDocPage {
     required this.aboveSidebarUrl,
     required this.belowSidebarUrl,
     required this.redirectPath,
+    required this.nonce,
   });
 
   factory DartDocPage.fromJson(Map<String, dynamic> json) =>
@@ -112,22 +136,62 @@ final class DartDocPage {
 
   // TODO: Create a variant of sanitizeHtml that consumes nodes from
   //       package:html, so that we don't have re-parse everything :/
-  static String _sanitize(String? html) => sanitizeHtml(
-    html ?? '',
-    allowClassName: (_) => true,
-    allowElementId: (_) => true,
-    addLinkRel: (href) {
-      final u = Uri.tryParse(href);
-      if (u != null && !u.shouldIndicateUgc) {
-        // TODO: Determine if there is a better way to do this.
-        //       It's probably reasonable that internal links don't
-        //       required ugc + nofollow.
-        return [];
+  /// Sanitizes the given [node] and marks images for proxying with [nonce].
+  static String _sanitizeAndMarkImages(html_dom.Node? node, String nonce) {
+    if (node == null) return '';
+    _markImages(node, nonce);
+    final String html;
+    if (node is html_dom.Element) {
+      html = node.innerHtml;
+    } else if (node is html_dom.DocumentFragment) {
+      final div = html_dom.Element.tag('div');
+      for (final n in node.nodes) {
+        div.append(n.clone(true));
       }
-      // Add ugc and nofollow if the host isn't one of ours.
-      return ['ugc', 'nofollow'];
-    },
-  );
+      html = div.innerHtml;
+    } else {
+      html = '';
+    }
+    return sanitizeHtml(
+      html,
+      allowClassName: (_) => true,
+      allowElementId: (_) => true,
+      addLinkRel: (href) {
+        final u = Uri.tryParse(href);
+        if (u != null && !u.shouldIndicateUgc) {
+          // TODO: Determine if there is a better way to do this.
+          //       It's probably reasonable that internal links don't
+          //       required ugc + nofollow.
+          return [];
+        }
+        // Add ugc and nofollow if the host isn't one of ours.
+        return ['ugc', 'nofollow'];
+      },
+    );
+  }
+
+  /// Marks images for proxying by replacing the src attribute with a marker.
+  ///
+  /// Uses the [nonce] to create a unique marker for each page.
+  static void _markImages(html_dom.Node root, String nonce) {
+    final elements = root is html_dom.Element
+        ? root.querySelectorAll('img')
+        : root is html_dom.DocumentFragment
+        ? root.querySelectorAll('img')
+        : <html_dom.Element>[];
+    for (final img in elements) {
+      final src = img.attributes['src'];
+      if (src != null && src.isNotEmpty) {
+        final uri = Uri.tryParse(src);
+        if (uri != null &&
+            (uri.scheme == 'http' || uri.scheme == 'https') &&
+            !uri.isTrustedHost) {
+          img.attributes['src'] =
+              'https://pub.dev/img/image-proxy-placeholder.png#{{$nonce:${Uri.encodeComponent(src)}}}';
+        }
+      }
+    }
+  }
 
   /// Indicates that the [DartDocPage] was could not parse any displayable
   /// content from the dartdoc output. Such page is a redirect page that was
@@ -183,21 +247,18 @@ final class DartDocPage {
     final rawLeft = document.querySelector('#dartdoc-sidebar-left');
     rawLeft?.querySelector('header')?.remove();
     rawLeft?.querySelector('.breadcrumbs')?.remove();
-    final left = rawLeft?.innerHtml;
 
     final rawRight = document.querySelector('#dartdoc-sidebar-right');
-    final right = rawRight?.innerHtml;
 
     final rawContent = document.querySelector('#dartdoc-main-content');
     // HACK: Replace <section> with <div> to make sanitizeHtml happy
     for (final section
-        in rawContent?.querySelectorAll('section') ?? <Element>[]) {
-      final div = Element.tag('div');
+        in rawContent?.querySelectorAll('section') ?? <html_dom.Element>[]) {
+      final div = html_dom.Element.tag('div');
       div.attributes = section.attributes;
       section.reparentChildren(div);
       section.replaceWith(div);
     }
-    final content = rawContent?.innerHtml;
 
     final httpEquivRefresh = document.head
         ?.querySelectorAll('meta')
@@ -210,6 +271,7 @@ final class DartDocPage {
         .firstOrNull
         ?.substring(4);
 
+    final nonce = _generateNonce();
     return DartDocPage(
       title: document.querySelector('head > title')?.text ?? '',
       description:
@@ -218,14 +280,15 @@ final class DartDocPage {
               ?.attributes['content'] ??
           '',
       breadcrumbs: breadcrumbs,
-      left: _sanitize(left),
-      right: _sanitize(right),
-      content: _sanitize(content),
+      left: _sanitizeAndMarkImages(rawLeft, nonce),
+      right: _sanitizeAndMarkImages(rawRight, nonce),
+      content: _sanitizeAndMarkImages(rawContent, nonce),
       baseHref: body?.attributes['data-base-href'],
       usingBaseHref: body?.attributes['data-using-base-href'],
       aboveSidebarUrl: rawContent?.attributes['data-above-sidebar'],
       belowSidebarUrl: rawContent?.attributes['data-below-sidebar'],
       redirectPath: redirectPath,
+      nonce: nonce,
     );
   }
 }
