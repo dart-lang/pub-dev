@@ -4,7 +4,7 @@
 
 /// Identifiers and secret keys.
 abstract class SecretKey {
-  /// Priamary Postgres database's connection string.
+  /// Primary Postgres database's connection string.
   static const String databaseConnectionString = 'database_connection_string';
 
   /// Redis connection string.
