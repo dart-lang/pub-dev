@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/backend.dart';
@@ -38,6 +39,7 @@ The publisher can be regenerated later (no tombstoning).
     }
 
     int? memberCount;
+    final memberIds = <String>[];
     await withRetryTransaction(dbService, (tx) async {
       final key = dbService.emptyKey.append(Publisher, id: publisherId);
       final publisher = await tx.lookupOrNull<Publisher>(key);
@@ -48,6 +50,7 @@ The publisher can be regenerated later (no tombstoning).
         tx.delete(key);
       }
       for (final m in members) {
+        memberIds.add(m.userId!);
         tx.delete(m.key);
       }
     });
