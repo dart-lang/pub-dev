@@ -60,9 +60,12 @@ final class DartDocPageOptions {
 }
 
 extension DartDocPageRender on DartDocPage {
-  d.Node get _left => d.unsafeRawHtml(_replaceImageMarkers(left, nonce));
-  d.Node get _right => d.unsafeRawHtml(_replaceImageMarkers(right, nonce));
-  d.Node get _content => d.unsafeRawHtml(_replaceImageMarkers(content, nonce));
+  d.Node get _left =>
+      d.unsafeRawHtml(_replaceImageMarkers(left, imageProxyNonce));
+  d.Node get _right =>
+      d.unsafeRawHtml(_replaceImageMarkers(right, imageProxyNonce));
+  d.Node get _content =>
+      d.unsafeRawHtml(_replaceImageMarkers(content, imageProxyNonce));
 
   String _pageTitle(DartDocPageOptions options) {
     if (options.searchQueryParameter == null) {
@@ -344,13 +347,13 @@ extension DartDocPageRender on DartDocPage {
 }
 
 extension DartDocSidebarRender on DartDocSidebar {
-  String render() => _replaceImageMarkers(content, nonce);
+  String render() => _replaceImageMarkers(content, imageProxyNonce);
 }
 
-String _replaceImageMarkers(String html, String nonce) {
+String _replaceImageMarkers(String html, String imageProxyNonce) {
   final imageMarkerRegExp = RegExp(
     r'src="[^"]*\{\{' +
-        RegExp.escape(nonce) +
+        RegExp.escape(imageProxyNonce) +
         ':([^"'
             ' ]+)\}\}"',
   );

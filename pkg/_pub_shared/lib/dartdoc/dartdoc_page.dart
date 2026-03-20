@@ -13,7 +13,7 @@ part 'dartdoc_page.g.dart';
 
 /// Generates a random nonce used for image proxying markers.
 ///
-/// This makes it practically impossible for an attacker to guess the nonce
+/// This makes it practically impossible for an attacker to guess the imageProxyNonce
 /// and inject malicious image markers into the documentation content.
 String _generateNonce() {
   final random = Random.secure();
@@ -49,16 +49,16 @@ class DartDocSidebar {
   final String content;
 
   /// The nonce used for image proxying markers.
-  final String nonce;
+  final String imageProxyNonce;
 
-  DartDocSidebar({required this.content, required this.nonce});
+  DartDocSidebar({required this.content, required this.imageProxyNonce});
 
   static DartDocSidebar parse(String rawHtml) {
-    final nonce = _generateNonce();
+    final imageProxyNonce = _generateNonce();
     final fragment = html_parser.parseFragment(rawHtml);
     return DartDocSidebar(
-      content: DartDocPage._sanitizeAndMarkImages(fragment, nonce),
-      nonce: nonce,
+      content: DartDocPage._sanitizeAndMarkImages(fragment, imageProxyNonce),
+      imageProxyNonce: imageProxyNonce,
     );
   }
 
@@ -112,7 +112,7 @@ final class DartDocPage {
   final String? redirectPath;
 
   /// The nonce used for marking image urls for image proxying.
-  final String nonce;
+  final String imageProxyNonce;
 
   DartDocPage({
     required this.title,
@@ -126,7 +126,7 @@ final class DartDocPage {
     required this.aboveSidebarUrl,
     required this.belowSidebarUrl,
     required this.redirectPath,
-    required this.nonce,
+    required this.imageProxyNonce,
   });
 
   factory DartDocPage.fromJson(Map<String, dynamic> json) =>
@@ -136,10 +136,13 @@ final class DartDocPage {
 
   // TODO: Create a variant of sanitizeHtml that consumes nodes from
   //       package:html, so that we don't have re-parse everything :/
-  /// Sanitizes the given [node] and marks images for proxying with [nonce].
-  static String _sanitizeAndMarkImages(html_dom.Node? node, String nonce) {
+  /// Sanitizes the given [node] and marks images for proxying with [imageProxyNonce].
+  static String _sanitizeAndMarkImages(
+    html_dom.Node? node,
+    String imageProxyNonce,
+  ) {
     if (node == null) return '';
-    _markImages(node, nonce);
+    _markImages(node, imageProxyNonce);
     final String html;
     if (node is html_dom.Element) {
       html = node.innerHtml;
@@ -172,8 +175,8 @@ final class DartDocPage {
 
   /// Marks images for proxying by replacing the src attribute with a marker.
   ///
-  /// Uses the [nonce] to create a unique marker for each page.
-  static void _markImages(html_dom.Node root, String nonce) {
+  /// Uses the [imageProxyNonce] to create a unique marker for each page.
+  static void _markImages(html_dom.Node root, String imageProxyNonce) {
     final elements = root is html_dom.Element
         ? root.querySelectorAll('img')
         : root is html_dom.DocumentFragment
@@ -187,7 +190,7 @@ final class DartDocPage {
             (uri.scheme == 'http' || uri.scheme == 'https') &&
             !uri.isTrustedHost) {
           img.attributes['src'] =
-              'https://pub.dev/img/image-proxy-placeholder.png#{{$nonce:${Uri.encodeComponent(src)}}}';
+              'https://pub.dev/img/image-proxy-placeholder.png#{{$imageProxyNonce:${Uri.encodeComponent(src)}}}';
         }
       }
     }
@@ -271,7 +274,7 @@ final class DartDocPage {
         .firstOrNull
         ?.substring(4);
 
-    final nonce = _generateNonce();
+    final imageProxyNonce = _generateNonce();
     return DartDocPage(
       title: document.querySelector('head > title')?.text ?? '',
       description:
@@ -280,15 +283,15 @@ final class DartDocPage {
               ?.attributes['content'] ??
           '',
       breadcrumbs: breadcrumbs,
-      left: _sanitizeAndMarkImages(rawLeft, nonce),
-      right: _sanitizeAndMarkImages(rawRight, nonce),
-      content: _sanitizeAndMarkImages(rawContent, nonce),
+      left: _sanitizeAndMarkImages(rawLeft, imageProxyNonce),
+      right: _sanitizeAndMarkImages(rawRight, imageProxyNonce),
+      content: _sanitizeAndMarkImages(rawContent, imageProxyNonce),
       baseHref: body?.attributes['data-base-href'],
       usingBaseHref: body?.attributes['data-using-base-href'],
       aboveSidebarUrl: rawContent?.attributes['data-above-sidebar'],
       belowSidebarUrl: rawContent?.attributes['data-below-sidebar'],
       redirectPath: redirectPath,
-      nonce: nonce,
+      imageProxyNonce: imageProxyNonce,
     );
   }
 }

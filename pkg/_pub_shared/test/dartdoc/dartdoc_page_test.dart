@@ -2,15 +2,15 @@ import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('DartDocSidebar.parse marks images with nonce', () {
+  test('DartDocSidebar.parse marks images with imageProxyNonce', () {
     final html = '<img src="https://example.com/image.png">';
     final sidebar = DartDocSidebar.parse(html);
-    final nonce = sidebar.nonce;
-    expect(nonce, hasLength(32));
+    final imageProxyNonce = sidebar.imageProxyNonce;
+    expect(imageProxyNonce, hasLength(32));
     expect(
       sidebar.content,
       contains(
-        'src="https://pub.dev/img/image-proxy-placeholder.png#{{$nonce:https%3A%2F%2Fexample.com%2Fimage.png}}"',
+        'src="https://pub.dev/img/image-proxy-placeholder.png#{{$imageProxyNonce:https%3A%2F%2Fexample.com%2Fimage.png}}"',
       ),
     );
   });

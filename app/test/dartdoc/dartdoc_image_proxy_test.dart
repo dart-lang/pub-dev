@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 import '../shared/utils.dart';
 
 void main() {
-  scopedTest('dartdoc images are proxied with nonce', () async {
+  scopedTest('dartdoc images are proxied with imageProxyNonce', () async {
     final config = Configuration.test(
       primarySiteUri: Uri.parse('https://pub.dev/'),
       imageProxyServiceBaseUrl: 'https://proxy.pub.dev',
@@ -24,11 +24,11 @@ void main() {
     );
     registerImageProxyBackend(_FakeImageProxyBackend());
 
-    final nonce = '1234567890abcdef1234567890abcdef';
+    final imageProxyNonce = '1234567890abcdef1234567890abcdef';
     final sidebar = DartDocSidebar(
       content:
-          '<img src="https://pub.dev/img/image-proxy-placeholder.png#{{$nonce:https%3A%2F%2Fexample.com%2Fimage.png}}">',
-      nonce: nonce,
+          '<img src="https://pub.dev/img/image-proxy-placeholder.png#{{$imageProxyNonce:https%3A%2F%2Fexample.com%2Fimage.png}}">',
+      imageProxyNonce: imageProxyNonce,
     );
     final rendered = sidebar.render();
     expect(
@@ -47,7 +47,7 @@ void main() {
 
     final sidebar = DartDocSidebar(
       content: '<p>Some text with {{marker}} and }} and {{.</p>',
-      nonce: 'nonce',
+      imageProxyNonce: 'imageProxyNonce',
     );
     expect(sidebar.render(), contains('{{marker}} and }} and {{'));
   });
@@ -64,11 +64,11 @@ void main() {
     );
     registerImageProxyBackend(_FakeImageProxyBackend());
 
-    final nonce = 'nonce';
+    final imageProxyNonce = 'imageProxyNonce';
     final sidebar = DartDocSidebar(
       content:
-          '<img src="https://pub.dev/img/image-proxy-placeholder.png#{{$nonce:https%3A%2F%2Fexample.com%2Fimage.png}}">',
-      nonce: nonce,
+          '<img src="https://pub.dev/img/image-proxy-placeholder.png#{{$imageProxyNonce:https%3A%2F%2Fexample.com%2Fimage.png}}">',
+      imageProxyNonce: imageProxyNonce,
     );
     final rendered = sidebar.render();
     expect(rendered, contains('src="https://example.com/image.png"'));

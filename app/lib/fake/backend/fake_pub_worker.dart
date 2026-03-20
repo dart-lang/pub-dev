@@ -239,7 +239,7 @@ Map<String, String> _fakeDartdocFiles(
         aboveSidebarUrl: null,
         belowSidebarUrl: null,
         redirectPath: null,
-        nonce: '',
+        imageProxyNonce: '',
       ).toJson(),
     ),
     'index.json': '{}',
@@ -257,7 +257,7 @@ Map<String, String> _fakeDartdocFiles(
         aboveSidebarUrl: null,
         belowSidebarUrl: null,
         redirectPath: null,
-        nonce: '',
+        imageProxyNonce: '',
       ).toJson(),
     ),
   };
