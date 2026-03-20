@@ -19,34 +19,35 @@ abstract final class SchemaMigrationSchema extends Schema {
   Table<SchemaMigration> get schema_migrations;
 }
 
-@PrimaryKey(['migrations_name', 'script_name'])
+@PrimaryKey(['schema_name', 'script_name'])
 abstract final class SchemaMigration extends Row {
-  /// The name of the migrations (or the identifier of a module).
-  String get migrations_name;
+  /// The name of the schema (major group, e.g. `main`, `accounts`...).
+  String get schema_name;
 
   /// The name of the script.
   String get script_name;
 
-  /// The SSH-256 of the script at the time of execution.
+  /// The SHA-256 of the script at the time of execution.
   String get script_sha256;
 
   /// The timestamp of the execution.
-  DateTime get executed;
+  DateTime get executed_at;
 }
 
-/// Executes migrations [scripts] in order into the [target] database,
-/// tracking the updates in the schema migrations [table].
+/// Executes migrations [scripts] in alphabetical order into
+/// the [target] database, tracking the updates in the schema
+/// migrations [table].
 Future<void> migrateScripts({
   required DatabaseAdapter target,
   required Table<SchemaMigration> table,
-  required String migrationsName,
+  required String schemaName,
   required List<({String name, String content})> scripts,
 }) async {
   scripts.sort((a, b) => a.name.compareTo(b.name));
 
   // sanity check on the table, no update attempts
   final existingRows = await table
-      .where((m) => m.migrations_name.equalsValue(migrationsName))
+      .where((m) => m.schema_name.equalsValue(schemaName))
       .fetch();
 
   final hashes = <String, String>{};
@@ -96,7 +97,7 @@ Future<void> migrateScripts({
       // QUESTION: can we scope this with schema prefix so that it is part of the same transaction?
       final unexpectedRows = await table
           .where((m) {
-            final mn = m.migrations_name.equalsValue(migrationsName);
+            final mn = m.schema_name.equalsValue(schemaName);
             if (i == 0) {
               return mn;
             }
@@ -125,10 +126,10 @@ Future<void> migrateScripts({
       // QUESTION: can we scope this with schema prefix so that it is part of the same transaction?
       await table
           .insert(
-            migrations_name: migrationsName.asExpr,
+            schema_name: schemaName.asExpr,
             script_name: script.name.asExpr,
             script_sha256: hash.asExpr,
-            executed: Expr.currentTimestamp,
+            executed_at: Expr.currentTimestamp,
           )
           .execute();
     });
