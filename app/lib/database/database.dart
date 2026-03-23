@@ -16,6 +16,8 @@ import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/env_config.dart';
+import 'package:pub_dev/shared/exceptions.dart';
+import 'package:retry/retry.dart';
 import 'package:typed_sql/typed_sql.dart';
 
 final _random = Random.secure();
@@ -228,4 +230,43 @@ Future<void> _dropCustomDatabase(String url, String dbName) async {
   final conn = Pool.withUrl(url);
   await conn.execute('DROP DATABASE "$dbName";');
   await conn.close(force: true);
+}
+
+extension DatabaseExt on Database {
+  /// Runs [fn] in a retry block (without wrapping it in a transaction).
+  ///
+  /// The call is retried only if [DatabaseConnectionException] is throw.
+  Future<K> withRetry<K>(Future<K> Function() fn) async {
+    return await retry(
+      fn,
+      maxAttempts: 3,
+      retryIf: (e) => e is DatabaseConnectionException,
+    );
+  }
+
+  /// Runs [fn] in a transaction with retry block.
+  ///
+  /// The call is retried if the generic [DatabaseException] is throw, which may be a
+  /// connection issue, deadlock, timeout, constraint or any query-related problem.
+  ///
+  /// However, if inside the transaction an [Error] is thrown, or if the wrapped exception
+  /// is [ResponseException], we don't retry [fn].
+  Future<K> transactWithRetry<K>(Future<K> Function() fn) async {
+    return await retry(
+      () async {
+        try {
+          return await transact(fn);
+        } on TransactionAbortedException catch (e) {
+          final inner = e.reason;
+          if (inner is Error || inner is ResponseException) {
+            // TODO: we should keep and use the original stacktrace in typed_sql's exception
+            throw inner;
+          }
+          rethrow;
+        }
+      },
+      maxAttempts: 3,
+      retryIf: (e) => e is DatabaseException,
+    );
+  }
 }
