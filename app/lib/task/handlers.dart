@@ -177,7 +177,7 @@ Future<shelf.Response> handleDartDoc(
           final sidebar = DartDocSidebar.fromJson(
             dataJson as Map<String, dynamic>,
           );
-          return (DocPageStatus.ok(), utf8.encode(sidebar.content));
+          return (DocPageStatus.ok(), utf8.encode(sidebar.render()));
         }
 
         final page = DartDocPage.fromJson(dataJson as Map<String, dynamic>);

@@ -5,7 +5,9 @@
 import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/frontend/dom/dom.dart' as d;
+import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/static_files.dart';
+import 'package:pub_dev/service/image_proxy/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 
 import '../shared/urls.dart';
@@ -58,9 +60,12 @@ final class DartDocPageOptions {
 }
 
 extension DartDocPageRender on DartDocPage {
-  d.Node get _left => d.unsafeRawHtml(left);
-  d.Node get _right => d.unsafeRawHtml(right);
-  d.Node get _content => d.unsafeRawHtml(content);
+  d.Node get _left =>
+      d.unsafeRawHtml(_replaceImageMarkers(left, imageProxyNonce));
+  d.Node get _right =>
+      d.unsafeRawHtml(_replaceImageMarkers(right, imageProxyNonce));
+  d.Node get _content =>
+      d.unsafeRawHtml(_replaceImageMarkers(content, imageProxyNonce));
 
   String _pageTitle(DartDocPageOptions options) {
     if (options.searchQueryParameter == null) {
@@ -339,4 +344,26 @@ extension DartDocPageRender on DartDocPage {
       children: [_renderHead(options), _renderBody(options)],
     ),
   ]);
+}
+
+extension DartDocSidebarRender on DartDocSidebar {
+  String render() => _replaceImageMarkers(content, imageProxyNonce);
+}
+
+String _replaceImageMarkers(String html, String imageProxyNonce) {
+  final imageMarkerRegExp = RegExp(
+    RegExp.escape('{$imageProxyNonce}:{') + r'([^} ]+)' + RegExp.escape('}'),
+  );
+  return html.replaceAllMapped(imageMarkerRegExp, (match) {
+    final originalUrl = Uri.decodeComponent(match.group(1)!);
+    var replacementUrl = originalUrl;
+    if (requestContext.experimentalFlags.isImageProxyEnabled &&
+        activeConfiguration.imageProxyServiceBaseUrl != null) {
+      final uri = Uri.tryParse(originalUrl);
+      if (uri != null) {
+        replacementUrl = imageProxyBackend.imageProxyUrl(uri) ?? originalUrl;
+      }
+    }
+    return replacementUrl;
+  });
 }
