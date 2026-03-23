@@ -49,10 +49,6 @@ class PrimaryDatabase {
       // Production is not configured for postgresql yet.
       return;
     }
-    if (activeConfiguration.isStaging) {
-      // Staging may not have the connection string set yet.
-      return;
-    }
     if (_lookupPrimaryDatabase() != null) {
       // Already initialized, must be in a local test environment.
       assert(activeConfiguration.isFakeOrTest);
@@ -159,8 +155,13 @@ class PrimaryDatabase {
 
 /// Expand the connection URL to override default parameters, unless specified in the provided URL.
 String _expandConnectionUrl(String url) {
-  final uri = Uri.parse(url);
+  final uri = Uri.parse(url.trim());
   return uri
+      .replace(
+        queryParameters: uri.queryParameters.map(
+          (k, v) => MapEntry(k, v.toString().trim()),
+        ),
+      )
       .replace(
         queryParameters: {
           // replace connections after an hour (value is in seconds)
