@@ -171,7 +171,9 @@ final class DartDocPage {
         return ['ugc', 'nofollow'];
       },
     );
-    return sanitized;
+    // The prefix is used to make the marker look like a valid absolute URL,
+    // which prevents the sanitizer from stripping it or prepending it with a base URL.
+    return sanitized.replaceAll(_prefix, '');
   }
 
   /// Marks images for proxying by replacing the src attribute with a marker.
@@ -190,12 +192,16 @@ final class DartDocPage {
         if (uri != null &&
             (uri.scheme == 'http' || uri.scheme == 'https') &&
             !uri.isTrustedHost) {
+          // Prepend a _prefix so that sanitize_html doesn't strip it as invalid.
+          // It will be removed after sanitization in _sanitizeAndMarkImages.
           img.attributes['src'] =
-              '{$imageProxyNonce}:{${Uri.encodeComponent(src)}}';
+              '$_prefix{$imageProxyNonce}:{${Uri.encodeComponent(src)}}';
         }
       }
     }
   }
+
+  static const _prefix = 'https://pub.dev/image-proxy-marker/';
 
   /// Indicates that the [DartDocPage] was could not parse any displayable
   /// content from the dartdoc output. Such page is a redirect page that was
