@@ -49,8 +49,7 @@ class DartDocSidebar {
   final String content;
 
   /// The nonce used for image proxying markers.
-  @JsonKey(defaultValue: 'noonewillguessme')
-  final String imageProxyNonce;
+  final String? imageProxyNonce;
 
   DartDocSidebar({required this.content, required this.imageProxyNonce});
 
@@ -113,8 +112,7 @@ final class DartDocPage {
   final String? redirectPath;
 
   /// The nonce used for marking image urls for image proxying.
-  @JsonKey(defaultValue: 'noonewillguessme')
-  final String imageProxyNonce;
+  final String? imageProxyNonce;
 
   DartDocPage({
     required this.title,
