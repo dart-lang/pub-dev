@@ -350,7 +350,8 @@ extension DartDocSidebarRender on DartDocSidebar {
   String render() => _replaceImageMarkers(content, imageProxyNonce);
 }
 
-String _replaceImageMarkers(String html, String imageProxyNonce) {
+String _replaceImageMarkers(String html, String? imageProxyNonce) {
+  if (imageProxyNonce == null) return html;
   final imageMarkerRegExp = RegExp(
     RegExp.escape('{$imageProxyNonce}:{') + r'([^} ]+)' + RegExp.escape('}'),
   );
