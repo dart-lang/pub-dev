@@ -10,7 +10,6 @@ typedef PublicFlag = ({String name, String description});
 
 const _publicFlags = <PublicFlag>{
   (name: 'example', description: 'Short description'),
-  (name: 'image-proxy', description: 'Use the image proxy for images'),
 };
 
 final _allFlags = <String>{
@@ -92,7 +91,7 @@ class ExperimentalFlags {
 
   late final isExposeLicenseDiffEnabled = isEnabled('expose-licence-diff');
 
-  bool get isImageProxyEnabled => isEnabled('image-proxy');
+  bool get isImageProxyEnabled => true;
 
   String encodedAsCookie() => _enabled.join(':');
 
