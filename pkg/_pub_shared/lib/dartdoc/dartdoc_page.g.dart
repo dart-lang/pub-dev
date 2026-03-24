@@ -15,7 +15,7 @@ Map<String, dynamic> _$BreadcrumbToJson(Breadcrumb instance) =>
 DartDocSidebar _$DartDocSidebarFromJson(Map<String, dynamic> json) =>
     DartDocSidebar(
       content: json['content'] as String,
-      imageProxyNonce: json['imageProxyNonce'] as String,
+      imageProxyNonce: json['imageProxyNonce'] as String? ?? 'noonewillguessme',
     );
 
 Map<String, dynamic> _$DartDocSidebarToJson(DartDocSidebar instance) =>
@@ -38,7 +38,7 @@ DartDocPage _$DartDocPageFromJson(Map<String, dynamic> json) => DartDocPage(
   aboveSidebarUrl: json['aboveSidebarUrl'] as String?,
   belowSidebarUrl: json['belowSidebarUrl'] as String?,
   redirectPath: json['redirectPath'] as String?,
-  imageProxyNonce: json['imageProxyNonce'] as String,
+  imageProxyNonce: json['imageProxyNonce'] as String? ?? 'noonewillguessme',
 );
 
 Map<String, dynamic> _$DartDocPageToJson(DartDocPage instance) =>
