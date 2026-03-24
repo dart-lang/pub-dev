@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
-import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/service/image_proxy/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -19,9 +18,7 @@ void main() {
     );
 
     registerActiveConfiguration(config);
-    registerRequestContext(
-      RequestContext(experimentalFlags: ExperimentalFlags({'image-proxy'})),
-    );
+    registerRequestContext(RequestContext());
     registerImageProxyBackend(_FakeImageProxyBackend());
 
     final imageProxyNonce = '1234567890abcdef1234567890abcdef';
@@ -41,37 +38,13 @@ void main() {
 
   scopedTest('normal double curlies are preserved', () async {
     registerActiveConfiguration(Configuration.test());
-    registerRequestContext(
-      RequestContext(experimentalFlags: ExperimentalFlags.empty),
-    );
+    registerRequestContext(RequestContext());
 
     final sidebar = DartDocSidebar(
       content: '<p>Some text with {{marker}} and }} and {{.</p>',
       imageProxyNonce: 'imageProxyNonce',
     );
     expect(sidebar.render(), contains('{{marker}} and }} and {{'));
-  });
-
-  scopedTest('dartdoc images use original URL if proxy is disabled', () async {
-    final config = Configuration.test(
-      primarySiteUri: Uri.parse('https://pub.dev/'),
-      imageProxyServiceBaseUrl: 'https://proxy.pub.dev',
-    );
-
-    registerActiveConfiguration(config);
-    registerRequestContext(
-      RequestContext(experimentalFlags: ExperimentalFlags.empty),
-    );
-    registerImageProxyBackend(_FakeImageProxyBackend());
-
-    final imageProxyNonce = 'imageProxyNonce';
-    final sidebar = DartDocSidebar(
-      content:
-          '<img src="{$imageProxyNonce}:{https%3A%2F%2Fexample.com%2Fimage.png}">',
-      imageProxyNonce: imageProxyNonce,
-    );
-    final rendered = sidebar.render();
-    expect(rendered, contains('src="https://example.com/image.png"'));
   });
 }
 
