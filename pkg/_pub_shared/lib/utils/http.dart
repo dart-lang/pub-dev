@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:googleapis/storage/v1.dart'
+    show DetailedApiRequestError, ApiRequestError;
 import 'package:http/http.dart' as http;
 import 'package:http/retry.dart';
 import 'package:retry/retry.dart';
@@ -111,11 +113,12 @@ Future<K> withRetryHttpClient<K>(
     },
     maxAttempts: maxAttempts,
     maxDelay: maxDelay,
-    retryIf: (e) => _retryIf(e) || (retryIf != null && retryIf(e)),
+    retryIf: (e) => isRetryableException(e) || (retryIf != null && retryIf(e)),
   );
 }
 
-bool _retryIf(Exception e) {
+/// Whether an HTTP-related [Exception] allows (or suggests) retry on the operation.
+bool isRetryableException(Exception e) {
   if (e is TimeoutException) {
     return true; // Timeouts we can retry
   }
@@ -127,6 +130,14 @@ bool _retryIf(Exception e) {
   }
   if (e is UnexpectedStatusException) {
     return _transientStatusCodes.contains(e.statusCode);
+  }
+  if (e is DetailedApiRequestError) {
+    final status = e.status;
+    return status == null || _transientStatusCodes.contains(status);
+  }
+  if (e is ApiRequestError && e is! DetailedApiRequestError) {
+    // In addition we retry undocumented errors and malformed responses.
+    return true;
   }
   return false;
 }
