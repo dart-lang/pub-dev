@@ -7,12 +7,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:_pub_shared/utils/http.dart' show isRetryableException;
 import 'package:chunked_stream/chunked_stream.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
-import 'package:googleapis/storage/v1.dart'
-    show DetailedApiRequestError, ApiRequestError;
-import 'package:http/http.dart' as http;
+import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
@@ -99,7 +98,7 @@ extension BucketExt on Bucket {
         }
       },
       maxAttempts: 3,
-      retryIf: _retryIf,
+      retryIf: isRetryableException,
     );
   }
 
@@ -273,26 +272,9 @@ Future<R> _retry<R>(
     fn,
     maxAttempts: 3,
     delayFactor: Duration(seconds: 2),
-    retryIf: _retryIf,
+    retryIf: isRetryableException,
     onRetry: onRetry,
   );
-}
-
-bool _retryIf(Exception e) {
-  if (e is TimeoutException) {
-    return true; // Timeouts we can retry
-  }
-  if (e is IOException) {
-    return true; // I/O issues are worth retrying
-  }
-  if (e is http.ClientException) {
-    return true; // HTTP issues are worth retrying
-  }
-  if (e is DetailedApiRequestError) {
-    final status = e.status;
-    return status == null || status >= 500; // 5xx errors are retried
-  }
-  return e is ApiRequestError; // Unknown API errors are retried
 }
 
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.

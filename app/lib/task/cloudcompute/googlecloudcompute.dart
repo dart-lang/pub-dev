@@ -4,8 +4,8 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/compute/v1.dart' hide Duration;
@@ -272,20 +272,11 @@ Future<T> _retryWithRequestId<T>(Future<T> Function(String rId) fn) async {
 Future<T> _retry<T>(Future<T> Function() fn) async {
   return await retry(
     fn,
-    retryIf: (e) =>
-        // Guessing the API might honor: https://google.aip.dev/194
-        // So only retry 'UNAVAILABLE' errors, which is 503 according to:
-        // https://github.com/googleapis/api-common-protos/blob/master/google/rpc/code.proto
-        (e is DetailedApiRequestError && e.status == 503) ||
-        // In addition we retry undocumented errors and malformed responses.
-        (e is ApiRequestError && e is! DetailedApiRequestError) ||
-        // If there is a timeout, we also retry.
-        e is TimeoutException ||
-        // If there is an HTTP client exception, often the case for timed out
-        // TCP connections.
-        e is http.ClientException ||
-        // Finally, we retry all I/O issues.
-        e is IOException,
+    // Guessing the API might honor: https://google.aip.dev/194
+    // So only retry 'UNAVAILABLE' errors, which is 503 according to:
+    // https://github.com/googleapis/api-common-protos/blob/master/google/rpc/code.proto
+    // NOTE: [isRetryableException] will also retry on other status codes besides 503.
+    retryIf: isRetryableException,
   );
 }
 
