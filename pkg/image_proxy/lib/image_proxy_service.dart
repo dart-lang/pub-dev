@@ -331,10 +331,23 @@ Future<shelf.Response> handler(shelf.Request request) async {
         body: 'Failed to retrieve image. Status code ${e.statusCode}',
         headers: securityHeaders,
       );
+    } on http.ClientException catch (e) {
+      return shelf.Response.badRequest(
+        body: 'Failed to retrieve image. ${e.message}',
+        headers: securityHeaders,
+      );
+    } on SocketException catch (e) {
+      return shelf.Response.badRequest(
+        body: 'Failed to retrieve image. ${e.message}',
+        headers: securityHeaders,
+      );
     }
   } catch (e, st) {
     stderr.writeln('Uncaught error: $e $st');
-    rethrow;
+    return shelf.Response.internalServerError(
+      body: 'Failed to retrieve image. Internal error.',
+      headers: securityHeaders,
+    );
   }
 }
 
