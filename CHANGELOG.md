@@ -7,7 +7,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bump runtimeVersion to `2026.03.26`.
  * Upgraded pana to `0.23.12`.
  * Upgraded dependencies (incl. `markdown`)
- * Image proxy is now enabled for all users.
 
 ## `20260317t122600-all`
  * Bump runtimeVersion to `2026.03.17`.

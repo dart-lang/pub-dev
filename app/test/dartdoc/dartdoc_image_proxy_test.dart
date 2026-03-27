@@ -20,7 +20,7 @@ void main() {
 
     registerActiveConfiguration(config);
     registerRequestContext(
-      RequestContext(experimentalFlags: ExperimentalFlags.empty),
+      RequestContext(experimentalFlags: ExperimentalFlags({'image-proxy'})),
     );
     registerImageProxyBackend(_FakeImageProxyBackend());
 
@@ -50,6 +50,28 @@ void main() {
       imageProxyNonce: 'imageProxyNonce',
     );
     expect(sidebar.render(), contains('{{marker}} and }} and {{'));
+  });
+
+  scopedTest('dartdoc images use original URL if proxy is disabled', () async {
+    final config = Configuration.test(
+      primarySiteUri: Uri.parse('https://pub.dev/'),
+      imageProxyServiceBaseUrl: 'https://proxy.pub.dev',
+    );
+
+    registerActiveConfiguration(config);
+    registerRequestContext(
+      RequestContext(experimentalFlags: ExperimentalFlags.empty),
+    );
+    registerImageProxyBackend(_FakeImageProxyBackend());
+
+    final imageProxyNonce = 'imageProxyNonce';
+    final sidebar = DartDocSidebar(
+      content:
+          '<img src="{$imageProxyNonce}:{https%3A%2F%2Fexample.com%2Fimage.png}">',
+      imageProxyNonce: imageProxyNonce,
+    );
+    final rendered = sidebar.render();
+    expect(rendered, contains('src="https://example.com/image.png"'));
   });
 }
 
