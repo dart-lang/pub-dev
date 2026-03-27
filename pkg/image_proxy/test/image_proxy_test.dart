@@ -382,7 +382,7 @@ Future<void> main() async {
       expect(response.statusCode, 404);
     }
   });
-  
+
   test('Fails on bad dns', () async {
     final imageProxyPort = await startImageProxy();
     {
