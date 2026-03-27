@@ -27,7 +27,7 @@ void registerImageProxyBackend(ImageProxyBackend backend) =>
 ImageProxyBackend get imageProxyBackend =>
     ss.lookup(#_imageProxyBackend) as ImageProxyBackend;
 
-/// Represents the backend for the image proxy service.
+/// Represents the backend for the Youtube handling and related utilities.
 class ImageProxyBackend {
   ImageProxyBackend._() {
     _dailySecret = CachedValue(

@@ -11,7 +11,7 @@ import 'package:pub_dev/shared/markdown.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('images are proxied', () async {
+  test('images are proxied when experiment is enabled', () async {
     final config = Configuration.test(
       primarySiteUri: Uri.parse('https://pub.dev/'),
       imageProxyServiceBaseUrl: 'https://proxy.pub.dev',
@@ -20,7 +20,7 @@ void main() {
     await fork(() async {
       registerActiveConfiguration(config);
       registerRequestContext(
-        RequestContext(experimentalFlags: ExperimentalFlags.empty),
+        RequestContext(experimentalFlags: ExperimentalFlags({'image-proxy'})),
       );
       registerImageProxyBackend(_FakeImageProxyBackend());
 
@@ -43,7 +43,7 @@ void main() {
     await fork(() async {
       registerActiveConfiguration(config);
       registerRequestContext(
-        RequestContext(experimentalFlags: ExperimentalFlags.empty),
+        RequestContext(experimentalFlags: ExperimentalFlags({'image-proxy'})),
       );
       registerImageProxyBackend(_FakeImageProxyBackend());
 
@@ -62,7 +62,7 @@ void main() {
     });
   });
 
-  test('image tag is removed if proxying fails', () async {
+  test('images are NOT proxied when experiment is disabled', () async {
     final config = Configuration.test(
       primarySiteUri: Uri.parse('https://pub.dev/'),
       imageProxyServiceBaseUrl: 'https://proxy.pub.dev',
@@ -72,6 +72,24 @@ void main() {
       registerActiveConfiguration(config);
       registerRequestContext(
         RequestContext(experimentalFlags: ExperimentalFlags.empty),
+      );
+      registerImageProxyBackend(_FakeImageProxyBackend());
+
+      final html = markdownToHtml('![text](https://example.com/image.png)');
+      expect(html, contains('src="https://example.com/image.png"'));
+    });
+  });
+
+  test('image tag is removed if proxying fails', () async {
+    final config = Configuration.test(
+      primarySiteUri: Uri.parse('https://pub.dev/'),
+      imageProxyServiceBaseUrl: 'https://proxy.pub.dev',
+    );
+
+    await fork(() async {
+      registerActiveConfiguration(config);
+      registerRequestContext(
+        RequestContext(experimentalFlags: ExperimentalFlags({'image-proxy'})),
       );
       registerImageProxyBackend(_NullImageProxyBackend());
 
@@ -90,7 +108,7 @@ void main() {
     await fork(() async {
       registerActiveConfiguration(config);
       registerRequestContext(
-        RequestContext(experimentalFlags: ExperimentalFlags.empty),
+        RequestContext(experimentalFlags: ExperimentalFlags({'image-proxy'})),
       );
       registerImageProxyBackend(_FakeImageProxyBackend());
 
