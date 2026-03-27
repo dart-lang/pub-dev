@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Image proxy is now disabled for all users.
+ * Bump runtimeVersion to `2026.03.27`.
 
 ## `20260326t101900-all`
  * Bump runtimeVersion to `2026.03.26`.
