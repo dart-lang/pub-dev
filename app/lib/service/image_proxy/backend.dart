@@ -53,7 +53,7 @@ class ImageProxyBackend {
     scheduleMicrotask(() async {
       while (!instance._abort.isCompleted) {
         try {
-          await instance._dailySecret.update().timeout(Duration(seconds: 10));
+          await instance._dailySecret.update().timeout(Duration(minutes: 2));
         } catch (e, st) {
           logger.severe('Failed to update daily secret', e, st);
         }
