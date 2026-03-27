@@ -394,7 +394,7 @@ Future<void> main() async {
 
       expect(
         await Utf8Codec().decodeStream(response),
-        'Failed to retrieve image. Failed host lookup',
+        'Failed to retrieve image. Failed host lookup: \'az743702.vo.msecnd.net\'',
       );
       validateSecurityHeaders(response);
       expect(response.statusCode, 400);
