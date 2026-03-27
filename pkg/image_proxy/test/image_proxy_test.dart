@@ -157,16 +157,14 @@ final tomorrow = DateTime.utc(now.year, now.month, now.day + 1);
 
 Future<HttpClientResponse> getImage({
   required int imageProxyPort,
-  required int imageServerPort,
-  String pathToImage = 'path/to/image.jpg',
+  required Uri imageUrl,
   DateTime? day,
   bool disturbSignature = false,
 }) async {
   final client = HttpClient();
   day ??= today;
   final dailySecret = await getDailySecretMock(day.millisecondsSinceEpoch);
-  final imageUrl = 'http://localhost:$imageServerPort/$pathToImage';
-  final signature = hmacSign(dailySecret, utf8.encode(imageUrl));
+  final signature = hmacSign(dailySecret, utf8.encode(imageUrl.toString()));
   if (disturbSignature) {
     signature[0]++;
   }
@@ -177,7 +175,7 @@ Future<HttpClientResponse> getImage({
     pathSegments: [
       base64Encode(signature),
       day.millisecondsSinceEpoch.toString(),
-      imageUrl,
+      imageUrl.toString(),
     ],
   );
   final request = await client.getUrl(url);
@@ -193,7 +191,9 @@ Future<void> main() async {
       final response = await getImage(
         day: day,
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse(
+          'http://localhost:$imageServerPort/path/to/image.jpg',
+        ),
       );
       validateSecurityHeaders(response);
       expect(response.statusCode, 200);
@@ -208,8 +208,9 @@ Future<void> main() async {
       final response = await getImage(
         day: today,
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
-        pathToImage: 'path/to/image.png',
+        imageUrl: Uri.parse(
+          'http://localhost:$imageServerPort/path/to/image.png',
+        ),
       );
       validateSecurityHeaders(response);
       expect(response.statusCode, 200);
@@ -223,8 +224,9 @@ Future<void> main() async {
       final response = await getImage(
         day: today,
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
-        pathToImage: 'path/to/image.svg',
+        imageUrl: Uri.parse(
+          'http://localhost:$imageServerPort/path/to/image.svg',
+        ),
       );
       validateSecurityHeaders(response);
       expect(response.statusCode, 200);
@@ -238,9 +240,7 @@ Future<void> main() async {
       final response = await getImage(
         day: today,
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
-        // Gives no content-length
-        pathToImage: 'okstreaming',
+        imageUrl: Uri.parse('http://localhost:$imageServerPort/okstreaming'),
       );
       validateSecurityHeaders(response);
       expect(response.statusCode, 200);
@@ -259,7 +259,9 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse(
+          'http://localhost:$imageServerPort/path/to/image.jpg',
+        ),
         day: tomorrow.add(Duration(days: 1)),
       );
       validateSecurityHeaders(response);
@@ -278,7 +280,9 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse(
+          'http://localhost:$imageServerPort/path/to/image.jpg',
+        ),
         day: today,
         disturbSignature: true,
       );
@@ -295,10 +299,11 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse(
+          'http://localhost:$imageServerPort/next/' * 1000 + 'image.jpg',
+        ),
         day: today,
         disturbSignature: true,
-        pathToImage: 'next/' * 1000 + 'image.jpg',
       );
       validateSecurityHeaders(response);
       expect(response.statusCode, 400);
@@ -313,9 +318,8 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse('http://localhost:$imageServerPort/redirect'),
         day: today,
-        pathToImage: 'redirect',
       );
       validateSecurityHeaders(response);
 
@@ -332,9 +336,10 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse(
+          'http://localhost:$imageServerPort/redirectForever',
+        ),
         day: today,
-        pathToImage: 'redirectForever',
       );
       validateSecurityHeaders(response);
 
@@ -349,9 +354,8 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse('http://localhost:$imageServerPort/serverError'),
         day: today,
-        pathToImage: 'serverError',
       );
       validateSecurityHeaders(response);
 
@@ -369,14 +373,31 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse('http://localhost:$imageServerPort/doesntexist'),
         day: today,
-        pathToImage: 'doesntexist',
       );
       validateSecurityHeaders(response);
 
       expect(await Utf8Codec().decodeStream(response), 'Not found');
       expect(response.statusCode, 404);
+    }
+  });
+  
+  test('Fails on bad dns', () async {
+    final imageProxyPort = await startImageProxy();
+    {
+      final response = await getImage(
+        imageProxyPort: imageProxyPort,
+        imageUrl: Uri.parse('http://az743702.vo.msecnd.net/path/to/image.jpg'),
+        day: today,
+      );
+
+      expect(
+        await Utf8Codec().decodeStream(response),
+        'Failed to retrieve image. Failed host lookup',
+      );
+      validateSecurityHeaders(response);
+      expect(response.statusCode, 400);
     }
   });
 
@@ -386,9 +407,10 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse(
+          'http://localhost:$imageServerPort/worksSecondTime',
+        ),
         day: today,
-        pathToImage: 'worksSecondTime',
       );
       validateSecurityHeaders(response);
 
@@ -405,9 +427,10 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse(
+          'http://localhost:$imageServerPort/canBeCachedLong',
+        ),
         day: today,
-        pathToImage: 'canBeCachedLong',
       );
       validateSecurityHeaders(response);
 
@@ -426,9 +449,8 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse('http://localhost:$imageServerPort/timeout'),
         day: today,
-        pathToImage: 'timeout',
       );
       validateSecurityHeaders(response);
 
@@ -439,9 +461,10 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse(
+          'http://localhost:$imageServerPort/timeoutstreaming',
+        ),
         day: today,
-        pathToImage: 'timeoutstreaming',
       );
       validateSecurityHeaders(response);
 
@@ -457,9 +480,8 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse('http://localhost:$imageServerPort/toobig'),
         day: today,
-        pathToImage: 'toobig',
       );
       validateSecurityHeaders(response);
 
@@ -470,9 +492,10 @@ Future<void> main() async {
     {
       final response = await getImage(
         imageProxyPort: imageProxyPort,
-        imageServerPort: imageServerPort,
+        imageUrl: Uri.parse(
+          'http://localhost:$imageServerPort/toobigstreaming',
+        ),
         day: today,
-        pathToImage: 'toobigstreaming',
       );
       validateSecurityHeaders(response);
 
