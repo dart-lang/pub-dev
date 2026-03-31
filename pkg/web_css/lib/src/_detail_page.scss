@@ -187,17 +187,10 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   border: 1px solid transparent;
   padding: 2px;
 
-  .like-button-and-label--button {
-    /* Override wide material button styles*/
-    width: 26px;
-    height: 26px;
-    padding: 4px;
-    margin: 0 6px 0 0;
-  }
-
   .like-button-and-label--count-wrapper {
     display: inline-block;
     padding-top: 6px;
+    min-width: 12px;
   }
 
   &:focus-within {
