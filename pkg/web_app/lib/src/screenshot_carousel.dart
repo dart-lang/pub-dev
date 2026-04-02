@@ -87,8 +87,10 @@ void _setEventForScreenshot() {
       document.body!.classList
         ..remove('overflow-auto')
         ..add('overflow-hidden');
-      images = thumbnail.dataset['thumbnail']!.split(',');
-      final raw = jsonDecode(thumbnail.dataset['thumbnail-descriptions-json']!);
+      images = thumbnail.getAttribute('data-thumbnail')!.split(',');
+      final raw = jsonDecode(
+        thumbnail.getAttribute('data-thumbnail-descriptions-json')!,
+      );
       descriptions = (raw as List).cast<String>();
       showImage(screenshotIndex);
     }
