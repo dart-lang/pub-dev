@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: Started writing search snapshots in `.tar.gz` files.
 
 ## `20260327t133800-all`
  * Image proxy is now disabled for all users.
