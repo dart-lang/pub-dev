@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
+import 'package:web/web.dart';
+import 'package:web_app/src/web_util.dart';
 
 /// These selectors provide the elements that are focusable through tab or
 /// keyboard navigation.
@@ -35,7 +34,7 @@ void Function() disableAllFocusability({
     _focusableSelectors.join(', '),
   );
   final restoreFocusabilityFns = <void Function()>[];
-  for (final e in focusableElements) {
+  for (final e in focusableElements.toElementList()) {
     if (allowedComponents.any((content) => _isInsideContent(e, content))) {
       continue;
     }
@@ -83,7 +82,7 @@ bool _isInsideContent(Element e, Element content) {
     if (p == content) {
       return true;
     }
-    p = p.parent;
+    p = p.parentElement;
   }
   return false;
 }
