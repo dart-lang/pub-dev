@@ -19,12 +19,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Cache PUB_CACHE
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
+      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
       with:
         path: ~/.pub-cache
         key: ${{runner.os}}-pub-cache
     - name: Setup Dart SDK
-      uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+      uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
       with:
         sdk: ${{env.DART_SDK_VERSION}}
     - name: Checkout repository
@@ -61,12 +61,12 @@ jobs:
           - 5432:5432
     steps:
     - name: Cache PUB_CACHE
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
+      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
       with:
         path: ~/.pub-cache
         key: ${{runner.os}}-pub-cache
     - name: Setup Dart SDK
-      uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+      uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
       with:
         sdk: ${{env.DART_SDK_VERSION}}
     - name: Checkout repository
@@ -118,12 +118,12 @@ jobs:
     - name: Enable unprivileged user namespaces
       run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
     - name: Cache PUB_CACHE
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
+      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
       with:
         path: ~/.pub-cache
         key: ${{runner.os}}-pub-cache
     - name: Setup Dart SDK
-      uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+      uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
       with:
         sdk: ${{env.DART_SDK_VERSION}}
     - name: Checkout repository
