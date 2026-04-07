@@ -498,10 +498,6 @@ class SearchBackend {
     });
     return bytes!;
   }
-
-  Future<void> close() async {
-    _snapshotStorage.close();
-  }
 }
 
 /// Returns a new search form that may override predicates to their canonical forms.
