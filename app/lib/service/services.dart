@@ -305,7 +305,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
             ),
           ),
         );
-        registerScopeExitCallback(searchBackend.close);
         registerSearchClient(SearchClient());
         registerScopeExitCallback(searchClient.close);
         registerSearchAdapter(SearchAdapter());
