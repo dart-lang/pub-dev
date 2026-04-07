@@ -180,3 +180,27 @@
     }
   }
 }
+
+.-pub-icon-button {
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  .-pub-icon-button-icon--on {
+    display: none;
+  }
+
+  .-pub-icon-button-icon--off {
+    display: block;
+  }
+
+  &.-pub-icon-button--on {
+    .-pub-icon-button-icon--on {
+      display: block;
+    }
+
+    .-pub-icon-button-icon--off {
+      display: none;
+    }
+  }
+}

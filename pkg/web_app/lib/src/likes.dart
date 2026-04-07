@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:_pub_shared/format/number_format.dart';
-import 'package:mdc_web/mdc_web.dart' show MDCIconButtonToggle;
 
 import '_dom_helper.dart';
 import 'account.dart';
@@ -87,10 +86,8 @@ void setupLikes() {
           labeledScoreLikeString;
     }
 
-    final iconButtonToggle = MDCIconButtonToggle(likeButton);
-    iconButtonToggle.listen(MDCIconButtonToggle.changeEvent, (Event e) async {
+    (likeButton as ButtonElement).addEventListener('click', (Event e) async {
       if (isNotAuthenticated) {
-        iconButtonToggle.on = false;
         final content = ParagraphElement()
           ..text =
               'You need to be signed-in to like packages. '
@@ -101,9 +98,10 @@ void setupLikes() {
         }
         return;
       }
+      likeButton.classes.toggle('-pub-icon-button--on');
       likeButton.blur();
       await api_client.loadLibrary();
-      if (iconButtonToggle.on ?? false) {
+      if (likeButton.classes.contains('-pub-icon-button--on')) {
         // The button has shifted to on.
         likesDelta++;
         updateLabels();

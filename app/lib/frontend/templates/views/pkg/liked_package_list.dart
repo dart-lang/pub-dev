@@ -5,7 +5,6 @@
 import 'package:_pub_shared/format/number_format.dart';
 
 import '../../../dom/dom.dart' as d;
-import '../../../dom/material.dart' as material;
 import '../../../static_files.dart' show staticUrls;
 
 d.Node renderLikeButtonAndLabel({
@@ -33,28 +32,39 @@ d.Node renderLikeButton(
   required int likeCount,
   required bool isLiked,
 }) {
-  return material.iconButton(
-    classes: ['like-button-and-label--button'],
-    isOn: isLiked,
-    onIcon: d.Image(
-      src: staticUrls.getAssetUrl('/static/img/like-active.svg'),
-      alt: 'liked status: active',
-      width: 18,
-      height: 18,
-    ),
-    offIcon: d.Image(
-      src: staticUrls.getAssetUrl('/static/img/like-inactive.svg'),
-      alt: 'liked status: inactive',
-      width: 18,
-      height: 18,
-    ),
-    title: isLiked ? 'Unlike this package' : 'Like this package',
+  return d.button(
+    classes: [
+      'like-button-and-label--button',
+      '-pub-icon-button',
+      if (isLiked) '-pub-icon-button--on',
+    ],
     attributes: {
       'data-ga-click-event': 'toggle-like',
       'aria-pressed': isLiked ? 'true' : 'false',
       'data-package': package,
       'data-value': likeCount.toString(),
+      'title': isLiked ? 'Unlike this package' : 'Like this package',
     },
+    children: [
+      d.img(
+        classes: ['-pub-icon-button-icon--on'],
+        image: d.Image(
+          src: staticUrls.getAssetUrl('/static/img/like-active.svg'),
+          alt: 'liked status: active',
+          width: 18,
+          height: 18,
+        ),
+      ),
+      d.img(
+        classes: ['-pub-icon-button-icon--off'],
+        image: d.Image(
+          src: staticUrls.getAssetUrl('/static/img/like-inactive.svg'),
+          alt: 'liked status: inactive',
+          width: 18,
+          height: 18,
+        ),
+      ),
+    ],
   );
 }
 
