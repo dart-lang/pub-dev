@@ -5,7 +5,7 @@
 import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/frontend/dom/dom.dart' as d;
-import 'package:pub_dev/frontend/request_context.dart';
+
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/service/image_proxy/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -358,8 +358,7 @@ String _replaceImageMarkers(String html, String? imageProxyNonce) {
   return html.replaceAllMapped(imageMarkerRegExp, (match) {
     final originalUrl = Uri.decodeComponent(match.group(1)!);
     var replacementUrl = originalUrl;
-    if (requestContext.experimentalFlags.isImageProxyEnabled &&
-        activeConfiguration.imageProxyServiceBaseUrl != null) {
+    if (activeConfiguration.imageProxyServiceBaseUrl != null) {
       final uri = Uri.tryParse(originalUrl);
       if (uri != null) {
         replacementUrl = imageProxyBackend.imageProxyUrl(uri) ?? originalUrl;

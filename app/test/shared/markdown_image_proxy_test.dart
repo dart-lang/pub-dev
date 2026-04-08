@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/service_scope.dart';
-import 'package:pub_dev/frontend/handlers/experimental.dart';
 import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/service/image_proxy/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -19,9 +18,7 @@ void main() {
 
     await fork(() async {
       registerActiveConfiguration(config);
-      registerRequestContext(
-        RequestContext(experimentalFlags: ExperimentalFlags({'image-proxy'})),
-      );
+      registerRequestContext(RequestContext());
       registerImageProxyBackend(_FakeImageProxyBackend());
 
       final html = markdownToHtml('![text](https://example.com/image.png)');
@@ -42,9 +39,7 @@ void main() {
 
     await fork(() async {
       registerActiveConfiguration(config);
-      registerRequestContext(
-        RequestContext(experimentalFlags: ExperimentalFlags({'image-proxy'})),
-      );
+      registerRequestContext(RequestContext());
       registerImageProxyBackend(_FakeImageProxyBackend());
 
       for (final host in [
@@ -62,24 +57,6 @@ void main() {
     });
   });
 
-  test('images are NOT proxied when experiment is disabled', () async {
-    final config = Configuration.test(
-      primarySiteUri: Uri.parse('https://pub.dev/'),
-      imageProxyServiceBaseUrl: 'https://proxy.pub.dev',
-    );
-
-    await fork(() async {
-      registerActiveConfiguration(config);
-      registerRequestContext(
-        RequestContext(experimentalFlags: ExperimentalFlags.empty),
-      );
-      registerImageProxyBackend(_FakeImageProxyBackend());
-
-      final html = markdownToHtml('![text](https://example.com/image.png)');
-      expect(html, contains('src="https://example.com/image.png"'));
-    });
-  });
-
   test('image tag is removed if proxying fails', () async {
     final config = Configuration.test(
       primarySiteUri: Uri.parse('https://pub.dev/'),
@@ -88,9 +65,7 @@ void main() {
 
     await fork(() async {
       registerActiveConfiguration(config);
-      registerRequestContext(
-        RequestContext(experimentalFlags: ExperimentalFlags({'image-proxy'})),
-      );
+      registerRequestContext(RequestContext());
       registerImageProxyBackend(_NullImageProxyBackend());
 
       final html = markdownToHtml('![text](https://example.com/image.png)');
@@ -107,9 +82,7 @@ void main() {
 
     await fork(() async {
       registerActiveConfiguration(config);
-      registerRequestContext(
-        RequestContext(experimentalFlags: ExperimentalFlags({'image-proxy'})),
-      );
+      registerRequestContext(RequestContext());
       registerImageProxyBackend(_FakeImageProxyBackend());
 
       final html = markdownToHtml('![text](ftp://example.com/image.png)');
