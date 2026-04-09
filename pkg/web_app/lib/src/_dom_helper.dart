@@ -9,7 +9,7 @@ import 'dart:html';
 
 import 'package:mdc_web/mdc_web.dart' show MDCDialog;
 
-import '_focusability.dart';
+import '_dart_html_focusability.dart';
 import 'deferred/markdown.dart' deferred as md;
 
 /// Displays a message via the modal window.

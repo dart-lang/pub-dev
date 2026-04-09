@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
+import 'dart:js_interop';
+
+import 'package:web/web.dart';
+import 'package:web_app/src/web_util.dart';
 
 import '_focusability.dart';
 
@@ -14,46 +15,47 @@ void setupScreenshotCarousel() {
 }
 
 void _setEventForScreenshot() {
-  final carousel = document.getElementById('-screenshot-carousel');
+  final carousel =
+      document.getElementById('-screenshot-carousel') as HTMLElement?;
   if (carousel == null) {
     return;
   }
   final thumbnails = document.querySelectorAll('div[data-thumbnail]');
   final imageContainer = document.getElementById('-image-container')!;
-  final prev = document.getElementById('-carousel-prev')!;
-  final next = document.getElementById('-carousel-next')!;
+  final prev = document.getElementById('-carousel-prev') as HTMLElement;
+  final next = document.getElementById('-carousel-next') as HTMLElement;
   final description =
-      document.getElementById('-screenshot-description') as ParagraphElement;
+      document.getElementById('-screenshot-description') as HTMLElement;
   final existingImageElement =
-      document.getElementById('-carousel-image') as ImageElement?;
-  final ImageElement imageElement;
+      document.getElementById('-carousel-image') as HTMLElement?;
+  final HTMLElement imageElement;
   if (existingImageElement != null) {
     imageElement = existingImageElement;
   } else {
-    imageElement = ImageElement();
+    imageElement = document.createElement('img') as HTMLElement;
     imageElement.id = '-carousel-image';
     imageContainer.append(imageElement);
     imageElement.className = 'carousel-image';
   }
 
-  Element? focusedTriggerSourceElement;
+  HTMLElement? focusedTriggerSourceElement;
   void Function()? restoreFocusabilityFn;
   var images = <String>[];
   var descriptions = <String>[];
 
-  void hideElement(Element element) {
+  void hideElement(HTMLElement element) {
     element.style.display = 'none';
   }
 
-  void showElement(Element element) {
+  void showElement(HTMLElement element) {
     element.style.display = 'flex';
   }
 
   void showImage(int index) {
     hideElement(description);
     hideElement(imageElement);
-    imageElement.src = images[index];
-    description.text = descriptions[index];
+    imageElement.setAttribute('src', images[index]);
+    description.innerText = descriptions[index];
 
     if (index == images.length - 1) {
       hideElement(next);
@@ -75,23 +77,25 @@ void _setEventForScreenshot() {
   }
 
   var screenshotIndex = 0;
-  for (final thumbnail in thumbnails) {
+  for (final thumbnail in thumbnails.toElementList()) {
     void setup() {
       restoreFocusabilityFn = disableAllFocusability(
         allowedComponents: [prev, next],
       );
-      focusedTriggerSourceElement = thumbnail;
+      focusedTriggerSourceElement = thumbnail as HTMLElement;
       showElement(carousel);
-      document.body!.classes
+      document.body!.classList
         ..remove('overflow-auto')
         ..add('overflow-hidden');
-      images = thumbnail.dataset['thumbnail']!.split(',');
-      final raw = jsonDecode(thumbnail.dataset['thumbnail-descriptions-json']!);
+      images = thumbnail.getAttribute('data-thumbnail')!.split(',');
+      final raw = jsonDecode(
+        thumbnail.getAttribute('data-thumbnail-descriptions-json')!,
+      );
       descriptions = (raw as List).cast<String>();
       showImage(screenshotIndex);
     }
 
-    thumbnail.parent!.onClick.listen((event) {
+    thumbnail.parentElement!.onClick.listen((event) {
       event.stopPropagation();
       setup();
     });
@@ -108,7 +112,7 @@ void _setEventForScreenshot() {
     hideElement(next);
     hideElement(prev);
     hideElement(description);
-    document.body!.classes
+    document.body!.classList
       ..remove('overflow-hidden')
       ..add('overflow-auto');
     screenshotIndex = 0;
@@ -158,26 +162,29 @@ void _setEventForScreenshot() {
     closeCarousel();
   });
 
-  document.onKeyDown.listen((event) {
-    if (carousel.style.display == 'none') {
-      return;
-    }
+  document.addEventListener(
+    'keydown',
+    (KeyboardEvent event) {
+      if (carousel.style.display == 'none') {
+        return;
+      }
 
-    if (event.key == 'Escape') {
-      event.stopPropagation();
-      closeCarousel();
-    }
-    if (event.key == 'ArrowLeft') {
-      if (screenshotIndex > 0) {
+      if (event.key == 'Escape') {
         event.stopPropagation();
-        gotoPrev();
+        closeCarousel();
       }
-    }
-    if (event.key == 'ArrowRight') {
-      if (screenshotIndex < images.length - 1) {
-        event.stopPropagation();
-        gotoNext();
+      if (event.key == 'ArrowLeft') {
+        if (screenshotIndex > 0) {
+          event.stopPropagation();
+          gotoPrev();
+        }
       }
-    }
-  });
+      if (event.key == 'ArrowRight') {
+        if (screenshotIndex < images.length - 1) {
+          event.stopPropagation();
+          gotoNext();
+        }
+      }
+    }.toJS,
+  );
 }
