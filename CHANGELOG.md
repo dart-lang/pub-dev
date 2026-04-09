@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20260409t113000-all`
  * Image proxy is now enabled for all users (again).
  * Bump runtimeVersion to `2026.04.07`.
  * Upgraded stable Dart analysis SDK to `3.11.4`
