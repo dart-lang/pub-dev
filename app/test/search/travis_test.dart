@@ -8,6 +8,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:pub_dev/search/mem_index.dart';
 import 'package:pub_dev/search/search_service.dart';
 import 'package:pub_dev/search/text_utils.dart';
+import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
 
 import '../shared/utils.dart';
@@ -26,6 +27,7 @@ void main() {
           'w_transport',
           'sass_transformer',
         ];
+        registerActiveConfiguration(Configuration.test());
         index = InMemoryPackageIndex(
           documents: [
             PackageDocument(
