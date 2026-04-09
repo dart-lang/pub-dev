@@ -203,13 +203,11 @@ class LatencyAwareSearchIndex implements SearchIndex {
     }
     if (latency < const Duration(seconds: 4)) {
       _logger.info('[text-match-description]');
-      // TODO: use `TextMatchExtent.description` after we are confident about this change.
-      return TextMatchExtent.readme;
+      return TextMatchExtent.description;
     }
     if (latency < const Duration(seconds: 10)) {
       _logger.info('[text-match-name]');
-      // TODO: use `TextMatchExtent.name` after we are confident about this change.
-      return TextMatchExtent.readme;
+      return TextMatchExtent.name;
     }
     // TODO: use `TextMatchExtent.none` after we are confident about this change.
     _logger.info('[text-match-none]');

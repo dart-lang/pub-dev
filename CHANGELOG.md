@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `3.11.4`
  * Upgraded stable Flutter analysis SDK to `3.41.6`.
  * Note: Started writing search snapshots in `.tar.gz` files.
+ * Note: `search_index` started to apply `description` and `name` restrictions under high load.
 
 ## `20260327t133800-all`
  * Image proxy is now disabled for all users.
