@@ -13,8 +13,12 @@ import '_dart_html_focusability.dart';
 import 'deferred/markdown.dart' deferred as md;
 
 /// Displays a message via the modal window.
-Future<void> modalMessage(String title, Element content) async {
-  await modalWindow(titleText: title, content: content, isQuestion: false);
+Future<void> modalMessage(String title, String message) async {
+  await modalWindow(
+    titleText: title,
+    content: await markdown(message),
+    isQuestion: false,
+  );
 }
 
 /// Display [content] to user (assumed it has a question format), and return
@@ -151,9 +155,6 @@ Element _buildDialog({
       ],
     DivElement()..classes.add('mdc-dialog__scrim'),
   ];
-
-/// Creates an [Element] with unformatted [text] content.
-Element text(String text) => DivElement()..text = text;
 
 /// Creates an [Element] with Markdown-formatted content.
 Future<Element> markdown(String text) async {

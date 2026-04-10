@@ -67,7 +67,7 @@ void _initGenericForm() {
             final message =
                 result['message']?.toString() ??
                 'Success. The page will reload.';
-            await modalMessage('Success', text(message));
+            await modalMessage('Success', message);
 
             window.location.reload();
           },
@@ -189,9 +189,8 @@ class _PkgAdminWidget {
     }
     updateButton.onClick.listen((event) async {
       await api_client.rpc<void>(
-        confirmQuestion: await markdown(
-          'Are you sure you want to update the publishing config?',
-        ),
+        confirmQuestion:
+            'Are you sure you want to update the publishing config?',
         fn: () async {
           await api_client.client.setAutomatedPublishing(
             pageData.pkgData!.package,
@@ -218,7 +217,7 @@ class _PkgAdminWidget {
             ),
           );
         },
-        successMessage: text('Config updated. The page will reload.'),
+        successMessage: 'Config updated. The page will reload.',
         onSuccess: (_) => window.location.reload(),
       );
     });
@@ -237,10 +236,7 @@ class _PkgAdminWidget {
   Future<bool> _doInviteUploader() async {
     final email = _inviteUploaderInput!.value!.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
-      await modalMessage(
-        'Input validation',
-        text('Please specify a valid e-mail.'),
-      );
+      await modalMessage('Input validation', 'Please specify a valid e-mail.');
       return false;
     }
 
@@ -251,7 +247,7 @@ class _PkgAdminWidget {
           InviteUploaderRequest(email: email),
         );
       },
-      successMessage: await markdown('`$email` was invited.'),
+      successMessage: '`$email` was invited.',
       onSuccess: (_) {
         _inviteUploaderInput!.value = '';
       },
@@ -261,18 +257,16 @@ class _PkgAdminWidget {
 
   Future<void> _removeUploader(String email) async {
     await api_client.rpc<void>(
-      confirmQuestion: await markdown(
-        'Are you sure you want to remove uploader `$email` from this package?',
-      ),
+      confirmQuestion:
+          'Are you sure you want to remove uploader `$email` from this package?',
       fn: () async {
         await api_client.client.removeUploaderFromUI(
           pageData.pkgData!.package,
           RemoveUploaderRequest(email: email),
         );
       },
-      successMessage: await markdown(
-        'Uploader `$email` removed from this package. The page will reload.',
-      ),
+      successMessage:
+          'Uploader `$email` removed from this package. The page will reload.',
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -280,9 +274,8 @@ class _PkgAdminWidget {
   Future<void> _toggleDiscontinued() async {
     final oldValue = _discontinuedCheckbox!.defaultChecked ?? false;
     final newValue = await api_client.rpc<bool>(
-      confirmQuestion: text(
-        'Are you sure you want change the "discontinued" status of the package?',
-      ),
+      confirmQuestion:
+          'Are you sure you want change the "discontinued" status of the package?',
       fn: () async {
         final rs = await api_client.client.setPackageOptions(
           pageData.pkgData!.package,
@@ -290,9 +283,7 @@ class _PkgAdminWidget {
         );
         return rs.isDiscontinued;
       },
-      successMessage: text(
-        '"discontinued" status changed. The page will reload.',
-      ),
+      successMessage: '"discontinued" status changed. The page will reload.',
       onSuccess: (_) => window.location.reload(),
       onError: (err) => null,
     );
@@ -303,9 +294,8 @@ class _PkgAdminWidget {
 
   Future<void> _updateReplacedBy() async {
     await api_client.rpc<bool?>(
-      confirmQuestion: text(
-        'Are you sure you want change the "suggested replacement" field of the package?',
-      ),
+      confirmQuestion:
+          'Are you sure you want change the "suggested replacement" field of the package?',
       fn: () async {
         final rs = await api_client.client.setPackageOptions(
           pageData.pkgData!.package,
@@ -313,9 +303,8 @@ class _PkgAdminWidget {
         );
         return rs.isDiscontinued;
       },
-      successMessage: text(
-        '"suggested replacement" field changed. The page will reload.',
-      ),
+      successMessage:
+          '"suggested replacement" field changed. The page will reload.',
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -323,9 +312,8 @@ class _PkgAdminWidget {
   Future<void> _toggleUnlisted() async {
     final oldValue = _unlistedCheckbox!.defaultChecked ?? false;
     final newValue = await api_client.rpc(
-      confirmQuestion: text(
-        'Are you sure you want change the "unlisted" status of the package?',
-      ),
+      confirmQuestion:
+          'Are you sure you want change the "unlisted" status of the package?',
       fn: () async {
         final rs = await api_client.client.setPackageOptions(
           pageData.pkgData!.package,
@@ -333,7 +321,7 @@ class _PkgAdminWidget {
         );
         return rs.isUnlisted;
       },
-      successMessage: text('"unlisted" status changed.'),
+      successMessage: '"unlisted" status changed.',
       onError: (err) => null,
     );
     if (newValue == null) {
@@ -353,9 +341,8 @@ class _PkgAdminWidget {
     }
 
     await api_client.rpc<void>(
-      confirmQuestion: await markdown(
-        'Are you sure you want to retract the package version `$version`?',
-      ),
+      confirmQuestion:
+          'Are you sure you want to retract the package version `$version`?',
       fn: () async {
         await api_client.client.setVersionOptions(
           pageData.pkgData!.package,
@@ -363,7 +350,7 @@ class _PkgAdminWidget {
           VersionOptions(isRetracted: true),
         );
       },
-      successMessage: text('Retraction completed. The page will reload.'),
+      successMessage: 'Retraction completed. The page will reload.',
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -378,9 +365,8 @@ class _PkgAdminWidget {
     }
 
     await api_client.rpc<void>(
-      confirmQuestion: await markdown(
-        'Are you sure you want to restore package version `$version`?',
-      ),
+      confirmQuestion:
+          'Are you sure you want to restore package version `$version`?',
       fn: () async {
         print('before setVersionOption');
         await api_client.client.setVersionOptions(
@@ -389,30 +375,26 @@ class _PkgAdminWidget {
           VersionOptions(isRetracted: false),
         );
       },
-      successMessage: text('Restoring complete. The page will reload.'),
+      successMessage: 'Restoring complete. The page will reload.',
       onSuccess: (_) => window.location.reload(),
     );
   }
 
   Future<void> _validateVersionSelection() async {
-    await modalMessage('Input validation', text('Please select a version.'));
+    await modalMessage('Input validation', 'Please select a version.');
   }
 
   Future<void> _setPublisher() async {
     final publisherId =
         materialDropdownSelected(_setPublisherInput)?.trim() ?? '';
     if (publisherId.isEmpty) {
-      await modalMessage(
-        'Input validation',
-        text('Please specify a publisher.'),
-      );
+      await modalMessage('Input validation', 'Please specify a publisher.');
       return;
     }
 
     await api_client.rpc<void>(
-      confirmQuestion: await markdown(
-        'Are you sure you want to transfer the package to publisher `$publisherId`?',
-      ),
+      confirmQuestion:
+          'Are you sure you want to transfer the package to publisher `$publisherId`?',
       fn: () async {
         final payload = PackagePublisherInfo(publisherId: publisherId);
         await api_client.client.setPackagePublisher(
@@ -420,9 +402,8 @@ class _PkgAdminWidget {
           payload,
         );
       },
-      successMessage: text(
-        'Transfer completed. Caches and search index will update in the next 15-20 minutes. The page will reload.',
-      ),
+      successMessage:
+          'Transfer completed. Caches and search index will update in the next 15-20 minutes. The page will reload.',
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -449,22 +430,20 @@ class _CreatePublisherWidget {
     if (publisherId.isEmpty || !publisherIdPattern.hasMatch(publisherId)) {
       await modalMessage(
         'Input validation',
-        text('Please use a domain name as publisher identifier.'),
+        'Please use a domain name as publisher identifier.',
       );
       return;
     }
 
     await api_client.rpc<void>(
-      confirmQuestion: await markdown(
-        'Are you sure you want to create publisher for `$publisherId`?',
-      ),
+      confirmQuestion:
+          'Are you sure you want to create publisher for `$publisherId`?',
       fn: () async {
         await api_client.client.createPublisher(publisherId);
       },
-      successMessage: text(
-        'Publisher created. You can now transfer packages to this publisher. '
-        'The page will reload.',
-      ),
+      successMessage:
+          'Publisher created. You can now transfer packages to this publisher. '
+          'The page will reload.',
       onSuccess: (_) {
         window.location.pathname = '/publishers/$publisherId/admin';
       },
@@ -519,7 +498,7 @@ class _PublisherAdminWidget {
           'addresses we will send a confirmation request.';
     }
     await api_client.rpc<void>(
-      confirmQuestion: confirmQuestion == null ? null : text(confirmQuestion),
+      confirmQuestion: confirmQuestion,
       fn: () async {
         final payload = UpdatePublisherRequest(
           description: _descriptionTextArea!.value,
@@ -531,7 +510,7 @@ class _PublisherAdminWidget {
           payload,
         );
       },
-      successMessage: text('Publisher was updated. The page will reload.'),
+      successMessage: 'Publisher was updated. The page will reload.',
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -549,10 +528,7 @@ class _PublisherAdminWidget {
   Future<bool> _inviteMember() async {
     final email = _inviteMemberInput!.value!.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
-      await modalMessage(
-        'Input validation',
-        text('Please specify a valid e-mail.'),
-      );
+      await modalMessage('Input validation', 'Please specify a valid e-mail.');
       return false;
     }
 
@@ -563,7 +539,7 @@ class _PublisherAdminWidget {
           InviteMemberRequest(email: email),
         );
       },
-      successMessage: await markdown('`$email` was invited.'),
+      successMessage: '`$email` was invited.',
       onSuccess: (_) {
         _inviteMemberInput!.value = '';
       },
@@ -573,18 +549,16 @@ class _PublisherAdminWidget {
 
   Future<void> _removeMember(String userId, String email) async {
     await api_client.rpc<void>(
-      confirmQuestion: await markdown(
-        'Are you sure you want to remove `$email` from this publisher?',
-      ),
+      confirmQuestion:
+          'Are you sure you want to remove `$email` from this publisher?',
       fn: () async {
         await api_client.client.removePublisherMember(
           pageData.publisher!.publisherId,
           userId,
         );
       },
-      successMessage: await markdown(
-        '`$email` removed from this publisher. The page will reload.',
-      ),
+      successMessage:
+          '`$email` removed from this publisher. The page will reload.',
       onSuccess: (_) => window.location.reload(),
     );
   }
@@ -613,7 +587,7 @@ class _ConsentWidget {
 
   Future<void> _accept() async {
     await api_client.rpc(
-      confirmQuestion: text('Are you sure you want to accept?'),
+      confirmQuestion: 'Are you sure you want to accept?',
       fn: () async {
         final rs = await api_client.client.resolveConsent(
           pageData.consentId!,
@@ -621,14 +595,14 @@ class _ConsentWidget {
         );
         return rs.granted;
       },
-      successMessage: text('Consent accepted.'),
+      successMessage: 'Consent accepted.',
       onSuccess: _updateButtons,
     );
   }
 
   Future<void> _reject() async {
     await api_client.rpc(
-      confirmQuestion: text('Are you sure you want to reject?'),
+      confirmQuestion: 'Are you sure you want to reject?',
       fn: () async {
         final rs = await api_client.client.resolveConsent(
           pageData.consentId!,
@@ -636,7 +610,7 @@ class _ConsentWidget {
         );
         return rs.granted;
       },
-      successMessage: text('Consent rejected.'),
+      successMessage: 'Consent rejected.',
       onSuccess: _updateButtons,
     );
   }
