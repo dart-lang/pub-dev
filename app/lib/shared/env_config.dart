@@ -17,7 +17,7 @@ final envConfig = _EnvConfig();
 class _EnvConfig {
   /// Service in AppEngine that this process is running in, `null` if running
   /// locally.
-  late final _gaeService = Platform.environment['GAE_SERVICE'];
+  late final gaeService = Platform.environment['GAE_SERVICE'];
 
   /// Version of this service in AppEngine, `null` if running locally.
   ///
@@ -54,15 +54,15 @@ class _EnvConfig {
   late final pubPostgresUrl = Platform.environment['PUB_POSTGRES_URL'];
 
   /// True, if running inside AppEngine.
-  bool get isRunningInAppengine => _gaeService != null && _gaeVersion != null;
+  bool get isRunningInAppengine => gaeService != null && _gaeVersion != null;
 
   /// True, if running locally and not inside AppEngine.
   bool get isRunningLocally => !isRunningInAppengine;
 
   /// Ensure that we're running in the right environment, or is running locally.
   void checkServiceEnvironment(String name) {
-    if (_gaeService != null && _gaeService != name) {
-      throw StateError('Cannot start "$name" in "$_gaeService" environment.');
+    if (gaeService != null && gaeService != name) {
+      throw StateError('Cannot start "$name" in "$gaeService" environment.');
     }
   }
 

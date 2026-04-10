@@ -52,6 +52,7 @@ Future<bool> verifyTextWithRsaSignature({
   required String input,
   required List<int> signature,
   required Asn1RsaPublicKey publicKey,
+  String? signatureVerifierPath,
 }) async {
   return await withTempDirectory((dir) async {
     final inputFile = File(p.join(dir.path, 'input.txt'));
@@ -61,7 +62,7 @@ Future<bool> verifyTextWithRsaSignature({
     final publicKeyFile = File(p.join(dir.path, 'public.pem'));
     await publicKeyFile.writeAsString(publicKey.asPemString);
     final pr = await runConstrained([
-      'openssl',
+      signatureVerifierPath ?? './signature_verifier', // This implements RSA signature verification - we use this instead of openssl!
       'dgst',
       '-sha256',
       '-verify',

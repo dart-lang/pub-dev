@@ -1,10 +1,15 @@
+# Stage 0: Build signature verifier
+FROM golang:1.24 AS go-build
+WORKDIR /project
+COPY pkg/signature_verifier /project/pkg/signature_verifier
+RUN cd /project/pkg/signature_verifier && ./build.sh
+
 # Keep version in-sync with .github/workflows/all-test.yml and app/lib/shared/versions.dart
-FROM mirror.gcr.io/library/dart:3.11.0
+FROM mirror.gcr.io/library/dart:3.11.0 AS build
 
 # After install we remove the apt-index again to keep the docker image diff small.
 RUN apt-get update && \
   apt-get upgrade -y && \
-  apt-get install -y git unzip && \
   rm -rf /var/lib/apt/lists/*
 
 # Let the pub server know that this is not a "typical" pub client but rather a bot.
@@ -20,7 +25,6 @@ COPY tool /project/tool
 COPY pubspec.lock /project/pubspec.lock
 COPY pubspec.yaml /project/pubspec.yaml
 
-
 WORKDIR /project/pkg/web_app
 RUN dart /project/tool/pub_get_offline.dart /project/pkg/web_app
 RUN ./build.sh
@@ -32,9 +36,22 @@ RUN ./build.sh
 WORKDIR /project/app
 RUN dart /project/tool/pub_get_offline.dart /project/app
 
-RUN /project/tool/setup-webp.sh /usr/local/bin
 RUN /project/tool/download-sdk-index-jsons.sh
 
-# Clear out any arguments the base images might have set
-CMD []
-ENTRYPOINT /usr/lib/dart/bin/dart bin/server.dart "$GAE_SERVICE"
+# Generate JIT snapshot. We run it with --help to make it exit.
+RUN dart compile jit-snapshot -o server.jit bin/server.dart --help
+
+# Build minimal serving image.
+FROM scratch
+COPY --from=build /runtime/ /
+COPY --from=build /usr/lib/dart /usr/lib/dart
+COPY --from=build /project/app/server.jit /project/app/
+COPY --from=build /project/static /project/static
+COPY --from=build /project/app/lib/frontend/templates /project/app/lib/frontend/templates
+COPY --from=build /project/app/.dart_tool/pub-search-data /project/app/.dart_tool/pub-search-data
+COPY --from=build /project/.dart_tool/package_config.json /project/.dart_tool/package_config.json
+COPY --from=go-build /project/pkg/signature_verifier/signature_verifier /project/app/signature_verifier
+
+WORKDIR /project/app
+EXPOSE 8080
+ENTRYPOINT ["/usr/lib/dart/bin/dart", "/project/app/server.jit"]

@@ -22,3 +22,5 @@ build/
 key.json
 
 node_modules/
+
+pkg/signature_verifier/signature_verifier

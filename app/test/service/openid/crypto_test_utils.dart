@@ -5,12 +5,13 @@
 // TODO: remove these utils when the features are implemented and these may not be used anymore.
 
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pem/pem.dart';
-import 'package:pub_dev/service/openid/openssl_commands.dart';
+import 'package:pub_dev/service/openid/crypto_helpers.dart';
 import 'package:pub_dev/shared/utils.dart';
 
 /// Randomly generated private and public RSA keypair.
@@ -100,4 +101,27 @@ Future<Uint8List> signTextWithRsa({
     }
     return await outputFile.readAsBytes();
   });
+}
+
+/// Builds the signature_verifier helper binary and returns the [File] object
+/// of the built binary.
+Future<File> buildSignatureVerifierExecutable() async {
+  final buildFile = Isolate.packageConfigSync!
+      .resolve('../pkg/signature_verifier/build.sh')
+      .toFilePath();
+  final buildResult = await Process.run('bash', [buildFile]);
+  if (buildResult.exitCode != 0) {
+    throw Exception(
+      'Building signature_verifier failed with exitCode ${buildResult.exitCode}\n'
+      'STDOUT: ${buildResult.stdout}\n'
+      'STDERR: ${buildResult.stderr}',
+    );
+  }
+  final binaryFile = File(Isolate.packageConfigSync!
+      .resolve('../pkg/signature_verifier/signature_verifier')
+      .toFilePath());
+  if (!binaryFile.existsSync()) {
+    throw Exception('signature_verifier binary not found after build');
+  }
+  return binaryFile;
 }
