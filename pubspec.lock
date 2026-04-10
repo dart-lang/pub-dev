@@ -933,10 +933,10 @@ packages:
     dependency: transitive
     description:
       name: typed_sql
-      sha256: "6f1f47d165f4e2aa1415f06431d05b6e9cfca73914fb01b5730b6b1eb31aa82a"
+      sha256: "2d4299fe92d8fe15a0df0f188f6252b39e05a51d13a10d759ce696de760d0278"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.7"
+    version: "0.1.9"
   ulid:
     dependency: transitive
     description:
@@ -1026,4 +1026,4 @@ packages:
     source: hosted
     version: "2.2.4"
 sdks:
-  dart: ">=3.10.0 <4.0.0"
+  dart: ">=3.11.0 <4.0.0"

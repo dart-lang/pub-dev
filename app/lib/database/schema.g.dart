@@ -29,7 +29,7 @@ Map<String, dynamic> _$TaskStateToJson(TaskState instance) => <String, dynamic>{
 
 /// Extension methods for a [Database] operating on [PrimarySchema].
 extension PrimarySchemaSchema on Database<PrimarySchema> {
-  static const _$tables = [_$Task._$table, _$TaskDependency._$table];
+  static final _$tables = [_$Task._$table, _$TaskDependency._$table];
 
   Table<Task> get tasks => $ForGeneratedCode.declareTable(this, _$Task._$table);
 
@@ -94,7 +94,7 @@ final class _$Task extends Task {
   @override
   final DateTime finished;
 
-  static const _$table = (
+  static final _$table = $ForGeneratedCode.tableDefinition(
     tableName: 'tasks',
     columns: <String>[
       'runtime_version',
@@ -104,70 +104,53 @@ final class _$Task extends Task {
       'last_dependency_changed',
       'finished',
     ],
-    columnInfo:
-        <
-          ({
-            ColumnType type,
-            bool isNotNull,
-            Object? defaultValue,
-            bool autoIncrement,
-            List<SqlOverride> overrides,
-          })
-        >[
-          (
-            type: $ForGeneratedCode.text,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-          (
-            type: $ForGeneratedCode.text,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-          (
-            type: $ForGeneratedCode.jsonValue,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-          (
-            type: $ForGeneratedCode.dateTime,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-          (
-            type: $ForGeneratedCode.dateTime,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-          (
-            type: $ForGeneratedCode.dateTime,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-        ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
     primaryKey: <String>['runtime_version', 'package'],
     unique: <List<String>>[],
-    foreignKeys:
-        <
-          ({
-            String name,
-            List<String> columns,
-            String referencedTable,
-            List<String> referencedColumns,
-          })
-        >[],
+    foreignKeys: [],
     readRow: _$Task._$fromDatabase,
   );
 
@@ -551,59 +534,44 @@ final class _$TaskDependency extends TaskDependency {
   @override
   final String dependency;
 
-  static const _$table = (
+  static final _$table = $ForGeneratedCode.tableDefinition(
     tableName: 'task_dependencies',
     columns: <String>['runtime_version', 'package', 'dependency'],
-    columnInfo:
-        <
-          ({
-            ColumnType type,
-            bool isNotNull,
-            Object? defaultValue,
-            bool autoIncrement,
-            List<SqlOverride> overrides,
-          })
-        >[
-          (
-            type: $ForGeneratedCode.text,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-          (
-            type: $ForGeneratedCode.text,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-          (
-            type: $ForGeneratedCode.text,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-        ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
     primaryKey: <String>['runtime_version', 'package', 'dependency'],
     unique: <List<String>>[],
-    foreignKeys:
-        <
-          ({
-            String name,
-            List<String> columns,
-            String referencedTable,
-            List<String> referencedColumns,
-          })
-        >[
-          (
-            name: 'task',
-            columns: ['runtime_version', 'package'],
-            referencedTable: 'tasks',
-            referencedColumns: ['runtime_version', 'package'],
-          ),
-        ],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'task',
+        columns: ['runtime_version', 'package'],
+        referencedTable: 'tasks',
+        referencedColumns: ['runtime_version', 'package'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+    ],
     readRow: _$TaskDependency._$fromDatabase,
   );
 
