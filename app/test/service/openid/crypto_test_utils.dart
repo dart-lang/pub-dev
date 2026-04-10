@@ -117,9 +117,11 @@ Future<File> buildSignatureVerifierExecutable() async {
       'STDERR: ${buildResult.stderr}',
     );
   }
-  final binaryFile = File(Isolate.packageConfigSync!
-      .resolve('../pkg/signature_verifier/signature_verifier')
-      .toFilePath());
+  final binaryFile = File(
+    Isolate.packageConfigSync!
+        .resolve('../pkg/signature_verifier/signature_verifier')
+        .toFilePath(),
+  );
   if (!binaryFile.existsSync()) {
     throw Exception('signature_verifier binary not found after build');
   }

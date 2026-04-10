@@ -62,7 +62,8 @@ Future<bool> verifyTextWithRsaSignature({
     final publicKeyFile = File(p.join(dir.path, 'public.pem'));
     await publicKeyFile.writeAsString(publicKey.asPemString);
     final pr = await runConstrained([
-      signatureVerifierPath ?? './signature_verifier', // This implements RSA signature verification - we use this instead of openssl!
+      signatureVerifierPath ??
+          './signature_verifier', // This implements RSA signature verification - we use this instead of openssl!
       'dgst',
       '-sha256',
       '-verify',
