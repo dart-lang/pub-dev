@@ -16,14 +16,14 @@ import '../_dom_helper.dart';
 Future<R?> rpc<R>({
   /// The optional confirmation question to ask before initiating the RPC.
   /// When confirmation is missing, the method returns `null`.
-  Element? confirmQuestion,
+  String? confirmQuestion,
 
   /// The async RPC call. If this throws, the error will be displayed as a modal
   /// popup, and then it will be re-thrown (or `onError` will be called).
   required Future<R?> Function() fn,
 
   /// Message to show when the RPC returns without exceptions.
-  required Element? successMessage,
+  required String? successMessage,
 
   /// Callback that will be called with the value of the RPC call, when it was
   /// successful.
@@ -36,7 +36,8 @@ Future<R?> rpc<R>({
   /// If not specified, the error will be thrown instead.
   FutureOr<R?> Function(Object error)? onError,
 }) async {
-  if (confirmQuestion != null && !await modalConfirm(confirmQuestion)) {
+  if (confirmQuestion != null &&
+      !await modalConfirm(await markdown(confirmQuestion))) {
     return null;
   }
 
@@ -82,13 +83,14 @@ Future<R?> rpc<R>({
         await cancelSpinner();
         final errorObject = asJson['error'] as Map?;
         final message = errorObject?['message'];
-        await modalMessage(
-          'Further consent needed.',
-          ParagraphElement()
+        await modalWindow(
+          titleText: 'Further consent needed.',
+          content: ParagraphElement()
             ..text = [
               if (message != null) message,
               'You will be redirected, please authorize the action.',
             ].join(' '),
+          isQuestion: false,
         );
 
         final windowUri = Uri.parse(window.location.href);
@@ -117,7 +119,11 @@ Future<R?> rpc<R>({
   }
 
   if (error != null) {
-    await modalMessage('Error', await markdown(error.message));
+    await modalWindow(
+      titleText: 'Error',
+      content: await markdown(error.message),
+      isQuestion: false,
+    );
     if (onError != null) {
       return await onError(error.exception);
     } else {
@@ -126,7 +132,11 @@ Future<R?> rpc<R>({
   }
 
   if (successMessage != null) {
-    await modalMessage('Success', successMessage);
+    await modalWindow(
+      titleText: 'Success',
+      content: await markdown(successMessage),
+      isQuestion: false,
+    );
   }
   if (onSuccess != null) {
     await onSuccess(result);
