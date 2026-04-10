@@ -51,36 +51,37 @@ void main() {
     testWithProfile(
       'typed schema access',
       fn: () async {
-        final db = primaryDatabase!.db;
-        await db.tasks
-            .insert(
-              runtime_version: runtimeVersion.asExpr,
-              package: 'foo'.asExpr,
-              state: TaskState(
-                versions: {
-                  '1.0.0': PackageVersionStateInfo(
-                    scheduled: clock.now(),
-                    attempts: 0,
-                  ),
-                },
-                abortedTokens: [],
-              ).asExpr,
-              pending_at: clock.now().asExpr,
-              last_dependency_changed: clock.now().asExpr,
-              finished: clock.now().asExpr,
-            )
-            .execute();
+        await primaryDatabase!.withRetry((db) async {
+          await db.tasks
+              .insert(
+                runtime_version: runtimeVersion.asExpr,
+                package: 'foo'.asExpr,
+                state: TaskState(
+                  versions: {
+                    '1.0.0': PackageVersionStateInfo(
+                      scheduled: clock.now(),
+                      attempts: 0,
+                    ),
+                  },
+                  abortedTokens: [],
+                ).asExpr,
+                pending_at: clock.now().asExpr,
+                last_dependency_changed: clock.now().asExpr,
+                finished: clock.now().asExpr,
+              )
+              .execute();
 
-        final rows = await db.tasks
-            .where((b) => b.package.equalsValue('foo'))
-            .select((b) => (b.package, b.runtime_version, b.state))
-            .fetch();
-        expect(rows, hasLength(1));
-        expect(rows.first.$1, 'foo');
-        expect(rows.first.$2, runtimeVersion);
-        expect(rows.first.$3.toJson(), {
-          'versions': {'1.0.0': isNotNull},
-          'abortedTokens': [],
+          final rows = await db.tasks
+              .where((b) => b.package.equalsValue('foo'))
+              .select((b) => (b.package, b.runtime_version, b.state))
+              .fetch();
+          expect(rows, hasLength(1));
+          expect(rows.first.$1, 'foo');
+          expect(rows.first.$2, runtimeVersion);
+          expect(rows.first.$3.toJson(), {
+            'versions': {'1.0.0': isNotNull},
+            'abortedTokens': [],
+          });
         });
       },
     );
