@@ -41,6 +41,10 @@ RUN /project/tool/download-sdk-index-jsons.sh
 # Generate JIT snapshot. We run it with --help to make it exit.
 RUN dart compile jit-snapshot -o server.jit bin/server.dart --help
 
+# Compile isolate entrypoints to kernel snapshots.
+RUN dart compile kernel -o lib/service/entrypoint/search_index.dill lib/service/entrypoint/search_index.dart
+RUN dart compile kernel -o lib/service/entrypoint/sdk_isolate_index.dill lib/service/entrypoint/sdk_isolate_index.dart
+
 # Build minimal serving image.
 FROM scratch
 COPY --from=build /runtime/ /
@@ -55,6 +59,9 @@ COPY --from=build /project/app/lib/frontend/templates /project/app/lib/frontend/
 COPY --from=build /project/app/.dart_tool/pub-search-data /project/app/.dart_tool/pub-search-data
 COPY --from=build /project/.dart_tool/package_config.json /project/.dart_tool/package_config.json
 COPY --from=go-build /project/pkg/signature_verifier/signature_verifier /project/app/signature_verifier
+# Put the kernel snapshots at the same place as the source files for Isolate.spawnUri to work transparently.
+COPY --from=build /project/app/lib/service/entrypoint/search_index.dill /project/app/lib/service/entrypoint/search_index.dart
+COPY --from=build /project/app/lib/service/entrypoint/sdk_isolate_index.dill /project/app/lib/service/entrypoint/sdk_isolate_index.dart
 
 WORKDIR /project/app
 EXPOSE 8080
