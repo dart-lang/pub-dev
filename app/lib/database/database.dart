@@ -232,6 +232,8 @@ Future<void> _dropCustomDatabase(String url, String dbName) async {
   await conn.close(force: true);
 }
 
+final _retryKey = #dbRetryKey;
+
 extension PrimaryDatabaseExt on PrimaryDatabase {
   /// Runs [fn] in a retry block (without wrapping it in a transaction).
   ///
@@ -239,11 +241,7 @@ extension PrimaryDatabaseExt on PrimaryDatabase {
   Future<K> withRetry<K>(
     Future<K> Function(Database<PrimarySchema> db) fn,
   ) async {
-    return await retry(
-      () => fn(_db),
-      maxAttempts: 3,
-      retryIf: (e) => e is DatabaseConnectionException,
-    );
+    return await _withRetryZone(fn);
   }
 
   /// Runs [fn] in a transaction with retry block.
@@ -256,21 +254,33 @@ extension PrimaryDatabaseExt on PrimaryDatabase {
   Future<K> transactWithRetry<K>(
     Future<K> Function(Database<PrimarySchema> db) fn,
   ) async {
-    return await retry(
-      () async {
-        try {
-          return await _db.transact(() => fn(_db));
-        } on TransactionAbortedException catch (e) {
-          final inner = e.reason;
-          if (inner is Error || inner is ResponseException) {
-            // TODO: we should keep and use the original stacktrace in typed_sql's exception
-            throw inner;
-          }
-          rethrow;
-        }
-      },
-      maxAttempts: 3,
-      retryIf: (e) => e is DatabaseException,
-    );
+    return await _withRetryZone((db) => db.transact(() => fn(db)));
+  }
+
+  Future<K> _withRetryZone<K>(
+    Future<K> Function(Database<PrimarySchema> db) fn,
+  ) async {
+    if (Zone.current[_retryKey] == null) {
+      return await Zone.current.fork(zoneValues: {_retryKey: true}).run(() async {
+        return await retry(
+          () async {
+            try {
+              return await fn(_db);
+            } on TransactionAbortedException catch (e) {
+              final inner = e.reason;
+              if (inner is Error || inner is ResponseException) {
+                // TODO: we should keep and use the original stacktrace in typed_sql's exception
+                throw inner;
+              }
+              rethrow;
+            }
+          },
+          maxAttempts: 3,
+          retryIf: (e) => e is DatabaseException,
+        );
+      });
+    } else {
+      return await fn(_db);
+    }
   }
 }
