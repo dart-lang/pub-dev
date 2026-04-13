@@ -8,7 +8,7 @@ part of 'migration.dart';
 
 /// Extension methods for a [Database] operating on [SchemaMigrationSchema].
 extension SchemaMigrationSchemaSchema on Database<SchemaMigrationSchema> {
-  static const _$tables = [_$SchemaMigration._$table];
+  static final _$tables = [_$SchemaMigration._$table];
 
   Table<SchemaMigration> get schema_migrations =>
       $ForGeneratedCode.declareTable(this, _$SchemaMigration._$table);
@@ -66,7 +66,7 @@ final class _$SchemaMigration extends SchemaMigration {
   @override
   final DateTime executed_at;
 
-  static const _$table = (
+  static final _$table = $ForGeneratedCode.tableDefinition(
     tableName: 'schema_migrations',
     columns: <String>[
       'schema_name',
@@ -74,56 +74,39 @@ final class _$SchemaMigration extends SchemaMigration {
       'script_sha256',
       'executed_at',
     ],
-    columnInfo:
-        <
-          ({
-            ColumnType type,
-            bool isNotNull,
-            Object? defaultValue,
-            bool autoIncrement,
-            List<SqlOverride> overrides,
-          })
-        >[
-          (
-            type: $ForGeneratedCode.text,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-          (
-            type: $ForGeneratedCode.text,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-          (
-            type: $ForGeneratedCode.text,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-          (
-            type: $ForGeneratedCode.dateTime,
-            isNotNull: true,
-            defaultValue: null,
-            autoIncrement: false,
-            overrides: <SqlOverride>[],
-          ),
-        ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
     primaryKey: <String>['schema_name', 'script_name'],
     unique: <List<String>>[],
-    foreignKeys:
-        <
-          ({
-            String name,
-            List<String> columns,
-            String referencedTable,
-            List<String> referencedColumns,
-          })
-        >[],
+    foreignKeys: [],
     readRow: _$SchemaMigration._$fromDatabase,
   );
 

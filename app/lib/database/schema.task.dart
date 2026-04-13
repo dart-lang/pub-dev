@@ -32,6 +32,8 @@ abstract final class Task extends Row {
   fields: ['runtime_version', 'package'],
   name: 'task',
   as: 'dependencies',
+  onDelete: .cascade,
+  onUpdate: .cascade,
 )
 abstract final class TaskDependency extends Row {
   String get runtime_version;

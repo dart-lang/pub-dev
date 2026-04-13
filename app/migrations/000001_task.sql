@@ -15,5 +15,5 @@ CREATE TABLE "task_dependencies" (
   "package" text NOT NULL,
   "dependency" text NOT NULL,
   PRIMARY KEY ("runtime_version", "package", "dependency"),
-  CONSTRAINT "task_dependencies_runtime_version_package_fkey" FOREIGN KEY ("runtime_version", "package") REFERENCES "tasks" ("runtime_version", "package") ON UPDATE NO ACTION ON DELETE NO ACTION
+  CONSTRAINT "task_dependencies_fk_task" FOREIGN KEY ("runtime_version", "package") REFERENCES "tasks" ("runtime_version", "package") ON UPDATE CASCADE ON DELETE CASCADE
 );
