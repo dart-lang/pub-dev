@@ -13,6 +13,7 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
+import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 // ignore: implementation_imports
@@ -450,7 +451,19 @@ class SearchBackend {
 
   Future<List<PackageDocument>?> fetchSnapshotDocuments() async {
     try {
-      final map = await _snapshotStorage.getContentAsJsonMap();
+      Map<String, dynamic>? map;
+      try {
+        map = await _snapshotStorage.getContentAsJsonMapFromTarGz();
+      } on DetailedApiRequestError catch (e) {
+        if (e.status == 404) {
+          // ignore and log
+          _logger.warning('Snapshot archive file not found.');
+        } else {
+          rethrow;
+        }
+      }
+
+      map ??= await _snapshotStorage.getContentAsJsonMap();
       if (map == null) {
         _logger.info('No snapshot to fetch.');
         return null;
