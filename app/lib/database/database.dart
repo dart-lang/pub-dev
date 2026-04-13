@@ -41,7 +41,7 @@ class PrimaryDatabase {
 
   late final _adapter = DatabaseAdapter.postgres(_pg);
   late final _dialect = SqlDialect.postgres();
-  late final db = Database<PrimarySchema>(_adapter, _dialect);
+  late final _db = Database<PrimarySchema>(_adapter, _dialect);
 
   /// Gets the connection string either from the environment variable or from
   /// the secret backend, connects to it and registers the primary database
@@ -232,13 +232,15 @@ Future<void> _dropCustomDatabase(String url, String dbName) async {
   await conn.close(force: true);
 }
 
-extension DatabaseExt on Database {
+extension PrimaryDatabaseExt on PrimaryDatabase {
   /// Runs [fn] in a retry block (without wrapping it in a transaction).
   ///
   /// The call is retried only if [DatabaseConnectionException] is throw.
-  Future<K> withRetry<K>(Future<K> Function() fn) async {
+  Future<K> withRetry<K>(
+    Future<K> Function(Database<PrimarySchema> db) fn,
+  ) async {
     return await retry(
-      fn,
+      () => fn(_db),
       maxAttempts: 3,
       retryIf: (e) => e is DatabaseConnectionException,
     );
@@ -251,11 +253,13 @@ extension DatabaseExt on Database {
   ///
   /// However, if inside the transaction an [Error] is thrown, or if the wrapped exception
   /// is [ResponseException], we don't retry [fn].
-  Future<K> transactWithRetry<K>(Future<K> Function() fn) async {
+  Future<K> transactWithRetry<K>(
+    Future<K> Function(Database<PrimarySchema> db) fn,
+  ) async {
     return await retry(
       () async {
         try {
-          return await transact(fn);
+          return await _db.transact(() => fn(_db));
         } on TransactionAbortedException catch (e) {
           final inner = e.reason;
           if (inner is Error || inner is ResponseException) {
