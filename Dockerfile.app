@@ -48,6 +48,7 @@ COPY --from=build /usr/lib/dart /usr/lib/dart
 COPY --from=build /project/app/server.jit /project/app/
 COPY --from=build /project/static /project/static
 COPY --from=build /project/app/config /project/app/config
+COPY --from=build /project/app/migrations /project/app/migrations
 COPY --from=build /project/third_party /project/third_party
 COPY --from=build /project/doc /project/doc
 COPY --from=build /project/app/lib/frontend/templates /project/app/lib/frontend/templates
