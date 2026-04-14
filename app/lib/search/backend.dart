@@ -457,7 +457,7 @@ class SearchBackend {
       } on DetailedApiRequestError catch (e) {
         if (e.status == 404) {
           // ignore and log
-          _logger.warning('Snapshot archive file not found.');
+          _logger.warning('Snapshot tar.gz archive file not found.');
         } else {
           rethrow;
         }
