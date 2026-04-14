@@ -41,6 +41,9 @@ RUN /project/tool/download-sdk-index-jsons.sh
 # Generate JIT snapshot. We run it with --help to make it exit.
 RUN dart compile jit-snapshot -o server.jit bin/server.dart --help
 
+# Create /tmp directory for the runtime.
+RUN mkdir -p /project/tmp && chmod 1777 /project/tmp
+
 # Compile isolate entrypoints to kernel snapshots.
 RUN dart compile kernel -o lib/service/entrypoint/search_index.dill lib/service/entrypoint/search_index.dart
 RUN dart compile kernel -o lib/service/entrypoint/sdk_isolate_index.dill lib/service/entrypoint/sdk_isolate_index.dart
@@ -48,6 +51,7 @@ RUN dart compile kernel -o lib/service/entrypoint/sdk_isolate_index.dill lib/ser
 # Build minimal serving image.
 FROM scratch
 COPY --from=build /runtime/ /
+COPY --from=build /project/tmp /tmp
 COPY --from=build /usr/lib/dart /usr/lib/dart
 COPY --from=build /project/app/server.jit /project/app/
 COPY --from=build /project/static /project/static
