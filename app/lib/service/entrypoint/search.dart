@@ -80,7 +80,9 @@ Future<void> runSearchInstanceController({
     logger: _logger,
     kind: 'sdk',
     spawnUri: Uri.parse(
-      'package:pub_dev/service/entrypoint/sdk_isolate_index.dart',
+      envConfig.isRunningInAppengine
+          ? 'package:pub_dev/service/entrypoint/sdk_isolate_index.dill'
+          : 'package:pub_dev/service/entrypoint/sdk_isolate_index.dart',
     ),
   );
   registerScopeExitCallback(sdkIsolate.close);

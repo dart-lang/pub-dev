@@ -90,7 +90,11 @@ Future<IsolateRunner> startSearchIsolate({
   return await startQueryIsolate(
     logger: logger ?? _logger,
     kind: 'package',
-    spawnUri: Uri.parse('package:pub_dev/service/entrypoint/search_index.dart'),
+    spawnUri: Uri.parse(
+      envConfig.isRunningInAppengine
+          ? 'package:pub_dev/service/entrypoint/search_index.dill'
+          : 'package:pub_dev/service/entrypoint/search_index.dart',
+    ),
     spawnArgs: [
       if (snapshot != null) ...['--snapshot', snapshot],
     ],

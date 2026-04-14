@@ -67,8 +67,8 @@ COPY --from=build /project/app/.dart_tool/pub-search-data /project/app/.dart_too
 COPY --from=build /project/.dart_tool/package_config.json /project/.dart_tool/package_config.json
 COPY --from=go-build /project/pkg/signature_verifier/signature_verifier /project/app/signature_verifier
 # Put the kernel snapshots at the same place as the source files for Isolate.spawnUri to work transparently.
-COPY --from=build /project/app/lib/service/entrypoint/search_index.dill /project/app/lib/service/entrypoint/search_index.dart
-COPY --from=build /project/app/lib/service/entrypoint/sdk_isolate_index.dill /project/app/lib/service/entrypoint/sdk_isolate_index.dart
+COPY --from=build /project/app/lib/service/entrypoint/search_index.dill /project/app/lib/service/entrypoint/search_index.dill
+COPY --from=build /project/app/lib/service/entrypoint/sdk_isolate_index.dill /project/app/lib/service/entrypoint/sdk_isolate_index.dill
 
 WORKDIR /project/app
 EXPOSE 8080
