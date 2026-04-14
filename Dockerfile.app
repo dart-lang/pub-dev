@@ -1,5 +1,8 @@
 # Stage 0: Build signature verifier
-FROM golang:1.24 AS go-build
+FROM golang:latest AS go-build
+RUN apt-get update && \
+  apt-get upgrade -y && \
+  rm -rf /var/lib/apt/lists/*
 WORKDIR /project
 COPY pkg/signature_verifier /project/pkg/signature_verifier
 RUN cd /project/pkg/signature_verifier && ./build.sh
