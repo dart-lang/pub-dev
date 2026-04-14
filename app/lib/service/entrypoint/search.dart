@@ -79,11 +79,11 @@ Future<void> runSearchInstanceController({
   final sdkIsolate = await startQueryIsolate(
     logger: _logger,
     kind: 'sdk',
-    spawnUri: Uri.parse(
-      envConfig.isRunningInAppengine
-          ? 'package:pub_dev/service/entrypoint/sdk_isolate_index.dill'
-          : 'package:pub_dev/service/entrypoint/sdk_isolate_index.dart',
-    ),
+    spawnUri: envConfig.isRunningInAppengine
+        ? Uri.file('/project/app/lib/service/entrypoint/sdk_isolate_index.dill')
+        : Uri.parse(
+            'package:pub_dev/service/entrypoint/sdk_isolate_index.dart',
+          ),
   );
   registerScopeExitCallback(sdkIsolate.close);
 
