@@ -2,14 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:clock/clock.dart';
-import 'package:postgres/postgres.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
-import 'package:pub_dev/shared/env_config.dart';
-import 'package:pub_dev/shared/versions.dart';
-import 'package:pub_dev/task/models.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
 
