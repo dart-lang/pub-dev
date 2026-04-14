@@ -237,7 +237,13 @@ final _retryKey = #dbRetryKey;
 extension PrimaryDatabaseExt on PrimaryDatabase {
   /// Runs [fn] in a retry block (without wrapping it in a transaction).
   ///
-  /// The call is retried only if [DatabaseConnectionException] is throw.
+  /// The retry block is tracked with a [Zone], and if multiple retries are embeded
+  /// (with or without transaction), only the outermost block will be retried.
+  ///
+  /// The call is retried if the generic [DatabaseException] is throw, which may be a
+  /// connection issue, deadlock, timeout, constraint or any query-related problem.
+  ///
+  /// However, if inside the transaction an [Error] is thrown, or if the wrapped exception
   Future<K> withRetry<K>(
     Future<K> Function(Database<PrimarySchema> db) fn,
   ) async {
@@ -245,6 +251,9 @@ extension PrimaryDatabaseExt on PrimaryDatabase {
   }
 
   /// Runs [fn] in a transaction with retry block.
+  ///
+  /// The retry block is tracked with a [Zone], and if multiple retries are embeded
+  /// (with or without transaction), only the outermost block will be retried.
   ///
   /// The call is retried if the generic [DatabaseException] is throw, which may be a
   /// connection issue, deadlock, timeout, constraint or any query-related problem.
