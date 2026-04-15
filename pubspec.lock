@@ -521,14 +521,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.12.19"
-  mdc_web:
-    dependency: transitive
-    description:
-      name: mdc_web
-      sha256: c0da8278636bab76f6240a0c6542c94873d96f2b53fabe711f60f276b264b632
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.6.0"
   meta:
     dependency: transitive
     description:
