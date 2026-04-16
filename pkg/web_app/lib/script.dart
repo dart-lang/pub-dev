@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:mdc_web/mdc_web.dart' as mdc show autoInit;
 import 'package:web/web.dart';
 
 import 'src/account.dart';
@@ -10,6 +9,7 @@ import 'src/foldable.dart';
 import 'src/hoverable.dart';
 import 'src/issues.dart';
 import 'src/likes.dart';
+import 'src/mdc/mdc_init.dart' as mdc;
 import 'src/mobile_nav.dart';
 import 'src/page_updater.dart';
 import 'src/screenshot_carousel.dart';

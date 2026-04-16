@@ -7,10 +7,9 @@ import 'dart:async';
 // ignore: deprecated_member_use
 import 'dart:html';
 
-import 'package:mdc_web/mdc_web.dart' show MDCDialog;
-
 import '_dart_html_focusability.dart';
 import 'deferred/markdown.dart' deferred as md;
+import 'mdc/mdc_dialog.dart';
 
 /// Displays a message via the modal window.
 Future<void> modalMessage(String title, String message) async {
@@ -66,16 +65,16 @@ Future<bool> modalWindow({
     okButtonText: okButtonText,
   );
   document.body!.append(root);
-  final dialog = MDCDialog(root);
+  final dialog = MdcDialog.attachTo(root);
   try {
     dialog.open();
-    dialog.listen('MDCDialog:closed', (e) => c.complete(false));
+    dialog.listenOnClose(() => c.complete(false));
     await c.future;
   } finally {
     restoreFocusabilityFn();
     dialog.destroy();
     root.remove();
-    // TODO: Investigate if this is a bug in the JS library or in `package:mdc_web`
+    // Note: This seems to be a bug in the JS library
     document.body!.classes.remove('mdc-dialog-scroll-lock');
   }
   return await c.future;
@@ -91,7 +90,7 @@ Element _buildDialog({
   /// The callback will be called with `true` when "OK" was clicked, and `false`
   /// when "Cancel" was clicked.
   required void Function(bool) closing,
-}) => DivElement()
+}) => document.createElement('div')
   ..classes.add('mdc-dialog')
   ..attributes.addAll({
     'role': 'alertdialog',
@@ -100,25 +99,25 @@ Element _buildDialog({
     'aria-describedby': 'pub-dialog-content',
   })
   ..children = [
-    DivElement()
+    document.createElement('div')
       ..classes.add('mdc-dialog__container')
       ..children = [
-        DivElement()
+        document.createElement('div')
           ..classes.add('mdc-dialog__surface')
           ..children = [
-            HeadingElement.h2()
+            document.createElement('h2')
               ..classes.add('mdc-dialog__title')
               ..id = 'pub-dialog-title'
               ..innerText = titleText,
-            DivElement()
+            document.createElement('div')
               ..classes.add('mdc-dialog__content')
               ..id = 'pub-dialog-content'
               ..children = [content],
-            Element.footer()
+            document.createElement('footer')
               ..classes.add('mdc-dialog__actions')
               ..children = [
                 if (isQuestion)
-                  ButtonElement()
+                  document.createElement('button')
                     ..classes.addAll([
                       'mdc-button',
                       'mdc-dialog__button',
@@ -130,11 +129,11 @@ Element _buildDialog({
                       closing(false);
                     })
                     ..children = [
-                      SpanElement()
+                      document.createElement('span')
                         ..classes.add('mdc-button__label')
                         ..innerText = cancelButtonText ?? 'Cancel',
                     ],
-                ButtonElement()
+                document.createElement('button')
                   ..classes.addAll([
                     'mdc-button',
                     'mdc-dialog__button',
@@ -146,14 +145,14 @@ Element _buildDialog({
                     closing(true);
                   })
                   ..children = [
-                    SpanElement()
+                    document.createElement('span')
                       ..classes.add('mdc-button__label')
                       ..innerText = okButtonText ?? 'Ok',
                   ],
               ],
           ],
       ],
-    DivElement()..classes.add('mdc-dialog__scrim'),
+    document.createElement('div')..classes.add('mdc-dialog__scrim'),
   ];
 
 /// Creates an [Element] with Markdown-formatted content.
@@ -167,5 +166,5 @@ Future<Element> markdown(String text) async {
 String? materialDropdownSelected(Element? elem) {
   if (elem == null) return null;
   final item = elem.querySelector('.mdc-list-item--selected');
-  return item?.dataset['value'];
+  return item?.getAttribute('data-value');
 }

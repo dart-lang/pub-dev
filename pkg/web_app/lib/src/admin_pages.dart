@@ -582,7 +582,7 @@ class _ConsentWidget {
 
   void _updateButtons(bool? granted) {
     final text = granted! ? 'Consent accepted.' : 'Consent rejected.';
-    _buttons!.replaceWith(ParagraphElement()..text = text);
+    _buttons!.replaceWith(document.createElement('p')..text = text);
   }
 
   Future<void> _accept() async {
