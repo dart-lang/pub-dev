@@ -15,7 +15,7 @@ void main(List<String> args) async {
     ..addCommand(DefaultCommand())
     ..addCommand(SearchCommand());
 
-  if (args.isEmpty) {
+  if (args.isEmpty && envConfig.isRunningInAppengine) {
     final service = envConfig.gaeService;
     if (service != null && service.isNotEmpty) {
       args = [service];
