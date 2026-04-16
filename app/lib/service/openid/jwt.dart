@@ -114,7 +114,10 @@ class JsonWebToken {
 
   /// Verifies the token with the provided JSON Web Keys and
   /// returns `true` if the signature is valid.
-  Future<bool> verifySignature(JsonWebKeyList jwks) async {
+  Future<bool> verifySignature(
+    JsonWebKeyList jwks, {
+    String? signatureVerifierPath,
+  }) async {
     // We only support RS256.
     if (header.alg != 'RS256') {
       return false;
@@ -127,6 +130,7 @@ class JsonWebToken {
       final isValid = await key.verifySignature(
         input: headerAndPayloadEncoded,
         signature: signature,
+        signatureVerifierPath: signatureVerifierPath,
       );
       if (isValid) {
         return true;

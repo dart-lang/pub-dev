@@ -4,10 +4,12 @@
 
 import 'package:clock/clock.dart';
 import 'package:convert/convert.dart';
+import 'package:pub_dev/service/openid/crypto_helpers.dart';
 import 'package:pub_dev/service/openid/jwt.dart';
 import 'package:pub_dev/service/openid/openid_models.dart';
-import 'package:pub_dev/service/openid/openssl_commands.dart';
 import 'package:test/test.dart';
+
+import 'crypto_test_utils.dart';
 
 // token generated on jwt.io
 final jwtIoToken =
@@ -33,6 +35,13 @@ final jwtIoPublicKeyPem = [
 ].join('\n');
 
 void main() {
+  String? _signatureVerifierPath;
+
+  setUpAll(() async {
+    final binaryFile = await buildSignatureVerifierExecutable();
+    _signatureVerifierPath = binaryFile.path;
+  });
+
   group('JWT parse', () {
     test('invalid format', () {
       expect(JsonWebToken.tryParse(''), isNull);
@@ -65,6 +74,7 @@ void main() {
         input: headerAndPayloadEncoded,
         signature: parsed.signature,
         publicKey: Asn1RsaPublicKey.parsePemString(jwtIoPublicKeyPem),
+        signatureVerifierPath: _signatureVerifierPath,
       );
       expect(isValid, isTrue);
     });
@@ -243,20 +253,38 @@ void main() {
       });
       expect(jwks.keys.first.kid, token.header['kid']);
       // actual verification
-      expect(await token.verifySignature(jwks), isTrue);
+      expect(
+        await token.verifySignature(
+          jwks,
+          signatureVerifierPath: _signatureVerifierPath,
+        ),
+        isTrue,
+      );
     });
 
     test('verification fail with bad signature', () async {
       final jwks = JsonWebKeyList.fromJson(jwksData);
       final token = JsonWebToken.parse(tokenData);
       token.signature[0] = 1;
-      expect(await token.verifySignature(jwks), isFalse);
+      expect(
+        await token.verifySignature(
+          jwks,
+          signatureVerifierPath: _signatureVerifierPath,
+        ),
+        isFalse,
+      );
     });
 
     test('verification fail with bad key', () async {
       final jwks = JsonWebKeyList(keys: []);
       final token = JsonWebToken.parse(tokenData);
-      expect(await token.verifySignature(jwks), isFalse);
+      expect(
+        await token.verifySignature(
+          jwks,
+          signatureVerifierPath: _signatureVerifierPath,
+        ),
+        isFalse,
+      );
     });
   });
 }

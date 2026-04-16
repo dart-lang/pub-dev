@@ -7,7 +7,7 @@ import 'dart:typed_data';
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'openssl_commands.dart';
+import 'crypto_helpers.dart';
 
 part 'openid_models.g.dart';
 
@@ -145,16 +145,25 @@ class JsonWebKey {
   Future<bool> verifySignature({
     required String input,
     required Uint8List signature,
+    String? signatureVerifierPath,
   }) async {
     switch (kty ?? '') {
       case 'RSA':
-        return await _verifyRsaSignature(input, signature);
+        return await _verifyRsaSignature(
+          input,
+          signature,
+          signatureVerifierPath: signatureVerifierPath,
+        );
       default:
         return false;
     }
   }
 
-  Future<bool> _verifyRsaSignature(String input, Uint8List signature) async {
+  Future<bool> _verifyRsaSignature(
+    String input,
+    Uint8List signature, {
+    String? signatureVerifierPath,
+  }) async {
     final modulus = n;
     final exponent = e;
     if (modulus == null ||
@@ -167,6 +176,7 @@ class JsonWebKey {
       input: input,
       signature: signature,
       publicKey: Asn1RsaPublicKey(modulus: modulus, exponent: exponent),
+      signatureVerifierPath: signatureVerifierPath,
     );
   }
 }

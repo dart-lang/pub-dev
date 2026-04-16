@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:args/command_runner.dart';
@@ -76,12 +77,17 @@ Future<void> runSearchInstanceController({
   );
   registerScopeExitCallback(packageIsolate.close);
 
+  final baseUri = Platform.script.path.contains('bin/')
+      ? Platform.script.resolve('../')
+      : Platform.script;
   final sdkIsolate = await startQueryIsolate(
     logger: _logger,
     kind: 'sdk',
-    spawnUri: Uri.parse(
-      'package:pub_dev/service/entrypoint/sdk_isolate_index.dart',
-    ),
+    spawnUri: envConfig.hasPrecompiledBinaries
+        ? baseUri.resolve('sdk_isolate_index.dill')
+        : Uri.parse(
+            'package:pub_dev/service/entrypoint/sdk_isolate_index.dart',
+          ),
   );
   registerScopeExitCallback(sdkIsolate.close);
 

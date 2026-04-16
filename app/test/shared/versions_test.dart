@@ -81,7 +81,7 @@ void main() {
     final String docker = await File('../Dockerfile.app').readAsString();
     expect(
       docker,
-      contains('\nFROM mirror.gcr.io/library/dart:$runtimeSdkVersion\n'),
+      contains('\nFROM mirror.gcr.io/library/dart:$runtimeSdkVersion'),
     );
     final ci = await File('../.github/workflows/all-test.yml').readAsString();
     expect(ci, contains("DART_SDK_VERSION: '$runtimeSdkVersion'"));

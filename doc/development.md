@@ -12,6 +12,8 @@ instructions how to work with the local, in-memory server (`fake_server`).
 - Development and runtime support is best on Linux, compatible system may work,
   Windows isn't supported yet (e.g. bash scripts are not compatible).
 
+- The **Go SDK** is required to build the `signature_verifier` helper used for RSA signature verification (replaces the dependency on `openssl`).
+
 ## Project structure
 
 The main directories that one would be looking at:
