@@ -48,7 +48,9 @@ class TokenIndex<K> {
 
   late final _length = _ids.length;
 
-  late final _scorePool = ScorePool(_ids);
+  late final _scorePool = ScorePool(_ids.length);
+
+  List<K> get keys => _ids;
 
   TokenIndex(
     List<K> ids,
@@ -148,10 +150,10 @@ class TokenIndex<K> {
   /// in the [fn] callback, reusing the score buffers between calls.
   R withSearchWords<R>(
     List<String> words,
-    R Function(IndexedScore<K> score) fn, {
+    R Function(IndexedScore score) fn, {
     double weight = 1.0,
   }) {
-    IndexedScore<K>? score;
+    IndexedScore? score;
 
     weight = math.pow(weight, 1 / words.length).toDouble();
     for (final w in words) {
@@ -195,7 +197,14 @@ extension StringTokenIndexExt on TokenIndex<String> {
   /// scoring.
   @visibleForTesting
   Map<String, double> search(String text) {
-    return withSearchWords(splitForQuery(text), (score) => score.toMap());
+    return withSearchWords(splitForQuery(text), (score) {
+      final result = <String, double>{};
+      for (var i = 0; i < score.length; i++) {
+        final v = score.getValue(i);
+        if (v > 0.0) result[keys[i]] = v;
+      }
+      return result;
+    });
   }
 }
 
@@ -258,10 +267,10 @@ abstract class _AllocationPool<T> {
 }
 
 /// A reusable pool for [IndexedScore] instances to spare some memory allocation.
-class ScorePool<K> extends _AllocationPool<IndexedScore<K>> {
-  ScorePool(List<K> keys)
+class ScorePool extends _AllocationPool<IndexedScore> {
+  ScorePool(int length)
     : super(
-        () => IndexedScore(keys),
+        () => IndexedScore(length),
         // sets all values to 0.0
         (score) => score._values.setAll(
           0,
@@ -282,19 +291,12 @@ class BitArrayPool extends _AllocationPool<BitArray> {
 }
 
 /// Mutable score list that can accessed via integer index.
-class IndexedScore<K> {
-  final List<K> _keys;
+class IndexedScore {
   final List<double> _values;
 
-  IndexedScore._(this._keys, this._values);
+  IndexedScore(int length, [double value = 0.0])
+    : _values = List<double>.filled(length, value);
 
-  factory IndexedScore(List<K> keys, [double value = 0.0]) =>
-      IndexedScore._(keys, List<double>.filled(keys.length, value));
-
-  factory IndexedScore.fromMap(Map<K, double> values) =>
-      IndexedScore._(values.keys.toList(), values.values.toList());
-
-  List<K> get keys => _keys;
   late final length = _values.length;
 
   int positiveCount() {
@@ -360,7 +362,7 @@ class IndexedScore<K> {
     return list;
   }
 
-  Map<K, double> top(int count, {double? minValue}) {
+  List<int> topIndices(int count, {double? minValue}) {
     minValue ??= 0.0;
     final heap = Heap<int>((a, b) => -_values[a].compareTo(_values[b]));
     for (var i = 0; i < length; i++) {
@@ -368,19 +370,6 @@ class IndexedScore<K> {
       if (v < minValue) continue;
       heap.collect(i);
     }
-    return Map.fromEntries(
-      heap.getAndRemoveTopK(count).map((i) => MapEntry(_keys[i], _values[i])),
-    );
-  }
-
-  Map<K, double> toMap() {
-    final map = <K, double>{};
-    for (var i = 0; i < _values.length; i++) {
-      final v = _values[i];
-      if (v > 0.0) {
-        map[_keys[i]] = v;
-      }
-    }
-    return map;
+    return heap.getAndRemoveTopK(count).toList();
   }
 }

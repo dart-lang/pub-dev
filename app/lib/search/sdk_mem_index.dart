@@ -195,7 +195,13 @@ class SdkMemIndex implements SdkIndex {
 
       final plainResults = library.tokenIndex.withSearchWords(
         words,
-        (score) => score.top(3, minValue: 0.05),
+        (score) => Map.fromEntries(
+          score
+              .topIndices(3, minValue: 0.05)
+              .map(
+                (i) => MapEntry(library.tokenIndex.keys[i], score.getValue(i)),
+              ),
+        ),
       );
       if (plainResults.isEmpty) continue;
 
