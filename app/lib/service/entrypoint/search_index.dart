@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:_pub_shared/search/search_request_data.dart';
 import 'package:args/args.dart';
@@ -87,11 +88,14 @@ Future<IsolateRunner> startSearchIsolate({
   Logger? logger,
   String? snapshot,
 }) async {
+  final baseUri = Platform.script.path.contains('bin/')
+      ? Platform.script.resolve('../')
+      : Platform.script;
   return await startQueryIsolate(
     logger: logger ?? _logger,
     kind: 'package',
-    spawnUri: envConfig.isRunningInAppengine
-        ? Uri.file('/project/app/lib/service/entrypoint/search_index.dill')
+    spawnUri: envConfig.hasPrecompiledBinaries
+        ? baseUri.resolve('search_index.dill')
         : Uri.parse('package:pub_dev/service/entrypoint/search_index.dart'),
     spawnArgs: [
       if (snapshot != null) ...['--snapshot', snapshot],

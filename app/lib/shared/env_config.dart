@@ -56,6 +56,10 @@ class _EnvConfig {
   /// True, if running inside AppEngine.
   bool get isRunningInAppengine => gaeService != null && _gaeVersion != null;
 
+  /// True, if the process is using precompiled binaries. This can be used to decide
+  /// if the isolate's source code can be loaded from the file system (as a dill file).
+  bool get hasPrecompiledBinaries => isRunningInAppengine;
+
   /// True, if running locally and not inside AppEngine.
   bool get isRunningLocally => !isRunningInAppengine;
 
