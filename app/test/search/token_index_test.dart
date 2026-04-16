@@ -2,13 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/search/text_utils.dart';
 import 'package:pub_dev/search/token_index.dart';
 import 'package:test/test.dart';
+
+Map<String, double> _search(TokenIndex index, List<String> keys, String text) {
+  return index.withSearchWords(splitForQuery(text), (score) {
+    final result = <String, double>{};
+    for (var i = 0; i < score.length; i++) {
+      final v = score.getValue(i);
+      if (v > 0.0) result[keys[i]] = v;
+    }
+    return result;
+  });
+}
 
 void main() {
   group('TokenIndex', () {
     test('partial token lookup', () {
-      final index = TokenIndex.fromMap({'x': 'SomeCamelCasedWord and others'});
+      final index = TokenIndex(['SomeCamelCasedWord and others']);
       expect(index.lookupTokens('word').tokenWeights, {'word': 1.0});
       expect(index.lookupTokens('OtherCased').tokenWeights, {
         'cased': closeTo(0.70, 0.01),
@@ -19,23 +31,19 @@ void main() {
     });
 
     test('No match', () {
-      final index = TokenIndex.fromMap({
-        'uri://http': 'http',
-        'uri://http_magic': 'http_magic',
-      });
+      final keys = ['uri://http', 'uri://http_magic'];
+      final index = TokenIndex(['http', 'http_magic']);
 
-      expect(index.search('xml'), {
+      expect(_search(index, keys, 'xml'), {
         // no match for http
         // no match for http_magic
       });
     });
 
     test('Scoring exact and partial matches', () {
-      final index = TokenIndex.fromMap({
-        'uri://http': 'http',
-        'uri://http_magic': 'http_magic',
-      });
-      expect(index.search('http'), {
+      final keys = ['uri://http', 'uri://http_magic'];
+      final index = TokenIndex(['http', 'http_magic']);
+      expect(_search(index, keys, 'http'), {
         'uri://http': closeTo(0.993, 0.001),
         'uri://http_magic': closeTo(0.989, 0.001),
       });
@@ -43,37 +51,35 @@ void main() {
 
     test('CamelCase indexing', () {
       final String queueText = '.DoubleLinkedQueue()';
-      final index = TokenIndex.fromMap({
-        'queue': queueText,
-        'queue_lower': queueText.toLowerCase(),
-        'unmodifiable': 'CustomUnmodifiableMapBase',
-      });
-      expect(index.search('queue'), {'queue': closeTo(0.53, 0.01)});
-      expect(index.search('unmodifiabl'), {}); // no partial matches
-      expect(index.search('unmodifiable'), {
+      final keys = ['queue', 'queue_lower', 'unmodifiable'];
+      final index = TokenIndex([
+        queueText,
+        queueText.toLowerCase(),
+        'CustomUnmodifiableMapBase',
+      ]);
+      expect(_search(index, keys, 'queue'), {'queue': closeTo(0.53, 0.01)});
+      expect(_search(index, keys, 'unmodifiabl'), {}); // no partial matches
+      expect(_search(index, keys, 'unmodifiable'), {
         'unmodifiable': closeTo(0.68, 0.01),
       });
     });
 
     test('Wierd cases: riak client', () {
-      final index = TokenIndex.fromMap({
-        'uri://cli': 'cli',
-        'uri://riak_client': 'riak_client',
-        'uri://teamspeak': 'teamspeak',
+      final keys = ['uri://cli', 'uri://riak_client', 'uri://teamspeak'];
+      final index = TokenIndex(['cli', 'riak_client', 'teamspeak']);
+
+      expect(_search(index, keys, 'riak'), {
+        'uri://riak_client': closeTo(0.99, 0.01),
       });
-
-      expect(index.search('riak'), {'uri://riak_client': closeTo(0.99, 0.01)});
-
-      expect(index.search('riak client'), {
+      expect(_search(index, keys, 'riak client'), {
         'uri://riak_client': closeTo(0.98, 0.01),
       });
     });
 
     test('Do not overweight partial matches', () {
-      final index = TokenIndex.fromMap({
-        'flutter_qr_reader': 'flutter_qr_reader',
-      });
-      final data = index.search('ByteDataReader');
+      final keys = ['flutter_qr_reader'];
+      final index = TokenIndex(['flutter_qr_reader']);
+      final data = _search(index, keys, 'ByteDataReader');
       // The partial match should not return more than 0.65 as score.
       expect(data, {'flutter_qr_reader': lessThan(0.65)});
     });
@@ -91,8 +97,8 @@ void main() {
         'location_picker',
         'background_location_updates',
       ];
-      final index = TokenIndex.fromMap(Map.fromIterables(names, names));
-      final match = index.search('location');
+      final index = TokenIndex(names);
+      final match = _search(index, names, 'location');
       // location should be the top value, everything else should be lower
       final locationValue = match['location'];
       expect(

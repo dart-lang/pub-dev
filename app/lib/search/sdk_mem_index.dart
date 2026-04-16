@@ -170,7 +170,8 @@ class SdkMemIndex implements SdkIndex {
         name: e.key,
         libraryUrl: (baseUris[e.key] ?? baseUri).toString(),
         description: descriptions[e.key],
-        tokenIndex: TokenIndex.fromMap(e.value),
+        tokenIndexKeys: e.value.keys.toList(),
+        tokenIndex: TokenIndex(e.value.values.toList()),
       );
     }
   }
@@ -199,7 +200,7 @@ class SdkMemIndex implements SdkIndex {
           score
               .topIndices(3, minValue: 0.05)
               .map(
-                (i) => MapEntry(library.tokenIndex.keys[i], score.getValue(i)),
+                (i) => MapEntry(library.tokenIndexKeys[i], score.getValue(i)),
               ),
         ),
       );
@@ -262,7 +263,8 @@ class _Library {
   final String name;
   final String libraryUrl;
   final String? description;
-  final TokenIndex<String> tokenIndex;
+  final List<String> tokenIndexKeys;
+  final TokenIndex tokenIndex;
 
   _Library({
     required this.sdk,
@@ -270,6 +272,7 @@ class _Library {
     required this.name,
     required this.libraryUrl,
     required this.description,
+    required this.tokenIndexKeys,
     required this.tokenIndex,
   });
 
