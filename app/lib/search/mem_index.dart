@@ -30,7 +30,7 @@ class InMemoryPackageIndex {
   late final TokenIndex<String> _readmeIndex;
   late final TokenIndex<IndexedApiDocPage> _apiSymbolIndex;
   late final _bitArrayPool = BitArrayPool(_documents.length);
-  late final _scorePool = ScorePool(_packageNameIndex._packageNames);
+  late final _scorePool = ScorePool(_documents.length);
 
   /// Maps the tag strings to a list of document index values using bit arrays.
   /// - (`PackageDocument doc.tags -> BitArray(List<_documents.indexOf(doc)>)`).
@@ -225,7 +225,7 @@ class InMemoryPackageIndex {
   PackageSearchResult _search(
     ServiceSearchQuery query,
     BitArray packages,
-    IndexedScore<String> Function() scoreFn,
+    IndexedScore Function() scoreFn,
   ) {
     _resetBitArray(packages, query.packages);
     final predicateFilterCount = _filterOnPredicates(query, packages);
@@ -240,7 +240,7 @@ class InMemoryPackageIndex {
     // do text matching
     final parsedQueryText = query.parsedQuery.text;
     _TextResults? textResults;
-    IndexedScore<String>? packageScores;
+    IndexedScore? packageScores;
 
     if (parsedQueryText != null && parsedQueryText.isNotEmpty) {
       packageScores = scoreFn();
@@ -425,7 +425,7 @@ class InMemoryPackageIndex {
   }
 
   _TextResults _searchText(
-    IndexedScore<String> packageScores,
+    IndexedScore packageScores,
     BitArray packages,
     String text, {
     required TextMatchExtent textMatchExtent,
@@ -501,7 +501,7 @@ class InMemoryPackageIndex {
             final value = symbolPages.getValue(i);
             if (value < 0.01) continue;
 
-            final doc = symbolPages.keys[i];
+            final doc = _apiSymbolIndex.keys[i];
             if (!packages[doc.index]) continue;
 
             // skip if the previously found pages are better than the current one
@@ -551,7 +551,7 @@ class InMemoryPackageIndex {
   }
 
   Iterable<IndexedPackageHit> _rankWithValues(
-    IndexedScore<String> score, {
+    IndexedScore score, {
 
     /// When no best name match is applied, this parameter will be `-1`
     required int bestNameIndex,
@@ -579,7 +579,10 @@ class InMemoryPackageIndex {
         .map(
           (i) => IndexedPackageHit(
             i,
-            PackageHit(package: score.keys[i], score: score.getValue(i)),
+            PackageHit(
+              package: _documents[i].package,
+              score: score.getValue(i),
+            ),
           ),
         );
   }
@@ -682,9 +685,9 @@ class PackageNameIndex {
   /// Search [text] and return the matching packages with scores.
   @visibleForTesting
   Map<String, double> search(String text) {
-    IndexedScore<String>? score;
+    IndexedScore? score;
     for (final w in splitForQuery(text)) {
-      final s = IndexedScore(_packageNames);
+      final s = IndexedScore(_packageNames.length);
       searchWord(w, score: s, filterOnNonZeros: score);
       if (score == null) {
         score = s;
@@ -692,7 +695,13 @@ class PackageNameIndex {
         score.multiplyAllFrom(s);
       }
     }
-    return score?.toMap() ?? {};
+    if (score == null) return {};
+    final result = <String, double>{};
+    for (var i = 0; i < _packageNames.length; i++) {
+      final v = score.getValue(i);
+      if (v > 0.0) result[_packageNames[i]] = v;
+    }
+    return result;
   }
 
   /// Search using the parsed [word] and return the matching packages with scores
@@ -702,10 +711,10 @@ class PackageNameIndex {
   /// non-zero value are evaluated.
   void searchWord(
     String word, {
-    required IndexedScore<String> score,
-    IndexedScore<String>? filterOnNonZeros,
+    required IndexedScore score,
+    IndexedScore? filterOnNonZeros,
   }) {
-    assert(score.keys.length == _packageNames.length);
+    assert(score.length == _packageNames.length);
     final lowercasedWord = word.toLowerCase();
     final collapsedWord = _removeUnderscores(lowercasedWord);
     final parts = collapsedWord.length <= 3

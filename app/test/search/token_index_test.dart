@@ -106,12 +106,16 @@ void main() {
   });
 
   group('IndexedScore', () {
-    final score = IndexedScore.fromMap({'a': 100.0, 'b': 30.0, 'c': 55.0});
+    const keys = ['a', 'b', 'c'];
+    final score = IndexedScore(3)
+      ..setValue(0, 100.0)
+      ..setValue(1, 30.0)
+      ..setValue(2, 55.0);
 
-    test('top', () {
-      expect(score.top(1), {'a': 100.0});
-      expect(score.top(2), {'a': 100.0, 'c': 55.0});
-      expect(score.top(2, minValue: 60), {'a': 100.0});
+    test('topIndices', () {
+      expect(score.topIndices(1).map((i) => keys[i]), ['a']);
+      expect(score.topIndices(2).map((i) => keys[i]), ['a', 'c']);
+      expect(score.topIndices(2, minValue: 60).map((i) => keys[i]), ['a']);
     });
   });
 }
