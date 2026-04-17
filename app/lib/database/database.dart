@@ -86,7 +86,10 @@ class PrimaryDatabase {
   /// When NOT running in the AppEngine environment (e.g. testing or local fake),
   /// the initilization will create a new database, which will be dropped when the
   /// [close] method is called.
-  static Future<PrimaryDatabase> createAndInit({String? url}) async {
+  static Future<PrimaryDatabase> createAndInit({
+    String? url,
+    bool skipProductionCheck = false,
+  }) async {
     // The scope-specific custom database. We are creating a custom database for
     // each test run, in order to provide full isolation, however, this must not
     // be used in Appengine.
@@ -119,7 +122,7 @@ class PrimaryDatabase {
     // =====
     // NOTE: We are not updating/migrating the production schema yet.
     // =====
-    if (activeConfiguration.isProduction) {
+    if (!skipProductionCheck && activeConfiguration.isProduction) {
       return db;
     }
 
