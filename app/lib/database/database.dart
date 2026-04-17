@@ -244,6 +244,7 @@ extension PrimaryDatabaseExt on PrimaryDatabase {
   /// connection issue, deadlock, timeout, constraint or any query-related problem.
   ///
   /// However, if inside the transaction an [Error] is thrown, or if the wrapped exception
+  /// is [ResponseException], we don't retry [fn].
   Future<K> withRetry<K>(
     Future<K> Function(Database<PrimarySchema> db) fn,
   ) async {
