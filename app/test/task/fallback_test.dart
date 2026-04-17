@@ -12,10 +12,11 @@ import 'package:test/test.dart';
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
+import '../shared/utils.dart';
 
 void main() {
   group('task fallback test', () {
-    test('analysis fallback', () async {
+    scopedTest('analysis fallback', () async {
       await FakeAppengineEnv.withEnv((env) async {
         await env.run(
           testProfile: TestProfile(
