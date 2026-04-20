@@ -14,6 +14,7 @@ import 'package:pub_dev/service/openid/jwt.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
+import 'crypto_test_utils.dart';
 
 void main() {
   final actionsIdTokenRequestUrl =
@@ -21,6 +22,13 @@ void main() {
   final actionsIdTokenRequestToken =
       Platform.environment['ACTIONS_ID_TOKEN_REQUEST_TOKEN'] ?? '';
   final githubRepository = Platform.environment['GITHUB_REPOSITORY'] ?? '';
+
+  String? _signatureVerifierPath;
+
+  setUpAll(() async {
+    final binaryFile = await buildSignatureVerifierExecutable();
+    _signatureVerifierPath = binaryFile.path;
+  });
 
   // This test only works when running on GitHub Actions with `id-token: write` permissions.
   //
@@ -58,7 +66,13 @@ void main() {
 
       // verify signature
       final githubData = await fetchGitHubOpenIdData();
-      expect(await token.verifySignature(githubData.jwks), isTrue);
+      expect(
+        await token.verifySignature(
+          githubData.jwks,
+          signatureVerifierPath: _signatureVerifierPath,
+        ),
+        isTrue,
+      );
 
       // verify headers
       expect(token.header, {
