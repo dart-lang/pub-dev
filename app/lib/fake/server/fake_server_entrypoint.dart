@@ -90,7 +90,9 @@ class FakeServerCommand extends Command {
     final datastore = state.datastore;
 
     final cloudCompute = FakeCloudCompute();
-    final database = await PrimaryDatabase.createAndInit();
+    final database = await PrimaryDatabase.createAndInit(
+      skipProductionCheck: true,
+    );
 
     final storageServer = FakeStorageServer(storage);
     final pubServer = FakePubServer(

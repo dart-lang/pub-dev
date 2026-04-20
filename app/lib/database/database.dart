@@ -8,6 +8,7 @@ import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:postgres/postgres.dart';
@@ -20,6 +21,7 @@ import 'package:pub_dev/shared/exceptions.dart';
 import 'package:retry/retry.dart';
 import 'package:typed_sql/typed_sql.dart';
 
+final _logger = Logger('database');
 final _random = Random.secure();
 
 /// Sets the primary database service.
@@ -47,21 +49,33 @@ class PrimaryDatabase {
   /// the secret backend, connects to it and registers the primary database
   /// service in the current scope.
   static Future<void> tryRegisterInScope() async {
-    if (activeConfiguration.isProduction) {
-      // Production is not configured for postgresql yet.
-      return;
+    try {
+      if (_lookupPrimaryDatabase() != null) {
+        // Already initialized, must be in a local test environment.
+        assert(activeConfiguration.isFakeOrTest);
+        return;
+      }
+      final connectionString =
+          envConfig.pubPostgresUrl ??
+          (await secretBackend.lookup(SecretKey.databaseConnectionString));
+      final database = await createAndInit(url: connectionString);
+      registerPrimaryDatabase(database);
+      ss.registerScopeExitCallback(database.close);
+    } on PgException catch (e, st) {
+      if (envConfig.isRunningInAppengine) {
+        // ignore setup issues for now
+        _logger.warning('Could not connect to Postgresql database.', e, st);
+      } else {
+        rethrow;
+      }
+    } on DatabaseException catch (e, st) {
+      if (envConfig.isRunningInAppengine) {
+        // ignore setup issues for now
+        _logger.warning('Could not initialize typed_sql.', e, st);
+      } else {
+        rethrow;
+      }
     }
-    if (_lookupPrimaryDatabase() != null) {
-      // Already initialized, must be in a local test environment.
-      assert(activeConfiguration.isFakeOrTest);
-      return;
-    }
-    final connectionString =
-        envConfig.pubPostgresUrl ??
-        (await secretBackend.lookup(SecretKey.databaseConnectionString));
-    final database = await createAndInit(url: connectionString);
-    registerPrimaryDatabase(database);
-    ss.registerScopeExitCallback(database.close);
   }
 
   /// Creates and initializes a [PrimaryDatabase] instance.
@@ -72,7 +86,10 @@ class PrimaryDatabase {
   /// When NOT running in the AppEngine environment (e.g. testing or local fake),
   /// the initilization will create a new database, which will be dropped when the
   /// [close] method is called.
-  static Future<PrimaryDatabase> createAndInit({String? url}) async {
+  static Future<PrimaryDatabase> createAndInit({
+    String? url,
+    bool skipProductionCheck = false,
+  }) async {
     // The scope-specific custom database. We are creating a custom database for
     // each test run, in order to provide full isolation, however, this must not
     // be used in Appengine.
@@ -101,7 +118,21 @@ class PrimaryDatabase {
 
     url = _expandConnectionUrl(url);
     final db = PrimaryDatabase._(Pool.withUrl(url), closeFn);
-    await db.migrateSchema();
+
+    // =====
+    // NOTE: We are not updating/migrating the production schema yet.
+    // =====
+    if (!skipProductionCheck && activeConfiguration.isProduction) {
+      return db;
+    }
+
+    await retry(
+      () async {
+        await db._migrateSchema();
+      },
+      maxAttempts: 3,
+      retryIf: (e) => e is DatabaseException,
+    );
     return db;
   }
 
@@ -113,7 +144,7 @@ class PrimaryDatabase {
     }
   }
 
-  Future<void> migrateSchema() async {
+  Future<void> _migrateSchema() async {
     final migrationDb = Database<SchemaMigrationSchema>(
       _adapter,
       SqlDialect.postgres(),
