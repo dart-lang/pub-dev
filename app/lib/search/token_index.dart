@@ -40,48 +40,29 @@ class _WeightedDoc {
 }
 
 /// Stores a token -> documentId inverted index with weights.
-class TokenIndex<K> {
-  final List<K> _ids;
+class TokenIndex {
+  final int _length;
 
   /// Maps token Strings to a weighted documents (addressed via indexes).
   final _inverseIds = <String, List<_WeightedDoc>>{};
+  late final _scorePool = ScorePool(_length);
 
-  late final _length = _ids.length;
-
-  late final _scorePool = ScorePool(_ids.length);
-
-  List<K> get keys => _ids;
-
-  TokenIndex(
-    List<K> ids,
-    List<String?> values, {
-    bool skipDocumentWeight = false,
-  }) : _ids = ids {
-    assert(ids.length == values.length);
-    final length = values.length;
-    for (var i = 0; i < length; i++) {
+  TokenIndex(List<String?> values, {bool skipDocumentWeight = false})
+    : _length = values.length {
+    for (var i = 0; i < _length; i++) {
       final text = values[i];
-
-      if (text == null) {
-        continue;
-      }
+      if (text == null) continue;
       _build(i, text, skipDocumentWeight);
     }
   }
 
   TokenIndex.fromValues(
-    List<K> ids,
     List<List<String>?> values, {
     bool skipDocumentWeight = false,
-  }) : _ids = ids {
-    assert(ids.length == values.length);
-    final length = values.length;
-    for (var i = 0; i < length; i++) {
+  }) : _length = values.length {
+    for (var i = 0; i < _length; i++) {
       final parts = values[i];
-
-      if (parts == null || parts.isEmpty) {
-        continue;
-      }
+      if (parts == null || parts.isEmpty) continue;
       for (final text in parts) {
         _build(i, text, skipDocumentWeight);
       }
@@ -108,12 +89,6 @@ class TokenIndex<K> {
         weights.add(_WeightedDoc(i, weight));
       }
     }
-  }
-
-  factory TokenIndex.fromMap(Map<K, String> map) {
-    final keys = map.keys.toList();
-    final values = map.values.toList();
-    return TokenIndex(keys, values);
   }
 
   /// Match the text against the corpus and return the tokens or
@@ -189,22 +164,6 @@ class TokenIndex<K> {
         score.setValueMaxOf(e.index, matchWeight * e.weight * weight);
       }
     }
-  }
-}
-
-extension StringTokenIndexExt on TokenIndex<String> {
-  /// Search the index for [text], with a (term-match / document coverage percent)
-  /// scoring.
-  @visibleForTesting
-  Map<String, double> search(String text) {
-    return withSearchWords(splitForQuery(text), (score) {
-      final result = <String, double>{};
-      for (var i = 0; i < score.length; i++) {
-        final v = score.getValue(i);
-        if (v > 0.0) result[keys[i]] = v;
-      }
-      return result;
-    });
   }
 }
 

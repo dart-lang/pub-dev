@@ -26,9 +26,10 @@ class InMemoryPackageIndex {
   final List<PackageDocument> _documents;
   final _nameToIndex = <String, int>{};
   late final PackageNameIndex _packageNameIndex;
-  late final TokenIndex<String> _descrIndex;
-  late final TokenIndex<String> _readmeIndex;
-  late final TokenIndex<IndexedApiDocPage> _apiSymbolIndex;
+  late final TokenIndex _descrIndex;
+  late final TokenIndex _readmeIndex;
+  late final List<IndexedApiDocPage> _apiDocPageKeys;
+  late final TokenIndex _apiSymbolIndex;
   late final _bitArrayPool = BitArrayPool(_documents.length);
   late final _scorePool = ScorePool(_documents.length);
 
@@ -78,15 +79,12 @@ class InMemoryPackageIndex {
     final packageKeys = _documents.map((d) => d.package).toList();
     _packageNameIndex = PackageNameIndex(packageKeys);
     _descrIndex = TokenIndex(
-      packageKeys,
       _documents.map((d) => d.description).toList(),
       skipDocumentWeight: true,
     );
-    _readmeIndex = TokenIndex(
-      packageKeys,
-      _documents.map((d) => d.readme).toList(),
-    );
-    _apiSymbolIndex = TokenIndex.fromValues(apiDocPageKeys, apiDocPageValues);
+    _readmeIndex = TokenIndex(_documents.map((d) => d.readme).toList());
+    _apiDocPageKeys = apiDocPageKeys;
+    _apiSymbolIndex = TokenIndex.fromValues(apiDocPageValues);
 
     // update download scores only if they were not set (should happen on old runtime's snapshot and local tests)
     if (_documents.any((e) => e.downloadScore == null)) {
@@ -501,7 +499,7 @@ class InMemoryPackageIndex {
             final value = symbolPages.getValue(i);
             if (value < 0.01) continue;
 
-            final doc = _apiSymbolIndex.keys[i];
+            final doc = _apiDocPageKeys[i];
             if (!packages[doc.index]) continue;
 
             // skip if the previously found pages are better than the current one
