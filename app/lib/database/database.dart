@@ -18,6 +18,7 @@ import 'package:pub_dev/service/secret/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/exceptions.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:retry/retry.dart';
 import 'package:typed_sql/typed_sql.dart';
 
@@ -183,6 +184,50 @@ class PrimaryDatabase {
       throw StateError('Connection is not returning expected rows.');
     }
     return rs.single.single as String;
+  }
+
+  // TODO: remove this debug once we have deployed this feature.
+  Future<Map> debug() async {
+    try {
+      final migrationDb = Database<SchemaMigrationSchema>(
+        _adapter,
+        SqlDialect.postgres(),
+      );
+      return {
+        'tasks':
+            (await _db.tasks
+                    .where(
+                      (task) =>
+                          task.runtime_version.equalsValue(runtimeVersion),
+                    )
+                    .orderBy((task) => [(task.finished, .descending)])
+                    .limit(10)
+                    .fetch())
+                .map((e) => [e.package, e.finished.toIso8601String()])
+                .toList(),
+        'task_dependencies':
+            (await _db.task_dependencies
+                    .where(
+                      (td) => td.runtime_version.equalsValue(runtimeVersion),
+                    )
+                    .limit(10)
+                    .fetch())
+                .map((e) => [e.package, e.dependency])
+                .toList(),
+        'schema_migrations': (await migrationDb.schema_migrations.fetch())
+            .map(
+              (e) => [
+                e.schema_name,
+                e.script_name,
+                e.script_sha256,
+                e.executed_at.toIso8601String(),
+              ],
+            )
+            .toList(),
+      };
+    } catch (e, st) {
+      return {'error': e.toString(), 'st': st.toString()};
+    }
   }
 }
 
