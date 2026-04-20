@@ -183,14 +183,24 @@ $detail-tabs-tablet-width: calc(100% - 240px);
   text-transform: uppercase;
   white-space: nowrap;
   display: flex;
-  margin-top: -4px;
   border: 1px solid transparent;
   padding: 2px;
+  gap: 4px;
+  align-items: start;
 
   .like-button-and-label--count-wrapper {
     display: inline-block;
-    padding-top: 6px;
     min-width: 12px;
+  }
+
+  .like-button-and-label--button {
+    width: 18px;
+    padding: 0;
+  }
+
+  .like-button-and-label--button img {
+    width: 18px;
+    height: 18px;
   }
 
   &:focus-within {
