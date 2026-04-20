@@ -465,7 +465,7 @@ class PubApi {
   Future<Response> debug(Request request) async => debugResponse({
     'package': packageDebugStats(),
     'search': searchDebugStats(),
-    'database': primaryDatabase != null,
+    'database': await primaryDatabase?.debug(),
   });
 
   @EndPoint.get('/packages.json')
