@@ -329,6 +329,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
         registerTaskBackend(
           TaskBackend(
             dbService,
+            primaryDatabase!,
             storageService.bucket(activeConfiguration.taskResultBucketName!),
           ),
         );
