@@ -670,7 +670,7 @@ class PackageIndexHolder implements SearchIndex {
   IndexInfo indexInfo() => _index.indexInfo();
 
   @override
-  PackageSearchResult search(ServiceSearchQuery query) {
+  FutureOr<PackageSearchResult> search(ServiceSearchQuery query) {
     return _index.search(query);
   }
 

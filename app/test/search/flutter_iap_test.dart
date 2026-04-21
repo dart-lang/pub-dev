@@ -53,7 +53,7 @@ void main() {
     });
 
     test('flutter iap', () async {
-      final PackageSearchResult result = index.search(
+      final PackageSearchResult result = await index.search(
         ServiceSearchQuery.parse(query: 'flutter iap', order: SearchOrder.text),
       );
       expect(json.decode(json.encode(result)), {
@@ -67,7 +67,7 @@ void main() {
     });
 
     test('flutter_iap', () async {
-      final PackageSearchResult result = index.search(
+      final PackageSearchResult result = await index.search(
         ServiceSearchQuery.parse(query: 'flutter_iap', order: SearchOrder.text),
       );
       expect(json.decode(json.encode(result)), {

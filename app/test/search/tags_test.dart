@@ -16,7 +16,7 @@ void main() {
         documents: [PackageDocument(package: 'pkg1')],
       );
 
-      final rs = index.search(
+      final rs = await index.search(
         ServiceSearchQuery.parse(
           tagsPredicate: TagsPredicate(requiredTags: ['is:a']),
         ),
@@ -34,7 +34,7 @@ void main() {
         documents: [PackageDocument(package: 'pkg1')],
       );
 
-      final rs = index.search(
+      final rs = await index.search(
         ServiceSearchQuery.parse(
           tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
         ),
@@ -57,7 +57,7 @@ void main() {
         ],
       );
 
-      final rs = index.search(
+      final rs = await index.search(
         ServiceSearchQuery.parse(
           tagsPredicate: TagsPredicate(prohibitedTags: ['is:a']),
         ),
@@ -80,7 +80,7 @@ void main() {
         ],
       );
 
-      final rs = index.search(
+      final rs = await index.search(
         ServiceSearchQuery.parse(
           tagsPredicate: TagsPredicate.parseQueryValues(['is:a']),
         ),
@@ -111,7 +111,7 @@ void main() {
         ],
       );
 
-      final rs = index.search(
+      final rs = await index.search(
         ServiceSearchQuery.parse(
           tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1']),
         ),
@@ -135,7 +135,7 @@ void main() {
         ],
       );
 
-      final rs = index.search(
+      final rs = await index.search(
         ServiceSearchQuery.parse(
           tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', 'is:b']),
         ),
@@ -158,7 +158,7 @@ void main() {
         ],
       );
 
-      final rs = index.search(
+      final rs = await index.search(
         ServiceSearchQuery.parse(
           tagsPredicate: TagsPredicate.parseQueryValues(['is:dart1', '-is:b']),
         ),
@@ -181,7 +181,9 @@ void main() {
         ],
       );
 
-      final rs = index.search(ServiceSearchQuery.parse(query: 'is:b -is:a'));
+      final rs = await index.search(
+        ServiceSearchQuery.parse(query: 'is:b -is:a'),
+      );
       expect(json.decode(json.encode(rs.toJson())), {
         'timestamp': isNotNull,
         'totalCount': 1,
@@ -200,7 +202,7 @@ void main() {
         ],
       );
 
-      final rs = index.search(
+      final rs = await index.search(
         ServiceSearchQuery.parse(
           tagsPredicate: TagsPredicate(prohibitedTags: ['is:b']),
           query: 'is:a is:b',

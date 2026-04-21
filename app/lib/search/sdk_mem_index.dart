@@ -177,11 +177,11 @@ class SdkMemIndex implements SdkIndex {
   }
 
   @override
-  List<SdkLibraryHit> search(
+  Future<List<SdkLibraryHit>> search(
     String query, {
     int? limit,
     bool skipFlutter = false,
-  }) {
+  }) async {
     limit ??= 2;
     final words = query.split(' ').where((e) => e.isNotEmpty).toList();
     if (words.isEmpty) return <SdkLibraryHit>[];
@@ -194,9 +194,9 @@ class SdkMemIndex implements SdkIndex {
       // scored lower than `query=html cursor`.
       final isQualifiedQuery = query.contains(library.lastNamePart);
 
-      final plainResults = library.tokenIndex.withSearchWords(
+      final plainResults = await library.tokenIndex.withSearchWords(
         words,
-        (score) => Map.fromEntries(
+        (score) async => Map.fromEntries(
           score
               .topIndices(3, minValue: 0.05)
               .map(
