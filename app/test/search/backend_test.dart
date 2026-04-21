@@ -22,7 +22,7 @@ void main() {
           dartIndex: DartdocIndex.parseJsonText(content),
           flutterIndex: DartdocIndex([]),
         );
-        final rs = index.search('dart:async');
+        final rs = await index.search('dart:async');
         expect(
           rs.first.description,
           'Support for asynchronous programming, with classes such as Future and Stream.',

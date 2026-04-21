@@ -39,7 +39,7 @@ Future<void> main(List<String> args, var message) async {
         logger: _logger,
         fn: (payload) async {
           final args = payload as List;
-          final rs = sdkMemIndex!.search(
+          final rs = await sdkMemIndex!.search(
             args[0] as String,
             limit: args[1] as int?,
             skipFlutter: args[2] as bool,

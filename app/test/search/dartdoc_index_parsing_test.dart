@@ -74,7 +74,7 @@ void main() {
           dartIndex: DartdocIndex([]),
           flutterIndex: index,
         );
-        final rs = sdkMemIndex.search('StatelessWidget');
+        final rs = await sdkMemIndex.search('StatelessWidget');
         expect(json.decode(json.encode(rs)), [
           {
             'sdk': 'flutter',

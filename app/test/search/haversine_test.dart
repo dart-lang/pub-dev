@@ -386,7 +386,7 @@ MIT'''),
     });
 
     test('haversine', () async {
-      final PackageSearchResult result = index.search(
+      final PackageSearchResult result = await index.search(
         ServiceSearchQuery.parse(query: 'haversine', order: SearchOrder.text),
       );
       expect(json.decode(json.encode(result)), {
@@ -402,7 +402,7 @@ MIT'''),
     });
 
     test('type: hoversine', () async {
-      final PackageSearchResult result = index.search(
+      final PackageSearchResult result = await index.search(
         ServiceSearchQuery.parse(query: 'hoversine', order: SearchOrder.text),
       );
       expect(json.decode(json.encode(result)), {

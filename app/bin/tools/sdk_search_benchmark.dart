@@ -24,7 +24,7 @@ Future<void> main() async {
   final sw = Stopwatch()..start();
   var count = 0;
   for (var i = 0; i < 100; i++) {
-    index!.search(queries[i % queries.length]);
+    await index!.search(queries[i % queries.length]);
     count++;
   }
   sw.stop();

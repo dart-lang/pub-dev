@@ -38,7 +38,7 @@ Future<void> main(List<String> args) async {
   final sw = Stopwatch()..start();
   var count = 0;
   for (var i = 0; i < 100; i++) {
-    index.search(
+    await index.search(
       ServiceSearchQuery.parse(
         query: queries[i % queries.length],
         tagsPredicate: TagsPredicate.regularSearch(),

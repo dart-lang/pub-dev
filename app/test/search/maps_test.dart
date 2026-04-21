@@ -23,7 +23,7 @@ void main() {
     });
 
     test('maps', () async {
-      final PackageSearchResult result = index.search(
+      final PackageSearchResult result = await index.search(
         ServiceSearchQuery.parse(query: 'maps', order: SearchOrder.text),
       );
       expect(json.decode(json.encode(result)), {
@@ -38,7 +38,7 @@ void main() {
     });
 
     test('map', () async {
-      final PackageSearchResult result = index.search(
+      final PackageSearchResult result = await index.search(
         ServiceSearchQuery.parse(query: 'map', order: SearchOrder.text),
       );
       expect(json.decode(json.encode(result)), {

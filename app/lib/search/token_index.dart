@@ -94,7 +94,7 @@ class TokenIndex {
   /// Match the text against the corpus and return the tokens or
   /// their partial segments that have match.
   @visibleForTesting
-  TokenMatch lookupTokens(String text) {
+  Future<TokenMatch> lookupTokens(String text) async {
     final tokenMatch = TokenMatch();
 
     for (final word in splitForIndexing(text)) {
@@ -123,17 +123,17 @@ class TokenIndex {
 
   /// Search the index for [words], providing the result [IndexedScore] values
   /// in the [fn] callback, reusing the score buffers between calls.
-  R withSearchWords<R>(
+  Future<R> withSearchWords<R>(
     List<String> words,
-    R Function(IndexedScore score) fn, {
+    Future<R> Function(IndexedScore score) fn, {
     double weight = 1.0,
-  }) {
+  }) async {
     IndexedScore? score;
 
     weight = math.pow(weight, 1 / words.length).toDouble();
     for (final w in words) {
       final s = _scorePool._acquire();
-      searchAndAccumulate(w, score: s, weight: weight);
+      await searchAndAccumulate(w, score: s, weight: weight);
       if (score == null) {
         score = s;
       } else {
@@ -142,20 +142,22 @@ class TokenIndex {
       }
     }
     score ??= _scorePool._acquire();
-    final r = fn(score);
-    _scorePool._release(score);
-    return r;
+    try {
+      return await fn(score);
+    } finally {
+      _scorePool._release(score);
+    }
   }
 
   /// Searches the index with [word] and stores the results in [score], using
   /// accumulation operation on the already existing values.
-  void searchAndAccumulate(
+  Future<void> searchAndAccumulate(
     String word, {
     double weight = 1.0,
     required IndexedScore score,
-  }) {
+  }) async {
     assert(score.length == _length);
-    final tokenMatch = lookupTokens(word);
+    final tokenMatch = await lookupTokens(word);
     for (final entry in tokenMatch.entries) {
       final token = entry.key;
       final matchWeight = entry.value;
@@ -195,17 +197,21 @@ abstract class _AllocationPool<T> {
 
   /// Executes [fn] and provides a pool item in the callback.
   /// The item will be released to the pool after [fn] completes.
-  R withPoolItem<R>({required R Function(T array) fn}) {
+  Future<R> withPoolItem<R>({required Future<R> Function(T array) fn}) async {
     final item = _acquire();
-    final r = fn(item);
-    _release(item);
-    return r;
+    try {
+      return await fn(item);
+    } finally {
+      _release(item);
+    }
   }
 
   /// Executes [fn] and provides a getter function that can be used to
   /// acquire new pool items while the [fn] is being executed. The
   /// acquired items will be released back to the pool after [fn] completes.
-  R withItemGetter<R>(R Function(T Function() itemFn) fn) {
+  Future<R> withItemGetter<R>(
+    Future<R> Function(T Function() itemFn) fn,
+  ) async {
     List<T>? items;
     T itemFn() {
       items ??= <T>[];
@@ -214,14 +220,15 @@ abstract class _AllocationPool<T> {
       return item;
     }
 
-    final r = fn(itemFn);
-
-    if (items != null) {
-      for (final item in items!) {
-        _release(item);
+    try {
+      return await fn(itemFn);
+    } finally {
+      if (items != null) {
+        for (final item in items!) {
+          _release(item);
+        }
       }
     }
-    return r;
   }
 }
 

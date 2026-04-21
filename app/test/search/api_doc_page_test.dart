@@ -50,7 +50,7 @@ void main() {
     });
 
     test('foo', () async {
-      final PackageSearchResult result = index.search(
+      final PackageSearchResult result = await index.search(
         ServiceSearchQuery.parse(query: 'foo', order: SearchOrder.text),
       );
       expect(json.decode(json.encode(result)), {
@@ -72,7 +72,7 @@ void main() {
     });
 
     test('serve', () async {
-      final PackageSearchResult result = index.search(
+      final PackageSearchResult result = await index.search(
         ServiceSearchQuery.parse(query: 'serve', order: SearchOrder.text),
       );
       expect(json.decode(json.encode(result)), {
@@ -93,7 +93,7 @@ void main() {
     });
 
     test('page generator', () async {
-      final PackageSearchResult result = index.search(
+      final PackageSearchResult result = await index.search(
         ServiceSearchQuery.parse(
           query: 'page generator',
           order: SearchOrder.text,
@@ -117,7 +117,7 @@ void main() {
     });
 
     test('web page', () async {
-      final PackageSearchResult result = index.search(
+      final PackageSearchResult result = await index.search(
         ServiceSearchQuery.parse(query: 'web page', order: SearchOrder.text),
       );
       expect(json.decode(json.encode(result)), {

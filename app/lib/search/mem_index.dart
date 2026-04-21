@@ -129,7 +129,7 @@ class InMemoryPackageIndex {
     );
   }
 
-  PackageSearchResult search(ServiceSearchQuery query) {
+  Future<PackageSearchResult> search(ServiceSearchQuery query) async {
     // prevent any work if offset is outside of the range
     if (query.offset >= _documents.length) {
       return PackageSearchResult.empty();
@@ -142,9 +142,9 @@ class InMemoryPackageIndex {
       );
     }
     return _bitArrayPool.withPoolItem(
-      fn: (array) {
-        return _scorePool.withItemGetter((scoreFn) {
-          return _search(query, array, scoreFn);
+      fn: (array) async {
+        return _scorePool.withItemGetter((scoreFn) async {
+          return await _search(query, array, scoreFn);
         });
       },
     );
@@ -220,11 +220,11 @@ class InMemoryPackageIndex {
     return packages.cardinality;
   }
 
-  PackageSearchResult _search(
+  Future<PackageSearchResult> _search(
     ServiceSearchQuery query,
     BitArray packages,
     IndexedScore Function() scoreFn,
-  ) {
+  ) async {
     _resetBitArray(packages, query.packages);
     final predicateFilterCount = _filterOnPredicates(query, packages);
     if (predicateFilterCount <= query.offset) {
@@ -242,7 +242,7 @@ class InMemoryPackageIndex {
 
     if (parsedQueryText != null && parsedQueryText.isNotEmpty) {
       packageScores = scoreFn();
-      textResults = _searchText(
+      textResults = await _searchText(
         packageScores,
         packages,
         parsedQueryText,
@@ -422,12 +422,12 @@ class InMemoryPackageIndex {
     }).toList();
   }
 
-  _TextResults _searchText(
+  Future<_TextResults> _searchText(
     IndexedScore packageScores,
     BitArray packages,
     String text, {
     required TextMatchExtent textMatchExtent,
-  }) {
+  }) async {
     final sw = Stopwatch()..start();
     final words = splitForQuery(text);
     if (words.isEmpty) {
@@ -463,8 +463,8 @@ class InMemoryPackageIndex {
     final matchApi = textMatchExtent.shouldMatchApi();
 
     for (final word in words) {
-      _scorePool.withPoolItem(
-        fn: (wordScore) {
+      await _scorePool.withPoolItem(
+        fn: (wordScore) async {
           _packageNameIndex.searchWord(
             word,
             score: wordScore,
@@ -472,10 +472,10 @@ class InMemoryPackageIndex {
           );
 
           if (matchDescription) {
-            _descrIndex.searchAndAccumulate(word, score: wordScore);
+            await _descrIndex.searchAndAccumulate(word, score: wordScore);
           }
           if (matchReadme) {
-            _readmeIndex.searchAndAccumulate(
+            await _readmeIndex.searchAndAccumulate(
               word,
               weight: 0.75,
               score: wordScore,
@@ -494,7 +494,9 @@ class InMemoryPackageIndex {
     if (matchApi) {
       const maxApiPageCount = 2;
       if (!checkAborted()) {
-        _apiSymbolIndex.withSearchWords(words, weight: 0.70, (symbolPages) {
+        await _apiSymbolIndex.withSearchWords(words, weight: 0.70, (
+          symbolPages,
+        ) async {
           for (var i = 0; i < symbolPages.length; i++) {
             final value = symbolPages.getValue(i);
             if (value < 0.01) continue;
