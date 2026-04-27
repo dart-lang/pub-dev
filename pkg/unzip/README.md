@@ -39,7 +39,7 @@ This package is a minimal implementation of the ZIP specification and does not s
 -   **Encryption**: Password-protected ZIP files are not supported.
 -   **Compression Methods**: Only **Store** (0) and **Deflate** (8) are supported.
 -   **Multi-disk Archives**: Split or spanned archives are not supported.
--   **Zip64 Support**: Basic support for reading Zip64 locators and headers is implemented, but full compliance with all Zip64 edge cases is not guaranteed.
+
 
 ## Attribution
 
