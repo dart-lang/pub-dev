@@ -76,6 +76,71 @@ void main() {
     );
     expect(String.fromCharCodes(contentBytes), equals('hello'));
   });
+
+  test('Test CRC32 mismatch', () async {
+    // A minimal ZIP file with one file `test.txt` containing "hello" (stored).
+    // But with wrong CRC32 in headers!
+    final zipBytes = Uint8List.fromList([
+      // Local File Header
+      0x50, 0x4b, 0x03, 0x04, // Signature
+      0x14, 0x00, // Version needed
+      0x00, 0x00, // Flags
+      0x00, 0x00, // Method (Store)
+      0x00, 0x00, 0x00, 0x00, // Time/Date
+      0x00, 0x00, 0x00, 0x00, // Wrong CRC32
+      0x05, 0x00, 0x00, 0x00, // Compressed Size (5)
+      0x05, 0x00, 0x00, 0x00, // Uncompressed Size (5)
+      0x08, 0x00, // Filename length (8)
+      0x00, 0x00, // Extra field length (0)
+      // Filename: test.txt
+      0x74, 0x65, 0x73, 0x74, 0x2e, 0x74, 0x78, 0x74,
+      // Data: hello
+      0x68, 0x65, 0x6c, 0x6c, 0x6f,
+
+      // Central Directory Header
+      0x50, 0x4b, 0x01, 0x02, // Signature
+      0x14, 0x00, // Creator version
+      0x14, 0x00, // Reader version
+      0x00, 0x00, // Flags
+      0x00, 0x00, // Method
+      0x00, 0x00, 0x00, 0x00, // Time/Date
+      0x00, 0x00, 0x00, 0x00, // Wrong CRC32
+      0x05, 0x00, 0x00, 0x00, // Compressed Size
+      0x05, 0x00, 0x00, 0x00, // Uncompressed Size
+      0x08, 0x00, // Filename length
+      0x00, 0x00, // Extra length
+      0x00, 0x00, // Comment length
+      0x00, 0x00, // Disk start
+      0x00, 0x00, // Internal attrs
+      0x00, 0x00, 0x00, 0x00, // External attrs
+      0x00, 0x00, 0x00, 0x00, // Local header offset (0)
+      // Filename: test.txt
+      0x74, 0x65, 0x73, 0x74, 0x2e, 0x74, 0x78, 0x74,
+
+      // End of Central Directory Record
+      0x50, 0x4b, 0x05, 0x06, // Signature
+      0x00, 0x00, // Disk number
+      0x00, 0x00, // Dir disk number
+      0x01, 0x00, // Records this disk
+      0x01, 0x00, // Records total
+      0x36, 0x00, 0x00, 0x00, // Dir size (54)
+      0x2b, 0x00, 0x00, 0x00, // Dir offset (43)
+      0x00, 0x00, // Comment length
+    ]);
+
+    final reader = MemoryReader(zipBytes);
+    final zipReader = ZipReader(reader);
+    await zipReader.init();
+
+    expect(zipReader.files.length, equals(1));
+    final f = zipReader.files[0];
+    
+    final contentStream = f.open();
+    expect(
+      contentStream.fold<List<int>>([], (a, b) => [...a, ...b]),
+      throwsA(isA<FormatException>()),
+    );
+  });
   // Adapted from https://github.com/golang/go/blob/85f838f46c2f22e7eb28352439259f570cd5c185/src/archive/zip/reader_test.go#L1078
   test('TestIssue8186', () {
     // Directory headers & data found in the TOC of a JAR file.
