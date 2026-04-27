@@ -1,0 +1,344 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Reader implementation for ZIP files, adapted from Go's archive/zip.
+
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:meta/meta.dart';
+
+import 'struct.dart';
+
+/// Abstract interface for random access reading, similar to Go's `io.ReaderAt`.
+abstract class RandomAccessReader {
+  /// Reads up to [count] bytes from the specified [position] into the given [buffer].
+  /// Returns the number of bytes read.
+  Future<int> readAt(int position, List<int> buffer, int count);
+
+  /// Returns the total length of the data source.
+  Future<int> get length;
+
+  /// Closes the reader and releases any associated resources.
+  Future<void> close();
+}
+
+/// Implementation of [RandomAccessReader] for a file.
+class FileReader implements RandomAccessReader {
+  final RandomAccessFile _file;
+  final int _length;
+
+  FileReader(this._file) : _length = _file.lengthSync();
+
+  @override
+  Future<int> readAt(int position, List<int> buffer, int count) async {
+    await _file.setPosition(position);
+    return await _file.readInto(buffer, 0, count);
+  }
+
+  @override
+  Future<int> get length async => _length;
+
+  @override
+  Future<void> close() async {
+    await _file.close();
+  }
+}
+
+/// Implementation of [RandomAccessReader] for a memory buffer.
+class MemoryReader implements RandomAccessReader {
+  final Uint8List _buffer;
+
+  MemoryReader(this._buffer);
+
+  /// Reads bytes from the memory buffer.
+  /// Throws [ArgumentError] if [position] is negative.
+  @override
+  Future<int> readAt(int position, List<int> buffer, int count) async {
+    if (position < 0) throw ArgumentError('Negative position not allowed');
+    if (position >= _buffer.length) return 0;
+    int end = position + count;
+    if (end > _buffer.length) end = _buffer.length;
+    final int read = end - position;
+    buffer.setRange(0, read, _buffer, position);
+    return read;
+  }
+
+  @override
+  Future<int> get length async => _buffer.length;
+
+  @override
+  Future<void> close() async {
+    // Nothing to close.
+  }
+}
+
+/// A [ZipReader] provides content from a ZIP archive.
+class ZipReader {
+  final RandomAccessReader _reader;
+  final List<ZipFile> files = [];
+  String comment = '';
+
+  ZipReader(this._reader);
+
+  /// Closes the reader and releases any associated resources.
+  Future<void> close() async {
+    await _reader.close();
+  }
+
+  /// Opens a ZIP file from a path.
+  ///
+  /// Throws [ArgumentError] if [path] is null.
+  /// Throws [FileSystemException] if the file cannot be opened.
+  /// Throws [FormatException] if the file is not a valid ZIP file.
+  static Future<ZipReader> open(String path) async {
+    final file = File(path);
+    final raf = await file.open();
+    final reader = FileReader(raf);
+    final zipReader = ZipReader(reader);
+    await zipReader.init();
+    return zipReader;
+  }
+
+  /// Initializes the reader by reading the central directory.
+  /// This must be called before accessing files.
+  ///
+  /// Throws [FormatException] if the file is too short, if the directory end record
+  /// is not found, or if any signature is invalid.
+  /// Throws [Exception] if reading from the source fails.
+  Future<void> init() async {
+    await _readDirectory();
+  }
+
+  Future<void> _readDirectory() async {
+    final int size = await _reader.length;
+    if (size < ZipConstants.directoryEndLen) {
+      throw FormatException('Not a valid zip file (too short)');
+    }
+
+    // Search for directory end signature in the last 1K, then last 65K.
+    int dirEndOffset = -1;
+    Uint8List? buf;
+    for (int bLen in [1024, 65535]) {
+      if (bLen > size) bLen = size;
+      buf = Uint8List(bLen);
+      final int read = await _reader.readAt(size - bLen, buf, bLen);
+      if (read != bLen) {
+        throw Exception('Failed to read file end');
+      }
+
+      dirEndOffset = _findSignatureInBlock(buf);
+      if (dirEndOffset >= 0) {
+        dirEndOffset += (size - bLen);
+        break;
+      }
+      if (bLen == size) break;
+    }
+
+    if (dirEndOffset < 0) {
+      throw FormatException('Zip directory end not found');
+    }
+
+    // Read directory end record.
+    final Uint8List dirEndBuf = Uint8List(ZipConstants.directoryEndLen);
+    await _reader.readAt(dirEndOffset, dirEndBuf, ZipConstants.directoryEndLen);
+    final ByteData bd = ByteData.view(dirEndBuf.buffer);
+
+    // Verify signature.
+    if (bd.getUint32(0, Endian.little) != ZipConstants.directoryEndSignature) {
+      throw FormatException('Invalid directory end signature');
+    }
+
+    final int directoryRecords = bd.getUint16(10, Endian.little);
+    final int directorySize = bd.getUint32(12, Endian.little);
+    final int directoryOffset = bd.getUint32(16, Endian.little);
+    final int commentLen = bd.getUint16(20, Endian.little);
+
+    if (commentLen > 0) {
+      final Uint8List commentBuf = Uint8List(commentLen);
+      await _reader.readAt(
+        dirEndOffset + ZipConstants.directoryEndLen,
+        commentBuf,
+        commentLen,
+      );
+      comment = String.fromCharCodes(commentBuf);
+    }
+
+    final int baseOffset = dirEndOffset - directorySize - directoryOffset;
+
+    // Read central directory headers.
+    int offset = baseOffset + directoryOffset;
+    for (int i = 0; i < directoryRecords; i++) {
+      final FileHeader header = await readDirectoryHeader(_reader, offset);
+      files.add(
+        ZipFile(header, _reader, baseOffset + header.localHeaderOffset),
+      );
+      offset +=
+          ZipConstants.directoryHeaderLen +
+          header.name.length +
+          header.extra.length +
+          header.comment.length;
+    }
+  }
+
+  @visibleForTesting
+  static Future<FileHeader> readDirectoryHeader(
+    RandomAccessReader reader,
+    int offset,
+  ) async {
+    if (offset < 0) throw ArgumentError('Negative offset not allowed');
+    final Uint8List headerBuf = Uint8List(ZipConstants.directoryHeaderLen);
+    await reader.readAt(offset, headerBuf, ZipConstants.directoryHeaderLen);
+    final ByteData hbd = ByteData.view(headerBuf.buffer);
+
+    if (hbd.getUint32(0, Endian.little) !=
+        ZipConstants.directoryHeaderSignature) {
+      throw FormatException('Invalid directory header signature at $offset');
+    }
+
+    final int creatorVersion = hbd.getUint16(4, Endian.little);
+    final int readerVersion = hbd.getUint16(6, Endian.little);
+    final int flags = hbd.getUint16(8, Endian.little);
+    final int method = hbd.getUint16(10, Endian.little);
+    final int crc32 = hbd.getUint32(16, Endian.little);
+    final int compressedSize = hbd.getUint32(20, Endian.little);
+    final int uncompressedSize = hbd.getUint32(24, Endian.little);
+    final int filenameLen = hbd.getUint16(28, Endian.little);
+    final int extraLen = hbd.getUint16(30, Endian.little);
+    final int commentLen = hbd.getUint16(32, Endian.little);
+    final int externalAttrs = hbd.getUint32(38, Endian.little);
+    final int localHeaderOffset = hbd.getUint32(42, Endian.little);
+
+    final Uint8List nameBuf = Uint8List(filenameLen);
+    await reader.readAt(
+      offset + ZipConstants.directoryHeaderLen,
+      nameBuf,
+      filenameLen,
+    );
+    final String name;
+    if ((flags & 0x800) != 0) {
+      name = utf8.decode(nameBuf);
+    } else {
+      name = String.fromCharCodes(nameBuf);
+    }
+
+    if (name.startsWith('../') || name.contains('/../')) {
+      throw Exception('Insecure file path: $name');
+    }
+
+    final Uint8List extraBuf = Uint8List(extraLen);
+    await reader.readAt(
+      offset + ZipConstants.directoryHeaderLen + filenameLen,
+      extraBuf,
+      extraLen,
+    );
+
+    final Uint8List commentBuf = Uint8List(commentLen);
+    await reader.readAt(
+      offset + ZipConstants.directoryHeaderLen + filenameLen + extraLen,
+      commentBuf,
+      commentLen,
+    );
+    final String comment = String.fromCharCodes(commentBuf);
+
+    return FileHeader(
+      name: name,
+      comment: comment,
+      creatorVersion: creatorVersion,
+      readerVersion: readerVersion,
+      flags: flags,
+      method: method,
+      crc32: crc32,
+      compressedSize: compressedSize,
+      uncompressedSize: uncompressedSize,
+      externalAttrs: externalAttrs,
+      localHeaderOffset: localHeaderOffset,
+      extra: extraBuf,
+      compressedSize64: compressedSize, // TODO: Handle Zip64
+      uncompressedSize64: uncompressedSize, // TODO: Handle Zip64
+    );
+  }
+
+  int _findSignatureInBlock(Uint8List buf) {
+    // Search from end for directoryEndSignature (0x06054b50 -> P K 0x05 0x06)
+    for (int i = buf.length - ZipConstants.directoryEndLen; i >= 0; i--) {
+      if (buf[i] == 0x50 &&
+          buf[i + 1] == 0x4b &&
+          buf[i + 2] == 0x05 &&
+          buf[i + 3] == 0x06) {
+        // Read comment length (last 2 bytes of the 22-byte header).
+        final int commentLen =
+            buf[i + ZipConstants.directoryEndLen - 2] |
+            (buf[i + ZipConstants.directoryEndLen - 1] << 8);
+        if (i + ZipConstants.directoryEndLen + commentLen > buf.length) {
+          // Truncated comment.
+          return -1;
+        }
+        return i;
+      }
+    }
+    return -1;
+  }
+}
+
+/// A [ZipFile] is a single file in a ZIP archive.
+/// The file information is in the embedded [FileHeader].
+/// The file content can be accessed by calling [open].
+class ZipFile {
+  final FileHeader header;
+  final RandomAccessReader _reader;
+  final int _localHeaderOffset;
+
+  ZipFile(this.header, this._reader, this._localHeaderOffset);
+
+  /// Returns a stream of the file contents.
+  ///
+  /// Throws [FormatException] if the compression method is unsupported or if the
+  /// local header signature is invalid.
+  Stream<List<int>> open() {
+    final Stream<List<int>> rawStream = _openRaw().cast<List<int>>();
+    if (header.method == ZipConstants.deflate) {
+      return rawStream.transform(ZLibDecoder(raw: true));
+    } else if (header.method == ZipConstants.store) {
+      return rawStream;
+    } else {
+      throw FormatException('Unsupported compression method: ${header.method}');
+    }
+  }
+
+  Stream<Uint8List> _openRaw() async* {
+    // Read local header.
+    final Uint8List buf = Uint8List(ZipConstants.fileHeaderLen);
+    await _reader.readAt(_localHeaderOffset, buf, ZipConstants.fileHeaderLen);
+    final ByteData bd = ByteData.view(buf.buffer);
+
+    if (bd.getUint32(0, Endian.little) != ZipConstants.fileHeaderSignature) {
+      throw FormatException('Invalid local file header signature');
+    }
+
+    final int filenameLen = bd.getUint16(26, Endian.little);
+    final int extraLen = bd.getUint16(28, Endian.little);
+
+    final int bodyOffset =
+        _localHeaderOffset +
+        ZipConstants.fileHeaderLen +
+        filenameLen +
+        extraLen;
+    int remaining = header.compressedSize64;
+    int offset = bodyOffset;
+    final int chunkSize = 4096;
+
+    while (remaining > 0) {
+      final int toRead = remaining < chunkSize ? remaining : chunkSize;
+      final Uint8List chunk = Uint8List(toRead);
+      final int read = await _reader.readAt(offset, chunk, toRead);
+      if (read != toRead) {
+        throw Exception('Failed to read file content');
+      }
+      yield chunk;
+      remaining -= read;
+      offset += read;
+    }
+  }
+}
