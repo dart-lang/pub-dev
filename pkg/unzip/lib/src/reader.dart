@@ -80,7 +80,7 @@ class MemoryReader implements RandomAccessReader {
 }
 
 /// A [ZipReader] provides content from a ZIP archive.
-class ZipReader {
+final class ZipReader {
   final RandomAccessReader _reader;
   final List<ZipFile> files = [];
   String comment = '';
@@ -97,8 +97,8 @@ class ZipReader {
   /// Throws [FileSystemException] if the file cannot be opened.
   /// Throws [FormatException] if the file is not a valid ZIP file.
   static Future<ZipReader> openFile(File file) async {
-    final raf = await file.open();
-    final reader = FileReader(raf);
+    final randomAccessFile = await file.open();
+    final reader = FileReader(randomAccessFile);
     final zipReader = ZipReader(reader);
     await zipReader.init();
     return zipReader;
@@ -293,7 +293,7 @@ class ZipReader {
 /// A [ZipFile] is a single file in a ZIP archive.
 /// The file information is in the embedded [FileHeader].
 /// The file content can be accessed by calling [open].
-class ZipFile {
+final class ZipFile {
   final FileHeader header;
   final RandomAccessReader _reader;
   final int _localHeaderOffset;
@@ -427,7 +427,7 @@ class _Crc32Transformer extends StreamTransformerBase<List<int>, List<int>> {
 }
 
 /// Exception thrown when a ZIP file is malformed or not in the expected format.
-class ZipFormatException implements FormatException {
+final class ZipFormatException implements FormatException {
   @override
   final String message;
   @override

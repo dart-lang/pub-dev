@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Constants and structures for ZIP files, adapted from Go's archive/zip.
+/// Constants and structures for ZIP files.
+///
+/// Adapted from Go's `archive/zip`.
+library;
 
-class ZipConstants {
+abstract final class ZipConstants {
   static const int fileHeaderSignature = 0x04034b50;
   static const int directoryHeaderSignature = 0x02014b50;
   static const int directoryEndSignature = 0x06054b50;
@@ -27,7 +30,7 @@ class ZipConstants {
 
 /// [FileHeader] describes a file within a ZIP file.
 /// See the [ZIP specification](https://support.pkware.com/pkzip/appnote) for details.
-class FileHeader {
+final class FileHeader {
   /// Name of the file.
   ///
   /// It must be a relative path, not start with a drive letter (such as "C:"),
