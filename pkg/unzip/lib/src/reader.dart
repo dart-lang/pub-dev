@@ -5,6 +5,7 @@
 // Reader implementation for ZIP files, adapted from Go's archive/zip.
 
 import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:meta/meta.dart';
@@ -298,13 +299,15 @@ class ZipFile {
   /// local header signature is invalid.
   Stream<List<int>> open() {
     final Stream<List<int>> rawStream = _openRaw().cast<List<int>>();
+    final Stream<List<int>> inflatedStream;
     if (header.method == ZipConstants.deflate) {
-      return rawStream.transform(ZLibDecoder(raw: true));
+      inflatedStream = rawStream.transform(ZLibDecoder(raw: true));
     } else if (header.method == ZipConstants.store) {
-      return rawStream;
+      inflatedStream = rawStream;
     } else {
       throw FormatException('Unsupported compression method: ${header.method}');
     }
+    return inflatedStream.transform(_Crc32Transformer(header.crc32));
   }
 
   Stream<Uint8List> _openRaw() async* {
@@ -340,5 +343,72 @@ class ZipFile {
       remaining -= read;
       offset += read;
     }
+  }
+}
+class _Crc32 {
+  static final List<int> _table = _generateTable();
+
+  static List<int> _generateTable() {
+    final table = List<int>.filled(256, 0);
+    for (int i = 0; i < 256; i++) {
+      int c = i;
+      for (int j = 0; j < 8; j++) {
+        if ((c & 1) != 0) {
+          c = 0xEDB88320 ^ (c >> 1);
+        } else {
+          c = c >> 1;
+        }
+      }
+      table[i] = c;
+    }
+    return table;
+  }
+
+  int _crc = 0xFFFFFFFF;
+
+  void update(List<int> bytes) {
+    for (int byte in bytes) {
+      _crc = (_crc >> 8) ^ _table[(_crc ^ byte) & 0xFF];
+    }
+  }
+
+  int get value => _crc ^ 0xFFFFFFFF;
+}
+
+class _Crc32Transformer extends StreamTransformerBase<List<int>, List<int>> {
+  final int expectedCrc;
+
+  _Crc32Transformer(this.expectedCrc);
+
+  @override
+  Stream<List<int>> bind(Stream<List<int>> stream) {
+    late StreamController<List<int>> controller;
+    late StreamSubscription<List<int>> subscription;
+    final crc = _Crc32();
+
+    controller = StreamController<List<int>>(
+      onListen: () {
+        subscription = stream.listen(
+          (data) {
+            crc.update(data);
+            controller.add(data);
+          },
+          onError: controller.addError,
+          onDone: () {
+            if (crc.value != expectedCrc) {
+              controller.addError(FormatException(
+                  'CRC32 checksum mismatch: expected 0x${expectedCrc.toRadixString(16)}, got 0x${crc.value.toRadixString(16)}'));
+            }
+            controller.close();
+          },
+          cancelOnError: true,
+        );
+      },
+      onPause: () => subscription.pause(),
+      onResume: () => subscription.resume(),
+      onCancel: () => subscription.cancel(),
+    );
+
+    return controller.stream;
   }
 }
