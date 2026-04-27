@@ -14,7 +14,6 @@ abstract final class ZipConstants {
   static const int directory64LocSignature = 0x07064b50;
   static const int directory64EndSignature = 0x06064b50;
   static const int dataDescriptorSignature = 0x08074b50;
-  static const int zip64ExtraId = 0x0001;
 
   static const int fileHeaderLen = 30;
   static const int directoryHeaderLen = 46;
