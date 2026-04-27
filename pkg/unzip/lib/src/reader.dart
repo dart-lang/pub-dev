@@ -58,6 +58,7 @@ final class MemoryReader implements RandomAccessReader {
   MemoryReader(this._buffer);
 
   /// Reads bytes from the memory buffer.
+  ///
   /// Throws [ArgumentError] if [position] is negative.
   @override
   Future<int> readAt(int position, List<int> buffer, int count) async {

@@ -114,5 +114,3 @@ final class FileHeader {
     this.localHeaderOffset = 0,
   });
 }
-
-
