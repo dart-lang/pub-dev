@@ -14,6 +14,7 @@ import 'package:meta/meta.dart';
 import 'struct.dart';
 
 /// Abstract interface for random access reading, similar to Go's `io.ReaderAt`.
+@visibleForTesting
 abstract class RandomAccessReader {
   /// Reads up to [count] bytes from the specified [position] into the given [buffer].
   /// Returns the number of bytes read.
@@ -27,6 +28,7 @@ abstract class RandomAccessReader {
 }
 
 /// Implementation of [RandomAccessReader] for a file.
+@visibleForTesting
 class FileReader implements RandomAccessReader {
   final RandomAccessFile _file;
   final int _length;
@@ -49,6 +51,7 @@ class FileReader implements RandomAccessReader {
 }
 
 /// Implementation of [RandomAccessReader] for a memory buffer.
+@visibleForTesting
 class MemoryReader implements RandomAccessReader {
   final Uint8List _buffer;
 

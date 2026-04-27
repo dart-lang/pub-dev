@@ -112,24 +112,4 @@ class FileHeader {
   });
 }
 
-class DirectoryEnd {
-  int diskNbr;
-  int dirDiskNbr;
-  int dirRecordsThisDisk;
-  int directoryRecords;
-  int directorySize;
-  int directoryOffset;
-  int commentLen;
-  String comment;
 
-  DirectoryEnd({
-    this.diskNbr = 0,
-    this.dirDiskNbr = 0,
-    this.dirRecordsThisDisk = 0,
-    this.directoryRecords = 0,
-    this.directorySize = 0,
-    this.directoryOffset = 0,
-    this.commentLen = 0,
-    this.comment = '',
-  });
-}

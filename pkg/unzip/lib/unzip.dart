@@ -6,5 +6,5 @@ import 'src/reader.dart' show ZipReader;
 
 /// Provides stream-based reading of ZIP archives through [ZipReader].
 export 'src/reader.dart'
-    show ZipReader, ZipFile, RandomAccessReader, ZipFormatException;
+    show ZipReader, ZipFile, ZipFormatException;
 export 'src/struct.dart' show FileHeader;

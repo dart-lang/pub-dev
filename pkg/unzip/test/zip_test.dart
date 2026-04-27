@@ -61,8 +61,7 @@ void main() {
       0x00, 0x00, // Comment length
     ]);
 
-    final reader = MemoryReader(zipBytes);
-    final zipReader = ZipReader(reader);
+    final zipReader = ZipReader.fromBytes(zipBytes);
     await zipReader.init();
 
     expect(zipReader.files.length, equals(1));
@@ -128,8 +127,7 @@ void main() {
       0x00, 0x00, // Comment length
     ]);
 
-    final reader = MemoryReader(zipBytes);
-    final zipReader = ZipReader(reader);
+    final zipReader = ZipReader.fromBytes(zipBytes);
     await zipReader.init();
 
     expect(zipReader.files.length, equals(1));
