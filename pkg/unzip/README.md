@@ -8,6 +8,7 @@ A ZIP archive reader for Dart with no runtime dependencies.
 -   Support for Deflate and Store compression methods.
 -   No external dependencies (uses `dart:io` for decompression).
 -   Supports both file-based and memory-based reading via `RandomAccessReader` interface.
+-   Support for Zip64 format.
 
 ## Usage
 
