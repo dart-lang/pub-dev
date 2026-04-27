@@ -4,10 +4,11 @@
 
 // Reader implementation for ZIP files, adapted from Go's archive/zip.
 
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:meta/meta.dart';
 
 import 'struct.dart';
@@ -18,7 +19,7 @@ abstract class RandomAccessReader {
   /// Returns the number of bytes read.
   Future<int> readAt(int position, List<int> buffer, int count);
 
-  /// Returns the total length of the data source.
+  /// The total length of the data source.
   Future<int> get length;
 
   /// Closes the reader and releases any associated resources.
@@ -83,9 +84,9 @@ class ZipReader {
 
   ZipReader(this._reader);
 
-  /// Closes the reader and releases any associated resources.
-  Future<void> close() async {
-    await _reader.close();
+  /// Convenience constructor for in-memory ZIP data.
+  factory ZipReader.fromBytes(Uint8List bytes) {
+    return ZipReader(MemoryReader(bytes));
   }
 
   /// Opens a ZIP file from a path.
@@ -102,6 +103,20 @@ class ZipReader {
     return zipReader;
   }
 
+  /// Convenience factory to open a ZIP file from a [File].
+  static Future<ZipReader> fromFile(File file) async {
+    final raf = await file.open();
+    final reader = FileReader(raf);
+    final zipReader = ZipReader(reader);
+    await zipReader.init();
+    return zipReader;
+  }
+
+  /// Closes the reader and releases any associated resources.
+  Future<void> close() async {
+    await _reader.close();
+  }
+
   /// Initializes the reader by reading the central directory.
   /// This must be called before accessing files.
   ///
@@ -115,7 +130,7 @@ class ZipReader {
   Future<void> _readDirectory() async {
     final int size = await _reader.length;
     if (size < ZipConstants.directoryEndLen) {
-      throw FormatException('Not a valid zip file (too short)');
+      throw ZipFormatException('Not a valid zip file (too short)');
     }
 
     // Search for directory end signature in the last 1K, then last 65K.
@@ -138,7 +153,7 @@ class ZipReader {
     }
 
     if (dirEndOffset < 0) {
-      throw FormatException('Zip directory end not found');
+      throw ZipFormatException('Zip directory end not found');
     }
 
     // Read directory end record.
@@ -148,7 +163,7 @@ class ZipReader {
 
     // Verify signature.
     if (bd.getUint32(0, Endian.little) != ZipConstants.directoryEndSignature) {
-      throw FormatException('Invalid directory end signature');
+      throw ZipFormatException('Invalid directory end signature');
     }
 
     final int directoryRecords = bd.getUint16(10, Endian.little);
@@ -195,7 +210,7 @@ class ZipReader {
 
     if (hbd.getUint32(0, Endian.little) !=
         ZipConstants.directoryHeaderSignature) {
-      throw FormatException('Invalid directory header signature at $offset');
+      throw ZipFormatException('Invalid directory header signature at $offset');
     }
 
     final int creatorVersion = hbd.getUint16(4, Endian.little);
@@ -225,7 +240,7 @@ class ZipReader {
     }
 
     if (name.startsWith('../') || name.contains('/../')) {
-      throw Exception('Insecure file path: $name');
+      throw ZipFormatException('Insecure file path: $name');
     }
 
     final Uint8List extraBuf = Uint8List(extraLen);
@@ -305,7 +320,9 @@ class ZipFile {
     } else if (header.method == ZipConstants.store) {
       inflatedStream = rawStream;
     } else {
-      throw FormatException('Unsupported compression method: ${header.method}');
+      throw ZipFormatException(
+        'Unsupported compression method: ${header.method}',
+      );
     }
     return inflatedStream.transform(_Crc32Transformer(header.crc32));
   }
@@ -317,7 +334,7 @@ class ZipFile {
     final ByteData bd = ByteData.view(buf.buffer);
 
     if (bd.getUint32(0, Endian.little) != ZipConstants.fileHeaderSignature) {
-      throw FormatException('Invalid local file header signature');
+      throw ZipFormatException('Invalid local file header signature');
     }
 
     final int filenameLen = bd.getUint16(26, Endian.little);
@@ -345,6 +362,7 @@ class ZipFile {
     }
   }
 }
+
 class _Crc32 {
   static final List<int> _table = _generateTable();
 
@@ -367,7 +385,7 @@ class _Crc32 {
   int _crc = 0xFFFFFFFF;
 
   void update(List<int> bytes) {
-    for (int byte in bytes) {
+    for (final int byte in bytes) {
       _crc = (_crc >> 8) ^ _table[(_crc ^ byte) & 0xFF];
     }
   }
@@ -396,8 +414,11 @@ class _Crc32Transformer extends StreamTransformerBase<List<int>, List<int>> {
           onError: controller.addError,
           onDone: () {
             if (crc.value != expectedCrc) {
-              controller.addError(FormatException(
-                  'CRC32 checksum mismatch: expected 0x${expectedCrc.toRadixString(16)}, got 0x${crc.value.toRadixString(16)}'));
+              controller.addError(
+                ZipFormatException(
+                  'CRC32 checksum mismatch: expected 0x${expectedCrc.toRadixString(16)}, got 0x${crc.value.toRadixString(16)}',
+                ),
+              );
             }
             controller.close();
           },
@@ -411,4 +432,19 @@ class _Crc32Transformer extends StreamTransformerBase<List<int>, List<int>> {
 
     return controller.stream;
   }
+}
+
+/// Exception thrown when a ZIP file is malformed or not in the expected format.
+class ZipFormatException implements FormatException {
+  @override
+  final String message;
+  @override
+  final dynamic source;
+  @override
+  final int? offset;
+
+  ZipFormatException(this.message, {this.source, this.offset});
+
+  @override
+  String toString() => 'ZipFormatException: $message';
 }

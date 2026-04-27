@@ -7,7 +7,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
-import 'package:unzip/unzip.dart';
+import 'package:unzip/src/reader.dart';
 
 void main() {
   test('Read simple zip in memory', () async {
@@ -67,7 +67,7 @@ void main() {
 
     expect(zipReader.files.length, equals(1));
     expect(zipReader.files[0].header.name, equals('test.txt'));
-    expect(zipReader.files[0].header.compressedSize, equals(5));
+    expect(zipReader.files[0].header.compressedSize64, equals(5));
 
     final contentStream = zipReader.files[0].open();
     final contentBytes = await contentStream.fold<List<int>>(

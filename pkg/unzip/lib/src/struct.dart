@@ -33,64 +33,64 @@ class FileHeader {
   /// It must be a relative path, not start with a drive letter (such as "C:"),
   /// and must use forward slashes instead of back slashes. A trailing slash
   /// indicates that this file is a directory and should have no data.
-  String name;
+  final String name;
 
   /// Arbitrary user-defined string shorter than 64KiB.
-  String comment;
+  final String comment;
 
   /// Indicates that Name and Comment are not encoded in UTF-8.
   ///
   /// By specification, the only other encoding permitted should be CP-437,
   /// but historically many ZIP readers interpret Name and Comment as whatever
   /// the system's local character encoding happens to be.
-  bool nonUTF8;
+  final bool nonUTF8;
 
   /// The ZIP specification version and the operating system used to create the
   /// file. The upper byte indicates the system (e.g., 0 for FAT/MS-DOS, 3 for
   /// Unix, 19 for macOS), and the lower byte indicates the ZIP specification
   /// version (e.g., 20 for 2.0).
-  int creatorVersion;
+  final int creatorVersion;
 
   /// The minimum ZIP specification version needed to extract this file (e.g.,
   /// 20 for 2.0, 45 for Zip64).
-  int readerVersion;
+  final int readerVersion;
 
   /// General purpose bit flag (e.g., bit 11 for UTF-8 encoding).
-  int flags;
+  final int flags;
 
   /// Compression method used (e.g., 0 for Store, 8 for Deflate).
-  int method;
+  final int method;
 
   /// Modified time of the file.
   ///
   /// When reading, an extended timestamp is preferred over the legacy MS-DOS
   /// date field, and the offset between the times is used as the timezone.
   /// If only the MS-DOS date is present, the timezone is assumed to be UTC.
-  DateTime? modified;
+  final DateTime? modified;
 
   /// CRC32 checksum of the file content.
-  int crc32;
+  final int crc32;
 
   /// Compressed size of the file in bytes (32-bit).
-  int compressedSize;
+  final int compressedSize;
 
   /// Uncompressed size of the file in bytes (32-bit).
-  int uncompressedSize;
+  final int uncompressedSize;
 
   /// Compressed size of the file in bytes (64-bit).
-  int compressedSize64;
+  final int compressedSize64;
 
   /// Uncompressed size of the file in bytes (64-bit).
-  int uncompressedSize64;
+  final int uncompressedSize64;
 
   /// Extra field data (e.g., for high-precision timestamps or Zip64).
-  List<int> extra;
+  final List<int> extra;
 
   /// Meaning depends on CreatorVersion.
-  int externalAttrs;
+  final int externalAttrs;
 
   /// Offset of the local file header from the start of the ZIP file.
-  int localHeaderOffset;
+  final int localHeaderOffset;
 
   FileHeader({
     required this.name,
