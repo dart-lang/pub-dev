@@ -31,6 +31,16 @@ void main() async {
 }
 ```
 
+## Limitations
+
+This package is a minimal implementation of the ZIP specification and does not support all features:
+
+-   **Read-Only**: It does not support creating or modifying ZIP archives.
+-   **Encryption**: Password-protected ZIP files are not supported.
+-   **Compression Methods**: Only **Store** (0) and **Deflate** (8) are supported.
+-   **Multi-disk Archives**: Split or spanned archives are not supported.
+-   **Zip64 Support**: Basic support for reading Zip64 locators and headers is implemented, but full compliance with all Zip64 edge cases is not guaranteed.
+
 ## Attribution
 
 This package is an adaptation of the Go standard library's `archive/zip` package.
