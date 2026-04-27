@@ -189,8 +189,11 @@ final class ZipReader {
           dirRecordsThisDisk,
           dirRecords,
           newDirSize,
-          dirOffset
-        ) = await _readDirectory64End(_reader, p);
+          dirOffset,
+        ) = await _readDirectory64End(
+          _reader,
+          p,
+        );
         dirEndOffset = p;
         records = dirRecords;
         dirSize = newDirSize;
@@ -327,15 +330,20 @@ final class ZipReader {
     }
     return -1;
   }
-  Future<int> _findDirectory64End(RandomAccessReader reader, int directoryEndOffset) async {
+
+  Future<int> _findDirectory64End(
+    RandomAccessReader reader,
+    int directoryEndOffset,
+  ) async {
     final int locOffset = directoryEndOffset - 20; // directory64LocLen is 20
     if (locOffset < 0) return -1;
-    
+
     final Uint8List buf = Uint8List(20);
     await reader.readAt(locOffset, buf, 20);
     final ByteData bd = ByteData.view(buf.buffer);
-    
-    if (bd.getUint32(0, Endian.little) != ZipConstants.directory64LocSignature) {
+
+    if (bd.getUint32(0, Endian.little) !=
+        ZipConstants.directory64LocSignature) {
       return -1;
     }
     if (bd.getUint32(4, Endian.little) != 0) {
@@ -348,15 +356,19 @@ final class ZipReader {
     return p;
   }
 
-  Future<(int, int, int, int, int, int)> _readDirectory64End(RandomAccessReader reader, int offset) async {
+  Future<(int, int, int, int, int, int)> _readDirectory64End(
+    RandomAccessReader reader,
+    int offset,
+  ) async {
     final Uint8List buf = Uint8List(56); // directory64EndLen is 56
     await reader.readAt(offset, buf, 56);
     final ByteData bd = ByteData.view(buf.buffer);
-    
-    if (bd.getUint32(0, Endian.little) != ZipConstants.directory64EndSignature) {
+
+    if (bd.getUint32(0, Endian.little) !=
+        ZipConstants.directory64EndSignature) {
       throw ZipFormatException('Invalid zip64 directory end signature');
     }
-    
+
     final int diskNbr = bd.getUint32(16, Endian.little);
     final int dirDiskNbr = bd.getUint32(20, Endian.little);
     final int dirRecordsThisDisk = bd.getUint64(24, Endian.little);
@@ -366,8 +378,15 @@ final class ZipReader {
     final int directoryRecords = bd.getUint64(32, Endian.little);
     final int directorySize = bd.getUint64(40, Endian.little);
     final int directoryOffset = bd.getUint64(48, Endian.little);
-    
-    return (diskNbr, dirDiskNbr, dirRecordsThisDisk, directoryRecords, directorySize, directoryOffset);
+
+    return (
+      diskNbr,
+      dirDiskNbr,
+      dirRecordsThisDisk,
+      directoryRecords,
+      directorySize,
+      directoryOffset,
+    );
   }
 }
 
