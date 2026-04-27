@@ -134,11 +134,17 @@ void main() {
 
     expect(zipReader.files.length, equals(1));
     final f = zipReader.files[0];
-    
+
     final contentStream = f.open();
     expect(
       contentStream.fold<List<int>>([], (a, b) => [...a, ...b]),
-      throwsA(isA<FormatException>()),
+      throwsA(
+        isA<FormatException>().having(
+          (x) => x.message,
+          'message',
+          contains('CRC32 checksum mismatch'),
+        ),
+      ),
     );
   });
   // Adapted from https://github.com/golang/go/blob/85f838f46c2f22e7eb28352439259f570cd5c185/src/archive/zip/reader_test.go#L1078
