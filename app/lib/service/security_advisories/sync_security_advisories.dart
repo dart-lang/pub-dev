@@ -26,7 +26,7 @@ Future<void> fetchAdvisories(Directory targetDir) async {
   zipFile.writeAsBytesSync(bytes);
 
   final zipReader = await ZipReader.open(zipFile.path);
-  
+
   int totalUncompressedSize = 0;
   final maxTotalSize = 100 * 1024 * 1024; // 100 MB
   final maxFileSize = 10 * 1024 * 1024; // 10 MB
@@ -35,18 +35,18 @@ Future<void> fetchAdvisories(Directory targetDir) async {
     for (final f in zipReader.files) {
       final usize = f.header.uncompressedSize64;
       totalUncompressedSize += usize;
-      
+
       if (usize > maxFileSize) {
         throw Exception('File ${f.header.name} exceeds maximum allowed size');
       }
       if (totalUncompressedSize > maxTotalSize) {
         throw Exception('Archive exceeds maximum total uncompressed size');
       }
-      
+
       final destFile = File(path.join(targetDir.path, f.header.name));
       // Ensure parent directories exist.
       await destFile.parent.create(recursive: true);
-      
+
       final stream = f.open();
       final sink = destFile.openWrite();
       await sink.addStream(stream);
