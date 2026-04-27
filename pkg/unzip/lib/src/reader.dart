@@ -174,11 +174,35 @@ final class ZipReader {
       comment = String.fromCharCodes(commentBuf);
     }
 
-    final int baseOffset = dirEndOffset - directorySize - directoryOffset;
+    int records = directoryRecords;
+    int dirSize = directorySize;
+    int off = directoryOffset;
+
+    if (directoryRecords == 0xffff ||
+        directorySize == 0xffff ||
+        directoryOffset == 0xffffffff) {
+      final int p = await _findDirectory64End(_reader, dirEndOffset);
+      if (p >= 0) {
+        final (
+          diskNbr,
+          dirDiskNbr,
+          dirRecordsThisDisk,
+          dirRecords,
+          newDirSize,
+          dirOffset
+        ) = await _readDirectory64End(_reader, p);
+        dirEndOffset = p;
+        records = dirRecords;
+        dirSize = newDirSize;
+        off = dirOffset;
+      }
+    }
+
+    final int baseOffset = dirEndOffset - dirSize - off;
 
     // Read central directory headers.
-    int offset = baseOffset + directoryOffset;
-    for (int i = 0; i < directoryRecords; i++) {
+    int offset = baseOffset + off;
+    for (int i = 0; i < records; i++) {
       final FileHeader header = await readDirectoryHeader(_reader, offset);
       files.add(
         ZipFile(header, _reader, baseOffset + header.localHeaderOffset),
@@ -288,6 +312,45 @@ final class ZipReader {
       }
     }
     return -1;
+  }
+  Future<int> _findDirectory64End(RandomAccessReader reader, int directoryEndOffset) async {
+    final int locOffset = directoryEndOffset - 20; // directory64LocLen is 20
+    if (locOffset < 0) return -1;
+    
+    final Uint8List buf = Uint8List(20);
+    await reader.readAt(locOffset, buf, 20);
+    final ByteData bd = ByteData.view(buf.buffer);
+    
+    if (bd.getUint32(0, Endian.little) != ZipConstants.directory64LocSignature) {
+      return -1;
+    }
+    if (bd.getUint32(4, Endian.little) != 0) {
+      return -1;
+    }
+    final int p = bd.getUint64(8, Endian.little);
+    if (bd.getUint32(16, Endian.little) != 1) {
+      return -1;
+    }
+    return p;
+  }
+
+  Future<(int, int, int, int, int, int)> _readDirectory64End(RandomAccessReader reader, int offset) async {
+    final Uint8List buf = Uint8List(56); // directory64EndLen is 56
+    await reader.readAt(offset, buf, 56);
+    final ByteData bd = ByteData.view(buf.buffer);
+    
+    if (bd.getUint32(0, Endian.little) != ZipConstants.directory64EndSignature) {
+      throw ZipFormatException('Invalid zip64 directory end signature');
+    }
+    
+    final int diskNbr = bd.getUint32(16, Endian.little);
+    final int dirDiskNbr = bd.getUint32(20, Endian.little);
+    final int dirRecordsThisDisk = bd.getUint64(24, Endian.little);
+    final int directoryRecords = bd.getUint64(32, Endian.little);
+    final int directorySize = bd.getUint64(40, Endian.little);
+    final int directoryOffset = bd.getUint64(48, Endian.little);
+    
+    return (diskNbr, dirDiskNbr, dirRecordsThisDisk, directoryRecords, directorySize, directoryOffset);
   }
 }
 
