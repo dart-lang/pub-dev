@@ -611,7 +611,7 @@ void main() {
     final reader = MemoryReader(data);
     final zipReader = ZipReader(reader);
 
-    expect(() => zipReader.init(), throwsA(isA<ArgumentError>()));
+    expect(() => zipReader.init(), throwsA(isA<ZipFormatException>()));
   });
 
   final tests = [

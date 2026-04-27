@@ -200,18 +200,32 @@ final class ZipReader {
 
     final int baseOffset = dirEndOffset - dirSize - off;
 
+    if (records > 100000) {
+      throw ArgumentError('Too many directory records');
+    }
+
     // Read central directory headers.
     int offset = baseOffset + off;
+    ZipFormatException? lastErr;
     for (int i = 0; i < records; i++) {
-      final FileHeader header = await readDirectoryHeader(_reader, offset);
-      files.add(
-        ZipFile(header, _reader, baseOffset + header.localHeaderOffset),
-      );
-      offset +=
-          ZipConstants.directoryHeaderLen +
-          header.name.length +
-          header.extra.length +
-          header.comment.length;
+      try {
+        final FileHeader header = await readDirectoryHeader(_reader, offset);
+        files.add(
+          ZipFile(header, _reader, baseOffset + header.localHeaderOffset),
+        );
+        offset +=
+            ZipConstants.directoryHeaderLen +
+            header.name.length +
+            header.extra.length +
+            header.comment.length;
+      } on ZipFormatException catch (e) {
+        lastErr = e;
+        break;
+      }
+    }
+
+    if (files.length != records) {
+      throw lastErr ?? ZipFormatException('Truncated file count');
     }
   }
 
@@ -346,6 +360,9 @@ final class ZipReader {
     final int diskNbr = bd.getUint32(16, Endian.little);
     final int dirDiskNbr = bd.getUint32(20, Endian.little);
     final int dirRecordsThisDisk = bd.getUint64(24, Endian.little);
+    if (dirRecordsThisDisk == -1) {
+      throw ArgumentError('Too many directory records on this disk');
+    }
     final int directoryRecords = bd.getUint64(32, Endian.little);
     final int directorySize = bd.getUint64(40, Endian.little);
     final int directoryOffset = bd.getUint64(48, Endian.little);
