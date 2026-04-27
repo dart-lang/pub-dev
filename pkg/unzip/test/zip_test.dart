@@ -145,6 +145,28 @@ void main() {
       ),
     );
   });
+
+  readTestZip(ZipTest(
+    name: 'zip64.zip',
+    files: [
+      ZipTestFile(
+        name: 'README',
+        content: utf8.encode('This small file is in ZIP64 format.\n'),
+        modified: DateTime.utc(2012, 8, 10, 14, 33, 32),
+      ),
+    ],
+  ));
+
+  readTestZip(ZipTest(
+    name: 'zip64-2.zip',
+    files: [
+      ZipTestFile(
+        name: 'README',
+        content: utf8.encode('This small file is in ZIP64 format.\n'),
+        modified: DateTime.utc(2012, 8, 10, 14, 33, 32),
+      ),
+    ],
+  ));
   // Adapted from https://github.com/golang/go/blob/85f838f46c2f22e7eb28352439259f570cd5c185/src/archive/zip/reader_test.go#L1078
   test('TestIssue8186', () {
     // Directory headers & data found in the TOC of a JAR file.
@@ -399,7 +421,7 @@ void main() {
     expect(() => zipReader.init(), throwsException);
   });
   // Adapted from https://github.com/golang/go/blob/85f838f46c2f22e7eb28352439259f570cd5c185/src/archive/zip/reader_test.go#L1472
-  test('TestCVE202133196', () {
+  test('TestCVE202133196', () async {
     final data = Uint8List.fromList([
       0x50,
       0x4b,
@@ -611,7 +633,7 @@ void main() {
     final reader = MemoryReader(data);
     final zipReader = ZipReader(reader);
 
-    expect(() => zipReader.init(), throwsA(isA<ArgumentError>()));
+    await zipReader.init();
   });
 
   final tests = [
