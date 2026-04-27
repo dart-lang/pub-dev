@@ -133,7 +133,7 @@ final class ZipReader {
       buf = Uint8List(bLen);
       final int read = await _reader.readAt(size - bLen, buf, bLen);
       if (read != bLen) {
-        throw Exception('Failed to read file end');
+        throw ZipFormatException('Truncated file end');
       }
 
       dirEndOffset = _findSignatureInBlock(buf);
@@ -346,7 +346,7 @@ final class ZipFile {
       final Uint8List chunk = Uint8List(toRead);
       final int read = await _reader.readAt(offset, chunk, toRead);
       if (read != toRead) {
-        throw Exception('Failed to read file content');
+        throw ZipFormatException('Truncated file content');
       }
       yield chunk;
       remaining -= read;
