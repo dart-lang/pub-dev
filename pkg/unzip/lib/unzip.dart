@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'src/reader.dart' show ZipReader;
-
+/// @docImport 'src/reader.dart';
 /// Provides stream-based reading of ZIP archives through [ZipReader].
-export 'src/reader.dart'
-    show ZipReader, ZipFile, ZipFormatException;
+library;
+
+export 'src/reader.dart' show ZipReader, ZipFile, ZipFormatException;
 export 'src/struct.dart' show FileHeader;

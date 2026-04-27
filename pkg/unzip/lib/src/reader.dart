@@ -15,7 +15,7 @@ import 'struct.dart';
 
 /// Abstract interface for random access reading, similar to Go's `io.ReaderAt`.
 @visibleForTesting
-abstract class RandomAccessReader {
+abstract final class RandomAccessReader {
   /// Reads up to [count] bytes from the specified [position] into the given [buffer].
   /// Returns the number of bytes read.
   Future<int> readAt(int position, List<int> buffer, int count);
@@ -29,7 +29,7 @@ abstract class RandomAccessReader {
 
 /// Implementation of [RandomAccessReader] for a file.
 @visibleForTesting
-class FileReader implements RandomAccessReader {
+final class FileReader implements RandomAccessReader {
   final RandomAccessFile _file;
   final int _length;
 
@@ -52,7 +52,7 @@ class FileReader implements RandomAccessReader {
 
 /// Implementation of [RandomAccessReader] for a memory buffer.
 @visibleForTesting
-class MemoryReader implements RandomAccessReader {
+final class MemoryReader implements RandomAccessReader {
   final Uint8List _buffer;
 
   MemoryReader(this._buffer);
@@ -355,7 +355,7 @@ final class ZipFile {
   }
 }
 
-class _Crc32 {
+final class _Crc32 {
   static final List<int> _table = _generateTable();
 
   static List<int> _generateTable() {
