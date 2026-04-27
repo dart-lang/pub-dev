@@ -25,7 +25,7 @@ Future<void> fetchAdvisories(Directory targetDir) async {
   final bytes = await bucket.readAsBytes(allPubAdvisoriesPath);
   zipFile.writeAsBytesSync(bytes);
 
-  final zipReader = await ZipReader.open(zipFile.path);
+  final zipReader = await ZipReader.openFile(zipFile);
 
   int totalUncompressedSize = 0;
   final maxTotalSize = 100 * 1024 * 1024; // 100 MB

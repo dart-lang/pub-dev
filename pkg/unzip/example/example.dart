@@ -10,7 +10,7 @@ Future<void> main(List<String> args) async {
     print('Usage: dart example/example.dart <zip-file>');
     exit(1);
   }
-  final zipReader = await ZipReader.open(args.single);
+  final zipReader = await ZipReader.openFile(File(args.single));
 
   print('Archive comment: ${zipReader.comment}');
   print('Files in archive:');

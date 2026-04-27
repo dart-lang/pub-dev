@@ -92,22 +92,11 @@ class ZipReader {
     return ZipReader(MemoryReader(bytes));
   }
 
-  /// Opens a ZIP file from a path.
+  /// Opens a ZIP file from a [File].
   ///
-  /// Throws [ArgumentError] if [path] is null.
   /// Throws [FileSystemException] if the file cannot be opened.
   /// Throws [FormatException] if the file is not a valid ZIP file.
-  static Future<ZipReader> open(String path) async {
-    final file = File(path);
-    final raf = await file.open();
-    final reader = FileReader(raf);
-    final zipReader = ZipReader(reader);
-    await zipReader.init();
-    return zipReader;
-  }
-
-  /// Convenience factory to open a ZIP file from a [File].
-  static Future<ZipReader> fromFile(File file) async {
+  static Future<ZipReader> openFile(File file) async {
     final raf = await file.open();
     final reader = FileReader(raf);
     final zipReader = ZipReader(reader);
