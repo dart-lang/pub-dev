@@ -15,7 +15,8 @@ import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart' show Bucket;
 import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
-import 'package:indexed_blob/indexed_blob.dart' show BlobIndex, FileRange;
+import 'package:indexed_blob/indexed_blob.dart'
+    show BlobIndex, BlobSliceReader, FileRange;
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show Summary;
@@ -661,7 +662,10 @@ class TaskBackend {
       version,
       await _gzippedTaskResult(index, 'summary.json'),
     );
-    final hasDocIndexHtml = index.lookup('doc/index.html') != null;
+    final hasDocIndexHtml = await index.hasFile(
+      'doc/index.html',
+      _blobSliceReader(index.blobId),
+    );
     await withRetryTransaction(_db, (tx) async {
       final state = await tx.tasks.lookupOrNull(package);
       if (state == null) {
@@ -741,6 +745,12 @@ class TaskBackend {
     }
 
     return shelf.Response.ok('');
+  }
+
+  BlobSliceReader _blobSliceReader(String path) {
+    return (int start, int end) async {
+      return await _readFromBucket(path, offset: start, length: end - start);
+    };
   }
 
   Future<Uint8List?> _readFromBucket(
@@ -857,7 +867,7 @@ class TaskBackend {
 
     FileRange range;
     try {
-      final r = index.lookup(path);
+      final r = await index.lookup(path, _blobSliceReader(index.blobId));
       if (r == null) {
         return null;
       }
@@ -872,19 +882,26 @@ class TaskBackend {
     // new files.
     // Keep in mind that the [IndexBlob] return from [_taskResultIndex] has a
     // blobId that is the path to the blob within the task-result bucket.
-    final length = range.end - range.start;
+    Future<List<int>?> readBytes() async {
+      final fullBytes = await _readFromBucket(
+        range.blobId,
+        offset: range.entryOffset,
+        length: range.end - range.entryOffset,
+      );
+      if (fullBytes == null) {
+        return null;
+      }
+      if (!range.matchesPathBytesPrefix(fullBytes)) {
+        return null;
+      }
+      return range.contentRange(fullBytes);
+    }
+
+    final length = range.end - range.contentStart;
     if (length <= _gzippedTaskResultCacheSizeThreshold) {
-      return cache
-          .gzippedTaskResult(range.blobId, path)
-          .get(
-            () => _readFromBucket(
-              range.blobId,
-              offset: range.start,
-              length: length,
-            ),
-          );
+      return cache.gzippedTaskResult(range.blobId, path).get(readBytes);
     } else {
-      return _readFromBucket(range.blobId, offset: range.start, length: length);
+      return readBytes();
     }
   }
 
