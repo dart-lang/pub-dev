@@ -199,7 +199,7 @@ final class ZipReader {
     final int baseOffset = dirEndOffset - dirSize - off;
 
     if (records > 100000) {
-      throw ArgumentError('Too many directory records');
+      throw ZipFormatException('Too many directory records');
     }
 
     // Read central directory headers.
@@ -462,7 +462,7 @@ Future<FileHeader> readDirectoryHeader(
   RandomAccessReader reader,
   int offset,
 ) async {
-  if (offset < 0) throw ArgumentError('Negative offset not allowed');
+  if (offset < 0) throw ZipFormatException('Negative offset not allowed');
   final Uint8List headerBuf = Uint8List(ZipConstants.directoryHeaderLen);
   await reader.readAt(offset, headerBuf, ZipConstants.directoryHeaderLen);
   final ByteData hbd = ByteData.view(headerBuf.buffer);
