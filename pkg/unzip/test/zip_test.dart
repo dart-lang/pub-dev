@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -487,6 +488,19 @@ void main() {
       name: 'comment-truncated.zip',
       error: Exception('Zip format error'),
     ),
+    ZipTest(
+      name: 'big.zip',
+      source: () => returnBigZipBytes(),
+      files: [
+        ZipTestFile(
+          name: 'big.file',
+          content: null,
+          size: (1 << 32) - 1,
+          modified: DateTime.utc(1979, 11, 30),
+          mode: 0x1b6,
+        ),
+      ],
+    ),
   ];
 
   for (final zt in tests) {
@@ -496,7 +510,7 @@ void main() {
 
 class ZipTest {
   final String name;
-  final Uint8List Function()? source;
+  final FutureOr<Uint8List> Function()? source;
   final String? comment;
   final List<ZipTestFile>? files;
   final bool obscured;
@@ -539,7 +553,7 @@ void readTestZip(ZipTest zt) {
     test('Run test', () async {
       RandomAccessReader reader;
       if (zt.source != null) {
-        final bytes = zt.source!();
+        final bytes = await zt.source!();
         reader = MemoryReader(bytes);
       } else {
         final path = 'third_party/testdata/${zt.name}';
@@ -639,6 +653,19 @@ List<int> rZipBytes() {
     bytes.add(int.parse(s.substring(i, i + 2), radix: 16));
   }
   return bytes;
+}
+
+Future<Uint8List> returnBigZipBytes() async {
+  Uint8List b = Uint8List.fromList(biggestZipBytes());
+  for (int i = 0; i < 2; i++) {
+    final reader = ZipReader.fromBytes(b);
+    await reader.init();
+    final f = reader.files[0];
+    final stream = f.open();
+    final bytes = await stream.fold<List<int>>([], (a, b) => [...a, ...b]);
+    b = Uint8List.fromList(bytes);
+  }
+  return b;
 }
 
 List<int> biggestZipBytes() {
