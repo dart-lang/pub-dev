@@ -125,7 +125,7 @@ declaration in the `pubspec.yaml` file:
     linux:
   ```
 
-#### Support modern toolchains
+#### Support modern toolchains (SwiftPM and Wasm)
 
 To ensure the ecosystem stays up-to-date, pub points are reduced for packages that do not support modern toolchains for their declared platforms:
 
