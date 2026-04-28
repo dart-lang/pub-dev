@@ -1209,8 +1209,4 @@ List<int> biggestZipBytes() {
   return bytes;
 }
 
-Uint8List decodeObscuredFile(String path) {
-  final file = File(path);
-  final content = file.readAsStringSync();
-  return base64.decode(content.replaceAll(RegExp(r'\s+'), ''));
-}
+
