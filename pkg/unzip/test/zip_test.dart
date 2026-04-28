@@ -782,6 +782,30 @@ void main() {
       await reader.init();
     }, throwsA(isA<FormatException>()));
   });
+
+  Uint8List parseHex(String hexStr) {
+    final bytes = <int>[];
+    for (var i = 0; i < hexStr.length; i += 2) {
+      bytes.add(int.parse(hexStr.substring(i, i + 2), radix: 16));
+    }
+    return Uint8List.fromList(bytes);
+  }
+
+  test('TestInsecurePaths_Absolute', () async {
+    final data = parseHex('504b0304140000000000b96a9c5ca930c5fe0700000007000000040000002f666f6f636f6e74656e74504b01021403140000000000b96a9c5ca930c5fe07000000070000000400000000000000000000008001000000002f666f6f504b0506000000000100010032000000290000000000');
+    expect(() async {
+      final reader = ZipReader(MemoryReader(data));
+      await reader.init();
+    }, throwsA(isA<FormatException>()));
+  });
+
+  test('TestInsecurePaths_Backslash', () async {
+    final data = parseHex('504b0304140000000000b96a9c5ca930c5fe070000000700000003000000615c62636f6e74656e74504b01021403140000000000b96a9c5ca930c5fe0700000007000000030000000000000000000000800100000000615c62504b0506000000000100010031000000280000000000');
+    expect(() async {
+      final reader = ZipReader(MemoryReader(data));
+      await reader.init();
+    }, throwsA(isA<FormatException>()));
+  });
 }
 
 class ZipTest {

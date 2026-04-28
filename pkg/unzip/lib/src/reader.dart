@@ -498,7 +498,7 @@ Future<FileHeader> readDirectoryHeader(
     name = String.fromCharCodes(nameBuf);
   }
 
-  if (name.startsWith('../') || name.contains('/../')) {
+  if (name.startsWith('../') || name.contains('/../') || name.startsWith('/') || name.contains('\\')) {
     throw ZipFormatException('Insecure file path: $name');
   }
 
