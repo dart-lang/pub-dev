@@ -165,7 +165,7 @@ void main() {
       final bytes = Uint8List.fromList(s.codeUnits);
       final reader = MemoryReader(bytes);
 
-      final header = ZipReader.readDirectoryHeader(reader, 0);
+      final header = readDirectoryHeader(reader, 0);
       expect(header, isNotNull);
     }
   });
@@ -797,7 +797,7 @@ void readTestZip(ZipTest zt) {
         final bytes = zt.source!();
         reader = MemoryReader(bytes);
       } else {
-        final path = 'test/testdata/${zt.name}';
+        final path = 'third_party/testdata/${zt.name}';
         final file = File(path);
         if (!file.existsSync()) {
           return;
@@ -837,7 +837,7 @@ void readTestZip(ZipTest zt) {
           if (ft.content != null) {
             expectedContent = ft.content!;
           } else if (ft.file != null) {
-            final file = File('test/testdata/${ft.file}');
+            final file = File('third_party/testdata/${ft.file}');
             expectedContent = file.readAsBytesSync();
           } else {
             continue;
