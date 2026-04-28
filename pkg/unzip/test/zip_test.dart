@@ -501,6 +501,98 @@ void main() {
         ),
       ],
     ),
+    ZipTest(
+      name: 'test-baddirsz.zip',
+      comment: 'This is a zipfile comment.',
+      files: [
+        ZipTestFile(
+          name: 'test.txt',
+          content: 'This is a test text file.\n'.codeUnits,
+        ),
+        ZipTestFile(name: 'gophercolor16x16.png', file: 'gophercolor16x16.png'),
+      ],
+    ),
+    ZipTest(
+      name: 'test-badbase.zip',
+      comment: 'This is a zipfile comment.',
+      files: [
+        ZipTestFile(
+          name: 'test.txt',
+          content: 'This is a test text file.\n'.codeUnits,
+        ),
+        ZipTestFile(name: 'gophercolor16x16.png', file: 'gophercolor16x16.png'),
+      ],
+    ),
+    ZipTest(
+      name: 'r.zip',
+      source: () => returnRecursiveZip(),
+      files: [
+        ZipTestFile(
+          name: 'r/r.zip',
+          content: rZipBytes(),
+          modified: DateTime.utc(2010, 3, 4, 0, 24, 16),
+          mode: 0x1b6,
+        ),
+      ],
+    ),
+    ZipTest(
+      name: 'symlink.zip',
+      files: [
+        ZipTestFile(
+          name: 'symlink',
+          content: '../target'.codeUnits,
+          modified: DateTime.utc(2012, 2, 3, 19, 56, 48),
+          mode: 0x1b6 | 0xA000,
+        ),
+      ],
+    ),
+    ZipTest(
+      name: 'go-no-datadesc-sig.zip.base64',
+      obscured: true,
+      files: [
+        ZipTestFile(
+          name: 'foo.txt',
+          content: 'foo\n'.codeUnits,
+          modified: DateTime.utc(2012, 3, 8, 16, 59, 10),
+          mode: 0x1b6,
+        ),
+        ZipTestFile(
+          name: 'bar.txt',
+          content: 'bar\n'.codeUnits,
+          modified: DateTime.utc(2012, 3, 8, 16, 59, 12),
+          mode: 0x1b6,
+        ),
+      ],
+    ),
+    ZipTest(
+      name: 'go-with-datadesc-sig.zip',
+      files: [
+        ZipTestFile(
+          name: 'foo.txt',
+          content: 'foo\n'.codeUnits,
+          modified: DateTime.utc(1979, 11, 30),
+          mode: 0x1b6,
+        ),
+        ZipTestFile(
+          name: 'bar.txt',
+          content: 'bar\n'.codeUnits,
+          modified: DateTime.utc(1979, 11, 30),
+          mode: 0x1b6,
+        ),
+      ],
+    ),
+    ZipTest(
+      name: 'Bad-CRC32-in-data-descriptor',
+      source: () => returnCorruptCRC32Zip(),
+      files: [
+        ZipTestFile(
+          name: 'foo.txt',
+          content: 'foo\n'.codeUnits,
+          modified: DateTime.utc(1979, 11, 30),
+          mode: 0x1b6,
+        ),
+      ],
+    ),
   ];
 
   for (final zt in tests) {
@@ -561,8 +653,14 @@ void readTestZip(ZipTest zt) {
         if (!file.existsSync()) {
           return;
         }
-        final raf = file.openSync();
-        reader = FileReader(raf);
+        if (zt.obscured) {
+          final base64Str = await file.readAsString();
+          final bytes = base64.decode(base64Str.replaceAll(RegExp(r'\s+'), ''));
+          reader = MemoryReader(bytes);
+        } else {
+          final raf = file.openSync();
+          reader = FileReader(raf);
+        }
       }
 
       final zipReader = ZipReader(reader);
@@ -652,6 +750,19 @@ List<int> rZipBytes() {
   for (var i = 0; i < s.length; i += 2) {
     bytes.add(int.parse(s.substring(i, i + 2), radix: 16));
   }
+  return bytes;
+}
+
+
+
+Future<Uint8List> returnRecursiveZip() async {
+  return Uint8List.fromList(rZipBytes());
+}
+
+Future<Uint8List> returnCorruptCRC32Zip() async {
+  final file = File('third_party/testdata/go-with-datadesc-sig.zip');
+  final bytes = await file.readAsBytes();
+  bytes[0x2d]++;
   return bytes;
 }
 
