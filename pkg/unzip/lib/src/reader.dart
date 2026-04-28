@@ -9,12 +9,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:meta/meta.dart';
-
 import 'struct.dart';
 
 /// Abstract interface for random access reading, similar to Go's `io.ReaderAt`.
-@visibleForTesting
 abstract final class RandomAccessReader {
   /// Reads up to [count] bytes from the specified [position] into the given [buffer].
   /// Returns the number of bytes read.
@@ -28,7 +25,6 @@ abstract final class RandomAccessReader {
 }
 
 /// Implementation of [RandomAccessReader] for a file.
-@visibleForTesting
 final class FileReader implements RandomAccessReader {
   final RandomAccessFile _file;
   final int _length;
@@ -51,7 +47,6 @@ final class FileReader implements RandomAccessReader {
 }
 
 /// Implementation of [RandomAccessReader] for a memory buffer.
-@visibleForTesting
 final class MemoryReader implements RandomAccessReader {
   final Uint8List _buffer;
 
@@ -230,84 +225,6 @@ final class ZipReader {
     if (files.length != records) {
       throw lastErr ?? ZipFormatException('Truncated file count');
     }
-  }
-
-  @visibleForTesting
-  static Future<FileHeader> readDirectoryHeader(
-    RandomAccessReader reader,
-    int offset,
-  ) async {
-    if (offset < 0) throw ArgumentError('Negative offset not allowed');
-    final Uint8List headerBuf = Uint8List(ZipConstants.directoryHeaderLen);
-    await reader.readAt(offset, headerBuf, ZipConstants.directoryHeaderLen);
-    final ByteData hbd = ByteData.view(headerBuf.buffer);
-
-    if (hbd.getUint32(0, Endian.little) !=
-        ZipConstants.directoryHeaderSignature) {
-      throw ZipFormatException('Invalid directory header signature at $offset');
-    }
-
-    final int creatorVersion = hbd.getUint16(4, Endian.little);
-    final int readerVersion = hbd.getUint16(6, Endian.little);
-    final int flags = hbd.getUint16(8, Endian.little);
-    final int method = hbd.getUint16(10, Endian.little);
-    final int crc32 = hbd.getUint32(16, Endian.little);
-    final int compressedSize = hbd.getUint32(20, Endian.little);
-    final int uncompressedSize = hbd.getUint32(24, Endian.little);
-    final int filenameLen = hbd.getUint16(28, Endian.little);
-    final int extraLen = hbd.getUint16(30, Endian.little);
-    final int commentLen = hbd.getUint16(32, Endian.little);
-    final int externalAttrs = hbd.getUint32(38, Endian.little);
-    final int localHeaderOffset = hbd.getUint32(42, Endian.little);
-
-    final Uint8List nameBuf = Uint8List(filenameLen);
-    await reader.readAt(
-      offset + ZipConstants.directoryHeaderLen,
-      nameBuf,
-      filenameLen,
-    );
-    final String name;
-    if ((flags & 0x800) != 0) {
-      name = utf8.decode(nameBuf);
-    } else {
-      name = String.fromCharCodes(nameBuf);
-    }
-
-    if (name.startsWith('../') || name.contains('/../')) {
-      throw ZipFormatException('Insecure file path: $name');
-    }
-
-    final Uint8List extraBuf = Uint8List(extraLen);
-    await reader.readAt(
-      offset + ZipConstants.directoryHeaderLen + filenameLen,
-      extraBuf,
-      extraLen,
-    );
-
-    final Uint8List commentBuf = Uint8List(commentLen);
-    await reader.readAt(
-      offset + ZipConstants.directoryHeaderLen + filenameLen + extraLen,
-      commentBuf,
-      commentLen,
-    );
-    final String comment = String.fromCharCodes(commentBuf);
-
-    return FileHeader(
-      name: name,
-      comment: comment,
-      creatorVersion: creatorVersion,
-      readerVersion: readerVersion,
-      flags: flags,
-      method: method,
-      crc32: crc32,
-      compressedSize: compressedSize,
-      uncompressedSize: uncompressedSize,
-      externalAttrs: externalAttrs,
-      localHeaderOffset: localHeaderOffset,
-      extra: extraBuf,
-      compressedSize64: compressedSize, // TODO: Handle Zip64
-      uncompressedSize64: uncompressedSize, // TODO: Handle Zip64
-    );
   }
 
   int _findSignatureInBlock(Uint8List buf) {
@@ -539,4 +456,81 @@ final class ZipFormatException implements FormatException {
 
   @override
   String toString() => 'ZipFormatException: $message';
+}
+
+Future<FileHeader> readDirectoryHeader(
+  RandomAccessReader reader,
+  int offset,
+) async {
+  if (offset < 0) throw ArgumentError('Negative offset not allowed');
+  final Uint8List headerBuf = Uint8List(ZipConstants.directoryHeaderLen);
+  await reader.readAt(offset, headerBuf, ZipConstants.directoryHeaderLen);
+  final ByteData hbd = ByteData.view(headerBuf.buffer);
+
+  if (hbd.getUint32(0, Endian.little) !=
+      ZipConstants.directoryHeaderSignature) {
+    throw ZipFormatException('Invalid directory header signature at $offset');
+  }
+
+  final int creatorVersion = hbd.getUint16(4, Endian.little);
+  final int readerVersion = hbd.getUint16(6, Endian.little);
+  final int flags = hbd.getUint16(8, Endian.little);
+  final int method = hbd.getUint16(10, Endian.little);
+  final int crc32 = hbd.getUint32(16, Endian.little);
+  final int compressedSize = hbd.getUint32(20, Endian.little);
+  final int uncompressedSize = hbd.getUint32(24, Endian.little);
+  final int filenameLen = hbd.getUint16(28, Endian.little);
+  final int extraLen = hbd.getUint16(30, Endian.little);
+  final int commentLen = hbd.getUint16(32, Endian.little);
+  final int externalAttrs = hbd.getUint32(38, Endian.little);
+  final int localHeaderOffset = hbd.getUint32(42, Endian.little);
+
+  final Uint8List nameBuf = Uint8List(filenameLen);
+  await reader.readAt(
+    offset + ZipConstants.directoryHeaderLen,
+    nameBuf,
+    filenameLen,
+  );
+  final String name;
+  if ((flags & 0x800) != 0) {
+    name = utf8.decode(nameBuf);
+  } else {
+    name = String.fromCharCodes(nameBuf);
+  }
+
+  if (name.startsWith('../') || name.contains('/../')) {
+    throw ZipFormatException('Insecure file path: $name');
+  }
+
+  final Uint8List extraBuf = Uint8List(extraLen);
+  await reader.readAt(
+    offset + ZipConstants.directoryHeaderLen + filenameLen,
+    extraBuf,
+    extraLen,
+  );
+
+  final Uint8List commentBuf = Uint8List(commentLen);
+  await reader.readAt(
+    offset + ZipConstants.directoryHeaderLen + filenameLen + extraLen,
+    commentBuf,
+    commentLen,
+  );
+  final String comment = String.fromCharCodes(commentBuf);
+
+  return FileHeader(
+    name: name,
+    comment: comment,
+    creatorVersion: creatorVersion,
+    readerVersion: readerVersion,
+    flags: flags,
+    method: method,
+    crc32: crc32,
+    compressedSize: compressedSize,
+    uncompressedSize: uncompressedSize,
+    externalAttrs: externalAttrs,
+    localHeaderOffset: localHeaderOffset,
+    extra: extraBuf,
+    compressedSize64: compressedSize, // TODO: Handle Zip64
+    uncompressedSize64: uncompressedSize, // TODO: Handle Zip64
+  );
 }
