@@ -225,6 +225,7 @@ void main() {
     );
     await b.buildIndex('x');
     await collected;
+    await controller.close();
   });
 
   test('empty index', () async {
