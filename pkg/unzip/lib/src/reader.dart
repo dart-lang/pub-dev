@@ -515,7 +515,12 @@ Future<FileHeader> readDirectoryHeader(
     commentBuf,
     commentLen,
   );
-  final String comment = String.fromCharCodes(commentBuf);
+  final String comment;
+  if ((flags & 0x800) != 0) {
+    comment = utf8.decode(commentBuf);
+  } else {
+    comment = String.fromCharCodes(commentBuf);
+  }
 
   return FileHeader(
     name: name,
