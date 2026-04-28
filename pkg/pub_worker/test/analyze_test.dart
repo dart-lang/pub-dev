@@ -120,13 +120,13 @@ void main() {
     final result = await server.waitForResult('retry', '3.0.0');
     expect(result.index.blobId, isNotEmpty);
 
-    final gzippedLog = result.lookup('log.txt');
+    final gzippedLog = await result.lookup('log.txt');
     expect(gzippedLog, isNotNull);
     final log = utf8.fuse(gzip).decode(gzippedLog!);
     print(log);
     expect(log, contains('exited 0'));
 
-    final catGzipped = result.lookup('doc/categories.json');
+    final catGzipped = await result.lookup('doc/categories.json');
     expect(catGzipped, isNotNull);
     final categories = json.fuse(utf8).fuse(gzip).decode(catGzipped!);
     expect(categories, equals([]));
