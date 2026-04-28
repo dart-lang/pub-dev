@@ -7,7 +7,7 @@ import 'package:unzip/unzip.dart';
 
 Future<void> main(List<String> args) async {
   if (args.length != 1) {
-    print('Usage: dart example/example.dart <zip-file>');
+    print('Usage: dart run example/example.dart <zip-file>');
     exit(1);
   }
   final zipReader = await ZipReader.openFile(File(args.single));
