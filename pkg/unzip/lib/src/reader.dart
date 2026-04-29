@@ -83,15 +83,19 @@ final class ZipReader {
 
   ZipReader(this._reader);
 
-  /// Convenience constructor for in-memory ZIP data.
-  factory ZipReader.fromBytes(Uint8List bytes) {
-    return ZipReader(MemoryReader(bytes));
+  /// Creates a new [ZipReader] for in-memory ZIP data.
+  ///
+  /// Throws a [FormatException] if the data is not a valid ZIP file.
+  static Future<ZipReader> fromBytes(Uint8List bytes) async {
+    final reader = ZipReader(MemoryReader(bytes));
+    await reader.init();
+    return reader;
   }
 
   /// Opens a ZIP file from a [File].
   ///
-  /// Throws [FileSystemException] if the file cannot be opened.
-  /// Throws [FormatException] if the file is not a valid ZIP file.
+  /// Throws a [FileSystemException] if the file cannot be opened.
+  /// Throws a [FormatException] if the file is not a valid ZIP file.
   static Future<ZipReader> openFile(File file) async {
     final randomAccessFile = await file.open();
     final reader = FileReader(randomAccessFile);
@@ -207,7 +211,7 @@ final class ZipReader {
     ZipFormatException? lastErr;
     for (int i = 0; i < records; i++) {
       try {
-        final FileHeader header = await readDirectoryHeader(_reader, offset);
+        final ZipFileHeader header = await readDirectoryHeader(_reader, offset);
         files.add(
           ZipFile(header, _reader, baseOffset + header.localHeaderOffset),
         );
@@ -308,10 +312,10 @@ final class ZipReader {
 }
 
 /// A [ZipFile] is a single file in a ZIP archive.
-/// The file information is in the embedded [FileHeader].
+/// The file information is in the embedded [ZipFileHeader].
 /// The file content can be accessed by calling [open].
 final class ZipFile {
-  final FileHeader header;
+  final ZipFileHeader header;
   final RandomAccessReader _reader;
   final int _localHeaderOffset;
 
@@ -462,7 +466,7 @@ final class ZipFormatException implements FormatException {
   String toString() => 'ZipFormatException: $message';
 }
 
-Future<FileHeader> readDirectoryHeader(
+Future<ZipFileHeader> readDirectoryHeader(
   RandomAccessReader reader,
   int offset,
 ) async {
@@ -516,6 +520,48 @@ Future<FileHeader> readDirectoryHeader(
     extraLen,
   );
 
+  // Parse Zip64 extra fields.
+  int compressedSize64 = compressedSize;
+  int uncompressedSize64 = uncompressedSize;
+  int resolvedLocalHeaderOffset = localHeaderOffset;
+
+  if (extraLen >= 4) {
+    final ByteData extraBd = ByteData.view(extraBuf.buffer);
+    int extraOffset = 0;
+    while (extraOffset + 4 <= extraLen) {
+      final int tag = extraBd.getUint16(extraOffset, Endian.little);
+      final int len = extraBd.getUint16(extraOffset + 2, Endian.little);
+      extraOffset += 4;
+
+      if (extraOffset + len > extraLen) break;
+
+      // Tag 0x0001: Zip64 Extended Information Extra Field
+      if (tag == 0x0001) {
+        int zip64Offset = extraOffset;
+        if (uncompressedSize == 0xffffffff &&
+            zip64Offset + 8 <= extraOffset + len) {
+          uncompressedSize64 = extraBd.getUint64(zip64Offset, Endian.little);
+          zip64Offset += 8;
+        }
+        if (compressedSize == 0xffffffff &&
+            zip64Offset + 8 <= extraOffset + len) {
+          compressedSize64 = extraBd.getUint64(zip64Offset, Endian.little);
+          zip64Offset += 8;
+        }
+        if (localHeaderOffset == 0xffffffff &&
+            zip64Offset + 8 <= extraOffset + len) {
+          resolvedLocalHeaderOffset = extraBd.getUint64(
+            zip64Offset,
+            Endian.little,
+          );
+          zip64Offset += 8;
+        }
+      }
+
+      extraOffset += len;
+    }
+  }
+
   final Uint8List commentBuf = Uint8List(commentLen);
   await reader.readAt(
     offset + ZipConstants.directoryHeaderLen + filenameLen + extraLen,
@@ -529,7 +575,7 @@ Future<FileHeader> readDirectoryHeader(
     comment = String.fromCharCodes(commentBuf);
   }
 
-  return FileHeader(
+  return ZipFileHeader(
     name: name,
     comment: comment,
     creatorVersion: creatorVersion,
@@ -540,9 +586,9 @@ Future<FileHeader> readDirectoryHeader(
     compressedSize: compressedSize,
     uncompressedSize: uncompressedSize,
     externalAttrs: externalAttrs,
-    localHeaderOffset: localHeaderOffset,
+    localHeaderOffset: resolvedLocalHeaderOffset,
     extra: extraBuf,
-    compressedSize64: compressedSize, // TODO: Handle Zip64
-    uncompressedSize64: uncompressedSize, // TODO: Handle Zip64
+    compressedSize64: compressedSize64,
+    uncompressedSize64: uncompressedSize64,
   );
 }

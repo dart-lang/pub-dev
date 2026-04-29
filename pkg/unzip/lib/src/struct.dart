@@ -7,6 +7,10 @@
 /// Adapted from Go's `archive/zip`.
 library;
 
+/// Internal constants used for parsing and writing ZIP archives.
+///
+/// Includes magic number signatures and fixed lengths for ZIP headers,
+/// as defined in the [ZIP File Format Specification](https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT).
 abstract final class ZipConstants {
   static const int fileHeaderSignature = 0x04034b50;
   static const int directoryHeaderSignature = 0x02014b50;
@@ -28,9 +32,9 @@ abstract final class ZipConstants {
   static const int deflate = 8;
 }
 
-/// [FileHeader] describes a file within a ZIP file.
+/// [ZipFileHeader] describes a file within a ZIP file.
 /// See the [ZIP specification](https://support.pkware.com/pkzip/appnote) for details.
-final class FileHeader {
+final class ZipFileHeader {
   /// Name of the file.
   ///
   /// It must be a relative path, not start with a drive letter (such as "C:"),
@@ -95,7 +99,7 @@ final class FileHeader {
   /// Offset of the local file header from the start of the ZIP file.
   final int localHeaderOffset;
 
-  FileHeader({
+  ZipFileHeader({
     required this.name,
     this.comment = '',
     this.nonUTF8 = false,

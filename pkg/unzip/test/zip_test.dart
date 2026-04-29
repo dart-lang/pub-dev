@@ -12,6 +12,52 @@ import 'package:unzip/src/reader.dart';
 import 'package:unzip/src/struct.dart';
 
 void main() {
+  test('TestZip64ExtraFieldParsing', () async {
+    // Hand-crafted central directory header with Zip64 extra field (Tag 0x0001).
+    // 32-bit size/offset fields are set to 0xFFFFFFFF to trigger Zip64 parsing.
+    final headerBytes = Uint8List.fromList([
+      // Central Directory Header (46 bytes)
+      0x50, 0x4b, 0x01, 0x02, // Signature
+      0x14, 0x00, // Creator version
+      0x2d, 0x00, // Reader version (45 = Zip64)
+      0x00, 0x00, // Flags
+      0x00, 0x00, // Method
+      0x00, 0x00, 0x00, 0x00, // Time/Date
+      0x00, 0x00, 0x00, 0x00, // CRC32
+      0xff, 0xff, 0xff, 0xff, // Compressed Size (Placeholder)
+      0xff, 0xff, 0xff, 0xff, // Uncompressed Size (Placeholder)
+      0x04, 0x00, // Filename length (4 bytes: 'test')
+      0x1c, 0x00, // Extra field length (28 bytes)
+      0x00, 0x00, // Comment length (0)
+      0x00, 0x00, // Disk start
+      0x00, 0x00, // Internal attrs
+      0x00, 0x00, 0x00, 0x00, // External attrs
+      0xff, 0xff, 0xff, 0xff, // Local header offset (Placeholder)
+
+      // Filename (4 bytes)
+      0x74, 0x65, 0x73, 0x74, // 'test'
+
+      // Zip64 Extended Information Extra Field (28 bytes)
+      0x01, 0x00, // Tag: 0x0001
+      0x18, 0x00, // Data size: 24 bytes (8 + 8 + 8)
+      0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, // Uncompressed Size: 0x100000000 (4GB)
+      0x50, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, // Compressed Size: 0x100000050
+      0xab, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, // Local Header Offset: 0x1000000ab
+    ]);
+
+    final reader = MemoryReader(headerBytes);
+    final header = await readDirectoryHeader(reader, 0);
+
+    expect(header.name, equals('test'));
+    expect(header.compressedSize, equals(0xffffffff));
+    expect(header.uncompressedSize, equals(0xffffffff));
+
+    // Values should be extracted from the Zip64 extra field
+    expect(header.uncompressedSize64, equals(0x100000000));
+    expect(header.compressedSize64, equals(0x100000050));
+    expect(header.localHeaderOffset, equals(0x1000000ab));
+  });
+
   test('Read simple zip in memory', () async {
     // A minimal ZIP file with one file `test.txt` containing "hello" (stored).
     // Calculated manually based on ZIP spec.
@@ -63,8 +109,7 @@ void main() {
       0x00, 0x00, // Comment length
     ]);
 
-    final zipReader = ZipReader.fromBytes(zipBytes);
-    await zipReader.init();
+    final zipReader = await ZipReader.fromBytes(zipBytes);
 
     expect(zipReader.files.length, equals(1));
     expect(zipReader.files[0].header.name, equals('test.txt'));
@@ -129,8 +174,7 @@ void main() {
       0x00, 0x00, // Comment length
     ]);
 
-    final zipReader = ZipReader.fromBytes(zipBytes);
-    await zipReader.init();
+    final zipReader = await ZipReader.fromBytes(zipBytes);
 
     expect(zipReader.files.length, equals(1));
     final f = zipReader.files[0];
@@ -1510,8 +1554,7 @@ Future<Uint8List> returnCorruptCRC32Zip() async {
 Future<Uint8List> returnBigZipBytes() async {
   Uint8List b = Uint8List.fromList(biggestZipBytes());
   for (int i = 0; i < 2; i++) {
-    final reader = ZipReader.fromBytes(b);
-    await reader.init();
+    final reader = await ZipReader.fromBytes(b);
     final f = reader.files[0];
     final stream = f.open();
     final bytes = await stream.fold<List<int>>([], (a, b) => [...a, ...b]);

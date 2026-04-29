@@ -7,4 +7,4 @@
 library;
 
 export 'src/reader.dart' show ZipReader, ZipFile, ZipFormatException;
-export 'src/struct.dart' show FileHeader;
+export 'src/struct.dart' show ZipFileHeader;
