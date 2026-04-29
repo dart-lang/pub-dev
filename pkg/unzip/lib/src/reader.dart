@@ -81,13 +81,13 @@ final class ZipReader {
   final List<ZipFile> files = [];
   String comment = '';
 
-  ZipReader(this._reader);
+  ZipReader._(this._reader);
 
   /// Creates a new [ZipReader] for in-memory ZIP data.
   ///
   /// Throws a [FormatException] if the data is not a valid ZIP file.
   static Future<ZipReader> fromBytes(Uint8List bytes) async {
-    final reader = ZipReader(MemoryReader(bytes));
+    final reader = ZipReader._(MemoryReader(bytes));
     await reader.init();
     return reader;
   }
@@ -96,12 +96,8 @@ final class ZipReader {
   ///
   /// Throws a [FileSystemException] if the file cannot be opened.
   /// Throws a [FormatException] if the file is not a valid ZIP file.
-  static Future<ZipReader> openFile(File file) async {
-    final randomAccessFile = await file.open();
-    final reader = FileReader(randomAccessFile);
-    final zipReader = ZipReader(reader);
-    await zipReader.init();
-    return zipReader;
+  static Future<ZipReader> fromPath(String path) async {
+    return ZipReader._(FileReader(await File(path).open()));
   }
 
   /// Closes the reader and releases any associated resources.
