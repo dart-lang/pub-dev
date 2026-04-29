@@ -233,7 +233,7 @@ final class IndexedBlobBuilder {
         /* arbitrary padding for headers and other overheads */
         128 * 1024;
 
-    // always use path length of 2 bytes
+    // We always use 2 bytes for the length-prefix for the path.
     final pathLengthBytes = 2;
 
     final offsetMinBytes = (worstCaseOffset.bitLength ~/ 8) + 1;
