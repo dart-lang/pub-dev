@@ -33,16 +33,35 @@ void main() {
       0x00, 0x00, // Internal attrs
       0x00, 0x00, 0x00, 0x00, // External attrs
       0xff, 0xff, 0xff, 0xff, // Local header offset (Placeholder)
-
       // Filename (4 bytes)
       0x74, 0x65, 0x73, 0x74, // 'test'
-
       // Zip64 Extended Information Extra Field (28 bytes)
       0x01, 0x00, // Tag: 0x0001
       0x18, 0x00, // Data size: 24 bytes (8 + 8 + 8)
-      0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, // Uncompressed Size: 0x100000000 (4GB)
-      0x50, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, // Compressed Size: 0x100000050
-      0xab, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, // Local Header Offset: 0x1000000ab
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      0x00,
+      0x00,
+      0x00, // Uncompressed Size: 0x100000000 (4GB)
+      0x50,
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      0x00,
+      0x00,
+      0x00, // Compressed Size: 0x100000050
+      0xab,
+      0x00,
+      0x00,
+      0x00,
+      0x01,
+      0x00,
+      0x00,
+      0x00, // Local Header Offset: 0x1000000ab
     ]);
 
     final reader = MemoryReader(headerBytes);
@@ -1406,7 +1425,7 @@ void readTestZip(ZipTest zt) {
       if (zt.source != null) {
         data = await zt.source!();
       } else {
-        final path = 'third_party/testdata/${zt.name}';
+        final path = 'third_party/golang/testdata/${zt.name}';
         final file = File(path);
         if (!file.existsSync()) {
           return;
@@ -1448,7 +1467,7 @@ void readTestZip(ZipTest zt) {
           if (ft.content != null) {
             expectedContent = ft.content!;
           } else if (ft.file != null) {
-            final file = File('third_party/testdata/${ft.file}');
+            final file = File('third_party/golang/testdata/${ft.file}');
             expectedContent = file.readAsBytesSync();
           } else {
             continue;
@@ -1512,7 +1531,7 @@ Future<Uint8List> returnRecursiveZip() async {
 }
 
 Future<Uint8List> returnCorruptCRC32Zip() async {
-  final file = File('third_party/testdata/go-with-datadesc-sig.zip');
+  final file = File('third_party/golang/testdata/go-with-datadesc-sig.zip');
   final bytes = await file.readAsBytes();
   bytes[0x2d]++;
   return bytes;

@@ -10,7 +10,7 @@ Future<void> main(List<String> args) async {
     print('Usage: dart run example/example.dart <zip-file>');
     exit(1);
   }
-  final zipReader = await ZipReader.openFile(File(args.single));
+  final zipReader = await ZipReader.fromPath(args.single);
 
   print('Archive comment: ${zipReader.comment}');
   print('Files in archive:');
@@ -21,7 +21,7 @@ Future<void> main(List<String> args) async {
     );
 
     print('\n--- Content of ${f.header.name} ---');
-    final stream = f.open();
+    final stream = f.read();
     await for (final chunk in stream) {
       stdout.add(chunk);
     }

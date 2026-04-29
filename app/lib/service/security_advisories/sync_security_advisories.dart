@@ -25,7 +25,7 @@ Future<void> fetchAdvisories(Directory targetDir) async {
   final bytes = await bucket.readAsBytes(allPubAdvisoriesPath);
   zipFile.writeAsBytesSync(bytes);
 
-  final zipReader = await ZipReader.openFile(zipFile);
+  final zipReader = await ZipReader.fromPath(zipFile.path);
 
   int totalUncompressedSize = 0;
   final maxTotalSize = 100 * 1024 * 1024; // 100 MB
@@ -47,7 +47,7 @@ Future<void> fetchAdvisories(Directory targetDir) async {
       // Ensure parent directories exist.
       await destFile.parent.create(recursive: true);
 
-      final stream = f.open();
+      final stream = f.read();
       final sink = destFile.openWrite();
       await sink.addStream(stream);
       await sink.close();
