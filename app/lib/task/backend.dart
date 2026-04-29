@@ -1354,25 +1354,23 @@ final class _TaskDataAccess {
         .execute();
   }
 
-  Stream<({String package})> listAllForCurrentRuntime() async* {
-    final query = _db.tasks
+  Stream<({String package})> listAllForCurrentRuntime() {
+    return _db.tasks
         .where((task) => task.runtime_version.equalsValue(runtimeVersion))
-        .select((task) => (task.package,));
-    await for (final row in query.stream()) {
-      yield (package: row);
-    }
+        .select((task) => (task.package,))
+        .stream()
+        .map((row) => (package: row));
   }
 
   Stream<({String package, DateTime finished})> listFinishedSince(
     DateTime since,
-  ) async* {
-    final query = _db.tasks
+  ) {
+    return _db.tasks
         .where((task) => task.finished >= since.asExpr)
         .orderBy((task) => [(task.finished, Order.descending)])
-        .select((task) => (task.package, task.finished));
-    await for (final row in query.stream()) {
-      yield (package: row.$1, finished: row.$2);
-    }
+        .select((task) => (task.package, task.finished))
+        .stream()
+        .map((e) => (package: e.$1, finished: e.$2));
   }
 
   Stream<({String package})> listDependenciesOfPackage(
@@ -1426,28 +1424,29 @@ final class _TaskDataAccess {
       // Reload [state] within a transaction to avoid overwriting changes
       // made by others trying to update state for another package.
 
-      final s = await _db.tasks.byKey(runtimeVersion, package).fetch();
+      final s = await _db.tasks
+          .byKey(runtimeVersion, package)
+          .where((t) => t.last_dependency_changed.isBeforeValue(publishedAt))
+          .fetch();
       if (s == null) {
         // No entry has been created yet, probably because of a new deployment rolling out.
         // We can ignore it for now.
         return false;
       }
-      if (s.last_dependency_changed.isBefore(publishedAt)) {
-        await _db.tasks
-            .byKey(runtimeVersion, package)
-            .update(
-              (_, set) => set(
-                last_dependency_changed: publishedAt.asExpr,
-                pending_at: derivePendingAt(
-                  versions: s.state.versions,
-                  lastDependencyChanged: publishedAt,
-                ).asExpr,
-              ),
-            )
-            .execute();
-        return true;
-      }
-      return false;
+
+      await _db.tasks
+          .byKey(runtimeVersion, package)
+          .update(
+            (_, set) => set(
+              last_dependency_changed: publishedAt.asExpr,
+              pending_at: derivePendingAt(
+                versions: s.state.versions,
+                lastDependencyChanged: publishedAt,
+              ).asExpr,
+            ),
+          )
+          .execute();
+      return true;
     });
   }
 
@@ -1455,7 +1454,7 @@ final class _TaskDataAccess {
     await _db.tasks
         .where(
           (task) =>
-              task.runtime_version.endsWithValue(runtimeVersion) &
+              task.runtime_version.equalsValue(runtimeVersion) &
               task.package.equalsValue(packageName),
         )
         .update((_, set) => set(pending_at: initialTimestamp.asExpr))
