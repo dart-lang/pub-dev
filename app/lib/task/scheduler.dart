@@ -181,7 +181,7 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
       // If this doesn't work, we'll eventually retry. Hence, correctness
       // does not hinge on this transaction being successful.
       await database.withRetry(
-        (schema) => schema.tasksAccess.restorePreviousVersionsState(
+        (db) => db.tasksAccess.restorePreviousVersionsState(
           selected.package,
           instanceName,
         ),
@@ -191,7 +191,7 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
 
   // Creating an instance can be slow, we want to schedule them concurrently.
   final selected = await database.withRetry(
-    (schema) => schema.tasksAccess.selectSomePending(selectLimit).toList(),
+    (db) => db.tasksAccess.selectSomePending(selectLimit).toList(),
   );
   await Future.wait(selected.map(scheduleInstance));
 
@@ -229,8 +229,8 @@ Future<Payload?> updatePackageStateWithPendingVersions(
   String zone,
   String instanceName,
 ) async {
-  return database.transactWithRetry((schema) async {
-    final task = await schema.tasksAccess.lookupOrNull(package);
+  return database.transactWithRetry((db) async {
+    final task = await db.tasksAccess.lookupOrNull(package);
     if (task == null) {
       // presumably the package was deleted.
       return null;
@@ -258,7 +258,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
           secretToken: createUuid(),
         ),
     };
-    await schema.tasks
+    await db.tasks
         .byKey(runtimeVersion, package)
         .update(
           (_, set) => set(
