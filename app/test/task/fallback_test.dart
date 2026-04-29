@@ -29,7 +29,7 @@ void main() {
             defaultUser: adminAtPubDevEmail,
           ),
           processJobsWithFakeRunners: true,
-          runtimeVersions: ['2023.08.24'],
+          runtimeVersions: ['2023.08.24', '2023.08.22'],
           () async {
             final card = await scoreCardBackend.getScoreCardData(
               'oxygen',
