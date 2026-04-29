@@ -309,7 +309,7 @@ final class ZipReader {
 
 /// A [ZipFile] is a single file in a ZIP archive.
 /// The file information is in the embedded [ZipFileHeader].
-/// The file content can be accessed by calling [open].
+/// The file content can be accessed by calling [read].
 final class ZipFile {
   final ZipFileHeader header;
   final RandomAccessReader _reader;
@@ -325,7 +325,7 @@ final class ZipFile {
   ///
   /// Throws [FormatException] if the compression method is unsupported or if the
   /// local header signature is invalid.
-  Stream<List<int>> open() {
+  Stream<List<int>> read() {
     final Stream<List<int>> rawStream = _openRaw().cast<List<int>>();
     final Stream<List<int>> inflatedStream;
     if (header.method == ZipConstants.deflate) {

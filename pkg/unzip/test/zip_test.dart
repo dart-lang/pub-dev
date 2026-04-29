@@ -115,7 +115,7 @@ void main() {
     expect(zipReader.files[0].header.name, equals('test.txt'));
     expect(zipReader.files[0].header.compressedSize64, equals(5));
 
-    final contentStream = zipReader.files[0].open();
+    final contentStream = zipReader.files[0].read();
     final contentBytes = await contentStream.fold<List<int>>(
       [],
       (a, b) => [...a, ...b],
@@ -179,7 +179,7 @@ void main() {
     expect(zipReader.files.length, equals(1));
     final f = zipReader.files[0];
 
-    final contentStream = f.open();
+    final contentStream = f.read();
     expect(
       contentStream.fold<List<int>>([], (a, b) => [...a, ...b]),
       throwsA(
@@ -235,15 +235,12 @@ void main() {
         '\x0b\x00\x00\x00\x00\x00';
 
     final bytes = Uint8List.fromList(data.codeUnits);
-    final reader = MemoryReader(bytes);
-    final zipReader = ZipReader(reader);
-
-    await zipReader.init();
+    final zipReader = await ZipReader.fromBytes(bytes);
 
     for (var i = 0; i < zipReader.files.length; i++) {
       final f = zipReader.files[i];
       try {
-        final stream = f.open();
+        final stream = f.read();
         await stream.drain();
       } catch (e) {
         if (i == 3) {
@@ -254,20 +251,17 @@ void main() {
     }
   });
   // Adapted from https://github.com/golang/go/blob/85f838f46c2f22e7eb28352439259f570cd5c185/src/archive/zip/reader_test.go#L1141
-  test('TestIssue10956', () {
+  test('TestIssue10956', () async {
     final data =
         'PK\x06\x06PK\x06\x070000\x00\x00\x00\x00\x00\x00\x00\x00'
         '0000PK\x05\x06000000000000'
         '0000\x0b\x00000\x00\x00\x00\x00\x00\x00\x000';
 
     final bytes = Uint8List.fromList(data.codeUnits);
-    final reader = MemoryReader(bytes);
-    final zipReader = ZipReader(reader);
-
-    expect(() => zipReader.init(), throwsA(isA<FormatException>()));
+    expect(() => ZipReader.fromBytes(bytes), throwsA(isA<FormatException>()));
   });
   // Adapted from https://github.com/golang/go/blob/85f838f46c2f22e7eb28352439259f570cd5c185/src/archive/zip/reader_test.go#L1371
-  test('TestCVE202127919', () {
+  test('TestCVE202127919', () async {
     final data = Uint8List.fromList([
       // Local File Header
       0x50, 0x4b, 0x03, 0x04, // Signature
@@ -319,13 +313,10 @@ void main() {
       0x00, 0x00, // Comment length
     ]);
 
-    final reader = MemoryReader(data);
-    final zipReader = ZipReader(reader);
-
-    expect(() => zipReader.init(), throwsException);
+    expect(() => ZipReader.fromBytes(data), throwsException);
   });
   // Adapted from https://github.com/golang/go/blob/85f838f46c2f22e7eb28352439259f570cd5c185/src/archive/zip/reader_test.go#L1472
-  test('TestCVE202133196', () {
+  test('TestCVE202133196', () async {
     final data = Uint8List.fromList([
       // Local File Header
       0x50, 0x4b, 0x03, 0x04, // Signature
@@ -394,10 +385,7 @@ void main() {
       0x00, 0x00, // Comment length
     ]);
 
-    final reader = MemoryReader(data);
-    final zipReader = ZipReader(reader);
-
-    expect(() => zipReader.init(), throwsA(isA<ZipFormatException>()));
+    expect(() => ZipReader.fromBytes(data), throwsA(isA<ZipFormatException>()));
   });
 
   final tests = [
@@ -653,8 +641,7 @@ void main() {
 
     // zeroes
     expect(() async {
-      final reader = ZipReader(MemoryReader(b));
-      await reader.init();
+      await ZipReader.fromBytes(b);
     }, throwsA(isA<FormatException>()));
 
     // repeated directoryEndSignatures
@@ -663,8 +650,7 @@ void main() {
       bd.setUint32(i, ZipConstants.directoryEndSignature, Endian.little);
     }
     expect(() async {
-      final reader = ZipReader(MemoryReader(b));
-      await reader.init();
+      await ZipReader.fromBytes(b);
     }, throwsA(isA<FormatException>()));
   });
 
@@ -677,11 +663,11 @@ void main() {
         '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x000000PK\x05\x06\x00\x00'
         '\x00\x0000\x01\x00\x26\x00\x00\x008\x00\x00\x00\x00\x00';
     final bytes = Uint8List.fromList(data.codeUnits);
-    final reader = ZipReader(MemoryReader(bytes));
-    await reader.init();
-    final f = reader.files[0];
+    final zipReader = await ZipReader.fromBytes(bytes);
+
+    final f = zipReader.files[0];
     expect(() async {
-      await f.open().drain();
+      await f.read().drain();
     }, throwsA(isA<FormatException>()));
   });
 
@@ -751,8 +737,7 @@ void main() {
       0x50, 0x00, 0x00, 0x00,
       0x00, 0x00,
     ]);
-    final reader = ZipReader(MemoryReader(data));
-    await reader.init();
+    await ZipReader.fromBytes(data);
   });
 
   test('TestCVE202139293', () async {
@@ -787,10 +772,7 @@ void main() {
       0xff, 0x00, 0x3a, 0x00,
       0x00, 0x00, 0xff,
     ]);
-    expect(() async {
-      final reader = ZipReader(MemoryReader(data));
-      await reader.init();
-    }, throwsA(isA<FormatException>()));
+    expect(() => ZipReader.fromBytes(data), throwsA(isA<FormatException>()));
   });
 
   test('TestCompressedDirectory', () async {
@@ -1077,10 +1059,9 @@ void main() {
       0x00,
       0x00,
     ]);
-    final reader = ZipReader(MemoryReader(data));
-    await reader.init();
-    for (final f in reader.files) {
-      final stream = f.open();
+    final zipReader = await ZipReader.fromBytes(data);
+    for (final f in zipReader.files) {
+      final stream = f.read();
       await stream.drain();
     }
   });
@@ -1272,10 +1253,7 @@ void main() {
       0xff,
       0x20, 0x00,
     ]);
-    expect(() async {
-      final reader = ZipReader(MemoryReader(data));
-      await reader.init();
-    }, throwsA(isA<FormatException>()));
+    expect(() => ZipReader.fromBytes(data), throwsA(isA<FormatException>()));
   });
 
   test('TestInsecurePaths_Absolute', () async {
@@ -1326,10 +1304,7 @@ void main() {
       0x29, 0x00, 0x00, 0x00, // Dir offset (41)
       0x00, 0x00, // Comment length
     ]);
-    expect(() async {
-      final reader = ZipReader(MemoryReader(data));
-      await reader.init();
-    }, throwsA(isA<FormatException>()));
+    expect(() => ZipReader.fromBytes(data), throwsA(isA<FormatException>()));
   });
 
   test('TestInsecurePaths_Backslash', () async {
@@ -1380,10 +1355,7 @@ void main() {
       0x28, 0x00, 0x00, 0x00, // Dir offset (40)
       0x00, 0x00, // Comment length
     ]);
-    expect(() async {
-      final reader = ZipReader(MemoryReader(data));
-      await reader.init();
-    }, throwsA(isA<FormatException>()));
+    expect(() => ZipReader.fromBytes(data), throwsA(isA<FormatException>()));
   });
 }
 
@@ -1430,10 +1402,9 @@ class ZipTestFile {
 void readTestZip(ZipTest zt) {
   group(zt.name, () {
     test('Run test', () async {
-      RandomAccessReader reader;
+      final Uint8List data;
       if (zt.source != null) {
-        final bytes = await zt.source!();
-        reader = MemoryReader(bytes);
+        data = await zt.source!();
       } else {
         final path = 'third_party/testdata/${zt.name}';
         final file = File(path);
@@ -1442,22 +1413,18 @@ void readTestZip(ZipTest zt) {
         }
         if (zt.obscured) {
           final base64Str = await file.readAsString();
-          final bytes = base64.decode(base64Str.replaceAll(RegExp(r'\s+'), ''));
-          reader = MemoryReader(bytes);
+          data = base64.decode(base64Str.replaceAll(RegExp(r'\s+'), ''));
         } else {
-          final raf = file.openSync();
-          reader = FileReader(raf);
+          data = file.readAsBytesSync();
         }
       }
 
-      final zipReader = ZipReader(reader);
-
       if (zt.error != null) {
-        expect(() => zipReader.init(), throwsA(isA<Exception>()));
+        expect(() => ZipReader.fromBytes(data), throwsA(isA<Exception>()));
         return;
       }
 
-      await zipReader.init();
+      final zipReader = await ZipReader.fromBytes(data);
 
       if (zt.comment != null) {
         expect(zipReader.comment, equals(zt.comment));
@@ -1487,7 +1454,7 @@ void readTestZip(ZipTest zt) {
             continue;
           }
 
-          final stream = f.open();
+          final stream = f.read();
           final contentBytes = await stream.fold<List<int>>(
             [],
             (a, b) => [...a, ...b],
@@ -1556,7 +1523,7 @@ Future<Uint8List> returnBigZipBytes() async {
   for (int i = 0; i < 2; i++) {
     final reader = await ZipReader.fromBytes(b);
     final f = reader.files[0];
-    final stream = f.open();
+    final stream = f.read();
     final bytes = await stream.fold<List<int>>([], (a, b) => [...a, ...b]);
     b = Uint8List.fromList(bytes);
   }
