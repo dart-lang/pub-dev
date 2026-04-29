@@ -712,10 +712,16 @@ class TaskBackend {
                 dep.runtime_version.equalsValue(runtimeVersion) &
                 dep.package.equalsValue(package),
           )
+          .limit(1000)
           .select((dep) => (dep.dependency,))
           .fetch(),
     );
     final existingDependencySet = existingDependencyList.toSet();
+
+    // Note: we limit both the fetching of the existing entries and the insertion of the new entries.
+    final newDependencies = (summary?.allDependencies ?? const <String>[])
+        .where((d) => !existingDependencySet.contains(d))
+        .take(10);
 
     await _database.transactWithRetry((db) async {
       final task = await db.tasksAccess.lookupOrNull(package);
@@ -732,9 +738,7 @@ class TaskBackend {
       );
 
       // Update dependencies, if pana summary has dependencies
-      for (final dependency in summary?.allDependencies ?? const <String>[]) {
-        if (existingDependencySet.contains(dependency)) continue;
-
+      for (final dependency in newDependencies) {
         bool isValid = false;
         try {
           // TODO: These sanity checks should probably split out, into a general
@@ -751,13 +755,20 @@ class TaskBackend {
         }
 
         if (!isValid) continue;
-        await db.task_dependencies
-            .insert(
-              runtime_version: runtimeVersion.asExpr,
-              package: package.asExpr,
-              dependency: dependency.asExpr,
-            )
-            .execute();
+
+        // Note: since we limit the fetching of the existing dependencies, we may double-insert existing entries.
+        // TODO: implement "on conflict" support in typed_sql
+        try {
+          await db.task_dependencies
+              .insert(
+                runtime_version: runtimeVersion.asExpr,
+                package: package.asExpr,
+                dependency: dependency.asExpr,
+              )
+              .execute();
+        } on DatabaseException catch (e, st) {
+          _log.info('Insert in `task_dependencies` failed.', e, st);
+        }
       }
 
       zone = versionState.zone!;
