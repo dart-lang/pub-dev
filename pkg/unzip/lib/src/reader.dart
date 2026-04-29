@@ -319,6 +319,10 @@ final class ZipFile {
 
   /// Returns a stream of the file contents.
   ///
+  /// > [!WARNING]
+  /// > The [Stream] must be read until end, or CRC32 signature will not
+  /// > be validated!
+  ///
   /// Throws [FormatException] if the compression method is unsupported or if the
   /// local header signature is invalid.
   Stream<List<int>> open() {
