@@ -44,7 +44,10 @@ void main() {
       expect(range, isNotNull);
 
       expect(
-        blob.sublist(range!.entryOffset, range.entryOffset + range.pathLength + 1),
+        blob.sublist(
+          range!.entryOffset,
+          range.entryOffset + range.pathLength + 1,
+        ),
         equals([...utf8.encode(range.path), 0]),
       );
       expect(blob.sublist(range.contentStart, range.end), equals(data));

@@ -110,7 +110,9 @@ final class IndexedBlobBuilder {
       // sanity check for the encoded paths
       final pathBytes = utf8.encode(path);
       if (pathBytes.length > 4096) {
-        throw ArgumentError('Path too long (must not exceed 4096 UTF-8 bytes).');
+        throw ArgumentError(
+          'Path too long (must not exceed 4096 UTF-8 bytes).',
+        );
       }
 
       // Writing path (as `utf8(path) + zero terminator`) to allow path verification.
@@ -542,10 +544,7 @@ final class BlobIndex {
         _header.contentLengthBytes,
         dataOffset,
       );
-      final pathBytes = await readBlob(
-        entryOffset,
-        entryOffset + pathLength,
-      );
+      final pathBytes = await readBlob(entryOffset, entryOffset + pathLength);
       if (pathBytes == null) {
         continue;
       }
