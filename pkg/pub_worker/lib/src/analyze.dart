@@ -327,7 +327,7 @@ Future<void> _analyzePackage(
       r.index,
       () => Stream.value(indexBytes),
       indexBytes.length,
-      filename: 'index.json',
+      filename: 'blob.index',
       contentType: 'application/json',
     );
 
@@ -393,8 +393,8 @@ Future<void> _reportPackageSkipped(
     r.index,
     () => Stream.value(output.index.asBytes()),
     output.index.asBytes().length,
-    filename: 'index.json',
-    contentType: 'application/json',
+    filename: 'blob.index',
+    contentType: 'application/octet-stream',
   );
 
   // Report that we're done processing the package / version.

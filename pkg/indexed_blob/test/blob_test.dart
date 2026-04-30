@@ -197,7 +197,10 @@ void main() {
       final (subStart, subEnd) = lastReadBlobRange!;
       expect(subEnd, lessThanOrEqualTo(blobBytes.length));
       final subindex = BlobIndex.fromBytes(blobBytes.sublist(subStart, subEnd));
-      final subRange = await subindex.lookup(path, (_, __) async => Uint8List(0));
+      final subRange = await subindex.lookup(
+        path,
+        (_, __) async => Uint8List(0),
+      );
       expect(subRange, isNotNull, reason: '$path should be in the subindex');
     }
 

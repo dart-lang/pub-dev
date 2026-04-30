@@ -621,7 +621,7 @@ class TaskBackend {
       ),
       uploadSigner.buildUpload(
         _bucket.bucketName,
-        '$runtimeVersion/$package/$version/index.json',
+        '$runtimeVersion/$package/$version/blob.index',
         expiration,
         // Allow up to 64 MB just a sanity limit!
         maxUploadSize: 64 * 1024 * 1024,
@@ -788,7 +788,7 @@ class TaskBackend {
     ]);
   }
 
-  /// Fetch and cache `index.json` for [package] and [version].
+  /// Fetch and cache `blob.index` for [package] and [version].
   ///
   /// The returned [BlobIndex] will carry a [BlobIndex.blobId] that is the
   /// path for the blob being reference, this path will include runtime-version,
@@ -819,7 +819,7 @@ class TaskBackend {
     required String runtimeVersion,
   }) async {
     final pathPrefix = '$runtimeVersion/$package/$version';
-    final path = '$pathPrefix/index.json';
+    final path = '$pathPrefix/blob.index';
     final bytes = await _readFromBucket(path, maxSize: blobIndexSizeLimit);
     if (bytes == null) {
       return BlobIndex.empty(blobId: '');

@@ -88,13 +88,13 @@ class PubWorkerTestServer {
         .putIfAbsent('$package/$version', () => Completer<void>())
         .future;
 
-    final index = _uploadedResults['$package/$version/index.json'];
+    final index = _uploadedResults['$package/$version/blob.index'];
     final blob = _uploadedResults['$package/$version/files.blob'];
     if (index == null) {
-      throw Exception('index.json was not uploaded for $package/$version');
+      throw Exception('blob.index was not uploaded for $package/$version');
     }
     if (blob == null) {
-      throw Exception('index.json was not uploaded for $package/$version');
+      throw Exception('blob.index was not uploaded for $package/$version');
     }
 
     return BlobIndexPair(blob, BlobIndex.fromBytes(index));
@@ -216,7 +216,7 @@ class PubWorkerTestServer {
             fields: {},
           ),
           index: UploadInfo(
-            url: '$baseUrl/upload-result/$package/$version/index.json',
+            url: '$baseUrl/upload-result/$package/$version/blob.index',
             fields: {},
           ),
         ),
