@@ -874,15 +874,8 @@ class TaskBackend {
     if (path.startsWith('/') || path.contains('//')) {
       path = path.split('/').where((s) => s.isNotEmpty).join('/');
     }
-
-    FileRange range;
-    try {
-      final r = await index.lookup(path);
-      if (r == null) {
-        return null;
-      }
-      range = r;
-    } on FormatException {
+    final range = await index.lookup(path);
+    if (range == null) {
       return null;
     }
 
@@ -892,26 +885,11 @@ class TaskBackend {
     // new files.
     // Keep in mind that the [IndexBlob] return from [_taskResultIndex] has a
     // blobId that is the path to the blob within the task-result bucket.
-    Future<List<int>?> readBytes() async {
-      final fullBytes = await _readFromBucket(
-        range.blobId,
-        offset: range.entryOffset,
-        length: range.end - range.entryOffset,
-      );
-      if (fullBytes == null) {
-        return null;
-      }
-      if (!range.matchesPathBytesPrefix(fullBytes)) {
-        return null;
-      }
-      return range.contentRange(fullBytes);
-    }
 
-    final length = range.end - range.contentStart;
-    if (length <= _gzippedTaskResultCacheSizeThreshold) {
-      return cache.gzippedTaskResult(range.blobId, path).get(readBytes);
+    if (range.contentLength <= _gzippedTaskResultCacheSizeThreshold) {
+      return cache.gzippedTaskResult(range.blobId, path).get(range.fetch);
     } else {
-      return readBytes();
+      return range.fetch();
     }
   }
 

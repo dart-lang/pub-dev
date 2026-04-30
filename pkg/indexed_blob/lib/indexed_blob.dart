@@ -24,6 +24,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
+import 'package:meta/meta.dart';
 export 'src/blobindexpair.dart' show BlobIndexPair;
 
 /// Reads a byte slice from the blob.
@@ -489,7 +490,13 @@ final class BlobIndex {
     final (entryOffset, blockLength) = _hashIndex._getEntryRecord(
       selectedEntry,
     );
-    return FileRange._(path, entryOffset, entryOffset + blockLength, blobId);
+    return FileRange._(
+      path,
+      entryOffset,
+      entryOffset + blockLength,
+      blobId,
+      _readBlob,
+    );
   }
 
   /// Lists paths of all files stored in the indexed blob.
@@ -552,10 +559,7 @@ final class BlobIndex {
   Future<Uint8List?> fetch(String path) async {
     final range = await lookup(path);
     if (range == null) return null;
-    final blockBytes = await _readBlob(range.entryOffset, range.end);
-    if (blockBytes == null) return null;
-    if (!range.matchesPathBytesPrefix(blockBytes)) return null;
-    return range.contentRange(blockBytes);
+    return range.fetch();
   }
 
   Uint8List asBytes() => _hashIndex.asBytes();
@@ -664,6 +668,7 @@ final class _Record {
 /// Range of a file in an indexed-blob.
 final class FileRange {
   /// Path that was looked up in [BlobIndex].
+  @visibleForTesting
   final String path;
 
   /// Start offset of the file entry in the blob.
@@ -671,23 +676,36 @@ final class FileRange {
   /// The entry begins with a 2-byte big-endian path-length prefix, followed
   /// by `utf8(path)`, then the raw file content.  Use [contentStart] to skip
   /// past the path header and reach the first content byte.
+  @visibleForTesting
   final int entryOffset;
 
   /// End offset of file in blob.
+  @visibleForTesting
   final int end;
 
   /// Identifier for the blob file associated this [FileRange] is pointing into.
   final String blobId;
 
-  FileRange._(this.path, this.entryOffset, this.end, this.blobId);
+  final BlobSliceReader _readBlob;
+
+  FileRange._(
+    this.path,
+    this.entryOffset,
+    this.end,
+    this.blobId,
+    this._readBlob,
+  );
 
   late final _pathBytes = utf8.encode(path);
+  @visibleForTesting
   late final pathLength = _pathBytes.length;
+  @visibleForTesting
   late final contentStart = entryOffset + _pathLengthPrefixSize + pathLength;
+  late final contentLength = end - contentStart;
 
   /// Checks whether [slice] — which must start at [entryOffset] in the blob —
   /// begins with a 2-byte big-endian length prefix and `utf8(path)`.
-  bool matchesPathBytesPrefix(List<int> slice) {
+  bool _matchesPathBytesPrefix(List<int> slice) {
     if (slice.length < _pathLengthPrefixSize + pathLength) {
       return false;
     }
@@ -702,22 +720,19 @@ final class FileRange {
     return true;
   }
 
-  /// Returns the file-content portion of [slice], where [slice] must start at
-  /// [entryOffset] in the blob (i.e. it begins with a 2-byte length prefix
-  /// and `utf8(path)`).
-  /// Equivalent to `slice.sublist(_kPathLengthPrefixSize + pathLength)`.
-  Uint8List contentRange(Uint8List slice) {
-    return slice.sublist(_pathLengthPrefixSize + pathLength);
-  }
-
-  /// Returns the file content from the full [blob], i.e. `blob[contentStart..end]`.
+  /// Looks up [path] and returns its content bytes, or `null` if [path] is
+  /// not stored in this indexed blob or the blob read fails.
   ///
-  /// This returns a view of [blob] if it is a [Uint8List].
-  List<int> slice(List<int> blob) {
-    if (blob is Uint8List) {
-      return Uint8List.sublistView(blob, contentStart, end);
-    }
-    return blob.sublist(contentStart, end);
+  /// Also verifies that the path bytes in the blob match [path]; returns
+  /// `null` on a hash collision or index/blob mismatch.
+  Future<Uint8List?> fetch() async {
+    final blockBytes = await _readBlob(entryOffset, end);
+    if (blockBytes == null) return null;
+    if (!_matchesPathBytesPrefix(blockBytes)) return null;
+    return Uint8List.sublistView(
+      blockBytes,
+      _pathLengthPrefixSize + pathLength,
+    );
   }
 }
 

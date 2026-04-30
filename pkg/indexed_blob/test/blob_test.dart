@@ -51,7 +51,7 @@ void main() {
         blob.sublist(range.entryOffset, range.entryOffset + 2 + pl),
         equals([pl >> 8, pl & 0xFF, ...utf8.encode(range.path)]),
       );
-      expect(blob.sublist(range.contentStart, range.end), equals(data));
+      expect(await range.fetch(), equals(data));
     }
 
     await expectFile('README.md', [0, 0]);
