@@ -665,7 +665,7 @@ class TaskBackend {
       version,
       await _gzippedTaskResult(index, 'summary.json'),
     );
-    final hasDocIndexHtml = await index.hasFile('doc/index.html');
+    final hasDocIndexHtml = (await index.fetch('doc/index.html')) != null;
     await withRetryTransaction(_db, (tx) async {
       final state = await tx.tasks.lookupOrNull(package);
       if (state == null) {

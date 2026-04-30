@@ -112,7 +112,7 @@ void main() {
     expect(c.end, 14);
   });
 
-  test('hasFile', () async {
+  test('fetch', () async {
     final blobFile = File('${tmp.path}/test.blob');
 
     final b = IndexedBlobBuilder(blobFile.openWrite());
@@ -126,11 +126,11 @@ void main() {
 
     final index = BlobIndex.fromBytes(indexBytes, readBlob);
 
-    expect(await index.hasFile('README.md'), isTrue);
-    expect(await index.hasFile('hello.txt'), isTrue);
-    expect(await index.hasFile('missing.txt'), isFalse);
+    expect(await index.fetch('README.md'), equals([0, 0]));
+    expect(await index.fetch('hello.txt'), equals([1, 2, 3]));
+    expect(await index.fetch('missing.txt'), isNull);
 
-    // Verify that hasFile catches a blob/index mismatch that lookup ignores.
+    // Verify that fetch catches a blob/index mismatch that lookup ignores.
     // Corrupt the first byte of hello.txt's path in the blob (after the 2-byte length prefix).
     final range = await index.lookup('hello.txt');
     expect(range, isNotNull);
@@ -143,8 +143,8 @@ void main() {
 
     // lookup still finds it (it only checks the hash index, not blob bytes)
     expect(await corruptedIndex.lookup('hello.txt'), isNotNull);
-    // hasFile detects the mismatch
-    expect(await corruptedIndex.hasFile('hello.txt'), isFalse);
+    // fetch detects the mismatch
+    expect(await corruptedIndex.fetch('hello.txt'), isNull);
     // listFiles also detects the mismatch via hash verification
     expect(
       () => corruptedIndex.listFiles().toList(),
@@ -255,7 +255,7 @@ void main() {
     expect(index.hasSubindexes, isFalse);
 
     expect(await index.lookup('missing.txt'), isNull);
-    expect(await index.hasFile('missing.txt'), isFalse);
+    expect(await index.fetch('missing.txt'), isNull);
     expect(await index.listFiles().toList(), isEmpty);
 
     // Roundtrip through bytes preserves the empty index.

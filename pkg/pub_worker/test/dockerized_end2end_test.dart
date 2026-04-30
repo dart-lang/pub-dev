@@ -71,7 +71,7 @@ void main() {
           final version = versions[i];
           final result = await server.waitForResult(package, version);
 
-          final logTxtBytes = await result.lookup('log.txt');
+          final logTxtBytes = await result.index.fetch('log.txt');
           final logTxt = logTxtBytes == null
               ? '[no log.txt]'
               : utf8.decode(gzip.decode(logTxtBytes));
@@ -100,14 +100,14 @@ void main() {
             expect(logTxt, contains(fragment));
           }
 
-          final docIndex = await result.lookup('doc/index.html');
+          final docIndex = await result.index.fetch('doc/index.html');
           expect(
             docIndex,
             isNotNull,
             reason: '$package must have documentation, see log:\n$logTxt',
           );
 
-          final panaSummaryBytes = await result.lookup('summary.json');
+          final panaSummaryBytes = await result.index.fetch('summary.json');
           expect(panaSummaryBytes, isNotNull);
           final summary = Summary.fromJson(
             json.decode(utf8.decode(gzip.decode(panaSummaryBytes!)))

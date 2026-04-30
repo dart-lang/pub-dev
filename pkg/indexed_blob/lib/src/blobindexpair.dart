@@ -69,21 +69,6 @@ final class BlobIndexPair {
       await c.close();
     }
   }
-
-  /// Lookup [path] in [index] and return the range from [blob].
-  ///
-  /// Returns `null`, if [path] is not in the index.
-  Future<Uint8List?> lookup(String path) async {
-    final range = await index.lookup(path);
-    if (range == null) return null;
-    final pathBytes = Uint8List.sublistView(
-      blob,
-      range.entryOffset,
-      range.contentStart,
-    );
-    if (!range.matchesPathBytesPrefix(pathBytes)) return null;
-    return Uint8List.sublistView(blob, range.contentStart, range.end);
-  }
 }
 
 Future<Uint8List> _folderToIndexedBlob(

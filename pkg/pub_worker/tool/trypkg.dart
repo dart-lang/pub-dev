@@ -90,7 +90,7 @@ void main(List<String> args) async {
         print(' - $path');
         final f = File(p.join(output.path, path));
         await f.parent.create(recursive: true);
-        await f.writeAsBytes(gzip.decode((await result.lookup(path))!));
+        await f.writeAsBytes(gzip.decode((await result.index.fetch(path))!));
       }
     }
   } finally {

@@ -544,21 +544,18 @@ final class BlobIndex {
     }
   }
 
-  /// Returns `true` if [path] is stored in the indexed blob **and** the path
-  /// bytes read from the blob match the expected value.
+  /// Looks up [path] and returns its content bytes, or `null` if [path] is
+  /// not stored in this indexed blob or the blob read fails.
   ///
-  /// Unlike [lookup], which only checks the hash index, this method also reads
-  /// the path bytes from the blob to confirm there is no hash collision or
-  /// index/blob mismatch.
-  Future<bool> hasFile(String path) async {
+  /// Also verifies that the path bytes in the blob match [path]; returns
+  /// `null` on a hash collision or index/blob mismatch.
+  Future<Uint8List?> fetch(String path) async {
     final range = await lookup(path);
-    if (range == null) return false;
-    final blobPathBytes = await _readBlob(
-      range.entryOffset,
-      range.contentStart,
-    );
-    if (blobPathBytes == null) return false;
-    return range.matchesPathBytesPrefix(blobPathBytes);
+    if (range == null) return null;
+    final blockBytes = await _readBlob(range.entryOffset, range.end);
+    if (blockBytes == null) return null;
+    if (!range.matchesPathBytesPrefix(blockBytes)) return null;
+    return range.contentRange(blockBytes);
   }
 
   Uint8List asBytes() => _hashIndex.asBytes();
