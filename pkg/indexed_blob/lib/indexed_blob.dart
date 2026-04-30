@@ -19,7 +19,7 @@
 library;
 
 import 'dart:async';
-import 'dart:convert' show ChunkedConversionSink, utf8;
+import 'dart:convert' show utf8;
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
@@ -314,15 +314,9 @@ final class IndexedBlobBuilder {
 /// Byte width of the path-length prefix written at the start of every blob entry.
 const _pathLengthPrefixSize = 2;
 
-Uint8List _hash(List<int> saltBytes, List<int> pathBytes) {
-  Digest? digest;
-  final input = sha256.startChunkedConversion(
-    ChunkedConversionSink.withCallback((list) => digest = list.single),
-  );
-  input.add(saltBytes);
-  input.add(pathBytes);
-  input.close();
-  return Uint8List.fromList(digest!.bytes);
+Uint8List _hash(List<int> keyBytes, List<int> pathBytes) {
+  final digest = Hmac(sha256, keyBytes).convert(pathBytes);
+  return Uint8List.fromList(digest.bytes);
 }
 
 int _compareHashWithOffset(
