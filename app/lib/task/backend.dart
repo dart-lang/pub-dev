@@ -16,7 +16,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart' show Bucket;
 import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:indexed_blob/indexed_blob.dart'
-    show BlobIndex, BlobSliceReader, FileRange, HashIndex;
+    show BlobIndex, BlobSliceReader, HashIndex;
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show Summary;
