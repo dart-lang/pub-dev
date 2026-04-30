@@ -8,7 +8,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
-import '../indexed_blob.dart' show IndexedBlobBuilder, BlobIndex;
+import '../indexed_blob.dart' show BlobIndex, IndexedBlobBuilder;
 
 /// Pair containing and in-memory [blob] and matching [index].
 final class BlobIndexPair {
@@ -41,8 +41,9 @@ final class BlobIndexPair {
     Future<void> Function(
       Future<void> Function(String path, Stream<List<int>> content) addFile,
     )
-    builder,
-  ) async {
+    builder, {
+    int indexSizeThresholdKiB = 512,
+  }) async {
     final c = StreamController<List<int>>();
 
     final b = IndexedBlobBuilder(c);
@@ -54,7 +55,10 @@ final class BlobIndexPair {
         await b.addFile(path, content);
       });
 
-      final indexF = b.buildIndex(blobId);
+      final indexF = b.buildIndex(
+        blobId,
+        indexSizeThresholdKiB: indexSizeThresholdKiB,
+      );
       await Future.wait([blobF, indexF]);
       return BlobIndexPair(await blobF, await indexF);
     } finally {
@@ -65,12 +69,30 @@ final class BlobIndexPair {
   /// Lookup [path] in [index] and return the range from [blob].
   ///
   /// Returns `null`, if [path] is not in the index.
-  Uint8List? lookup(String path) {
-    final range = index.lookup(path);
+  Future<Uint8List?> lookup(String path) async {
+    final range = await index.lookup(
+      path,
+      (start, end) async => Uint8List.sublistView(blob, start, end),
+    );
     if (range == null) {
       return null;
     }
-    return Uint8List.sublistView(blob, range.start, range.end);
+    final pathBytes = Uint8List.sublistView(
+      blob,
+      range.entryOffset,
+      range.contentStart,
+    );
+    if (!range.matchesPathBytesPrefix(pathBytes)) {
+      return null;
+    }
+    return Uint8List.sublistView(blob, range.contentStart, range.end);
+  }
+
+  /// List file paths from the index.
+  Stream<String> listFiles() {
+    return index.listFiles(
+      (start, end) async => Uint8List.sublistView(blob, start, end),
+    );
   }
 }
 

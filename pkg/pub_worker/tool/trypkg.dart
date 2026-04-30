@@ -86,11 +86,11 @@ void main(List<String> args) async {
       final output = Directory(argResults['output'] as String);
       await output.create(recursive: true);
       print('Writing output:');
-      for (final entry in result.index.files) {
-        print(' - ${entry.path}');
-        final f = File(p.join(output.path, entry.path));
+      await for (final path in result.listFiles()) {
+        print(' - $path');
+        final f = File(p.join(output.path, path));
         await f.parent.create(recursive: true);
-        await f.writeAsBytes(gzip.decode(entry.slice(result.blob)));
+        await f.writeAsBytes(gzip.decode((await result.lookup(path))!));
       }
     }
   } finally {
