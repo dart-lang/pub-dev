@@ -5,13 +5,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/data/package_api.dart' show VersionScore;
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/youtube/v3.dart';
-import 'package:indexed_blob/indexed_blob.dart' show BlobIndex;
+import 'package:indexed_blob/indexed_blob.dart' show HashIndex;
 import 'package:logging/logging.dart';
 import 'package:neat_cache/cache_provider.dart';
 import 'package:neat_cache/neat_cache.dart';
@@ -390,13 +391,14 @@ class CachePatterns {
       .withTTL(Duration(hours: 8))['-'];
 
   /// Cache for index objects, used by TaskBackend.
-  Entry<BlobIndex> taskResultIndex(String package, String version) => _cache
+  Entry<HashIndex> taskResultIndex(String package, String version) => _cache
       .withPrefix('task-result-index/')
-      .withTTL(Duration(hours: 24))
+      .withTTL(Duration(hours: 8))
       .withCodec(
         wrapAsCodec(
-          encode: (BlobIndex entry) => entry.asBytes(),
-          decode: (data) => BlobIndex.fromBytes(data),
+          encode: (HashIndex entry) => entry.asBytes(),
+          decode: (data) =>
+              HashIndex(data is Uint8List ? data : Uint8List.fromList(data)),
         ),
       )['$package-$version'];
 

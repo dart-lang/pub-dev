@@ -28,20 +28,22 @@ void main() {
     await b.addFile('lib/src/test-a.dart', Stream.value([100]));
     await b.addFile('lib/src/test-b.dart', Stream.value([101]));
 
-    final index = await b.buildIndex('42');
-
-    expect(index.blobId, equals('42'));
+    final indexBytes = await b.buildIndex('42');
 
     final blob = await blobFile.readAsBytes();
     Future<Uint8List> readBlob(int start, int end) async =>
         blob.sublist(start, end);
 
-    expect(await index.lookup('missing-file', readBlob), isNull);
+    final index = BlobIndex.fromBytes(indexBytes, readBlob);
 
-    expect(await index.lookup('hello.txt', readBlob), isNotNull);
+    expect(index.blobId, equals('42'));
+
+    expect(await index.lookup('missing-file'), isNull);
+
+    expect(await index.lookup('hello.txt'), isNotNull);
 
     Future<void> expectFile(String path, List<int> data) async {
-      final range = await index.lookup(path, readBlob);
+      final range = await index.lookup(path);
       expect(range, isNotNull);
 
       final pl = range!.pathLength;
@@ -82,7 +84,7 @@ void main() {
       await b.addFile('c', Stream.value([8, 9]), skipAfterSize: 3),
       isTrue,
     );
-    final index = await b.buildIndex('1');
+    final indexBytes = await b.buildIndex('1');
     await controller.close();
     expect(await result, [
       [0, 1], // a: path length prefix (1)
@@ -101,9 +103,11 @@ void main() {
     Future<Uint8List> readBlob(int start, int end) async =>
         throw StateError('unexpected readBlob call');
 
-    expect(await index.lookup('b', readBlob), isNull);
+    final index = BlobIndex.fromBytes(indexBytes, readBlob);
 
-    final c = await index.lookup('c', readBlob);
+    expect(await index.lookup('b'), isNull);
+
+    final c = await index.lookup('c');
     expect(c!.entryOffset, 9);
     expect(c.end, 14);
   });
@@ -114,32 +118,36 @@ void main() {
     final b = IndexedBlobBuilder(blobFile.openWrite());
     await b.addFile('README.md', Stream.value([0, 0]));
     await b.addFile('hello.txt', Stream.value([1, 2, 3]));
-    final index = await b.buildIndex('42');
+    final indexBytes = await b.buildIndex('42');
 
     final blob = await blobFile.readAsBytes();
     Future<Uint8List> readBlob(int start, int end) async =>
         blob.sublist(start, end);
 
-    expect(await index.hasFile('README.md', readBlob), isTrue);
-    expect(await index.hasFile('hello.txt', readBlob), isTrue);
-    expect(await index.hasFile('missing.txt', readBlob), isFalse);
+    final index = BlobIndex.fromBytes(indexBytes, readBlob);
+
+    expect(await index.hasFile('README.md'), isTrue);
+    expect(await index.hasFile('hello.txt'), isTrue);
+    expect(await index.hasFile('missing.txt'), isFalse);
 
     // Verify that hasFile catches a blob/index mismatch that lookup ignores.
     // Corrupt the first byte of hello.txt's path in the blob (after the 2-byte length prefix).
-    final range = await index.lookup('hello.txt', readBlob);
+    final range = await index.lookup('hello.txt');
     expect(range, isNotNull);
     final corrupted = Uint8List.fromList(blob.toList());
     corrupted[range!.entryOffset + 2] ^= 0x01;
     Future<Uint8List> readCorrupted(int start, int end) async =>
         corrupted.sublist(start, end);
 
+    final corruptedIndex = BlobIndex.fromBytes(indexBytes, readCorrupted);
+
     // lookup still finds it (it only checks the hash index, not blob bytes)
-    expect(await index.lookup('hello.txt', readCorrupted), isNotNull);
+    expect(await corruptedIndex.lookup('hello.txt'), isNotNull);
     // hasFile detects the mismatch
-    expect(await index.hasFile('hello.txt', readCorrupted), isFalse);
+    expect(await corruptedIndex.hasFile('hello.txt'), isFalse);
     // listFiles also detects the mismatch via hash verification
     expect(
-      () => index.listFiles(readCorrupted).toList(),
+      () => corruptedIndex.listFiles().toList(),
       throwsA(isA<FormatException>()),
     );
   });
@@ -161,12 +169,6 @@ void main() {
       await addFile('hello.txt', Stream.value([1, 2, 3, 4, 5]));
     }), indexSizeThresholdKiB: 16);
 
-    final index = pair.index;
-    expect(index.blobId, equals('large'));
-    expect(index.hasSubindexes, true);
-    expect(index.asBytes().length, greaterThan(15 * 1024));
-    expect(index.asBytes().length, lessThan(17 * 1024));
-
     final blobBytes = pair.blob;
     var readBlobCallCount = 0;
     (int, int)? lastReadBlobRange;
@@ -176,15 +178,22 @@ void main() {
       return blobBytes.sublist(start, end);
     }
 
+    final index = BlobIndex.fromBytes(pair.index.asBytes(), readBlob);
+
+    expect(index.blobId, equals('large'));
+    expect(index.hasSubindexes, true);
+    expect(index.asBytes().length, greaterThan(15 * 1024));
+    expect(index.asBytes().length, lessThan(17 * 1024));
+
     // A missing file still causes a subindex fetch to identify the right block.
     readBlobCallCount = 0;
-    expect(await index.lookup('missing-file', readBlob), isNull);
+    expect(await index.lookup('missing-file'), isNull);
     expect(readBlobCallCount, 1);
 
     // Each found file requires exactly one subindex fetch.
     for (final path in ['hello.txt', 'README.md', 'file-9999.txt']) {
       readBlobCallCount = 0;
-      final range = await index.lookup(path, readBlob);
+      final range = await index.lookup(path);
       expect(range, isNotNull, reason: '$path should be found');
       expect(
         readBlobCallCount,
@@ -196,16 +205,16 @@ void main() {
       // parse as a valid BlobIndex whose entry contains the expected path.
       final (subStart, subEnd) = lastReadBlobRange!;
       expect(subEnd, lessThanOrEqualTo(blobBytes.length));
-      final subindex = BlobIndex.fromBytes(blobBytes.sublist(subStart, subEnd));
-      final subRange = await subindex.lookup(
-        path,
+      final subindex = BlobIndex.fromBytes(
+        blobBytes.sublist(subStart, subEnd),
         (_, __) async => Uint8List(0),
       );
+      final subRange = await subindex.lookup(path);
       expect(subRange, isNotNull, reason: '$path should be in the subindex');
     }
 
     // listFiles must return every file exactly once.
-    final allPaths = await index.listFiles(readBlob).toList();
+    final allPaths = await index.listFiles().toList();
     expect(allPaths.length, 100002); // README.md + 100000 files + hello.txt
     expect(
       allPaths,
@@ -234,23 +243,25 @@ void main() {
     final blobFile = File('${tmp.path}/empty.blob');
 
     final b = IndexedBlobBuilder(blobFile.openWrite());
-    final index = await b.buildIndex('empty-blob-id');
-
-    expect(index.blobId, equals('empty-blob-id'));
-    expect(index.hasSubindexes, isFalse);
+    final indexBytes = await b.buildIndex('empty-blob-id');
 
     final blob = await blobFile.readAsBytes();
     Future<Uint8List> readBlob(int start, int end) async =>
         blob.sublist(start, end);
 
-    expect(await index.lookup('missing.txt', readBlob), isNull);
-    expect(await index.hasFile('missing.txt', readBlob), isFalse);
-    expect(await index.listFiles(readBlob).toList(), isEmpty);
+    final index = BlobIndex.fromBytes(indexBytes, readBlob);
+
+    expect(index.blobId, equals('empty-blob-id'));
+    expect(index.hasSubindexes, isFalse);
+
+    expect(await index.lookup('missing.txt'), isNull);
+    expect(await index.hasFile('missing.txt'), isFalse);
+    expect(await index.listFiles().toList(), isEmpty);
 
     // Roundtrip through bytes preserves the empty index.
-    final restored = BlobIndex.fromBytes(index.asBytes());
+    final restored = BlobIndex.fromBytes(index.asBytes(), readBlob);
     expect(restored.blobId, equals('empty-blob-id'));
-    expect(await restored.lookup('missing.txt', readBlob), isNull);
-    expect(await restored.listFiles(readBlob).toList(), isEmpty);
+    expect(await restored.lookup('missing.txt'), isNull);
+    expect(await restored.listFiles().toList(), isEmpty);
   });
 }

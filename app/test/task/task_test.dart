@@ -133,7 +133,7 @@ void main() {
               uploadInfo.index,
               () => Stream.value(output.index.asBytes()),
               output.index.asBytes().length,
-              filename: 'index.json',
+              filename: 'blob.index',
               contentType: 'application/json',
             );
           } finally {
@@ -368,7 +368,7 @@ void main() {
           uploadInfo.index,
           () => Stream.value(output.index.asBytes()),
           output.index.asBytes().length,
-          filename: 'index.json',
+          filename: 'blob.index',
           contentType: 'application/json',
         );
       } finally {
@@ -456,7 +456,7 @@ void main() {
             uploadInfo.index,
             () => Stream.value(output.index.asBytes()),
             output.index.asBytes().length,
-            filename: 'index.json',
+            filename: 'blob.index',
             contentType: 'application/json',
           );
         } finally {
@@ -595,7 +595,7 @@ void main() {
             uploadInfo.index,
             () => Stream.value(output.index.asBytes()),
             output.index.asBytes().length,
-            filename: 'index.json',
+            filename: 'blob.index',
             contentType: 'application/json',
           );
         } finally {

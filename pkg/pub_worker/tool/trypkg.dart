@@ -86,7 +86,7 @@ void main(List<String> args) async {
       final output = Directory(argResults['output'] as String);
       await output.create(recursive: true);
       print('Writing output:');
-      await for (final path in result.listFiles()) {
+      await for (final path in result.index.listFiles()) {
         print(' - $path');
         final f = File(p.join(output.path, path));
         await f.parent.create(recursive: true);

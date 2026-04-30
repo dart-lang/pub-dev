@@ -18,7 +18,11 @@ final class BlobIndexPair {
   /// Index pointing into [blob].
   final BlobIndex index;
 
-  BlobIndexPair(this.blob, this.index);
+  BlobIndexPair(this.blob, Uint8List indexBytes)
+    : index = BlobIndex.fromBytes(
+        indexBytes,
+        (start, end) async => Uint8List.sublistView(blob, start, end),
+      );
 
   /// Create a blob and [BlobIndex] with [blobId] containing all files and
   /// folders within [folder], encoded with paths relative to [folder].
@@ -28,12 +32,12 @@ final class BlobIndexPair {
   ) async {
     final c = StreamController<List<int>>();
 
-    final indexF = _folderToIndexedBlob(c, blobId, folder);
+    final indexBytesF = _folderToIndexedBlob(c, blobId, folder);
     final blobF = collectBytes(c.stream);
 
-    await Future.wait([blobF, indexF]);
+    await Future.wait([blobF, indexBytesF]);
 
-    return BlobIndexPair(await blobF, await indexF);
+    return BlobIndexPair(await blobF, await indexBytesF);
   }
 
   static Future<BlobIndexPair> build(
@@ -55,12 +59,12 @@ final class BlobIndexPair {
         await b.addFile(path, content);
       });
 
-      final indexF = b.buildIndex(
+      final indexBytesF = b.buildIndex(
         blobId,
         indexSizeThresholdKiB: indexSizeThresholdKiB,
       );
-      await Future.wait([blobF, indexF]);
-      return BlobIndexPair(await blobF, await indexF);
+      await Future.wait([blobF, indexBytesF]);
+      return BlobIndexPair(await blobF, await indexBytesF);
     } finally {
       await c.close();
     }
@@ -70,33 +74,19 @@ final class BlobIndexPair {
   ///
   /// Returns `null`, if [path] is not in the index.
   Future<Uint8List?> lookup(String path) async {
-    final range = await index.lookup(
-      path,
-      (start, end) async => Uint8List.sublistView(blob, start, end),
-    );
-    if (range == null) {
-      return null;
-    }
+    final range = await index.lookup(path);
+    if (range == null) return null;
     final pathBytes = Uint8List.sublistView(
       blob,
       range.entryOffset,
       range.contentStart,
     );
-    if (!range.matchesPathBytesPrefix(pathBytes)) {
-      return null;
-    }
+    if (!range.matchesPathBytesPrefix(pathBytes)) return null;
     return Uint8List.sublistView(blob, range.contentStart, range.end);
-  }
-
-  /// List file paths from the index.
-  Stream<String> listFiles() {
-    return index.listFiles(
-      (start, end) async => Uint8List.sublistView(blob, start, end),
-    );
   }
 }
 
-Future<BlobIndex> _folderToIndexedBlob(
+Future<Uint8List> _folderToIndexedBlob(
   StreamSink<List<int>> blob,
   String blobId,
   String sourcePath,

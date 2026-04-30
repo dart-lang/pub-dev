@@ -97,7 +97,7 @@ class PubWorkerTestServer {
       throw Exception('blob.index was not uploaded for $package/$version');
     }
 
-    return BlobIndexPair(blob, BlobIndex.fromBytes(index));
+    return BlobIndexPair(blob, index);
   }
 
   @Route.get('/api/packages/<package>')

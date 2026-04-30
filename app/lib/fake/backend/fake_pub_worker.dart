@@ -161,9 +161,9 @@ Future<void> _fakeAnalysis(Payload payload) async {
         await _upload(
           client,
           r.index,
-          () => Stream.value(index.asBytes()),
-          index.asBytes().length,
-          filename: 'index.json',
+          () => Stream.value(index),
+          index.length,
+          filename: 'blob.index',
           contentType: 'application/json',
         );
 

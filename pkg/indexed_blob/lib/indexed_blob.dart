@@ -172,7 +172,7 @@ final class IndexedBlobBuilder {
   ///
   /// ## Index file format
   ///
-  /// The returned [BlobIndex] is a single binary buffer with this layout:
+  /// The returned bytes form a single binary buffer with this layout:
   ///
   /// ```
   /// [ HashIndexHeader (17 + blobIdLength bytes) ]
@@ -199,7 +199,7 @@ final class IndexedBlobBuilder {
   /// Lookup therefore proceeds in at most two steps: a binary search over
   /// subindex records to identify the right subindex block (or determine the
   /// target is in the main index), then a binary search within that block.
-  Future<BlobIndex> buildIndex(
+  Future<Uint8List> buildIndex(
     String blobId, {
     int indexSizeThresholdKiB = 512,
   }) async {
@@ -213,7 +213,7 @@ final class IndexedBlobBuilder {
 
     if (_entries.isEmpty) {
       await _blob.close();
-      return BlobIndex.empty(blobId: blobId);
+      return HashIndexHeader.empty(blobId: blobId).asBytes();
     }
 
     final records = _entries.map((e) => e.toRecord(blobIdBytes)).toList();
@@ -306,8 +306,7 @@ final class IndexedBlobBuilder {
     for (final r in subindexRecords) {
       indexBytesBuilder.add(indexHeader.encodeRecord(r));
     }
-    final bytes = indexBytesBuilder.toBytes();
-    return BlobIndex.fromBytes(bytes);
+    return indexBytesBuilder.toBytes();
   }
 }
 
@@ -350,15 +349,17 @@ final class HashIndex {
   final Uint8List _bytes;
 
   HashIndex(Uint8List bytes) : _bytes = bytes;
+  factory HashIndex.empty() =>
+      HashIndex(HashIndexHeader.empty(blobId: '').asBytes());
 
   late final _header = HashIndexHeader.parse(_bytes);
   late final _data = ByteData.sublistView(_bytes);
 
   String get blobId => _header.blobId;
-  Uint8List get blobIdBytes => _header.blobIdBytes;
+  Uint8List get _blobIdBytes => _header.blobIdBytes;
 
-  int get entryCount => _header.entryCount;
-  int get subindexCount => _header.subindexCount;
+  int get _entryCount => _header.entryCount;
+  int get _subindexCount => _header.subindexCount;
 
   /// Returns the blob `(offset, length)` for entry record [i].
   (int offset, int length) _getEntryRecord(int i) {
@@ -381,7 +382,7 @@ final class HashIndex {
   /// Binary-searches entry records for an exact hash match.
   ///
   /// Returns the matched index, or `-1` if not found.
-  int searchEntry(Uint8List hashBytes) => _search(
+  int _searchEntry(Uint8List hashBytes) => _search(
     _header.entryCount,
     (i) => _compareHashWithOffset(
       _bytes,
@@ -394,7 +395,7 @@ final class HashIndex {
   /// Binary-searches subindex records for the largest hash ≤ [hashBytes].
   ///
   /// Returns the matched index, or `-1` if every subindex hash is greater.
-  int searchSubindex(Uint8List hashBytes) => _search(
+  int _searchSubindex(Uint8List hashBytes) => _search(
     _header.subindexCount,
     (i) => _compareHashWithOffset(
       _bytes,
@@ -406,13 +407,14 @@ final class HashIndex {
   );
 
   /// Returns `true` if the hash stored for entry [i] matches [hashBytes].
-  bool verifyEntryHash(int i, Uint8List hashBytes) =>
+  bool _verifyEntryHash(int i, Uint8List hashBytes) =>
       _compareHashWithOffset(
         _bytes,
         _header.getEntryOffset(i),
         hashBytes,
         _header.hashPrefixBytes,
-      ) == 0;
+      ) ==
+      0;
 
   /// Returns the raw bytes of this index block.
   Uint8List asBytes() => _bytes;
@@ -421,32 +423,26 @@ final class HashIndex {
 /// Index for an indexed-blob, can be used to lookup [FileRange].
 final class BlobIndex {
   final HashIndex _hashIndex;
+  final BlobSliceReader _readBlob;
 
-  /// Create [BlobIndex] from [indexFile] contents.
-  ///
-  /// A [BlobIndex] can be built using [IndexedBlobBuilder], or restored from
-  /// a previous [BlobIndex] instance serialized with [BlobIndex.asBytes].
+  /// Create [BlobIndex] from [indexFile] contents, with [readBlob] used to
+  /// fetch byte ranges from the associated blob.
   ///
   /// The format of the [indexFile] is internal to [IndexedBlobBuilder] and
   /// [BlobIndex], attempts to read/write the format outside of these classes
   /// is unsupported.
-  BlobIndex.fromBytes(List<int> indexFile)
+  BlobIndex.fromBytes(List<int> indexFile, BlobSliceReader readBlob)
     : _hashIndex = HashIndex(
         indexFile is Uint8List ? indexFile : Uint8List.fromList(indexFile),
-      );
+      ),
+      _readBlob = readBlob;
 
-  BlobIndex.empty({required String blobId})
-    : _hashIndex = HashIndex(
-        HashIndexHeader(
-          version: 1,
-          blobIdBytes: utf8.encode(blobId),
-          hashPrefixBytes: 4,
-          offsetBytes: 4,
-          contentLengthBytes: 4,
-          entryCount: 0,
-          subindexCount: 0,
-        ).asBytes(),
-      );
+  BlobIndex.from(this._hashIndex, this._readBlob);
+
+  factory BlobIndex.empty() => BlobIndex.fromBytes(
+    HashIndexHeader.empty(blobId: 'empty').asBytes(),
+    (_, __) async => null,
+  );
 
   /// Get the free-form [String] given as `blobId` when the blob was built.
   ///
@@ -454,32 +450,30 @@ final class BlobIndex {
   /// blob indexed by this [BlobIndex].
   String get blobId => _hashIndex.blobId;
 
-  bool get hasSubindexes => _hashIndex.subindexCount > 0;
+  bool get hasSubindexes => _hashIndex._subindexCount > 0;
 
-  /// Looks up [path], automatically resolving subindex blocks via [readBlob].
-  ///
-  /// [readBlob] is called with `(start, end)` byte offsets into the blob and
-  /// must return the bytes in that range. It is called at most once — only
-  /// when the main index determines that [path] falls within a subindex block —
-  /// and not at all when the entry is found directly in the main index.
+  /// Looks up [path], automatically resolving subindex blocks when needed.
   ///
   /// Returns a [FileRange] describing where the file lives in the blob,
   /// or `null` if [path] is not stored in this indexed blob.
-  Future<FileRange?> lookup(String path, BlobSliceReader readBlob) async {
+  Future<FileRange?> lookup(String path) async {
     final pathBytes = utf8.encode(path);
-    final hashBytes = _hash(_hashIndex.blobIdBytes, pathBytes);
+    final hashBytes = _hash(_hashIndex._blobIdBytes, pathBytes);
 
-    final selectedSubindex = _hashIndex.searchSubindex(hashBytes);
+    final selectedSubindex = _hashIndex._searchSubindex(hashBytes);
     if (selectedSubindex >= 0) {
-      final (contentOffset, contentLength) =
-          _hashIndex._getSubindexRecord(selectedSubindex);
-      final subindexBytes = await readBlob(
+      final (contentOffset, contentLength) = _hashIndex._getSubindexRecord(
+        selectedSubindex,
+      );
+      final subindexBytes = await _readBlob(
         contentOffset,
         contentOffset + contentLength,
       );
       if (subindexBytes == null) return null;
-      return BlobIndex.fromBytes(subindexBytes)
-          ._lookupInEntries(path, pathBytes, hashBytes);
+      return BlobIndex.fromBytes(
+        subindexBytes,
+        _readBlob,
+      )._lookupInEntries(path, pathBytes, hashBytes);
     }
 
     return _lookupInEntries(path, pathBytes, hashBytes);
@@ -490,52 +484,57 @@ final class BlobIndex {
     List<int> pathBytes,
     Uint8List hashBytes,
   ) {
-    final selectedEntry = _hashIndex.searchEntry(hashBytes);
+    final selectedEntry = _hashIndex._searchEntry(hashBytes);
     if (selectedEntry < 0) return null;
-    final (entryOffset, blockLength) = _hashIndex._getEntryRecord(selectedEntry);
+    final (entryOffset, blockLength) = _hashIndex._getEntryRecord(
+      selectedEntry,
+    );
     return FileRange._(path, entryOffset, entryOffset + blockLength, blobId);
   }
 
   /// Lists paths of all files stored in the indexed blob.
   ///
   /// Iterates entries in the main index, then fetches and iterates each
-  /// subindex block in turn. For every entry, [readBlob] is called once to
-  /// read its path bytes from the blob; for each subindex block, [readBlob]
-  /// is called once to load the block itself.
+  /// subindex block in turn. For every entry, the blob reader is called once
+  /// to read its path bytes; for each subindex block it is called once to load
+  /// the block itself.
   ///
   /// Paths are yielded in hash order (not lexicographic path order).
   ///
-  /// **Caution:** issues one [readBlob] call per entry plus one per subindex
+  /// **Caution:** issues one blob-reader call per entry plus one per subindex
   /// block. For remote blobs, callers may want to buffer the stream rather
   /// than issuing large numbers of individual range requests.
   ///
   /// Throws [FormatException] if the path bytes read from the blob do not
   /// match the hash stored in the index for that entry.
-  Stream<String> listFiles(BlobSliceReader readBlob) async* {
-    yield* _listEntries(readBlob);
-    for (var i = 0; i < _hashIndex.subindexCount; i++) {
+  Stream<String> listFiles() async* {
+    yield* _listEntries();
+    for (var i = 0; i < _hashIndex._subindexCount; i++) {
       final (contentOffset, contentLength) = _hashIndex._getSubindexRecord(i);
-      final subindexBytes = await readBlob(
+      final subindexBytes = await _readBlob(
         contentOffset,
         contentOffset + contentLength,
       );
       if (subindexBytes != null) {
-        yield* BlobIndex.fromBytes(subindexBytes)._listEntries(readBlob);
+        yield* BlobIndex.fromBytes(subindexBytes, _readBlob)._listEntries();
       }
     }
   }
 
-  Stream<String> _listEntries(BlobSliceReader readBlob) async* {
-    for (var i = 0; i < _hashIndex.entryCount; i++) {
+  Stream<String> _listEntries() async* {
+    for (var i = 0; i < _hashIndex._entryCount; i++) {
       final (entryOffset, blockLength) = _hashIndex._getEntryRecord(i);
-      final blockBytes = await readBlob(entryOffset, entryOffset + blockLength);
+      final blockBytes = await _readBlob(
+        entryOffset,
+        entryOffset + blockLength,
+      );
       if (blockBytes == null) continue;
       final pathLength = ByteData.sublistView(
         blockBytes,
       ).getUint(_pathLengthPrefixSize, 0);
       final pathBytes = Uint8List.sublistView(blockBytes, 2, 2 + pathLength);
-      final computedHash = _hash(_hashIndex.blobIdBytes, pathBytes);
-      if (!_hashIndex.verifyEntryHash(i, computedHash)) {
+      final computedHash = _hash(_hashIndex._blobIdBytes, pathBytes);
+      if (!_hashIndex._verifyEntryHash(i, computedHash)) {
         throw FormatException(
           'Hash mismatch for entry $i: '
           'path bytes in blob do not match the stored hash.',
@@ -549,15 +548,15 @@ final class BlobIndex {
   /// bytes read from the blob match the expected value.
   ///
   /// Unlike [lookup], which only checks the hash index, this method also reads
-  /// the path bytes from the blob via [readBlob] to confirm there is no hash
-  /// collision or index/blob mismatch.
-  ///
-  /// [readBlob] may be called up to twice: once to resolve a subindex block
-  /// (when the main index has subindexes), and once to read the path bytes.
-  Future<bool> hasFile(String path, BlobSliceReader readBlob) async {
-    final range = await lookup(path, readBlob);
+  /// the path bytes from the blob to confirm there is no hash collision or
+  /// index/blob mismatch.
+  Future<bool> hasFile(String path) async {
+    final range = await lookup(path);
     if (range == null) return false;
-    final blobPathBytes = await readBlob(range.entryOffset, range.contentStart);
+    final blobPathBytes = await _readBlob(
+      range.entryOffset,
+      range.contentStart,
+    );
     if (blobPathBytes == null) return false;
     return range.matchesPathBytesPrefix(blobPathBytes);
   }
@@ -798,6 +797,18 @@ class HashIndexHeader {
     if (blobIdBytes.length > 4096) {
       throw ArgumentError('blobId must not exceed 4096 UTF-8 bytes.');
     }
+  }
+
+  factory HashIndexHeader.empty({required String blobId}) {
+    return HashIndexHeader(
+      version: 1,
+      blobIdBytes: utf8.encode(blobId),
+      hashPrefixBytes: 4,
+      offsetBytes: 4,
+      contentLengthBytes: 4,
+      entryCount: 0,
+      subindexCount: 0,
+    );
   }
 
   static HashIndexHeader parse(Uint8List bytes) {

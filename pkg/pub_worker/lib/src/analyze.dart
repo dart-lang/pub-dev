@@ -308,7 +308,6 @@ Future<void> _analyzePackage(
 
     // Create BlobIndex
     final index = await builder.buildIndex(r.blobId);
-    final indexBytes = index.asBytes();
 
     // Upload blob and index
     await upload(
@@ -325,8 +324,8 @@ Future<void> _analyzePackage(
     await upload(
       client,
       r.index,
-      () => Stream.value(indexBytes),
-      indexBytes.length,
+      () => Stream.value(index),
+      index.length,
       filename: 'blob.index',
       contentType: 'application/json',
     );

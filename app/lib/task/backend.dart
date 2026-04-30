@@ -16,7 +16,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart' show Bucket;
 import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:indexed_blob/indexed_blob.dart'
-    show BlobIndex, BlobSliceReader, FileRange;
+    show BlobIndex, BlobSliceReader, FileRange, HashIndex;
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show Summary;
@@ -652,20 +652,20 @@ class TaskBackend {
 
     String? zone, instance;
     bool isInstanceDone = false;
-    final index = await _loadTaskResultIndex(
+    final hashIndex = await _loadTaskResultHashIndex(
       package: package,
       version: version,
       runtimeVersion: runtimeVersion,
     );
+    final index = hashIndex == null
+        ? BlobIndex.empty()
+        : BlobIndex.from(hashIndex, _blobSliceReader(hashIndex.blobId));
     final summary = _panaSummaryFromGzippedBytes(
       package,
       version,
       await _gzippedTaskResult(index, 'summary.json'),
     );
-    final hasDocIndexHtml = await index.hasFile(
-      'doc/index.html',
-      _blobSliceReader(index.blobId),
-    );
+    final hasDocIndexHtml = await index.hasFile('doc/index.html');
     await withRetryTransaction(_db, (tx) async {
       final state = await tx.tasks.lookupOrNull(package);
       if (state == null) {
@@ -794,26 +794,35 @@ class TaskBackend {
   /// path for the blob being reference, this path will include runtime-version,
   /// package name, version and randomized blobId.
   Future<BlobIndex?> _taskResultIndex(String package, String version) async {
-    return await cache.taskResultIndex(package, version).get(() async {
-      // Don't try to load index if we don't consider the version for analysis.
-      final status = await packageStatus(package);
-      if (!status.versions.containsKey(version)) {
-        return BlobIndex.empty(blobId: '');
-      }
-      final versionStatus = status.versions[version]!.status;
-      // if analysis has failed, don't try to load results
-      if (versionStatus == PackageVersionStatus.failed) {
-        return BlobIndex.empty(blobId: '');
-      }
-      return await _loadTaskResultIndex(
-        package: package,
-        version: version,
-        runtimeVersion: status.runtimeVersion,
-      );
-    });
+    final hashIndex = await cache.taskResultIndex(package, version).get(
+      () async {
+        // Don't try to load index if we don't consider the version for analysis.
+        final status = await packageStatus(package);
+        if (!status.versions.containsKey(version)) {
+          return HashIndex.empty();
+        }
+        final versionStatus = status.versions[version]!.status;
+        // if analysis has failed, don't try to load results
+        if (versionStatus == PackageVersionStatus.failed) {
+          return HashIndex.empty();
+        }
+        final index = await _loadTaskResultHashIndex(
+          package: package,
+          version: version,
+          runtimeVersion: status.runtimeVersion,
+        );
+        return index ?? HashIndex.empty();
+      },
+    );
+    return hashIndex == null
+        ? null
+        : BlobIndex.from(hashIndex, _blobSliceReader(hashIndex.blobId));
   }
 
-  Future<BlobIndex> _loadTaskResultIndex({
+  /// Loads and verifies a hash index.
+  ///
+  /// Returns null if the index file is missing or the blobId in it does not match the expected prefix.
+  Future<HashIndex?> _loadTaskResultHashIndex({
     required String package,
     required String version,
     required String runtimeVersion,
@@ -822,23 +831,24 @@ class TaskBackend {
     final path = '$pathPrefix/blob.index';
     final bytes = await _readFromBucket(path, maxSize: blobIndexSizeLimit);
     if (bytes == null) {
-      return BlobIndex.empty(blobId: '');
-    }
-    final index = BlobIndex.fromBytes(bytes);
-    final blobId = index.blobId;
-    // We must check that the blobId points to a file under:
-    //  `$runtimeVersion/$package/$version/`
-    // Technically, the blob index is produced by the sandbox and we cannot
-    // trust it to not be malformed.
-    if (!_blobIdPattern.hasMatch(blobId) ||
-        !blobId.startsWith('$pathPrefix/')) {
-      _log.warning('invalid blobId: "$blobId" in index in "$path"');
-      return BlobIndex.empty(blobId: '');
+      return null;
     }
     if (bytes.length > 1024 * 1024) {
       _log.info(
         '[pub-task-large-index] index size over 1 MB: $package $version ${bytes.length}',
       );
+    }
+
+    final index = HashIndex(bytes);
+    // We must check that the blobId points to a file under:
+    //  `$runtimeVersion/$package/$version/`
+    // Technically, the blob index is produced by the sandbox and we cannot
+    // trust it to not be malformed.
+    final blobId = index.blobId;
+    if (!_blobIdPattern.hasMatch(blobId) ||
+        !blobId.startsWith('$pathPrefix/')) {
+      _log.warning('invalid blobId: "$blobId" in index in "$path"');
+      return null;
     }
     return index;
   }
@@ -867,7 +877,7 @@ class TaskBackend {
 
     FileRange range;
     try {
-      final r = await index.lookup(path, _blobSliceReader(index.blobId));
+      final r = await index.lookup(path);
       if (r == null) {
         return null;
       }
