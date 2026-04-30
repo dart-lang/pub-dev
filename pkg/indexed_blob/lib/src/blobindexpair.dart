@@ -8,7 +8,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
-import '../indexed_blob.dart' show BlobIndex, FileRange, IndexedBlobBuilder;
+import '../indexed_blob.dart' show BlobIndex, IndexedBlobBuilder;
 
 /// Pair containing and in-memory [blob] and matching [index].
 final class BlobIndexPair {
@@ -88,8 +88,8 @@ final class BlobIndexPair {
     return Uint8List.sublistView(blob, range.contentStart, range.end);
   }
 
-  /// List [FileRange] entries from the index.
-  Stream<FileRange> listFiles() {
+  /// List file paths from the index.
+  Stream<String> listFiles() {
     return index.listFiles(
       (start, end) async => Uint8List.sublistView(blob, start, end),
     );

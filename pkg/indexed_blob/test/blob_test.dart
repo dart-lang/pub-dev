@@ -205,10 +205,7 @@ void main() {
     }
 
     // listFiles must return every file exactly once.
-    final allPaths = await index
-        .listFiles(readBlob)
-        .map((r) => r.path)
-        .toList();
+    final allPaths = await index.listFiles(readBlob).toList();
     expect(allPaths.length, 100002); // README.md + 100000 files + hello.txt
     expect(
       allPaths,

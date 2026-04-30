@@ -458,14 +458,14 @@ final class BlobIndex {
     return FileRange._(path, entryOffset, entryOffset + blockLength, blobId);
   }
 
-  /// Lists all [FileRange]s stored in the indexed blob.
+  /// Lists paths of all files stored in the indexed blob.
   ///
   /// Iterates entries in the main index, then fetches and iterates each
   /// subindex block in turn. For every entry, [readBlob] is called once to
   /// read its path bytes from the blob; for each subindex block, [readBlob]
   /// is called once to load the block itself.
   ///
-  /// Entries are yielded in hash order (not lexicographic path order).
+  /// Paths are yielded in hash order (not lexicographic path order).
   ///
   /// **Caution:** issues one [readBlob] call per entry plus one per subindex
   /// block. For remote blobs, callers may want to buffer the stream rather
@@ -473,7 +473,7 @@ final class BlobIndex {
   ///
   /// Throws [FormatException] if the path bytes read from the blob do not
   /// match the hash stored in the index for that entry.
-  Stream<FileRange> listFiles(BlobSliceReader readBlob) async* {
+  Stream<String> listFiles(BlobSliceReader readBlob) async* {
     yield* _listEntries(readBlob);
     final data = ByteData.sublistView(_indexFile);
     for (var i = 0; i < _header.subindexCount; i++) {
@@ -494,7 +494,7 @@ final class BlobIndex {
     }
   }
 
-  Stream<FileRange> _listEntries(BlobSliceReader readBlob) async* {
+  Stream<String> _listEntries(BlobSliceReader readBlob) async* {
     final data = ByteData.sublistView(_indexFile);
     for (var i = 0; i < _header.entryCount; i++) {
       var dataOffset = _header.getEntryOffset(i) + _header.hashPrefixBytes;
@@ -521,8 +521,7 @@ final class BlobIndex {
           'path bytes in blob do not match the stored hash.',
         );
       }
-      final path = utf8.decode(pathBytes);
-      yield FileRange._(path, entryOffset, entryOffset + blockLength, blobId);
+      yield utf8.decode(pathBytes);
     }
   }
 
