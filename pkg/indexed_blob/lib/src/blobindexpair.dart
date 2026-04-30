@@ -80,7 +80,7 @@ final class BlobIndexPair {
     final pathBytes = Uint8List.sublistView(
       blob,
       range.entryOffset,
-      range.entryOffset + range.pathLength + 1,
+      range.contentStart,
     );
     if (!range.matchesPathBytesPrefix(pathBytes)) {
       return null;

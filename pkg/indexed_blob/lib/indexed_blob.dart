@@ -27,7 +27,7 @@ import 'package:crypto/crypto.dart';
 export 'src/blobindexpair.dart' show BlobIndexPair;
 
 /// Reads a byte slice from the blob.
-typedef BlobSliceReader = Future<List<int>?> Function(int start, int end);
+typedef BlobSliceReader = Future<Uint8List?> Function(int start, int end);
 
 /// Builder for creating an indexed-blob by adding files and finally generating
 /// an index.
@@ -76,7 +76,7 @@ final class IndexedBlobBuilder {
   }
 
   /// Estimated maximum length of the index file.
-  int get indexUpperLength => 128 + _entries.length * (32 + 8 + 2 + 8);
+  int get indexUpperLength => 128 + _entries.length * (32 + 8 + 8);
 
   /// Add a file at [path] with given [content] to blob being built.
   ///
@@ -115,13 +115,14 @@ final class IndexedBlobBuilder {
         );
       }
 
-      // Writing path (as `utf8(path) + zero terminator`) to allow path verification.
+      // Writing path as a big-endian length prefix followed by the path bytes.
+      final pathLenPrefix = Uint8List(_pathLengthPrefixSize);
+      pathLenPrefix.buffer.asByteData().setUint16(0, pathBytes.length);
+      _blob.add(pathLenPrefix);
+      _offset += _pathLengthPrefixSize;
       _blob.add(pathBytes);
       _offset += pathBytes.length;
-      _blob.add(const [0]);
-      _offset += 1;
 
-      final contentStart = _offset;
       var totalSize = 0;
       await _blob.addStream(
         content.map((chunk) {
@@ -145,7 +146,7 @@ final class IndexedBlobBuilder {
         _Entry(
           startOffset: startOffset,
           pathBytes: pathBytes,
-          contentLength: endOffset - contentStart,
+          blockLength: endOffset - startOffset,
         ),
       );
       return true;
@@ -165,7 +166,7 @@ final class IndexedBlobBuilder {
   ///
   /// The written blob contains, in order:
   /// 1. **File entries** – for each file added via [addFile]:
-  ///    `utf8(path) + 0x00 + <raw content bytes>`
+  ///    `uint16be(utf8(path).length) + utf8(path) + <raw content bytes>`
   /// 2. **Subindex blocks** (if the index is large) – zero or more secondary
   ///    index blocks appended directly to the blob (see below).
   ///
@@ -174,7 +175,7 @@ final class IndexedBlobBuilder {
   /// The returned [BlobIndex] is a single binary buffer with this layout:
   ///
   /// ```
-  /// [ HashIndexHeader (18 + blobIdLength bytes) ]
+  /// [ HashIndexHeader (17 + blobIdLength bytes) ]
   /// [ entry record × entryCount ]
   /// [ subindex record × subindexCount ]
   /// ```
@@ -215,26 +216,31 @@ final class IndexedBlobBuilder {
       return BlobIndex.empty(blobId: blobId);
     }
 
-    for (final entry in _entries) {
-      entry.pathHash = _hash(blobIdBytes, entry.pathBytes);
-    }
-    _entries.sort((a, b) => _compareHash(a.pathHash, b.pathHash));
+    final records = _entries.map((e) => e.toRecord(blobIdBytes)).toList();
+    records.sort(
+      (a, b) => _compareHashWithOffset(
+        a.hashPrefix,
+        0,
+        b.hashPrefix,
+        a.hashPrefix.length,
+      ),
+    );
 
-    final maxCommonHashPrefix = _entries.indexed
-        .skip(1)
-        .map((a) => _commonPrefix(_entries[a.$1 - 1].pathHash, a.$2.pathHash))
-        .fold(0, (a, b) => max(a, b));
+    var maxCommonHashPrefix = 0;
+    for (var i = 1; i < records.length; i++) {
+      maxCommonHashPrefix = max(
+        maxCommonHashPrefix,
+        _commonPrefix(records[i - 1].hashPrefix, records[i].hashPrefix),
+      );
+    }
     final hashPrefixBytes = max(4, maxCommonHashPrefix + 1);
 
-    final worstCaseIndexSize = (hashPrefixBytes + 8 + 2 + 8) * _entries.length;
+    final worstCaseIndexSize = (hashPrefixBytes + 8 + 8) * records.length;
     final worstCaseOffset =
         _offset +
         worstCaseIndexSize +
         /* arbitrary padding for headers and other overheads */
         128 * 1024;
-
-    // We always use 2 bytes for the length-prefix for the path.
-    final pathLengthBytes = 2;
 
     final offsetMinBytes = (worstCaseOffset.bitLength ~/ 8) + 1;
     final offsetBytes = offsetMinBytes <= 2 ? 2 : (offsetMinBytes <= 4 ? 4 : 8);
@@ -242,15 +248,15 @@ final class IndexedBlobBuilder {
     // byte-width that fits blob offsets also fits content lengths.
     final contentLengthBytes = offsetBytes;
 
-    final entryBytesLength =
-        hashPrefixBytes + offsetBytes + pathLengthBytes + contentLengthBytes;
+    final recordBytesLength =
+        hashPrefixBytes + offsetBytes + contentLengthBytes;
 
     final subindexCount =
-        (_entries.length * entryBytesLength) ~/ (indexSizeThresholdKiB * 1024);
-    final entryPerIndex = (_entries.length ~/ (subindexCount + 1)) + 1;
+        (records.length * recordBytesLength) ~/ (indexSizeThresholdKiB * 1024);
+    final entryPerIndex = (records.length ~/ (subindexCount + 1)) + 1;
 
-    final subindexEntries = <_Subindex>[];
-    final slices = _entries.slices(entryPerIndex);
+    final subindexRecords = <_Record>[];
+    final slices = records.slices(entryPerIndex);
     for (final slice in slices.skip(1)) {
       final subindexStartOffset = _offset;
 
@@ -259,7 +265,6 @@ final class IndexedBlobBuilder {
         blobIdBytes: blobIdBytes,
         hashPrefixBytes: hashPrefixBytes,
         offsetBytes: offsetBytes,
-        pathLengthBytes: pathLengthBytes,
         contentLengthBytes: contentLengthBytes,
         entryCount: slice.length,
         subindexCount: 0,
@@ -267,22 +272,17 @@ final class IndexedBlobBuilder {
       final headerBytes = subIndexHeader.asBytes();
       _blob.add(headerBytes);
       _offset += headerBytes.length;
-      for (final entry in slice) {
-        final entryBytes = entry.asBytes(
-          hashPrefixBytes: hashPrefixBytes,
-          offsetBytes: offsetBytes,
-          pathLengthBytes: pathLengthBytes,
-          contentLengthBytes: contentLengthBytes,
-        );
+      for (final record in slice) {
+        final entryBytes = subIndexHeader.encodeRecord(record);
         _blob.add(entryBytes);
         _offset += entryBytes.length;
       }
       final subindexEndOffset = _offset;
-      subindexEntries.add(
-        _Subindex(
-          hashRangeStart: slice.first.pathHash,
-          startOffset: subindexStartOffset,
-          contentLength: subindexEndOffset - subindexStartOffset,
+      subindexRecords.add(
+        _Record(
+          hashPrefix: slice.first.hashPrefix,
+          offset: subindexStartOffset,
+          length: subindexEndOffset - subindexStartOffset,
         ),
       );
     }
@@ -294,37 +294,25 @@ final class IndexedBlobBuilder {
       blobIdBytes: blobIdBytes,
       hashPrefixBytes: hashPrefixBytes,
       offsetBytes: offsetBytes,
-      pathLengthBytes: pathLengthBytes,
       contentLengthBytes: contentLengthBytes,
       entryCount: slices.first.length,
-      subindexCount: subindexEntries.length,
+      subindexCount: subindexRecords.length,
     );
-    final indexChunks = [
-      indexHeader.asBytes(),
-      ...slices.first.map(
-        (item) => item.asBytes(
-          hashPrefixBytes: hashPrefixBytes,
-          offsetBytes: offsetBytes,
-          pathLengthBytes: pathLengthBytes,
-          contentLengthBytes: contentLengthBytes,
-        ),
-      ),
-      ...subindexEntries.map(
-        (entry) => entry.asBytes(
-          hashPrefixBytes: hashPrefixBytes,
-          offsetBytes: offsetBytes,
-          contentLengthBytes: contentLengthBytes,
-        ),
-      ),
-    ];
     final indexBytesBuilder = BytesBuilder();
-    for (final chunk in indexChunks) {
-      indexBytesBuilder.add(chunk);
+    indexBytesBuilder.add(indexHeader.asBytes());
+    for (final r in slices.first) {
+      indexBytesBuilder.add(indexHeader.encodeRecord(r));
+    }
+    for (final r in subindexRecords) {
+      indexBytesBuilder.add(indexHeader.encodeRecord(r));
     }
     final bytes = indexBytesBuilder.toBytes();
     return BlobIndex.fromBytes(bytes);
   }
 }
+
+/// Byte width of the path-length prefix written at the start of every blob entry.
+const _pathLengthPrefixSize = 2;
 
 Uint8List _hash(List<int> saltBytes, List<int> pathBytes) {
   Digest? digest;
@@ -335,15 +323,6 @@ Uint8List _hash(List<int> saltBytes, List<int> pathBytes) {
   input.add(pathBytes);
   input.close();
   return Uint8List.fromList(digest!.bytes);
-}
-
-int _compareHash(Uint8List a, Uint8List b) {
-  assert(a.length == b.length);
-  for (var i = 0; i < a.length; i++) {
-    final x = a[i].compareTo(b[i]);
-    if (x != 0) return x;
-  }
-  return 0;
 }
 
 int _compareHashWithOffset(
@@ -392,7 +371,6 @@ final class BlobIndex {
         blobIdBytes: utf8.encode(blobId),
         hashPrefixBytes: 4,
         offsetBytes: 4,
-        pathLengthBytes: 2,
         contentLengthBytes: 4,
         entryCount: 0,
         subindexCount: 0,
@@ -481,19 +459,9 @@ final class BlobIndex {
         _header.getEntryOffset(selectedEntry) + _header.hashPrefixBytes;
     final entryOffset = data.getUint(_header.offsetBytes, dataOffset);
     dataOffset += _header.offsetBytes;
-    final pathLength = data.getUint(_header.pathLengthBytes, dataOffset);
-    dataOffset += _header.pathLengthBytes;
-    final contentLength = data.getUint(_header.contentLengthBytes, dataOffset);
+    final blockLength = data.getUint(_header.contentLengthBytes, dataOffset);
 
-    // sanity check on path length
-    if (pathLength != pathBytes.length) return null;
-
-    return FileRange._(
-      path,
-      entryOffset,
-      entryOffset + pathLength + 1 + contentLength,
-      blobId,
-    );
+    return FileRange._(path, entryOffset, entryOffset + blockLength, blobId);
   }
 
   /// Lists all [FileRange]s stored in the indexed blob.
@@ -538,16 +506,14 @@ final class BlobIndex {
       var dataOffset = _header.getEntryOffset(i) + _header.hashPrefixBytes;
       final entryOffset = data.getUint(_header.offsetBytes, dataOffset);
       dataOffset += _header.offsetBytes;
-      final pathLength = data.getUint(_header.pathLengthBytes, dataOffset);
-      dataOffset += _header.pathLengthBytes;
-      final contentLength = data.getUint(
-        _header.contentLengthBytes,
-        dataOffset,
-      );
-      final pathBytes = await readBlob(entryOffset, entryOffset + pathLength);
-      if (pathBytes == null) {
-        continue;
-      }
+      final blockLength = data.getUint(_header.contentLengthBytes, dataOffset);
+
+      final blockBytes = await readBlob(entryOffset, entryOffset + blockLength);
+      if (blockBytes == null) continue;
+      final pathLength = ByteData.sublistView(
+        blockBytes,
+      ).getUint(_pathLengthPrefixSize, 0);
+      final pathBytes = Uint8List.sublistView(blockBytes, 2, 2 + pathLength);
       final computedHash = _hash(_header.blobIdBytes, pathBytes);
       if (_compareHashWithOffset(
             _indexFile,
@@ -562,12 +528,7 @@ final class BlobIndex {
         );
       }
       final path = utf8.decode(pathBytes);
-      yield FileRange._(
-        path,
-        entryOffset,
-        entryOffset + pathLength + 1 + contentLength,
-        blobId,
-      );
+      yield FileRange._(path, entryOffset, entryOffset + blockLength, blobId);
     }
   }
 
@@ -583,10 +544,7 @@ final class BlobIndex {
   Future<bool> hasFile(String path, BlobSliceReader readBlob) async {
     final range = await lookup(path, readBlob);
     if (range == null) return false;
-    final blobPathBytes = await readBlob(
-      range.entryOffset,
-      range.entryOffset + range.pathLength + 1,
-    );
+    final blobPathBytes = await readBlob(range.entryOffset, range.contentStart);
     if (blobPathBytes == null) {
       return false;
     }
@@ -642,47 +600,40 @@ int _search(
 final class _Entry {
   final int startOffset;
   final Uint8List pathBytes;
-  final int contentLength;
-  late Uint8List pathHash;
+  final int blockLength;
 
   _Entry({
     required this.startOffset,
     required this.pathBytes,
-    required this.contentLength,
+    required this.blockLength,
   });
 
-  Uint8List asBytes({
-    required int hashPrefixBytes,
-    required int offsetBytes,
-    required int pathLengthBytes,
-    required int contentLengthBytes,
-  }) {
-    final bytes = Uint8List(
-      hashPrefixBytes + offsetBytes + pathLengthBytes + contentLengthBytes,
-    );
-    for (var i = 0; i < hashPrefixBytes; i++) {
-      bytes[i] = pathHash[i];
-    }
-    final data = bytes.buffer.asByteData();
-    var offset = hashPrefixBytes;
-    data.setUint(offsetBytes, offset, startOffset);
-    offset += offsetBytes;
-    data.setUint(pathLengthBytes, offset, pathBytes.length);
-    offset += pathLengthBytes;
-    data.setUint(contentLengthBytes, offset, contentLength);
-    return bytes;
-  }
+  _Record toRecord(List<int> blobIdBytes) => _Record(
+    hashPrefix: _hash(blobIdBytes, pathBytes),
+    offset: startOffset,
+    length: blockLength,
+  );
 }
 
-final class _Subindex {
-  final Uint8List hashRangeStart;
-  final int startOffset;
-  final int contentLength;
+/// A serializable index record: either a file entry or a subindex pointer.
+///
+/// Both kinds share the same byte layout:
+/// ```
+/// hashPrefixBytes    leading hash bytes (path hash for entries,
+///                    first-entry hash for subindex pointers)
+/// offsetBytes        blob offset (file entry start, or subindex block start)
+/// contentLengthBytes byte length of the entire block starting at offset
+///                    (entries: prefix + path + content; subindexes: full block)
+/// ```
+final class _Record {
+  final Uint8List hashPrefix;
+  final int offset;
+  final int length;
 
-  _Subindex({
-    required this.hashRangeStart,
-    required this.startOffset,
-    required this.contentLength,
+  _Record({
+    required this.hashPrefix,
+    required this.offset,
+    required this.length,
   });
 
   Uint8List asBytes({
@@ -692,13 +643,13 @@ final class _Subindex {
   }) {
     final bytes = Uint8List(hashPrefixBytes + offsetBytes + contentLengthBytes);
     for (var i = 0; i < hashPrefixBytes; i++) {
-      bytes[i] = hashRangeStart[i];
+      bytes[i] = hashPrefix[i];
     }
     final data = bytes.buffer.asByteData();
-    var offset = hashPrefixBytes;
-    data.setUint(offsetBytes, offset, startOffset);
-    offset += offsetBytes;
-    data.setUint(contentLengthBytes, offset, contentLength);
+    var off = hashPrefixBytes;
+    data.setUint(offsetBytes, off, offset);
+    off += offsetBytes;
+    data.setUint(contentLengthBytes, off, length);
     return bytes;
   }
 }
@@ -710,9 +661,9 @@ final class FileRange {
 
   /// Start offset of the file entry in the blob.
   ///
-  /// The entry begins with `utf8(path) + 0x00`, followed immediately by the
-  /// raw file content.  Use [contentStart] to skip past the path header and
-  /// reach the first content byte.
+  /// The entry begins with a 2-byte big-endian path-length prefix, followed
+  /// by `utf8(path)`, then the raw file content.  Use [contentStart] to skip
+  /// past the path header and reach the first content byte.
   final int entryOffset;
 
   /// End offset of file in blob.
@@ -725,30 +676,31 @@ final class FileRange {
 
   late final _pathBytes = utf8.encode(path);
   late final pathLength = _pathBytes.length;
-  late final contentStart = entryOffset + pathLength + 1;
+  late final contentStart = entryOffset + _pathLengthPrefixSize + pathLength;
 
   /// Checks whether [slice] — which must start at [entryOffset] in the blob —
-  /// begins with `utf8(path) + 0x00`.
+  /// begins with a 2-byte big-endian length prefix and `utf8(path)`.
   bool matchesPathBytesPrefix(List<int> slice) {
-    if (slice.length < pathLength + 1) {
+    if (slice.length < _pathLengthPrefixSize + pathLength) {
+      return false;
+    }
+    if (slice[0] != (pathLength >> 8) || slice[1] != (pathLength & 0xFF)) {
       return false;
     }
     for (var i = 0; i < pathLength; i++) {
-      if (slice[i] != _pathBytes[i]) {
+      if (slice[_pathLengthPrefixSize + i] != _pathBytes[i]) {
         return false;
       }
-    }
-    if (slice[pathLength] != 0) {
-      return false;
     }
     return true;
   }
 
   /// Returns the file-content portion of [slice], where [slice] must start at
-  /// [entryOffset] in the blob (i.e. it begins with `utf8(path) + 0x00`).
-  /// Equivalent to `slice.sublist(pathLength + 1)`.
+  /// [entryOffset] in the blob (i.e. it begins with a 2-byte length prefix
+  /// and `utf8(path)`).
+  /// Equivalent to `slice.sublist(_kPathLengthPrefixSize + pathLength)`.
   Uint8List contentRange(Uint8List slice) {
-    return slice.sublist(pathLength + 1);
+    return slice.sublist(_pathLengthPrefixSize + pathLength);
   }
 
   /// Returns the file content from the full [blob], i.e. `blob[contentStart..end]`.
@@ -764,7 +716,7 @@ final class FileRange {
 
 /// Binary header for a hash index block (main index or subindex).
 ///
-/// ## Header layout (18 + blobIdLength bytes, big-endian)
+/// ## Header layout (17 + blobIdLength bytes, big-endian)
 ///
 /// ```
 /// Offset    Size      Field
@@ -774,12 +726,11 @@ final class FileRange {
 ///      2       2      version (uint16); currently always 1
 ///      4       1      hashPrefixBytes: number of hash bytes stored per entry (≥ 4)
 ///      5       1      offsetBytes: byte-width used for blob offsets (2, 4, or 8)
-///      6       1      pathLengthBytes: byte-width used for path lengths (always 2)
-///      7       1      contentLengthBytes: byte-width used for content lengths
-///      8       4      entryCount (uint32): number of entry records that follow
-///     12       4      subindexCount (uint32): number of subindex records that follow
-///     16       2      blobIdLength (uint16): byte-length of the blobId UTF-8 string
-///     18   [#16]      blobId: UTF-8 encoded, up to 4096 bytes
+///      6       1      contentLengthBytes: byte-width used for block lengths
+///      7       4      entryCount (uint32): number of entry records that follow
+///     11       4      subindexCount (uint32): number of subindex records that follow
+///     15       2      blobIdLength (uint16): byte-length of the blobId UTF-8 string
+///     17   [#15]      blobId: UTF-8 encoded, up to 4096 bytes
 /// ```
 ///
 /// ## Entry record layout (`entryCount` records after the header)
@@ -787,16 +738,16 @@ final class FileRange {
 /// Each entry describes one file stored in the blob:
 ///
 /// ```
-/// Size              Field
-/// ----              -----
-/// hashPrefixBytes   leading bytes of SHA-256(blobIdBytes ++ pathBytes)
-/// offsetBytes       start offset of the entry in the blob (uint)
-/// pathLengthBytes   byte-length of the file path (uint)
-/// contentLengthBytes byte-length of the file content (uint)
+/// Size               Field
+/// ----               -----
+/// hashPrefixBytes    leading bytes of SHA-256(blobIdBytes ++ pathBytes)
+/// offsetBytes        start offset of the entry in the blob (uint)
+/// contentLengthBytes byte-length of the entire entry block (uint):
+///                    path-length prefix + utf8(path) + file content
 /// ```
 ///
-/// The entry's blob region begins with `utf8(path) + 0x00`, followed
-/// immediately by the raw file content.
+/// The entry's blob region begins with a 2-byte big-endian path-length prefix,
+/// followed by `utf8(path)`, then the raw file content.
 ///
 /// ## Subindex record layout (`subindexCount` records after all entry records)
 ///
@@ -818,7 +769,6 @@ class HashIndexHeader {
 
   final int hashPrefixBytes;
   final int offsetBytes;
-  final int pathLengthBytes;
   final int contentLengthBytes;
 
   final int entryCount;
@@ -829,7 +779,6 @@ class HashIndexHeader {
     required List<int> blobIdBytes,
     required this.hashPrefixBytes,
     required this.offsetBytes,
-    required this.pathLengthBytes,
     required this.contentLengthBytes,
     required this.entryCount,
     required this.subindexCount,
@@ -841,10 +790,10 @@ class HashIndexHeader {
   }
 
   static HashIndexHeader parse(Uint8List bytes) {
-    if (bytes.length < 18) {
+    if (bytes.length < 17) {
       throw FormatException(
         'Index data too short to contain a valid header '
-        '(${bytes.length} bytes, need at least 18).',
+        '(${bytes.length} bytes, need at least 17).',
       );
     }
     final data = ByteData.sublistView(bytes);
@@ -857,15 +806,14 @@ class HashIndexHeader {
     }
     final hashPrefixBytes = data.getUint8(4);
     final offsetBytes = data.getUint8(5);
-    final pathLengthBytes = data.getUint8(6);
-    final contentLengthBytes = data.getUint8(7);
-    final entryCount = data.getUint32(8);
-    final subindexCount = data.getUint32(12);
-    final blobIdLength = data.getUint16(16);
-    if (bytes.length < 18 + blobIdLength) {
+    final contentLengthBytes = data.getUint8(6);
+    final entryCount = data.getUint32(7);
+    final subindexCount = data.getUint32(11);
+    final blobIdLength = data.getUint16(15);
+    if (bytes.length < 17 + blobIdLength) {
       throw FormatException(
         'Index data too short to contain the blobId '
-        '(${bytes.length} bytes, need ${18 + blobIdLength}).',
+        '(${bytes.length} bytes, need ${17 + blobIdLength}).',
       );
     }
     if (hashPrefixBytes < 4) {
@@ -878,11 +826,6 @@ class HashIndexHeader {
         'Invalid offsetBytes: $offsetBytes (must be 2, 4, or 8).',
       );
     }
-    if (pathLengthBytes != 2) {
-      throw FormatException(
-        'Invalid pathLengthBytes: $pathLengthBytes (must be 2).',
-      );
-    }
     if (contentLengthBytes != 2 &&
         contentLengthBytes != 4 &&
         contentLengthBytes != 8) {
@@ -890,13 +833,12 @@ class HashIndexHeader {
         'Invalid contentLengthBytes: $contentLengthBytes (must be 2, 4, or 8).',
       );
     }
-    final blobIdBytes = bytes.sublist(18, 18 + blobIdLength);
+    final blobIdBytes = bytes.sublist(17, 17 + blobIdLength);
     return HashIndexHeader(
       version: version,
       blobIdBytes: blobIdBytes,
       hashPrefixBytes: hashPrefixBytes,
       offsetBytes: offsetBytes,
-      pathLengthBytes: pathLengthBytes,
       contentLengthBytes: contentLengthBytes,
       entryCount: entryCount,
       subindexCount: subindexCount,
@@ -904,34 +846,36 @@ class HashIndexHeader {
   }
 
   Uint8List asBytes() {
-    final bytes = Uint8List(18 + blobIdBytes.length);
+    final bytes = Uint8List(17 + blobIdBytes.length);
     final data = bytes.buffer.asByteData();
     data.setUint8(0, 0x49);
     data.setUint8(1, 0x42);
-    data.setUint16(2, 1); // fixed version
+    data.setUint16(2, version);
     data.setUint8(4, hashPrefixBytes);
     data.setUint8(5, offsetBytes);
-    data.setUint8(6, pathLengthBytes);
-    data.setUint8(7, contentLengthBytes);
-    data.setUint32(8, entryCount);
-    data.setUint32(12, subindexCount);
-    data.setUint16(16, blobIdBytes.length);
+    data.setUint8(6, contentLengthBytes);
+    data.setUint32(7, entryCount);
+    data.setUint32(11, subindexCount);
+    data.setUint16(15, blobIdBytes.length);
     for (var i = 0; i < blobIdBytes.length; i++) {
-      data.setUint8(18 + i, blobIdBytes[i]);
+      data.setUint8(17 + i, blobIdBytes[i]);
     }
     return bytes;
   }
 
-  late final entryBlockOffset = 18 + blobIdBytes.length;
-  late final entryLength =
-      hashPrefixBytes + offsetBytes + pathLengthBytes + contentLengthBytes;
-  late final subindexBlockOffset = entryBlockOffset + entryCount * entryLength;
-  late final subindexLength =
-      hashPrefixBytes + offsetBytes + contentLengthBytes;
+  late final entryBlockOffset = 17 + blobIdBytes.length;
+  late final recordLength = hashPrefixBytes + offsetBytes + contentLengthBytes;
+  late final subindexBlockOffset = entryBlockOffset + entryCount * recordLength;
 
-  int getEntryOffset(int index) => entryBlockOffset + entryLength * index;
+  int getEntryOffset(int index) => entryBlockOffset + recordLength * index;
   int getSubindexOffset(int index) =>
-      subindexBlockOffset + subindexLength * index;
+      subindexBlockOffset + recordLength * index;
+
+  Uint8List encodeRecord(_Record r) => r.asBytes(
+    hashPrefixBytes: hashPrefixBytes,
+    offsetBytes: offsetBytes,
+    contentLengthBytes: contentLengthBytes,
+  );
 
   late final blobId = utf8.decode(blobIdBytes);
 }

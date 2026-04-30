@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:test/test.dart';
@@ -32,7 +33,7 @@ void main() {
     expect(index.blobId, equals('42'));
 
     final blob = await blobFile.readAsBytes();
-    Future<List<int>> readBlob(int start, int end) async =>
+    Future<Uint8List> readBlob(int start, int end) async =>
         blob.sublist(start, end);
 
     expect(await index.lookup('missing-file', readBlob), isNull);
@@ -43,12 +44,10 @@ void main() {
       final range = await index.lookup(path, readBlob);
       expect(range, isNotNull);
 
+      final pl = range!.pathLength;
       expect(
-        blob.sublist(
-          range!.entryOffset,
-          range.entryOffset + range.pathLength + 1,
-        ),
-        equals([...utf8.encode(range.path), 0]),
+        blob.sublist(range.entryOffset, range.entryOffset + 2 + pl),
+        equals([pl >> 8, pl & 0xFF, ...utf8.encode(range.path)]),
       );
       expect(blob.sublist(range.contentStart, range.end), equals(data));
     }
@@ -86,27 +85,27 @@ void main() {
     final index = await b.buildIndex('1');
     await controller.close();
     expect(await result, [
-      [97], // a
-      [0],
-      [0, 1],
-      [98], // b
-      [0],
-      [0],
-      [],
-      [99], // c
-      [0],
-      [8, 9],
+      [0, 1], // a: path length prefix (1)
+      [97], // a: path
+      [0, 1], // a: content
+      [0, 1], // b: path length prefix (1)
+      [98], // b: path
+      [0], // b: content chunk 1
+      [], // b: content chunk 2 (skipped)
+      [0, 1], // c: path length prefix (1)
+      [99], // c: path
+      [8, 9], // c: content
     ]);
 
     // No subindexes for 3 files — readBlob will never be called.
-    Future<List<int>> readBlob(int start, int end) async =>
+    Future<Uint8List> readBlob(int start, int end) async =>
         throw StateError('unexpected readBlob call');
 
     expect(await index.lookup('b', readBlob), isNull);
 
     final c = await index.lookup('c', readBlob);
-    expect(c!.entryOffset, 7);
-    expect(c.end, 11);
+    expect(c!.entryOffset, 9);
+    expect(c.end, 14);
   });
 
   test('hasFile', () async {
@@ -118,7 +117,7 @@ void main() {
     final index = await b.buildIndex('42');
 
     final blob = await blobFile.readAsBytes();
-    Future<List<int>> readBlob(int start, int end) async =>
+    Future<Uint8List> readBlob(int start, int end) async =>
         blob.sublist(start, end);
 
     expect(await index.hasFile('README.md', readBlob), isTrue);
@@ -126,12 +125,12 @@ void main() {
     expect(await index.hasFile('missing.txt', readBlob), isFalse);
 
     // Verify that hasFile catches a blob/index mismatch that lookup ignores.
-    // Corrupt the first byte of hello.txt's path in the blob.
+    // Corrupt the first byte of hello.txt's path in the blob (after the 2-byte length prefix).
     final range = await index.lookup('hello.txt', readBlob);
     expect(range, isNotNull);
-    final corrupted = blob.toList();
-    corrupted[range!.entryOffset] ^= 0x01;
-    Future<List<int>> readCorrupted(int start, int end) async =>
+    final corrupted = Uint8List.fromList(blob.toList());
+    corrupted[range!.entryOffset + 2] ^= 0x01;
+    Future<Uint8List> readCorrupted(int start, int end) async =>
         corrupted.sublist(start, end);
 
     // lookup still finds it (it only checks the hash index, not blob bytes)
@@ -171,7 +170,7 @@ void main() {
     final blobBytes = pair.blob;
     var readBlobCallCount = 0;
     (int, int)? lastReadBlobRange;
-    Future<List<int>> readBlob(int start, int end) async {
+    Future<Uint8List> readBlob(int start, int end) async {
       readBlobCallCount++;
       lastReadBlobRange = (start, end);
       return blobBytes.sublist(start, end);
@@ -198,7 +197,7 @@ void main() {
       final (subStart, subEnd) = lastReadBlobRange!;
       expect(subEnd, lessThanOrEqualTo(blobBytes.length));
       final subindex = BlobIndex.fromBytes(blobBytes.sublist(subStart, subEnd));
-      final subRange = await subindex.lookup(path, (_, __) async => []);
+      final subRange = await subindex.lookup(path, (_, __) async => Uint8List(0));
       expect(subRange, isNotNull, reason: '$path should be in the subindex');
     }
 
@@ -241,7 +240,7 @@ void main() {
     expect(index.hasSubindexes, isFalse);
 
     final blob = await blobFile.readAsBytes();
-    Future<List<int>> readBlob(int start, int end) async =>
+    Future<Uint8List> readBlob(int start, int end) async =>
         blob.sublist(start, end);
 
     expect(await index.lookup('missing.txt', readBlob), isNull);
