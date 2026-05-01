@@ -24,10 +24,8 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const _acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2026.04.20',
+  '2026.04.29',
   // Fallback runtime versions.
-  '2026.04.14',
-  '2026.04.07',
 ];
 
 /// Sets the current runtime versions.
@@ -53,7 +51,10 @@ String get runtimeVersion => acceptedRuntimeVersions.first;
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
-String get gcBeforeRuntimeVersion => acceptedRuntimeVersions.last;
+String get gcBeforeRuntimeVersion => acceptedRuntimeVersions.length > 1
+    ? acceptedRuntimeVersions.last
+    // TODO: remove this after the new indexed blob is deployed
+    : '2026.04.07';
 
 /// Returns true if the given version should be considered as obsolete and can
 /// be deleted.

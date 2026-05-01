@@ -15,7 +15,8 @@ import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart' show Bucket;
 import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
-import 'package:indexed_blob/indexed_blob.dart' show BlobIndex, FileRange;
+import 'package:indexed_blob/indexed_blob.dart'
+    show BlobIndexReader, BlobSliceReader, HashIndex;
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show Summary;
@@ -620,7 +621,7 @@ class TaskBackend {
       ),
       uploadSigner.buildUpload(
         _bucket.bucketName,
-        '$runtimeVersion/$package/$version/index.json',
+        '$runtimeVersion/$package/$version/blob.index',
         expiration,
         // Allow up to 64 MB just a sanity limit!
         maxUploadSize: 64 * 1024 * 1024,
@@ -651,17 +652,20 @@ class TaskBackend {
 
     String? zone, instance;
     bool isInstanceDone = false;
-    final index = await _loadTaskResultIndex(
+    final hashIndex = await _loadTaskResultHashIndex(
       package: package,
       version: version,
       runtimeVersion: runtimeVersion,
     );
+    final index = hashIndex == null
+        ? BlobIndexReader.empty()
+        : BlobIndexReader.from(hashIndex, _blobSliceReader(hashIndex.blobId));
     final summary = _panaSummaryFromGzippedBytes(
       package,
       version,
       await _gzippedTaskResult(index, 'summary.json'),
     );
-    final hasDocIndexHtml = index.lookup('doc/index.html') != null;
+    final hasDocIndexHtml = (await index.fetch('doc/index.html')) != null;
     await withRetryTransaction(_db, (tx) async {
       final state = await tx.tasks.lookupOrNull(package);
       if (state == null) {
@@ -743,6 +747,12 @@ class TaskBackend {
     return shelf.Response.ok('');
   }
 
+  BlobSliceReader _blobSliceReader(String path) {
+    return (int start, int end) async {
+      return await _readFromBucket(path, offset: start, length: end - start);
+    };
+  }
+
   Future<Uint8List?> _readFromBucket(
     String path, {
     int? offset,
@@ -778,57 +788,70 @@ class TaskBackend {
     ]);
   }
 
-  /// Fetch and cache `index.json` for [package] and [version].
+  /// Fetch and cache `blob.index` for [package] and [version].
   ///
-  /// The returned [BlobIndex] will carry a [BlobIndex.blobId] that is the
+  /// The returned [BlobIndexReader] will carry a [BlobIndexReader.blobId] that is the
   /// path for the blob being reference, this path will include runtime-version,
   /// package name, version and randomized blobId.
-  Future<BlobIndex?> _taskResultIndex(String package, String version) async {
-    return await cache.taskResultIndex(package, version).get(() async {
-      // Don't try to load index if we don't consider the version for analysis.
-      final status = await packageStatus(package);
-      if (!status.versions.containsKey(version)) {
-        return BlobIndex.empty(blobId: '');
-      }
-      final versionStatus = status.versions[version]!.status;
-      // if analysis has failed, don't try to load results
-      if (versionStatus == PackageVersionStatus.failed) {
-        return BlobIndex.empty(blobId: '');
-      }
-      return await _loadTaskResultIndex(
-        package: package,
-        version: version,
-        runtimeVersion: status.runtimeVersion,
-      );
-    });
+  Future<BlobIndexReader?> _taskResultIndex(
+    String package,
+    String version,
+  ) async {
+    final hashIndex = await cache.taskResultIndex(package, version).get(
+      () async {
+        // Don't try to load index if we don't consider the version for analysis.
+        final status = await packageStatus(package);
+        if (!status.versions.containsKey(version)) {
+          return HashIndex.empty();
+        }
+        final versionStatus = status.versions[version]!.status;
+        // if analysis has failed, don't try to load results
+        if (versionStatus == PackageVersionStatus.failed) {
+          return HashIndex.empty();
+        }
+        final index = await _loadTaskResultHashIndex(
+          package: package,
+          version: version,
+          runtimeVersion: status.runtimeVersion,
+        );
+        return index ?? HashIndex.empty();
+      },
+    );
+    return hashIndex == null
+        ? null
+        : BlobIndexReader.from(hashIndex, _blobSliceReader(hashIndex.blobId));
   }
 
-  Future<BlobIndex> _loadTaskResultIndex({
+  /// Loads and verifies a hash index.
+  ///
+  /// Returns null if the index file is missing or the blobId in it does not match the expected prefix.
+  Future<HashIndex?> _loadTaskResultHashIndex({
     required String package,
     required String version,
     required String runtimeVersion,
   }) async {
     final pathPrefix = '$runtimeVersion/$package/$version';
-    final path = '$pathPrefix/index.json';
+    final path = '$pathPrefix/blob.index';
     final bytes = await _readFromBucket(path, maxSize: blobIndexSizeLimit);
     if (bytes == null) {
-      return BlobIndex.empty(blobId: '');
-    }
-    final index = BlobIndex.fromBytes(bytes);
-    final blobId = index.blobId;
-    // We must check that the blobId points to a file under:
-    //  `$runtimeVersion/$package/$version/`
-    // Technically, the blob index is produced by the sandbox and we cannot
-    // trust it to not be malformed.
-    if (!_blobIdPattern.hasMatch(blobId) ||
-        !blobId.startsWith('$pathPrefix/')) {
-      _log.warning('invalid blobId: "$blobId" in index in "$path"');
-      return BlobIndex.empty(blobId: '');
+      return null;
     }
     if (bytes.length > 1024 * 1024) {
       _log.info(
         '[pub-task-large-index] index size over 1 MB: $package $version ${bytes.length}',
       );
+    }
+
+    final index = HashIndex(bytes);
+    // We must check that the blobId points to a file under:
+    //  `$runtimeVersion/$package/$version/`
+    // Technically, the blob index is produced by the sandbox and we cannot
+    // trust it to not be malformed.
+    final blobId = index.blobId;
+    if (!_blobIdPattern.hasMatch(blobId) ||
+        !blobId.startsWith('$pathPrefix/')) {
+      _log.warning('invalid blobId: "$blobId" in index in "$path"');
+      return null;
     }
     return index;
   }
@@ -849,21 +872,13 @@ class TaskBackend {
   }
 
   /// Return gzipped result of [path] from an [index] or `null` if it does not exists.
-  Future<List<int>?> _gzippedTaskResult(BlobIndex index, String path) async {
+  Future<List<int>?> _gzippedTaskResult(
+    BlobIndexReader index,
+    String path,
+  ) async {
     // Normalize // and remove initial slash
     if (path.startsWith('/') || path.contains('//')) {
       path = path.split('/').where((s) => s.isNotEmpty).join('/');
-    }
-
-    FileRange range;
-    try {
-      final r = index.lookup(path);
-      if (r == null) {
-        return null;
-      }
-      range = r;
-    } on FormatException {
-      return null;
     }
 
     // Notice that by using the [range.blobId] in the cache key we ensure that
@@ -872,20 +887,22 @@ class TaskBackend {
     // new files.
     // Keep in mind that the [IndexBlob] return from [_taskResultIndex] has a
     // blobId that is the path to the blob within the task-result bucket.
-    final length = range.end - range.start;
-    if (length <= _gzippedTaskResultCacheSizeThreshold) {
-      return cache
-          .gzippedTaskResult(range.blobId, path)
-          .get(
-            () => _readFromBucket(
-              range.blobId,
-              offset: range.start,
-              length: length,
-            ),
-          );
-    } else {
-      return _readFromBucket(range.blobId, offset: range.start, length: length);
+    final cacheEntry = cache.gzippedTaskResult(index.blobId, path);
+
+    final cachedBytes = await cacheEntry.get();
+    if (cachedBytes != null) {
+      return cachedBytes;
     }
+
+    final bytes = await index.fetch(path);
+    if (bytes == null) {
+      return null;
+    }
+
+    if (bytes.length < _gzippedTaskResultCacheSizeThreshold) {
+      await cacheEntry.set(bytes);
+    }
+    return bytes;
   }
 
   /// Return gzipped contents of file generated by dartdoc or `null`.

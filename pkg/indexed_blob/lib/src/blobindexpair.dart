@@ -8,7 +8,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
-import '../indexed_blob.dart' show IndexedBlobBuilder, BlobIndex;
+import '../indexed_blob.dart' show BlobIndexReader, IndexedBlobBuilder;
 
 /// Pair containing and in-memory [blob] and matching [index].
 final class BlobIndexPair {
@@ -16,11 +16,15 @@ final class BlobIndexPair {
   final Uint8List blob;
 
   /// Index pointing into [blob].
-  final BlobIndex index;
+  final BlobIndexReader index;
 
-  BlobIndexPair(this.blob, this.index);
+  BlobIndexPair(this.blob, Uint8List indexBytes)
+    : index = BlobIndexReader.fromBytes(
+        indexBytes,
+        (start, end) async => Uint8List.sublistView(blob, start, end),
+      );
 
-  /// Create a blob and [BlobIndex] with [blobId] containing all files and
+  /// Create a blob and [BlobIndexReader] with [blobId] containing all files and
   /// folders within [folder], encoded with paths relative to [folder].
   static Future<BlobIndexPair> folderToIndexedBlob(
     String blobId,
@@ -28,12 +32,12 @@ final class BlobIndexPair {
   ) async {
     final c = StreamController<List<int>>();
 
-    final indexF = _folderToIndexedBlob(c, blobId, folder);
+    final indexBytesF = _folderToIndexedBlob(c, blobId, folder);
     final blobF = collectBytes(c.stream);
 
-    await Future.wait([blobF, indexF]);
+    await Future.wait([blobF, indexBytesF]);
 
-    return BlobIndexPair(await blobF, await indexF);
+    return BlobIndexPair(await blobF, await indexBytesF);
   }
 
   static Future<BlobIndexPair> build(
@@ -41,8 +45,9 @@ final class BlobIndexPair {
     Future<void> Function(
       Future<void> Function(String path, Stream<List<int>> content) addFile,
     )
-    builder,
-  ) async {
+    builder, {
+    int indexSizeThresholdKiB = 512,
+  }) async {
     final c = StreamController<List<int>>();
 
     final b = IndexedBlobBuilder(c);
@@ -54,27 +59,19 @@ final class BlobIndexPair {
         await b.addFile(path, content);
       });
 
-      final indexF = b.buildIndex(blobId);
-      await Future.wait([blobF, indexF]);
-      return BlobIndexPair(await blobF, await indexF);
+      final indexBytesF = b.buildIndex(
+        blobId,
+        indexSizeThresholdKiB: indexSizeThresholdKiB,
+      );
+      await Future.wait([blobF, indexBytesF]);
+      return BlobIndexPair(await blobF, await indexBytesF);
     } finally {
       await c.close();
     }
   }
-
-  /// Lookup [path] in [index] and return the range from [blob].
-  ///
-  /// Returns `null`, if [path] is not in the index.
-  Uint8List? lookup(String path) {
-    final range = index.lookup(path);
-    if (range == null) {
-      return null;
-    }
-    return Uint8List.sublistView(blob, range.start, range.end);
-  }
 }
 
-Future<BlobIndex> _folderToIndexedBlob(
+Future<Uint8List> _folderToIndexedBlob(
   StreamSink<List<int>> blob,
   String blobId,
   String sourcePath,
