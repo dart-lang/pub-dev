@@ -159,7 +159,7 @@ final class IndexedBlobBuilder {
   /// Build an index for the blob constructed, calling [addFile] after this
   /// is not allowed.
   ///
-  /// The [blobId] is a free-form string that is included when a [FileRange] is
+  /// The [blobId] is a free-form string that is included when a [_FileRange] is
   /// returned by [BlobIndex.lookup]. It is intended to store an identifier for
   /// the blob containing the file, or a URL to the blob.
   ///
@@ -421,7 +421,7 @@ final class HashIndex {
   Uint8List asBytes() => _bytes;
 }
 
-/// Index for an indexed-blob, can be used to lookup [FileRange].
+/// Index for an indexed-blob, can be used to lookup [_FileRange].
 final class BlobIndex {
   final HashIndex _hashIndex;
   final BlobSliceReader _readBlob;
@@ -455,9 +455,10 @@ final class BlobIndex {
 
   /// Looks up [path], automatically resolving subindex blocks when needed.
   ///
-  /// Returns a [FileRange] describing where the file lives in the blob,
+  /// Returns a [_FileRange] describing where the file lives in the blob,
   /// or `null` if [path] is not stored in this indexed blob.
-  Future<FileRange?> lookup(String path) async {
+  @visibleForTesting
+  Future<_FileRange?> lookup(String path) async {
     final pathBytes = utf8.encode(path);
     final hashBytes = _hash(_hashIndex._blobIdBytes, pathBytes);
 
@@ -480,7 +481,7 @@ final class BlobIndex {
     return _lookupInEntries(path, pathBytes, hashBytes);
   }
 
-  FileRange? _lookupInEntries(
+  _FileRange? _lookupInEntries(
     String path,
     List<int> pathBytes,
     Uint8List hashBytes,
@@ -490,11 +491,10 @@ final class BlobIndex {
     final (entryOffset, blockLength) = _hashIndex._getEntryRecord(
       selectedEntry,
     );
-    return FileRange._(
+    return _FileRange._(
       path,
       entryOffset,
       entryOffset + blockLength,
-      blobId,
       _readBlob,
     );
   }
@@ -666,7 +666,7 @@ final class _Record {
 }
 
 /// Range of a file in an indexed-blob.
-final class FileRange {
+final class _FileRange {
   /// Path that was looked up in [BlobIndex].
   @visibleForTesting
   final String path;
@@ -674,8 +674,7 @@ final class FileRange {
   /// Start offset of the file entry in the blob.
   ///
   /// The entry begins with a 2-byte big-endian path-length prefix, followed
-  /// by `utf8(path)`, then the raw file content.  Use [contentStart] to skip
-  /// past the path header and reach the first content byte.
+  /// by `utf8(path)`, then the raw file content.
   @visibleForTesting
   final int entryOffset;
 
@@ -683,25 +682,18 @@ final class FileRange {
   @visibleForTesting
   final int end;
 
-  /// Identifier for the blob file associated this [FileRange] is pointing into.
-  final String blobId;
-
   final BlobSliceReader _readBlob;
 
-  FileRange._(
+  _FileRange._(
     this.path,
     this.entryOffset,
     this.end,
-    this.blobId,
     this._readBlob,
   );
 
   late final _pathBytes = utf8.encode(path);
   @visibleForTesting
   late final pathLength = _pathBytes.length;
-  @visibleForTesting
-  late final contentStart = entryOffset + _pathLengthPrefixSize + pathLength;
-  late final contentLength = end - contentStart;
 
   /// Checks whether [slice] — which must start at [entryOffset] in the blob —
   /// begins with a 2-byte big-endian length prefix and `utf8(path)`.
