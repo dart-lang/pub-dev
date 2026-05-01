@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path;
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
+import 'package:unzip/unzip.dart';
 
 /// Loads security advisories from osv.dev into [targetDir].
 Future<void> fetchAdvisories(Directory targetDir) async {
@@ -24,16 +25,35 @@ Future<void> fetchAdvisories(Directory targetDir) async {
   final bytes = await bucket.readAsBytes(allPubAdvisoriesPath);
   zipFile.writeAsBytesSync(bytes);
 
-  ProcessResult processResult;
-  processResult = await Process.run('unzip', [
-    zipFile.path,
-  ], workingDirectory: targetDir.path);
+  final zipReader = await ZipReader.fromPath(zipFile.path);
 
-  if (processResult.exitCode != 0) {
-    throw Exception(
-      'Unzipping advisories failed with exitcode ${processResult.exitCode}.\n'
-      '${processResult.stdout}\n${processResult.stderr}',
-    );
+  int totalUncompressedSize = 0;
+  final maxTotalSize = 100 * 1024 * 1024; // 100 MB
+  final maxFileSize = 10 * 1024 * 1024; // 10 MB
+
+  try {
+    for (final f in zipReader.files) {
+      final usize = f.header.uncompressedSize64;
+      totalUncompressedSize += usize;
+
+      if (usize > maxFileSize) {
+        throw Exception('File ${f.header.name} exceeds maximum allowed size');
+      }
+      if (totalUncompressedSize > maxTotalSize) {
+        throw Exception('Archive exceeds maximum total uncompressed size');
+      }
+
+      final destFile = File(path.join(targetDir.path, f.header.name));
+      // Ensure parent directories exist.
+      await destFile.parent.create(recursive: true);
+
+      final stream = f.read();
+      final sink = destFile.openWrite();
+      await sink.addStream(stream);
+      await sink.close();
+    }
+  } finally {
+    await zipReader.close();
   }
 }
 
