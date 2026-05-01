@@ -127,10 +127,10 @@ declaration in the `pubspec.yaml` file:
 
 #### Support modern toolchains (SwiftPM and Wasm)
 
-To ensure the ecosystem stays up-to-date, pub points are reduced for packages that do not support modern toolchains for their declared platforms:
+To ensure the ecosystem stays up-to-date, pub points are awarded for packages that support modern toolchains for their declared platforms:
 
-* Flutter plugins that support iOS or macOS will be penalized if they do not support [Swift Package Manager](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-plugin-authors).
-* Packages that support the Web platform will be penalized if they are not [WebAssembly (Wasm) ready](https://dart.dev/web/wasm).
+* Flutter plugins that support iOS or macOS will only receive full score if they support [Swift Package Manager](https://docs.flutter.dev/packages-and-plugins/swift-package-manager/for-plugin-authors).
+* Packages that support the Web platform will be awarded more points if they are [WebAssembly (Wasm) ready](https://dart.dev/web/wasm).
 ### Pass static analysis
 
 Static analysis is used to determine of the package contains any errors,
