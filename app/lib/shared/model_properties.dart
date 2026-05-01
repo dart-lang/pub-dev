@@ -58,6 +58,6 @@ class CompatibleListProperty<T> extends Property {
 /// Similar to [StringListProperty] but one which is fully compatible with
 /// python's 'db' implementation.
 class CompatibleStringListProperty extends CompatibleListProperty<String> {
-  const CompatibleStringListProperty({super.propertyName, super.indexed})
+  const CompatibleStringListProperty({super.propertyName, super.indexed = true})
     : super(const StringProperty(required: true));
 }
