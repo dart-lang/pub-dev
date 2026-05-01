@@ -8,7 +8,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
-import '../indexed_blob.dart' show BlobIndex, IndexedBlobBuilder;
+import '../indexed_blob.dart' show BlobIndexReader, IndexedBlobBuilder;
 
 /// Pair containing and in-memory [blob] and matching [index].
 final class BlobIndexPair {
@@ -16,15 +16,15 @@ final class BlobIndexPair {
   final Uint8List blob;
 
   /// Index pointing into [blob].
-  final BlobIndex index;
+  final BlobIndexReader index;
 
   BlobIndexPair(this.blob, Uint8List indexBytes)
-    : index = BlobIndex.fromBytes(
+    : index = BlobIndexReader.fromBytes(
         indexBytes,
         (start, end) async => Uint8List.sublistView(blob, start, end),
       );
 
-  /// Create a blob and [BlobIndex] with [blobId] containing all files and
+  /// Create a blob and [BlobIndexReader] with [blobId] containing all files and
   /// folders within [folder], encoded with paths relative to [folder].
   static Future<BlobIndexPair> folderToIndexedBlob(
     String blobId,

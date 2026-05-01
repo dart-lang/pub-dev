@@ -34,7 +34,7 @@ void main() {
     Future<Uint8List> readBlob(int start, int end) async =>
         blob.sublist(start, end);
 
-    final index = BlobIndex.fromBytes(indexBytes, readBlob);
+    final index = BlobIndexReader.fromBytes(indexBytes, readBlob);
 
     expect(index.blobId, equals('42'));
 
@@ -103,7 +103,7 @@ void main() {
     Future<Uint8List> readBlob(int start, int end) async =>
         throw StateError('unexpected readBlob call');
 
-    final index = BlobIndex.fromBytes(indexBytes, readBlob);
+    final index = BlobIndexReader.fromBytes(indexBytes, readBlob);
 
     expect(await index.lookup('b'), isNull);
 
@@ -124,7 +124,7 @@ void main() {
     Future<Uint8List> readBlob(int start, int end) async =>
         blob.sublist(start, end);
 
-    final index = BlobIndex.fromBytes(indexBytes, readBlob);
+    final index = BlobIndexReader.fromBytes(indexBytes, readBlob);
 
     expect(await index.fetch('README.md'), equals([0, 0]));
     expect(await index.fetch('hello.txt'), equals([1, 2, 3]));
@@ -139,7 +139,7 @@ void main() {
     Future<Uint8List> readCorrupted(int start, int end) async =>
         corrupted.sublist(start, end);
 
-    final corruptedIndex = BlobIndex.fromBytes(indexBytes, readCorrupted);
+    final corruptedIndex = BlobIndexReader.fromBytes(indexBytes, readCorrupted);
 
     // lookup still finds it (it only checks the hash index, not blob bytes)
     expect(await corruptedIndex.lookup('hello.txt'), isNotNull);
@@ -178,7 +178,7 @@ void main() {
       return blobBytes.sublist(start, end);
     }
 
-    final index = BlobIndex.fromBytes(pair.index.asBytes(), readBlob);
+    final index = BlobIndexReader.fromBytes(pair.index.asBytes(), readBlob);
 
     expect(index.blobId, equals('large'));
     expect(index.hasSubindexes, true);
@@ -205,7 +205,7 @@ void main() {
       // parse as a valid BlobIndex whose entry contains the expected path.
       final (subStart, subEnd) = lastReadBlobRange!;
       expect(subEnd, lessThanOrEqualTo(blobBytes.length));
-      final subindex = BlobIndex.fromBytes(
+      final subindex = BlobIndexReader.fromBytes(
         blobBytes.sublist(subStart, subEnd),
         (_, __) async => Uint8List(0),
       );
@@ -249,7 +249,7 @@ void main() {
     Future<Uint8List> readBlob(int start, int end) async =>
         blob.sublist(start, end);
 
-    final index = BlobIndex.fromBytes(indexBytes, readBlob);
+    final index = BlobIndexReader.fromBytes(indexBytes, readBlob);
 
     expect(index.blobId, equals('empty-blob-id'));
     expect(index.hasSubindexes, isFalse);
@@ -259,7 +259,7 @@ void main() {
     expect(await index.listFiles().toList(), isEmpty);
 
     // Roundtrip through bytes preserves the empty index.
-    final restored = BlobIndex.fromBytes(index.asBytes(), readBlob);
+    final restored = BlobIndexReader.fromBytes(index.asBytes(), readBlob);
     expect(restored.blobId, equals('empty-blob-id'));
     expect(await restored.lookup('missing.txt'), isNull);
     expect(await restored.listFiles().toList(), isEmpty);

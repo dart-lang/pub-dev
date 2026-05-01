@@ -160,7 +160,7 @@ final class IndexedBlobBuilder {
   /// is not allowed.
   ///
   /// The [blobId] is a free-form string that is included when a [_FileRange] is
-  /// returned by [BlobIndex.lookup]. It is intended to store an identifier for
+  /// returned by [BlobIndexReader.lookup]. It is intended to store an identifier for
   /// the blob containing the file, or a URL to the blob.
   ///
   /// ## Blob layout
@@ -421,26 +421,26 @@ final class HashIndex {
   Uint8List asBytes() => _bytes;
 }
 
-/// Index for an indexed-blob, can be used to lookup [_FileRange].
-final class BlobIndex {
+/// Index for an indexed-blob, can be used to lookup content or list files.
+final class BlobIndexReader {
   final HashIndex _hashIndex;
   final BlobSliceReader _readBlob;
 
-  /// Create [BlobIndex] from [indexFile] contents, with [readBlob] used to
+  /// Create [BlobIndexReader] from [indexFile] contents, with [readBlob] used to
   /// fetch byte ranges from the associated blob.
   ///
   /// The format of the [indexFile] is internal to [IndexedBlobBuilder] and
-  /// [BlobIndex], attempts to read/write the format outside of these classes
+  /// [BlobIndexReader], attempts to read/write the format outside of these classes
   /// is unsupported.
-  BlobIndex.fromBytes(List<int> indexFile, BlobSliceReader readBlob)
+  BlobIndexReader.fromBytes(List<int> indexFile, BlobSliceReader readBlob)
     : _hashIndex = HashIndex(
         indexFile is Uint8List ? indexFile : Uint8List.fromList(indexFile),
       ),
       _readBlob = readBlob;
 
-  BlobIndex.from(this._hashIndex, this._readBlob);
+  BlobIndexReader.from(this._hashIndex, this._readBlob);
 
-  factory BlobIndex.empty() => BlobIndex.fromBytes(
+  factory BlobIndexReader.empty() => BlobIndexReader.fromBytes(
     HashIndexHeader.empty(blobId: 'empty').asBytes(),
     (_, __) async => null,
   );
@@ -448,7 +448,7 @@ final class BlobIndex {
   /// Get the free-form [String] given as `blobId` when the blob was built.
   ///
   /// This is intended for an identifier or URL that can be used to find the
-  /// blob indexed by this [BlobIndex].
+  /// blob indexed by this [BlobIndexReader].
   String get blobId => _hashIndex.blobId;
 
   bool get hasSubindexes => _hashIndex._subindexCount > 0;
@@ -472,7 +472,7 @@ final class BlobIndex {
         contentOffset + contentLength,
       );
       if (subindexBytes == null) return null;
-      return BlobIndex.fromBytes(
+      return BlobIndexReader.fromBytes(
         subindexBytes,
         _readBlob,
       )._lookupInEntries(path, pathBytes, hashBytes);
@@ -523,7 +523,10 @@ final class BlobIndex {
         contentOffset + contentLength,
       );
       if (subindexBytes != null) {
-        yield* BlobIndex.fromBytes(subindexBytes, _readBlob)._listEntries();
+        yield* BlobIndexReader.fromBytes(
+          subindexBytes,
+          _readBlob,
+        )._listEntries();
       }
     }
   }
@@ -667,7 +670,7 @@ final class _Record {
 
 /// Range of a file in an indexed-blob.
 final class _FileRange {
-  /// Path that was looked up in [BlobIndex].
+  /// Path that was looked up in [BlobIndexReader].
   @visibleForTesting
   final String path;
 
@@ -684,12 +687,7 @@ final class _FileRange {
 
   final BlobSliceReader _readBlob;
 
-  _FileRange._(
-    this.path,
-    this.entryOffset,
-    this.end,
-    this._readBlob,
-  );
+  _FileRange._(this.path, this.entryOffset, this.end, this._readBlob);
 
   late final _pathBytes = utf8.encode(path);
   @visibleForTesting

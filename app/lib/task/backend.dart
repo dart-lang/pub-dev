@@ -16,7 +16,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart' show Bucket;
 import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:indexed_blob/indexed_blob.dart'
-    show BlobIndex, BlobSliceReader, HashIndex;
+    show BlobIndexReader, BlobSliceReader, HashIndex;
 import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show Summary;
@@ -658,8 +658,8 @@ class TaskBackend {
       runtimeVersion: runtimeVersion,
     );
     final index = hashIndex == null
-        ? BlobIndex.empty()
-        : BlobIndex.from(hashIndex, _blobSliceReader(hashIndex.blobId));
+        ? BlobIndexReader.empty()
+        : BlobIndexReader.from(hashIndex, _blobSliceReader(hashIndex.blobId));
     final summary = _panaSummaryFromGzippedBytes(
       package,
       version,
@@ -790,10 +790,13 @@ class TaskBackend {
 
   /// Fetch and cache `blob.index` for [package] and [version].
   ///
-  /// The returned [BlobIndex] will carry a [BlobIndex.blobId] that is the
+  /// The returned [BlobIndexReader] will carry a [BlobIndexReader.blobId] that is the
   /// path for the blob being reference, this path will include runtime-version,
   /// package name, version and randomized blobId.
-  Future<BlobIndex?> _taskResultIndex(String package, String version) async {
+  Future<BlobIndexReader?> _taskResultIndex(
+    String package,
+    String version,
+  ) async {
     final hashIndex = await cache.taskResultIndex(package, version).get(
       () async {
         // Don't try to load index if we don't consider the version for analysis.
@@ -816,7 +819,7 @@ class TaskBackend {
     );
     return hashIndex == null
         ? null
-        : BlobIndex.from(hashIndex, _blobSliceReader(hashIndex.blobId));
+        : BlobIndexReader.from(hashIndex, _blobSliceReader(hashIndex.blobId));
   }
 
   /// Loads and verifies a hash index.
@@ -869,7 +872,10 @@ class TaskBackend {
   }
 
   /// Return gzipped result of [path] from an [index] or `null` if it does not exists.
-  Future<List<int>?> _gzippedTaskResult(BlobIndex index, String path) async {
+  Future<List<int>?> _gzippedTaskResult(
+    BlobIndexReader index,
+    String path,
+  ) async {
     // Normalize // and remove initial slash
     if (path.startsWith('/') || path.contains('//')) {
       path = path.split('/').where((s) => s.isNotEmpty).join('/');
