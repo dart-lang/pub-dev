@@ -1481,7 +1481,7 @@ void main() {
           final tarball = await packageArchiveBytes(
             pubspecContent: generatePubspecYaml('oxygen', '3.0.0'),
             changelogContent:
-                '# Changelog\n\n## v3.0.0\n\nSome bug fixes:\n- one,\n- two\n\n',
+                '# Changelog\n\n## v3.0.0\n\nSome bug fixes:\n- one,\n- Require `analyzer: \'>=10.0.0 <14.0.0\'`\n\n',
           );
           final message = await createPubApiClient(
             authToken: adminClientToken,
@@ -1510,7 +1510,7 @@ void main() {
               '```\n'
               'Some bug fixes:\n'
               '- one,\n'
-              '- two\n'
+              '- Require `analyzer: \'>=10.0.0 <14.0.0\'`\n'
               '```\n\n',
             ),
           );

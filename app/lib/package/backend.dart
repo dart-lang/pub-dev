@@ -1562,14 +1562,7 @@ class PackageBackend {
       /// Limit the changelog to 10 lines, 75 characters each:
       final lines = text.split('\n');
       final excerpt = lines
-          // prevent accidental HTML-tag creation
-          .map(
-            (line) => line
-                .replaceAll('<', '[')
-                .replaceAll('>', ']')
-                .replaceAll('&', ' ')
-                .trim(),
-          )
+          .map((line) => line.trim())
           // filter empty or decorative lines to maximalize usefulness
           .where(
             (line) =>
