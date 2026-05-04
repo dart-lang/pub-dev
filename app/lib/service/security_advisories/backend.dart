@@ -68,9 +68,17 @@ class SecurityAdvisoryBackend {
       package,
       skipCache: skipCache,
     );
+
+    final p = await packageBackend.lookupPackage(package);
+    final latestAdvisory =
+        p?.latestAdvisory ?? DateTime.fromMillisecondsSinceEpoch(0);
+
     return ListAdvisoriesResponse(
       advisories: advisories.map((a) => a.advisory).toList(),
-      advisoriesUpdated: advisories.map((a) => a.syncTime).maxOrNull,
+      advisoriesUpdated: [
+        latestAdvisory,
+        for (final a in advisories) a.syncTime,
+      ].max,
     );
   }
 
