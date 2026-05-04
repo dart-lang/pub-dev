@@ -27,7 +27,6 @@ const _acceptedRuntimeVersions = <String>[
   '2026.05.04',
   // Fallback runtime versions.
   '2026.04.29',
-  
 ];
 
 /// Sets the current runtime versions.
