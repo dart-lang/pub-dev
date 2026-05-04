@@ -3,59 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
-import 'package:http/http.dart';
-import 'package:path/path.dart' as path;
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
+import 'package:retry/retry.dart';
 import 'package:unzip/unzip.dart';
-
-/// Loads security advisories from osv.dev into [targetDir].
-Future<void> fetchAdvisories(Directory targetDir) async {
-  final bucketName = 'osv-vulnerabilities';
-  final allPubAdvisoriesPath = 'Pub/all.zip';
-  final storage = Storage(Client(), 'project');
-  final bucket = storage.bucket(bucketName);
-  final zipFile = File(path.join(targetDir.path, 'all.zip'));
-
-  final bytes = await bucket.readAsBytes(allPubAdvisoriesPath);
-  zipFile.writeAsBytesSync(bytes);
-
-  final zipReader = await ZipReader.fromPath(zipFile.path);
-
-  int totalUncompressedSize = 0;
-  final maxTotalSize = 100 * 1024 * 1024; // 100 MB
-  final maxFileSize = 10 * 1024 * 1024; // 10 MB
-
-  try {
-    for (final f in zipReader.files) {
-      final usize = f.header.uncompressedSize64;
-      totalUncompressedSize += usize;
-
-      if (usize > maxFileSize) {
-        throw Exception('File ${f.header.name} exceeds maximum allowed size');
-      }
-      if (totalUncompressedSize > maxTotalSize) {
-        throw Exception('Archive exceeds maximum total uncompressed size');
-      }
-
-      final destFile = File(path.join(targetDir.path, f.header.name));
-      // Ensure parent directories exist.
-      await destFile.parent.create(recursive: true);
-
-      final stream = f.read();
-      final sink = destFile.openWrite();
-      await sink.addStream(stream);
-      await sink.close();
-    }
-  } finally {
-    await zipReader.close();
-  }
-}
 
 Future<(Map<String, OSV>, List<String>)> loadAdvisoriesFromDir(
   Directory advisoriesDir,
@@ -96,23 +53,75 @@ Future<void> updateAdvisories(Map<String, OSV> osvs) async {
   }
 }
 
+Future<T> _retry<T>(Future<T> Function() fn) async {
+  return await retry(fn);
+}
+
+/// Creates the `osv-vulnerabilities` bucket in the active storage service for testing.
+Future<void> createOsvBucketWithretryAsyncForTesting() async {
+  await _retry(() => storageService.createBucket('osv-vulnerabilities'));
+}
+
+/// Exposes the `osv-vulnerabilities` bucket for testing purposes.
+Bucket getOsvBucketForTesting() => storageService.bucket('osv-vulnerabilities');
+
 /// Synchronizes the security advisory backend with security advisories from
 /// osv.dev, overwriting existing advisories with the same id, if the fetched
 /// advisories are newer.
 Future<void> syncSecurityAdvisories() async {
-  final tempDir = await Directory.systemTemp.createTemp();
-  try {
-    await fetchAdvisories(tempDir);
-    final (osvs, failedFiles) = await loadAdvisoriesFromDir(tempDir);
-    await updateAdvisories(osvs);
+  final uri = Uri.parse('gs://osv-vulnerabilities/Pub/all.zip');
+  final bucketName = uri.host;
+  final allPubAdvisoriesPath = uri.path.substring(1);
 
-    if (failedFiles.isNotEmpty) {
-      throw Exception(
-        'Advisory ingestion was partial. The following advisories failed '
-        '$failedFiles',
-      );
+  final bucket = storageService.bucket(bucketName);
+  final bytes = await bucket.readAsBytes(allPubAdvisoriesPath);
+  final zipReader = await ZipReader.fromBytes(Uint8List.fromList(bytes));
+
+  int totalUncompressedSize = 0;
+  final maxTotalSize = 100 * 1024 * 1024; // 100 MB
+  final maxFileSize = 10 * 1024 * 1024; // 10 MB
+
+  final osvs = <String, OSV>{};
+  final failedFiles = <String>[];
+
+  try {
+    for (final f in zipReader.files) {
+      if (!f.header.name.endsWith('.json')) continue;
+
+      final usize = f.header.uncompressedSize64;
+      totalUncompressedSize += usize;
+
+      if (usize > maxFileSize) {
+        throw Exception('File ${f.header.name} exceeds maximum allowed size');
+      }
+      if (totalUncompressedSize > maxTotalSize) {
+        throw Exception('Archive exceeds maximum total uncompressed size');
+      }
+
+      try {
+        final bytesBuilder = BytesBuilder();
+        await for (final b in f.read()) {
+          bytesBuilder.add(b);
+        }
+        final decoded =
+            utf8JsonDecoder.convert(bytesBuilder.takeBytes())
+                as Map<String, Object>;
+        final osv = OSV.fromJson(decoded);
+        osvs[osv.id] = osv;
+      } catch (e) {
+        failedFiles.add(f.header.name);
+      }
     }
   } finally {
-    await tempDir.delete(recursive: true);
+    await zipReader.close();
+  }
+
+  await updateAdvisories(osvs);
+
+  if (failedFiles.isNotEmpty) {
+    throw Exception(
+      'Advisory ingestion was partial. The following advisories failed '
+      '$failedFiles',
+    );
   }
 }

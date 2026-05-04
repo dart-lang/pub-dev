@@ -9,6 +9,7 @@ import 'package:path/path.dart' as path;
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/service/security_advisories/sync_security_advisories.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
@@ -144,6 +145,76 @@ void main() {
       await updateAdvisories(osvs1);
       pkg = await packageBackend.lookupPackage('oxygen');
       expect(pkg!.latestAdvisory!.isAfter(betweenSyncsTime), isTrue);
+    },
+  );
+
+  testWithProfile(
+    'syncSecurityAdvisories in-memory with downloaded live all.zip',
+    testProfile: TestProfile(
+      defaultUser: 'admin@pub.dev',
+      users: [
+        TestUser(email: 'admin@pub.dev', likes: []),
+        TestUser(email: 'user@pub.dev', likes: []),
+      ],
+      generatedPackages:
+          [
+                'oxygen',
+                'shared_preferences_android',
+                'http',
+                'personnummer',
+                'pubnub',
+                'dio',
+                'archive',
+                'agent_dart',
+                'serverpod_client',
+                'serverpod_auth_server',
+                'jose',
+              ]
+              .map(
+                (name) => GeneratedTestPackage(
+                  name: name,
+                  versions: [GeneratedTestVersion(version: '1.0.0')],
+                ),
+              )
+              .toList(),
+    ),
+    fn: () async {
+      final file = File(
+        path.join(
+          Directory.current.path,
+          'test',
+          'service',
+          'security_advisory',
+          'testdata',
+          'osv-test.zip',
+        ),
+      );
+      expect(file.existsSync(), isTrue);
+      final zipBytes = file.readAsBytesSync();
+
+      // Set up fake storage bucket via our helper methods.
+      await createOsvBucketWithretryAsyncForTesting();
+      final bucket = getOsvBucketForTesting();
+      await bucket.writeBytes('Pub/all.zip', zipBytes);
+
+      // Initially look up should be null for the real IDs.
+      var adv = await securityAdvisoryBackend.lookupById('GHSA-4rgh-jx4f-qfcq');
+      expect(adv, isNull);
+      adv = await securityAdvisoryBackend.lookupById('GHSA-vm9r-h74p-hg97');
+      expect(adv, isNull);
+
+      // Execute the in-memory sync.
+      await syncSecurityAdvisories();
+
+      // Verify that it creates a good set of advisories in the backend.
+      adv = await securityAdvisoryBackend.lookupById('GHSA-4rgh-jx4f-qfcq');
+      expect(adv, isNotNull);
+      expect(adv!.osv!.id, equals('GHSA-4rgh-jx4f-qfcq'));
+
+      adv = await securityAdvisoryBackend.lookupById('GHSA-vm9r-h74p-hg97');
+      expect(adv, isNotNull);
+      expect(adv!.osv!.id, equals('GHSA-vm9r-h74p-hg97'));
+      expect(adv.affectedPackages, contains('jose'));
     },
   );
 }

@@ -97,7 +97,9 @@ final class ZipReader {
   /// Throws a [FileSystemException] if the file cannot be opened.
   /// Throws a [FormatException] if the file is not a valid ZIP file.
   static Future<ZipReader> fromPath(String path) async {
-    return ZipReader._(FileReader(await File(path).open()));
+    final reader = ZipReader._(FileReader(await File(path).open()));
+    await reader.init();
+    return reader;
   }
 
   /// Closes the reader and releases any associated resources.
