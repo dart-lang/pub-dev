@@ -3,6 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
 
+## `20260504t085600-all`
+
 ## `20260501t130400-all`
  * Bump runtimeVersion to `2026.04.29`.
  * Note: started to use the new hash-based, two-level `indexed_blob` structure.
