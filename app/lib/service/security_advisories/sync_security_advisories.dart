@@ -105,7 +105,7 @@ Future<void> syncSecurityAdvisories() async {
         }
         final decoded =
             utf8JsonDecoder.convert(bytesBuilder.takeBytes())
-                as Map<String, Object>;
+                as Map<String, Object?>;
         final osv = OSV.fromJson(decoded);
         osvs[osv.id] = osv;
       } catch (e) {
