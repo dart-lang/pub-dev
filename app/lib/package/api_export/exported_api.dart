@@ -139,6 +139,7 @@ final class ExportedApi {
           item.updated.isBefore(gcFilesBefore)) {
         // Only delete the item if it's older than _minGarbageAge
         // This avoids any races where we delete files we've just created
+        _log.shout('Deleting object from public bucket: "${item.name}".');
         await _bucket.deleteWithRetry(item.name);
       }
     });
@@ -359,11 +360,11 @@ final class ExportedPackage {
             return;
           }
 
-          // Delete the item, if it's old enough.
           if (forceDelete ||
               item.updated.isBefore(clock.agoBy(_minGarbageAge))) {
             // Only delete if the item if it's older than _minGarbageAge
             // This avoids any races where we delete files we've just created
+            _log.shout('Deleting object from public bucket: "${item.name}".');
             await _owner._bucket.deleteWithRetry(item.name);
           }
         });
@@ -434,7 +435,10 @@ final class ExportedPackage {
         await _owner._listBucket(
           prefix: prefix + '/api/archives/$_package-',
           delimiter: '',
-          (item) async => await _owner._bucket.deleteWithRetry(item.name),
+          (item) async {
+            _log.shout('Deleting object from public bucket: "${item.name}".');
+            await _owner._bucket.deleteWithRetry(item.name);
+          },
         );
       }),
     ]);

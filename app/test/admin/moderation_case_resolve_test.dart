@@ -95,6 +95,11 @@ void main() {
 
     testWithProfile(
       'notification: apply moderation',
+      expectedLogMessages: [
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".'),
+      ],
       fn: () async {
         final mc = await _prepare(apply: true);
 
@@ -121,6 +126,11 @@ void main() {
 
     testWithProfile(
       'appeal no action: revert',
+      expectedLogMessages: [
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".'),
+      ],
       fn: () async {
         final mc1 = await _prepare(apply: null);
         await _close(mc1.caseId);
@@ -146,6 +156,11 @@ void main() {
 
     testWithProfile(
       'appeal moderation: revert',
+      expectedLogMessages: [
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".'),
+      ],
       fn: () async {
         final mc1 = await _prepare(apply: true);
         await _close(mc1.caseId, reason: 'The package violated our policy.');
@@ -157,6 +172,11 @@ void main() {
 
     testWithProfile(
       'appeal moderation: upheld',
+      expectedLogMessages: [
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".'),
+      ],
       fn: () async {
         final mc1 = await _prepare(apply: true);
         await _close(mc1.caseId, reason: 'The package violated our policy.');

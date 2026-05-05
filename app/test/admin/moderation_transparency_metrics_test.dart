@@ -133,6 +133,11 @@ void main() {
 
     testWithProfile(
       'moderated package',
+      expectedLogMessages: [
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".'),
+      ],
       fn: () async {
         final mc = await _report('oxygen');
         await _moderatePkg('oxygen', caseId: mc.caseId, state: true);
@@ -241,6 +246,11 @@ void main() {
 
     testWithProfile(
       'appeal',
+      expectedLogMessages: [
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".'),
+        RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".'),
+      ],
       fn: () async {
         final mc = await _report('oxygen');
         await _moderatePkg('oxygen', caseId: mc.caseId, state: true);
