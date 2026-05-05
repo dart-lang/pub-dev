@@ -43,8 +43,12 @@ void main() {
     'synchronizeExportedApi()',
     testProfile: _testProfile,
     expectedLogMessages: [
-      RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/bar-2.0.0.tar.gz".'),
-      RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/bar-3.0.0.tar.gz".'),
+      RegExp(
+        r'SHOUT Deleting object from public bucket: ".*/api/archives/bar-2.0.0.tar.gz".',
+      ),
+      RegExp(
+        r'SHOUT Deleting object from public bucket: ".*/api/archives/bar-3.0.0.tar.gz".',
+      ),
     ],
     fn: () async {
       // Since we want to verify post-upload tasks triggering API exporter,
@@ -68,8 +72,12 @@ void main() {
     'apiExporter.start()',
     testProfile: _testProfile,
     expectedLogMessages: [
-      RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/bar-2.0.0.tar.gz".'),
-      RegExp(r'SHOUT Deleting object from public bucket: ".*/api/archives/bar-3.0.0.tar.gz".'),
+      RegExp(
+        r'SHOUT Deleting object from public bucket: ".*/api/archives/bar-2.0.0.tar.gz".',
+      ),
+      RegExp(
+        r'SHOUT Deleting object from public bucket: ".*/api/archives/bar-3.0.0.tar.gz".',
+      ),
     ],
     fn: () async {
       // Since we want to verify post-upload tasks triggering API exporter,
