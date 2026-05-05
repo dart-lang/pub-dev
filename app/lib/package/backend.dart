@@ -18,7 +18,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
-import 'package:pub_dev/package/tarball_storage.dart';
+import 'package:pub_dev/package/api_export/exported_api.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/service/rate_limit/rate_limit.dart';
@@ -96,8 +96,11 @@ class PackageBackend {
   /// - `tmp/$guid` (incoming package archive that was uploaded, but not yet processed)
   final Bucket _incomingBucket;
 
-  /// The storage handling for the package archive files.
-  final TarballStorage tarballStorage;
+  /// The Cloud Storage bucket to use for canonical package archives.
+  final Bucket _canonicalBucket;
+
+  /// The Cloud Storage bucket to use for exported API responses (including public tarballs).
+  final Bucket _exportedApiBucket;
 
   @visibleForTesting
   int maxVersionsPerPackage = _defaultMaxVersionsPerPackage;
@@ -106,14 +109,9 @@ class PackageBackend {
     this.db,
     this._storage,
     this._incomingBucket,
-    Bucket canonicalBucket,
-    Bucket publicBucket,
-  ) : tarballStorage = TarballStorage(
-        db,
-        _storage,
-        canonicalBucket,
-        publicBucket,
-      );
+    this._canonicalBucket,
+    this._exportedApiBucket,
+  );
 
   /// Whether the package exists and is not blocked or deleted.
   Future<bool> isPackageVisible(String package) async {
@@ -411,10 +409,8 @@ class PackageBackend {
   Future<Uri> downloadUrl(String package, String version) async {
     InvalidInputException.checkSemanticVersion(version);
     final cv = canonicalizeVersion(version);
-    // NOTE: We should maybe check for existence first?
-    // return storage.bucket(bucket).info(object)
-    //     .then((info) => info.downloadLink);
-    return tarballStorage.getPublicDownloadUrl(package, cv!);
+    final object = 'latest/api/archives/$package-$cv.tar.gz';
+    return Uri.parse(_exportedApiBucket.objectUrl(object));
   }
 
   /// Updates the stable, prerelease and preview versions of [package].
@@ -1175,8 +1171,11 @@ class PackageBackend {
       }
 
       // Check canonical archive.
-      final canonicalContentMatch = await tarballStorage
-          .matchArchiveContentInCanonical(pubspec.name, versionString, file);
+      final canonicalContentMatch = await matchArchiveContentInCanonical(
+        pubspec.name,
+        versionString,
+        file,
+      );
       if (canonicalContentMatch == ContentMatchStatus.different) {
         throw PackageRejectedException.versionExists(
           pubspec.name,
@@ -1467,7 +1466,7 @@ class PackageBackend {
       );
       if (!hasCanonicalArchiveObject) {
         // Copy archive to canonical bucket.
-        await tarballStorage.copyFromTempToCanonicalBucket(
+        await copyFromTempToCanonicalBucket(
           sourceAbsoluteObjectName: _incomingBucket.absoluteObjectName(
             objectName,
           ),
@@ -1475,10 +1474,6 @@ class PackageBackend {
           version: newVersion.version!,
         );
       }
-      await tarballStorage.copyArchiveFromCanonicalToPublicBucket(
-        newVersion.package,
-        newVersion.version!,
-      );
 
       final email = createPackageUploadedEmail(
         packageName: newVersion.package,
@@ -1603,10 +1598,6 @@ class PackageBackend {
         if (activeConfiguration.isPublishedEmailNotificationEnabled)
           emailBackend.trySendOutgoingEmail(outgoingEmail),
         apiExporter.synchronizeAllPackagesAtomFeed(),
-        tarballStorage.updateContentDispositionOnPublicBucket(
-          newVersion.package,
-          newVersion.version!,
-        ),
       ]);
     } catch (e, st) {
       final v = newVersion.qualifiedVersionKey;
@@ -2024,9 +2015,10 @@ class PackageBackend {
     return UploadRestrictionStatus.noRestriction;
   }
 
-  /// Deletes the tarball of a [package] in the given [version] permanently.
+  /// Deletes the tarball of a [package] in the given [version] permanently from the canonical bucket.
   Future<void> removePackageTarball(String package, String version) async {
-    await tarballStorage.deleteArchiveFromAllBuckets(package, version);
+    final objectName = tarballObjectName(package, version);
+    await _canonicalBucket.deleteWithRetry(objectName);
   }
 
   void _updatePackageAutomatedPublishingLock(
@@ -2051,6 +2043,126 @@ class PackageBackend {
         current.gcpLock == null) {
       current.gcpLock = GcpPublishingLock(oauthUserId: agent.payload.sub);
     }
+  }
+
+  /// Gets the object info of the archive file from the canonical bucket.
+  Future<ObjectInfo?> getCanonicalBucketArchiveInfo(
+    String package,
+    String version,
+  ) async {
+    final objectName = tarballObjectName(package, version);
+    return await _canonicalBucket.tryInfo(objectName);
+  }
+
+  /// Gets `gs:/<bucket>/<objectName>` for [package] and [version] in the
+  /// canonical bucket.
+  ///
+  /// Returns the absolute objectName on the form created by
+  /// [Bucket.absoluteObjectName].
+  String getCanonicalBucketAbsoluteObjectName(String package, String version) =>
+      _canonicalBucket.absoluteObjectName(tarballObjectName(package, version));
+
+  /// Get a list of package names in the canonical bucket.
+  Future<List<String>> listPackagesInCanonicalBucket() async {
+    final items = await _canonicalBucket.listAllItemsWithRetry(
+      prefix: 'packages/',
+      delimiter: '-',
+    );
+    final packages = items
+        .where((i) => i.isDirectory)
+        .map((i) => i.name)
+        .map((name) => name.substring(9).split('-').first)
+        .toSet()
+        .toList();
+    return packages;
+  }
+
+  /// Get map from `version` to [SourceObjectInfo] for each version of [package] in
+  /// canonical bucket.
+  Future<Map<String, SourceObjectInfo>> listVersionsInCanonicalBucket(
+    String package,
+  ) async {
+    final prefix = _tarballObjectNamePackagePrefix(package);
+    final items = await _canonicalBucket.listAllItemsWithRetry(
+      prefix: prefix,
+      delimiter: '',
+    );
+    return Map.fromEntries(
+      items.whereType<BucketObjectEntry>().map((item) {
+        final version = item.name.without(prefix: prefix, suffix: '.tar.gz');
+        return MapEntry(
+          version,
+          SourceObjectInfo.fromObjectInfo(_canonicalBucket, item),
+        );
+      }),
+    );
+  }
+
+  /// Gets the object info of the archive file from the exported API bucket.
+  Future<ObjectInfo?> getExportedArchiveInfo(
+    String package,
+    String version,
+  ) async {
+    final objectName = 'latest/api/archives/$package-$version.tar.gz';
+    return await _exportedApiBucket.tryInfo(objectName);
+  }
+
+  /// Verifies the content of an archive in the canonical bucket.
+  Future<ContentMatchStatus> matchArchiveContentInCanonical(
+    String package,
+    String version,
+    File file,
+  ) async {
+    final objectName = tarballObjectName(package, version);
+    final info = await _canonicalBucket.tryInfo(objectName);
+    if (info == null) {
+      return ContentMatchStatus.missing;
+    }
+    if (info.length != await file.length()) {
+      return ContentMatchStatus.different;
+    }
+    final md5hash = (await file.openRead().transform(md5).single).bytes;
+    if (!md5hash.byteToByteEquals(info.md5Hash)) {
+      return ContentMatchStatus.different;
+    }
+    // Limit memory use while doing the byte-to-byte comparison by streaming it chunk-wise.
+    var remainingLength = -1;
+    await _canonicalBucket.readWithRetry(objectName, (input) async {
+      final raf = await file.open();
+      remainingLength = info.length;
+      try {
+        await for (final chunk in input) {
+          if (chunk.isEmpty) continue;
+          remainingLength -= chunk.length;
+          if (remainingLength < 0) {
+            return ContentMatchStatus.different;
+          }
+          // TODO: consider rewriting to fixed-length chunk comparison
+          final fileChunk = await raf.read(chunk.length);
+          if (!fileChunk.byteToByteEquals(chunk)) {
+            return ContentMatchStatus.different;
+          }
+        }
+      } finally {
+        await raf.close();
+      }
+    });
+    if (remainingLength != 0) {
+      return ContentMatchStatus.different;
+    }
+    return ContentMatchStatus.same;
+  }
+
+  /// Copies the uploaded object from the temp bucket to the canonical bucket.
+  Future<void> copyFromTempToCanonicalBucket({
+    required String sourceAbsoluteObjectName,
+    required String package,
+    required String version,
+  }) async {
+    await _storage.copyObjectWithRetry(
+      sourceAbsoluteObjectName,
+      _canonicalBucket.absoluteObjectName(tarballObjectName(package, version)),
+    );
   }
 }
 
@@ -2493,3 +2605,13 @@ class _VersionTransactionDataAcccess {
 
   return (future: Future.wait(futures));
 }
+
+/// The GCS object name of a tarball object - excluding leading '/'.
+@visibleForTesting
+String tarballObjectName(String package, String version) =>
+    '${_tarballObjectNamePackagePrefix(package)}$version.tar.gz';
+
+/// The GCS object prefix of a tarball object for a given [package] - excluding leading '/'.
+String _tarballObjectNamePackagePrefix(String package) => 'packages/$package-';
+
+enum ContentMatchStatus { missing, different, same }

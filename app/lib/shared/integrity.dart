@@ -1080,38 +1080,34 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
     final isPackageVisible = await packageBackend.isPackageVisible(pv.package);
     final shouldBeInPublicBucket = isPackageVisible && pv.isVisible;
 
-    final canonicalInfo = await packageBackend.tarballStorage
-        .getCanonicalBucketArchiveInfo(pv.package, pv.version!);
+    final canonicalInfo = await packageBackend.getCanonicalBucketArchiveInfo(
+      pv.package,
+      pv.version!,
+    );
     if (canonicalInfo == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching canonical archive file.';
       return;
     }
 
-    final info = await packageBackend.tarballStorage.getPublicBucketArchiveInfo(
+    final info = await packageBackend.getExportedArchiveInfo(
       pv.package,
       pv.version!,
     );
     if (info == null) {
       if (shouldBeInPublicBucket) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching public archive file '
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching exported archive file '
             '(Package: $isPackageVisible, PackageVersion: ${pv.isVisible}).';
       }
       return;
     }
 
     if (!shouldBeInPublicBucket) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has matching public archive file but it must not.';
+      yield 'PackageVersion "${pv.qualifiedVersionKey}" has matching exported archive file but it must not.';
       return;
     }
 
     if (!canonicalInfo.hasSameSignatureAs(info)) {
-      yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs from public bucket.';
-    }
-
-    final publicInfo = await packageBackend.tarballStorage
-        .getPublicBucketArchiveInfo(pv.package, pv.version!);
-    if (!canonicalInfo.hasSameSignatureAs(publicInfo)) {
-      yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs in the public bucket.';
+      yield 'Canonical archive for PackageVersion "${pv.qualifiedVersionKey}" differs from exported API bucket.';
     }
 
     final sha256Hash = pv.sha256;
@@ -1141,7 +1137,7 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
     // only the package names. This may leave out other files that are not in
     // the `packages/` directory (objectname-prefix), or for some reason not
     // matched as package names.
-    final packages = await packageBackend.tarballStorage
+    final packages = await packageBackend
         .listPackagesInCanonicalBucket()
         .timeout(Duration(minutes: 15));
     yield* _streamWithPool(() => Stream.fromIterable(packages), (
@@ -1152,8 +1148,9 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
         yield 'Missing Package entity in database: "$package".';
         return;
       }
-      final bucketVersions = await packageBackend.tarballStorage
-          .listVersionsInCanonicalBucket(package);
+      final bucketVersions = await packageBackend.listVersionsInCanonicalBucket(
+        package,
+      );
       final dbVersions = await packageBackend.versionsOfPackage(package);
 
       for (final e in bucketVersions.entries) {

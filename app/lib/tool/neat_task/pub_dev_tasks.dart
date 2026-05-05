@@ -117,15 +117,6 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
       task: () async => await packageBackend.updateAllPackageVersions(),
     ),
 
-    // Updates the public archive bucket from the canonical bucket, for the
-    // unlikely case where an archive may be missing.
-    _daily(
-      name: 'sync-public-bucket-from-canonical-bucket',
-      isRuntimeVersioned: false,
-      task: () async =>
-          await packageBackend.tarballStorage.updatePublicArchiveBucket(),
-    ),
-
     // Exports the package name completion data to a bucket.
     _daily(
       name: 'synchronize-exported-api',

@@ -13,7 +13,6 @@ Configuration _$ConfigurationFromJson(
     json,
     allowedKeys: const [
       'canonicalPackagesBucketName',
-      'publicPackagesBucketName',
       'incomingPackagesBucketName',
       'imageBucketName',
       'reportsBucketName',
@@ -52,10 +51,6 @@ Configuration _$ConfigurationFromJson(
   final val = Configuration(
     canonicalPackagesBucketName: $checkedConvert(
       'canonicalPackagesBucketName',
-      (v) => v as String?,
-    ),
-    publicPackagesBucketName: $checkedConvert(
-      'publicPackagesBucketName',
       (v) => v as String?,
     ),
     incomingPackagesBucketName: $checkedConvert(
@@ -185,7 +180,6 @@ Configuration _$ConfigurationFromJson(
 Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
     <String, dynamic>{
       'canonicalPackagesBucketName': instance.canonicalPackagesBucketName,
-      'publicPackagesBucketName': instance.publicPackagesBucketName,
       'incomingPackagesBucketName': instance.incomingPackagesBucketName,
       'imageBucketName': instance.imageBucketName,
       'reportsBucketName': instance.reportsBucketName,

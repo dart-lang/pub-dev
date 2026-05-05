@@ -4,7 +4,6 @@
 
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/tarball_storage.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:test/test.dart';
@@ -25,7 +24,7 @@ void main() {
 
         expect(
           (await packageBackend.downloadUrl('oxygen', '1.0.0')).toString(),
-          '${activeConfiguration.storageBaseUrl}/fake-public-packages/packages/oxygen-1.0.0.tar.gz',
+          '${activeConfiguration.storageBaseUrl}/fake-exported-apis/latest/api/archives/oxygen-1.0.0.tar.gz',
         );
       },
     );

@@ -321,9 +321,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
             storageService.bucket(
               activeConfiguration.canonicalPackagesBucketName!,
             ),
-            storageService.bucket(
-              activeConfiguration.publicPackagesBucketName!,
-            ),
+            storageService.bucket(activeConfiguration.exportedApiBucketName!),
           ),
         );
         registerTaskBackend(
