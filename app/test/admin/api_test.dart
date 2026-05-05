@@ -181,6 +181,17 @@ void main() {
 
       testWithProfile(
         'mark and revert',
+        expectedLogMessages: [
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+          ),
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+          ),
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+          ),
+        ],
         fn: () async {
           final client = createPubApiClient(authToken: siteAdminToken);
           final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
@@ -256,6 +267,17 @@ void main() {
 
       testWithProfile(
         'OK',
+        expectedLogMessages: [
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+          ),
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+          ),
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+          ),
+        ],
         fn: () async {
           final client = createPubApiClient(authToken: siteAdminToken);
 
@@ -351,6 +373,11 @@ void main() {
 
       testWithProfile(
         'marking and reverting',
+        expectedLogMessages: [
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+          ),
+        ],
         fn: () async {
           final client = createPubApiClient(authToken: siteAdminToken);
           final removeVersion = '1.2.0';
@@ -453,6 +480,11 @@ void main() {
       testWithProfile(
         'OK',
         processJobsWithFakeRunners: true,
+        expectedLogMessages: [
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+          ),
+        ],
         fn: () async {
           final client = createPubApiClient(authToken: siteAdminToken);
           final removeVersion = '1.2.0';

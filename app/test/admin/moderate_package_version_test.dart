@@ -71,6 +71,11 @@ void main() {
 
     testWithProfile(
       'update state',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         final mc = await _report('oxygen', '1.0.0');
         final r1 = await _moderate('oxygen', '1.0.0');
@@ -134,6 +139,11 @@ void main() {
 
     testWithProfile(
       'clear moderation flag',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         final r1 = await _moderate('oxygen', '1.0.0', state: true);
         expect(r1.output, {
@@ -181,6 +191,14 @@ void main() {
 
     testWithProfile(
       'cannot moderate last visible version',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+        ),
+      ],
       fn: () async {
         await _moderate('oxygen', '1.2.0', state: true);
         final p1 = await packageBackend.lookupPackage('oxygen');
@@ -205,6 +223,11 @@ void main() {
 
     testWithProfile(
       'can publish new version',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         await _moderate('oxygen', '1.0.0', state: true);
 
@@ -219,6 +242,11 @@ void main() {
 
     testWithProfile(
       'cannot re-publish moderated version',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         await _moderate('oxygen', '1.0.0', state: true);
 
@@ -237,6 +265,11 @@ void main() {
 
     testWithProfile(
       'archive file is removed from public buckets',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         Future<Uint8List?> expectStatusCode(
           int statusCode, {
@@ -276,6 +309,11 @@ void main() {
 
     testWithProfile(
       'versions file is updated in exported bucket',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         Future<void> expectIncluded(String version, bool isIncluded) async {
           final prefixes = ['latest', runtimeVersion];
@@ -305,6 +343,11 @@ void main() {
 
     testWithProfile(
       'search is updated with new version',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         await searchBackend.doCreateAndUpdateSnapshot(
           FakeGlobalLockClaim(clock.now().add(Duration(seconds: 3))),
@@ -359,6 +402,14 @@ void main() {
 
     testWithProfile(
       'moderated version is not visible in API (other version is)',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         await _moderate('oxygen', '1.0.0', state: true);
         final rs1 = await packageBackend.listVersionsCached('oxygen');
@@ -388,6 +439,11 @@ void main() {
 
     testWithProfile(
       'moderated versions are not displayed on versions tab',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         await _moderate('oxygen', '1.2.0', state: true);
         await expectHtmlResponse(
@@ -405,6 +461,11 @@ void main() {
 
     testWithProfile(
       'moderated version pages are not displayed',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         List<String> pagePaths(String version) {
           return [
@@ -474,6 +535,11 @@ void main() {
     testWithProfile(
       'moderated version trigger new analysis',
       processJobsWithFakeRunners: true,
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         final score1 = await scoreCardBackend.getScoreCardData(
           'oxygen',
@@ -533,6 +599,11 @@ void main() {
 
     testWithProfile(
       'cleanup deletes datastore entities and canonical archive file',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+      ],
       fn: () async {
         // canonical file is present
         expect(
