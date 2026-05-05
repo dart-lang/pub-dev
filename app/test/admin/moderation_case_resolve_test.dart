@@ -95,11 +95,6 @@ void main() {
 
     testWithProfile(
       'notification: apply moderation',
-      expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
-      ],
       fn: () async {
         final mc = await _prepare(apply: true);
 
@@ -126,11 +121,6 @@ void main() {
 
     testWithProfile(
       'appeal no action: revert',
-      expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
-      ],
       fn: () async {
         final mc1 = await _prepare(apply: null);
         await _close(mc1.caseId);
@@ -156,11 +146,6 @@ void main() {
 
     testWithProfile(
       'appeal moderation: revert',
-      expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
-      ],
       fn: () async {
         final mc1 = await _prepare(apply: true);
         await _close(mc1.caseId, reason: 'The package violated our policy.');
@@ -172,11 +157,6 @@ void main() {
 
     testWithProfile(
       'appeal moderation: upheld',
-      expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
-      ],
       fn: () async {
         final mc1 = await _prepare(apply: true);
         await _close(mc1.caseId, reason: 'The package violated our policy.');

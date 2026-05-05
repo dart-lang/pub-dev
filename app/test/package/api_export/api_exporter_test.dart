@@ -42,10 +42,6 @@ void main() {
   testWithProfile(
     'synchronizeExportedApi()',
     testProfile: _testProfile,
-    expectedLogMessages: [
-      'SHOUT Deleting object from public bucket: "packages/bar-2.0.0.tar.gz".',
-      'SHOUT Deleting object from public bucket: "packages/bar-3.0.0.tar.gz".',
-    ],
     fn: () async {
       // Since we want to verify post-upload tasks triggering API exporter,
       // we cannot use an isolated instance, we need to use the same setup.
@@ -66,10 +62,6 @@ void main() {
 
   testWithProfile(
     'apiExporter.start()',
-    expectedLogMessages: [
-      'SHOUT Deleting object from public bucket: "packages/bar-2.0.0.tar.gz".',
-      'SHOUT Deleting object from public bucket: "packages/bar-3.0.0.tar.gz".',
-    ],
     testProfile: _testProfile,
     fn: () async {
       // Since we want to verify post-upload tasks triggering API exporter,
