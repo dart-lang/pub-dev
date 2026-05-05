@@ -212,7 +212,7 @@ class PackageData {
   final List<VersionInfo> versions;
 
   /// The latest point the /advisories endpoint was updated.
-  final DateTime? advisoriesUpdated;
+  final DateTime advisoriesUpdated;
 
   PackageData({
     required this.name,
@@ -220,7 +220,7 @@ class PackageData {
     this.replacedBy,
     required this.latest,
     required this.versions,
-    this.advisoriesUpdated,
+    required this.advisoriesUpdated,
   });
 
   factory PackageData.fromJson(Map<String, dynamic> json) =>
