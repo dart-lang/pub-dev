@@ -11,20 +11,16 @@ import '../shared/utils.dart';
 
 void main() {
   group('snapshot upload and access', () {
-    scopedTest('Both files are written', () async {
+    scopedTest('Only the .tar.gz file is written', () async {
       final bucket = MemStorage(buckets: ['test']).bucket('test');
       final storage = VersionedJsonStorage(bucket, 'test/');
       await storage.uploadDataAsJsonMap({'data': 1});
       final list = await bucket.list(prefix: 'test/').toList();
-      expect(list.map((l) => l.name).toSet(), {
-        'test/$runtimeVersion.json.gz',
-        'test/$runtimeVersion.tar.gz',
-      });
+      expect(list.map((l) => l.name).toSet(), {'test/$runtimeVersion.tar.gz'});
 
       final info = await bucket.info('test/$runtimeVersion.tar.gz');
       expect(info.length, 103);
 
-      expect(await storage.getContentAsJsonMap(), {'data': 1});
       expect(await storage.getContentAsJsonMapFromTarGz(), {'data': 1});
     });
   });
