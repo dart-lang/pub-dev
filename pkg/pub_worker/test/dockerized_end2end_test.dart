@@ -61,7 +61,7 @@ void main() {
         await buildDockerImage();
 
         final packagesWithScreenshots = {'google_fonts'};
-        final packages = ['retry', ...packagesWithScreenshots];
+        final packages = ['retry', ...packagesWithScreenshots, 'clerk_flutter'];
         final versions = await Future.wait(
           packages.map((p) => analyzePackage(p)),
         );
