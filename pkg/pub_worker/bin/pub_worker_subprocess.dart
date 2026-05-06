@@ -84,7 +84,7 @@ Future<void> main(List<String> args) async {
     }
   });
 
-  final sandboxRunner = Platform.environment['SANDBOX_RUNNER'];
+  final String? sandboxRunner = null; // Platform.environment['SANDBOX_RUNNER'];
 
   // Download package using the Dart SDK in the path, output will be
   // `<output-dir>/<package>-<version>`
