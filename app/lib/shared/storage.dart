@@ -395,15 +395,6 @@ class VersionedJsonStorage {
 
   /// Upload the current data to the storage bucket.
   Future<void> uploadDataAsJsonMap(Map<String, dynamic> map) async {
-    final jsonGzObjectName = _jsonGzObjectName();
-    try {
-      final bytes = _gzip.encode(jsonUtf8Encoder.convert(map));
-      await uploadBytesWithRetry(_bucket, jsonGzObjectName, bytes);
-    } catch (e, st) {
-      _logger.warning('Unable to upload data file: $jsonGzObjectName', e, st);
-    }
-
-    // also upload as .tar.gz
     final tarGzObjectName = _tarGzObjectName();
     try {
       final contentBytes = jsonUtf8Encoder.convert(map);
@@ -416,32 +407,13 @@ class VersionedJsonStorage {
           ),
           Stream.fromIterable([contentBytes]),
         ),
-      ]).transform(tarWriter).transform(gzip.encoder);
+      ]).transform(tarWriter).transform(_gzip.encoder);
 
       final bytes = await readByteStream(stream);
       await uploadBytesWithRetry(_bucket, tarGzObjectName, bytes);
     } catch (e, st) {
       _logger.warning('Unable to upload data file: $tarGzObjectName', e, st);
     }
-  }
-
-  /// Gets the content of the data file decoded as JSON Map.
-  Future<Map<String, dynamic>?> getContentAsJsonMap([String? version]) async {
-    version ??= await _detectLatestVersion();
-    if (version == null) {
-      return null;
-    }
-    final objectName = _jsonGzObjectName(version);
-    _logger.info('Loading snapshot: $objectName');
-    final map = await _bucket.readWithRetry(
-      objectName,
-      (input) => input
-          .transform(_gzip.decoder)
-          .transform(utf8.decoder)
-          .transform(json.decoder)
-          .single,
-    );
-    return map as Map<String, dynamic>;
   }
 
   /// Gets the snapshot content of the tar.gz file decoded as JSON Map.
@@ -455,7 +427,7 @@ class VersionedJsonStorage {
     final objectName = _tarGzObjectName(version);
     _logger.info('Loading snapshot: $objectName');
     final map = await _bucket.readWithRetry(objectName, (input) async {
-      final archive = TarReader(input.transform(gzip.decoder));
+      final archive = TarReader(input.transform(_gzip.decoder));
       List<int>? bytes;
       while (await archive.moveNext()) {
         final content = await readByteStream(archive.current.contents);
@@ -479,21 +451,21 @@ class VersionedJsonStorage {
   Future<String?> _detectLatestVersion() async {
     // checking accepted runtimes first
     for (final version in versions.acceptedRuntimeVersions) {
-      final info = await _bucket.tryInfo(_jsonGzObjectName(version));
+      final info = await _bucket.tryInfo(_tarGzObjectName(version));
       if (info != null) {
         return version;
       }
     }
     // fallback to earlier runtimes
-    final currentPath = _jsonGzObjectName();
+    final currentPath = _tarGzObjectName();
     final list = (await _bucket.listAllItemsWithRetry(prefix: _prefix))
         .map((entry) => entry.name)
-        .where((name) => name.endsWith(_jsonGzExtension))
+        .where((name) => name.endsWith(_tarGzExtension))
         .where((name) => name.compareTo(currentPath) <= 0)
         .map(
           (name) => name.substring(
             _prefix.length,
-            name.length - _jsonGzExtension.length,
+            name.length - _tarGzExtension.length,
           ),
         )
         .where((version) => versions.runtimeVersionPattern.hasMatch(version))
@@ -547,11 +519,6 @@ class VersionedJsonStorage {
       }
     });
     return DeleteCounts(found, deleted);
-  }
-
-  String _jsonGzObjectName([String? version]) {
-    version ??= versions.runtimeVersion;
-    return '$_prefix$version$_jsonGzExtension';
   }
 
   String _tarGzObjectName([String? version]) {
