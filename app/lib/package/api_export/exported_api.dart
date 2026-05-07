@@ -411,6 +411,7 @@ final class ExportedPackage {
             if (info.updated.isBefore(clock.agoBy(_minGarbageAge))) {
               // Only delete if the item if it's older than _minGarbageAge
               // This avoids any races where we delete files we've just created
+              _log.shout('Deleting object from public bucket: "${item.name}".');
               await _owner._bucket.deleteWithRetry(item.name);
             }
           }

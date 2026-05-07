@@ -274,6 +274,11 @@ void main() {
 
   testWithProfile(
     'ExportedApi.package().synchronizeTarballs()',
+    expectedLogMessages: [
+      RegExp(
+        r'SHOUT Deleting object from public bucket: ".*/api/archives/retry-1.0.5.tar.gz".',
+      ),
+    ],
     fn: () async {
       await storageService.createBucket('exported-api');
       final bucket = storageService.bucket('exported-api');
@@ -365,6 +370,11 @@ void main() {
 
   testWithProfile(
     'ExportedApi.package().garbageCollect()',
+    expectedLogMessages: [
+      RegExp(
+        r'SHOUT Deleting object from public bucket: ".*/api/archives/retry-1.2.4.tar.gz".',
+      ),
+    ],
     fn: () async {
       await storageService.createBucket('exported-api');
       final bucket = storageService.bucket('exported-api');
