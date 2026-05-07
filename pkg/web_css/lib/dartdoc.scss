@@ -17,6 +17,12 @@
 // Included after dartdoc/resources in order to make sure we will be able to migrate to it.
 @use 'src/base_dash';
 
+// Note: this is a duplicate of the rule in _base.scss
+.-dart-logo-img {
+  height: 30px;
+  margin-right: 1em;
+}
+
 // This is meant for a temporary override for highlight.js. We need to
 // figure out a better way to customize the syntax highlights for dark
 // mode, both in dartdoc and on pub.dev pages.
