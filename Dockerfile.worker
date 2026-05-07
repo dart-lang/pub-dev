@@ -15,9 +15,6 @@ RUN groupadd -r worker -g 2000 && useradd --no-log-init -r -m -g worker worker
 USER worker:2000
 
 # Install pub-dev
-RUN mkdir -p /home/worker/tmp
-ENV TMPDIR=/home/worker/tmp
-
 COPY --chown=worker:worker . /home/worker/pub-dev
 WORKDIR /home/worker/pub-dev
 
@@ -76,6 +73,9 @@ ENV PUB_WORKER_SUBPROCESS_BINARY="${PUB_WORKER_BUILD_DIR}/pub_worker_subprocess"
 # AOT compile sandbox runner
 RUN dart compile exe -o "build/sandbox_runner" "bin/sandbox_runner.dart"
 ENV SANDBOX_RUNNER="${PUB_WORKER_BUILD_DIR}/sandbox_runner"
+
+RUN mkdir -p /home/worker/tmp
+ENV TMPDIR=/home/worker/tmp
 
 # This container image is launched by cloud-init, and cloud-init is responsible
 # for shutting down the VM when the container exits.
