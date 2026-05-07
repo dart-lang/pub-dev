@@ -1,4 +1,4 @@
-FROM mirror.gcr.io/library/debian:13
+FROM mirror.gcr.io/library/debian:testing
 
 RUN apt-get update && \
   apt-get upgrade -y && \
@@ -28,7 +28,7 @@ RUN mkdir -p /home/worker/config/dart-stable
 RUN mkdir -p /home/worker/config/flutter-stable
 
 # Setup Dart SDK into /home/worker/dart/{stable,preview}/
-RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.11.5
+RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.11.0
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
 RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.41.9
@@ -73,6 +73,9 @@ ENV PUB_WORKER_SUBPROCESS_BINARY="${PUB_WORKER_BUILD_DIR}/pub_worker_subprocess"
 # AOT compile sandbox runner
 RUN dart compile exe -o "build/sandbox_runner" "bin/sandbox_runner.dart"
 ENV SANDBOX_RUNNER="${PUB_WORKER_BUILD_DIR}/sandbox_runner"
+
+RUN mkdir -p /home/worker/tmp
+ENV TMPDIR=/home/worker/tmp
 
 # This container image is launched by cloud-init, and cloud-init is responsible
 # for shutting down the VM when the container exits.
