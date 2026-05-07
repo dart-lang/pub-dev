@@ -134,9 +134,15 @@ void main() {
     testWithProfile(
       'moderated package',
       expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+        ),
       ],
       fn: () async {
         final mc = await _report('oxygen');
@@ -247,9 +253,15 @@ void main() {
     testWithProfile(
       'appeal',
       expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+        ),
       ],
       fn: () async {
         final mc = await _report('oxygen');

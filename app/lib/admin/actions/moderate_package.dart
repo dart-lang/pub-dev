@@ -111,13 +111,6 @@ Future<Map<String, dynamic>> adminMarkPackageVisibility(
 
     await triggerPackagePostUpdates(package, exportForceDelete: true).future;
 
-    // retract or re-populate public archive files
-    await packageBackend.tarballStorage.updatePublicArchiveBucket(
-      package: package,
-      ageCheckThreshold: Duration.zero,
-      deleteIfOlder: Duration.zero,
-    );
-
     await purgeScorecardData(package, p2!.latestVersion!, isLatest: true);
   }
 

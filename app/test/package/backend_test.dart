@@ -159,7 +159,9 @@ void main() {
           final url = await packageBackend.downloadUrl('oxygen', '2.0.8');
           expect(
             url.toString(),
-            contains('/fake-public-packages/packages/oxygen-2.0.8.tar.gz'),
+            contains(
+              '/fake-exported-apis/latest/api/archives/oxygen-2.0.8.tar.gz',
+            ),
           );
         },
       );
@@ -170,7 +172,9 @@ void main() {
           final url = await packageBackend.downloadUrl('oxygen', '2.0.8+5');
           expect(
             url.toString(),
-            contains('/fake-public-packages/packages/oxygen-2.0.8%2B5.tar.gz'),
+            contains(
+              '/fake-exported-apis/latest/api/archives/oxygen-2.0.8+5.tar.gz',
+            ),
           );
         },
       );

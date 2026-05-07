@@ -70,9 +70,15 @@ void main() {
     testWithProfile(
       'update state',
       expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+        ),
       ],
       fn: () async {
         final mc = await _report('neon');
@@ -124,9 +130,15 @@ void main() {
     testWithProfile(
       'clear moderation flag',
       expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+        ),
       ],
       fn: () async {
         final mc = await _report('oxygen');
@@ -220,9 +232,15 @@ void main() {
     testWithProfile(
       'API endpoints return not found',
       expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+        ),
       ],
       fn: () async {
         final jsonUrls = [
@@ -255,9 +273,15 @@ void main() {
     testWithProfile(
       'public pages are displaying moderation notice',
       expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+        ),
       ],
       fn: () async {
         final htmlUrls = [
@@ -306,9 +330,15 @@ void main() {
     testWithProfile(
       'not included in search',
       expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+        ),
       ],
       fn: () async {
         await searchBackend.doCreateAndUpdateSnapshot(
@@ -355,15 +385,18 @@ void main() {
     testWithProfile(
       'archives are removed from public buckets',
       expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+        ),
       ],
       fn: () async {
         final publicUrls = [
-          '${activeConfiguration.storageBaseUrl}'
-              '/${activeConfiguration.publicPackagesBucketName}'
-              '/packages/oxygen-1.0.0.tar.gz',
           '${activeConfiguration.storageBaseUrl}'
               '/${activeConfiguration.exportedApiBucketName}'
               '/latest/api/archives/oxygen-1.0.0.tar.gz',
@@ -389,14 +422,7 @@ void main() {
         await _moderate('oxygen', state: true, caseId: mc.caseId);
         await expectStatusCode(404);
 
-        // another check after background tasks are running
-        await packageBackend.tarballStorage.updatePublicArchiveBucket();
-        await expectStatusCode(404);
-
         await _moderate('oxygen', state: false, caseId: mc.caseId);
-        await expectStatusCode(200);
-        // another check after background tasks are running
-        await packageBackend.tarballStorage.updatePublicArchiveBucket();
         final restoredBytes = await expectStatusCode(200);
         expect(restoredBytes, bytes);
       },
@@ -406,9 +432,15 @@ void main() {
       'analysis results are cleared',
       processJobsWithFakeRunners: true,
       expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+        ),
       ],
       fn: () async {
         final score1 = await scoreCardBackend.getScoreCardData(
@@ -446,8 +478,15 @@ void main() {
     testWithProfile(
       'cleanup deletes datastore entities and canonical archive file',
       expectedLogMessages: [
-        'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-        'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+        ),
       ],
       fn: () async {
         // delete old version
@@ -458,10 +497,7 @@ void main() {
 
         // canonical file is present
         expect(
-          await packageBackend.tarballStorage.getCanonicalBucketArchiveInfo(
-            'oxygen',
-            '1.2.0',
-          ),
+          await packageBackend.getCanonicalBucketArchiveInfo('oxygen', '1.2.0'),
           isNotNull,
         );
 
@@ -479,10 +515,7 @@ void main() {
           isNull,
         );
         expect(
-          await packageBackend.tarballStorage.getCanonicalBucketArchiveInfo(
-            'oxygen',
-            '1.2.0',
-          ),
+          await packageBackend.getCanonicalBucketArchiveInfo('oxygen', '1.2.0'),
           isNull,
         );
 

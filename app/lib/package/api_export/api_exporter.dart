@@ -233,8 +233,9 @@ final class ApiExporter {
     );
 
     if (!skipArchives) {
-      final versions = await packageBackend.tarballStorage
-          .listVersionsInCanonicalBucket(package);
+      final versions = await packageBackend.listVersionsInCanonicalBucket(
+        package,
+      );
 
       // Remove versions that are not exposed in the public API.
       versions.removeWhere(

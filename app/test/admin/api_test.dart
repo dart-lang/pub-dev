@@ -22,6 +22,7 @@ import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
+import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -181,9 +182,15 @@ void main() {
       testWithProfile(
         'mark and revert',
         expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-          'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+          ),
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+          ),
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+          ),
         ],
         fn: () async {
           final client = createPubApiClient(authToken: siteAdminToken);
@@ -198,6 +205,7 @@ void main() {
               arguments: {'package': 'oxygen', 'state': 'true'},
             ),
           );
+          await asyncQueue.ongoingProcessing;
 
           // repeated call updates the timestamp
           final rsAgain = await client.adminInvokeAction(
@@ -220,8 +228,8 @@ void main() {
           // package is no longer visible
           final pkgAfterMarked = await dbService.lookupOrNull<Package>(pkgKey);
           expect(pkgAfterMarked!.isVisible, false);
-          final archiveAfterMarked = await packageBackend.tarballStorage
-              .getPublicBucketArchiveInfo('oxygen', '1.2.0');
+          final archiveAfterMarked = await packageBackend
+              .getExportedArchiveInfo('oxygen', '1.2.0');
           expect(archiveAfterMarked, isNull);
           await expectLater(
             () => packageBackend.listVersions('oxygen'),
@@ -240,14 +248,15 @@ void main() {
             'before': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
             'after': {'isAdminDeleted': false, 'adminDeletedAt': null},
           });
+          await asyncQueue.ongoingProcessing;
 
           // package is visible again
           final pkgAfterReverted = await dbService.lookupOrNull<Package>(
             pkgKey,
           );
           expect(pkgAfterReverted!.isVisible, true);
-          final archiveAfterReverted = await packageBackend.tarballStorage
-              .getPublicBucketArchiveInfo('oxygen', '1.2.0');
+          final archiveAfterReverted = await packageBackend
+              .getExportedArchiveInfo('oxygen', '1.2.0');
           expect(archiveAfterReverted, isNotNull);
           final versionsAfterReverted = await packageBackend.listVersions(
             'oxygen',
@@ -259,9 +268,15 @@ void main() {
       testWithProfile(
         'OK',
         expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.0.0.tar.gz".',
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
-          'SHOUT Deleting object from public bucket: "packages/oxygen-2.0.0-dev.tar.gz".',
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.0.0.tar.gz".',
+          ),
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+          ),
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-2.0.0-dev.tar.gz".',
+          ),
         ],
         fn: () async {
           final client = createPubApiClient(authToken: siteAdminToken);
@@ -359,7 +374,9 @@ void main() {
       testWithProfile(
         'marking and reverting',
         expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+          ),
         ],
         fn: () async {
           final client = createPubApiClient(authToken: siteAdminToken);
@@ -376,6 +393,7 @@ void main() {
               },
             ),
           );
+          await asyncQueue.ongoingProcessing;
 
           // repeated call updates the timestamp
           final rsAgain = await client.adminInvokeAction(
@@ -406,8 +424,8 @@ void main() {
             removeVersion,
           );
           expect(pvAfterMarked!.isVisible, false);
-          final archiveAfterMarked = await packageBackend.tarballStorage
-              .getPublicBucketArchiveInfo('oxygen', removeVersion);
+          final archiveAfterMarked = await packageBackend
+              .getExportedArchiveInfo('oxygen', removeVersion);
           expect(archiveAfterMarked, isNull);
           final versionsAfterMarked = await packageBackend.listVersions(
             'oxygen',
@@ -436,6 +454,7 @@ void main() {
             'before': {'isAdminDeleted': true, 'adminDeletedAt': isNotNull},
             'after': {'isAdminDeleted': false, 'adminDeletedAt': null},
           });
+          await asyncQueue.ongoingProcessing;
 
           // version is visible again
           final pvAfterReverted = await packageBackend.lookupPackageVersion(
@@ -443,8 +462,8 @@ void main() {
             removeVersion,
           );
           expect(pvAfterReverted!.isVisible, true);
-          final archiveAfterReverted = await packageBackend.tarballStorage
-              .getPublicBucketArchiveInfo('oxygen', removeVersion);
+          final archiveAfterReverted = await packageBackend
+              .getExportedArchiveInfo('oxygen', removeVersion);
           expect(archiveAfterReverted, isNotNull);
           final versionsAfterReverted = await packageBackend.listVersions(
             'oxygen',
@@ -462,7 +481,9 @@ void main() {
         'OK',
         processJobsWithFakeRunners: true,
         expectedLogMessages: [
-          'SHOUT Deleting object from public bucket: "packages/oxygen-1.2.0.tar.gz".',
+          RegExp(
+            r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-1.2.0.tar.gz".',
+          ),
         ],
         fn: () async {
           final client = createPubApiClient(authToken: siteAdminToken);
@@ -524,6 +545,7 @@ void main() {
               },
             ),
           );
+          await asyncQueue.ongoingProcessing;
 
           expect(rs.output, {
             'package': 'oxygen',
@@ -538,8 +560,8 @@ void main() {
             removeVersion,
           );
           expect(pvAfterMarked!.isVisible, false);
-          final archiveAfterMarked = await packageBackend.tarballStorage
-              .getPublicBucketArchiveInfo('oxygen', removeVersion);
+          final archiveAfterMarked = await packageBackend
+              .getExportedArchiveInfo('oxygen', removeVersion);
           expect(archiveAfterMarked, isNull);
           final versionsAfterMarked = await packageBackend.listVersions(
             'oxygen',

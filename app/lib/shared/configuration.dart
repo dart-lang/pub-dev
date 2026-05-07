@@ -59,12 +59,6 @@ final class Configuration {
   /// The bucket content policy should be private.
   final String? canonicalPackagesBucketName;
 
-  /// The name of the Cloud Storage bucket to use for public package archive downloads.
-  ///
-  /// This is the bucket which users are redirected to when they want to download package tarballs.
-  /// The bucket content policy should be public.
-  final String? publicPackagesBucketName;
-
   /// The name of the Cloud Storage bucket to use for incoming package archives.
   ///
   /// When users are publishing packages using the `dart pub` client, they are given a signed-url
@@ -257,7 +251,6 @@ final class Configuration {
 
   Configuration({
     required this.canonicalPackagesBucketName,
-    required this.publicPackagesBucketName,
     required this.incomingPackagesBucketName,
     required this.projectId,
     required this.imageBucketName,
@@ -324,7 +317,6 @@ final class Configuration {
   }) {
     return Configuration(
       canonicalPackagesBucketName: 'fake-canonical-packages',
-      publicPackagesBucketName: 'fake-public-packages',
       incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-fake',
       imageBucketName: 'fake-bucket-image',
@@ -377,7 +369,6 @@ final class Configuration {
   }) {
     return Configuration(
       canonicalPackagesBucketName: 'fake-canonical-packages',
-      publicPackagesBucketName: 'fake-public-packages',
       incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-test',
       imageBucketName: 'fake-bucket-image',
@@ -431,7 +422,6 @@ final class Configuration {
     reportsBucketName!,
     downloadCountsBucketName!,
     incomingPackagesBucketName!,
-    publicPackagesBucketName!,
     searchSnapshotBucketName!,
     taskResultBucketName!,
     exportedApiBucketName!,

@@ -1,7 +1,6 @@
 ---
 # Configuration for the pub.dev staging site
 canonicalPackagesBucketName: dartlang-pub-dev-canonical-packages
-publicPackagesBucketName: dartlang-pub-dev-public-packages
 incomingPackagesBucketName: dartlang-pub-dev-incoming-packages
 projectId: dartlang-pub-dev
 searchServicePrefix: https://{{GAE_VERSION}}-dot-search-dot-dartlang-pub-dev.appspot.com

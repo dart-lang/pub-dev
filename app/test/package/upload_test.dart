@@ -210,8 +210,8 @@ void main() {
           expect(canonicalInfo.length, greaterThan(200));
 
           final publicInfo = await storageService
-              .bucket(activeConfiguration.publicPackagesBucketName!)
-              .info('packages/new_package-1.2.3.tar.gz');
+              .bucket(activeConfiguration.exportedApiBucketName!)
+              .info('latest/api/archives/new_package-1.2.3.tar.gz');
           expect(publicInfo.length, canonicalInfo.length);
         },
       );
