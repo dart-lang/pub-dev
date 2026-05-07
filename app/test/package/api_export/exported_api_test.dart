@@ -29,6 +29,7 @@ void main() {
       published: clock.now(),
     ),
     versions: [],
+    advisoriesUpdated: clock.now(),
   );
 
   final retryPkgData2 = PackageData(
@@ -51,6 +52,7 @@ void main() {
         published: clock.now(),
       ),
     ],
+    advisoriesUpdated: clock.now(),
   );
 
   final retryAdvisoryData1 = ListAdvisoriesResponse(advisories: []);
