@@ -15,6 +15,9 @@ RUN groupadd -r worker -g 2000 && useradd --no-log-init -r -m -g worker worker
 USER worker:2000
 
 # Install pub-dev
+RUN mkdir -p /home/worker/tmp
+ENV TMPDIR=/home/worker/tmp
+
 COPY --chown=worker:worker . /home/worker/pub-dev
 WORKDIR /home/worker/pub-dev
 
