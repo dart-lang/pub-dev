@@ -18,6 +18,11 @@ final _argParser = ArgParser()
     negatable: false,
     help: 'run pub_worker in docker container',
   )
+  ..addFlag(
+    'skip-rebuild',
+    negatable: false,
+    help: 'Set to skip rebuilding the docker container.',
+  )
   ..addFlag('help', negatable: false)
   ..addOption(
     'output',
@@ -50,7 +55,7 @@ void main(List<String> args) async {
       Platform.environment['PUB_HOSTED_URL'] ?? 'https://pub.dev';
   final server = PubWorkerTestServer([], fallbackPubHostedUrl: pubHostedUrl);
 
-  await server.start();
+  await server.start(listenOnAllInterface: true);
   final payload = Payload(
     package: package,
     pubHostedUrl: '${server.baseUrl}',
@@ -59,12 +64,14 @@ void main(List<String> args) async {
 
   final Process worker;
   if (argResults['docker'] == true) {
-    try {
-      print('Building worker docker image');
-      await buildDockerImage();
-    } catch (e) {
-      print('Building worker docker image failed: $e');
-      exit(-1);
+    if (argResults['skip-rebuild'] != true) {
+      try {
+        print('Building worker docker image');
+        await buildDockerImage();
+      } catch (e) {
+        print('Building worker docker image failed: $e');
+        exit(-1);
+      }
     }
     worker = await startDockerAnalysis(payload);
   } else {
