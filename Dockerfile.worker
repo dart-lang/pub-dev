@@ -79,4 +79,4 @@ ENV TMPDIR=/home/worker/tmp
 
 # This container image is launched by cloud-init, and cloud-init is responsible
 # for shutting down the VM when the container exits.
-ENTRYPOINT ["pub_worker"]
+ENTRYPOINT ["dart", "bin/pub_worker.dart"]
