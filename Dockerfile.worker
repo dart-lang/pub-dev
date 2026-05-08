@@ -67,12 +67,12 @@ RUN dart compile exe -o "build/pub_worker" "bin/pub_worker.dart"
 ENV PATH="${PUB_WORKER_BUILD_DIR}:${PATH}"
 
 # AOT compile the pub_worker_subprocess
-RUN dart compile exe -o "build/pub_worker_subprocess" "bin/pub_worker_subprocess.dart"
-ENV PUB_WORKER_SUBPROCESS_BINARY="${PUB_WORKER_BUILD_DIR}/pub_worker_subprocess"
+#RUN dart compile exe -o "build/pub_worker_subprocess" "bin/pub_worker_subprocess.dart"
+#ENV PUB_WORKER_SUBPROCESS_BINARY="${PUB_WORKER_BUILD_DIR}/pub_worker_subprocess"
 
 # AOT compile sandbox runner
-RUN dart compile exe -o "build/sandbox_runner" "bin/sandbox_runner.dart"
-ENV SANDBOX_RUNNER="${PUB_WORKER_BUILD_DIR}/sandbox_runner"
+#RUN dart compile exe -o "build/sandbox_runner" "bin/sandbox_runner.dart"
+#ENV SANDBOX_RUNNER="${PUB_WORKER_BUILD_DIR}/sandbox_runner"
 
 RUN mkdir -p /home/worker/tmp
 ENV TMPDIR=/home/worker/tmp
