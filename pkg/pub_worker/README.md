@@ -90,3 +90,29 @@ The `bin/sandbox_runner.dart` executable launches gVisor sandboxes for isolated 
 - `PUB_CACHE`
 - `PUB_ENVIRONMENT`
 - `PUB_HOSTED_URL`
+
+## Local troubleshooting
+
+### Network issues
+
+If your Docker container doesn't seem to see the external network, it is likely that your
+Linux distribution is newer, and the docker runtime doesn't use the same firewall stack.
+You may temporarily enable the pass-through of packets by running
+
+```bash
+sudo iptables -P FORWARD ACCEPT
+```
+
+or alternatively, set the following value in `/etc/docker/daemon.json`
+
+```json
+{
+  "iptables": true
+}
+```
+
+then restart:
+
+```bash
+sudo systemctl restart docker
+```
