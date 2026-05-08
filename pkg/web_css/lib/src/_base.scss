@@ -126,6 +126,14 @@ a {
   @include variables.brightness-on-hover;
 }
 
+// Links that directly wrap a monochrome icon should rely only on the icon's
+// opacity-based hover effect. Suppress the brightness filter to avoid
+// compounding two separate hover mechanisms on the same element.
+.light-theme a:has(> .pub-monochrome-icon):hover,
+.dark-theme a:has(> .pub-monochrome-icon):hover {
+  filter: none;
+}
+
 main {
   min-height: calc(100vh - 130px); // top nav (50) + footer (80)
   margin-bottom: 32px;

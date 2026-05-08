@@ -93,6 +93,11 @@
   a.logo {
     display: inline-block;
     height: 30px;
+    // The site header has a dark background in both themes; brighten on hover
+    // instead of the global dimming that applies in light mode.
+    .light-theme &:hover {
+      filter: brightness(120%);
+    }
 
     .site-logo {
       height: 30px;
@@ -175,7 +180,8 @@
     opacity: 1.0;
 
     &:hover {
-      opacity: 0.8;
+      // The header has a dark background; brighten on hover instead of dimming.
+      filter: brightness(120%);
     }
   }
 
@@ -184,6 +190,11 @@
     display: block;
     line-height: 26px;
     white-space: nowrap;
+    // The nav popup always has a dark background; brighten links on hover in
+    // light mode rather than dimming them.
+    .light-theme &:hover {
+      filter: brightness(120%);
+    }
   }
 
   .nav-profile-img {
