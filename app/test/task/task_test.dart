@@ -9,12 +9,11 @@ import 'dart:io';
 import 'package:_pub_shared/data/package_api.dart' show UploadInfo;
 import 'package:_pub_shared/data/task_payload.dart';
 import 'package:clock/clock.dart';
-import 'package:gcloud/db.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:pana/pana.dart';
-import 'package:pub_dev/shared/versions.dart';
+import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/task/models.dart';
@@ -730,12 +729,15 @@ void main() {
         await taskBackend.runOneLoopCycle();
 
         // verify token is now aborted
-        final ps = await dbService.lookupValue<PackageState>(
-          PackageState.createKey(dbService.emptyKey, runtimeVersion, 'neon'),
+        final ps = await primaryDatabase!.withRetry(
+          (schema) => schema.tasksAccess.lookupOrNull('neon'),
         );
-        expect(ps.versions?[v.version]?.secretToken, isNull);
-        expect(ps.abortedTokens, isNotEmpty);
-        expect(ps.abortedTokens?.where((x) => x.token == v.token), isNotEmpty);
+        expect(ps!.state.versions[v.version]?.secretToken, isNull);
+        expect(ps.state.abortedTokens, isNotEmpty);
+        expect(
+          ps.state.abortedTokens.where((x) => x.token == v.token),
+          isNotEmpty,
+        );
 
         // Use token to get the upload information
         final api = createPubApiClient(authToken: v.token);
@@ -772,10 +774,13 @@ void main() {
             ],
           ),
         );
-        final ps = await dbService.lookupValue<PackageState>(
-          PackageState.createKey(dbService.emptyKey, runtimeVersion, 'neon'),
+        final ps = await primaryDatabase!.withRetry(
+          (schema) => schema.tasksAccess.lookupOrNull('neon'),
         );
-        expect(ps.abortedTokens?.where((x) => x.token == v.token), isEmpty);
+        expect(
+          ps!.state.abortedTokens.where((x) => x.token == v.token),
+          isEmpty,
+        );
 
         // Report the task as finished
         final api = createPubApiClient(authToken: v.token);
