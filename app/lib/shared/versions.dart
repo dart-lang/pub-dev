@@ -24,10 +24,8 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const _acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2026.05.05',
+  '2026.05.12',
   // Fallback runtime versions.
-  '2026.05.04',
-  '2026.04.29',
 ];
 
 /// Sets the current runtime versions.
@@ -53,7 +51,10 @@ String get runtimeVersion => acceptedRuntimeVersions.first;
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
-String get gcBeforeRuntimeVersion => acceptedRuntimeVersions.last;
+String get gcBeforeRuntimeVersion => acceptedRuntimeVersions.length == 1
+    // TODO: remove after task backend is released
+    ? '2026.04.29'
+    : acceptedRuntimeVersions.last;
 
 /// Returns true if the given version should be considered as obsolete and can
 /// be deleted.

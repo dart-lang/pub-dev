@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2026.05.12`.
+ * Note: switched to Postgres-backed task backed.
 
 ## `20260507t120800-all`
 
