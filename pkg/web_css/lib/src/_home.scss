@@ -34,11 +34,6 @@
 
     > a {
       color: var(--pub-home_banner-link-color);
-      // The home banner has a dark background; brighten links on hover in
-      // light mode rather than dimming them.
-      .light-theme &:hover {
-        filter: brightness(120%);
-      }
     }
   }
 

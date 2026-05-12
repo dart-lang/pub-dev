@@ -19,11 +19,6 @@
     color: var(--pub-footer-text-color);
     padding-right: 12px;
     text-wrap: nowrap;
-    // The footer always has a dark background; brighten links on hover in
-    // light mode rather than dimming them.
-    .light-theme &:hover {
-      filter: brightness(120%);
-    }
 
     > .inline-icon {
       display: inline-block;
