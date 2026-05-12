@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
 
-import '_dart_html_focusability.dart';
+import 'package:web/web.dart';
+
+import '_focusability.dart';
 import 'deferred/markdown.dart' deferred as md;
 import 'mdc/mdc_dialog.dart';
+import 'web_util.dart';
 
 /// Displays a message via the modal window.
 Future<void> modalMessage(String title, String message) async {
@@ -75,7 +75,7 @@ Future<bool> modalWindow({
     dialog.destroy();
     root.remove();
     // Note: This seems to be a bug in the JS library
-    document.body!.classes.remove('mdc-dialog-scroll-lock');
+    document.body!.classList.remove('mdc-dialog-scroll-lock');
   }
   return await c.future;
 }
@@ -90,70 +90,79 @@ Element _buildDialog({
   /// The callback will be called with `true` when "OK" was clicked, and `false`
   /// when "Cancel" was clicked.
   required void Function(bool) closing,
-}) => document.createElement('div')
-  ..classes.add('mdc-dialog')
-  ..attributes.addAll({
-    'role': 'alertdialog',
-    'aria-model': 'true',
-    'aria-labelledby': 'pub-dialog-title',
-    'aria-describedby': 'pub-dialog-content',
-  })
-  ..children = [
-    document.createElement('div')
-      ..classes.add('mdc-dialog__container')
-      ..children = [
-        document.createElement('div')
-          ..classes.add('mdc-dialog__surface')
-          ..children = [
-            document.createElement('h2')
-              ..classes.add('mdc-dialog__title')
-              ..id = 'pub-dialog-title'
-              ..innerText = titleText,
-            document.createElement('div')
-              ..classes.add('mdc-dialog__content')
-              ..id = 'pub-dialog-content'
-              ..children = [content],
-            document.createElement('footer')
-              ..classes.add('mdc-dialog__actions')
-              ..children = [
-                if (isQuestion)
-                  document.createElement('button')
-                    ..classes.addAll([
-                      'mdc-button',
-                      'mdc-dialog__button',
-                      '-pub-dom-dialog-cancel-button',
-                    ])
-                    ..tabIndex = 2
-                    ..onClick.listen((e) {
-                      e.preventDefault();
-                      closing(false);
-                    })
-                    ..children = [
-                      document.createElement('span')
-                        ..classes.add('mdc-button__label')
-                        ..innerText = cancelButtonText ?? 'Cancel',
-                    ],
-                document.createElement('button')
-                  ..classes.addAll([
-                    'mdc-button',
-                    'mdc-dialog__button',
-                    '-pub-dom-dialog-ok-button',
-                  ])
-                  ..tabIndex = 1
-                  ..onClick.listen((e) {
-                    e.preventDefault();
-                    closing(true);
-                  })
-                  ..children = [
-                    document.createElement('span')
-                      ..classes.add('mdc-button__label')
-                      ..innerText = okButtonText ?? 'Ok',
-                  ],
-              ],
-          ],
-      ],
-    document.createElement('div')..classes.add('mdc-dialog__scrim'),
-  ];
+}) {
+  final title = document.createElement('h2') as HTMLElement
+    ..classList.add('mdc-dialog__title')
+    ..id = 'pub-dialog-title'
+    ..innerText = titleText;
+
+  final contentDiv = HTMLDivElement()
+    ..classList.add('mdc-dialog__content')
+    ..id = 'pub-dialog-content'
+    ..append(content);
+
+  final footer = document.createElement('footer');
+  footer.classList.add('mdc-dialog__actions');
+
+  if (isQuestion) {
+    final cancelBtn = HTMLButtonElement()
+      ..classList.addAll([
+        'mdc-button',
+        'mdc-dialog__button',
+        '-pub-dom-dialog-cancel-button',
+      ])
+      ..tabIndex = 2;
+    cancelBtn.onClick.listen((e) {
+      e.preventDefault();
+      closing(false);
+    });
+    cancelBtn.append(
+      HTMLSpanElement()
+        ..classList.add('mdc-button__label')
+        ..innerText = cancelButtonText ?? 'Cancel',
+    );
+    footer.append(cancelBtn);
+  }
+
+  final okBtn = HTMLButtonElement()
+    ..classList.addAll([
+      'mdc-button',
+      'mdc-dialog__button',
+      '-pub-dom-dialog-ok-button',
+    ])
+    ..tabIndex = 1;
+  okBtn.onClick.listen((e) {
+    e.preventDefault();
+    closing(true);
+  });
+  okBtn.append(
+    HTMLSpanElement()
+      ..classList.add('mdc-button__label')
+      ..innerText = okButtonText ?? 'Ok',
+  );
+  footer.append(okBtn);
+
+  final surface = HTMLDivElement()
+    ..classList.add('mdc-dialog__surface')
+    ..append(title)
+    ..append(contentDiv)
+    ..append(footer);
+
+  final container = HTMLDivElement()
+    ..classList.add('mdc-dialog__container')
+    ..append(surface);
+
+  final root = HTMLDivElement()
+    ..classList.add('mdc-dialog')
+    ..setAttribute('role', 'alertdialog')
+    ..setAttribute('aria-model', 'true')
+    ..setAttribute('aria-labelledby', 'pub-dialog-title')
+    ..setAttribute('aria-describedby', 'pub-dialog-content')
+    ..append(container)
+    ..append(HTMLDivElement()..classList.add('mdc-dialog__scrim'));
+
+  return root;
+}
 
 /// Creates an [Element] with Markdown-formatted content.
 Future<Element> markdown(String text) async {

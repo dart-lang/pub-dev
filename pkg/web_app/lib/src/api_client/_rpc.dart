@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
 
 import 'package:_pub_shared/pubapi.dart';
+import 'package:web/web.dart';
 
 import '../_dom_helper.dart';
+import '../web_util.dart';
 
 /// Wraps asynchronous server calls with an optional confirm window, a spinner,
 /// error- and success handling.
@@ -49,12 +48,12 @@ Future<R?> rpc<R>({
   // Disable inputs and buttons that are not already disabled.
   final inputs = document
       .querySelectorAll('input')
-      .cast<InputElement>()
-      .where((e) => e.disabled != true)
+      .toElementList<HTMLInputElement>()
+      .where((e) => !e.disabled)
       .toList();
   final buttons = document
       .querySelectorAll('button')
-      .cast<ButtonElement>()
+      .toElementList<HTMLButtonElement>()
       .where((e) => !e.disabled)
       .toList();
   buttons.forEach((e) => e.disabled = true);
@@ -85,8 +84,8 @@ Future<R?> rpc<R>({
         final message = errorObject?['message'];
         await modalWindow(
           titleText: 'Further consent needed.',
-          content: ParagraphElement()
-            ..text = [
+          content: HTMLParagraphElement()
+            ..textContent = [
               if (message != null) message,
               'You will be redirected, please authorize the action.',
             ].join(' '),
@@ -155,6 +154,8 @@ String? _requestExceptionMessage(
   _ => null,
 };
 
-Element _createSpinner() => DivElement()
-  ..className = 'spinner-frame'
-  ..children = [DivElement()..className = 'spinner'];
+Element _createSpinner() {
+  final frame = HTMLDivElement()..className = 'spinner-frame';
+  frame.append(HTMLDivElement()..className = 'spinner');
+  return frame;
+}
