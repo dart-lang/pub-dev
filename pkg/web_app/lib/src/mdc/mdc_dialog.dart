@@ -5,10 +5,9 @@
 @JS('mdc.dialog')
 library;
 
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
 import 'dart:js_interop';
+
+import 'package:web/web.dart';
 
 @JS('MDCDialog')
 extension type MdcDialog(JSObject _) implements JSObject {
