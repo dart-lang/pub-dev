@@ -149,8 +149,10 @@ jobs:
       run: |
         if [[ "${{ matrix.package }}" == "pub_integration" ]]; then
           dart tool/trigger_puppeteer_download.dart
+          dart test --run-skipped -j 4
+        else
+          dart test --run-skipped
         fi
-        dart test --run-skipped
       working-directory: pkg/${{matrix.package}}
       env:
         PUB_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
