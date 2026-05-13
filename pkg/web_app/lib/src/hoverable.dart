@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:js_interop_unsafe';
 
 import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:web/web.dart';
