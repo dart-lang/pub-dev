@@ -3,17 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-// TODO: migrate to package:web
-// ignore: deprecated_member_use
-import 'dart:html';
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
+import 'package:web/web.dart';
 
 import '_dom_helper.dart';
 import 'api_client/api_client.dart' deferred as api_client;
 import 'page_data.dart';
+import 'web_util.dart';
 
 final _pkgAdminWidget = _PkgAdminWidget();
 final _publisherAdminWidget = _PublisherAdminWidget();
@@ -31,29 +30,32 @@ void initAdminPages() {
 }
 
 void _initGenericForm() {
-  for (final form in document.querySelectorAll('[data-form-api-endpoint]')) {
-    final endpoint = form.dataset['form-api-endpoint']!;
-    final onSuccessGotoUrl = form.dataset['form-success-goto'];
+  for (final form
+      in document
+          .querySelectorAll('[data-form-api-endpoint]')
+          .toElementList<HTMLElement>()) {
+    final endpoint = form.getAttribute('data-form-api-endpoint');
+    final onSuccessGotoUrl = form.getAttribute('data-form-success-goto');
 
-    for (final button in form.querySelectorAll('[data-form-api-button]')) {
+    for (final button
+        in form.querySelectorAll('[data-form-api-button]').toElementList()) {
       button.onClick.listen((event) async {
         final body = <String, Object?>{};
-        for (final field in form.querySelectorAll('[name]')) {
+        for (final field in form.querySelectorAll('[name]').toElementList()) {
           final name = field.getAttribute('name')!;
-          if (field is InputElement &&
-              !(field.disabled ?? false) &&
-              field.value != null) {
+          if (field is HTMLInputElement && !field.disabled) {
             body[name] = field.value;
           }
-          if (field is TextAreaElement &&
-              !field.disabled &&
-              field.value != null) {
+          if (field is HTMLTextAreaElement && !field.disabled) {
             body[name] = field.value;
           }
         }
+        print(body);
+        print(endpoint);
+        print(onSuccessGotoUrl);
         await api_client.rpc(
           fn: () =>
-              api_client.sendJson(verb: 'POST', path: endpoint, body: body),
+              api_client.sendJson(verb: 'POST', path: endpoint!, body: body),
           successMessage: null,
           onSuccess: (r) async {
             final result = r ?? {};
@@ -81,13 +83,13 @@ void _initGenericForm() {
 class _PkgAdminWidget {
   Element? _setPublisherInput;
   Element? _setPublisherButton;
-  InputElement? _discontinuedCheckbox;
-  InputElement? _replacedByInput;
+  HTMLInputElement? _discontinuedCheckbox;
+  HTMLInputElement? _replacedByInput;
   Element? _replacedByButton;
-  InputElement? _unlistedCheckbox;
+  HTMLInputElement? _unlistedCheckbox;
   Element? _inviteUploaderButton;
   Element? _inviteUploaderContent;
-  InputElement? _inviteUploaderInput;
+  HTMLInputElement? _inviteUploaderInput;
   Element? _retractPackageVersionInput;
   Element? _retractPackageVersionButton;
   Element? _restoreRetractPackageVersionInput;
@@ -103,14 +105,15 @@ class _PkgAdminWidget {
     _setPublisherButton?.onClick.listen((_) => _setPublisher());
     _discontinuedCheckbox =
         document.getElementById('-admin-is-discontinued-checkbox')
-            as InputElement?;
+            as HTMLInputElement?;
     _discontinuedCheckbox?.onChange.listen((_) => _toggleDiscontinued());
     _replacedByInput =
-        document.getElementById('-package-replaced-by') as InputElement?;
+        document.getElementById('-package-replaced-by') as HTMLInputElement?;
     _replacedByButton = document.getElementById('-package-replaced-by-button');
     _replacedByButton?.onClick.listen((_) => _updateReplacedBy());
     _unlistedCheckbox =
-        document.getElementById('-admin-is-unlisted-checkbox') as InputElement?;
+        document.getElementById('-admin-is-unlisted-checkbox')
+            as HTMLInputElement?;
     _unlistedCheckbox?.onChange.listen((_) => _toggleUnlisted());
     _inviteUploaderButton = document.getElementById(
       '-pkg-admin-invite-uploader-button',
@@ -121,7 +124,7 @@ class _PkgAdminWidget {
     _inviteUploaderButton?.onClick.listen((_) => _inviteUploader());
     _inviteUploaderInput =
         document.getElementById('-pkg-admin-invite-uploader-input')
-            as InputElement?;
+            as HTMLInputElement?;
     _retractPackageVersionInput = document.getElementById(
       '-admin-retract-package-version-input',
     );
@@ -139,49 +142,52 @@ class _PkgAdminWidget {
       (_) => _restoreRetracted(),
     );
     _inviteUploaderContent
-      ?..classes.remove('modal-content-hidden')
+      ?..classList.remove('modal-content-hidden')
       ..remove();
-    for (final btn in document.querySelectorAll(
-      '.-pub-remove-uploader-button',
-    )) {
-      btn.onClick.listen((_) => _removeUploader(btn.dataset['email']!));
+    for (final btn
+        in document
+            .querySelectorAll('.-pub-remove-uploader-button')
+            .toElementList<HTMLElement>()) {
+      btn.onClick.listen(
+        (_) => _removeUploader(btn.getAttribute('data-email')!),
+      );
     }
   }
 
   void _setupAutomatedPublishing() {
     final manualPublishingEnabledCheckbox =
         document.getElementById('-pkg-admin-manual-publishing-enabled')
-            as InputElement?;
+            as HTMLInputElement?;
     final githubEnabledCheckbox =
         document.getElementById('-pkg-admin-automated-github-enabled')
-            as InputElement?;
+            as HTMLInputElement?;
     final githubRepositoryInput =
         document.getElementById('-pkg-admin-automated-github-repository')
-            as InputElement?;
+            as HTMLInputElement?;
     final githubTagPatternInput =
         document.getElementById('-pkg-admin-automated-github-tagpattern')
-            as InputElement?;
+            as HTMLInputElement?;
     final githubIsPushEventsCheckbox =
         document.getElementById('-pkg-admin-automated-github-push-events')
-            as InputElement?;
+            as HTMLInputElement?;
     final githubIsWorkflowDispatchEventsCheckbox =
         document.getElementById(
               '-pkg-admin-automated-github-workflowdispatch-events',
             )
-            as InputElement?;
+            as HTMLInputElement?;
     final githubRequireEnvironmentCheckbox =
         document.getElementById('-pkg-admin-automated-github-requireenv')
-            as InputElement?;
+            as HTMLInputElement?;
     final githubEnvironmentInput =
         document.getElementById('-pkg-admin-automated-github-environment')
-            as InputElement?;
+            as HTMLInputElement?;
 
     final gcpEnabledCheckbox =
         document.getElementById('-pkg-admin-automated-gcp-enabled')
-            as InputElement?;
+            as HTMLInputElement?;
     final gcpServiceAccountEmailInput =
         document.getElementById('-pkg-admin-automated-gcp-serviceaccountemail')
-            as InputElement?;
+            as HTMLInputElement?;
 
     final updateButton = document.getElementById('-pkg-admin-automated-button');
     if (updateButton == null || githubRepositoryInput == null) {
@@ -196,19 +202,17 @@ class _PkgAdminWidget {
             pageData.pkgData!.package,
             PkgPublishingConfig(
               github: GitHubPublishingConfig(
-                isEnabled: githubEnabledCheckbox!.checked ?? false,
+                isEnabled: githubEnabledCheckbox!.checked,
                 repository: githubRepositoryInput.value,
                 tagPattern: githubTagPatternInput!.value,
-                isPushEventEnabled:
-                    githubIsPushEventsCheckbox!.checked ?? false,
+                isPushEventEnabled: githubIsPushEventsCheckbox!.checked,
                 isWorkflowDispatchEventEnabled:
-                    githubIsWorkflowDispatchEventsCheckbox!.checked ?? false,
-                requireEnvironment:
-                    githubRequireEnvironmentCheckbox!.checked ?? false,
+                    githubIsWorkflowDispatchEventsCheckbox!.checked,
+                requireEnvironment: githubRequireEnvironmentCheckbox!.checked,
                 environment: githubEnvironmentInput!.value,
               ),
               gcp: GcpPublishingConfig(
-                isEnabled: gcpEnabledCheckbox!.checked ?? false,
+                isEnabled: gcpEnabledCheckbox!.checked,
                 serviceAccountEmail: gcpServiceAccountEmailInput!.value,
               ),
               manual: ManualPublishingConfig(
@@ -234,7 +238,7 @@ class _PkgAdminWidget {
   }
 
   Future<bool> _doInviteUploader() async {
-    final email = _inviteUploaderInput!.value!.trim();
+    final email = _inviteUploaderInput!.value.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
       await modalMessage('Input validation', 'Please specify a valid e-mail.');
       return false;
@@ -272,7 +276,7 @@ class _PkgAdminWidget {
   }
 
   Future<void> _toggleDiscontinued() async {
-    final oldValue = _discontinuedCheckbox!.defaultChecked ?? false;
+    final oldValue = _discontinuedCheckbox!.defaultChecked;
     final newValue = await api_client.rpc<bool>(
       confirmQuestion:
           'Are you sure you want change the "discontinued" status of the package?',
@@ -310,7 +314,7 @@ class _PkgAdminWidget {
   }
 
   Future<void> _toggleUnlisted() async {
-    final oldValue = _unlistedCheckbox!.defaultChecked ?? false;
+    final oldValue = _unlistedCheckbox!.defaultChecked;
     final newValue = await api_client.rpc(
       confirmQuestion:
           'Are you sure you want change the "unlisted" status of the package?',
@@ -418,8 +422,7 @@ class _CreatePublisherWidget {
     _publisherIdInput = document.getElementById('-publisher-id');
     _createButton = document.getElementById('-admin-create-publisher');
     _createButton?.onClick.listen((_) {
-      final publisherId =
-          (_publisherIdInput as InputElement).value?.trim() ?? '';
+      final publisherId = (_publisherIdInput as HTMLInputElement).value.trim();
       _triggerCreate(publisherId);
     });
   }
@@ -454,10 +457,10 @@ class _CreatePublisherWidget {
 /// Active on the `/publishers/<publisherId>/admin` page.
 class _PublisherAdminWidget {
   Element? _updateButton;
-  TextAreaElement? _descriptionTextArea;
-  InputElement? _websiteUrlInput;
-  InputElement? _contactEmailInput;
-  InputElement? _inviteMemberInput;
+  HTMLTextAreaElement? _descriptionTextArea;
+  HTMLInputElement? _websiteUrlInput;
+  HTMLInputElement? _contactEmailInput;
+  HTMLInputElement? _inviteMemberInput;
   Element? _addMemberButton;
   Element? _addMemberContent;
   String? _originalContactEmail;
@@ -466,13 +469,16 @@ class _PublisherAdminWidget {
     if (!pageData.isPublisherPage) return;
     _updateButton = document.getElementById('-publisher-update-button');
     _descriptionTextArea =
-        document.getElementById('-publisher-description') as TextAreaElement?;
+        document.getElementById('-publisher-description')
+            as HTMLTextAreaElement?;
     _websiteUrlInput =
-        document.getElementById('-publisher-website-url') as InputElement?;
+        document.getElementById('-publisher-website-url') as HTMLInputElement?;
     _contactEmailInput =
-        document.getElementById('-publisher-contact-email') as InputElement?;
+        document.getElementById('-publisher-contact-email')
+            as HTMLInputElement?;
     _inviteMemberInput =
-        document.getElementById('-admin-invite-member-input') as InputElement?;
+        document.getElementById('-admin-invite-member-input')
+            as HTMLInputElement?;
     _addMemberButton = document.getElementById('-admin-add-member-button');
     _addMemberContent = document.getElementById('-admin-add-member-content');
     _originalContactEmail = _contactEmailInput?.value;
@@ -480,11 +486,17 @@ class _PublisherAdminWidget {
     _addMemberButton?.onClick.listen((_) => _addMember());
     if (_addMemberContent != null) {
       _addMemberContent!.remove();
-      _addMemberContent!.classes.remove('modal-content-hidden');
+      _addMemberContent!.classList.remove('modal-content-hidden');
     }
-    for (final btn in document.querySelectorAll('.-pub-remove-user-button')) {
+    for (final btn
+        in document
+            .querySelectorAll('.-pub-remove-user-button')
+            .toElementList<HTMLElement>()) {
       btn.onClick.listen(
-        (_) => _removeMember(btn.dataset['user-id']!, btn.dataset['email']!),
+        (_) => _removeMember(
+          btn.getAttribute('data-user-id')!,
+          btn.getAttribute('data-email')!,
+        ),
       );
     }
   }
@@ -526,7 +538,7 @@ class _PublisherAdminWidget {
   }
 
   Future<bool> _inviteMember() async {
-    final email = _inviteMemberInput!.value!.trim();
+    final email = _inviteMemberInput!.value.trim();
     if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
       await modalMessage('Input validation', 'Please specify a valid e-mail.');
       return false;
@@ -582,7 +594,7 @@ class _ConsentWidget {
 
   void _updateButtons(bool? granted) {
     final text = granted! ? 'Consent accepted.' : 'Consent rejected.';
-    _buttons!.replaceWith(document.createElement('p')..text = text);
+    _buttons!.replaceWith(HTMLParagraphElement()..textContent = text);
   }
 
   Future<void> _accept() async {

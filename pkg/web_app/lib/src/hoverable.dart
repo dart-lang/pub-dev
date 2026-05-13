@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:js_interop_unsafe';
 
 import 'package:_pub_shared/format/x_ago_format.dart';
 import 'package:web/web.dart';
@@ -67,9 +66,8 @@ void _setEventForPackageTitleCopyToClipboard() {
     if (icon == null) continue;
     final feedback = root.querySelector('.pkg-page-title-copy-feedback');
     if (feedback == null) continue;
-    if (!icon.dataset.has('copyContent')) continue;
-    final copyContent = icon.dataset['copyContent'];
-    if (copyContent.isEmpty) continue;
+    final copyContent = icon.getAttribute('data-copy-content');
+    if (copyContent == null || copyContent.isEmpty) continue;
     _setupCopyAndFeedbackButton(
       copy: icon,
       feedback: feedback,
@@ -127,11 +125,9 @@ void _setEventForPreCodeCopyToClipboard() {
       copy: button,
       feedback: feedback,
       textFn: () {
-        if (pre.dataset.has('textToCopy')) {
-          final text = pre.dataset['textToCopy'].trim();
-          if (text.isNotEmpty) {
-            return text;
-          }
+        final text = pre.getAttribute('data-text-to-copy')?.trim();
+        if (text != null && text.isNotEmpty) {
+          return text;
         }
         return pre.textContent?.trim() ?? '';
       },
