@@ -34,7 +34,7 @@ void _initGenericForm() {
       in document
           .querySelectorAll('[data-form-api-endpoint]')
           .toElementList<HTMLElement>()) {
-    final endpoint = form.dataset['form-api-endpoint'];
+    final endpoint = form.getAttribute('data-form-api-endpoint');
     final onSuccessGotoUrl = form.getAttribute('data-form-success-goto');
 
     for (final button
@@ -50,9 +50,12 @@ void _initGenericForm() {
             body[name] = field.value;
           }
         }
+        print(body);
+        print(endpoint);
+        print(onSuccessGotoUrl);
         await api_client.rpc(
           fn: () =>
-              api_client.sendJson(verb: 'POST', path: endpoint, body: body),
+              api_client.sendJson(verb: 'POST', path: endpoint!, body: body),
           successMessage: null,
           onSuccess: (r) async {
             final result = r ?? {};
@@ -145,7 +148,9 @@ class _PkgAdminWidget {
         in document
             .querySelectorAll('.-pub-remove-uploader-button')
             .toElementList<HTMLElement>()) {
-      btn.onClick.listen((_) => _removeUploader(btn.dataset['email']));
+      btn.onClick.listen(
+        (_) => _removeUploader(btn.getAttribute('data-email')!),
+      );
     }
   }
 
@@ -488,7 +493,10 @@ class _PublisherAdminWidget {
             .querySelectorAll('.-pub-remove-user-button')
             .toElementList<HTMLElement>()) {
       btn.onClick.listen(
-        (_) => _removeMember(btn.dataset['user-id'], btn.dataset['email']),
+        (_) => _removeMember(
+          btn.getAttribute('data-user-id')!,
+          btn.getAttribute('data-email')!,
+        ),
       );
     }
   }

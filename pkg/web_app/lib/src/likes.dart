@@ -27,7 +27,7 @@ void setupLikesList() {
       .querySelectorAll('.-pub-like-button')
       .toElementList<HTMLElement>()
       .forEach((likeButton) {
-        final package = likeButton.dataset['package'];
+        final package = likeButton.getAttribute('data-package')!;
 
         likeButton.onClick.listen((Event e) async {
           await api_client.loadLibrary();
@@ -37,11 +37,11 @@ void setupLikesList() {
                   as HTMLImageElement;
           if (text.textContent == 'LIKE') {
             text.textContent = 'UNLIKE';
-            img.src = likeButton.dataset['thumb_up_filled'];
+            img.src = likeButton.getAttribute('data-thumb_up_filled')!;
             _enqueue(() => api_client.client.likePackage(package));
           } else {
             text.textContent = 'LIKE';
-            img.src = likeButton.dataset['thumb_up_outlined'];
+            img.src = likeButton.getAttribute('data-thumb_up_outlined')!;
             _enqueue(() => api_client.client.unlikePackage(package));
           }
         });
@@ -80,7 +80,7 @@ void setupLikes() {
       final labeledLikes = document
           .querySelectorAll('.packages-score-like')
           .toElementList<HTMLElement>()
-          .where((e) => e.dataset['package'] == package)
+          .where((e) => e.getAttribute('data-package') == package)
           .toList();
       for (final labeledLike in labeledLikes) {
         labeledLike.querySelector('.packages-score-value-number')?.textContent =
