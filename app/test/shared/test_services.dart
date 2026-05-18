@@ -149,6 +149,7 @@ final class FakeAppengineEnv {
                 await fork(() async {
                   await fn();
                 });
+                await asyncQueue.ongoingProcessing;
                 await _postTestVerification(integrityProblem: integrityProblem);
               },
             );
