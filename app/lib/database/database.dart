@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -175,64 +174,6 @@ class PrimaryDatabase {
       throw StateError('Connection is not returning expected rows.');
     }
     return rs.single.single as String;
-  }
-
-  Future<List<String>> _listTables() async {
-    final rs = await _pg.execute(
-      'SELECT table_name FROM information_schema.tables '
-      "WHERE table_schema = 'public' AND table_type = 'BASE TABLE' "
-      'ORDER BY table_name;',
-    );
-    return rs.map((r) => r[0] as String).toList();
-  }
-
-  /// Exports all rows from the database as JSON lines.
-  ///
-  /// Each line is a JSON object with `table` and `row` keys.
-  Future<void> exportRows(StringSink sink) async {
-    final tables = await _listTables();
-    for (final table in tables) {
-      final rs = await _pg.execute(
-        'SELECT row_to_json(t)::text FROM "$table" t;',
-      );
-      for (final row in rs) {
-        sink.writeln(json.encode({'table': table, 'row': row[0] as String}));
-      }
-    }
-  }
-
-  /// Imports rows from JSON lines previously exported by [exportRows].
-  ///
-  /// Foreign key triggers are disabled during import so that row order
-  /// does not matter.
-  Future<void> importRows(Iterable<String> lines) async {
-    if (lines.isEmpty) return;
-    final tables = await _listTables();
-    for (final table in tables) {
-      await _pg.execute('ALTER TABLE "$table" DISABLE TRIGGER ALL;');
-    }
-    try {
-      for (final line in lines) {
-        if (line.isEmpty) continue;
-        final map = json.decode(line) as Map<String, dynamic>;
-        final table = map['table'] as String;
-        final row = json.decode(map['row'] as String) as Map<String, dynamic>;
-        final cols = row.keys.map((c) => '"$c"').join(', ');
-        final placeholders = List.generate(
-          row.length,
-          (i) => '\$${i + 1}',
-        ).join(', ');
-        await _pg.execute(
-          'INSERT INTO "$table" ($cols) VALUES ($placeholders) '
-          'ON CONFLICT DO NOTHING;',
-          parameters: row.values.toList(),
-        );
-      }
-    } finally {
-      for (final table in tables) {
-        await _pg.execute('ALTER TABLE "$table" ENABLE TRIGGER ALL;');
-      }
-    }
   }
 
   // TODO: remove this debug once we have deployed this feature.
