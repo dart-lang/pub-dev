@@ -6,13 +6,15 @@ import 'dart:io';
 
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/server/local_server_state.dart';
 import 'package:pub_dev/fake/tool/init_data_file.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/services.dart';
-import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../../shared/utils.dart';
 
@@ -58,7 +60,7 @@ void main() {
 
           // Verify Postgres database has task data.
           final task = await db2.withRetry(
-            (db) => db.tasksAccess.lookupOrNull('sample'),
+            (db) => db.tasks.byKey(runtimeVersion, 'sample').fetch(),
           );
           expect(task, isNotNull);
           expect(task!.package, 'sample');
