@@ -144,6 +144,8 @@ final class ApiExporter {
     final allPackageNames = <String>{};
     final packageQuery = _db.query<Package>();
     var errCount = 0;
+    Object? lastError;
+    StackTrace? lastStackTrace;
     await packageQuery.run().parallelForEach(
       _concurrency,
       (pkg) async {
@@ -159,6 +161,8 @@ final class ApiExporter {
       onError: (e, st) {
         _log.warning('synchronizePackage() failed', e, st);
         errCount++;
+        lastError = e;
+        lastStackTrace = st;
       },
     );
 
@@ -177,8 +181,9 @@ final class ApiExporter {
     await _api.garbageCollect(allPackageNames);
 
     if (errCount > 0) {
-      throw Exception(
-        '$errCount exceptions happened while calling synchronizeExportedApi',
+      return Future.error(
+        '$errCount exceptions happened while calling synchronizeExportedApi, last: $lastError',
+        lastStackTrace,
       );
     }
   }
