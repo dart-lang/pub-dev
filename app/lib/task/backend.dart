@@ -7,7 +7,6 @@ import 'package:_pub_shared/data/package_api.dart' as package_api;
 import 'package:_pub_shared/data/task_api.dart' as api;
 import 'package:_pub_shared/data/task_payload.dart';
 import 'package:_pub_shared/worker/limits.dart';
-import 'package:basics/basics.dart' show MapBasics;
 import 'package:chunked_stream/chunked_stream.dart' show MaximumSizeExceeded;
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
@@ -22,8 +21,6 @@ import 'package:logging/logging.dart' show Logger;
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
-import 'package:pub_dev/database/database.dart';
-import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -57,14 +54,12 @@ import 'package:pub_dev/task/models.dart'
         PackageStateInfo,
         PackageVersionStateInfo,
         PackageVersionStatus,
-        TaskStateExt,
         derivePendingAt,
         initialTimestamp,
         maxTaskExecutionTime;
 import 'package:pub_dev/task/scheduler.dart';
 import 'package:pub_semver/pub_semver.dart' show Version;
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 
 final _log = Logger('pub.task.backend');
 
@@ -93,8 +88,7 @@ void registerTaskBackend(TaskBackend backend) =>
 TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 
 class TaskBackend {
-  final DatastoreDB _datastore;
-  final PrimaryDatabase _database;
+  final DatastoreDB _db;
   final Bucket _bucket;
 
   /// If [stop] has been called to stop background processes.
@@ -113,7 +107,7 @@ class TaskBackend {
   DeleteInstancesState _deleteInstancesState = DeleteInstancesState.init();
   CreateInstancesState _createInstanesState = CreateInstancesState.init();
 
-  TaskBackend(this._datastore, this._database, this._bucket);
+  TaskBackend(this._db, this._bucket);
 
   /// Start continuous background processes for scheduling of tasks.
   ///
@@ -242,7 +236,7 @@ class TaskBackend {
     StackTrace? stackTrace;
 
     // For each package we should ensure state is tracked
-    await for (final p in _datastore.packages.listAllNames()) {
+    await for (final p in _db.packages.listAllNames()) {
       packageNames.add(p.name);
 
       scheduleMicrotask(() async {
@@ -261,34 +255,32 @@ class TaskBackend {
     }
 
     // Check that all [PackageState] entities have a matching [Package] entity.
-    await _database.withRetry((db) async {
-      await for (final state in db.tasksAccess.listAllForCurrentRuntime()) {
-        if (!packageNames.contains(state.package)) {
-          final r = await pool.request();
+    await for (final state in _db.tasks.listAllForCurrentRuntime()) {
+      if (!packageNames.contains(state.package)) {
+        final r = await pool.request();
 
-          scheduleMicrotask(() async {
-            try {
-              // Lookup the package to ensure it really doesn't exist
-              if (await _datastore.packages.exists(state.package)) {
-                // package may have been created recently
-                // no need to delete [PackageState]
-              } else {
-                // no package entry, deleting is needed
-                await db.tasksAccess.delete(state.package);
-              }
-            } catch (e, st) {
-              _log.severe('failed to untrack "${state.package}"', e, st);
-              if (error == null) {
-                error = e; // save [e] for later, if this is the first failure
-                stackTrace = st;
-              }
-            } finally {
-              r.release(); // always release to avoid deadlock
+        scheduleMicrotask(() async {
+          try {
+            // Lookup the package to ensure it really doesn't exist
+            if (await _db.packages.exists(state.package)) {
+              // package may have been created recently
+              // no need to delete [PackageState]
+            } else {
+              // no package entry, deleting is needed
+              await _db.tasks.delete(state.package);
             }
-          });
-        }
+          } catch (e, st) {
+            _log.severe('failed to untrack "${state.package}"', e, st);
+            if (error == null) {
+              error = e; // save [e] for later, if this is the first failure
+              stackTrace = st;
+            }
+          } finally {
+            r.release(); // always release to avoid deadlock
+          }
+        });
       }
-    });
+    }
 
     // Wait for all ongoing microtasks started above to complete.
     await pool.close();
@@ -306,7 +298,7 @@ class TaskBackend {
   Future<Duration> runOneScanPackagesUpdate(bool Function() isAbortedFn) async {
     final next = await runOneScanPackagesUpdatedCycle(
       _scanPackagesUpdatedState,
-      _datastore.packages.listUpdatedSince(_scanPackagesUpdatedState.since),
+      _db.packages.listUpdatedSince(_scanPackagesUpdatedState.since),
       isAbortedFn,
     );
     _scanPackagesUpdatedState = next.state;
@@ -337,7 +329,7 @@ class TaskBackend {
   Future<Duration> runOneInstanceCreation(bool Function() isAbortedFn) async {
     final result = await runOneCreateInstancesCycle(
       taskWorkerCloudCompute,
-      _database,
+      _db,
       state: _createInstanesState,
     );
     _createInstanesState = result.$1;
@@ -357,22 +349,6 @@ class TaskBackend {
     bool updateDependents = false,
     bool refreshVersionsCache = false,
   }) async {
-    await _database.transactWithRetry((db) async {
-      await _trackPackage(
-        db,
-        packageName,
-        updateDependents: updateDependents,
-        refreshVersionsCache: refreshVersionsCache,
-      );
-    });
-  }
-
-  Future<void> _trackPackage(
-    Database<PrimarySchema> db,
-    String packageName, {
-    bool updateDependents = false,
-    bool refreshVersionsCache = false,
-  }) async {
     var lastVersionCreated = initialTimestamp;
     String? latestVersion;
     late package_api.PackageData data;
@@ -383,14 +359,14 @@ class TaskBackend {
       );
     } on NotFoundException catch (_) {
       // If package is not visible, we should remove it!
-      await db.tasksAccess.deleteAllStates(packageName);
+      await _db.tasks.deleteAllStates(packageName);
       return;
     }
     final versions = _versionsToTrack(
       data,
     ).map((v) => v.canonicalizedVersion).toList();
-    final changed = await withRetryTransaction(_datastore, (tx) async {
-      final task = await db.tasksAccess.lookupOrNull(packageName);
+    final changed = await withRetryTransaction(_db, (tx) async {
+      final state = await tx.tasks.lookupOrNull(packageName);
       latestVersion = data.latest.version;
 
       // Update the timestamp for when the last version was published.
@@ -398,7 +374,7 @@ class TaskBackend {
       lastVersionCreated = data.versions.map((pv) => pv.published!).max;
 
       // Ensure we have PackageState entity
-      if (task == null) {
+      if (state == null) {
         // Create [PackageState] entity to track the package
         _log.info('Started state tracking for $packageName');
         final versionsMap = {
@@ -408,31 +384,31 @@ class TaskBackend {
               attempts: 0,
             ),
         };
-        await db.tasks
-            .insert(
-              runtime_version: runtimeVersion.asExpr,
-              package: packageName.asExpr,
-              state: TaskState(versions: versionsMap, abortedTokens: []).asExpr,
-              last_dependency_changed: initialTimestamp.asExpr,
-              finished: initialTimestamp.asExpr,
-              pending_at: derivePendingAt(
-                versions: versionsMap,
-                lastDependencyChanged: initialTimestamp,
-              ).asExpr,
-            )
-            .execute();
+        await tx.tasks.insert(
+          PackageState()
+            ..setId(runtimeVersion, packageName)
+            ..runtimeVersion = runtimeVersion
+            ..versions = versionsMap
+            ..dependencies = <String>[]
+            ..lastDependencyChanged = initialTimestamp
+            ..finished = initialTimestamp
+            ..pendingAt = derivePendingAt(
+              versions: versionsMap,
+              lastDependencyChanged: initialTimestamp,
+            ),
+        );
         return true; // no more work for this package, state is synced
       }
 
       // List versions that not tracked, but should be
       final untrackedVersions = [
-        ...versions.whereNot(task.state.versions.containsKey),
+        ...versions.whereNot(state.versions!.containsKey),
       ];
 
       // List of versions that are tracked, but don't exist. These have
       // probably been deselected by _versionsToTrack.
       final deselectedVersions = [
-        ...task.state.versions.keys.whereNot(versions.contains),
+        ...state.versions!.keys.whereNot(versions.contains),
       ];
 
       // There should never be an overlap between versions untracked and
@@ -449,48 +425,39 @@ class TaskBackend {
         return false;
       }
 
-      final oldState = task.state;
-      final newState = TaskState(
-        abortedTokens: [
-          ...oldState.versions.entries
-              .where((e) => deselectedVersions.contains(e.key))
-              .map((e) => e.value)
-              .where((vs) => vs.secretToken != null)
-              .map(
-                (vs) => AbortedTokenInfo(
-                  token: vs.secretToken!,
-                  expires: vs.scheduled.add(maxTaskExecutionTime),
-                ),
+      state.abortedTokens = [
+        ...state.versions!.entries
+            .where((e) => deselectedVersions.contains(e.key))
+            .map((e) => e.value)
+            .where((vs) => vs.secretToken != null)
+            .map(
+              (vs) => AbortedTokenInfo(
+                token: vs.secretToken!,
+                expires: vs.scheduled.add(maxTaskExecutionTime),
               ),
-          ...task.state.abortedTokens,
-        ].where((t) => t.isNotExpired).take(50).toList(),
-        versions: {
-          // Remove versions that have been deselected
-          ...oldState.versions.whereKey(
-            (key) => !deselectedVersions.contains(key),
-          ),
-          // Add versions we should be tracking
+            ),
+        ...?state.abortedTokens,
+      ].where((t) => t.isNotExpired).take(50).toList();
+
+      // Make changes!
+      state.versions!
+        // Remove versions that have been deselected
+        ..removeWhere((v, _) => deselectedVersions.contains(v))
+        // Add versions we should be tracking
+        ..addAll({
           for (final v in untrackedVersions)
             v: PackageVersionStateInfo(
               scheduled: initialTimestamp,
               attempts: 0,
             ),
-        },
+        });
+      state.pendingAt = derivePendingAt(
+        versions: state.versions!,
+        lastDependencyChanged: state.lastDependencyChanged!,
       );
 
       _log.info('Update state tracking for $packageName');
-      await db.tasks
-          .byKey(runtimeVersion, packageName)
-          .update(
-            (_, set) => set(
-              state: newState.asExpr,
-              pending_at: derivePendingAt(
-                versions: newState.versions,
-                lastDependencyChanged: task.last_dependency_changed,
-              ).asExpr,
-            ),
-          )
-          .execute();
+      await tx.tasks.update(state);
       return true;
     });
 
@@ -509,7 +476,7 @@ class TaskBackend {
 
   /// Garbage collect [PackageState] and results from old runtimeVersions.
   Future<void> garbageCollect() async {
-    await _database.withRetry((db) => db.tasksAccess.deleteBeforeGcRuntime());
+    await _db.tasks.deleteBeforeGcRuntime();
 
     // Limit to 50 concurrent deletion requests
     final pool = Pool(50);
@@ -561,55 +528,48 @@ class TaskBackend {
     String package,
     DateTime publishedAt,
   ) async {
-    await _database.withRetry((db) async {
-      // Max concurrency of 20!
-      final pool = Pool(20);
+    // Max concurrency of 20!
+    final pool = Pool(20);
 
-      // Query for [PackageState] that has [package] listed in [dependencies].
-      // Notice that datastore query logic for `dependencies = package` means
-      // entities where:
-      //  (A) `dependencies` is equal to `package` (won't happen here).
-      //  (B) `dependencies` is a list of strings containing `packages`,
-      //      this is the matching logic we leverage here.
-      //
-      // We only update [PackageState] to have [lastDependencyChanged], this
-      // ensures that there is no risk of indefinite propagation.
-      final stream = db.tasksAccess.listDependenciesOfPackage(
-        package,
-        publishedAt,
-      );
-      await for (final state in stream) {
-        final r = await pool.request();
+    // Query for [PackageState] that has [package] listed in [dependencies].
+    // Notice that datastore query logic for `dependencies = package` means
+    // entities where:
+    //  (A) `dependencies` is equal to `package` (won't happen here).
+    //  (B) `dependencies` is a list of strings containing `packages`,
+    //      this is the matching logic we leverage here.
+    //
+    // We only update [PackageState] to have [lastDependencyChanged], this
+    // ensures that there is no risk of indefinite propagation.
+    final stream = _db.tasks.listDependenciesOfPackage(package, publishedAt);
+    await for (final state in stream) {
+      final r = await pool.request();
 
-        // Schedule a microtask that attempts to update [lastDependencyChanged],
-        // and logs any failures before always releasing the [r].
-        scheduleMicrotask(() async {
-          try {
-            final changed = await _database.withRetry(
-              (db) => db.tasksAccess.updateDependencyChanged(
-                state.package,
-                publishedAt,
-              ),
-            );
-            if (changed) {
-              await _purgeCache(state.package);
-            }
-          } catch (e, st) {
-            _log.warning(
-              'failed to propagate lastDependencyChanged for ${state.package}',
-              e,
-              st,
-            );
-          } finally {
-            r.release(); // always release to avoid deadlocks
+      // Schedule a microtask that attempts to update [lastDependencyChanged],
+      // and logs any failures before always releasing the [r].
+      scheduleMicrotask(() async {
+        try {
+          final changed = await _db.tasks.updateDependencyChanged(
+            state.package,
+            publishedAt,
+          );
+          if (changed) {
+            await _purgeCache(state.package);
           }
-        });
-      }
-      // Close the pool -- no more resources requested.
-      await pool.close();
-      // Wait for all resources to be released.
-      await pool.done;
-    });
+        } catch (e, st) {
+          _log.warning(
+            'failed to propagate lastDependencyChanged for ${state.package}',
+            e,
+            st,
+          );
+        } finally {
+          r.release(); // always release to avoid deadlocks
+        }
+      });
+    }
+    // Close the pool -- no more resources requested.
+    await pool.close();
+    // Wait for all resources to be released.
+    await pool.done;
   }
 
   // Handles POST `/api/tasks/$package/$version/upload`
@@ -626,10 +586,8 @@ class TaskBackend {
       throw AuthenticationException.authenticationRequired();
     }
 
-    final task = await _database.withRetry(
-      (db) => db.tasksAccess.lookupOrNull(package),
-    );
-    if (task == null) {
+    final state = await _db.tasks.lookupOrNull(package);
+    if (state == null) {
       throw NotFoundException.resource(
         'PackageState($runtimeVersion/$package)',
       );
@@ -637,7 +595,7 @@ class TaskBackend {
     final versionState = _authorizeWorkerCallback(
       package,
       version,
-      task.state,
+      state,
       token,
     );
 
@@ -708,28 +666,9 @@ class TaskBackend {
       await _gzippedTaskResult(index, 'summary.json'),
     );
     final hasDocIndexHtml = (await index.fetch('doc/index.html')) != null;
-
-    final existingDependencyList = await _database.withRetry(
-      (db) => db.task_dependencies
-          .where(
-            (dep) =>
-                dep.runtime_version.equalsValue(runtimeVersion) &
-                dep.package.equalsValue(package),
-          )
-          .limit(1000)
-          .select((dep) => (dep.dependency,))
-          .fetch(),
-    );
-    final existingDependencySet = existingDependencyList.toSet();
-
-    // Note: we limit both the fetching of the existing entries and the insertion of the new entries.
-    final newDependencies = (summary?.allDependencies ?? const <String>[])
-        .where((d) => !existingDependencySet.contains(d))
-        .take(10);
-
-    await _database.transactWithRetry((db) async {
-      final task = await db.tasksAccess.lookupOrNull(package);
-      if (task == null) {
+    await withRetryTransaction(_db, (tx) async {
+      final state = await tx.tasks.lookupOrNull(package);
+      if (state == null) {
         throw NotFoundException.resource(
           'PackageState($runtimeVersion/$package)',
         );
@@ -737,79 +676,48 @@ class TaskBackend {
       final versionState = _authorizeWorkerCallback(
         package,
         version,
-        task.state,
+        state,
         token,
       );
 
       // Update dependencies, if pana summary has dependencies
-      for (final dependency in newDependencies) {
-        bool isValid = false;
-        try {
-          // TODO: These sanity checks should probably split out, into a general
-          //       extension method on [Summary]. The idea here is to protect
-          //       against invalid data from the sandbox. We should consider all
-          //       the output we get from the sandbox as suspect :D
-          InvalidInputException.checkPackageName(dependency);
-          isValid = true;
-        } on ResponseException {
-          _log.shout(
-            'pub_worker responses with summary.allDependencies containing "$dependency"'
-            ' in package "$package" version "$version"',
-          );
-        }
-
-        if (!isValid) continue;
-
-        // Note: since we limit the fetching of the existing dependencies, we may double-insert existing entries.
-        // TODO: implement "on conflict" support in typed_sql
-        try {
-          await db.task_dependencies
-              .insert(
-                runtime_version: runtimeVersion.asExpr,
-                package: package.asExpr,
-                dependency: dependency.asExpr,
-              )
-              .execute();
-        } on DatabaseException catch (e, st) {
-          _log.info('Insert in `task_dependencies` failed.', e, st);
+      if (summary != null && summary.allDependencies != null) {
+        final updatedDependencies = _updatedDependencies(
+          state.dependencies,
+          summary.allDependencies,
+          // for logging only
+          package: package,
+          version: version,
+        );
+        // Only update if new dependencies have been discovered.
+        // This avoids unnecessary churn on datastore when there is no changes.
+        if (state.dependencies != updatedDependencies &&
+            !{...?state.dependencies}.containsAll(updatedDependencies)) {
+          state.dependencies = updatedDependencies;
         }
       }
 
       zone = versionState.zone!;
       instance = versionState.instance!;
-
-      // Remove instanceName, zone, secretToken, and set attempts = 0
-      final newVersions = {
-        ...task.state.versions,
-        version: versionState.complete(
-          docs: hasDocIndexHtml,
-          pana: summary != null,
-        ),
-      };
+      state.versions![version] = versionState.complete(
+        docs: hasDocIndexHtml,
+        pana: summary != null,
+      );
 
       // Determine if something else was running on the instance
-      isInstanceDone = newVersions.values.none((v) => v.instance == instance);
+      isInstanceDone = state.versions!.values.none(
+        (v) => v.instance == instance,
+      );
 
       // Ensure that we update [state.pendingAt], otherwise it might be
       // re-scheduled way too soon.
-      final pendingAt = derivePendingAt(
-        versions: newVersions,
-        lastDependencyChanged: task.last_dependency_changed,
+      state.pendingAt = derivePendingAt(
+        versions: state.versions!,
+        lastDependencyChanged: state.lastDependencyChanged!,
       );
+      state.finished = clock.now().toUtc();
 
-      await db.tasks
-          .byKey(runtimeVersion, package)
-          .update(
-            (_, set) => set(
-              state: TaskState(
-                versions: newVersions,
-                abortedTokens: task.state.abortedTokens,
-              ).asExpr,
-              pending_at: pendingAt.asExpr,
-              finished: clock.now().toUtc().asExpr,
-            ),
-          )
-          .execute();
+      await tx.tasks.update(state);
     });
 
     // Clearing the state cache after the update.
@@ -1074,17 +982,15 @@ class TaskBackend {
   Future<PackageStateInfo> packageStatus(String package) async {
     final status = await cache.taskPackageStatus(package).get(() async {
       for (final rt in acceptedRuntimeVersions) {
-        final task = await _database.withRetry(
-          (db) => db.tasksAccess.lookupOrNull(package, runtimeVersion: rt),
-        );
+        final state = await _db.tasks.lookupOrNull(package, runtimeVersion: rt);
         // skip states where the entry was created, but no analysis has not finished yet
-        if (task == null || task.hasNeverFinished) {
+        if (state == null || state.hasNeverFinished) {
           continue;
         }
         return PackageStateInfo(
-          runtimeVersion: task.runtime_version,
+          runtimeVersion: state.runtimeVersion!,
           package: package,
-          versions: task.state.versions,
+          versions: state.versions ?? {},
         );
       }
       return PackageStateInfo.empty(package: package);
@@ -1109,20 +1015,18 @@ class TaskBackend {
     Future<void> Function(Payload payload) processPayload,
   ) async {
     await backfillTrackingState();
-    await _database.withRetry((db) async {
-      await for (final state in db.tasksAccess.listAllForCurrentRuntime()) {
-        final zone = taskWorkerCloudCompute.zones.first;
-        // ignore: invalid_use_of_visible_for_testing_member
-        final payload = await updatePackageStateWithPendingVersions(
-          _database,
-          state.package,
-          zone,
-          taskWorkerCloudCompute.generateInstanceName(),
-        );
-        if (payload == null) continue;
-        await processPayload(payload);
-      }
-    });
+    await for (final state in _db.tasks.listAllForCurrentRuntime()) {
+      final zone = taskWorkerCloudCompute.zones.first;
+      // ignore: invalid_use_of_visible_for_testing_member
+      final payload = await updatePackageStateWithPendingVersions(
+        _db,
+        state.package,
+        zone,
+        taskWorkerCloudCompute.generateInstanceName(),
+      );
+      if (payload == null) continue;
+      await processPayload(payload);
+    }
   }
 
   /// Trigger a one-off priority bump for [packageName].
@@ -1131,7 +1035,7 @@ class TaskBackend {
   Future<void> adminBumpPriority(String packageName) async {
     // Ensure we're up-to-date.
     await trackPackage(packageName);
-    await _database.withRetry((db) => db.tasksAccess.bumpPriority(packageName));
+    await _db.tasks.bumpPriority(packageName);
   }
 
   /// Returns the latest version of the [package] which has a finished analysis.
@@ -1140,14 +1044,12 @@ class TaskBackend {
   Future<String?> latestFinishedVersion(String package) async {
     final cachedValue = await cache.latestFinishedVersion(package).get(() async {
       for (final rt in acceptedRuntimeVersions) {
-        final task = await _database.withRetry(
-          (db) => db.tasksAccess.lookupOrNull(package, runtimeVersion: rt),
-        );
+        final state = await _db.tasks.lookupOrNull(package, runtimeVersion: rt);
         // skip states where the entry was created, but no analysis has not finished yet
-        if (task == null || task.hasNeverFinished) {
+        if (state == null || state.hasNeverFinished) {
           continue;
         }
-        final bestVersion = task.state.versions.entries
+        final bestVersion = state.versions?.entries
             .where((e) => e.value.finished)
             .map((e) => Version.parse(e.key))
             .latestVersion;
@@ -1185,29 +1087,31 @@ class TaskBackend {
       () async {
         final semanticVersion = Version.parse(version);
         for (final rt in acceptedRuntimeVersions) {
-          final task = await _database.withRetry(
-            (db) => db.tasksAccess.lookupOrNull(package, runtimeVersion: rt),
+          final state = await _db.tasks.lookupOrNull(
+            package,
+            runtimeVersion: rt,
           );
           // Skip states where the entry was created, but the analysis has not finished yet.
-          if (task == null || task.hasNeverFinished) {
+          if (state == null || state.hasNeverFinished) {
             continue;
           }
           List<Version>? candidates;
           if (preferDocsCompleted) {
-            final finishedDocCandidates = task.state.versions.entries
+            final finishedDocCandidates = state.versions?.entries
                 .where((e) => e.value.docs)
                 .map((e) => Version.parse(e.key))
                 .toList();
-            if (finishedDocCandidates.isNotEmpty) {
+            if (finishedDocCandidates != null &&
+                finishedDocCandidates.isNotEmpty) {
               candidates = finishedDocCandidates;
             }
           }
 
-          candidates ??= task.state.versions.entries
+          candidates ??= state.versions?.entries
               .where((e) => e.value.finished)
               .map((e) => Version.parse(e.key))
               .toList();
-          if (candidates.isEmpty) {
+          if (candidates == null || candidates.isEmpty) {
             continue;
           }
           if (candidates.contains(semanticVersion)) {
@@ -1228,14 +1132,6 @@ class TaskBackend {
       },
     );
     return (cachedValue == null || cachedValue.isEmpty) ? null : cachedValue;
-  }
-
-  Future<List<({String package, DateTime finished})>> listFinishedSince(
-    DateTime since,
-  ) async {
-    return await _database.withRetry(
-      (db) => db.tasksAccess.listFinishedSince(since).toList(),
-    );
   }
 }
 
@@ -1262,18 +1158,18 @@ String? _extractBearerToken(shelf.Request request) {
 PackageVersionStateInfo _authorizeWorkerCallback(
   String package,
   String version,
-  TaskState state,
+  PackageState state,
   String token,
 ) {
   // fixed-time verification of aborted tokens
   final isKnownAbortedToken = state.abortedTokens
-      .map((t) => t.isAuthorized(token))
+      ?.map((t) => t.isAuthorized(token))
       .fold<bool>(false, (a, b) => a || b);
-  if (isKnownAbortedToken) {
+  if (isKnownAbortedToken ?? false) {
     throw TaskAbortedException('$package/$version has been aborted.');
   }
 
-  final versionState = state.versions[version];
+  final versionState = state.versions![version];
   if (versionState == null) {
     throw TaskAbortedException('The provided token is invalid or expired.');
   }
@@ -1354,91 +1250,142 @@ List<Version> _versionsToTrack(package_api.PackageData data) {
   }.nonNulls.where(visibleVersions.contains).toList();
 }
 
-/// Low-level, narrowly typed data access methods for [Task] entity.
-extension TaskDatabaseExt on Database<PrimarySchema> {
-  _TaskDataAccess get tasksAccess => _TaskDataAccess(this);
+List<String> _updatedDependencies(
+  List<String>? dependencies,
+  List<String>? discoveredDependencies, {
+  required String package,
+  required String version,
+}) {
+  dependencies ??= [];
+  discoveredDependencies ??= [];
+
+  // If discoveredDependencies is in dependencies, then we're done.
+  if (dependencies.toSet().containsAll(discoveredDependencies)) {
+    return dependencies;
+  }
+
+  // Check if any of the dependencies returned have invalid names, if this is
+  // the case, then we should ignore the entire result!
+  final hasBadDependencies = discoveredDependencies.any((dep) {
+    try {
+      // TODO: These sanity checks should probably split out, into a general
+      //       extension method on [Summary]. The idea here is to protect
+      //       against invalid data from the sandbox. We should consider all
+      //       the output we get from the sandbox as suspect :D
+      InvalidInputException.checkPackageName(dep);
+      return false;
+    } on ResponseException {
+      _log.shout(
+        'pub_worker responses with summary.allDependencies containing "$dep"'
+        ' in package "$package" version "$version"',
+      );
+      return true;
+    }
+  });
+  if (hasBadDependencies) {
+    return dependencies; // no changes!
+  }
+
+  // An indexed property cannot be larger than 1500 bytes, strings counts as
+  // length + 1, so we prefer newly [discoveredDependencies] and then choose
+  // [dependencies], after which we just pick the dependencies we can get while
+  // staying below 1500 bytes.
+  var size = 0;
+  return discoveredDependencies
+      .followedBy(dependencies.whereNot(discoveredDependencies.contains))
+      .takeWhile((p) => (size += p.length + 1) < 1500)
+      .sorted();
+}
+
+/// Low-level, narrowly typed data access methods for [PackageState] entity.
+extension TaskDatastoreDBExt on DatastoreDB {
+  _TaskDataAccess get tasks => _TaskDataAccess(this);
+}
+
+extension TaskTransactionWrapperExt on TransactionWrapper {
+  _TaskTransactionDataAcccess get tasks => _TaskTransactionDataAcccess(this);
 }
 
 final class _TaskDataAccess {
-  late final Database<PrimarySchema> _db;
+  final DatastoreDB _db;
 
   _TaskDataAccess(this._db);
 
-  Future<Task?> lookupOrNull(String package, {String? runtimeVersion}) async {
-    return await _db.tasks
-        .byKey(runtimeVersion ?? shared_versions.runtimeVersion, package)
-        .fetch();
+  Future<PackageState?> lookupOrNull(
+    String package, {
+    String? runtimeVersion,
+  }) async {
+    final key = PackageState.createKey(
+      _db.emptyKey,
+      runtimeVersion ?? shared_versions.runtimeVersion,
+      package,
+    );
+    return await _db.lookupOrNull<PackageState>(key);
   }
 
   Future<void> delete(String package) async {
-    await _db.tasks.byKey(runtimeVersion, package).delete().execute();
+    final key = PackageState.createKey(_db.emptyKey, runtimeVersion, package);
+    await _db.commit(deletes: [key]);
   }
 
-  // GC the old [Task] entities
+  // GC the old [PackageState] entities
   Future<void> deleteBeforeGcRuntime() async {
-    await _db.tasks
-        .where((task) => task.runtime_version < gcBeforeRuntimeVersion.asExpr)
-        .delete()
-        .execute();
+    await _db.deleteWithQuery(
+      _db.query<PackageState>()
+        ..filter('runtimeVersion <', gcBeforeRuntimeVersion),
+    );
   }
 
-  Stream<({String package})> listAllForCurrentRuntime() {
-    return _db.tasks
-        .where((task) => task.runtime_version.equalsValue(runtimeVersion))
-        .select((task) => (task.package,))
-        .stream()
-        .map((row) => (package: row));
+  Stream<({String package})> listAllForCurrentRuntime() async* {
+    final query = _db.query<PackageState>()
+      ..filter('runtimeVersion =', runtimeVersion);
+    await for (final ps in query.run()) {
+      yield (package: ps.package);
+    }
   }
 
   Stream<({String package, DateTime finished})> listFinishedSince(
     DateTime since,
-  ) {
-    return _db.tasks
-        .where((task) => task.finished >= since.asExpr)
-        .orderBy((task) => [(task.finished, Order.descending)])
-        .select((task) => (task.package, task.finished))
-        .stream()
-        .map((e) => (package: e.$1, finished: e.$2));
+  ) async* {
+    final query = _db.query<PackageState>()
+      ..filter('finished >=', since)
+      ..order('-finished');
+    await for (final s in query.run()) {
+      yield (package: s.package, finished: s.finished);
+    }
   }
 
   Stream<({String package})> listDependenciesOfPackage(
     String package,
     DateTime publishedAt,
   ) async* {
-    final query = _db.task_dependencies
-        .join(_db.tasks)
-        .usingTask()
-        .where(
-          (dep, task) =>
-              dep.runtime_version.equalsValue(runtimeVersion) &
-              dep.dependency.equalsValue(package) &
-              task.last_dependency_changed.isBeforeValue(publishedAt),
-        )
-        .select((dep, _) => (dep.package,));
-    await for (final row in query.stream()) {
-      yield (package: row);
+    final query = _db.query<PackageState>()
+      ..filter('dependencies =', package)
+      ..filter('lastDependencyChanged <', publishedAt);
+    await for (final ps in query.run()) {
+      yield (package: ps.package);
     }
   }
 
   Stream<({String package})> selectSomePending(int limit) async* {
-    final query = _db.tasks
-        .where(
-          (task) =>
-              task.runtime_version.equalsValue(runtimeVersion) &
-              task.pending_at.isBeforeValue(clock.now()),
-        )
-        .orderBy((task) => [(task.pending_at, Order.ascending)])
-        .select((task) => (task.package,))
-        .limit(limit);
-    await for (final row in query.stream()) {
-      yield (package: row);
+    final query = _db.query<PackageState>()
+      ..filter('runtimeVersion =', runtimeVersion)
+      ..filter('pendingAt <=', clock.now())
+      ..order('pendingAt')
+      ..limit(limit);
+    await for (final ps in query.run()) {
+      yield (package: ps.package);
     }
   }
 
   Future<void> deleteAllStates(String name) async {
-    await _db.transact(() async {
+    await withRetryTransaction(_db, (tx) async {
+      // also delete earlier runtime versions
       for (final rv in acceptedRuntimeVersions) {
-        await _db.tasks.delete(rv, name).execute();
+        final s = await lookupOrNull(name, runtimeVersion: rv);
+        if (s != null) {
+          tx.delete(s.key);
+        }
       }
     });
   }
@@ -1448,45 +1395,38 @@ final class _TaskDataAccess {
     String package,
     DateTime publishedAt,
   ) async {
-    return await _db.transact(() async {
+    return await withRetryTransaction(_db, (tx) async {
       // Reload [state] within a transaction to avoid overwriting changes
       // made by others trying to update state for another package.
-
-      final s = await _db.tasks
-          .byKey(runtimeVersion, package)
-          .where((t) => t.last_dependency_changed.isBeforeValue(publishedAt))
-          .fetch();
+      final s = await tx.tasks.lookupOrNull(package);
       if (s == null) {
         // No entry has been created yet, probably because of a new deployment rolling out.
         // We can ignore it for now.
         return false;
       }
-
-      await _db.tasks
-          .byKey(runtimeVersion, package)
-          .update(
-            (_, set) => set(
-              last_dependency_changed: publishedAt.asExpr,
-              pending_at: derivePendingAt(
-                versions: s.state.versions,
-                lastDependencyChanged: publishedAt,
-              ).asExpr,
+      if (s.lastDependencyChanged!.isBefore(publishedAt)) {
+        tx.insert(
+          s
+            ..lastDependencyChanged = publishedAt
+            ..pendingAt = derivePendingAt(
+              versions: s.versions!,
+              lastDependencyChanged: publishedAt,
             ),
-          )
-          .execute();
-      return true;
+        );
+        return true;
+      }
+      return false;
     });
   }
 
   Future<void> bumpPriority(String packageName) async {
-    await _db.tasks
-        .where(
-          (task) =>
-              task.runtime_version.equalsValue(runtimeVersion) &
-              task.package.equalsValue(packageName),
-        )
-        .update((_, set) => set(pending_at: initialTimestamp.asExpr))
-        .execute();
+    await withRetryTransaction(_db, (tx) async {
+      final state = await tx.tasks.lookupOrNull(packageName);
+      if (state != null) {
+        state.pendingAt = initialTimestamp;
+        tx.insert(state);
+      }
+    });
   }
 
   /// Restores the previous versions map state when starting the tasks on [instanceName] failed.
@@ -1494,34 +1434,48 @@ final class _TaskDataAccess {
     String packageName,
     String instanceName,
   ) async {
-    await _db.transact(() async {
-      final s = await _db.tasks.byKey(runtimeVersion, packageName).fetch();
+    await withRetryTransaction(_db, (tx) async {
+      final s = await tx.tasks.lookupOrNull(packageName);
       if (s == null) {
         return; // Presumably, the package was deleted.
       }
 
-      final versions = s.state.versions;
-      versions.addEntries(
-        versions.entries
+      s.versions!.addEntries(
+        s.versions!.entries
             .where((e) => e.value.instance == instanceName)
             .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
       );
-
-      await _db.tasks
-          .byKey(runtimeVersion, packageName)
-          .update(
-            (_, set) => set(
-              state: TaskState(
-                versions: versions,
-                abortedTokens: s.state.abortedTokens,
-              ).asExpr,
-              pending_at: derivePendingAt(
-                versions: versions,
-                lastDependencyChanged: s.last_dependency_changed,
-              ).asExpr,
-            ),
-          )
-          .execute();
+      s.pendingAt = derivePendingAt(
+        versions: s.versions!,
+        lastDependencyChanged: s.lastDependencyChanged!,
+      );
+      await tx.tasks.update(s);
     });
+  }
+}
+
+class _TaskTransactionDataAcccess {
+  final TransactionWrapper _tx;
+
+  _TaskTransactionDataAcccess(this._tx);
+
+  Future<PackageState?> lookupOrNull(
+    String name, {
+    String? runtimeVersion,
+  }) async {
+    final key = PackageState.createKey(
+      _tx.emptyKey,
+      runtimeVersion ?? shared_versions.runtimeVersion,
+      name,
+    );
+    return await _tx.lookupOrNull<PackageState>(key);
+  }
+
+  Future<void> insert(PackageState state) async {
+    _tx.insert(state);
+  }
+
+  Future<void> update(PackageState state) async {
+    _tx.insert(state);
   }
 }
