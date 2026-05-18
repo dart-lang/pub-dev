@@ -81,16 +81,16 @@ class FakeServerCommand extends Command {
     setupDebugEnvBasedLogging();
     await updateLocalBuiltFilesIfNeeded();
 
-    final cloudCompute = FakeCloudCompute();
-    final database = await PrimaryDatabase.createAndInit();
-
-    final state = LocalServerState(database: database);
+    final state = LocalServerState();
     if (dataFile != null) {
       await state.loadIfExists(dataFile);
     }
 
     final storage = state.storage;
     final datastore = state.datastore;
+
+    final cloudCompute = FakeCloudCompute();
+    final database = await PrimaryDatabase.createAndInit();
 
     final storageServer = FakeStorageServer(storage);
     final pubServer = FakePubServer(
@@ -179,7 +179,6 @@ class FakeServerCommand extends Command {
     ], eagerError: true);
 
     if (!readOnly && dataFile != null) {
-      print('Storing state in $dataFile...');
       await state.save(dataFile);
     }
     await database.close();

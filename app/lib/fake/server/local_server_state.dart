@@ -7,15 +7,11 @@ import 'dart:io';
 
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
-import 'package:pub_dev/database/database.dart';
 
 /// Owns server state, optionally loading / saving state to/from the specified file.
 class LocalServerState {
   final datastore = MemDatastore();
   final storage = MemStorage();
-  final PrimaryDatabase database;
-
-  LocalServerState({required this.database});
 
   /// Loads state from [path].
   ///
@@ -27,7 +23,6 @@ class LocalServerState {
           .openRead()
           .transform(utf8.decoder)
           .transform(LineSplitter());
-      final databaseLines = <String>[];
       var marker = 'start';
       await for (final line in lines) {
         if (line.startsWith('{"marker":')) {
@@ -42,20 +37,15 @@ class LocalServerState {
           case 'storage':
             storage.readFrom([line]);
             continue;
-          case 'database':
-            databaseLines.add(line);
-            continue;
         }
         throw ArgumentError('Marker not state failed: $marker - $line');
-      }
-      if (databaseLines.isNotEmpty) {
-        await database.importRows(databaseLines);
       }
     }
   }
 
   /// Saves state to [path].
   Future<void> save(String path) async {
+    print('Storing state in $path...');
     final file = File(path);
     await file.parent.create(recursive: true);
     final sink = file.openWrite();
@@ -69,9 +59,6 @@ class LocalServerState {
 
     writeMarker('storage');
     storage.writeTo(sink);
-
-    writeMarker('database');
-    await database.exportRows(sink);
 
     writeMarker('end');
     await sink.close();
