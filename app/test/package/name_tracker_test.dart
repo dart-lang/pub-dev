@@ -5,7 +5,6 @@
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
-import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
@@ -169,7 +168,6 @@ void main() {
           siteAdminToken,
           () => adminBackend.removePackage('aaa_bbb'),
         );
-        await asyncQueue.ongoingProcessing;
         await tracker.reloadFromDatastore();
 
         // same package name is rejected
