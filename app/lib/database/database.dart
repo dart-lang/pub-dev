@@ -299,6 +299,7 @@ Future<void> _dropCustomDatabase(String url, String dbName) async {
 }
 
 final _retryKey = #dbRetryKey;
+final _txKey = #dbTxKey;
 
 extension PrimaryDatabaseExt on PrimaryDatabase {
   /// Runs [fn] in a retry block (without wrapping it in a transaction).
@@ -322,6 +323,9 @@ extension PrimaryDatabaseExt on PrimaryDatabase {
   /// The retry block is tracked with a [Zone], and if multiple retries are embeded
   /// (with or without transaction), only the outermost block will be retried.
   ///
+  /// The transaction is tracking with a [Zone] (separate from the retry), and if multiple
+  /// transactions are embedded, only the outermost transaction will be applied.
+  ///
   /// The call is retried if the generic [DatabaseException] is throw, which may be a
   /// connection issue, deadlock, timeout, constraint or any query-related problem.
   ///
@@ -330,7 +334,17 @@ extension PrimaryDatabaseExt on PrimaryDatabase {
   Future<K> transactWithRetry<K>(
     Future<K> Function(Database<PrimarySchema> db) fn,
   ) async {
-    return await _withRetryZone((db) => db.transact(() => fn(db)));
+    return await _withRetryZone((db) async {
+      if (Zone.current[_txKey] == null) {
+        return await Zone.current.fork(zoneValues: {_txKey: true}).run(
+          () async {
+            return await db.transact(() => fn(db));
+          },
+        );
+      } else {
+        return await fn(_db);
+      }
+    });
   }
 
   Future<K> _withRetryZone<K>(
