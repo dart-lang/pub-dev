@@ -69,6 +69,10 @@ class SecurityAdvisoryBackend {
       skipCache: skipCache,
     );
 
+    if (advisories.isEmpty) {
+      return ListAdvisoriesResponse(advisories: [], advisoriesUpdated: null);
+    }
+
     final p = await packageBackend.lookupPackage(package);
     final latestAdvisory =
         p?.latestAdvisory ?? DateTime.fromMillisecondsSinceEpoch(0);

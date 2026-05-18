@@ -529,7 +529,7 @@ void main() {
 
       final neonRes = await client.getPackageAdvisories('neon');
       expect(neonRes.advisories, isEmpty);
-      expect(neonRes.advisoriesUpdated, DateTime.fromMillisecondsSinceEpoch(0));
+      expect(neonRes.advisoriesUpdated, isNull);
     },
   );
 
