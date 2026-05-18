@@ -69,10 +69,6 @@ class SecurityAdvisoryBackend {
       skipCache: skipCache,
     );
 
-    if (advisories.isEmpty) {
-      return ListAdvisoriesResponse(advisories: [], advisoriesUpdated: null);
-    }
-
     final p = await packageBackend.lookupPackage(package);
     final latestAdvisory =
         p?.latestAdvisory ?? DateTime.fromMillisecondsSinceEpoch(0);
@@ -166,6 +162,7 @@ class SecurityAdvisoryBackend {
         final packages = await _lookupAffectedPackages(newAdvisory, tx);
         for (final pkg in packages) {
           pkg.latestAdvisory = syncTime;
+          pkg.hasAdvisories = true;
           pkg.updated = clock.now().toUtc();
           updatedPackages.add(pkg.name!);
         }
@@ -231,6 +228,10 @@ class SecurityAdvisoryBackend {
         final packages = await _lookupAffectedPackages(advisory, tx);
         for (final pkg in packages) {
           pkg.latestAdvisory = syncTime;
+          final otherAdvisoriesQuery = tx.query<SecurityAdvisory>(tx.emptyKey)
+            ..filter('affectedPackages =', pkg.name!);
+          final list = await otherAdvisoriesQuery.run().toList();
+          pkg.hasAdvisories = list.any((a) => a.id != advisory.id);
           pkg.updated = clock.now().toUtc();
           updatedPackages.add(pkg.name!);
         }

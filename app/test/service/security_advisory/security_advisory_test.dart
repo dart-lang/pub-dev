@@ -12,6 +12,8 @@ import 'package:path/path.dart' as path;
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
+import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 
@@ -504,7 +506,9 @@ void main() {
       neonPkg = await packageBackend.lookupPackage('neon');
 
       expect(oxygenPkg!.latestAdvisory, syncTime);
+      expect(oxygenPkg.hasAdvisories, isTrue);
       expect(neonPkg!.latestAdvisory, isNull);
+      expect(neonPkg.hasAdvisories, isFalse);
 
       final client = await createFakeAuthPubApiClient(
         email: adminAtPubDevEmail,
@@ -522,6 +526,35 @@ void main() {
       );
       expect(neonPkgInfo.advisoriesUpdated, isNull);
 
+      // When latestAdvisory is a valid timestamp but hasAdvisories is false
+      neonPkg.latestAdvisory = syncTime;
+      neonPkg.hasAdvisories = false;
+      await dbService.commit(inserts: [neonPkg]);
+      await cache.packageDataGz('neon').purge();
+
+      final neonPkgInfo2 = PackageData.fromJson(
+        json.decode(utf8.decode(await client.listVersions('neon')))
+            as Map<String, dynamic>,
+      );
+      expect(neonPkgInfo2.advisoriesUpdated, isNull);
+
+      // When hasAdvisories is true
+      neonPkg.hasAdvisories = true;
+      await dbService.commit(inserts: [neonPkg]);
+      await cache.packageDataGz('neon').purge();
+
+      final neonPkgInfo3 = PackageData.fromJson(
+        json.decode(utf8.decode(await client.listVersions('neon')))
+            as Map<String, dynamic>,
+      );
+      expect(neonPkgInfo3.advisoriesUpdated, syncTime);
+
+      // Reset neonPkg back to default
+      neonPkg.latestAdvisory = null;
+      neonPkg.hasAdvisories = false;
+      await dbService.commit(inserts: [neonPkg]);
+      await cache.packageDataGz('neon').purge();
+
       final oxygenRes = await client.getPackageAdvisories('oxygen');
       expect(oxygenRes.advisories.length, 1);
       expect(oxygenRes.advisories.first.id, '123');
@@ -529,7 +562,7 @@ void main() {
 
       final neonRes = await client.getPackageAdvisories('neon');
       expect(neonRes.advisories, isEmpty);
-      expect(neonRes.advisoriesUpdated, isNull);
+      expect(neonRes.advisoriesUpdated, DateTime.fromMillisecondsSinceEpoch(0));
     },
   );
 

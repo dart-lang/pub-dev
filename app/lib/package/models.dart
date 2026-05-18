@@ -169,6 +169,10 @@ class Package extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime? latestAdvisory;
 
+  /// Whether the package is affected by any active security advisories.
+  @db.BoolProperty(required: true)
+  bool hasAdvisories = false;
+
   Package();
 
   /// Creates a new [Package] and populates all of its fields from [version].
