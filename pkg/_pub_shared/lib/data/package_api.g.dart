@@ -134,7 +134,9 @@ PackageData _$PackageDataFromJson(Map<String, dynamic> json) => PackageData(
   versions: (json['versions'] as List<dynamic>)
       .map((e) => VersionInfo.fromJson(e as Map<String, dynamic>))
       .toList(),
-  advisoriesUpdated: DateTime.parse(json['advisoriesUpdated'] as String),
+  advisoriesUpdated: json['advisoriesUpdated'] == null
+      ? null
+      : DateTime.parse(json['advisoriesUpdated'] as String),
 );
 
 Map<String, dynamic> _$PackageDataToJson(PackageData instance) =>
@@ -144,7 +146,7 @@ Map<String, dynamic> _$PackageDataToJson(PackageData instance) =>
       'replacedBy': ?instance.replacedBy,
       'latest': instance.latest,
       'versions': instance.versions,
-      'advisoriesUpdated': instance.advisoriesUpdated.toIso8601String(),
+      'advisoriesUpdated': ?instance.advisoriesUpdated?.toIso8601String(),
     };
 
 VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) => VersionInfo(
