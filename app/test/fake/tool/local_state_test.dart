@@ -5,10 +5,12 @@
 import 'dart:io';
 
 import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/server/local_server_state.dart';
-import 'package:pub_dev/task/backend.dart';
+import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../../shared/test_services.dart';
 
@@ -24,7 +26,7 @@ void main() {
       fn: () async {
         // Read current task from the database.
         final taskBefore = await primaryDatabase!.withRetry(
-          (db) => db.tasksAccess.lookupOrNull('sample'),
+          (db) => db.tasks.byKey(runtimeVersion, 'sample').fetch(),
         );
         expect(taskBefore, isNotNull);
 
@@ -45,7 +47,7 @@ void main() {
           final db2 = await PrimaryDatabase.createAndInit();
           try {
             final noTask = await db2.withRetry(
-              (db) => db.tasksAccess.lookupOrNull('sample'),
+              (db) => db.tasks.byKey(runtimeVersion, 'sample').fetch(),
             );
             expect(noTask, isNull);
 
@@ -53,7 +55,7 @@ void main() {
             await state2.loadIfExists(dataFile);
 
             final taskAfter = await db2.withRetry(
-              (db) => db.tasksAccess.lookupOrNull('sample'),
+              (db) => db.tasks.byKey(runtimeVersion, 'sample').fetch(),
             );
 
             // Verify the task was restored.
