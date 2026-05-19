@@ -40,7 +40,9 @@ class CachedValue<T> {
   final Duration _maxAge;
   final Duration _interval;
   final Duration _timeout;
-  DateTime _lastUpdated = clock.now();
+  final DateTime _createdAt;
+  DateTime? _lastUpdated;
+  DateTime? _lastAttempted;
   T? _value;
   Completer? _ongoingCompleter;
   bool _closing = false;
@@ -56,14 +58,16 @@ class CachedValue<T> {
        _maxAge = maxAge,
        _interval = interval,
        _updateFn = updateFn,
-       _timeout = timeout ?? interval ~/ 2;
+       _timeout = timeout ?? interval ~/ 2,
+       _createdAt = clock.now();
 
-  DateTime get lastUpdated => _lastUpdated;
-  Duration get age => clock.now().difference(_lastUpdated);
+  Duration? _ageSinceLastUpdated() =>
+      _lastUpdated == null ? null : clock.now().difference(_lastUpdated!);
 
   bool get isAvailable {
     _scheduleIfNeeded();
-    return _value != null && age <= _maxAge;
+    final age = _ageSinceLastUpdated();
+    return _value != null && age != null && age <= _maxAge;
   }
 
   /// The cached value, may be null.
@@ -73,7 +77,17 @@ class CachedValue<T> {
   }
 
   void _scheduleIfNeeded() {
-    if (!_scheduled && !_closing && (_value == null || age > _interval)) {
+    if (_scheduled || _closing) return;
+    final sinceLastAttempt = _lastAttempted == null
+        ? null
+        : clock.now().difference(_lastAttempted!);
+    final age = _ageSinceLastUpdated();
+    final shouldUpdate =
+        sinceLastAttempt == null ||
+        (_value != null && (age == null || age > _interval)) ||
+        (_value == null && sinceLastAttempt > _interval);
+
+    if (shouldUpdate) {
       _scheduled = true;
       asyncQueue.addAsyncFn(() async {
         try {
@@ -107,12 +121,16 @@ class CachedValue<T> {
     if (_closing) return;
     _ongoingCompleter = Completer();
     try {
+      _lastAttempted = clock.now();
       _value = await _updateFn().timeout(_timeout);
       if (_value != null) {
         _lastUpdated = clock.now();
       }
     } catch (e, st) {
-      if (age <= _maxAge) {
+      final failureDuration = _lastUpdated != null
+          ? clock.now().difference(_lastUpdated!)
+          : clock.now().difference(_createdAt);
+      if (failureDuration <= _maxAge) {
         _logger.pubNoticeWarning(
           'cached_value',
           'Updating cached `$_name` value failed.',
@@ -136,8 +154,6 @@ class CachedValue<T> {
 
   Future<void> close() async {
     _closing = true;
-    if (_ongoingCompleter != null) {
-      await _ongoingCompleter!.future;
-    }
+    await _ongoingCompleter?.future;
   }
 }
