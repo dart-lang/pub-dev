@@ -22,7 +22,7 @@ AnnouncementBackend get announcementBackend =>
 class AnnouncementBackend {
   final _announcementHtml = CachedValue<String>(
     name: 'announcement-html',
-    maxAge: Duration(hours: 12),
+    maxAge: Duration(hours: 8),
     interval: Duration(minutes: 60),
     updateFn: () async {
       final value = await secretBackend.lookup(
