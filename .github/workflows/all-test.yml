@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Cache PUB_CACHE
-      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
       with:
         path: ~/.pub-cache
         key: ${{runner.os}}-pub-cache
@@ -61,7 +61,7 @@ jobs:
           - 5432:5432
     steps:
     - name: Cache PUB_CACHE
-      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
       with:
         path: ~/.pub-cache
         key: ${{runner.os}}-pub-cache
@@ -118,7 +118,7 @@ jobs:
     - name: Enable unprivileged user namespaces
       run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
     - name: Cache PUB_CACHE
-      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
       with:
         path: ~/.pub-cache
         key: ${{runner.os}}-pub-cache
