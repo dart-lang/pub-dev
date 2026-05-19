@@ -18,8 +18,6 @@ import 'package:test/test.dart';
 import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
-final _epoch = DateTime.fromMillisecondsSinceEpoch(0);
-
 void main() {
   test('Parse advisory', () async {
     try {
@@ -522,7 +520,7 @@ void main() {
         json.decode(utf8.decode(await client.listVersions('neon')))
             as Map<String, dynamic>,
       );
-      expect(neonPkgInfo.advisoriesUpdated, _epoch);
+      expect(neonPkgInfo.advisoriesUpdated, isNull);
 
       final oxygenRes = await client.getPackageAdvisories('oxygen');
       expect(oxygenRes.advisories.length, 1);

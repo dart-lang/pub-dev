@@ -26,7 +26,6 @@ import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
 final _log = Logger('api_export.test');
-final _epochAsString = DateTime.fromMillisecondsSinceEpoch(0).toIso8601String();
 
 final _testProfile = TestProfile(
   defaultUser: userAtPubDevEmail,
@@ -126,7 +125,6 @@ Future<void> _testExportedApiSynchronization(
       'name': 'foo',
       'latest': isNotEmpty,
       'versions': hasLength(1),
-      'advisoriesUpdated': _epochAsString,
     });
     expect(
       await bucket.readGzippedJson('latest/api/package-name-completion-data'),
@@ -164,7 +162,6 @@ Future<void> _testExportedApiSynchronization(
       'name': 'foo',
       'latest': isNotEmpty,
       'versions': hasLength(1),
-      'advisoriesUpdated': _epochAsString,
     });
     expect(
       await bucket.readString('$runtimeVersion/api/packages/foo/feed.atom'),
@@ -242,7 +239,6 @@ Future<void> _testExportedApiSynchronization(
       'name': 'bar',
       'latest': isNotEmpty,
       'versions': hasLength(1),
-      'advisoriesUpdated': _epochAsString,
     });
     expect(
       await bucket.readBytes('latest/api/archives/bar-2.0.0.tar.gz'),
@@ -281,7 +277,6 @@ Future<void> _testExportedApiSynchronization(
       'name': 'bar',
       'latest': isNotEmpty,
       'versions': hasLength(2),
-      'advisoriesUpdated': _epochAsString,
     });
     // Check that versions are there
     expect(
@@ -316,7 +311,6 @@ Future<void> _testExportedApiSynchronization(
       'latest': isNotEmpty,
       'versions': hasLength(2),
       'isDiscontinued': true,
-      'advisoriesUpdated': _epochAsString,
     });
   }
 
@@ -333,7 +327,6 @@ Future<void> _testExportedApiSynchronization(
       'name': 'bar',
       'latest': isNotEmpty,
       'versions': hasLength(2),
-      'advisoriesUpdated': _epochAsString,
     });
   }
 
@@ -354,7 +347,6 @@ Future<void> _testExportedApiSynchronization(
       'name': 'bar',
       'latest': isNotEmpty,
       'versions': contains(containsPair('retracted', true)),
-      'advisoriesUpdated': _epochAsString,
     });
   }
 
@@ -389,7 +381,6 @@ Future<void> _testExportedApiSynchronization(
       'name': 'bar',
       'latest': isNotEmpty,
       'versions': hasLength(1),
-      'advisoriesUpdated': _epochAsString,
     });
     expect(
       await bucket.readBytes('latest/api/archives/bar-2.0.0.tar.gz'),
@@ -428,7 +419,6 @@ Future<void> _testExportedApiSynchronization(
       'name': 'bar',
       'latest': isNotEmpty,
       'versions': hasLength(2),
-      'advisoriesUpdated': _epochAsString,
     });
     expect(
       await bucket.readBytes('latest/api/archives/bar-2.0.0.tar.gz'),
@@ -501,7 +491,6 @@ Future<void> _testExportedApiSynchronization(
       'name': 'bar',
       'latest': isNotEmpty,
       'versions': hasLength(2),
-      'advisoriesUpdated': _epochAsString,
     });
     expect(
       await bucket.readGzippedJson('latest/api/packages/bar/options'),
