@@ -34,6 +34,7 @@ class TokenIndex {
 
   /// maps tokens to arrays of document indices
   final Map<String, List<int>> _tokenIndices;
+
   /// maps tokens to arrays of quantized weights
   final Map<String, Uint8List> _tokenWeights;
 
