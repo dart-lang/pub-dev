@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 import 'package:pub_dev/search/heap.dart';
@@ -27,49 +28,61 @@ class TokenMatch {
   }
 }
 
-/// Tracks the weight of a given document by its index.
-class _WeightedDoc {
-  /// The index of the document.
-
-  final int index;
-
-  /// The weight of the document.
-  double weight;
-
-  _WeightedDoc(this.index, this.weight);
-}
-
 /// Stores a token -> documentId inverted index with weights.
 class TokenIndex {
   final int _length;
 
-  /// Maps token Strings to a weighted documents (addressed via indexes).
-  final _inverseIds = <String, List<_WeightedDoc>>{};
+  /// maps tokens to arrays of document indices
+  final Map<String, List<int>> _tokenIndices;
+  /// maps tokens to arrays of quantized weights
+  final Map<String, Uint8List> _tokenWeights;
+
   late final _scorePool = ScorePool(_length);
 
-  TokenIndex(List<String?> values, {bool skipDocumentWeight = false})
-    : _length = values.length {
-    for (var i = 0; i < _length; i++) {
+  TokenIndex._(this._length, this._tokenIndices, this._tokenWeights);
+
+  factory TokenIndex(List<String?> values, {bool skipDocumentWeight = false}) {
+    final tokenIndices = <String, List<int>>{};
+    final tempWeights = <String, List<int>>{};
+    for (var i = 0; i < values.length; i++) {
       final text = values[i];
       if (text == null) continue;
-      _build(i, text, skipDocumentWeight);
+      _build(i, text, skipDocumentWeight, tokenIndices, tempWeights);
     }
+    final tokenWeights = <String, Uint8List>{};
+    for (final e in tempWeights.entries) {
+      tokenWeights[e.key] = Uint8List.fromList(e.value);
+    }
+    return TokenIndex._(values.length, tokenIndices, tokenWeights);
   }
 
-  TokenIndex.fromValues(
+  factory TokenIndex.fromValues(
     List<List<String>?> values, {
     bool skipDocumentWeight = false,
-  }) : _length = values.length {
-    for (var i = 0; i < _length; i++) {
+  }) {
+    final tokenIndices = <String, List<int>>{};
+    final tempWeights = <String, List<int>>{};
+    for (var i = 0; i < values.length; i++) {
       final parts = values[i];
       if (parts == null || parts.isEmpty) continue;
       for (final text in parts) {
-        _build(i, text, skipDocumentWeight);
+        _build(i, text, skipDocumentWeight, tokenIndices, tempWeights);
       }
     }
+    final tokenWeights = <String, Uint8List>{};
+    for (final e in tempWeights.entries) {
+      tokenWeights[e.key] = Uint8List.fromList(e.value);
+    }
+    return TokenIndex._(values.length, tokenIndices, tokenWeights);
   }
 
-  void _build(int i, String text, bool skipDocumentWeight) {
+  static void _build(
+    int i,
+    String text,
+    bool skipDocumentWeight,
+    Map<String, List<int>> tokenIndices,
+    Map<String, List<int>> tempWeights,
+  ) {
     final tokens = tokenize(text);
     if (tokens == null || tokens.isEmpty) {
       return;
@@ -79,14 +92,19 @@ class TokenIndex {
     for (final e in tokens.entries) {
       final token = e.key;
       final weight = e.value / dw;
-      final weights = _inverseIds.putIfAbsent(token, () => []);
-      if (weights.isNotEmpty && weights.last.index == i) {
-        weights.last.weight = math.max(weights.last.weight, weight);
+      final quantized = (weight * 256 - 1).round().clamp(0, 255);
+      final indices = tokenIndices.putIfAbsent(token, () => []);
+      final weights = tempWeights.putIfAbsent(token, () => []);
+      if (indices.isNotEmpty && indices.last == i) {
+        if (quantized > weights.last) {
+          weights.last = quantized;
+        }
       } else {
         // Ensuring that we always update or increment the index.
         // TODO: refactor this to be self-evident from the call sequence
-        assert(weights.isEmpty || weights.last.index < i);
-        weights.add(_WeightedDoc(i, weight));
+        assert(indices.isEmpty || indices.last < i);
+        indices.add(i);
+        weights.add(quantized);
       }
     }
   }
@@ -101,7 +119,7 @@ class TokenIndex {
       final tokens = tokenize(word, isSplit: true) ?? {};
 
       final present = tokens.keys
-          .where((token) => _inverseIds.containsKey(token))
+          .where((token) => _tokenIndices.containsKey(token))
           .toList();
       if (present.isEmpty) {
         return TokenMatch();
@@ -161,9 +179,13 @@ class TokenIndex {
     for (final entry in tokenMatch.entries) {
       final token = entry.key;
       final matchWeight = entry.value;
-      final tokenWeight = _inverseIds[token]!;
-      for (final e in tokenWeight) {
-        score.setValueMaxOf(e.index, matchWeight * e.weight * weight);
+      final indices = _tokenIndices[token]!;
+      final weights = _tokenWeights[token]!;
+      for (var i = 0; i < indices.length; i++) {
+        score.setValueMaxOf(
+          indices[i],
+          matchWeight * (weights[i] + 1) / 256 * weight,
+        );
       }
     }
   }
