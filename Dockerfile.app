@@ -8,7 +8,7 @@ COPY pkg/signature_verifier /project/pkg/signature_verifier
 RUN cd /project/pkg/signature_verifier && ./build.sh
 
 # Keep version in-sync with .github/workflows/all-test.yml and app/lib/shared/versions.dart
-FROM mirror.gcr.io/library/dart:3.11.0 AS build
+FROM mirror.gcr.io/library/dart:3.12.0 AS build
 
 # After install we remove the apt-index again to keep the docker image diff small.
 RUN apt-get update && \
