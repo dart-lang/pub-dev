@@ -119,12 +119,15 @@ void main() {
     testWithProfile(
       'deleted files + full sync',
       fn: () async {
+        print('a');
         await syncExportedApi();
+        print('b');
         final oldRoot = await listExportedApi();
 
         for (final e in oldRoot.entries) {
           final path = e.key;
           final oldData = e.value as Map;
+          print(path);
 
           final bucket = storageService.bucket(
             activeConfiguration.exportedApiBucketName!,
