@@ -119,10 +119,13 @@ void main() {
     testWithProfile(
       'deleted files + full sync',
       fn: () async {
+        print('a');
         await syncExportedApi();
+        print('b');
         final oldRoot = await listExportedApi();
 
         for (final e in oldRoot.entries) {
+          print('c $e');
           final path = e.key;
           final oldData = e.value as Map;
 
