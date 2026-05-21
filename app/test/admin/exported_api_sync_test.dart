@@ -127,6 +127,7 @@ void main() {
         for (final e in oldRoot.entries) {
           final path = e.key;
           final oldData = e.value as Map;
+          print(path);
 
           final bucket = storageService.bucket(
             activeConfiguration.exportedApiBucketName!,
@@ -140,7 +141,6 @@ void main() {
           expect(oldData['bytes'], isNotEmpty);
           expect(oldData['bytes'], newData['bytes']);
         }
-        print('d');
       },
     );
 
