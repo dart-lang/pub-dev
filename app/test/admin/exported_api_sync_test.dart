@@ -125,7 +125,6 @@ void main() {
         final oldRoot = await listExportedApi();
 
         for (final e in oldRoot.entries) {
-          print('c $e');
           final path = e.key;
           final oldData = e.value as Map;
 
@@ -141,6 +140,7 @@ void main() {
           expect(oldData['bytes'], isNotEmpty);
           expect(oldData['bytes'], newData['bytes']);
         }
+        print('d');
       },
     );
 
