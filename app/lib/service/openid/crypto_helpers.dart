@@ -9,6 +9,10 @@ import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pem/pem.dart';
 
+import 'dart:convert' show utf8;
+
+import 'package:signature_verifier/signature_verifier.dart';
+
 import '../../shared/utils.dart';
 import 'asn1_encoder.dart' as asn1;
 
@@ -54,6 +58,14 @@ Future<bool> verifyTextWithRsaSignature({
   required Asn1RsaPublicKey publicKey,
   String? signatureVerifierPath,
 }) async {
+  if (signatureVerifierPath == null) {
+    return await verifyRsaSignature(
+      publicKeyPem: publicKey.asPemString,
+      signature: signature,
+      input: utf8.encode(input),
+    );
+  }
+
   return await withTempDirectory((dir) async {
     final inputFile = File(p.join(dir.path, 'input.txt'));
     await inputFile.writeAsString(input);
@@ -62,8 +74,7 @@ Future<bool> verifyTextWithRsaSignature({
     final publicKeyFile = File(p.join(dir.path, 'public.pem'));
     await publicKeyFile.writeAsString(publicKey.asPemString);
     final pr = await runConstrained([
-      signatureVerifierPath ??
-          './signature_verifier', // This implements RSA signature verification - we use this instead of openssl!
+      signatureVerifierPath, // This implements RSA signature verification - we use this instead of openssl!
       'dgst',
       '-sha256',
       '-verify',

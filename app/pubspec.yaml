@@ -6,6 +6,7 @@ resolution: workspace
 dependencies:
   unzip:
   _pub_shared:
+  signature_verifier:
   appengine: ^0.13.8
   args: '^2.0.0'
   basics: ^0.10.0
