@@ -36,22 +36,11 @@ Future<bool> verifyRsaSignature({
   }
 
   // Parse and decode the PEM Public Key.
-  List<int> derBytes;
+  final List<int> derBytes;
   try {
     derBytes = decodePemBlocks(PemLabel.publicKey, publicKeyPem).single;
-  } catch (_) {
-    // Fallback: manually decode base64 from PEM lines, allowing other labels
-    // like "RSA PUBLIC KEY".
-    try {
-      final lines = publicKeyPem.split('\n');
-      final base64Lines = lines.where((line) {
-        final trimmed = line.trim();
-        return trimmed.isNotEmpty && !trimmed.startsWith('-----');
-      });
-      derBytes = base64.decode(base64Lines.join(''));
-    } catch (e) {
-      throw FormatException('Failed to parse PEM block: $e');
-    }
+  } catch (e) {
+    throw FormatException('Failed to parse PEM block: $e');
   }
 
   // Import the RSA public key.
