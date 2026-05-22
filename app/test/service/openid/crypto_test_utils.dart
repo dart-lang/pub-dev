@@ -119,7 +119,7 @@ Future<File> buildSignatureVerifierExecutable() async {
   }
   final binaryFile = File(
     Isolate.packageConfigSync!
-        .resolve('../pkg/signature_verifier/bin/signature_verifier')
+        .resolve('../pkg/signature_verifier/dist/bin/signature_verifier')
         .toFilePath(),
   );
   if (!binaryFile.existsSync()) {

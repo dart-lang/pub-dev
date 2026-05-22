@@ -88,10 +88,21 @@ void main() {
   });
 
   group('CLI integration', () {
+    setUpAll(() async {
+      final buildResult = await Process.run('bash', ['build.sh']);
+      if (buildResult.exitCode != 0) {
+        throw Exception(
+          'Building signature_verifier failed with exitCode ${buildResult.exitCode}\n'
+          'STDOUT: ${buildResult.stdout}\n'
+          'STDERR: ${buildResult.stderr}',
+        );
+      }
+    });
+
     test(
       'binary can be executed and reports failure on non-existent files',
       () async {
-        final process = await Process.start('./bin/signature_verifier', [
+        final process = await Process.start('./dist/bin/signature_verifier', [
           'dgst',
           '-sha256',
           '-verify',
