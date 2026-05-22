@@ -212,6 +212,67 @@ extension TableTaskExt on Table<Task> {
     ],
   );
 
+  /// Insert row into the `tasks` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<Task> insertValue({
+    required String runtime_version,
+    required String package,
+    required TaskState state,
+    required DateTime pending_at,
+    required DateTime last_dependency_changed,
+    required DateTime finished,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      runtime_version.asExpr,
+      package.asExpr,
+      state.asExpr,
+      pending_at.asExpr,
+      last_dependency_changed.asExpr,
+      finished.asExpr,
+    ],
+  );
+
+  /// Bulk insert rows into the `tasks` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<Task> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) runtime_version,
+    required String Function(T row) package,
+    required TaskState Function(T row) state,
+    required DateTime Function(T row) pending_at,
+    required DateTime Function(T row) last_dependency_changed,
+    required DateTime Function(T row) finished,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [
+      runtime_version,
+      package,
+      (T v) => state(v).toDatabase(),
+      pending_at,
+      last_dependency_changed,
+      finished,
+    ],
+  );
+
   /// Delete a single row from the `tasks` table, specified by
   /// _primary key_.
   ///
@@ -522,6 +583,223 @@ extension RightJoinTaskTaskDependencyExt
   );
 }
 
+/// `Table<Task>` conflict targets for use with `.onConflict`.
+enum TaskConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `runtime_version`, `package`.
+  primaryKey(['runtime_version', 'package']);
+
+  const TaskConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertTaskExt on Insert<Task> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((task, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<Task> onConflict(TaskConflict target) =>
+      $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictTaskExt on InsertOnConflict<Task> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `task` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<Task> update(
+    UpdateSet<Task> Function(
+      Expr<Task> task,
+      Expr<Task> excluded,
+      UpdateSet<Task> Function({
+        Expr<String> runtime_version,
+        Expr<String> package,
+        Expr<TaskState> state,
+        Expr<DateTime> pending_at,
+        Expr<DateTime> last_dependency_changed,
+        Expr<DateTime> finished,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<Task>(
+    this,
+    (task, excluded) => updateBuilder(
+      task,
+      excluded,
+      ({
+        Expr<String>? runtime_version,
+        Expr<String>? package,
+        Expr<TaskState>? state,
+        Expr<DateTime>? pending_at,
+        Expr<DateTime>? last_dependency_changed,
+        Expr<DateTime>? finished,
+      }) => $ForGeneratedCode.buildUpdate<Task>([
+        runtime_version,
+        package,
+        state,
+        pending_at,
+        last_dependency_changed,
+        finished,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleTaskExt on InsertSingle<Task> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((task, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<Task> onConflict(TaskConflict target) =>
+      $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleTaskExt on InsertOnConflictSingle<Task> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `task` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<Task> update(
+    UpdateSet<Task> Function(
+      Expr<Task> task,
+      Expr<Task> excluded,
+      UpdateSet<Task> Function({
+        Expr<String> runtime_version,
+        Expr<String> package,
+        Expr<TaskState> state,
+        Expr<DateTime> pending_at,
+        Expr<DateTime> last_dependency_changed,
+        Expr<DateTime> finished,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<Task>(
+    this,
+    (task, excluded) => updateBuilder(
+      task,
+      excluded,
+      ({
+        Expr<String>? runtime_version,
+        Expr<String>? package,
+        Expr<TaskState>? state,
+        Expr<DateTime>? pending_at,
+        Expr<DateTime>? last_dependency_changed,
+        Expr<DateTime>? finished,
+      }) => $ForGeneratedCode.buildUpdate<Task>([
+        runtime_version,
+        package,
+        state,
+        pending_at,
+        last_dependency_changed,
+        finished,
+      ]),
+    ),
+  );
+}
+
 final class _$TaskDependency extends TaskDependency {
   _$TaskDependency._(this.runtime_version, this.package, this.dependency);
 
@@ -603,6 +881,47 @@ extension TableTaskDependencyExt on Table<TaskDependency> {
   }) => $ForGeneratedCode.insertInto(
     table: this,
     values: [runtime_version, package, dependency],
+  );
+
+  /// Insert row into the `task_dependencies` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<TaskDependency> insertValue({
+    required String runtime_version,
+    required String package,
+    required String dependency,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [runtime_version.asExpr, package.asExpr, dependency.asExpr],
+  );
+
+  /// Bulk insert rows into the `task_dependencies` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<TaskDependency> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) runtime_version,
+    required String Function(T row) package,
+    required String Function(T row) dependency,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [runtime_version, package, dependency],
   );
 
   /// Delete a single row from the `task_dependencies` table, specified by
@@ -886,6 +1205,208 @@ extension RightJoinTaskDependencyTaskExt
     (a, b) =>
         b.runtime_version.equals(a.runtime_version) &
         b.package.equals(a.package),
+  );
+}
+
+/// `Table<TaskDependency>` conflict targets for use with `.onConflict`.
+enum TaskDependencyConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `runtime_version`, `package`, `dependency`.
+  primaryKey(['runtime_version', 'package', 'dependency']);
+
+  const TaskDependencyConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertTaskDependencyExt on Insert<TaskDependency> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((taskDependency, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<TaskDependency> onConflict(TaskDependencyConflict target) =>
+      $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictTaskDependencyExt
+    on InsertOnConflict<TaskDependency> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `taskDependency` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<TaskDependency> update(
+    UpdateSet<TaskDependency> Function(
+      Expr<TaskDependency> taskDependency,
+      Expr<TaskDependency> excluded,
+      UpdateSet<TaskDependency> Function({
+        Expr<String> runtime_version,
+        Expr<String> package,
+        Expr<String> dependency,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<TaskDependency>(
+    this,
+    (taskDependency, excluded) => updateBuilder(
+      taskDependency,
+      excluded,
+      ({
+        Expr<String>? runtime_version,
+        Expr<String>? package,
+        Expr<String>? dependency,
+      }) => $ForGeneratedCode.buildUpdate<TaskDependency>([
+        runtime_version,
+        package,
+        dependency,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleTaskDependencyExt on InsertSingle<TaskDependency> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((taskDependency, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<TaskDependency> onConflict(
+    TaskDependencyConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleTaskDependencyExt
+    on InsertOnConflictSingle<TaskDependency> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `taskDependency` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<TaskDependency> update(
+    UpdateSet<TaskDependency> Function(
+      Expr<TaskDependency> taskDependency,
+      Expr<TaskDependency> excluded,
+      UpdateSet<TaskDependency> Function({
+        Expr<String> runtime_version,
+        Expr<String> package,
+        Expr<String> dependency,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<TaskDependency>(
+    this,
+    (taskDependency, excluded) => updateBuilder(
+      taskDependency,
+      excluded,
+      ({
+        Expr<String>? runtime_version,
+        Expr<String>? package,
+        Expr<String>? dependency,
+      }) => $ForGeneratedCode.buildUpdate<TaskDependency>([
+        runtime_version,
+        package,
+        dependency,
+      ]),
+    ),
   );
 }
 
