@@ -121,8 +121,9 @@ void main() {
       fn: () async {
         await syncExportedApi();
         final oldRoot = await listExportedApi();
+        print(oldRoot.entries.length);
 
-        for (final e in oldRoot.entries.take(2)) {
+        for (final e in oldRoot.entries.take(10)) {
           final path = e.key;
           final oldData = e.value as Map;
 
