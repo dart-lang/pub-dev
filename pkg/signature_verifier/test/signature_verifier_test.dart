@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import '../bin/signature_verifier.dart';
+import 'package:signature_verifier/signature_verifier.dart';
 import 'package:test/test.dart';
 import 'package:webcrypto/webcrypto.dart';
 
