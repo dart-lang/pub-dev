@@ -91,7 +91,7 @@ void main() {
     test(
       'binary can be executed and reports failure on non-existent files',
       () async {
-        final process = await Process.start('./signature_verifier', [
+        final process = await Process.start('./bin/signature_verifier', [
           'dgst',
           '-sha256',
           '-verify',

@@ -7,9 +7,8 @@ cd "$(dirname "$0")"
 dart build cli --output=build -t bin/signature_verifier.dart
 
 # 2. Extract the binary and its native assets.
-# The binary expects libwebcrypto.so at '../lib/libwebcrypto.so' relative to its internal path,
-# but when flattened, placing it in a 'lib' sibling directory is the standard bundle structure
-# that works without a wrapper.
-cp ./build/bundle/bin/signature_verifier ./signature_verifier
-mkdir -p lib
+# The binary expects libwebcrypto.so at '../lib/libwebcrypto.so' relative to its internal path.
+# We keep the bin/ and lib/ structure from the bundle.
+mkdir -p bin lib
+cp ./build/bundle/bin/signature_verifier ./bin/signature_verifier
 cp ./build/bundle/lib/libwebcrypto.so ./lib/libwebcrypto.so

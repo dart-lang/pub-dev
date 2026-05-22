@@ -60,7 +60,7 @@ COPY --from=build /project/doc /project/doc
 COPY --from=build /project/app/lib/frontend/templates /project/app/lib/frontend/templates
 COPY --from=build /project/app/.dart_tool/pub-search-data /project/app/.dart_tool/pub-search-data
 COPY --from=build /project/.dart_tool/package_config.json /project/.dart_tool/package_config.json
-COPY --from=build /project/pkg/signature_verifier/signature_verifier /project/app/signature_verifier
+COPY --from=build /project/pkg/signature_verifier/bin/signature_verifier /project/app/bin/signature_verifier
 COPY --from=build /project/pkg/signature_verifier/lib /project/app/lib
 # Put the kernel snapshots at the same place as the source files for Isolate.spawnUri to work transparently.
 COPY --from=build /project/app/search_index.dill /project/app/search_index.dill
