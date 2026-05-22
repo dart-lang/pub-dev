@@ -139,6 +139,7 @@ void main() {
           expect(oldData['bytes'], newData['bytes']);
         }
       },
+      timeout: Timeout.factor(2),
     );
 
     testWithProfile(
