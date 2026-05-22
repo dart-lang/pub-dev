@@ -13,6 +13,3 @@ dart build cli --output=build -t bin/signature_verifier.dart
 cp ./build/bundle/bin/signature_verifier ./signature_verifier
 mkdir -p lib
 cp ./build/bundle/lib/libwebcrypto.so ./lib/libwebcrypto.so
-
-# 3. Set execution permissions
-chmod +x ./signature_verifier
