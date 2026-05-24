@@ -175,7 +175,8 @@
     opacity: 1.0;
 
     &:hover {
-      opacity: 0.8;
+      // The header has a dark background; brighten on hover instead of dimming.
+      filter: brightness(120%);
     }
   }
 
