@@ -16,7 +16,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## `20260512t124000-all`
  * Bump runtimeVersion to `2026.05.12`.
- * Note: switched to Postgres-backed task backend.
+ * Note: switched to Postgres-backed task backed.
 
 ## `20260507t120800-all`
 
