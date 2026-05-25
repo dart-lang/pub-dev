@@ -84,7 +84,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4]
+        shard: [0, 1]
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -114,7 +114,7 @@ jobs:
     - run: dart pub get
     - run: dart tool/trigger_puppeteer_download.dart
       working-directory: pkg/pub_integration
-    - run: dart test -j 1 --run-skipped --shard-index ${{matrix.shard}} --total-shards 5
+    - run: dart test -j 1 --run-skipped --shard-index ${{matrix.shard}} --total-shards 2
       working-directory: pkg/pub_integration
       env:
         PUB_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
