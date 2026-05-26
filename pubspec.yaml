@@ -18,6 +18,7 @@ workspace:
   - pkg/image_proxy
   - pkg/runsc
   - pkg/unzip
+  - pkg/signature_verifier
 
 dev_dependencies:
   lints: ^6.0.0
