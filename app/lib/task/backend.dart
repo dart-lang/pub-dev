@@ -383,7 +383,9 @@ class TaskBackend {
       );
     } on NotFoundException catch (_) {
       // If package is not visible, we should remove it!
-      await db.tasksAccess.deleteAllStates(packageName);
+      for (final rv in acceptedRuntimeVersions) {
+        await db.tasks.delete(rv, packageName).execute();
+      }
       return;
     }
     final versions = _versionsToTrack(
@@ -1433,14 +1435,6 @@ final class _TaskDataAccess {
     await for (final row in query.stream()) {
       yield (package: row);
     }
-  }
-
-  Future<void> deleteAllStates(String name) async {
-    await _db.transact(() async {
-      for (final rv in acceptedRuntimeVersions) {
-        await _db.tasks.delete(rv, name).execute();
-      }
-    });
   }
 
   /// Returns whether the entry has been updated.
