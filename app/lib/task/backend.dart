@@ -1488,34 +1488,32 @@ final class _TaskDataAccess {
     String packageName,
     String instanceName,
   ) async {
-    await _db.transact(() async {
-      final s = await _db.tasks.byKey(runtimeVersion, packageName).fetch();
-      if (s == null) {
-        return; // Presumably, the package was deleted.
-      }
+    final s = await _db.tasks.byKey(runtimeVersion, packageName).fetch();
+    if (s == null) {
+      return; // Presumably, the package was deleted.
+    }
 
-      final versions = s.state.versions;
-      versions.addEntries(
-        versions.entries
-            .where((e) => e.value.instance == instanceName)
-            .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
-      );
+    final versions = s.state.versions;
+    versions.addEntries(
+      versions.entries
+          .where((e) => e.value.instance == instanceName)
+          .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
+    );
 
-      await _db.tasks
-          .byKey(runtimeVersion, packageName)
-          .update(
-            (_, set) => set(
-              state: TaskState(
-                versions: versions,
-                abortedTokens: s.state.abortedTokens,
-              ).asExpr,
-              pending_at: derivePendingAt(
-                versions: versions,
-                lastDependencyChanged: s.last_dependency_changed,
-              ).asExpr,
-            ),
-          )
-          .execute();
-    });
+    await _db.tasks
+        .byKey(runtimeVersion, packageName)
+        .update(
+          (_, set) => set(
+            state: TaskState(
+              versions: versions,
+              abortedTokens: s.state.abortedTokens,
+            ).asExpr,
+            pending_at: derivePendingAt(
+              versions: versions,
+              lastDependencyChanged: s.last_dependency_changed,
+            ).asExpr,
+          ),
+        )
+        .execute();
   }
 }

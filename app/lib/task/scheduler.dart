@@ -180,7 +180,7 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
       // suppose to run on the instance we just failed to create.
       // If this doesn't work, we'll eventually retry. Hence, correctness
       // does not hinge on this transaction being successful.
-      await database.withRetry(
+      await database.transactWithRetry(
         (db) => db.tasksAccess.restorePreviousVersionsState(
           selected.package,
           instanceName,
