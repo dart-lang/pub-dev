@@ -23,4 +23,4 @@ key.json
 
 node_modules/
 
-pkg/signature_verifier/signature_verifier
+pkg/signature_verifier/dist/
