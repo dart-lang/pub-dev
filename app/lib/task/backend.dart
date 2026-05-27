@@ -684,23 +684,58 @@ class TaskBackend {
     );
     final hasDocIndexHtml = (await index.fetch('doc/index.html')) != null;
 
-    final existingDependencyList = await _database.withRetry(
-      (db) => db.task_dependencies
-          .where(
-            (dep) =>
-                dep.runtime_version.equalsValue(runtimeVersion) &
-                dep.package.equalsValue(package),
-          )
-          .limit(1000)
-          .select((dep) => (dep.dependency,))
-          .fetch(),
-    );
-    final existingDependencySet = existingDependencyList.toSet();
-
-    // Note: we limit both the fetching of the existing entries and the insertion of the new entries.
-    final newDependencies = (summary?.allDependencies ?? const <String>[])
-        .where((d) => !existingDependencySet.contains(d))
-        .take(10);
+    // Update dependencies, if pana summary has dependencies
+    final panaDependencies = (summary?.allDependencies ?? const <String>[]);
+    if (panaDependencies.isNotEmpty) {
+      await _database.transactWithRetry((db) async {
+        // Note: We limit both the fetching of the existing entries and the insertion of the new entries.
+        //       The dependency-based reanalysis is best-effort and we should not exhaust resources with it.
+        final existingDependencyList = await db.task_dependencies
+            .where(
+              (dep) =>
+                  dep.runtime_version.equalsValue(runtimeVersion) &
+                  dep.package.equalsValue(package),
+            )
+            .limit(1000)
+            .select((dep) => (dep.dependency,))
+            .fetch();
+        final existingDependencySet = existingDependencyList.toSet();
+        final newDependencies = panaDependencies
+            .where((d) => !existingDependencySet.contains(d))
+            .where((d) {
+              bool isValid = false;
+              try {
+                // TODO: These sanity checks should probably split out, into a general
+                //       extension method on [Summary]. The idea here is to protect
+                //       against invalid data from the sandbox. We should consider all
+                //       the output we get from the sandbox as suspect :D
+                InvalidInputException.checkPackageName(d);
+                isValid = true;
+              } on ResponseException {
+                _log.shout(
+                  'pub_worker responses with summary.allDependencies containing "$d"'
+                  ' in package "$package" version "$version"',
+                );
+              }
+              return isValid;
+            })
+            .take(10)
+            .toList();
+        if (newDependencies.isEmpty) {
+          return;
+        }
+        await db.task_dependencies
+            .insertValuesMapped(
+              newDependencies,
+              runtime_version: (_) => runtimeVersion,
+              package: (_) => package,
+              dependency: (d) => d,
+            )
+            .onConflict(.primaryKey)
+            .doNothing()
+            .execute();
+      });
+    }
 
     await _database.transactWithRetry((db) async {
       final task = await db.tasksAccess.lookupOrNull(package);
@@ -715,40 +750,6 @@ class TaskBackend {
         task.state,
         token,
       );
-
-      // Update dependencies, if pana summary has dependencies
-      for (final dependency in newDependencies) {
-        bool isValid = false;
-        try {
-          // TODO: These sanity checks should probably split out, into a general
-          //       extension method on [Summary]. The idea here is to protect
-          //       against invalid data from the sandbox. We should consider all
-          //       the output we get from the sandbox as suspect :D
-          InvalidInputException.checkPackageName(dependency);
-          isValid = true;
-        } on ResponseException {
-          _log.shout(
-            'pub_worker responses with summary.allDependencies containing "$dependency"'
-            ' in package "$package" version "$version"',
-          );
-        }
-
-        if (!isValid) continue;
-
-        // Note: since we limit the fetching of the existing dependencies, we may double-insert existing entries.
-        // TODO: implement "on conflict" support in typed_sql
-        try {
-          await db.task_dependencies
-              .insert(
-                runtime_version: runtimeVersion.asExpr,
-                package: package.asExpr,
-                dependency: dependency.asExpr,
-              )
-              .execute();
-        } on DatabaseException catch (e, st) {
-          _log.info('Insert in `task_dependencies` failed.', e, st);
-        }
-      }
 
       zone = versionState.zone!;
       instance = versionState.instance!;
