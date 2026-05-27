@@ -304,9 +304,27 @@ class TaskBackend {
 
   @visibleForTesting
   Future<Duration> runOneScanPackagesUpdate(bool Function() isAbortedFn) async {
+    Stream<({String name, DateTime updated})> stream() async* {
+      final since = _scanPackagesUpdatedState.since;
+      // list packages with updated >= since
+      yield* _datastore.packages.listUpdatedSince(since);
+      // list tasks with dependency updated >= since
+      final list = await _database.withRetry(
+        (db) => db.tasks
+            .where((t) => t.last_dependency_changed >= since.asExpr)
+            .select((t) => (t.package, t.last_dependency_changed))
+            .stream()
+            .map((e) => (name: e.$1, updated: e.$2))
+            .toList(),
+      );
+      for (final item in list) {
+        yield item;
+      }
+    }
+
     final next = await runOneScanPackagesUpdatedCycle(
       _scanPackagesUpdatedState,
-      _datastore.packages.listUpdatedSince(_scanPackagesUpdatedState.since),
+      stream(),
       isAbortedFn,
     );
     _scanPackagesUpdatedState = next.state;
@@ -447,7 +465,9 @@ class TaskBackend {
       );
 
       // Stop transaction, if there is no changes to be made!
-      if (untrackedVersions.isEmpty && deselectedVersions.isEmpty) {
+      if (untrackedVersions.isEmpty &&
+          deselectedVersions.isEmpty &&
+          !task.last_dependency_changed.isAfter(task.finished)) {
         return false;
       }
 
@@ -502,10 +522,20 @@ class TaskBackend {
 
     if (updateDependents &&
         !lastVersionCreated.isAtSameMomentAs(initialTimestamp)) {
-      await _updateLastDependencyChangedForDependents(
-        packageName,
-        lastVersionCreated,
-      );
+      // Update all tasks' `last_dependency_changed` column.
+      await db.tasks
+          .where(
+            (task) =>
+                task.dependencies
+                    .where((deps) => deps.dependency.equals(packageName.asExpr))
+                    .exists() &
+                task.last_dependency_changed.isBeforeValue(lastVersionCreated),
+          )
+          .update(
+            (task, set) =>
+                set(last_dependency_changed: lastVersionCreated.asExpr),
+          )
+          .execute();
     }
   }
 
@@ -555,63 +585,6 @@ class TaskBackend {
     // Close the pool, and wait for all pending deletion request to complete.
     await pool.close();
     await pool.done;
-  }
-
-  /// Update [PackageState.lastDependencyChanged] for all packages with
-  /// dependency on [package] to at-least [publishedAt].
-  Future<void> _updateLastDependencyChangedForDependents(
-    String package,
-    DateTime publishedAt,
-  ) async {
-    await _database.withRetry((db) async {
-      // Max concurrency of 20!
-      final pool = Pool(20);
-
-      // Query for [PackageState] that has [package] listed in [dependencies].
-      // Notice that datastore query logic for `dependencies = package` means
-      // entities where:
-      //  (A) `dependencies` is equal to `package` (won't happen here).
-      //  (B) `dependencies` is a list of strings containing `packages`,
-      //      this is the matching logic we leverage here.
-      //
-      // We only update [PackageState] to have [lastDependencyChanged], this
-      // ensures that there is no risk of indefinite propagation.
-      final stream = db.tasksAccess.listDependenciesOfPackage(
-        package,
-        publishedAt,
-      );
-      await for (final state in stream) {
-        final r = await pool.request();
-
-        // Schedule a microtask that attempts to update [lastDependencyChanged],
-        // and logs any failures before always releasing the [r].
-        scheduleMicrotask(() async {
-          try {
-            final changed = await _database.withRetry(
-              (db) => db.tasksAccess.updateDependencyChanged(
-                state.package,
-                publishedAt,
-              ),
-            );
-            if (changed) {
-              await _purgeCache(state.package);
-            }
-          } catch (e, st) {
-            _log.warning(
-              'failed to propagate lastDependencyChanged for ${state.package}',
-              e,
-              st,
-            );
-          } finally {
-            r.release(); // always release to avoid deadlocks
-          }
-        });
-      }
-      // Close the pool -- no more resources requested.
-      await pool.close();
-      // Wait for all resources to be released.
-      await pool.done;
-    });
   }
 
   // Handles POST `/api/tasks/$package/$version/upload`
@@ -1403,25 +1376,6 @@ final class _TaskDataAccess {
         .map((e) => (package: e.$1, finished: e.$2));
   }
 
-  Stream<({String package})> listDependenciesOfPackage(
-    String package,
-    DateTime publishedAt,
-  ) async* {
-    final query = _db.task_dependencies
-        .join(_db.tasks)
-        .usingTask()
-        .where(
-          (dep, task) =>
-              dep.runtime_version.equalsValue(runtimeVersion) &
-              dep.dependency.equalsValue(package) &
-              task.last_dependency_changed.isBeforeValue(publishedAt),
-        )
-        .select((dep, _) => (dep.package,));
-    await for (final row in query.stream()) {
-      yield (package: row);
-    }
-  }
-
   Stream<({String package})> selectSomePending(int limit) async* {
     final query = _db.tasks
         .where(
@@ -1435,41 +1389,6 @@ final class _TaskDataAccess {
     await for (final row in query.stream()) {
       yield (package: row);
     }
-  }
-
-  /// Returns whether the entry has been updated.
-  Future<bool> updateDependencyChanged(
-    String package,
-    DateTime publishedAt,
-  ) async {
-    return await _db.transact(() async {
-      // Reload [state] within a transaction to avoid overwriting changes
-      // made by others trying to update state for another package.
-
-      final s = await _db.tasks
-          .byKey(runtimeVersion, package)
-          .where((t) => t.last_dependency_changed.isBeforeValue(publishedAt))
-          .fetch();
-      if (s == null) {
-        // No entry has been created yet, probably because of a new deployment rolling out.
-        // We can ignore it for now.
-        return false;
-      }
-
-      await _db.tasks
-          .byKey(runtimeVersion, package)
-          .update(
-            (_, set) => set(
-              last_dependency_changed: publishedAt.asExpr,
-              pending_at: derivePendingAt(
-                versions: s.state.versions,
-                lastDependencyChanged: publishedAt,
-              ).asExpr,
-            ),
-          )
-          .execute();
-      return true;
-    });
   }
 
   Future<void> bumpPriority(String packageName) async {
