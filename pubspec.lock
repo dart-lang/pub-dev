@@ -29,10 +29,10 @@ packages:
     dependency: transitive
     description:
       name: appengine
-      sha256: "2003c596a2fc5de5f396bc150cf85d47216209305db7851b42058ac4cdd53ff9"
+      sha256: "66c902badfdb3b5d5464f26a3fba11d0b87205a570195418c22e4fd507080cf4"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.11"
+    version: "0.13.12"
   archive:
     dependency: transitive
     description:
@@ -325,10 +325,10 @@ packages:
     dependency: transitive
     description:
       name: gcloud
-      sha256: caa415a0145ec8afac457322872c3e8b38379a88800d2944c53798ea8fbce386
+      sha256: "19e8f105b1087371f37d567d1b6335260d84f970e70bf1c2e9c3616c0247f9f2"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.19"
+    version: "0.9.0"
   glob:
     dependency: transitive
     description:
@@ -357,10 +357,10 @@ packages:
     dependency: transitive
     description:
       name: googleapis
-      sha256: "5c9e0f25be1dec13d8d2158263141104c51b5ba83487537c17a2330581e505ee"
+      sha256: "692fb9e90c321b61a7a2123de0353ec8a20691cd979db2553d8d732f710f6535"
       url: "https://pub.dev"
     source: hosted
-    version: "14.0.0"
+    version: "15.0.0"
   googleapis_auth:
     dependency: transitive
     description:
@@ -965,10 +965,10 @@ packages:
     dependency: transitive
     description:
       name: typed_sql
-      sha256: "2d4299fe92d8fe15a0df0f188f6252b39e05a51d13a10d759ce696de760d0278"
+      sha256: ee677eb972b67b97159f54d7f9812ce573a667a54722a5c2c4187d640d5e17ed
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.9"
+    version: "0.1.10"
   ulid:
     dependency: transitive
     description:
