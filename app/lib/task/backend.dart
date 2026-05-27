@@ -231,7 +231,7 @@ class TaskBackend {
   Future<void> backfillTrackingState() async {
     // Store package name, so we can skip looking at these when scanning for
     // [PackageState] entities that shouldn't exist.
-    final packageNames = <String>{};
+    final packageNames = await _datastore.packages.listAllNames().toSet();
 
     // Allow a little concurrency
     final pool = Pool(10);
@@ -242,57 +242,50 @@ class TaskBackend {
     StackTrace? stackTrace;
 
     // For each package we should ensure state is tracked
-    await for (final p in _datastore.packages.listAllNames()) {
-      packageNames.add(p.name);
-
-      scheduleMicrotask(() async {
-        await pool.withResource(() async {
+    for (final p in packageNames) {
+      unawaited(
+        pool.withResource(() async {
           try {
-            await trackPackage(p.name, updateDependents: false);
+            await trackPackage(p, updateDependents: false);
           } catch (e, st) {
-            _log.severe('failed to track state for "${p.name}"', e, st);
+            _log.severe('failed to track state for "$p"', e, st);
             if (error == null) {
               error = e; // save [e] for later, if this is the first failure
               stackTrace = st;
             }
           }
-        });
-      });
+        }),
+      );
     }
-
-    // Check that all [PackageState] entities have a matching [Package] entity.
-    await _database.withRetry((db) async {
-      await for (final state in db.tasksAccess.listAllForCurrentRuntime()) {
-        if (!packageNames.contains(state.package)) {
-          final r = await pool.request();
-
-          scheduleMicrotask(() async {
-            try {
-              // Lookup the package to ensure it really doesn't exist
-              if (await _datastore.packages.exists(state.package)) {
-                // package may have been created recently
-                // no need to delete [PackageState]
-              } else {
-                // no package entry, deleting is needed
-                await db.tasksAccess.delete(state.package);
-              }
-            } catch (e, st) {
-              _log.severe('failed to untrack "${state.package}"', e, st);
-              if (error == null) {
-                error = e; // save [e] for later, if this is the first failure
-                stackTrace = st;
-              }
-            } finally {
-              r.release(); // always release to avoid deadlock
-            }
-          });
-        }
-      }
-    });
-
     // Wait for all ongoing microtasks started above to complete.
     await pool.close();
     await pool.done;
+
+    // Check that all [PackageState] entities have a matching [Package] entity.
+    await _database.withRetry((db) async {
+      final packagesToDelete = <String>{};
+      await for (final state in db.tasksAccess.listAllForCurrentRuntime()) {
+        if (packageNames.contains(state.package)) {
+          continue;
+        }
+        // Lookup the package to ensure it really doesn't exist
+        if (!await _datastore.packages.exists(state.package)) {
+          continue;
+        }
+        packagesToDelete.add(state.package);
+      }
+      for (final package in packagesToDelete) {
+        try {
+          await db.tasksAccess.delete(package);
+        } catch (e, st) {
+          _log.severe('failed to untrack "$package"', e, st);
+          if (error == null) {
+            error = e; // save [e] for later, if this is the first failure
+            stackTrace = st;
+          }
+        }
+      }
+    });
 
     // If we had any error, we rethrow to ensure that any background task
     // calling this method won't register completion as successful.
