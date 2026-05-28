@@ -174,9 +174,6 @@ void main() {
 
   testWithProfile(
     'failing instances will be retried',
-    expectedLogMessages: [
-      'SHOUT [pub-notice:cached_value] Updating cached `thirtyDaysTotalDownloadCounts` value failed.',
-    ],
     fn: () async {
       await taskBackend.backfillTrackingState();
 
