@@ -33,7 +33,6 @@ class ImageProxyBackend {
     _dailySecret = CachedValue(
       name: 'image-proxy-daily-secret',
       interval: Duration(minutes: 15),
-      maxAge: Duration(hours: 12),
       updateFn: () async {
         final now = clock.now().toUtc();
         final today = DateTime.utc(now.year, now.month, now.day);

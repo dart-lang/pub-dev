@@ -38,8 +38,6 @@ class YoutubeBackend {
     name: 'pkg-of-week-video-list',
     // redis-cached youtube API response has 6 hours TTL
     interval: Duration(minutes: 15),
-    maxAge: Duration(hours: 24),
-    timeout: Duration(hours: 13),
     updateFn: _PkgOfWeekVideoFetcher().fetchVideoList,
   );
 

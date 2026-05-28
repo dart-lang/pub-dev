@@ -37,13 +37,11 @@ class DownloadCountsBackend {
   DownloadCountsBackend(this._db) {
     _thirtyDaysTotals = CachedValue<Map<String, int>>(
       name: 'thirtyDaysTotalDownloadCounts',
-      maxAge: Duration(days: 14),
       interval: Duration(minutes: 30),
       updateFn: _updateThirtyDaysTotals,
     );
     _trendScores = CachedValue<Map<String, double>>(
       name: 'trendScores',
-      maxAge: Duration(days: 14),
       interval: Duration(minutes: 30),
       updateFn: _updateTrendScores,
     );
