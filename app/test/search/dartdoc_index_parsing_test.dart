@@ -89,9 +89,9 @@ void main() {
                     'https://api.flutter.dev/flutter/widgets/StatelessWidget-class.html',
               },
               {
-                'path': 'widgets/StatelessWidget/StatelessWidget.html',
+                'path': 'widgets/StatelessWidget/createElement.html',
                 'url':
-                    'https://api.flutter.dev/flutter/widgets/StatelessWidget/StatelessWidget.html',
+                    'https://api.flutter.dev/flutter/widgets/StatelessWidget/createElement.html',
               },
               {
                 'path': 'widgets/StatelessWidget/build.html',
