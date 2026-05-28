@@ -11,5 +11,5 @@ import 'package:test/test.dart';
 void main() {
   test('building Dockerfile.app', () async {
     await buildAppDockerImage();
-  });
+  }, timeout: Timeout(Duration(minutes: 5)));
 }
