@@ -192,7 +192,7 @@ Future<void> _analyzeLocal() async {
 }
 
 Future<void> _analyzeWorker() async {
-  await buildDockerImage();
+  await buildWorkerDockerImage();
   await fork(() async {
     await taskBackend.backfillAndProcessAllPackages((Payload payload) async {
       final p = await startDockerAnalysis(payload);
