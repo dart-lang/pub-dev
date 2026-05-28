@@ -67,7 +67,7 @@ void main(List<String> args) async {
     if (argResults['skip-rebuild'] != true) {
       try {
         print('Building worker docker image');
-        await buildDockerImage();
+        await buildWorkerDockerImage();
       } catch (e) {
         print('Building worker docker image failed: $e');
         exit(-1);

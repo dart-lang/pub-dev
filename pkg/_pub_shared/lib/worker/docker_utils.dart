@@ -10,14 +10,25 @@ import 'package:_pub_shared/data/task_payload.dart';
 final _ciEnv = Platform.environment['CI']?.toLowerCase();
 final _isRunningOnCI = _ciEnv == 'true' || _ciEnv == '1';
 
-Future<void> buildDockerImage() async {
+Future<void> buildAppDockerImage() async {
+  await _buildDockerImage(path: 'Dockerfile.app', image: 'pub_app');
+}
+
+Future<void> buildWorkerDockerImage() async {
+  await _buildDockerImage(path: 'Dockerfile.worker', image: 'pub_worker');
+}
+
+Future<void> _buildDockerImage({
+  required String path,
+  required String image,
+}) async {
   final gitRootDir = (await Process.run('git', [
     'rev-parse',
     '--show-toplevel',
   ])).stdout.toString().trim();
   final pr = await Process.start(
     'docker',
-    ['build', '.', '--tag=pub_worker', '--file=Dockerfile.worker'],
+    ['build', '.', '--tag=$image', '--file=$path'],
     workingDirectory: gitRootDir,
     mode: ProcessStartMode.inheritStdio,
   );

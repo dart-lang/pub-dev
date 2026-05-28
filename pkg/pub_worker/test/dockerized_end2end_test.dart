@@ -58,7 +58,7 @@ void main() {
     test(
       'build and use docker image to analyze packages',
       () async {
-        await buildDockerImage();
+        await buildWorkerDockerImage();
 
         final packagesWithScreenshots = {'google_fonts'};
         final packages = ['retry', ...packagesWithScreenshots];
