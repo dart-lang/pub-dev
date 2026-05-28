@@ -1,3 +1,12 @@
+# Stage 0: Build signature verifier
+FROM golang:latest AS go-build
+RUN apt-get update && \
+  apt-get upgrade -y && \
+  rm -rf /var/lib/apt/lists/*
+WORKDIR /project
+COPY pkg/signature_verifier /project/pkg/signature_verifier
+RUN cd /project/pkg/signature_verifier && ./build.sh
+
 # Keep version in-sync with .github/workflows/all-test.yml and app/lib/shared/versions.dart
 FROM mirror.gcr.io/library/dart:3.12.0 AS build
 
@@ -18,10 +27,6 @@ COPY third_party /project/third_party
 COPY tool /project/tool
 COPY pubspec.lock /project/pubspec.lock
 COPY pubspec.yaml /project/pubspec.yaml
-
-WORKDIR /project/pkg/signature_verifier
-RUN dart /project/tool/pub_get_offline.dart /project/pkg/signature_verifier
-RUN ./build.sh
 
 WORKDIR /project/pkg/web_app
 RUN dart /project/tool/pub_get_offline.dart /project/pkg/web_app
@@ -60,8 +65,7 @@ COPY --from=build /project/doc /project/doc
 COPY --from=build /project/app/lib/frontend/templates /project/app/lib/frontend/templates
 COPY --from=build /project/app/.dart_tool/pub-search-data /project/app/.dart_tool/pub-search-data
 COPY --from=build /project/.dart_tool/package_config.json /project/.dart_tool/package_config.json
-COPY --from=build /project/pkg/signature_verifier/dist/bin/signature_verifier /project/app/dist/bin/signature_verifier
-COPY --from=build /project/pkg/signature_verifier/dist/lib /project/app/dist/lib
+COPY --from=go-build /project/pkg/signature_verifier/signature_verifier /project/app/signature_verifier
 # Put the kernel snapshots at the same place as the source files for Isolate.spawnUri to work transparently.
 COPY --from=build /project/app/search_index.dill /project/app/search_index.dill
 COPY --from=build /project/app/sdk_isolate_index.dill /project/app/sdk_isolate_index.dill

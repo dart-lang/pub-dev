@@ -137,14 +137,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.12.6"
-  change_case:
-    dependency: transitive
-    description:
-      name: change_case
-      sha256: e41ef3df58521194ef8d7649928954805aeb08061917cf658322305e61568003
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
   characters:
     dependency: transitive
     description:
@@ -217,14 +209,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.2"
-  code_assets:
-    dependency: transitive
-    description:
-      name: code_assets
-      sha256: "83ccdaa064c980b5596c35dd64a8d3ecc68620174ab9b90b6343b753aa721687"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   code_builder:
     dependency: transitive
     description:
@@ -393,14 +377,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
-  hooks:
-    dependency: transitive
-    description:
-      name: hooks
-      sha256: "025f060e86d2d4c3c47b56e33caf7f93bf9283340f26d23424ebcfccf34f621e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.3"
   html:
     dependency: transitive
     description:
@@ -585,14 +561,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.1"
-  native_toolchain_cmake:
-    dependency: transitive
-    description:
-      name: native_toolchain_cmake
-      sha256: cd4865568c57f03c7ab1f138cc5032c5f77825d27083d6f5a3e9bbb3e8014a87
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.5"
   neat_cache:
     dependency: transitive
     description:
@@ -729,14 +697,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.20.0"
-  record_use:
-    dependency: transitive
-    description:
-      name: record_use
-      sha256: "2551bd8eecfe95d14ae75f6021ad0248be5c27f138c2ec12fcb52b500b3ba1ed"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.6.0"
   retry:
     dependency: transitive
     description:
@@ -1025,14 +985,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.3"
-  webcrypto:
-    dependency: transitive
-    description:
-      name: webcrypto
-      sha256: "9885ed99a846191542dd6ca820c83a098117df56be57453832233a3fef68f3f2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.6.1"
   webkit_inspection_protocol:
     dependency: transitive
     description:

@@ -1,0 +1,3 @@
+go 1.24.13
+
+use ./pkg/signature_verifier
