@@ -79,6 +79,46 @@ jobs:
       env:
         PUB_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
 
+  pub_integration_test:
+    name: pkg/pub_integration/ (shard ${{matrix.shard}})
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 4]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+    - name: Cache PUB_CACHE
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
+      with:
+        path: ~/.pub-cache
+        key: ${{runner.os}}-pub-cache
+    - name: Setup Dart SDK
+      uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      with:
+        sdk: ${{env.DART_SDK_VERSION}}
+    - name: Checkout repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - run: dart pub get
+    - run: dart tool/trigger_puppeteer_download.dart
+      working-directory: pkg/pub_integration
+    - run: find test/ -type f -name "*_test.dart" | awk -v shard="${{ strategy.job-index }}" -v total="${{ strategy.job-total }}" 'NR % total == shard' | xargs -I {} dart test -j 1 --run-skipped {}
+      working-directory: pkg/pub_integration
+      env:
+        PUB_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
+
   define_pkg_list:
     runs-on: ubuntu-latest
     outputs:
@@ -89,7 +129,7 @@ jobs:
       - name: List packages
         id: packages
         run: |
-          DIRS=$(find . -maxdepth 1 -mindepth 1 -type d -printf '"%f"\n' | tr '\n' ',' | sed 's/,$//')
+          DIRS=$(find . -maxdepth 1 -mindepth 1 -type d -printf '"%f"\n' | grep -v pub_integration | tr '\n' ',' | sed 's/,$//')
           echo "packages=[$DIRS]" >> $GITHUB_OUTPUT
         working-directory: pkg/
 
@@ -146,13 +186,7 @@ jobs:
       shell: bash
     - name: Run tests
       if: steps.check_test_dir.outputs.exists == 'true'
-      run: |
-        if [[ "${{ matrix.package }}" == "pub_integration" ]]; then
-          dart tool/trigger_puppeteer_download.dart
-          dart test --run-skipped -j 1
-        else
-          dart test --run-skipped
-        fi
+      run: dart test --run-skipped
       working-directory: pkg/${{matrix.package}}
       env:
         PUB_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
