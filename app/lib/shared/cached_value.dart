@@ -29,18 +29,17 @@ typedef UpdateFn<T> = Future<T?> Function();
 ///
 /// - The default `timeout` value is half of the `interval`.
 ///
-/// - `maxAge` is used to affect `isAvailable` and also to raise the
-///   level of logging if the updates happen to fail longer than the
-///   specified age.
+/// Once a value is successfully fetched, it is held indefinitely (even if
+/// subsequent updates fail). `isAvailable` returns `true` as long as a
+/// non-null value has been set.
 ///
 /// `CacheValue` will eventually retry the `update` function when the next scheduled update happens.
 class CachedValue<T> {
   final String _name;
   final UpdateFn<T> _updateFn;
-  final Duration _maxAge;
   final Duration _interval;
   final Duration _timeout;
-  DateTime _lastUpdated = clock.now();
+  DateTime _lastAttempted = DateTime(0);
   T? _value;
   Completer? _ongoingCompleter;
   bool _closing = false;
@@ -48,22 +47,16 @@ class CachedValue<T> {
 
   CachedValue({
     required String name,
-    required Duration maxAge,
     required Duration interval,
     required UpdateFn<T> updateFn,
-    Duration? timeout,
   }) : _name = name,
-       _maxAge = maxAge,
        _interval = interval,
        _updateFn = updateFn,
-       _timeout = timeout ?? interval ~/ 2;
-
-  DateTime get lastUpdated => _lastUpdated;
-  Duration get age => clock.now().difference(_lastUpdated);
+       _timeout = interval ~/ 2;
 
   bool get isAvailable {
     _scheduleIfNeeded();
-    return _value != null && age <= _maxAge;
+    return _value != null;
   }
 
   /// The cached value, may be null.
@@ -73,7 +66,8 @@ class CachedValue<T> {
   }
 
   void _scheduleIfNeeded() {
-    if (!_scheduled && !_closing && (_value == null || age > _interval)) {
+    final age = clock.now().difference(_lastAttempted);
+    if (!_scheduled && !_closing && age > _interval) {
       _scheduled = true;
       asyncQueue.addAsyncFn(() async {
         try {
@@ -88,7 +82,7 @@ class CachedValue<T> {
   @visibleForTesting
   void setValue(T v) {
     _value = v;
-    _lastUpdated = clock.now();
+    _lastAttempted = clock.now();
   }
 
   /// Updates the cached value.
@@ -107,27 +101,19 @@ class CachedValue<T> {
     if (_closing) return;
     _ongoingCompleter = Completer();
     try {
-      _value = await _updateFn().timeout(_timeout);
-      if (_value != null) {
-        _lastUpdated = clock.now();
+      final newValue = await _updateFn().timeout(_timeout);
+      if (newValue != null) {
+        _value = newValue;
       }
     } catch (e, st) {
-      if (age <= _maxAge) {
-        _logger.pubNoticeWarning(
-          'cached_value',
-          'Updating cached `$_name` value failed.',
-          e,
-          st,
-        );
-      } else {
-        _logger.pubNoticeShout(
-          'cached_value',
-          'Updating cached `$_name` value failed.',
-          e,
-          st,
-        );
-      }
+      _logger.pubNoticeWarning(
+        'cached_value',
+        'Updating cached `$_name` value failed.',
+        e,
+        st,
+      );
     } finally {
+      _lastAttempted = clock.now();
       final c = _ongoingCompleter;
       _ongoingCompleter = null;
       c?.complete();

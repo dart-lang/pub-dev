@@ -15,7 +15,6 @@ void main() {
       final cv = CachedValue<String>(
         name: 'test',
         interval: Duration(hours: 1),
-        maxAge: Duration(days: 1),
         updateFn: () async => null,
       );
       expect(cv.isAvailable, isFalse);
@@ -32,7 +31,6 @@ void main() {
       final cv = CachedValue<String>(
         name: 'test',
         interval: Duration(milliseconds: 100),
-        maxAge: Duration(days: 1),
         updateFn: () async {
           count++;
           throw Exception();
@@ -52,11 +50,72 @@ void main() {
     final cv = CachedValue<String>(
       name: 'test',
       interval: Duration(milliseconds: 100),
-      maxAge: Duration(days: 1),
       updateFn: () async => 'x',
     );
     await cv.update();
     expect(cv.isAvailable, isTrue);
     expect(cv.value, 'x');
   });
+
+  test('value is retained after failed update', () async {
+    var shouldFail = false;
+    final cv = CachedValue<String>(
+      name: 'test',
+      interval: Duration(milliseconds: 100),
+      updateFn: () async {
+        if (shouldFail) throw Exception('fail');
+        return 'x';
+      },
+    );
+    await cv.update();
+    expect(cv.value, 'x');
+
+    shouldFail = true;
+    await cv.update();
+    expect(cv.isAvailable, isTrue);
+    expect(cv.value, 'x');
+  });
+
+  test('null return does not overwrite existing value', () async {
+    var returnNull = false;
+    final cv = CachedValue<String>(
+      name: 'test',
+      interval: Duration(milliseconds: 100),
+      updateFn: () async {
+        if (returnNull) return null;
+        return 'x';
+      },
+    );
+    await cv.update();
+    expect(cv.value, 'x');
+
+    returnNull = true;
+    await cv.update();
+    expect(cv.isAvailable, isTrue);
+    expect(cv.value, 'x');
+  });
+
+  testWithProfile(
+    'interval throttles retries after failure',
+    fn: () async {
+      var count = 0;
+      final cv = CachedValue<String>(
+        name: 'test',
+        interval: Duration(hours: 1),
+        updateFn: () async {
+          count++;
+          throw Exception('fail');
+        },
+      );
+      await cv.update();
+      expect(count, 1);
+
+      // accessing the value many times should not schedule more updates
+      for (var i = 0; i < 100; i++) {
+        cv.value;
+      }
+      await asyncQueue.ongoingProcessing;
+      expect(count, 1);
+    },
+  );
 }

@@ -141,7 +141,6 @@ CachedValue<List<PackageView>> _cachedValue(
     // matter much, as the search index itself won't get updated only at
     // every 15 minutes.
     interval: Duration(minutes: 15),
-    maxAge: Duration(hours: 24),
     updateFn: () async {
       final form = SearchForm(query: query, order: order, pageSize: 100);
       final page = await searchAdapter.search(
