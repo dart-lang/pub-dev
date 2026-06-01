@@ -2515,10 +2515,10 @@ final class _PackageDataAccess {
     return package != null;
   }
 
-  Stream<({String name})> listAllNames() async* {
+  Stream<String> listAllNames() async* {
     final query = _db.query<Package>();
     await for (final p in query.run()) {
-      yield (name: p.name!);
+      yield p.name!;
     }
   }
 

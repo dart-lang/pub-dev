@@ -53,7 +53,10 @@ String get runtimeVersion => acceptedRuntimeVersions.first;
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
-String get gcBeforeRuntimeVersion => acceptedRuntimeVersions.last;
+String get gcBeforeRuntimeVersion => acceptedRuntimeVersions.length == 1
+    // TODO: remove after task backend is released
+    ? '2026.04.29'
+    : acceptedRuntimeVersions.last;
 
 /// Returns true if the given version should be considered as obsolete and can
 /// be deleted.

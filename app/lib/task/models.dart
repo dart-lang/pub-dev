@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -134,10 +135,6 @@ class PackageState extends db.ExpandoModel<String> {
   @db.DateTimeProperty(required: true, indexed: true)
   DateTime finished = initialTimestamp;
 
-  /// Returns true if the current [PackageState] instance is new, no version analysis
-  /// has not completed yet (with neither success nor failure).
-  bool get hasNeverFinished => finished == initialTimestamp;
-
   @override
   String toString() =>
       'PackageState(' +
@@ -247,6 +244,12 @@ List<String> derivePendingVersions({
   }
 
   return list.map((s) => s.toString()).toList();
+}
+
+extension TaskStateExt on Task {
+  /// Returns true if the current [PackageState] instance is new, no version analysis
+  /// has not completed yet (with neither success nor failure).
+  bool get hasNeverFinished => finished == initialTimestamp;
 }
 
 /// State of a given `version` within a [PackageState].
