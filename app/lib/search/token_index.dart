@@ -28,13 +28,112 @@ class TokenMatch {
   }
 }
 
-/// Per-token posting data: the list of document indices and their quantized weights.
+/// Per-token posting data: interleaved varint delta-encoded document indices
+/// and quantized weights in a single byte array.
+///
+/// ## Byte format
+///
+/// Entries are stored sequentially with no separators or length prefix:
+///
+/// ```
+/// [entry0] [entry1] [entry2] ...
+/// ```
+///
+/// Each entry is:
+///
+/// ```
+/// [delta varint: 1-5 bytes] [weight: 1 byte]
+/// ```
+///
+/// - **Delta varint**: LEB128-encoded difference from the previous document
+///   index (or 0 for the first entry). Each byte stores 7 data bits in
+///   bits 0-6; bit 7 is the continuation flag (1 = more bytes follow).
+///   Typical deltas (1-127) encode in a single byte.
+/// - **Weight**: quantized token weight, 0-255, where the original float
+///   weight is recovered as `(weight + 1) / 256`.
+///
+/// Example: doc indices [3, 5, 200] with weights [255, 128, 64] encodes as:
+///
+/// ```
+/// 03 FF  02 80  C3 01 40
+/// ─────  ─────  ────────
+///  3,255  2,128  195(=200-5), 64  ← 195 needs two varint bytes: 0xC3 0x01
+/// ```
 class TokenPostings {
-  final List<int> indices;
-  final Uint8List weights;
+  /// Interleaved varint-delta-encoded doc indices and weights.
+  final Uint8List _data;
 
-  TokenPostings(this.indices, this.weights)
-    : assert(indices.length == weights.length);
+  TokenPostings._(this._data);
+
+  /// Iterates over all entries, calling [fn] with the document index and
+  /// the quantized weight for each entry. No objects are allocated.
+  void forEach(void Function(int docIndex, int weight) fn) {
+    var pos = 0;
+    var docIndex = 0;
+
+    while (pos < _data.length) {
+      var delta = 0;
+      var shift = 0;
+      int byte;
+
+      do {
+        byte = _data[pos++];
+        delta |= (byte & 0x7F) << shift;
+        shift += 7;
+      } while (byte >= 0x80);
+
+      docIndex += delta;
+      fn(docIndex, _data[pos++]);
+    }
+  }
+}
+
+/// Builds a [TokenPostings] incrementally using 128-byte buffer chunks,
+/// concatenating into a single [Uint8List] at the end.
+class _PostingsBuilder {
+  static const _bufferSize = 128;
+
+  List<Uint8List>? _chunks;
+  final _buffer = Uint8List(_bufferSize);
+  int _pos = 0;
+  int _prev = 0;
+
+  void add(int docIndex, int weight) {
+    // worst case: 5 bytes varint + 1 byte weight = 6 bytes
+    if (_pos + 6 > _bufferSize) _flush();
+    var delta = docIndex - _prev;
+    assert(delta >= 0);
+
+    _prev = docIndex;
+    while (delta >= 0x80) {
+      _buffer[_pos++] = delta & 0x7F | 0x80;
+      delta >>= 7;
+    }
+    _buffer[_pos++] = delta;
+    _buffer[_pos++] = weight;
+  }
+
+  void _flush() {
+    (_chunks ??= []).add(_buffer.sublist(0, _pos));
+    _pos = 0;
+  }
+
+  TokenPostings build() {
+    final chunks = _chunks;
+    if (chunks == null) {
+      // Everything fits in a single buffer, no chunks were flushed.
+      return TokenPostings._(_buffer.sublist(0, _pos));
+    }
+    if (_pos > 0) _flush();
+    final total = chunks.fold<int>(0, (s, c) => s + c.length);
+    final result = Uint8List(total);
+    var offset = 0;
+    for (final chunk in chunks) {
+      result.setRange(offset, offset + chunk.length, chunk);
+      offset += chunk.length;
+    }
+    return TokenPostings._(result);
+  }
 }
 
 /// Stores a token -> documentId inverted index with weights.
@@ -49,74 +148,62 @@ class TokenIndex {
   TokenIndex._(this._length, this._postings);
 
   factory TokenIndex(List<String?> values, {bool skipDocumentWeight = false}) {
-    final tokenIndices = <String, List<int>>{};
-    final tempWeights = <String, List<int>>{};
+    final builders = <String, _PostingsBuilder>{};
     for (var i = 0; i < values.length; i++) {
       final text = values[i];
       if (text == null) continue;
-      _build(i, text, skipDocumentWeight, tokenIndices, tempWeights);
+      _addTokens(i, tokenize(text), skipDocumentWeight, builders);
     }
-    return TokenIndex._(values.length, _toPostings(tokenIndices, tempWeights));
+    return TokenIndex._(values.length, _finalize(builders));
   }
 
   factory TokenIndex.fromValues(
     List<List<String>?> values, {
     bool skipDocumentWeight = false,
   }) {
-    final tokenIndices = <String, List<int>>{};
-    final tempWeights = <String, List<int>>{};
+    final builders = <String, _PostingsBuilder>{};
     for (var i = 0; i < values.length; i++) {
       final parts = values[i];
       if (parts == null || parts.isEmpty) continue;
+      // Merge tokens from all texts for this doc index, keeping max weight.
+      final merged = <String, double>{};
       for (final text in parts) {
-        _build(i, text, skipDocumentWeight, tokenIndices, tempWeights);
+        final tokens = tokenize(text);
+        if (tokens == null) continue;
+        for (final e in tokens.entries) {
+          final old = merged[e.key];
+          if (old == null || e.value > old) {
+            merged[e.key] = e.value;
+          }
+        }
       }
+      _addTokens(i, merged, skipDocumentWeight, builders);
     }
-    return TokenIndex._(values.length, _toPostings(tokenIndices, tempWeights));
+    return TokenIndex._(values.length, _finalize(builders));
   }
 
-  static Map<String, TokenPostings> _toPostings(
-    Map<String, List<int>> tokenIndices,
-    Map<String, List<int>> tempWeights,
+  static Map<String, TokenPostings> _finalize(
+    Map<String, _PostingsBuilder> builders,
   ) {
-    return tokenIndices.map(
-      (token, indices) => MapEntry(
-        token,
-        TokenPostings(indices, Uint8List.fromList(tempWeights[token]!)),
-      ),
-    );
+    return builders.map((token, builder) => MapEntry(token, builder.build()));
   }
 
-  static void _build(
-    int i,
-    String text,
+  /// Quantizes token weights and appends one entry per token to its builder.
+  static void _addTokens(
+    int docIndex,
+    Map<String, double>? tokens,
     bool skipDocumentWeight,
-    Map<String, List<int>> tokenIndices,
-    Map<String, List<int>> tempWeights,
+    Map<String, _PostingsBuilder> builders,
   ) {
-    final tokens = tokenize(text);
-    if (tokens == null || tokens.isEmpty) {
-      return;
-    }
+    if (tokens == null || tokens.isEmpty) return;
     // Document weight is a highly scaled-down proxy of the length.
     final dw = skipDocumentWeight ? 1.0 : 1 + math.log(1 + tokens.length) / 100;
     for (final e in tokens.entries) {
-      final token = e.key;
       final weight = e.value / dw;
       final quantized = (weight * 256 - 1).round().clamp(0, 255);
-      final indices = tokenIndices.putIfAbsent(token, () => []);
-      final weights = tempWeights.putIfAbsent(token, () => []);
-      if (indices.isNotEmpty && indices.last == i) {
-        if (quantized > weights.last) {
-          weights.last = quantized;
-        }
-      } else {
-        // Ensuring that we always update or increment the index.
-        // TODO: refactor this to be self-evident from the call sequence
-        assert(indices.isEmpty || indices.last < i);
-        indices.add(i);
-        weights.add(quantized);
-      }
+      builders
+          .putIfAbsent(e.key, _PostingsBuilder.new)
+          .add(docIndex, quantized);
     }
   }
 
@@ -190,12 +277,9 @@ class TokenIndex {
     for (final entry in tokenMatch.entries) {
       final matchWeight = entry.value;
       final posting = _postings[entry.key]!;
-      for (var i = 0; i < posting.indices.length; i++) {
-        score.setValueMaxOf(
-          posting.indices[i],
-          matchWeight * (posting.weights[i] + 1) / 256 * weight,
-        );
-      }
+      posting.forEach((docIndex, w) {
+        score.setValueMaxOf(docIndex, matchWeight * (w + 1) / 256 * weight);
+      });
     }
   }
 }
