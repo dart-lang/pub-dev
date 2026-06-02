@@ -28,19 +28,25 @@ class TokenMatch {
   }
 }
 
+/// Per-token posting data: the list of document indices and their quantized weights.
+class TokenPostings {
+  final List<int> indices;
+  final Uint8List weights;
+
+  TokenPostings(this.indices, this.weights)
+    : assert(indices.length == weights.length);
+}
+
 /// Stores a token -> documentId inverted index with weights.
 class TokenIndex {
   final int _length;
 
-  /// maps tokens to arrays of document indices
-  final Map<String, List<int>> _tokenIndices;
-
-  /// maps tokens to arrays of quantized weights
-  final Map<String, Uint8List> _tokenWeights;
+  /// Maps tokens to their posting data (document indices + quantized weights).
+  final Map<String, TokenPostings> _postings;
 
   late final _scorePool = ScorePool(_length);
 
-  TokenIndex._(this._length, this._tokenIndices, this._tokenWeights);
+  TokenIndex._(this._length, this._postings);
 
   factory TokenIndex(List<String?> values, {bool skipDocumentWeight = false}) {
     final tokenIndices = <String, List<int>>{};
@@ -50,11 +56,7 @@ class TokenIndex {
       if (text == null) continue;
       _build(i, text, skipDocumentWeight, tokenIndices, tempWeights);
     }
-    final tokenWeights = <String, Uint8List>{};
-    for (final e in tempWeights.entries) {
-      tokenWeights[e.key] = Uint8List.fromList(e.value);
-    }
-    return TokenIndex._(values.length, tokenIndices, tokenWeights);
+    return TokenIndex._(values.length, _toPostings(tokenIndices, tempWeights));
   }
 
   factory TokenIndex.fromValues(
@@ -70,11 +72,19 @@ class TokenIndex {
         _build(i, text, skipDocumentWeight, tokenIndices, tempWeights);
       }
     }
-    final tokenWeights = <String, Uint8List>{};
-    for (final e in tempWeights.entries) {
-      tokenWeights[e.key] = Uint8List.fromList(e.value);
-    }
-    return TokenIndex._(values.length, tokenIndices, tokenWeights);
+    return TokenIndex._(values.length, _toPostings(tokenIndices, tempWeights));
+  }
+
+  static Map<String, TokenPostings> _toPostings(
+    Map<String, List<int>> tokenIndices,
+    Map<String, List<int>> tempWeights,
+  ) {
+    return tokenIndices.map(
+      (token, indices) => MapEntry(
+        token,
+        TokenPostings(indices, Uint8List.fromList(tempWeights[token]!)),
+      ),
+    );
   }
 
   static void _build(
@@ -120,7 +130,7 @@ class TokenIndex {
       final tokens = tokenize(word, isSplit: true) ?? {};
 
       final present = tokens.keys
-          .where((token) => _tokenIndices.containsKey(token))
+          .where((token) => _postings.containsKey(token))
           .toList();
       if (present.isEmpty) {
         return TokenMatch();
@@ -178,14 +188,12 @@ class TokenIndex {
     assert(score.length == _length);
     final tokenMatch = await lookupTokens(word);
     for (final entry in tokenMatch.entries) {
-      final token = entry.key;
       final matchWeight = entry.value;
-      final indices = _tokenIndices[token]!;
-      final weights = _tokenWeights[token]!;
-      for (var i = 0; i < indices.length; i++) {
+      final posting = _postings[entry.key]!;
+      for (var i = 0; i < posting.indices.length; i++) {
         score.setValueMaxOf(
-          indices[i],
-          matchWeight * (weights[i] + 1) / 256 * weight,
+          posting.indices[i],
+          matchWeight * (posting.weights[i] + 1) / 256 * weight,
         );
       }
     }
