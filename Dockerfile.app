@@ -70,6 +70,10 @@ COPY --from=go-build /project/pkg/signature_verifier/signature_verifier /project
 COPY --from=build /project/app/search_index.dill /project/app/search_index.dill
 COPY --from=build /project/app/sdk_isolate_index.dill /project/app/sdk_isolate_index.dill
 
+COPY --from=build /bin/sh /bin/sh
+COPY --from=build /bin/sleep /bin/sleep
+COPY --from=build /project/tool/run-wrapper.sh /project/tool/run-wrapper.sh
+
 WORKDIR /project/app
 EXPOSE 8080
-ENTRYPOINT ["/usr/lib/dart/bin/dart", "/project/app/server.jit"]
+ENTRYPOINT ["/project/tool/run-wrapper.sh", "/usr/lib/dart/bin/dart", "/project/app/server.jit"]
