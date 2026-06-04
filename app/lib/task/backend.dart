@@ -368,22 +368,6 @@ class TaskBackend {
     bool updateDependents = false,
     bool refreshVersionsCache = false,
   }) async {
-    await _database.transactWithRetry((db) async {
-      await _trackPackage(
-        db,
-        packageName,
-        updateDependents: updateDependents,
-        refreshVersionsCache: refreshVersionsCache,
-      );
-    });
-  }
-
-  Future<void> _trackPackage(
-    Database<PrimarySchema> db,
-    String packageName, {
-    bool updateDependents = false,
-    bool refreshVersionsCache = false,
-  }) async {
     var lastVersionCreated = initialTimestamp;
     String? latestVersion;
     late package_api.PackageData data;
@@ -395,14 +379,16 @@ class TaskBackend {
     } on NotFoundException catch (_) {
       // If package is not visible, we should remove it!
       for (final rv in acceptedRuntimeVersions) {
-        await db.tasks.delete(rv, packageName).execute();
+        await _database.withRetry(
+          (db) => db.tasks.delete(rv, packageName).execute(),
+        );
       }
       return;
     }
     final versions = _versionsToTrack(
       data,
     ).map((v) => v.canonicalizedVersion).toList();
-    final changed = await withRetryTransaction(_datastore, (tx) async {
+    final changed = await _database.transactWithRetry((db) async {
       final task = await db.tasksAccess.lookupOrNull(packageName);
       latestVersion = data.latest.version;
 
@@ -516,19 +502,25 @@ class TaskBackend {
     if (updateDependents &&
         !lastVersionCreated.isAtSameMomentAs(initialTimestamp)) {
       // Update all tasks' `last_dependency_changed` column.
-      await db.tasks
-          .where(
-            (task) =>
-                task.dependencies
-                    .where((deps) => deps.dependency.equals(packageName.asExpr))
-                    .exists() &
-                task.last_dependency_changed.isBeforeValue(lastVersionCreated),
-          )
-          .update(
-            (task, set) =>
-                set(last_dependency_changed: lastVersionCreated.asExpr),
-          )
-          .execute();
+      await _database.withRetry(
+        (db) => db.tasks
+            .where(
+              (task) =>
+                  task.dependencies
+                      .where(
+                        (deps) => deps.dependency.equals(packageName.asExpr),
+                      )
+                      .exists() &
+                  task.last_dependency_changed.isBeforeValue(
+                    lastVersionCreated,
+                  ),
+            )
+            .update(
+              (task, set) =>
+                  set(last_dependency_changed: lastVersionCreated.asExpr),
+            )
+            .execute(),
+      );
     }
   }
 
