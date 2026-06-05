@@ -163,7 +163,7 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
       for (final zone in compute.zones) {
         banZone(zone, minutes: 10);
       }
-    } on Exception catch (e, st) {
+    } catch (e, st) {
       // No idea what happened, but for robustness we'll stop using the zone
       // and shout into the logs
       _log.shout(
