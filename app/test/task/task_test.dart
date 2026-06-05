@@ -727,7 +727,7 @@ void main() {
 
         // verify token is now aborted
         final ps = await primaryDatabase!.withRetry(
-          (schema) => schema.tasksAccess.lookupOrNull('neon'),
+          (schema) => schema.taskLookupOrNull('neon'),
         );
         expect(ps!.state.versions[v.version]?.secretToken, isNull);
         expect(ps.state.abortedTokens, isNotEmpty);
@@ -772,7 +772,7 @@ void main() {
           ),
         );
         final ps = await primaryDatabase!.withRetry(
-          (schema) => schema.tasksAccess.lookupOrNull('neon'),
+          (schema) => schema.taskLookupOrNull('neon'),
         );
         expect(
           ps!.state.abortedTokens.where((x) => x.token == v.token),
