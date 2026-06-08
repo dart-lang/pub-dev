@@ -262,30 +262,30 @@ class TaskBackend {
     await pool.done;
 
     // Check that all [PackageState] entities have a matching [Package] entity.
+    final packagesToDelete = <String>{};
     await _database.withRetry((db) async {
-      final packagesToDelete = <String>{};
       await for (final state in db.tasksAccess.listAllForCurrentRuntime()) {
         if (packageNames.contains(state.package)) {
           continue;
         }
         // Lookup the package to ensure it really doesn't exist
-        if (!await _datastore.packages.exists(state.package)) {
+        if (await _datastore.packages.exists(state.package)) {
           continue;
         }
         packagesToDelete.add(state.package);
       }
-      for (final package in packagesToDelete) {
-        try {
-          await db.tasksAccess.delete(package);
-        } catch (e, st) {
-          _log.severe('failed to untrack "$package"', e, st);
-          if (error == null) {
-            error = e; // save [e] for later, if this is the first failure
-            stackTrace = st;
-          }
+    });
+    for (final package in packagesToDelete) {
+      try {
+        await _database.withRetry((db) => db.tasksAccess.delete(package));
+      } catch (e, st) {
+        _log.severe('failed to untrack "$package"', e, st);
+        if (error == null) {
+          error = e; // save [e] for later, if this is the first failure
+          stackTrace = st;
         }
       }
-    });
+    }
 
     // If we had any error, we rethrow to ensure that any background task
     // calling this method won't register completion as successful.
