@@ -290,8 +290,7 @@ class TaskBackend {
     // If we had any error, we rethrow to ensure that any background task
     // calling this method won't register completion as successful.
     if (error != null) {
-      // Hack to rethrow [error] with [stackTrace]
-      await Future.error(error!, stackTrace);
+      Error.throwWithStackTrace(error!, stackTrace!);
     }
   }
 

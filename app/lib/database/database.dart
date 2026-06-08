@@ -396,24 +396,25 @@ extension PrimaryDatabaseExt on PrimaryDatabase {
     Future<K> Function(Database<PrimarySchema> db) fn,
   ) async {
     if (Zone.current[_retryKey] == null) {
-      return await Zone.current.fork(zoneValues: {_retryKey: true}).run(() async {
-        return await retry(
-          () async {
-            try {
-              return await fn(_db);
-            } on TransactionAbortedException catch (e) {
-              final inner = e.reason;
-              if (inner is Error || inner is ResponseException) {
-                // TODO: we should keep and use the original stacktrace in typed_sql's exception
-                throw inner;
+      return await Zone.current.fork(zoneValues: {_retryKey: true}).run(
+        () async {
+          return await retry(
+            () async {
+              try {
+                return await fn(_db);
+              } on TransactionAbortedException catch (e, st) {
+                final inner = e.reason;
+                if (inner is Error || inner is ResponseException) {
+                  Error.throwWithStackTrace(inner, st);
+                }
+                rethrow;
               }
-              rethrow;
-            }
-          },
-          maxAttempts: 3,
-          retryIf: (e) => e is DatabaseException,
-        );
-      });
+            },
+            maxAttempts: 3,
+            retryIf: (e) => e is DatabaseException,
+          );
+        },
+      );
     } else {
       return await fn(_db);
     }
