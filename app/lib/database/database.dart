@@ -285,16 +285,13 @@ String _expandConnectionUrl(String url) {
   final uri = Uri.parse(url.trim());
   return uri
       .replace(
-        queryParameters: uri.queryParameters.map(
-          (k, v) => MapEntry(k, v.toString().trim()),
-        ),
-      )
-      .replace(
         queryParameters: {
           // replace connections after an hour (value is in seconds)
           'max_connection_age': '3600',
           'max_connection_count': '8',
-          ...uri.queryParameters,
+          ...uri.queryParameters.map(
+            (k, v) => MapEntry(k, v.toString().trim()),
+          ),
         },
       )
       .toString();
