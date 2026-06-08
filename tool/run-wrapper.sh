@@ -8,10 +8,11 @@ set -u
 EXIT_CODE=$?
 
 if [ "$EXIT_CODE" -eq 0 ]; then
-  echo "[pub-run-wrapper-exited]" >&2
+  echo '{"message": "[pub-run-wrapper-exited]", "severity": "NOTICE", "component": "pub-run-wrapper"}' >&2
+  sleep 3
 else
-  echo "[pub-run-wrapper-failed] (exit code $EXIT_CODE)." >&2
+  echo '{"message": "[pub-run-wrapper-failed] exit code $EXIT_CODE", "severity": "CRITICAL", "component": "pub-run-wrapper"}' >&2
+  sleep 10
 fi
 
-sleep 10
 exit "$EXIT_CODE"
