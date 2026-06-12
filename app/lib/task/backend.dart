@@ -264,7 +264,7 @@ class TaskBackend {
     // Check that all [PackageState] entities have a matching [Package] entity.
     final packagesToDelete = <String>{};
     await _database.withRetry((db) async {
-      await for (final state in db.tasksAccess.listAllForCurrentRuntime()) {
+      await for (final state in db.taskListAllForCurrentRuntime()) {
         if (packageNames.contains(state.package)) {
           continue;
         }
@@ -277,7 +277,7 @@ class TaskBackend {
     });
     for (final package in packagesToDelete) {
       try {
-        await _database.withRetry((db) => db.tasksAccess.delete(package));
+        await _database.withRetry((db) => db.taskDelete(package));
       } catch (e, st) {
         _log.severe('failed to untrack "$package"', e, st);
         if (error == null) {
@@ -388,7 +388,7 @@ class TaskBackend {
       data,
     ).map((v) => v.canonicalizedVersion).toList();
     final changed = await _database.transactWithRetry((db) async {
-      final task = await db.tasksAccess.lookupOrNull(packageName);
+      final task = await db.taskLookupOrNull(packageName);
       latestVersion = data.latest.version;
 
       // Update the timestamp for when the last version was published.
@@ -525,7 +525,7 @@ class TaskBackend {
 
   /// Garbage collect [PackageState] and results from old runtimeVersions.
   Future<void> garbageCollect() async {
-    await _database.withRetry((db) => db.tasksAccess.deleteBeforeGcRuntime());
+    await _database.withRetry((db) => db.taskDeleteBeforeGcRuntime());
 
     // Limit to 50 concurrent deletion requests
     final pool = Pool(50);
@@ -586,7 +586,7 @@ class TaskBackend {
     }
 
     final task = await _database.withRetry(
-      (db) => db.tasksAccess.lookupOrNull(package),
+      (db) => db.taskLookupOrNull(package),
     );
     if (task == null) {
       throw NotFoundException.resource(
@@ -722,7 +722,7 @@ class TaskBackend {
     }
 
     await _database.transactWithRetry((db) async {
-      final task = await db.tasksAccess.lookupOrNull(package);
+      final task = await db.taskLookupOrNull(package);
       if (task == null) {
         throw NotFoundException.resource(
           'PackageState($runtimeVersion/$package)',
@@ -1035,7 +1035,7 @@ class TaskBackend {
     final status = await cache.taskPackageStatus(package).get(() async {
       for (final rt in acceptedRuntimeVersions) {
         final task = await _database.withRetry(
-          (db) => db.tasksAccess.lookupOrNull(package, runtimeVersion: rt),
+          (db) => db.taskLookupOrNull(package, runtimeVersion: rt),
         );
         // skip states where the entry was created, but no analysis has not finished yet
         if (task == null || task.hasNeverFinished) {
@@ -1070,7 +1070,7 @@ class TaskBackend {
   ) async {
     await backfillTrackingState();
     await _database.withRetry((db) async {
-      await for (final state in db.tasksAccess.listAllForCurrentRuntime()) {
+      await for (final state in db.taskListAllForCurrentRuntime()) {
         final zone = taskWorkerCloudCompute.zones.first;
         // ignore: invalid_use_of_visible_for_testing_member
         final payload = await updatePackageStateWithPendingVersions(
@@ -1091,7 +1091,7 @@ class TaskBackend {
   Future<void> adminBumpPriority(String packageName) async {
     // Ensure we're up-to-date.
     await trackPackage(packageName);
-    await _database.withRetry((db) => db.tasksAccess.bumpPriority(packageName));
+    await _database.withRetry((db) => db.taskBumpPriority(packageName));
   }
 
   /// Returns the latest version of the [package] which has a finished analysis.
@@ -1101,7 +1101,7 @@ class TaskBackend {
     final cachedValue = await cache.latestFinishedVersion(package).get(() async {
       for (final rt in acceptedRuntimeVersions) {
         final task = await _database.withRetry(
-          (db) => db.tasksAccess.lookupOrNull(package, runtimeVersion: rt),
+          (db) => db.taskLookupOrNull(package, runtimeVersion: rt),
         );
         // skip states where the entry was created, but no analysis has not finished yet
         if (task == null || task.hasNeverFinished) {
@@ -1146,7 +1146,7 @@ class TaskBackend {
         final semanticVersion = Version.parse(version);
         for (final rt in acceptedRuntimeVersions) {
           final task = await _database.withRetry(
-            (db) => db.tasksAccess.lookupOrNull(package, runtimeVersion: rt),
+            (db) => db.taskLookupOrNull(package, runtimeVersion: rt),
           );
           // Skip states where the entry was created, but the analysis has not finished yet.
           if (task == null || task.hasNeverFinished) {
@@ -1194,7 +1194,7 @@ class TaskBackend {
     DateTime since,
   ) async {
     return await _database.withRetry(
-      (db) => db.tasksAccess.listFinishedSince(since).toList(),
+      (db) => db.taskListFinishedSince(since).toList(),
     );
   }
 }
@@ -1316,44 +1316,39 @@ List<Version> _versionsToTrack(package_api.PackageData data) {
 
 /// Low-level, narrowly typed data access methods for [Task] entity.
 extension TaskDatabaseExt on Database<PrimarySchema> {
-  _TaskDataAccess get tasksAccess => _TaskDataAccess(this);
-}
-
-final class _TaskDataAccess {
-  late final Database<PrimarySchema> _db;
-
-  _TaskDataAccess(this._db);
-
-  Future<Task?> lookupOrNull(String package, {String? runtimeVersion}) async {
-    return await _db.tasks
+  Future<Task?> taskLookupOrNull(
+    String package, {
+    String? runtimeVersion,
+  }) async {
+    return await tasks
         .byKey(runtimeVersion ?? shared_versions.runtimeVersion, package)
         .fetch();
   }
 
-  Future<void> delete(String package) async {
-    await _db.tasks.byKey(runtimeVersion, package).delete().execute();
+  Future<void> taskDelete(String package) async {
+    await tasks.byKey(runtimeVersion, package).delete().execute();
   }
 
   // GC the old [Task] entities
-  Future<void> deleteBeforeGcRuntime() async {
-    await _db.tasks
+  Future<void> taskDeleteBeforeGcRuntime() async {
+    await tasks
         .where((task) => task.runtime_version < gcBeforeRuntimeVersion.asExpr)
         .delete()
         .execute();
   }
 
-  Stream<({String package})> listAllForCurrentRuntime() {
-    return _db.tasks
+  Stream<({String package})> taskListAllForCurrentRuntime() {
+    return tasks
         .where((task) => task.runtime_version.equalsValue(runtimeVersion))
         .select((task) => (task.package,))
         .stream()
         .map((row) => (package: row));
   }
 
-  Stream<({String package, DateTime finished})> listFinishedSince(
+  Stream<({String package, DateTime finished})> taskListFinishedSince(
     DateTime since,
   ) {
-    return _db.tasks
+    return tasks
         .where((task) => task.finished >= since.asExpr)
         .orderBy((task) => [(task.finished, Order.descending)])
         .select((task) => (task.package, task.finished))
@@ -1361,8 +1356,8 @@ final class _TaskDataAccess {
         .map((e) => (package: e.$1, finished: e.$2));
   }
 
-  Stream<({String package})> selectSomePending(int limit) async* {
-    final query = _db.tasks
+  Stream<({String package})> taskSelectSomePending(int limit) async* {
+    final query = tasks
         .where(
           (task) =>
               task.runtime_version.equalsValue(runtimeVersion) &
@@ -1376,48 +1371,14 @@ final class _TaskDataAccess {
     }
   }
 
-  Future<void> bumpPriority(String packageName) async {
-    await _db.tasks
+  Future<void> taskBumpPriority(String packageName) async {
+    await tasks
         .where(
           (task) =>
               task.runtime_version.equalsValue(runtimeVersion) &
               task.package.equalsValue(packageName),
         )
         .update((_, set) => set(pending_at: initialTimestamp.asExpr))
-        .execute();
-  }
-
-  /// Restores the previous versions map state when starting the tasks on [instanceName] failed.
-  Future<void> restorePreviousVersionsState(
-    String packageName,
-    String instanceName,
-  ) async {
-    final s = await _db.tasks.byKey(runtimeVersion, packageName).fetch();
-    if (s == null) {
-      return; // Presumably, the package was deleted.
-    }
-
-    final versions = s.state.versions;
-    versions.addEntries(
-      versions.entries
-          .where((e) => e.value.instance == instanceName)
-          .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
-    );
-
-    await _db.tasks
-        .byKey(runtimeVersion, packageName)
-        .update(
-          (_, set) => set(
-            state: TaskState(
-              versions: versions,
-              abortedTokens: s.state.abortedTokens,
-            ).asExpr,
-            pending_at: derivePendingAt(
-              versions: versions,
-              lastDependencyChanged: s.last_dependency_changed,
-            ).asExpr,
-          ),
-        )
         .execute();
   }
 }
