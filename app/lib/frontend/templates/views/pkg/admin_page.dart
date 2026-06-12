@@ -258,6 +258,12 @@ d.Node packageAdminPageNode({
             label: 'Select a version',
             classes: ['-admin-dropdown'],
             options: [
+              material.option(
+                value: '',
+                text: '',
+                disabled: true,
+                selected: true,
+              ),
               ...retractableVersions.map(
                 (v) => material.option(value: v, text: v),
               ),
@@ -285,6 +291,12 @@ d.Node packageAdminPageNode({
             label: 'Select a version',
             classes: ['-admin-dropdown'],
             options: [
+              material.option(
+                value: '',
+                text: '',
+                disabled: true,
+                selected: true,
+              ),
               ...retractedVersions.map(
                 (v) => material.option(value: v, text: v),
               ),

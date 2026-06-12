@@ -170,10 +170,9 @@ Future<Element> markdown(String text) async {
   return md.markdown(text);
 }
 
-/// Get the value of the material dropdown's selected element
+/// Get the value of the dropdown's selected option
 /// (or null if none is selected).
-String? materialDropdownSelected(Element? elem) {
-  if (elem == null) return null;
-  final item = elem.querySelector('.mdc-list-item--selected');
-  return item?.getAttribute('data-value');
+String? dropdownSelected(Element? elem) {
+  if (elem is HTMLSelectElement) return elem.value;
+  return null;
 }

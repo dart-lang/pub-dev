@@ -141,26 +141,6 @@
     }
   }
 
-  .mdc-select:not(.mdc-select--disabled) {
-    .mdc-select__dropdown-icon {
-      fill: var(--mdc_pub-select-label-color);
-    }
-
-    .mdc-select__selected-text {
-      color: var(--mdc_pub-select-text-color);
-    }
-
-    .mdc-floating-label {
-      color: var(--mdc_pub-select-label-color);
-    }
-  }
-
-  .mdc-select--filled:not(.mdc-select--disabled) {
-    .mdc-select__anchor {
-      background-color: var(--mdc_pub-select-background-color);
-    }
-  }
-
   .mdc-data-table {
     border-color: var(--mdc_pub-data_table-border-color);
   }
@@ -201,6 +181,39 @@
 
     .-pub-icon-button-icon--off {
       display: none;
+    }
+  }
+}
+
+
+// Plain HTML dropdown / select component (see material.dart `dropdown`).
+.pub-select {
+  display: inline-block;
+
+  .pub-select-label {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .pub-select-input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--pub-neutral-textColor);
+    background-color: var(--pub-neutral-bgColor);
+    border: 2px solid var(--pub-neutral-borderColor);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.3s;
+
+    &:hover {
+      border-color: var(--pub-neutral-textColor);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--pub-link-text-color);
     }
   }
 }

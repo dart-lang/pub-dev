@@ -93,8 +93,7 @@ extension PubPageExt on Page {
     required String publisherId,
   }) async {
     await gotoOrigin('/packages/$package/admin');
-    await waitAndClick('#-admin-set-publisher-input');
-    await waitAndClick('li[data-value="$publisherId"]');
+    await select('#-admin-set-publisher-input', [publisherId]);
     await waitAndClick('#-admin-set-publisher-button');
     await waitAndClickOnDialogOk();
     await _waitForModelHidden();

@@ -337,8 +337,7 @@ class _PkgAdminWidget {
   }
 
   Future<void> _setRetracted() async {
-    final version =
-        materialDropdownSelected(_retractPackageVersionInput)?.trim() ?? '';
+    final version = dropdownSelected(_retractPackageVersionInput)?.trim() ?? '';
     if (version.isEmpty) {
       await _validateVersionSelection();
       return;
@@ -361,8 +360,7 @@ class _PkgAdminWidget {
 
   Future<void> _restoreRetracted() async {
     final version =
-        materialDropdownSelected(_restoreRetractPackageVersionInput)?.trim() ??
-        '';
+        dropdownSelected(_restoreRetractPackageVersionInput)?.trim() ?? '';
     if (version.isEmpty) {
       await _validateVersionSelection();
       return;
@@ -389,8 +387,7 @@ class _PkgAdminWidget {
   }
 
   Future<void> _setPublisher() async {
-    final publisherId =
-        materialDropdownSelected(_setPublisherInput)?.trim() ?? '';
+    final publisherId = dropdownSelected(_setPublisherInput)?.trim() ?? '';
     if (publisherId.isEmpty) {
       await modalMessage('Input validation', 'Please specify a publisher.');
       return;
