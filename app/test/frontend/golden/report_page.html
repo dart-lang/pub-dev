@@ -161,25 +161,15 @@
             </div>
             <div class="foldable-content">
               <p>Contact information:</p>
-              <div class="mdc-form-field">
-                <label for="report-email">Email</label>
-                <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                  <input id="report-email" class="mdc-text-field__input" type="text" name="email"/>
-                  <div class="mdc-notched-outline">
-                    <div class="mdc-notched-outline__leading"></div>
-                    <div class="mdc-notched-outline__trailing"></div>
-                  </div>
-                </div>
+              <div class="pub-text-field">
+                <label class="pub-text-field-label" for="report-email">Email</label>
+                <input id="report-email" class="pub-text-field-input" type="text" name="email"/>
               </div>
               <p>Please describe the issue you want to report:</p>
-              <label for="report-message">Message</label>
-              <div class="mdc-text-field mdc-text-field--textarea" data-mdc-auto-init="MDCTextField">
-                <div class="mdc-text-field-character-counter">0 / 8192</div>
-                <textarea id="report-message" class="mdc-text-field__input" name="message" rows="10" cols="60" maxlength="8192"></textarea>
-                <div class="mdc-notched-outline">
-                  <div class="mdc-notched-outline__leading"></div>
-                  <div class="mdc-notched-outline__trailing"></div>
-                </div>
+              <div class="pub-text-field pub-text-field--textarea">
+                <label class="pub-text-field-label" for="report-message">Message</label>
+                <textarea id="report-message" class="pub-text-field-input" name="message" rows="10" cols="60" maxlength="8192"></textarea>
+                <div class="pub-text-field-character-counter">0 / 8192</div>
               </div>
               <button id="report-submit" class="mdc-button mdc-button--raised" data-mdc-auto-init="MDCRipple" data-form-api-button="submit">Submit</button>
             </div>

@@ -232,9 +232,6 @@
 
   // Pub-specific Material Design overrides
   --mdc_pub-data_table-border-color: var(--mdc-checkbox-unchecked-color);
-  --mdc_pub-text_field-background-color: rgba(255, 255, 255, 0.1);
-  --mdc_pub-text_field-border-color: var(--mdc-checkbox-unchecked-color);
-  --mdc_pub-text_field-text-color: var(--pub-neutral-textColor);
 
   // Most of our SVG images are black on transparent background and they
   // are almost invisible in dark mode. Ideally we would have different
