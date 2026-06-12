@@ -176,22 +176,45 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
       banZone(zone, minutes: 15);
     }
     if (rollbackPackageState) {
-      // Restire the state of the PackageState for versions that were
-      // suppose to run on the instance we just failed to create.
+      // Restore the state of the PackageState for versions that were
+      // supposed to run on the instance we just failed to create.
       // If this doesn't work, we'll eventually retry. Hence, correctness
       // does not hinge on this transaction being successful.
-      await database.transactWithRetry(
-        (db) => db.tasksAccess.restorePreviousVersionsState(
-          selected.package,
-          instanceName,
-        ),
-      );
+      await database.transactWithRetry((db) async {
+        final s = await db.taskLookupOrNull(selected.package);
+        if (s == null) {
+          return; // Presumably, the package was deleted.
+        }
+
+        final versions = s.state.versions;
+        versions.addEntries(
+          versions.entries
+              .where((e) => e.value.instance == instanceName)
+              .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
+        );
+
+        await db.tasks
+            .byKey(runtimeVersion, selected.package)
+            .update(
+              (_, set) => set(
+                state: TaskState(
+                  versions: versions,
+                  abortedTokens: s.state.abortedTokens,
+                ).asExpr,
+                pending_at: derivePendingAt(
+                  versions: versions,
+                  lastDependencyChanged: s.last_dependency_changed,
+                ).asExpr,
+              ),
+            )
+            .execute();
+      });
     }
   }
 
   // Creating an instance can be slow, we want to schedule them concurrently.
   final selected = await database.withRetry(
-    (db) => db.tasksAccess.selectSomePending(selectLimit).toList(),
+    (db) => db.taskSelectSomePending(selectLimit).toList(),
   );
   await Future.wait(selected.map(scheduleInstance));
 
@@ -230,7 +253,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
   String instanceName,
 ) async {
   return database.transactWithRetry((db) async {
-    final task = await db.tasksAccess.lookupOrNull(package);
+    final task = await db.taskLookupOrNull(package);
     if (task == null) {
       // presumably the package was deleted.
       return null;
