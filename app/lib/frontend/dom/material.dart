@@ -94,7 +94,7 @@ d.Node raisedButton({
   );
 }
 
-/// Renders a material text field.
+/// Renders a plain HTML text field.
 d.Node textField({
   required String id,
   required String? label,
@@ -102,34 +102,26 @@ d.Node textField({
   String? value,
 }) {
   return d.div(
-    classes: ['mdc-form-field'],
+    classes: ['pub-text-field'],
     children: [
-      if (label != null) d.label(attributes: {'for': id}, text: label),
-      d.div(
-        classes: ['mdc-text-field', 'mdc-text-field--outlined'],
-        attributes: {'data-mdc-auto-init': 'MDCTextField'},
-        children: [
-          d.input(
-            type: 'text',
-            id: id,
-            name: name,
-            classes: ['mdc-text-field__input'],
-            value: value,
-          ),
-          d.div(
-            classes: ['mdc-notched-outline'],
-            children: [
-              d.div(classes: ['mdc-notched-outline__leading'], text: ''),
-              d.div(classes: ['mdc-notched-outline__trailing'], text: ''),
-            ],
-          ),
-        ],
+      if (label != null)
+        d.label(
+          classes: ['pub-text-field-label'],
+          attributes: {'for': id},
+          text: label,
+        ),
+      d.input(
+        type: 'text',
+        id: id,
+        name: name,
+        classes: ['pub-text-field-input'],
+        value: value,
       ),
     ],
   );
 }
 
-/// Renders a material text area.
+/// Renders a plain HTML text area.
 d.Node textArea({
   required String id,
   required String label,
@@ -139,38 +131,32 @@ d.Node textArea({
   String? name,
   String? value,
 }) {
-  return d.fragment([
-    d.label(attributes: {'for': id}, text: label),
-    d.div(
-      classes: ['mdc-text-field', 'mdc-text-field--textarea'],
-      attributes: {'data-mdc-auto-init': 'MDCTextField'},
-      children: [
-        d.div(
-          classes: ['mdc-text-field-character-counter'],
-          text: '${value?.length ?? 0} / $maxLength',
-        ),
-        d.element(
-          'textarea',
-          id: id,
-          classes: ['mdc-text-field__input'],
-          attributes: {
-            if (name != null) 'name': name,
-            'rows': '$rows',
-            'cols': '$cols',
-            'maxlength': '$maxLength',
-          },
-          text: value,
-        ),
-        d.div(
-          classes: ['mdc-notched-outline'],
-          children: [
-            d.div(classes: ['mdc-notched-outline__leading'], text: ''),
-            d.div(classes: ['mdc-notched-outline__trailing'], text: ''),
-          ],
-        ),
-      ],
-    ),
-  ]);
+  return d.div(
+    classes: ['pub-text-field', 'pub-text-field--textarea'],
+    children: [
+      d.label(
+        classes: ['pub-text-field-label'],
+        attributes: {'for': id},
+        text: label,
+      ),
+      d.element(
+        'textarea',
+        id: id,
+        classes: ['pub-text-field-input'],
+        attributes: {
+          if (name != null) 'name': name,
+          'rows': '$rows',
+          'cols': '$cols',
+          'maxlength': '$maxLength',
+        },
+        text: value,
+      ),
+      d.div(
+        classes: ['pub-text-field-character-counter'],
+        text: '${value?.length ?? 0} / $maxLength',
+      ),
+    ],
+  );
 }
 
 class DataTableColumn<T> {

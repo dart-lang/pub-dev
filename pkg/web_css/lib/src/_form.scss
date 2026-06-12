@@ -32,13 +32,8 @@
 }
 
 .-pub-form-textfield-row {
-  label {
+  .pub-text-field {
     display: block;
-    margin-bottom: 8px;
-  }
-
-  .mdc-text-field {
-    min-width: 100%;
     margin-bottom: 8px;
   }
 }
@@ -113,34 +108,6 @@
 }
 
 .dark-theme {
-  .mdc-text-field-character-counter {
-    color: var(--mdc_pub-text_field-text-color);
-  }
-
-  .mdc-text-field--outlined,
-  .mdc-text-field--textarea {
-    .mdc-text-field__input {
-      color: var(--mdc_pub-text_field-text-color);
-    }
-
-    .mdc-notched-outline__leading {
-      background: var(--mdc_pub-text_field-background-color);
-      border-color: var(--mdc_pub-text_field-border-color);
-    }
-
-    .mdc-notched-outline__trailing {
-      background: var(--mdc_pub-text_field-background-color);
-      border-color: var(--mdc_pub-text_field-border-color);
-    }
-
-    &:hover {
-      .mdc-notched-outline__leading,
-      .mdc-notched-outline__trailing {
-        border-color: var(--pub-neutral-textColor) !important;
-      }
-    }
-  }
-
   .mdc-data-table {
     border-color: var(--mdc_pub-data_table-border-color);
   }
@@ -201,8 +168,8 @@
     font-size: 14px;
     line-height: 1.6;
     color: var(--pub-neutral-textColor);
-    background-color: var(--pub-neutral-bgColor);
-    border: 2px solid var(--pub-neutral-borderColor);
+    background-color: color-mix(in srgb, var(--pub-neutral-borderColor) 40%, transparent);
+    border: 2px solid color-mix(in srgb, var(--pub-neutral-textColor) 40%, transparent);
     border-radius: 4px;
     cursor: pointer;
     transition: border-color 0.3s;
@@ -214,6 +181,53 @@
     &:focus {
       outline: none;
       border-color: var(--pub-link-text-color);
+    }
+  }
+}
+
+// Plain HTML text field / text area component
+// (see material.dart `textField` / `textArea`).
+.pub-text-field {
+  display: inline-block;
+
+  .pub-text-field-label {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .pub-text-field-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--pub-neutral-textColor);
+    background-color: color-mix(in srgb, var(--pub-neutral-borderColor) 40%, transparent);
+    border: 2px solid color-mix(in srgb, var(--pub-neutral-textColor) 40%, transparent);
+    border-radius: 4px;
+    transition: border-color 0.3s;
+
+    &:hover {
+      border-color: var(--pub-neutral-textColor);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--pub-link-text-color);
+    }
+  }
+
+  &.pub-text-field--textarea {
+    .pub-text-field-input {
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    .pub-text-field-character-counter {
+      margin-top: 4px;
+      font-size: 12px;
+      text-align: right;
+      color: var(--pub-neutral-textColor);
     }
   }
 }
