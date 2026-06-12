@@ -14,6 +14,7 @@ import 'src/mobile_nav.dart';
 import 'src/page_updater.dart';
 import 'src/screenshot_carousel.dart';
 import 'src/search.dart';
+import 'src/widget/core/text_area.dart';
 import 'src/widget/widget.dart' show setupWidgets;
 
 void main() {
@@ -39,6 +40,7 @@ void _setupAllEvents() {
   setupLikesList();
   setupScreenshotCarousel();
   setupWidgets();
+  setupTextAreas();
   _setupDarkThemeButton();
 }
 

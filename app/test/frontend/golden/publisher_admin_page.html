@@ -163,38 +163,22 @@
                 <section class="tab-content detail-tab-admin-content -active">
                   <h2>Publisher information</h2>
                   <div class="-pub-form-textfield-row">
-                    <label for="-publisher-description">Description</label>
-                    <div class="mdc-text-field mdc-text-field--textarea" data-mdc-auto-init="MDCTextField">
-                      <div class="mdc-text-field-character-counter">0 / 4096</div>
-                      <textarea id="-publisher-description" class="mdc-text-field__input" rows="5" cols="60" maxlength="4096"></textarea>
-                      <div class="mdc-notched-outline">
-                        <div class="mdc-notched-outline__leading"></div>
-                        <div class="mdc-notched-outline__trailing"></div>
-                      </div>
+                    <div class="pub-text-field pub-text-field--textarea">
+                      <label class="pub-text-field-label" for="-publisher-description">Description</label>
+                      <textarea id="-publisher-description" class="pub-text-field-input" rows="5" cols="60" maxlength="4096"></textarea>
+                      <div class="pub-text-field-character-counter">0 / 4096</div>
                     </div>
                   </div>
                   <div class="-pub-form-textfield-row">
-                    <div class="mdc-form-field">
-                      <label for="-publisher-website-url">Website</label>
-                      <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                        <input id="-publisher-website-url" class="mdc-text-field__input" type="text" value="https://example.com/"/>
-                        <div class="mdc-notched-outline">
-                          <div class="mdc-notched-outline__leading"></div>
-                          <div class="mdc-notched-outline__trailing"></div>
-                        </div>
-                      </div>
+                    <div class="pub-text-field">
+                      <label class="pub-text-field-label" for="-publisher-website-url">Website</label>
+                      <input id="-publisher-website-url" class="pub-text-field-input" type="text" value="https://example.com/"/>
                     </div>
                   </div>
                   <div class="-pub-form-textfield-row">
-                    <div class="mdc-form-field">
-                      <label for="-publisher-contact-email">Contact email</label>
-                      <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                        <input id="-publisher-contact-email" class="mdc-text-field__input" type="text" value="admin@pub.dev"/>
-                        <div class="mdc-notched-outline">
-                          <div class="mdc-notched-outline__leading"></div>
-                          <div class="mdc-notched-outline__trailing"></div>
-                        </div>
-                      </div>
+                    <div class="pub-text-field">
+                      <label class="pub-text-field-label" for="-publisher-contact-email">Contact email</label>
+                      <input id="-publisher-contact-email" class="pub-text-field-input" type="text" value="admin@pub.dev"/>
                     </div>
                   </div>
                   <div class="-pub-form-right-aligned">
@@ -233,15 +217,9 @@
                       <li>Add and remove members of this publisher</li>
                     </ul>
                     <div class="-pub-form-textfield-row">
-                      <div class="mdc-form-field">
-                        <label for="-admin-invite-member-input">Email address</label>
-                        <div class="mdc-text-field mdc-text-field--outlined" data-mdc-auto-init="MDCTextField">
-                          <input id="-admin-invite-member-input" class="mdc-text-field__input" type="text"/>
-                          <div class="mdc-notched-outline">
-                            <div class="mdc-notched-outline__leading"></div>
-                            <div class="mdc-notched-outline__trailing"></div>
-                          </div>
-                        </div>
+                      <div class="pub-text-field">
+                        <label class="pub-text-field-label" for="-admin-invite-member-input">Email address</label>
+                        <input id="-admin-invite-member-input" class="pub-text-field-input" type="text"/>
                       </div>
                     </div>
                   </div>
