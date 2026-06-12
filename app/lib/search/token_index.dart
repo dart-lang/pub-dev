@@ -353,10 +353,7 @@ class ScorePool extends _AllocationPool<IndexedScore> {
     : super(
         () => IndexedScore(length),
         // sets all values to 0.0
-        (score) => score._values.setAll(
-          0,
-          Iterable.generate(score.length, (_) => 0.0),
-        ),
+        (score) => score._values.fillRange(0, score.length, 0.0),
       );
 }
 
@@ -427,20 +424,6 @@ class IndexedScore {
       final v = values[i];
       _values[i] = v == 0.0 ? 0.0 : _values[i] * v;
     }
-  }
-
-  /// Returns a list where each index describes whether the position in the
-  /// current [IndexedScore] is positive. The current instance changes are
-  /// not reflected in the returned list, it won't change after it was created.
-  List<bool> toIndexedPositiveList() {
-    final list = List.filled(_values.length, false);
-    for (var i = 0; i < _values.length; i++) {
-      final v = _values[i];
-      if (v > 0.0) {
-        list[i] = true;
-      }
-    }
-    return list;
   }
 
   List<int> topIndices(int count, {double? minValue}) {
