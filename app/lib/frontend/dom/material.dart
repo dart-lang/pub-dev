@@ -219,7 +219,7 @@ d.Node dataTable<T>({
   );
 }
 
-/// Renders a material checkbox component.
+/// Renders a plain HTML checkbox component.
 d.Node checkbox({
   required String id,
   required String label,
@@ -229,44 +229,23 @@ d.Node checkbox({
 }) {
   labelNodeContent ??= d.text;
   return d.div(
-    classes: ['mdc-form-field'],
+    classes: ['pub-checkbox'],
     children: [
-      d.div(
-        classes: ['mdc-checkbox'],
-        children: [
-          d.input(
-            type: 'checkbox',
-            classes: ['mdc-checkbox__native-control'],
-            id: id,
-            attributes: {
-              if (checked) 'checked': 'checked',
-              if (indeterminate) 'data-indeterminate': 'true',
-              if (indeterminate) 'aria-checked': 'mixed',
-            },
-          ),
-          d.div(
-            classes: ['mdc-checkbox__background'],
-            children: [
-              d.element(
-                'svg',
-                classes: ['mdc-checkbox__checkmark'],
-                attributes: {'viewBox': '0 0 24 24'},
-                child: d.element(
-                  'path',
-                  classes: ['mdc-checkbox__checkmark-path'],
-                  attributes: {
-                    'fill': 'none',
-                    'd': 'M1.73,12.91 8.1,19.28 22.79,4.59',
-                  },
-                ),
-              ),
-              d.div(classes: ['mdc-checkbox__mixedmark']),
-            ],
-          ),
-          d.div(classes: ['mdc-checkbox__ripple']),
-        ],
+      d.input(
+        type: 'checkbox',
+        id: id,
+        classes: ['pub-checkbox-input'],
+        attributes: {
+          if (checked) 'checked': 'checked',
+          if (indeterminate) 'data-indeterminate': 'true',
+          if (indeterminate) 'aria-checked': 'mixed',
+        },
       ),
-      d.label(attributes: {'for': id}, child: labelNodeContent(label)),
+      d.label(
+        classes: ['pub-checkbox-label'],
+        attributes: {'for': id},
+        child: labelNodeContent(label),
+      ),
     ],
   );
 }
