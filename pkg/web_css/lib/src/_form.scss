@@ -224,7 +224,7 @@
         content: '';
         width: 4px;
         height: 8px;
-        border: solid #fff;
+        border: solid var(--pub-color-white);
         border-width: 0 2px 2px 0;
         // Nudge up to offset the checkmark's lower-hanging heel.
         transform: translateY(-1px) rotate(45deg);
@@ -240,7 +240,7 @@
         content: '';
         width: 8px;
         height: 2px;
-        background-color: #fff;
+        background-color: var(--pub-color-white);
       }
     }
   }
