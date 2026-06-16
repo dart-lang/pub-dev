@@ -122,7 +122,7 @@ Future<PackageSummary> summarizePackageArchive(
     tar = await TarArchive.scan(
       archivePath,
       maxFileCount: maxFileCount,
-      maxTotalLengthBytes: maxArchiveSize,
+      maxTotalLengthBytes: maxUncompressedSize,
     );
   } on TarException catch (e, st) {
     _logger.info('Failed to scan tar archive.', e, st);
