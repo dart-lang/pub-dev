@@ -76,4 +76,4 @@ ENV SANDBOX_RUNNER="${PUB_WORKER_BUILD_DIR}/sandbox_runner"
 
 # This container image is launched by cloud-init, and cloud-init is responsible
 # for shutting down the VM when the container exits.
-ENTRYPOINT ["pub_worker"]
+ENTRYPOINT ["/home/worker/pub-dev/tool/run-wrapper.sh", "pub_worker"]

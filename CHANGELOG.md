@@ -10,6 +10,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bump runtimeVersion to `2026.06.03`.
  * Upgraded stable Dart analysis SDK to `3.12.1`
  * Upgraded stable Flutter analysis SDK to `3.44.1`.
+ * Note: started to use `tool/run-wrapper.sh`
 
 ## `20260601t084200-all`
  * Bump runtimeVersion to `2026.06.01`.
