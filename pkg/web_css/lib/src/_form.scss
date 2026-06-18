@@ -173,6 +173,73 @@
   }
 }
 
+.pub-checkbox {
+  display: flex;
+  align-items: center;
+  padding: 2px 2px;
+
+  .pub-checkbox-input {
+    appearance: none;
+    -webkit-appearance: none;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 18px;
+    height: 18px;
+    margin: 0 5px 0 8px;
+    background-color: color-mix(in srgb, var(--pub-neutral-borderColor) 40%, transparent);
+    border: 2px solid color-mix(in srgb, var(--pub-neutral-textColor) 60%, transparent);
+    border-radius: 1px;
+    cursor: pointer;
+    transition: border-color 0.3s, background-color 0.3s;
+
+    &:hover {
+      border-color: var(--pub-neutral-textColor);
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-color: var(--pub-link-text-color);
+    }
+
+    // Checkmark, drawn with two borders of a rotated rectangle.
+    &:checked {
+      background-color: var(--pub-link-text-color);
+      border-color: var(--pub-link-text-color);
+
+      &::after {
+        content: '';
+        width: 4px;
+        height: 8px;
+        border: solid var(--pub-color-white);
+        border-width: 0 2px 2px 0;
+        // Nudge up to offset the checkmark's lower-hanging heel.
+        transform: translateY(-1px) rotate(45deg);
+      }
+    }
+
+    // Indeterminate state, drawn as a single horizontal bar.
+    &:indeterminate {
+      background-color: var(--pub-link-text-color);
+      border-color: var(--pub-link-text-color);
+
+      &::after {
+        content: '';
+        width: 8px;
+        height: 2px;
+        background-color: var(--pub-color-white);
+      }
+    }
+  }
+
+  .pub-checkbox-label {
+    padding: 6px 8px 4px;
+    cursor: pointer;
+  }
+}
+
 // Plain HTML text field / text area component
 // (see material.dart `textField` / `textArea`).
 .pub-text-field {

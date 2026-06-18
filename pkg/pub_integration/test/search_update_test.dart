@@ -131,7 +131,7 @@ void main() {
 
         // unclick Flutter
         final flutterCB4 = await page.$('#search-form-checkbox-sdk-flutter');
-        final flutterLink = await flutterCB4.$x('../following-sibling::*');
+        final flutterLink = await flutterCB4.$x('following-sibling::*');
         await flutterLink.single.clickAndWaitOneResponse();
         await _waitOneSecond();
         final i4 = await listingPageInfo(page);
@@ -169,7 +169,7 @@ void main() {
         expect(await flutterCB5.attributeValue('data-indeterminate'), 'true');
 
         // clear Flutter with a row-level click
-        final flutterRow = await flutterCB5.$x('../../..');
+        final flutterRow = await flutterCB5.$x('../..');
         await flutterRow.single.clickAndWaitOneResponse();
         await _waitOneSecond();
         final i6 = await listingPageInfo(page);
