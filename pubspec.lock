@@ -661,10 +661,10 @@ packages:
     dependency: transitive
     description:
       name: postgres
-      sha256: fe4a19a69fad564efa8ced72d58b14e86d12a548f5f0a511b377089bf3b592ed
+      sha256: "123de5cbadc56a7e8d9fa485c780b6b56940b4081f4c74f3a5578682757c299b"
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.11"
+    version: "3.5.12"
   protobuf:
     dependency: transitive
     description:
@@ -925,10 +925,10 @@ packages:
     dependency: transitive
     description:
       name: typed_sql
-      sha256: ee677eb972b67b97159f54d7f9812ce573a667a54722a5c2c4187d640d5e17ed
+      sha256: ce59799021969cd025210ccfc169ac4d8086267e37b2b0bfee52a5dd6ef0bab5
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.10"
+    version: "0.1.11"
   ulid:
     dependency: transitive
     description:

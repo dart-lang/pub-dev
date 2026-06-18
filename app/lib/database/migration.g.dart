@@ -687,7 +687,7 @@ extension QueryContentNameNamed<A, B>
   /// Returns a [Query] retaining rows from this [Query] where the expression
   /// returned by [conditionBuilder] evaluates to `true`.
   Query<({Expr<A> content, Expr<B> name})> where(
-    Expr<bool> Function(({Expr<A> content, Expr<B> name}) expr)
+    Expr<bool?> Function(({Expr<A> content, Expr<B> name}) expr)
     conditionBuilder,
   ) => _fromPositionalQuery(
     _asPositionalQuery.where(_wrapBuilder(conditionBuilder)),

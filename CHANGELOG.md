@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `3.12.2`
  * Upgraded stable Flutter analysis SDK to `3.44.2`.
  * Upgraded dartdoc to `9.0.5`.
+ * Upgraded `typed_sql` and `postgres`.
 
 ## `20260611t083300-all`
  * Bump runtimeVersion to `2026.06.03`.
