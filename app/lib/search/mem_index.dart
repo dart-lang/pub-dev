@@ -26,8 +26,7 @@ class InMemoryPackageIndex {
   final List<PackageDocument> _documents;
   final _nameToIndex = <String, int>{};
   late final PackageNameIndex _packageNameIndex;
-  late final TokenIndex _descrIndex;
-  late final TokenIndex _readmeIndex;
+  late final TokenIndex _textIndex;
   late final List<IndexedApiDocPage> _apiDocPageKeys;
   late final TokenIndex _apiSymbolIndex;
   late final _bitArrayPool = BitArrayPool(_documents.length);
@@ -78,11 +77,13 @@ class InMemoryPackageIndex {
 
     final packageKeys = _documents.map((d) => d.package).toList();
     _packageNameIndex = PackageNameIndex(packageKeys);
-    _descrIndex = TokenIndex(
-      _documents.map((d) => d.description).toList(),
-      skipDocumentWeight: true,
-    );
-    _readmeIndex = TokenIndex(_documents.map((d) => d.readme).toList());
+    _textIndex = TokenIndex.fromFields(_documents, (doc) {
+      return [
+        if (doc.description != null)
+          TokenIndexField(doc.description!, skipDocumentWeight: true),
+        if (doc.readme != null) TokenIndexField(doc.readme!, weight: 0.75),
+      ];
+    });
     _apiDocPageKeys = apiDocPageKeys;
     _apiSymbolIndex = TokenIndex.fromValues(apiDocPageValues);
 
@@ -458,8 +459,7 @@ class InMemoryPackageIndex {
       return aborted;
     }
 
-    final matchDescription = textMatchExtent.shouldMatchDescription();
-    final matchReadme = textMatchExtent.shouldMatchReadme();
+    final matchText = textMatchExtent.shouldMatchText();
     final matchApi = textMatchExtent.shouldMatchApi();
 
     for (final word in words) {
@@ -471,15 +471,8 @@ class InMemoryPackageIndex {
             filterOnNonZeros: packageScores,
           );
 
-          if (matchDescription) {
-            await _descrIndex.searchAndAccumulate(word, score: wordScore);
-          }
-          if (matchReadme) {
-            await _readmeIndex.searchAndAccumulate(
-              word,
-              weight: 0.75,
-              score: wordScore,
-            );
+          if (matchText) {
+            await _textIndex.searchAndAccumulate(word, score: wordScore);
           }
           packageScores.multiplyAllFrom(wordScore);
         },
@@ -538,8 +531,8 @@ class InMemoryPackageIndex {
         final matchedAllPhrases = phrases.every(
           (phrase) =>
               (matchName && doc.package.contains(phrase)) ||
-              (matchDescription && doc.description!.contains(phrase)) ||
-              (matchReadme && doc.readme!.contains(phrase)),
+              (matchText && doc.description!.contains(phrase)) ||
+              (matchText && doc.readme!.contains(phrase)),
         );
         if (!matchedAllPhrases) {
           packageScores.setValue(i, 0);

@@ -118,10 +118,15 @@ enum TextMatchExtent {
   /// Text search is on package names.
   name,
 
+  /// Text search is on names, descriptions, topic tags and readme content.
+  text,
+
   /// Text search is on package names, descriptions and topic tags.
+  @Deprecated('Use `text`')
   description,
 
   /// Text search is on names, descriptions, topic tags and readme content.
+  @Deprecated('Use `text`')
   readme,
 
   /// Text search is on names, descriptions, topic tags, readme content and API symbols.
@@ -130,11 +135,8 @@ enum TextMatchExtent {
   /// Text search is on package names.
   bool shouldMatchName() => index >= name.index;
 
-  /// Text search is on package names, descriptions and topic tags.
-  bool shouldMatchDescription() => index >= description.index;
-
   /// Text search is on names, descriptions, topic tags and readme content.
-  bool shouldMatchReadme() => index >= readme.index;
+  bool shouldMatchText() => index >= text.index;
 
   /// Text search is on names, descriptions, topic tags, readme content and API symbols.
   bool shouldMatchApi() => index >= api.index;
