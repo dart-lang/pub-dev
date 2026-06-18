@@ -230,9 +230,6 @@
   --mdc-protected-button-disabled-container-color: rgba(255, 255, 255, 0.1);
   --mdc-protected-button-disabled-label-text-color: var(--pub-neutral-textColor);
 
-  // Pub-specific Material Design overrides
-  --mdc_pub-data_table-border-color: var(--mdc-checkbox-unchecked-color);
-
   // Most of our SVG images are black on transparent background and they
   // are almost invisible in dark mode. Ideally we would have different
   // images for dark mode, or override their `fill` or `stroke` properties
