@@ -485,8 +485,8 @@ extension ExpressionTaskExt on Expr<Task> {
       .subqueryTable(_$TaskDependency._$table)
       .where(
         (r) =>
-            r.runtime_version.equals(runtime_version) &
-            r.package.equals(package),
+            r.runtime_version.equalsUnlessNull(runtime_version) &
+            r.package.equalsUnlessNull(package),
       );
 }
 
@@ -526,8 +526,8 @@ extension ExpressionNullableTaskExt on Expr<Task?> {
       .subqueryTable(_$TaskDependency._$table)
       .where(
         (r) =>
-            r.runtime_version.equalsUnlessNull(runtime_version).asNotNull() &
-            r.package.equalsUnlessNull(package).asNotNull(),
+            r.runtime_version.equalsUnlessNull(runtime_version) &
+            r.package.equalsUnlessNull(package),
       );
 
   /// Check if the row is not `NULL`.
@@ -554,8 +554,8 @@ extension InnerJoinTaskTaskDependencyExt
   /// This will match rows where [Task.runtime_version] = [TaskDependency.runtime_version] and [Task.package] = [TaskDependency.package].
   Query<(Expr<Task>, Expr<TaskDependency>)> usingTask() => on(
     (a, b) =>
-        a.runtime_version.equals(b.runtime_version) &
-        a.package.equals(b.package),
+        a.runtime_version.equalsUnlessNull(b.runtime_version) &
+        a.package.equalsUnlessNull(b.package),
   );
 }
 
@@ -566,8 +566,8 @@ extension LeftJoinTaskTaskDependencyExt
   /// This will match rows where [Task.runtime_version] = [TaskDependency.runtime_version] and [Task.package] = [TaskDependency.package].
   Query<(Expr<Task>, Expr<TaskDependency?>)> usingTask() => on(
     (a, b) =>
-        a.runtime_version.equals(b.runtime_version) &
-        a.package.equals(b.package),
+        a.runtime_version.equalsUnlessNull(b.runtime_version) &
+        a.package.equalsUnlessNull(b.package),
   );
 }
 
@@ -578,8 +578,8 @@ extension RightJoinTaskTaskDependencyExt
   /// This will match rows where [Task.runtime_version] = [TaskDependency.runtime_version] and [Task.package] = [TaskDependency.package].
   Query<(Expr<Task?>, Expr<TaskDependency>)> usingTask() => on(
     (a, b) =>
-        a.runtime_version.equals(b.runtime_version) &
-        a.package.equals(b.package),
+        a.runtime_version.equalsUnlessNull(b.runtime_version) &
+        a.package.equalsUnlessNull(b.package),
   );
 }
 
@@ -1115,8 +1115,8 @@ extension ExpressionTaskDependencyExt on Expr<TaskDependency> {
       .subqueryTable(_$Task._$table)
       .where(
         (r) =>
-            r.runtime_version.equals(runtime_version) &
-            r.package.equals(package),
+            r.runtime_version.equalsUnlessNull(runtime_version) &
+            r.package.equalsUnlessNull(package),
       )
       .first
       .asNotNull();
@@ -1147,8 +1147,8 @@ extension ExpressionNullableTaskDependencyExt on Expr<TaskDependency?> {
       .subqueryTable(_$Task._$table)
       .where(
         (r) =>
-            r.runtime_version.equalsUnlessNull(runtime_version).asNotNull() &
-            r.package.equalsUnlessNull(package).asNotNull(),
+            r.runtime_version.equalsUnlessNull(runtime_version) &
+            r.package.equalsUnlessNull(package),
       )
       .first;
 
@@ -1179,8 +1179,8 @@ extension InnerJoinTaskDependencyTaskExt
   /// This will match rows where [TaskDependency.runtime_version] = [Task.runtime_version] and [TaskDependency.package] = [Task.package].
   Query<(Expr<TaskDependency>, Expr<Task>)> usingTask() => on(
     (a, b) =>
-        b.runtime_version.equals(a.runtime_version) &
-        b.package.equals(a.package),
+        b.runtime_version.equalsUnlessNull(a.runtime_version) &
+        b.package.equalsUnlessNull(a.package),
   );
 }
 
@@ -1191,8 +1191,8 @@ extension LeftJoinTaskDependencyTaskExt
   /// This will match rows where [TaskDependency.runtime_version] = [Task.runtime_version] and [TaskDependency.package] = [Task.package].
   Query<(Expr<TaskDependency>, Expr<Task?>)> usingTask() => on(
     (a, b) =>
-        b.runtime_version.equals(a.runtime_version) &
-        b.package.equals(a.package),
+        b.runtime_version.equalsUnlessNull(a.runtime_version) &
+        b.package.equalsUnlessNull(a.package),
   );
 }
 
@@ -1203,8 +1203,8 @@ extension RightJoinTaskDependencyTaskExt
   /// This will match rows where [TaskDependency.runtime_version] = [Task.runtime_version] and [TaskDependency.package] = [Task.package].
   Query<(Expr<TaskDependency?>, Expr<Task>)> usingTask() => on(
     (a, b) =>
-        b.runtime_version.equals(a.runtime_version) &
-        b.package.equals(a.package),
+        b.runtime_version.equalsUnlessNull(a.runtime_version) &
+        b.package.equalsUnlessNull(a.package),
   );
 }
 
@@ -1466,7 +1466,7 @@ extension QueryContentNameNamed<A, B>
   /// Returns a [Query] retaining rows from this [Query] where the expression
   /// returned by [conditionBuilder] evaluates to `true`.
   Query<({Expr<A> content, Expr<B> name})> where(
-    Expr<bool> Function(({Expr<A> content, Expr<B> name}) expr)
+    Expr<bool?> Function(({Expr<A> content, Expr<B> name}) expr)
     conditionBuilder,
   ) => _fromPositionalQuery(
     _asPositionalQuery.where(_wrapBuilder(conditionBuilder)),
@@ -1483,8 +1483,20 @@ extension TaskStateExt on TaskState {
 
   /// Wrap this [TaskState] as [Expr<TaskState>] for use queries with
   /// `package:typed_sql`.
+  ///
+  /// Using [asExpr] will inject this value as an SQL parameter,
+  /// use [asExprLiteral] if you wish to inject as SQL literal instead.
   Expr<TaskState> get asExpr =>
-      $ForGeneratedCode.literalCustomDataType(this, _exprType).asNotNull();
+      $ForGeneratedCode.customDataTypeAsExpr(this, _exprType).asNotNull();
+
+  /// Wrap this [TaskState] as [Expr<TaskState>] for use queries with
+  /// `package:typed_sql`.
+  ///
+  /// Using [asExprLiteral] will inject this value as an SQL literal,
+  /// use [asExpr] if you wish to inject as SQL parameter instead.
+  Expr<TaskState> get asExprLiteral => $ForGeneratedCode
+      .customDataTypeAsExprLiteral(this, _exprType)
+      .asNotNull();
 }
 
 /// Wrap this [TaskState] as [Expr<TaskState>] for use queries with
@@ -1492,6 +1504,17 @@ extension TaskStateExt on TaskState {
 extension TaskStateNullableExt on TaskState? {
   /// Wrap this [TaskState] as [Expr<TaskState?>] for use queries with
   /// `package:typed_sql`.
+  ///
+  /// Using [asExpr] will inject this value as an SQL parameter,
+  /// use [asExprLiteral] if you wish to inject as SQL literal instead.
   Expr<TaskState?> get asExpr =>
-      $ForGeneratedCode.literalCustomDataType(this, TaskStateExt._exprType);
+      $ForGeneratedCode.customDataTypeAsExpr(this, TaskStateExt._exprType);
+
+  /// Wrap this [TaskState] as [Expr<TaskState?>] for use queries with
+  /// `package:typed_sql`.
+  ///
+  /// Using [asExprLiteral] will inject this value as an SQL literal,
+  /// use [asExpr] if you wish to inject as SQL parameter instead.
+  Expr<TaskState?> get asExprLiteral => $ForGeneratedCode
+      .customDataTypeAsExprLiteral(this, TaskStateExt._exprType);
 }
