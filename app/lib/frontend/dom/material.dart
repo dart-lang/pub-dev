@@ -171,7 +171,7 @@ class DataTableColumn<T> {
   });
 }
 
-/// Renders a material data table.
+/// Renders a plain HTML data table.
 d.Node dataTable<T>({
   String? id,
   String? ariaLabel,
@@ -180,19 +180,19 @@ d.Node dataTable<T>({
 }) {
   return d.div(
     id: id,
-    classes: ['mdc-data-table'],
+    classes: ['pub-data-table'],
     child: d.element(
       'table',
-      classes: ['mdc-data-table__table'],
+      classes: ['pub-data-table-table'],
       attributes: {if (ariaLabel != null) 'aria-label': ariaLabel},
       children: [
         d.element(
           'thead',
           child: d.tr(
-            classes: ['mdc-data-table__header-row'],
+            classes: ['pub-data-table-header-row'],
             children: columns.map(
               (c) => d.th(
-                classes: ['mdc-data-table__header-cell', ...?c.headerClasses],
+                classes: ['pub-data-table-header-cell', ...?c.headerClasses],
                 attributes: {'role': 'columnheader', 'scope': 'col'},
                 child: c.headerContent,
               ),
@@ -201,13 +201,13 @@ d.Node dataTable<T>({
         ),
         d.element(
           'tbody',
-          classes: ['mdc-data-table__content'],
+          classes: ['pub-data-table-content'],
           children: entries.map(
             (entry) => d.tr(
-              classes: ['mdc-data-table__row'],
+              classes: ['pub-data-table-row'],
               children: columns.map(
                 (c) => d.td(
-                  classes: ['mdc-data-table__cell'],
+                  classes: ['pub-data-table-cell'],
                   child: c.renderCell(entry),
                 ),
               ),
