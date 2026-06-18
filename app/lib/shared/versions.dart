@@ -24,7 +24,7 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const _acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2026.06.16',
+  '2026.06.18',
   // Fallback runtime versions.
   '2026.06.03',
   '2026.06.01',
@@ -53,10 +53,7 @@ String get runtimeVersion => acceptedRuntimeVersions.first;
 /// The version which marks the earliest version of the data which we'd like to
 /// keep during various GC processes. Data prior to this version is subject to
 /// delete (unless there is another rule in place to keep it).
-String get gcBeforeRuntimeVersion => acceptedRuntimeVersions.length == 1
-    // TODO: remove after task backend is released
-    ? '2026.04.29'
-    : acceptedRuntimeVersions.last;
+String get gcBeforeRuntimeVersion => acceptedRuntimeVersions.last;
 
 /// Returns true if the given version should be considered as obsolete and can
 /// be deleted.
@@ -80,4 +77,4 @@ final String panaVersion = pana.packageVersion;
 
 // keep in-sync with pkg/pub-worker/lib/src/bin/pub_worker_subprocess.dart
 // keep in-sync with Dockerfile.worker
-final String dartdocVersion = '9.0.4';
+final String dartdocVersion = '9.0.5';
