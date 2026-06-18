@@ -14,6 +14,7 @@ import 'src/mobile_nav.dart';
 import 'src/page_updater.dart';
 import 'src/screenshot_carousel.dart';
 import 'src/search.dart';
+import 'src/widget/core/checkbox.dart';
 import 'src/widget/core/text_area.dart';
 import 'src/widget/widget.dart' show setupWidgets;
 
@@ -40,6 +41,7 @@ void _setupAllEvents() {
   setupLikesList();
   setupScreenshotCarousel();
   setupWidgets();
+  setupCheckboxes();
   setupTextAreas();
   _setupDarkThemeButton();
 }

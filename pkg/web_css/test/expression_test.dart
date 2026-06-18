@@ -38,6 +38,7 @@ void main() {
       // CSS functions
       expressions.removeAll(<String>[
         'first-child',
+        'focus-visible',
         'focus-within',
         'keyframes',
         'last-child',

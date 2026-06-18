@@ -349,18 +349,9 @@
                     remain available to package users, but they don't appear in search results on pub.dev unless the user specifies advanced search options.
                   </p>
                   <div class="-pub-form-checkbox-row">
-                    <div class="mdc-form-field">
-                      <div class="mdc-checkbox">
-                        <input id="-admin-is-discontinued-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
-                        <div class="mdc-checkbox__background">
-                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                          </svg>
-                          <div class="mdc-checkbox__mixedmark"></div>
-                        </div>
-                        <div class="mdc-checkbox__ripple"></div>
-                      </div>
-                      <label for="-admin-is-discontinued-checkbox">Mark "discontinued"</label>
+                    <div class="pub-checkbox">
+                      <input id="-admin-is-discontinued-checkbox" class="pub-checkbox-input" type="checkbox"/>
+                      <label class="pub-checkbox-label" for="-admin-is-discontinued-checkbox">Mark "discontinued"</label>
                     </div>
                   </div>
                   <a name="unlisted"></a>
@@ -371,18 +362,9 @@
                     doesn't normally appear in search results on pub.dev. Unlisted packages remain publicly available, and users can search for them using advanced search options.
                   </p>
                   <div class="-pub-form-checkbox-row">
-                    <div class="mdc-form-field">
-                      <div class="mdc-checkbox">
-                        <input id="-admin-is-unlisted-checkbox" class="mdc-checkbox__native-control" type="checkbox"/>
-                        <div class="mdc-checkbox__background">
-                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                          </svg>
-                          <div class="mdc-checkbox__mixedmark"></div>
-                        </div>
-                        <div class="mdc-checkbox__ripple"></div>
-                      </div>
-                      <label for="-admin-is-unlisted-checkbox">Mark "unlisted"</label>
+                    <div class="pub-checkbox">
+                      <input id="-admin-is-unlisted-checkbox" class="pub-checkbox-input" type="checkbox"/>
+                      <label class="pub-checkbox-label" for="-admin-is-unlisted-checkbox">Mark "unlisted"</label>
                     </div>
                   </div>
                   <a name="publishing"></a>
@@ -399,18 +381,9 @@
                   <p>Disable to prevent accidental publication from the command line.</p>
                   <p>It is recommended to disable when automated publishing is enabled.</p>
                   <div class="-pub-form-checkbox-row">
-                    <div class="mdc-form-field">
-                      <div class="mdc-checkbox">
-                        <input id="-pkg-admin-manual-publishing-enabled" class="mdc-checkbox__native-control" type="checkbox" checked="checked"/>
-                        <div class="mdc-checkbox__background">
-                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                          </svg>
-                          <div class="mdc-checkbox__mixedmark"></div>
-                        </div>
-                        <div class="mdc-checkbox__ripple"></div>
-                      </div>
-                      <label for="-pkg-admin-manual-publishing-enabled">Enable manual publishing</label>
+                    <div class="pub-checkbox">
+                      <input id="-pkg-admin-manual-publishing-enabled" class="pub-checkbox-input" type="checkbox" checked="checked"/>
+                      <label class="pub-checkbox-label" for="-pkg-admin-manual-publishing-enabled">Enable manual publishing</label>
                     </div>
                   </div>
                   <a name="automated-publishing"></a>
@@ -423,18 +396,9 @@
                   <a name="github-actions"></a>
                   <h3>Publishing from GitHub Actions</h3>
                   <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
-                    <div class="mdc-form-field">
-                      <div class="mdc-checkbox">
-                        <input id="-pkg-admin-automated-github-enabled" class="mdc-checkbox__native-control" type="checkbox"/>
-                        <div class="mdc-checkbox__background">
-                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                          </svg>
-                          <div class="mdc-checkbox__mixedmark"></div>
-                        </div>
-                        <div class="mdc-checkbox__ripple"></div>
-                      </div>
-                      <label for="-pkg-admin-automated-github-enabled">Enable publishing from GitHub Actions</label>
+                    <div class="pub-checkbox">
+                      <input id="-pkg-admin-automated-github-enabled" class="pub-checkbox-input" type="checkbox"/>
+                      <label class="pub-checkbox-label" for="-pkg-admin-automated-github-enabled">Enable publishing from GitHub Actions</label>
                     </div>
                   </div>
                   <div class="-pub-form-checkbox-indent -pub-form-block-hidden">
@@ -463,18 +427,9 @@
                       </p>
                     </div>
                     <div class="-pub-form-checkbox-row">
-                      <div class="mdc-form-field">
-                        <div class="mdc-checkbox">
-                          <input id="-pkg-admin-automated-github-push-events" class="mdc-checkbox__native-control" type="checkbox" checked="checked"/>
-                          <div class="mdc-checkbox__background">
-                            <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                              <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                            </svg>
-                            <div class="mdc-checkbox__mixedmark"></div>
-                          </div>
-                          <div class="mdc-checkbox__ripple"></div>
-                        </div>
-                        <label for="-pkg-admin-automated-github-push-events">
+                      <div class="pub-checkbox">
+                        <input id="-pkg-admin-automated-github-push-events" class="pub-checkbox-input" type="checkbox" checked="checked"/>
+                        <label class="pub-checkbox-label" for="-pkg-admin-automated-github-push-events">
                           Enable publishing from
                           <code>push</code>
                           events
@@ -482,18 +437,9 @@
                       </div>
                     </div>
                     <div class="-pub-form-checkbox-row">
-                      <div class="mdc-form-field">
-                        <div class="mdc-checkbox">
-                          <input id="-pkg-admin-automated-github-workflowdispatch-events" class="mdc-checkbox__native-control" type="checkbox"/>
-                          <div class="mdc-checkbox__background">
-                            <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                              <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                            </svg>
-                            <div class="mdc-checkbox__mixedmark"></div>
-                          </div>
-                          <div class="mdc-checkbox__ripple"></div>
-                        </div>
-                        <label for="-pkg-admin-automated-github-workflowdispatch-events">
+                      <div class="pub-checkbox">
+                        <input id="-pkg-admin-automated-github-workflowdispatch-events" class="pub-checkbox-input" type="checkbox"/>
+                        <label class="pub-checkbox-label" for="-pkg-admin-automated-github-workflowdispatch-events">
                           Enable publishing from
                           <code>workflow_dispatch</code>
                           events
@@ -501,18 +447,9 @@
                       </div>
                     </div>
                     <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
-                      <div class="mdc-form-field">
-                        <div class="mdc-checkbox">
-                          <input id="-pkg-admin-automated-github-requireenv" class="mdc-checkbox__native-control" type="checkbox"/>
-                          <div class="mdc-checkbox__background">
-                            <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                              <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                            </svg>
-                            <div class="mdc-checkbox__mixedmark"></div>
-                          </div>
-                          <div class="mdc-checkbox__ripple"></div>
-                        </div>
-                        <label for="-pkg-admin-automated-github-requireenv">Require GitHub Actions environment</label>
+                      <div class="pub-checkbox">
+                        <input id="-pkg-admin-automated-github-requireenv" class="pub-checkbox-input" type="checkbox"/>
+                        <label class="pub-checkbox-label" for="-pkg-admin-automated-github-requireenv">Require GitHub Actions environment</label>
                       </div>
                     </div>
                     <div class="-pub-form-checkbox-indent -pub-form-textfield-row -pub-form-block-hidden">
@@ -533,18 +470,9 @@
                     <a href="https://dart.dev/go/automated-publishing">dart.dev/go/automated-publishing</a>
                   </p>
                   <div class="-pub-form-checkbox-row -pub-form-checkbox-toggle-next-sibling">
-                    <div class="mdc-form-field">
-                      <div class="mdc-checkbox">
-                        <input id="-pkg-admin-automated-gcp-enabled" class="mdc-checkbox__native-control" type="checkbox"/>
-                        <div class="mdc-checkbox__background">
-                          <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24">
-                            <path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"/>
-                          </svg>
-                          <div class="mdc-checkbox__mixedmark"></div>
-                        </div>
-                        <div class="mdc-checkbox__ripple"></div>
-                      </div>
-                      <label for="-pkg-admin-automated-gcp-enabled">Enable publishing with Google Cloud Service account</label>
+                    <div class="pub-checkbox">
+                      <input id="-pkg-admin-automated-gcp-enabled" class="pub-checkbox-input" type="checkbox"/>
+                      <label class="pub-checkbox-label" for="-pkg-admin-automated-gcp-enabled">Enable publishing with Google Cloud Service account</label>
                     </div>
                   </div>
                   <div class="-pub-form-checkbox-indent -pub-form-block-hidden">
