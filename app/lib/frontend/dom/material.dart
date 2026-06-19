@@ -51,8 +51,8 @@ d.Node button({
   );
 }
 
-/// Renders a material floating action button (FAB) element.
-/// The FAB is 48x48px by default. If [fabMini] is `true` the FAB will be
+/// Renders a plain HTML floating action button (FAB) element.
+/// The FAB is 56x56px by default. If [fabMini] is `true` the FAB will be
 /// 40x40px.
 d.Node floatingActionButton({
   String? id,
@@ -62,15 +62,14 @@ d.Node floatingActionButton({
   d.Image? icon,
 }) {
   return d.element(
-    'fab',
+    'button',
     id: id,
-    classes: ['mdc-fab', if (fabMini) 'mdc-fab--mini', ...?classes],
-    attributes: {'data-mdc-auto-init': 'MDCRipple', ...?attributes},
+    classes: ['pub-fab', if (fabMini) 'pub-fab--mini', ...?classes],
+    attributes: attributes,
     children: [
-      d.div(classes: ['mdc-fab__ripple']),
       if (icon != null)
         d.img(
-          classes: ['mdc-fab__icon'],
+          classes: ['pub-fab-icon'],
           image: icon,
           attributes: {'aria-hidden': 'true'},
         ),
