@@ -136,6 +136,24 @@ class _PostingsBuilder {
   }
 }
 
+/// Describes a weighted field of a document.
+class TokenIndexField {
+  /// The text value of the field.
+  final String text;
+
+  /// Whether to skip the normalization for this field.
+  final bool skipDocumentWeight;
+
+  /// Token weight multiplier.
+  final double weight;
+
+  TokenIndexField(
+    this.text, {
+    this.skipDocumentWeight = false,
+    this.weight = 1.0,
+  });
+}
+
 /// Stores a token -> documentId inverted index with weights.
 class TokenIndex {
   final int _length;
@@ -155,6 +173,39 @@ class TokenIndex {
       _addTokens(i, tokenize(text), skipDocumentWeight, builders);
     }
     return TokenIndex._(values.length, _finalize(builders));
+  }
+
+  /// Builds a single index from a list of [objects], extracting one or more
+  /// weighted text fields from each via [extractFields] (e.g. description +
+  /// readme of the same package document).
+  ///
+  /// For each object, the tokens of all its fields are merged, keeping the
+  /// maximum weight per token.
+  static TokenIndex fromFields<T>(
+    List<T> objects,
+    List<TokenIndexField> Function(T object) extractFields,
+  ) {
+    final builders = <String, _PostingsBuilder>{};
+    for (var i = 0; i < objects.length; i++) {
+      final merged = <String, double>{};
+      for (final field in extractFields(objects[i])) {
+        final tokens = tokenize(field.text);
+        if (tokens == null || tokens.isEmpty) continue;
+        final dw = field.skipDocumentWeight
+            ? 1.0
+            : _documentWeight(tokens.length);
+        for (final e in tokens.entries) {
+          final w = e.value / dw * field.weight;
+          final old = merged[e.key];
+          if (old == null || w > old) {
+            merged[e.key] = w;
+          }
+        }
+      }
+      // Weights are already normalized above, so skip the document weight here.
+      _addTokens(i, merged, true, builders);
+    }
+    return TokenIndex._(objects.length, _finalize(builders));
   }
 
   factory TokenIndex.fromValues(
@@ -197,7 +248,7 @@ class TokenIndex {
   ) {
     if (tokens == null || tokens.isEmpty) return;
     // Document weight is a highly scaled-down proxy of the length.
-    final dw = skipDocumentWeight ? 1.0 : 1 + math.log(1 + tokens.length) / 100;
+    final dw = skipDocumentWeight ? 1.0 : _documentWeight(tokens.length);
     for (final e in tokens.entries) {
       final weight = e.value / dw;
       final quantized = (weight * 256 - 1).round().clamp(0, 255);
@@ -206,6 +257,8 @@ class TokenIndex {
           .add(docIndex, quantized);
     }
   }
+
+  static double _documentWeight(int length) => 1 + math.log(1 + length) / 100;
 
   /// Match the text against the corpus and return the tokens or
   /// their partial segments that have match.

@@ -51,6 +51,7 @@ const _$SearchOrderEnumMap = {
 const _$TextMatchExtentEnumMap = {
   TextMatchExtent.none: 'none',
   TextMatchExtent.name: 'name',
+  TextMatchExtent.text: 'text',
   TextMatchExtent.description: 'description',
   TextMatchExtent.readme: 'readme',
   TextMatchExtent.api: 'api',
