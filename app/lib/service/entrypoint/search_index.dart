@@ -203,13 +203,9 @@ class LatencyAwareSearchIndex implements SearchIndex {
       _logger.info('[text-match-normal]');
       return TextMatchExtent.api;
     }
-    if (latency < const Duration(seconds: 2)) {
-      _logger.info('[text-match-readme]');
-      return TextMatchExtent.readme;
-    }
     if (latency < const Duration(seconds: 4)) {
-      _logger.info('[text-match-description]');
-      return TextMatchExtent.description;
+      _logger.info('[text-match-text]');
+      return TextMatchExtent.text;
     }
     if (latency < const Duration(seconds: 10)) {
       _logger.info('[text-match-name]');
@@ -217,6 +213,6 @@ class LatencyAwareSearchIndex implements SearchIndex {
     }
     // TODO: use `TextMatchExtent.none` after we are confident about this change.
     _logger.info('[text-match-none]');
-    return TextMatchExtent.readme;
+    return TextMatchExtent.text;
   }
 }
