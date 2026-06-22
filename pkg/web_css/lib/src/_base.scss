@@ -82,15 +82,6 @@ summary {
 button {
   cursor: pointer;
   border: none;
-
-  &.pub-button-danger {
-    --mdc-theme-primary: var(--pub-button-danger-background);
-  }
-
-  &.pub-button-cancel {
-    --mdc-theme-primary: #f0f0f0;
-    --mdc-theme-on-primary: #000000;
-  }
 }
 
 // The class annotates an image icon with either black or white pixels on
