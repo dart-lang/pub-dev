@@ -107,39 +107,31 @@ Element _buildDialog({
   if (isQuestion) {
     final cancelBtn = HTMLButtonElement()
       ..classList.addAll([
-        'mdc-button',
+        'pub-button',
         'mdc-dialog__button',
         '-pub-dom-dialog-cancel-button',
       ])
-      ..tabIndex = 2;
+      ..tabIndex = 2
+      ..innerText = cancelButtonText ?? 'Cancel';
     cancelBtn.onClick.listen((e) {
       e.preventDefault();
       closing(false);
     });
-    cancelBtn.append(
-      HTMLSpanElement()
-        ..classList.add('mdc-button__label')
-        ..innerText = cancelButtonText ?? 'Cancel',
-    );
     footer.append(cancelBtn);
   }
 
   final okBtn = HTMLButtonElement()
     ..classList.addAll([
-      'mdc-button',
+      'pub-button',
       'mdc-dialog__button',
       '-pub-dom-dialog-ok-button',
     ])
-    ..tabIndex = 1;
+    ..tabIndex = 1
+    ..innerText = okButtonText ?? 'Ok';
   okBtn.onClick.listen((e) {
     e.preventDefault();
     closing(true);
   });
-  okBtn.append(
-    HTMLSpanElement()
-      ..classList.add('mdc-button__label')
-      ..innerText = okButtonText ?? 'Ok',
-  );
   footer.append(okBtn);
 
   final surface = HTMLDivElement()

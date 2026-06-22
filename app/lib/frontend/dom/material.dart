@@ -4,10 +4,9 @@
 
 import 'dom.dart' as d;
 
-/// Renders a material button element.
+/// Renders a plain HTML button element.
 d.Node button({
   String? id,
-  String? customTypeClass,
   Iterable<String>? classes,
   bool raised = false,
   bool unelevated = false,
@@ -15,39 +14,25 @@ d.Node button({
   d.Image? icon,
   required String label,
 }) {
-  final isSimpleLabel = icon == null && customTypeClass == null;
   return d.element(
     'button',
     id: id,
     classes: [
-      'mdc-button',
-      if (raised) 'mdc-button--raised',
-      if (unelevated) 'mdc-button--unelevated',
-      if (customTypeClass != null) customTypeClass,
+      'pub-button',
+      if (raised) 'pub-button--raised',
+      if (unelevated) 'pub-button--unelevated',
       ...?classes,
     ],
-    attributes: {'data-mdc-auto-init': 'MDCRipple', ...?attributes},
-    children: isSimpleLabel
-        ? [d.text(label)]
-        : [
-            d.div(classes: ['mdc-button__ripple']),
-            if (icon != null)
-              d.img(
-                classes: [
-                  'mdc-button__icon',
-                  if (customTypeClass != null) '$customTypeClass-img',
-                ],
-                image: icon,
-                attributes: {'aria-hidden': 'true'},
-              ),
-            d.span(
-              classes: [
-                'mdc-button__label',
-                if (customTypeClass != null) '$customTypeClass-label',
-              ],
-              text: label,
-            ),
-          ],
+    attributes: attributes,
+    children: [
+      if (icon != null)
+        d.img(
+          classes: ['pub-button-icon'],
+          image: icon,
+          attributes: {'aria-hidden': 'true'},
+        ),
+      d.text(label),
+    ],
   );
 }
 
