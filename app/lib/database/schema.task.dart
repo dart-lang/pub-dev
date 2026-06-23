@@ -2,41 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(https://github.com/google/dart-neats/issues/347): remove this after typed_sql supports automatic snake_case convention
-// ignore_for_file: non_constant_identifier_names
-
 part of 'schema.dart';
 
-@PrimaryKey(['runtime_version', 'package'])
+@PrimaryKey(['runtimeVersion', 'package'])
 abstract final class Task extends Row {
   /// Runtime version this [Task] belongs to.
-  String get runtime_version;
+  String get runtimeVersion;
   String get package;
 
   TaskState get state;
 
   /// Next [DateTime] at which point some package version becomes pending.
-  DateTime get pending_at;
+  DateTime get pendingAt;
 
   /// Last [DateTime] a dependency was updated.
-  DateTime get last_dependency_changed;
+  DateTime get lastDependencyChanged;
 
   /// The last time the a worker completed with a failure or success.
   DateTime get finished;
 }
 
-@PrimaryKey(['runtime_version', 'package', 'dependency'])
+@PrimaryKey(['runtimeVersion', 'package', 'dependency'])
 @ForeignKey(
-  ['runtime_version', 'package'],
+  ['runtimeVersion', 'package'],
   table: 'tasks',
-  fields: ['runtime_version', 'package'],
+  fields: ['runtimeVersion', 'package'],
   name: 'task',
   as: 'dependencies',
   onDelete: .cascade,
   onUpdate: .cascade,
 )
 abstract final class TaskDependency extends Row {
-  String get runtime_version;
+  String get runtimeVersion;
   String get package;
 
   /// Name of a package that is either a direct or transitive dependency of
