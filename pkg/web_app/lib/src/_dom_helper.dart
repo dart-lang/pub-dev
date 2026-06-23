@@ -125,10 +125,7 @@ Element _buildDialog({
 
   if (isQuestion) {
     final cancelBtn = HTMLButtonElement()
-      ..classList.addAll([
-        'pub-button',
-        '-pub-dom-dialog-cancel-button',
-      ])
+      ..classList.addAll(['pub-button', '-pub-dom-dialog-cancel-button'])
       ..tabIndex = 2
       ..innerText = cancelButtonText ?? 'Cancel';
     cancelBtn.onClick.listen((e) {
@@ -139,10 +136,7 @@ Element _buildDialog({
   }
 
   final okBtn = HTMLButtonElement()
-    ..classList.addAll([
-      'pub-button',
-      '-pub-dom-dialog-ok-button',
-    ])
+    ..classList.addAll(['pub-button', '-pub-dom-dialog-ok-button'])
     ..tabIndex = 1
     ..innerText = okButtonText ?? 'Ok';
   okBtn.onClick.listen((e) {
