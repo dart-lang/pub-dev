@@ -201,9 +201,9 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
                   versions: versions,
                   abortedTokens: s.state.abortedTokens,
                 ).asExpr,
-                pending_at: derivePendingAt(
+                pendingAt: derivePendingAt(
                   versions: versions,
-                  lastDependencyChanged: s.last_dependency_changed,
+                  lastDependencyChanged: s.lastDependencyChanged,
                 ).asExpr,
               ),
             )
@@ -262,7 +262,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     final now = clock.now();
     final pendingVersions = derivePendingVersions(
       versions: task.state.versions,
-      lastDependencyChanged: task.last_dependency_changed,
+      lastDependencyChanged: task.lastDependencyChanged,
       at: now,
     ).toList();
     if (pendingVersions.isEmpty) {
@@ -289,9 +289,9 @@ Future<Payload?> updatePackageStateWithPendingVersions(
               versions: newVersions,
               abortedTokens: task.state.abortedTokens,
             ).asExpr,
-            pending_at: derivePendingAt(
+            pendingAt: derivePendingAt(
               versions: newVersions,
-              lastDependencyChanged: task.last_dependency_changed,
+              lastDependencyChanged: task.lastDependencyChanged,
             ).asExpr,
           ),
         )

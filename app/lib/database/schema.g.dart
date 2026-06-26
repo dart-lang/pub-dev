@@ -33,7 +33,7 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<Task> get tasks => $ForGeneratedCode.declareTable(this, _$Task._$table);
 
-  Table<TaskDependency> get task_dependencies =>
+  Table<TaskDependency> get taskDependencies =>
       $ForGeneratedCode.declareTable(this, _$TaskDependency._$table);
 
   /// Create tables defined in [PrimarySchema].
@@ -68,16 +68,16 @@ String createPrimarySchemaTables(SqlDialect dialect) => $ForGeneratedCode
 
 final class _$Task extends Task {
   _$Task._(
-    this.runtime_version,
+    this.runtimeVersion,
     this.package,
     this.state,
-    this.pending_at,
-    this.last_dependency_changed,
+    this.pendingAt,
+    this.lastDependencyChanged,
     this.finished,
   );
 
   @override
-  final String runtime_version;
+  final String runtimeVersion;
 
   @override
   final String package;
@@ -86,10 +86,10 @@ final class _$Task extends Task {
   final TaskState state;
 
   @override
-  final DateTime pending_at;
+  final DateTime pendingAt;
 
   @override
-  final DateTime last_dependency_changed;
+  final DateTime lastDependencyChanged;
 
   @override
   final DateTime finished;
@@ -155,36 +155,36 @@ final class _$Task extends Task {
   );
 
   static Task? _$fromDatabase(RowReader row) {
-    final runtime_version = row.readString();
+    final runtimeVersion = row.readString();
     final package = row.readString();
     final state = $ForGeneratedCode.customDataTypeOrNull(
       row.readJsonValue(),
       TaskState.fromDatabase,
     );
-    final pending_at = row.readDateTime();
-    final last_dependency_changed = row.readDateTime();
+    final pendingAt = row.readDateTime();
+    final lastDependencyChanged = row.readDateTime();
     final finished = row.readDateTime();
-    if (runtime_version == null &&
+    if (runtimeVersion == null &&
         package == null &&
         state == null &&
-        pending_at == null &&
-        last_dependency_changed == null &&
+        pendingAt == null &&
+        lastDependencyChanged == null &&
         finished == null) {
       return null;
     }
     return _$Task._(
-      runtime_version!,
+      runtimeVersion!,
       package!,
       state!,
-      pending_at!,
-      last_dependency_changed!,
+      pendingAt!,
+      lastDependencyChanged!,
       finished!,
     );
   }
 
   @override
   String toString() =>
-      'Task(runtime_version: "$runtime_version", package: "$package", state: "$state", pending_at: "$pending_at", last_dependency_changed: "$last_dependency_changed", finished: "$finished")';
+      'Task(runtimeVersion: "$runtimeVersion", package: "$package", state: "$state", pendingAt: "$pendingAt", lastDependencyChanged: "$lastDependencyChanged", finished: "$finished")';
 }
 
 /// Extension methods for table defined in [Task].
@@ -194,20 +194,20 @@ extension TableTaskExt on Table<Task> {
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
   InsertSingle<Task> insert({
-    required Expr<String> runtime_version,
+    required Expr<String> runtimeVersion,
     required Expr<String> package,
     required Expr<TaskState> state,
-    required Expr<DateTime> pending_at,
-    required Expr<DateTime> last_dependency_changed,
+    required Expr<DateTime> pendingAt,
+    required Expr<DateTime> lastDependencyChanged,
     required Expr<DateTime> finished,
   }) => $ForGeneratedCode.insertInto(
     table: this,
     values: [
-      runtime_version,
+      runtimeVersion,
       package,
       state,
-      pending_at,
-      last_dependency_changed,
+      pendingAt,
+      lastDependencyChanged,
       finished,
     ],
   );
@@ -217,20 +217,20 @@ extension TableTaskExt on Table<Task> {
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
   InsertSingle<Task> insertValue({
-    required String runtime_version,
+    required String runtimeVersion,
     required String package,
     required TaskState state,
-    required DateTime pending_at,
-    required DateTime last_dependency_changed,
+    required DateTime pendingAt,
+    required DateTime lastDependencyChanged,
     required DateTime finished,
   }) => $ForGeneratedCode.insertInto(
     table: this,
     values: [
-      runtime_version.asExpr,
+      runtimeVersion.asExpr,
       package.asExpr,
       state.asExpr,
-      pending_at.asExpr,
-      last_dependency_changed.asExpr,
+      pendingAt.asExpr,
+      lastDependencyChanged.asExpr,
       finished.asExpr,
     ],
   );
@@ -254,21 +254,21 @@ extension TableTaskExt on Table<Task> {
   /// called for the rows to be inserted.
   Insert<Task> insertValuesMapped<T>(
     Iterable<T> rows, {
-    required String Function(T row) runtime_version,
+    required String Function(T row) runtimeVersion,
     required String Function(T row) package,
     required TaskState Function(T row) state,
-    required DateTime Function(T row) pending_at,
-    required DateTime Function(T row) last_dependency_changed,
+    required DateTime Function(T row) pendingAt,
+    required DateTime Function(T row) lastDependencyChanged,
     required DateTime Function(T row) finished,
   }) => $ForGeneratedCode.insertValuesMapped(
     table: this,
     rows: rows,
     mappings: [
-      runtime_version,
+      runtimeVersion,
       package,
       (T v) => state(v).toDatabase(),
-      pending_at,
-      last_dependency_changed,
+      pendingAt,
+      lastDependencyChanged,
       finished,
     ],
   );
@@ -282,9 +282,9 @@ extension TableTaskExt on Table<Task> {
   /// To delete multiple rows, using `.where()` to filter which rows
   /// should be deleted. If you wish to delete all rows, use
   /// `.where((_) => toExpr(true)).delete()`.
-  DeleteSingle<Task> delete(String runtime_version, String package) =>
+  DeleteSingle<Task> delete(String runtimeVersion, String package) =>
       $ForGeneratedCode.deleteSingle(
-        byKey(runtime_version, package),
+        byKey(runtimeVersion, package),
         _$Task._$table,
       );
 }
@@ -295,10 +295,10 @@ extension QueryTaskExt on Query<(Expr<Task>,)> {
   ///
   /// Returns a [QuerySingle] object, which returns at-most one row,
   /// when `.fetch()` is called.
-  QuerySingle<(Expr<Task>,)> byKey(String runtime_version, String package) =>
+  QuerySingle<(Expr<Task>,)> byKey(String runtimeVersion, String package) =>
       where(
         (task) =>
-            task.runtime_version.equalsValue(runtime_version) &
+            task.runtimeVersion.equalsValue(runtimeVersion) &
             task.package.equalsValue(package),
       ).first;
 
@@ -333,11 +333,11 @@ extension QueryTaskExt on Query<(Expr<Task>,)> {
     UpdateSet<Task> Function(
       Expr<Task> task,
       UpdateSet<Task> Function({
-        Expr<String> runtime_version,
+        Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<TaskState> state,
-        Expr<DateTime> pending_at,
-        Expr<DateTime> last_dependency_changed,
+        Expr<DateTime> pendingAt,
+        Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
       })
       set,
@@ -349,18 +349,18 @@ extension QueryTaskExt on Query<(Expr<Task>,)> {
     (task) => updateBuilder(
       task,
       ({
-        Expr<String>? runtime_version,
+        Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<TaskState>? state,
-        Expr<DateTime>? pending_at,
-        Expr<DateTime>? last_dependency_changed,
+        Expr<DateTime>? pendingAt,
+        Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
       }) => $ForGeneratedCode.buildUpdate<Task>([
-        runtime_version,
+        runtimeVersion,
         package,
         state,
-        pending_at,
-        last_dependency_changed,
+        pendingAt,
+        lastDependencyChanged,
         finished,
       ]),
     ),
@@ -408,11 +408,11 @@ extension QuerySingleTaskExt on QuerySingle<(Expr<Task>,)> {
     UpdateSet<Task> Function(
       Expr<Task> task,
       UpdateSet<Task> Function({
-        Expr<String> runtime_version,
+        Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<TaskState> state,
-        Expr<DateTime> pending_at,
-        Expr<DateTime> last_dependency_changed,
+        Expr<DateTime> pendingAt,
+        Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
       })
       set,
@@ -424,18 +424,18 @@ extension QuerySingleTaskExt on QuerySingle<(Expr<Task>,)> {
     (task) => updateBuilder(
       task,
       ({
-        Expr<String>? runtime_version,
+        Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<TaskState>? state,
-        Expr<DateTime>? pending_at,
-        Expr<DateTime>? last_dependency_changed,
+        Expr<DateTime>? pendingAt,
+        Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
       }) => $ForGeneratedCode.buildUpdate<Task>([
-        runtime_version,
+        runtimeVersion,
         package,
         state,
-        pending_at,
-        last_dependency_changed,
+        pendingAt,
+        lastDependencyChanged,
         finished,
       ]),
     ),
@@ -453,7 +453,7 @@ extension QuerySingleTaskExt on QuerySingle<(Expr<Task>,)> {
 /// Extension methods for expressions on a row in the `tasks` table.
 extension ExpressionTaskExt on Expr<Task> {
   /// Runtime version this [Task] belongs to.
-  Expr<String> get runtime_version =>
+  Expr<String> get runtimeVersion =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   Expr<String> get package =>
@@ -463,36 +463,36 @@ extension ExpressionTaskExt on Expr<Task> {
       $ForGeneratedCode.field(this, 2, TaskStateExt._exprType);
 
   /// Next [DateTime] at which point some package version becomes pending.
-  Expr<DateTime> get pending_at =>
+  Expr<DateTime> get pendingAt =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// Last [DateTime] a dependency was updated.
-  Expr<DateTime> get last_dependency_changed =>
+  Expr<DateTime> get lastDependencyChanged =>
       $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
 
   /// The last time the a worker completed with a failure or success.
   Expr<DateTime> get finished =>
       $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
 
-  /// Get [SubQuery] of rows from the `task_dependencies` table which
+  /// Get [SubQuery] of rows from the `taskDependencies` table which
   /// reference this row.
   ///
   /// This returns a [SubQuery] of [TaskDependency] rows,
-  /// where [TaskDependency.runtime_version], [TaskDependency.package]
-  /// references [Task.runtime_version], [Task.package]
+  /// where [TaskDependency.runtimeVersion], [TaskDependency.package]
+  /// references [Task.runtimeVersion], [Task.package]
   /// in this row.
   SubQuery<(Expr<TaskDependency>,)> get dependencies => $ForGeneratedCode
       .subqueryTable(_$TaskDependency._$table)
       .where(
         (r) =>
-            r.runtime_version.equalsUnlessNull(runtime_version) &
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
             r.package.equalsUnlessNull(package),
       );
 }
 
 extension ExpressionNullableTaskExt on Expr<Task?> {
   /// Runtime version this [Task] belongs to.
-  Expr<String?> get runtime_version =>
+  Expr<String?> get runtimeVersion =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   Expr<String?> get package =>
@@ -502,23 +502,23 @@ extension ExpressionNullableTaskExt on Expr<Task?> {
       $ForGeneratedCode.field(this, 2, TaskStateExt._exprType);
 
   /// Next [DateTime] at which point some package version becomes pending.
-  Expr<DateTime?> get pending_at =>
+  Expr<DateTime?> get pendingAt =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// Last [DateTime] a dependency was updated.
-  Expr<DateTime?> get last_dependency_changed =>
+  Expr<DateTime?> get lastDependencyChanged =>
       $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
 
   /// The last time the a worker completed with a failure or success.
   Expr<DateTime?> get finished =>
       $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
 
-  /// Get [SubQuery] of rows from the `task_dependencies` table which
+  /// Get [SubQuery] of rows from the `taskDependencies` table which
   /// reference this row.
   ///
   /// This returns a [SubQuery] of [TaskDependency] rows,
-  /// where [TaskDependency.runtime_version], [TaskDependency.package]
-  /// references [Task.runtime_version], [Task.package]
+  /// where [TaskDependency.runtimeVersion], [TaskDependency.package]
+  /// references [Task.runtimeVersion], [Task.package]
   /// in this row, if any.
   ///
   /// If this row is `NULL` the subquery is always be empty.
@@ -526,7 +526,7 @@ extension ExpressionNullableTaskExt on Expr<Task?> {
       .subqueryTable(_$TaskDependency._$table)
       .where(
         (r) =>
-            r.runtime_version.equalsUnlessNull(runtime_version) &
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
             r.package.equalsUnlessNull(package),
       );
 
@@ -536,7 +536,7 @@ extension ExpressionNullableTaskExt on Expr<Task?> {
   ///
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
-  Expr<bool> isNotNull() => runtime_version.isNotNull() & package.isNotNull();
+  Expr<bool> isNotNull() => runtimeVersion.isNotNull() & package.isNotNull();
 
   /// Check if the row is `NULL`.
   ///
@@ -551,10 +551,10 @@ extension InnerJoinTaskTaskDependencyExt
     on InnerJoin<(Expr<Task>,), (Expr<TaskDependency>,)> {
   /// Join using the `task` _foreign key_.
   ///
-  /// This will match rows where [Task.runtime_version] = [TaskDependency.runtime_version] and [Task.package] = [TaskDependency.package].
+  /// This will match rows where [Task.runtimeVersion] = [TaskDependency.runtimeVersion] and [Task.package] = [TaskDependency.package].
   Query<(Expr<Task>, Expr<TaskDependency>)> usingTask() => on(
     (a, b) =>
-        a.runtime_version.equalsUnlessNull(b.runtime_version) &
+        a.runtimeVersion.equalsUnlessNull(b.runtimeVersion) &
         a.package.equalsUnlessNull(b.package),
   );
 }
@@ -563,10 +563,10 @@ extension LeftJoinTaskTaskDependencyExt
     on LeftJoin<(Expr<Task>,), (Expr<TaskDependency>,)> {
   /// Join using the `task` _foreign key_.
   ///
-  /// This will match rows where [Task.runtime_version] = [TaskDependency.runtime_version] and [Task.package] = [TaskDependency.package].
+  /// This will match rows where [Task.runtimeVersion] = [TaskDependency.runtimeVersion] and [Task.package] = [TaskDependency.package].
   Query<(Expr<Task>, Expr<TaskDependency?>)> usingTask() => on(
     (a, b) =>
-        a.runtime_version.equalsUnlessNull(b.runtime_version) &
+        a.runtimeVersion.equalsUnlessNull(b.runtimeVersion) &
         a.package.equalsUnlessNull(b.package),
   );
 }
@@ -575,10 +575,10 @@ extension RightJoinTaskTaskDependencyExt
     on RightJoin<(Expr<Task>,), (Expr<TaskDependency>,)> {
   /// Join using the `task` _foreign key_.
   ///
-  /// This will match rows where [Task.runtime_version] = [TaskDependency.runtime_version] and [Task.package] = [TaskDependency.package].
+  /// This will match rows where [Task.runtimeVersion] = [TaskDependency.runtimeVersion] and [Task.package] = [TaskDependency.package].
   Query<(Expr<Task?>, Expr<TaskDependency>)> usingTask() => on(
     (a, b) =>
-        a.runtime_version.equalsUnlessNull(b.runtime_version) &
+        a.runtimeVersion.equalsUnlessNull(b.runtimeVersion) &
         a.package.equalsUnlessNull(b.package),
   );
 }
@@ -588,7 +588,7 @@ enum TaskConflict {
   /// Conflict with an existing row that has a matching primary key.
   ///
   /// Thus, the other row has matching values for:
-  /// `runtime_version`, `package`.
+  /// `runtimeVersion`, `package`.
   primaryKey(['runtime_version', 'package']);
 
   const TaskConflict(this._fields);
@@ -664,11 +664,11 @@ extension InsertOnConflictTaskExt on InsertOnConflict<Task> {
       Expr<Task> task,
       Expr<Task> excluded,
       UpdateSet<Task> Function({
-        Expr<String> runtime_version,
+        Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<TaskState> state,
-        Expr<DateTime> pending_at,
-        Expr<DateTime> last_dependency_changed,
+        Expr<DateTime> pendingAt,
+        Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
       })
       set,
@@ -680,18 +680,18 @@ extension InsertOnConflictTaskExt on InsertOnConflict<Task> {
       task,
       excluded,
       ({
-        Expr<String>? runtime_version,
+        Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<TaskState>? state,
-        Expr<DateTime>? pending_at,
-        Expr<DateTime>? last_dependency_changed,
+        Expr<DateTime>? pendingAt,
+        Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
       }) => $ForGeneratedCode.buildUpdate<Task>([
-        runtime_version,
+        runtimeVersion,
         package,
         state,
-        pending_at,
-        last_dependency_changed,
+        pendingAt,
+        lastDependencyChanged,
         finished,
       ]),
     ),
@@ -766,11 +766,11 @@ extension InsertOnConflictSingleTaskExt on InsertOnConflictSingle<Task> {
       Expr<Task> task,
       Expr<Task> excluded,
       UpdateSet<Task> Function({
-        Expr<String> runtime_version,
+        Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<TaskState> state,
-        Expr<DateTime> pending_at,
-        Expr<DateTime> last_dependency_changed,
+        Expr<DateTime> pendingAt,
+        Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
       })
       set,
@@ -782,18 +782,18 @@ extension InsertOnConflictSingleTaskExt on InsertOnConflictSingle<Task> {
       task,
       excluded,
       ({
-        Expr<String>? runtime_version,
+        Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<TaskState>? state,
-        Expr<DateTime>? pending_at,
-        Expr<DateTime>? last_dependency_changed,
+        Expr<DateTime>? pendingAt,
+        Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
       }) => $ForGeneratedCode.buildUpdate<Task>([
-        runtime_version,
+        runtimeVersion,
         package,
         state,
-        pending_at,
-        last_dependency_changed,
+        pendingAt,
+        lastDependencyChanged,
         finished,
       ]),
     ),
@@ -801,10 +801,10 @@ extension InsertOnConflictSingleTaskExt on InsertOnConflictSingle<Task> {
 }
 
 final class _$TaskDependency extends TaskDependency {
-  _$TaskDependency._(this.runtime_version, this.package, this.dependency);
+  _$TaskDependency._(this.runtimeVersion, this.package, this.dependency);
 
   @override
-  final String runtime_version;
+  final String runtimeVersion;
 
   @override
   final String package;
@@ -854,49 +854,49 @@ final class _$TaskDependency extends TaskDependency {
   );
 
   static TaskDependency? _$fromDatabase(RowReader row) {
-    final runtime_version = row.readString();
+    final runtimeVersion = row.readString();
     final package = row.readString();
     final dependency = row.readString();
-    if (runtime_version == null && package == null && dependency == null) {
+    if (runtimeVersion == null && package == null && dependency == null) {
       return null;
     }
-    return _$TaskDependency._(runtime_version!, package!, dependency!);
+    return _$TaskDependency._(runtimeVersion!, package!, dependency!);
   }
 
   @override
   String toString() =>
-      'TaskDependency(runtime_version: "$runtime_version", package: "$package", dependency: "$dependency")';
+      'TaskDependency(runtimeVersion: "$runtimeVersion", package: "$package", dependency: "$dependency")';
 }
 
 /// Extension methods for table defined in [TaskDependency].
 extension TableTaskDependencyExt on Table<TaskDependency> {
-  /// Insert row into the `task_dependencies` table.
+  /// Insert row into the `taskDependencies` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
   InsertSingle<TaskDependency> insert({
-    required Expr<String> runtime_version,
+    required Expr<String> runtimeVersion,
     required Expr<String> package,
     required Expr<String> dependency,
   }) => $ForGeneratedCode.insertInto(
     table: this,
-    values: [runtime_version, package, dependency],
+    values: [runtimeVersion, package, dependency],
   );
 
-  /// Insert row into the `task_dependencies` table.
+  /// Insert row into the `taskDependencies` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
   InsertSingle<TaskDependency> insertValue({
-    required String runtime_version,
+    required String runtimeVersion,
     required String package,
     required String dependency,
   }) => $ForGeneratedCode.insertInto(
     table: this,
-    values: [runtime_version.asExpr, package.asExpr, dependency.asExpr],
+    values: [runtimeVersion.asExpr, package.asExpr, dependency.asExpr],
   );
 
-  /// Bulk insert rows into the `task_dependencies` table.
+  /// Bulk insert rows into the `taskDependencies` table.
   ///
   /// This method takes an `Iterable<T>` and requires that you provide
   /// a _mapping function_ from `T` to each column to be inserted.
@@ -915,16 +915,16 @@ extension TableTaskDependencyExt on Table<TaskDependency> {
   /// called for the rows to be inserted.
   Insert<TaskDependency> insertValuesMapped<T>(
     Iterable<T> rows, {
-    required String Function(T row) runtime_version,
+    required String Function(T row) runtimeVersion,
     required String Function(T row) package,
     required String Function(T row) dependency,
   }) => $ForGeneratedCode.insertValuesMapped(
     table: this,
     rows: rows,
-    mappings: [runtime_version, package, dependency],
+    mappings: [runtimeVersion, package, dependency],
   );
 
-  /// Delete a single row from the `task_dependencies` table, specified by
+  /// Delete a single row from the `taskDependencies` table, specified by
   /// _primary key_.
   ///
   /// Returns a [DeleteSingle] statement on which `.execute()` must be
@@ -934,33 +934,33 @@ extension TableTaskDependencyExt on Table<TaskDependency> {
   /// should be deleted. If you wish to delete all rows, use
   /// `.where((_) => toExpr(true)).delete()`.
   DeleteSingle<TaskDependency> delete(
-    String runtime_version,
+    String runtimeVersion,
     String package,
     String dependency,
   ) => $ForGeneratedCode.deleteSingle(
-    byKey(runtime_version, package, dependency),
+    byKey(runtimeVersion, package, dependency),
     _$TaskDependency._$table,
   );
 }
 
-/// Extension methods for building queries against the `task_dependencies` table.
+/// Extension methods for building queries against the `taskDependencies` table.
 extension QueryTaskDependencyExt on Query<(Expr<TaskDependency>,)> {
-  /// Lookup a single row in `task_dependencies` table using the _primary key_.
+  /// Lookup a single row in `taskDependencies` table using the _primary key_.
   ///
   /// Returns a [QuerySingle] object, which returns at-most one row,
   /// when `.fetch()` is called.
   QuerySingle<(Expr<TaskDependency>,)> byKey(
-    String runtime_version,
+    String runtimeVersion,
     String package,
     String dependency,
   ) => where(
     (taskDependency) =>
-        taskDependency.runtime_version.equalsValue(runtime_version) &
+        taskDependency.runtimeVersion.equalsValue(runtimeVersion) &
         taskDependency.package.equalsValue(package) &
         taskDependency.dependency.equalsValue(dependency),
   ).first;
 
-  /// Update all rows in the `task_dependencies` table matching this [Query].
+  /// Update all rows in the `taskDependencies` table matching this [Query].
   ///
   /// The changes to be applied to each row matching this [Query] are
   /// defined using the [updateBuilder], which is given an [Expr]
@@ -991,7 +991,7 @@ extension QueryTaskDependencyExt on Query<(Expr<TaskDependency>,)> {
     UpdateSet<TaskDependency> Function(
       Expr<TaskDependency> taskDependency,
       UpdateSet<TaskDependency> Function({
-        Expr<String> runtime_version,
+        Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> dependency,
       })
@@ -1004,18 +1004,18 @@ extension QueryTaskDependencyExt on Query<(Expr<TaskDependency>,)> {
     (taskDependency) => updateBuilder(
       taskDependency,
       ({
-        Expr<String>? runtime_version,
+        Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? dependency,
       }) => $ForGeneratedCode.buildUpdate<TaskDependency>([
-        runtime_version,
+        runtimeVersion,
         package,
         dependency,
       ]),
     ),
   );
 
-  /// Delete all rows in the `task_dependencies` table matching this [Query].
+  /// Delete all rows in the `taskDependencies` table matching this [Query].
   ///
   /// Returns a [Delete] statement on which `.execute()` must be called
   /// for the rows to be deleted.
@@ -1023,9 +1023,9 @@ extension QueryTaskDependencyExt on Query<(Expr<TaskDependency>,)> {
       $ForGeneratedCode.delete(this, _$TaskDependency._$table);
 }
 
-/// Extension methods for building point queries against the `task_dependencies` table.
+/// Extension methods for building point queries against the `taskDependencies` table.
 extension QuerySingleTaskDependencyExt on QuerySingle<(Expr<TaskDependency>,)> {
-  /// Update the row (if any) in the `task_dependencies` table matching this
+  /// Update the row (if any) in the `taskDependencies` table matching this
   /// [QuerySingle].
   ///
   /// The changes to be applied to the row matching this [QuerySingle] are
@@ -1058,7 +1058,7 @@ extension QuerySingleTaskDependencyExt on QuerySingle<(Expr<TaskDependency>,)> {
     UpdateSet<TaskDependency> Function(
       Expr<TaskDependency> taskDependency,
       UpdateSet<TaskDependency> Function({
-        Expr<String> runtime_version,
+        Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> dependency,
       })
@@ -1071,18 +1071,18 @@ extension QuerySingleTaskDependencyExt on QuerySingle<(Expr<TaskDependency>,)> {
     (taskDependency) => updateBuilder(
       taskDependency,
       ({
-        Expr<String>? runtime_version,
+        Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? dependency,
       }) => $ForGeneratedCode.buildUpdate<TaskDependency>([
-        runtime_version,
+        runtimeVersion,
         package,
         dependency,
       ]),
     ),
   );
 
-  /// Delete the row (if any) in the `task_dependencies` table matching this [QuerySingle].
+  /// Delete the row (if any) in the `taskDependencies` table matching this [QuerySingle].
   ///
   /// Returns a [DeleteSingle] statement on which `.execute()` must be called
   /// for the row to be deleted. The resulting statement will **not**
@@ -1091,9 +1091,9 @@ extension QuerySingleTaskDependencyExt on QuerySingle<(Expr<TaskDependency>,)> {
       $ForGeneratedCode.deleteSingle(this, _$TaskDependency._$table);
 }
 
-/// Extension methods for expressions on a row in the `task_dependencies` table.
+/// Extension methods for expressions on a row in the `taskDependencies` table.
 extension ExpressionTaskDependencyExt on Expr<TaskDependency> {
-  Expr<String> get runtime_version =>
+  Expr<String> get runtimeVersion =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   Expr<String> get package =>
@@ -1106,16 +1106,16 @@ extension ExpressionTaskDependencyExt on Expr<TaskDependency> {
 
   /// Do a subquery lookup of the row from table
   /// `tasks` referenced in
-  /// [runtime_version], [package].
+  /// [runtimeVersion], [package].
   ///
   /// The gets the row from table `tasks` where
-  /// [Task.runtime_version], [Task.package]
-  /// is equal to [runtime_version], [package].
+  /// [Task.runtimeVersion], [Task.package]
+  /// is equal to [runtimeVersion], [package].
   Expr<Task> get task => $ForGeneratedCode
       .subqueryTable(_$Task._$table)
       .where(
         (r) =>
-            r.runtime_version.equalsUnlessNull(runtime_version) &
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
             r.package.equalsUnlessNull(package),
       )
       .first
@@ -1123,7 +1123,7 @@ extension ExpressionTaskDependencyExt on Expr<TaskDependency> {
 }
 
 extension ExpressionNullableTaskDependencyExt on Expr<TaskDependency?> {
-  Expr<String?> get runtime_version =>
+  Expr<String?> get runtimeVersion =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   Expr<String?> get package =>
@@ -1136,18 +1136,18 @@ extension ExpressionNullableTaskDependencyExt on Expr<TaskDependency?> {
 
   /// Do a subquery lookup of the row from table
   /// `tasks` referenced in
-  /// [runtime_version], [package].
+  /// [runtimeVersion], [package].
   ///
   /// The gets the row from table `tasks` where
-  /// [Task.runtime_version], [Task.package]
-  /// is equal to [runtime_version], [package], if any.
+  /// [Task.runtimeVersion], [Task.package]
+  /// is equal to [runtimeVersion], [package], if any.
   ///
   /// If this row is `NULL` the subquery is always return `NULL`.
   Expr<Task?> get task => $ForGeneratedCode
       .subqueryTable(_$Task._$table)
       .where(
         (r) =>
-            r.runtime_version.equalsUnlessNull(runtime_version) &
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
             r.package.equalsUnlessNull(package),
       )
       .first;
@@ -1159,9 +1159,7 @@ extension ExpressionNullableTaskDependencyExt on Expr<TaskDependency?> {
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
   Expr<bool> isNotNull() =>
-      runtime_version.isNotNull() &
-      package.isNotNull() &
-      dependency.isNotNull();
+      runtimeVersion.isNotNull() & package.isNotNull() & dependency.isNotNull();
 
   /// Check if the row is `NULL`.
   ///
@@ -1176,10 +1174,10 @@ extension InnerJoinTaskDependencyTaskExt
     on InnerJoin<(Expr<TaskDependency>,), (Expr<Task>,)> {
   /// Join using the `task` _foreign key_.
   ///
-  /// This will match rows where [TaskDependency.runtime_version] = [Task.runtime_version] and [TaskDependency.package] = [Task.package].
+  /// This will match rows where [TaskDependency.runtimeVersion] = [Task.runtimeVersion] and [TaskDependency.package] = [Task.package].
   Query<(Expr<TaskDependency>, Expr<Task>)> usingTask() => on(
     (a, b) =>
-        b.runtime_version.equalsUnlessNull(a.runtime_version) &
+        b.runtimeVersion.equalsUnlessNull(a.runtimeVersion) &
         b.package.equalsUnlessNull(a.package),
   );
 }
@@ -1188,10 +1186,10 @@ extension LeftJoinTaskDependencyTaskExt
     on LeftJoin<(Expr<TaskDependency>,), (Expr<Task>,)> {
   /// Join using the `task` _foreign key_.
   ///
-  /// This will match rows where [TaskDependency.runtime_version] = [Task.runtime_version] and [TaskDependency.package] = [Task.package].
+  /// This will match rows where [TaskDependency.runtimeVersion] = [Task.runtimeVersion] and [TaskDependency.package] = [Task.package].
   Query<(Expr<TaskDependency>, Expr<Task?>)> usingTask() => on(
     (a, b) =>
-        b.runtime_version.equalsUnlessNull(a.runtime_version) &
+        b.runtimeVersion.equalsUnlessNull(a.runtimeVersion) &
         b.package.equalsUnlessNull(a.package),
   );
 }
@@ -1200,10 +1198,10 @@ extension RightJoinTaskDependencyTaskExt
     on RightJoin<(Expr<TaskDependency>,), (Expr<Task>,)> {
   /// Join using the `task` _foreign key_.
   ///
-  /// This will match rows where [TaskDependency.runtime_version] = [Task.runtime_version] and [TaskDependency.package] = [Task.package].
+  /// This will match rows where [TaskDependency.runtimeVersion] = [Task.runtimeVersion] and [TaskDependency.package] = [Task.package].
   Query<(Expr<TaskDependency?>, Expr<Task>)> usingTask() => on(
     (a, b) =>
-        b.runtime_version.equalsUnlessNull(a.runtime_version) &
+        b.runtimeVersion.equalsUnlessNull(a.runtimeVersion) &
         b.package.equalsUnlessNull(a.package),
   );
 }
@@ -1213,7 +1211,7 @@ enum TaskDependencyConflict {
   /// Conflict with an existing row that has a matching primary key.
   ///
   /// Thus, the other row has matching values for:
-  /// `runtime_version`, `package`, `dependency`.
+  /// `runtimeVersion`, `package`, `dependency`.
   primaryKey(['runtime_version', 'package', 'dependency']);
 
   const TaskDependencyConflict(this._fields);
@@ -1290,7 +1288,7 @@ extension InsertOnConflictTaskDependencyExt
       Expr<TaskDependency> taskDependency,
       Expr<TaskDependency> excluded,
       UpdateSet<TaskDependency> Function({
-        Expr<String> runtime_version,
+        Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> dependency,
       })
@@ -1303,11 +1301,11 @@ extension InsertOnConflictTaskDependencyExt
       taskDependency,
       excluded,
       ({
-        Expr<String>? runtime_version,
+        Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? dependency,
       }) => $ForGeneratedCode.buildUpdate<TaskDependency>([
-        runtime_version,
+        runtimeVersion,
         package,
         dependency,
       ]),
@@ -1385,7 +1383,7 @@ extension InsertOnConflictSingleTaskDependencyExt
       Expr<TaskDependency> taskDependency,
       Expr<TaskDependency> excluded,
       UpdateSet<TaskDependency> Function({
-        Expr<String> runtime_version,
+        Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> dependency,
       })
@@ -1398,11 +1396,11 @@ extension InsertOnConflictSingleTaskDependencyExt
       taskDependency,
       excluded,
       ({
-        Expr<String>? runtime_version,
+        Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? dependency,
       }) => $ForGeneratedCode.buildUpdate<TaskDependency>([
-        runtime_version,
+        runtimeVersion,
         package,
         dependency,
       ]),

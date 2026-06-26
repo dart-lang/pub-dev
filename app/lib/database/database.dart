@@ -162,7 +162,7 @@ class PrimaryDatabase {
 
     await migrateScripts(
       target: _adapter,
-      table: migrationDb.schema_migrations,
+      table: migrationDb.schemaMigrations,
       schemaName: 'pub-dev-primary',
       scripts: scripts,
     );
@@ -246,8 +246,7 @@ class PrimaryDatabase {
         'tasks':
             (await _db.tasks
                     .where(
-                      (task) =>
-                          task.runtime_version.equalsValue(runtimeVersion),
+                      (task) => task.runtimeVersion.equalsValue(runtimeVersion),
                     )
                     .orderBy((task) => [(task.finished, .descending)])
                     .limit(10)
@@ -255,21 +254,21 @@ class PrimaryDatabase {
                 .map((e) => [e.package, e.finished.toIso8601String()])
                 .toList(),
         'task_dependencies':
-            (await _db.task_dependencies
+            (await _db.taskDependencies
                     .where(
-                      (td) => td.runtime_version.equalsValue(runtimeVersion),
+                      (td) => td.runtimeVersion.equalsValue(runtimeVersion),
                     )
                     .limit(10)
                     .fetch())
                 .map((e) => [e.package, e.dependency])
                 .toList(),
-        'schema_migrations': (await migrationDb.schema_migrations.fetch())
+        'schema_migrations': (await migrationDb.schemaMigrations.fetch())
             .map(
               (e) => [
-                e.schema_name,
-                e.script_name,
-                e.script_sha256,
-                e.executed_at.toIso8601String(),
+                e.schemaName,
+                e.scriptName,
+                e.scriptSha256,
+                e.executedAt.toIso8601String(),
               ],
             )
             .toList(),
