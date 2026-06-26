@@ -54,7 +54,7 @@ void main() {
         await primaryDatabase!.withRetry((db) async {
           await db.tasks
               .insert(
-                runtime_version: runtimeVersion.asExpr,
+                runtimeVersion: runtimeVersion.asExpr,
                 package: 'foo'.asExpr,
                 state: TaskState(
                   versions: {
@@ -65,15 +65,15 @@ void main() {
                   },
                   abortedTokens: [],
                 ).asExpr,
-                pending_at: clock.now().asExpr,
-                last_dependency_changed: clock.now().asExpr,
+                pendingAt: clock.now().asExpr,
+                lastDependencyChanged: clock.now().asExpr,
                 finished: clock.now().asExpr,
               )
               .execute();
 
           final rows = await db.tasks
               .where((b) => b.package.equalsValue('foo'))
-              .select((b) => (b.package, b.runtime_version, b.state))
+              .select((b) => (b.package, b.runtimeVersion, b.state))
               .fetch();
           expect(rows, hasLength(1));
           expect(rows.first.$1, 'foo');

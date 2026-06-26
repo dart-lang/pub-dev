@@ -10,7 +10,7 @@ part of 'migration.dart';
 extension SchemaMigrationSchemaSchema on Database<SchemaMigrationSchema> {
   static final _$tables = [_$SchemaMigration._$table];
 
-  Table<SchemaMigration> get schema_migrations =>
+  Table<SchemaMigration> get schemaMigrations =>
       $ForGeneratedCode.declareTable(this, _$SchemaMigration._$table);
 
   /// Create tables defined in [SchemaMigrationSchema].
@@ -48,23 +48,23 @@ String createSchemaMigrationSchemaTables(SqlDialect dialect) =>
 
 final class _$SchemaMigration extends SchemaMigration {
   _$SchemaMigration._(
-    this.schema_name,
-    this.script_name,
-    this.script_sha256,
-    this.executed_at,
+    this.schemaName,
+    this.scriptName,
+    this.scriptSha256,
+    this.executedAt,
   );
 
   @override
-  final String schema_name;
+  final String schemaName;
 
   @override
-  final String script_name;
+  final String scriptName;
 
   @override
-  final String script_sha256;
+  final String scriptSha256;
 
   @override
-  final DateTime executed_at;
+  final DateTime executedAt;
 
   static final _$table = $ForGeneratedCode.tableDefinition(
     tableName: 'schema_migrations',
@@ -111,65 +111,65 @@ final class _$SchemaMigration extends SchemaMigration {
   );
 
   static SchemaMigration? _$fromDatabase(RowReader row) {
-    final schema_name = row.readString();
-    final script_name = row.readString();
-    final script_sha256 = row.readString();
-    final executed_at = row.readDateTime();
-    if (schema_name == null &&
-        script_name == null &&
-        script_sha256 == null &&
-        executed_at == null) {
+    final schemaName = row.readString();
+    final scriptName = row.readString();
+    final scriptSha256 = row.readString();
+    final executedAt = row.readDateTime();
+    if (schemaName == null &&
+        scriptName == null &&
+        scriptSha256 == null &&
+        executedAt == null) {
       return null;
     }
     return _$SchemaMigration._(
-      schema_name!,
-      script_name!,
-      script_sha256!,
-      executed_at!,
+      schemaName!,
+      scriptName!,
+      scriptSha256!,
+      executedAt!,
     );
   }
 
   @override
   String toString() =>
-      'SchemaMigration(schema_name: "$schema_name", script_name: "$script_name", script_sha256: "$script_sha256", executed_at: "$executed_at")';
+      'SchemaMigration(schemaName: "$schemaName", scriptName: "$scriptName", scriptSha256: "$scriptSha256", executedAt: "$executedAt")';
 }
 
 /// Extension methods for table defined in [SchemaMigration].
 extension TableSchemaMigrationExt on Table<SchemaMigration> {
-  /// Insert row into the `schema_migrations` table.
+  /// Insert row into the `schemaMigrations` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
   InsertSingle<SchemaMigration> insert({
-    required Expr<String> schema_name,
-    required Expr<String> script_name,
-    required Expr<String> script_sha256,
-    required Expr<DateTime> executed_at,
+    required Expr<String> schemaName,
+    required Expr<String> scriptName,
+    required Expr<String> scriptSha256,
+    required Expr<DateTime> executedAt,
   }) => $ForGeneratedCode.insertInto(
     table: this,
-    values: [schema_name, script_name, script_sha256, executed_at],
+    values: [schemaName, scriptName, scriptSha256, executedAt],
   );
 
-  /// Insert row into the `schema_migrations` table.
+  /// Insert row into the `schemaMigrations` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
   InsertSingle<SchemaMigration> insertValue({
-    required String schema_name,
-    required String script_name,
-    required String script_sha256,
-    required DateTime executed_at,
+    required String schemaName,
+    required String scriptName,
+    required String scriptSha256,
+    required DateTime executedAt,
   }) => $ForGeneratedCode.insertInto(
     table: this,
     values: [
-      schema_name.asExpr,
-      script_name.asExpr,
-      script_sha256.asExpr,
-      executed_at.asExpr,
+      schemaName.asExpr,
+      scriptName.asExpr,
+      scriptSha256.asExpr,
+      executedAt.asExpr,
     ],
   );
 
-  /// Bulk insert rows into the `schema_migrations` table.
+  /// Bulk insert rows into the `schemaMigrations` table.
   ///
   /// This method takes an `Iterable<T>` and requires that you provide
   /// a _mapping function_ from `T` to each column to be inserted.
@@ -188,17 +188,17 @@ extension TableSchemaMigrationExt on Table<SchemaMigration> {
   /// called for the rows to be inserted.
   Insert<SchemaMigration> insertValuesMapped<T>(
     Iterable<T> rows, {
-    required String Function(T row) schema_name,
-    required String Function(T row) script_name,
-    required String Function(T row) script_sha256,
-    required DateTime Function(T row) executed_at,
+    required String Function(T row) schemaName,
+    required String Function(T row) scriptName,
+    required String Function(T row) scriptSha256,
+    required DateTime Function(T row) executedAt,
   }) => $ForGeneratedCode.insertValuesMapped(
     table: this,
     rows: rows,
-    mappings: [schema_name, script_name, script_sha256, executed_at],
+    mappings: [schemaName, scriptName, scriptSha256, executedAt],
   );
 
-  /// Delete a single row from the `schema_migrations` table, specified by
+  /// Delete a single row from the `schemaMigrations` table, specified by
   /// _primary key_.
   ///
   /// Returns a [DeleteSingle] statement on which `.execute()` must be
@@ -207,31 +207,29 @@ extension TableSchemaMigrationExt on Table<SchemaMigration> {
   /// To delete multiple rows, using `.where()` to filter which rows
   /// should be deleted. If you wish to delete all rows, use
   /// `.where((_) => toExpr(true)).delete()`.
-  DeleteSingle<SchemaMigration> delete(
-    String schema_name,
-    String script_name,
-  ) => $ForGeneratedCode.deleteSingle(
-    byKey(schema_name, script_name),
-    _$SchemaMigration._$table,
-  );
+  DeleteSingle<SchemaMigration> delete(String schemaName, String scriptName) =>
+      $ForGeneratedCode.deleteSingle(
+        byKey(schemaName, scriptName),
+        _$SchemaMigration._$table,
+      );
 }
 
-/// Extension methods for building queries against the `schema_migrations` table.
+/// Extension methods for building queries against the `schemaMigrations` table.
 extension QuerySchemaMigrationExt on Query<(Expr<SchemaMigration>,)> {
-  /// Lookup a single row in `schema_migrations` table using the _primary key_.
+  /// Lookup a single row in `schemaMigrations` table using the _primary key_.
   ///
   /// Returns a [QuerySingle] object, which returns at-most one row,
   /// when `.fetch()` is called.
   QuerySingle<(Expr<SchemaMigration>,)> byKey(
-    String schema_name,
-    String script_name,
+    String schemaName,
+    String scriptName,
   ) => where(
     (schemaMigration) =>
-        schemaMigration.schema_name.equalsValue(schema_name) &
-        schemaMigration.script_name.equalsValue(script_name),
+        schemaMigration.schemaName.equalsValue(schemaName) &
+        schemaMigration.scriptName.equalsValue(scriptName),
   ).first;
 
-  /// Update all rows in the `schema_migrations` table matching this [Query].
+  /// Update all rows in the `schemaMigrations` table matching this [Query].
   ///
   /// The changes to be applied to each row matching this [Query] are
   /// defined using the [updateBuilder], which is given an [Expr]
@@ -262,10 +260,10 @@ extension QuerySchemaMigrationExt on Query<(Expr<SchemaMigration>,)> {
     UpdateSet<SchemaMigration> Function(
       Expr<SchemaMigration> schemaMigration,
       UpdateSet<SchemaMigration> Function({
-        Expr<String> schema_name,
-        Expr<String> script_name,
-        Expr<String> script_sha256,
-        Expr<DateTime> executed_at,
+        Expr<String> schemaName,
+        Expr<String> scriptName,
+        Expr<String> scriptSha256,
+        Expr<DateTime> executedAt,
       })
       set,
     )
@@ -276,20 +274,20 @@ extension QuerySchemaMigrationExt on Query<(Expr<SchemaMigration>,)> {
     (schemaMigration) => updateBuilder(
       schemaMigration,
       ({
-        Expr<String>? schema_name,
-        Expr<String>? script_name,
-        Expr<String>? script_sha256,
-        Expr<DateTime>? executed_at,
+        Expr<String>? schemaName,
+        Expr<String>? scriptName,
+        Expr<String>? scriptSha256,
+        Expr<DateTime>? executedAt,
       }) => $ForGeneratedCode.buildUpdate<SchemaMigration>([
-        schema_name,
-        script_name,
-        script_sha256,
-        executed_at,
+        schemaName,
+        scriptName,
+        scriptSha256,
+        executedAt,
       ]),
     ),
   );
 
-  /// Delete all rows in the `schema_migrations` table matching this [Query].
+  /// Delete all rows in the `schemaMigrations` table matching this [Query].
   ///
   /// Returns a [Delete] statement on which `.execute()` must be called
   /// for the rows to be deleted.
@@ -297,10 +295,10 @@ extension QuerySchemaMigrationExt on Query<(Expr<SchemaMigration>,)> {
       $ForGeneratedCode.delete(this, _$SchemaMigration._$table);
 }
 
-/// Extension methods for building point queries against the `schema_migrations` table.
+/// Extension methods for building point queries against the `schemaMigrations` table.
 extension QuerySingleSchemaMigrationExt
     on QuerySingle<(Expr<SchemaMigration>,)> {
-  /// Update the row (if any) in the `schema_migrations` table matching this
+  /// Update the row (if any) in the `schemaMigrations` table matching this
   /// [QuerySingle].
   ///
   /// The changes to be applied to the row matching this [QuerySingle] are
@@ -333,10 +331,10 @@ extension QuerySingleSchemaMigrationExt
     UpdateSet<SchemaMigration> Function(
       Expr<SchemaMigration> schemaMigration,
       UpdateSet<SchemaMigration> Function({
-        Expr<String> schema_name,
-        Expr<String> script_name,
-        Expr<String> script_sha256,
-        Expr<DateTime> executed_at,
+        Expr<String> schemaName,
+        Expr<String> scriptName,
+        Expr<String> scriptSha256,
+        Expr<DateTime> executedAt,
       })
       set,
     )
@@ -347,20 +345,20 @@ extension QuerySingleSchemaMigrationExt
     (schemaMigration) => updateBuilder(
       schemaMigration,
       ({
-        Expr<String>? schema_name,
-        Expr<String>? script_name,
-        Expr<String>? script_sha256,
-        Expr<DateTime>? executed_at,
+        Expr<String>? schemaName,
+        Expr<String>? scriptName,
+        Expr<String>? scriptSha256,
+        Expr<DateTime>? executedAt,
       }) => $ForGeneratedCode.buildUpdate<SchemaMigration>([
-        schema_name,
-        script_name,
-        script_sha256,
-        executed_at,
+        schemaName,
+        scriptName,
+        scriptSha256,
+        executedAt,
       ]),
     ),
   );
 
-  /// Delete the row (if any) in the `schema_migrations` table matching this [QuerySingle].
+  /// Delete the row (if any) in the `schemaMigrations` table matching this [QuerySingle].
   ///
   /// Returns a [DeleteSingle] statement on which `.execute()` must be called
   /// for the row to be deleted. The resulting statement will **not**
@@ -369,40 +367,40 @@ extension QuerySingleSchemaMigrationExt
       $ForGeneratedCode.deleteSingle(this, _$SchemaMigration._$table);
 }
 
-/// Extension methods for expressions on a row in the `schema_migrations` table.
+/// Extension methods for expressions on a row in the `schemaMigrations` table.
 extension ExpressionSchemaMigrationExt on Expr<SchemaMigration> {
   /// The name of the schema (major group, e.g. `main`, `accounts`...).
-  Expr<String> get schema_name =>
+  Expr<String> get schemaName =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   /// The name of the script.
-  Expr<String> get script_name =>
+  Expr<String> get scriptName =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
   /// The SHA-256 of the script at the time of execution.
-  Expr<String> get script_sha256 =>
+  Expr<String> get scriptSha256 =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   /// The timestamp of the execution.
-  Expr<DateTime> get executed_at =>
+  Expr<DateTime> get executedAt =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 }
 
 extension ExpressionNullableSchemaMigrationExt on Expr<SchemaMigration?> {
   /// The name of the schema (major group, e.g. `main`, `accounts`...).
-  Expr<String?> get schema_name =>
+  Expr<String?> get schemaName =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
   /// The name of the script.
-  Expr<String?> get script_name =>
+  Expr<String?> get scriptName =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
   /// The SHA-256 of the script at the time of execution.
-  Expr<String?> get script_sha256 =>
+  Expr<String?> get scriptSha256 =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   /// The timestamp of the execution.
-  Expr<DateTime?> get executed_at =>
+  Expr<DateTime?> get executedAt =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// Check if the row is not `NULL`.
@@ -411,7 +409,7 @@ extension ExpressionNullableSchemaMigrationExt on Expr<SchemaMigration?> {
   ///
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
-  Expr<bool> isNotNull() => schema_name.isNotNull() & script_name.isNotNull();
+  Expr<bool> isNotNull() => schemaName.isNotNull() & scriptName.isNotNull();
 
   /// Check if the row is `NULL`.
   ///
@@ -427,7 +425,7 @@ enum SchemaMigrationConflict {
   /// Conflict with an existing row that has a matching primary key.
   ///
   /// Thus, the other row has matching values for:
-  /// `schema_name`, `script_name`.
+  /// `schemaName`, `scriptName`.
   primaryKey(['schema_name', 'script_name']);
 
   const SchemaMigrationConflict(this._fields);
@@ -505,10 +503,10 @@ extension InsertOnConflictSchemaMigrationExt
       Expr<SchemaMigration> schemaMigration,
       Expr<SchemaMigration> excluded,
       UpdateSet<SchemaMigration> Function({
-        Expr<String> schema_name,
-        Expr<String> script_name,
-        Expr<String> script_sha256,
-        Expr<DateTime> executed_at,
+        Expr<String> schemaName,
+        Expr<String> scriptName,
+        Expr<String> scriptSha256,
+        Expr<DateTime> executedAt,
       })
       set,
     )
@@ -519,15 +517,15 @@ extension InsertOnConflictSchemaMigrationExt
       schemaMigration,
       excluded,
       ({
-        Expr<String>? schema_name,
-        Expr<String>? script_name,
-        Expr<String>? script_sha256,
-        Expr<DateTime>? executed_at,
+        Expr<String>? schemaName,
+        Expr<String>? scriptName,
+        Expr<String>? scriptSha256,
+        Expr<DateTime>? executedAt,
       }) => $ForGeneratedCode.buildUpdate<SchemaMigration>([
-        schema_name,
-        script_name,
-        script_sha256,
-        executed_at,
+        schemaName,
+        scriptName,
+        scriptSha256,
+        executedAt,
       ]),
     ),
   );
@@ -603,10 +601,10 @@ extension InsertOnConflictSingleSchemaMigrationExt
       Expr<SchemaMigration> schemaMigration,
       Expr<SchemaMigration> excluded,
       UpdateSet<SchemaMigration> Function({
-        Expr<String> schema_name,
-        Expr<String> script_name,
-        Expr<String> script_sha256,
-        Expr<DateTime> executed_at,
+        Expr<String> schemaName,
+        Expr<String> scriptName,
+        Expr<String> scriptSha256,
+        Expr<DateTime> executedAt,
       })
       set,
     )
@@ -617,15 +615,15 @@ extension InsertOnConflictSingleSchemaMigrationExt
       schemaMigration,
       excluded,
       ({
-        Expr<String>? schema_name,
-        Expr<String>? script_name,
-        Expr<String>? script_sha256,
-        Expr<DateTime>? executed_at,
+        Expr<String>? schemaName,
+        Expr<String>? scriptName,
+        Expr<String>? scriptSha256,
+        Expr<DateTime>? executedAt,
       }) => $ForGeneratedCode.buildUpdate<SchemaMigration>([
-        schema_name,
-        script_name,
-        script_sha256,
-        executed_at,
+        schemaName,
+        scriptName,
+        scriptSha256,
+        executedAt,
       ]),
     ),
   );

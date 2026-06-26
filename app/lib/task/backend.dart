@@ -303,8 +303,8 @@ class TaskBackend {
       // list tasks with dependency updated >= since
       final list = await _database.withRetry(
         (db) => db.tasks
-            .where((t) => t.last_dependency_changed >= since.asExpr)
-            .select((t) => (t.package, t.last_dependency_changed))
+            .where((t) => t.lastDependencyChanged >= since.asExpr)
+            .select((t) => (t.package, t.lastDependencyChanged))
             .stream()
             .map((e) => (name: e.$1, updated: e.$2))
             .toList(),
@@ -408,12 +408,12 @@ class TaskBackend {
         };
         await db.tasks
             .insert(
-              runtime_version: runtimeVersion.asExpr,
+              runtimeVersion: runtimeVersion.asExpr,
               package: packageName.asExpr,
               state: TaskState(versions: versionsMap, abortedTokens: []).asExpr,
-              last_dependency_changed: initialTimestamp.asExpr,
+              lastDependencyChanged: initialTimestamp.asExpr,
               finished: initialTimestamp.asExpr,
-              pending_at: derivePendingAt(
+              pendingAt: derivePendingAt(
                 versions: versionsMap,
                 lastDependencyChanged: initialTimestamp,
               ).asExpr,
@@ -445,7 +445,7 @@ class TaskBackend {
       // Stop transaction, if there is no changes to be made!
       if (untrackedVersions.isEmpty &&
           deselectedVersions.isEmpty &&
-          !task.last_dependency_changed.isAfter(task.finished)) {
+          !task.lastDependencyChanged.isAfter(task.finished)) {
         return false;
       }
 
@@ -484,9 +484,9 @@ class TaskBackend {
           .update(
             (_, set) => set(
               state: newState.asExpr,
-              pending_at: derivePendingAt(
+              pendingAt: derivePendingAt(
                 versions: newState.versions,
-                lastDependencyChanged: task.last_dependency_changed,
+                lastDependencyChanged: task.lastDependencyChanged,
               ).asExpr,
             ),
           )
@@ -500,7 +500,7 @@ class TaskBackend {
 
     if (updateDependents &&
         !lastVersionCreated.isAtSameMomentAs(initialTimestamp)) {
-      // Update all tasks' `last_dependency_changed` column.
+      // Update all tasks' `lastDependencyChanged` column.
       await _database.withRetry(
         (db) => db.tasks
             .where(
@@ -510,13 +510,11 @@ class TaskBackend {
                         (deps) => deps.dependency.equals(packageName.asExpr),
                       )
                       .exists() &
-                  task.last_dependency_changed.isBeforeValue(
-                    lastVersionCreated,
-                  ),
+                  task.lastDependencyChanged.isBeforeValue(lastVersionCreated),
             )
             .update(
               (task, set) =>
-                  set(last_dependency_changed: lastVersionCreated.asExpr),
+                  set(lastDependencyChanged: lastVersionCreated.asExpr),
             )
             .execute(),
       );
@@ -674,10 +672,10 @@ class TaskBackend {
       await _database.transactWithRetry((db) async {
         // Note: We limit both the fetching of the existing entries and the insertion of the new entries.
         //       The dependency-based reanalysis is best-effort and we should not exhaust resources with it.
-        final existingDependencyList = await db.task_dependencies
+        final existingDependencyList = await db.taskDependencies
             .where(
               (dep) =>
-                  dep.runtime_version.equalsValue(runtimeVersion) &
+                  dep.runtimeVersion.equalsValue(runtimeVersion) &
                   dep.package.equalsValue(package),
             )
             .limit(1000)
@@ -708,10 +706,10 @@ class TaskBackend {
         if (newDependencies.isEmpty) {
           return;
         }
-        await db.task_dependencies
+        await db.taskDependencies
             .insertValuesMapped(
               newDependencies,
-              runtime_version: (_) => runtimeVersion,
+              runtimeVersion: (_) => runtimeVersion,
               package: (_) => package,
               dependency: (d) => d,
             )
@@ -754,7 +752,7 @@ class TaskBackend {
       // re-scheduled way too soon.
       final pendingAt = derivePendingAt(
         versions: newVersions,
-        lastDependencyChanged: task.last_dependency_changed,
+        lastDependencyChanged: task.lastDependencyChanged,
       );
 
       await db.tasks
@@ -765,7 +763,7 @@ class TaskBackend {
                 versions: newVersions,
                 abortedTokens: task.state.abortedTokens,
               ).asExpr,
-              pending_at: pendingAt.asExpr,
+              pendingAt: pendingAt.asExpr,
               finished: clock.now().toUtc().asExpr,
             ),
           )
@@ -1042,7 +1040,7 @@ class TaskBackend {
           continue;
         }
         return PackageStateInfo(
-          runtimeVersion: task.runtime_version,
+          runtimeVersion: task.runtimeVersion,
           package: package,
           versions: task.state.versions,
         );
@@ -1332,14 +1330,14 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
   // GC the old [Task] entities
   Future<void> taskDeleteBeforeGcRuntime() async {
     await tasks
-        .where((task) => task.runtime_version < gcBeforeRuntimeVersion.asExpr)
+        .where((task) => task.runtimeVersion < gcBeforeRuntimeVersion.asExpr)
         .delete()
         .execute();
   }
 
   Stream<({String package})> taskListAllForCurrentRuntime() {
     return tasks
-        .where((task) => task.runtime_version.equalsValue(runtimeVersion))
+        .where((task) => task.runtimeVersion.equalsValue(runtimeVersion))
         .select((task) => (task.package,))
         .stream()
         .map((row) => (package: row));
@@ -1360,10 +1358,10 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
     final query = tasks
         .where(
           (task) =>
-              task.runtime_version.equalsValue(runtimeVersion) &
-              task.pending_at.isBeforeValue(clock.now()),
+              task.runtimeVersion.equalsValue(runtimeVersion) &
+              task.pendingAt.isBeforeValue(clock.now()),
         )
-        .orderBy((task) => [(task.pending_at, Order.ascending)])
+        .orderBy((task) => [(task.pendingAt, Order.ascending)])
         .select((task) => (task.package,))
         .limit(limit);
     await for (final row in query.stream()) {
@@ -1375,10 +1373,10 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
     await tasks
         .where(
           (task) =>
-              task.runtime_version.equalsValue(runtimeVersion) &
+              task.runtimeVersion.equalsValue(runtimeVersion) &
               task.package.equalsValue(packageName),
         )
-        .update((_, set) => set(pending_at: initialTimestamp.asExpr))
+        .update((_, set) => set(pendingAt: initialTimestamp.asExpr))
         .execute();
   }
 }

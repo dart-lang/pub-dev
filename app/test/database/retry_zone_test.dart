@@ -179,9 +179,9 @@ void main() {
 }
 
 extension on Database<PrimarySchema> {
-  Future<void> insertBadData() => task_dependencies
+  Future<void> insertBadData() => taskDependencies
       .insert(
-        runtime_version: 'x'.asExpr,
+        runtimeVersion: 'x'.asExpr,
         package: 'pkg'.asExpr,
         dependency: 'dep'.asExpr,
       )
