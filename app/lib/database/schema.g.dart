@@ -589,7 +589,7 @@ enum TaskConflict {
   ///
   /// Thus, the other row has matching values for:
   /// `runtimeVersion`, `package`.
-  primaryKey(['runtimeVersion', 'package']);
+  primaryKey(['runtime_version', 'package']);
 
   const TaskConflict(this._fields);
 
@@ -1212,7 +1212,7 @@ enum TaskDependencyConflict {
   ///
   /// Thus, the other row has matching values for:
   /// `runtimeVersion`, `package`, `dependency`.
-  primaryKey(['runtimeVersion', 'package', 'dependency']);
+  primaryKey(['runtime_version', 'package', 'dependency']);
 
   const TaskDependencyConflict(this._fields);
 

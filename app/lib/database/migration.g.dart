@@ -426,7 +426,7 @@ enum SchemaMigrationConflict {
   ///
   /// Thus, the other row has matching values for:
   /// `schemaName`, `scriptName`.
-  primaryKey(['schemaName', 'scriptName']);
+  primaryKey(['schema_name', 'script_name']);
 
   const SchemaMigrationConflict(this._fields);
 
