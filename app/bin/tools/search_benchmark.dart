@@ -25,19 +25,30 @@ Future<void> main(List<String> args) async {
 
   // NOTE: please add more queries to this list, especially if there is a performance bottleneck.
   final queries = [
+    // tag only
     'sdk:dart',
     'sdk:flutter platform:android',
     'is:flutter-favorite',
+    // frequent substring
+    'a',
+    'er',
+    // frequently searched for
     'chart',
     'json',
     'camera',
+    // frequent words of different length
+    'dart',
+    'flutter',
+    'development',
+    // multi-word expressions
     'android camera',
     'sql database',
+    'to help speed up',
   ];
 
   final sw = Stopwatch()..start();
   var count = 0;
-  for (var i = 0; i < 100; i++) {
+  for (var i = 0; i < 100 || sw.elapsed.inMinutes < 2; i++) {
     await index.search(
       ServiceSearchQuery.parse(
         query: queries[i % queries.length],
