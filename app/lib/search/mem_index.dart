@@ -465,7 +465,7 @@ class InMemoryPackageIndex {
     for (final word in words) {
       await _scorePool.withPoolItem(
         fn: (wordScore) async {
-          _packageNameIndex.searchWord(
+          _packageNameIndex._searchWord(
             word,
             score: wordScore,
             filterOnNonZeros: packageScores,
@@ -659,17 +659,30 @@ class PackageNameIndex {
   /// Maps the collapsed name to all the original names (e.g. `asyncmap`=> [`async_map`, `as_y_n_cmaP`]).
   late final Map<String, List<String>> _collapsedNameResolvesToMap;
 
+  /// Inverted trigram index: maps each trigram to the package indexes (ascending),
+  /// whose collapsed name contains that trigram.
+  late final Map<String, List<int>> _trigramPostings;
+
+  // TODO(https://github.com/dart-lang/pub-dev/issues/9462): consider int-based counter implementation
+  late final _counterPool = ScorePool(_packageNames.length);
+
   PackageNameIndex(this._packageNames) {
     _data = _packageNames.map((package) {
       final lowercased = package.toLowerCase();
       final collapsed = _removeUnderscores(lowercased);
-      return _PkgNameData(lowercased, collapsed, trigrams(collapsed).toSet());
+      return _PkgNameData(lowercased, collapsed);
     }).toList();
     _collapsedNameResolvesToMap = {};
+    _trigramPostings = {};
     for (var i = 0; i < _data.length; i++) {
       _collapsedNameResolvesToMap
           .putIfAbsent(_data[i].collapsed, () => [])
           .add(_packageNames[i]);
+      // Register only a single trigram -> document index posting.
+      // TODO(https://github.com/dart-lang/pub-dev/issues/9462): consider posting weights
+      for (final trigram in trigrams(_data[i].collapsed).toSet()) {
+        _trigramPostings.putIfAbsent(trigram, () => <int>[]).add(i);
+      }
     }
   }
 
@@ -681,7 +694,7 @@ class PackageNameIndex {
     IndexedScore? score;
     for (final w in splitForQuery(text)) {
       final s = IndexedScore(_packageNames.length);
-      searchWord(w, score: s, filterOnNonZeros: score);
+      _searchWord(w, score: s, filterOnNonZeros: score);
       if (score == null) {
         score = s;
       } else {
@@ -702,7 +715,7 @@ class PackageNameIndex {
   ///
   /// When [filterOnNonZeros] is present, only the indexes with an already
   /// non-zero value are evaluated.
-  void searchWord(
+  void _searchWord(
     String word, {
     required IndexedScore score,
     IndexedScore? filterOnNonZeros,
@@ -710,51 +723,65 @@ class PackageNameIndex {
     assert(score.length == _packageNames.length);
     final lowercasedWord = word.toLowerCase();
     final collapsedWord = _removeUnderscores(lowercasedWord);
-    final parts = collapsedWord.length <= 3
-        ? [collapsedWord]
-        : trigrams(collapsedWord);
-    for (var i = 0; i < _data.length; i++) {
-      if (filterOnNonZeros?.isNotPositive(i) ?? false) {
-        continue;
-      }
 
-      final entry = _data[i];
+    bool tryScoreWithSubstringMatch(int index) {
+      final entry = _data[index];
       if (entry.collapsed.length >= collapsedWord.length &&
           entry.collapsed.contains(collapsedWord)) {
         // also check for non-collapsed match
         if (entry.lowercased.length >= lowercasedWord.length &&
             entry.lowercased.contains(lowercasedWord)) {
-          score.setValue(i, 1.0);
-          continue;
-        }
-
-        score.setValue(i, 0.99);
-        continue;
-      }
-      var matched = 0;
-      var unmatched = 0;
-      final acceptThreshold = parts.length ~/ 2;
-      final rejectThreshold = parts.length - acceptThreshold;
-      for (final part in parts) {
-        if (entry.trigrams.contains(part)) {
-          matched++;
+          score.setValue(index, 1.0);
         } else {
-          unmatched++;
-          if (unmatched > rejectThreshold) {
-            // we have no chance to accept this hit
-            break;
+          score.setValue(index, 0.99);
+        }
+        return true;
+      }
+      return false;
+    }
+
+    // Note: short strings (less than a trigram) are not indexed separately,
+    //       we need to do full substring check, evaluating every package.
+    // TODO(https://github.com/dart-lang/pub-dev/issues/9462): consider updating the index + the evaluation algorithm
+    if (collapsedWord.length < 3) {
+      for (var i = 0; i < _data.length; i++) {
+        if (filterOnNonZeros?.isNotPositive(i) ?? false) continue;
+        tryScoreWithSubstringMatch(i);
+      }
+      return;
+    }
+
+    _counterPool.withPoolItemSync(
+      fn: (countScore) {
+        assert(countScore.length == _packageNames.length);
+
+        // count the trigrams for each package
+        final parts = trigrams(collapsedWord);
+        for (final part in parts) {
+          final postings = _trigramPostings[part];
+          if (postings == null) continue;
+          for (final i in postings) {
+            final count = countScore.getValue(i);
+            countScore.setValue(i, count + 1.0);
           }
         }
-      }
 
-      if (matched >= acceptThreshold) {
-        // making sure that match score is minimum 0.5
-        final v = matched / parts.length;
-        if (v >= 0.5) {
-          score.setValue(i, v);
+        final acceptThreshold = parts.length ~/ 2;
+        for (var i = 0; i < _packageNames.length; i++) {
+          if (filterOnNonZeros?.isNotPositive(i) ?? false) continue;
+          if (countScore.isNotPositive(i)) continue;
+          if (tryScoreWithSubstringMatch(i)) continue;
+          final matched = countScore.getValue(i);
+          if (matched >= acceptThreshold) {
+            // making sure that match score is minimum 0.5
+            final v = matched / parts.length;
+            if (v >= 0.5) {
+              score.setValue(i, v);
+            }
+          }
         }
-      }
-    }
+      },
+    );
   }
 
   /// Returns the list of package names where the collapsed name matches.
@@ -770,9 +797,8 @@ class PackageNameIndex {
 class _PkgNameData {
   final String lowercased;
   final String collapsed;
-  final Set<String> trigrams;
 
-  _PkgNameData(this.lowercased, this.collapsed, this.trigrams);
+  _PkgNameData(this.lowercased, this.collapsed);
 }
 
 extension on List<IndexedPackageHit> {

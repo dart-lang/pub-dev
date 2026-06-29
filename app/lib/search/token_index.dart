@@ -374,6 +374,17 @@ abstract class _AllocationPool<T> {
     }
   }
 
+  /// Executes synchronous [fn] and provides a pool item in the callback.
+  /// The item will be released to the pool after [fn] completes.
+  R withPoolItemSync<R>({required R Function(T array) fn}) {
+    final item = _acquire();
+    try {
+      return fn(item);
+    } finally {
+      _release(item);
+    }
+  }
+
   /// Executes [fn] and provides a getter function that can be used to
   /// acquire new pool items while the [fn] is being executed. The
   /// acquired items will be released back to the pool after [fn] completes.
