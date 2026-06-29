@@ -663,7 +663,7 @@ class PackageNameIndex {
   /// whose collapsed name contains that trigram.
   late final Map<String, List<int>> _trigramPostings;
 
-  // TODO: consider int-based counter implementation
+  // TODO(https://github.com/dart-lang/pub-dev/issues/9462): consider int-based counter implementation
   late final _counterPool = ScorePool(_packageNames.length);
 
   PackageNameIndex(this._packageNames) {
@@ -679,7 +679,7 @@ class PackageNameIndex {
           .putIfAbsent(_data[i].collapsed, () => [])
           .add(_packageNames[i]);
       // Register only a single trigram -> document index posting.
-      // TODO: consider posting weights
+      // TODO(https://github.com/dart-lang/pub-dev/issues/9462): consider posting weights
       for (final trigram in trigrams(_data[i].collapsed).toSet()) {
         _trigramPostings.putIfAbsent(trigram, () => <int>[]).add(i);
       }
@@ -742,7 +742,7 @@ class PackageNameIndex {
 
     // Note: short strings (less than a trigram) are not indexed separately,
     //       we need to do full substring check, evaluating every package.
-    // TODO: consider updating the index + the evaluation algorithm
+    // TODO(https://github.com/dart-lang/pub-dev/issues/9462): consider updating the index + the evaluation algorithm
     if (collapsedWord.length < 3) {
       for (var i = 0; i < _data.length; i++) {
         if (filterOnNonZeros?.isNotPositive(i) ?? false) continue;
