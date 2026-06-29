@@ -335,6 +335,97 @@ void main() {
           expect(await cache.userSessionData(session.sessionId).get(), isNull);
         },
       );
+
+      testWithProfile(
+        'success - new email for known oauthUserId',
+        testProfile: emptyTestProfile,
+        fn: () async {
+          final email1 = 'user@pub.dev';
+          final oauthUserId1 = fakeOauthUserIdFromEmail(email1);
+          final session1 = await accountBackend.createOrUpdateClientSession();
+          await accountBackend.updateClientSessionWithProfile(
+            sessionId: session1.sessionId,
+            profile: AuthResult(
+              oauthUserId: oauthUserId1,
+              email: email1,
+              audience: activeConfiguration.pubServerAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: email1,
+                audience: activeConfiguration.pubServerAudience,
+              ),
+            ),
+          );
+          final authenticatedUser1 = await accountBackend
+              .tryAuthenticateWebSessionUser(
+                sessionId: session1.sessionId,
+                hasStrictCookie: true,
+                csrfTokenInHeader: session1.csrfToken,
+                requiresStrictCookie: true,
+              );
+          expect(authenticatedUser1!.email, email1);
+          final userId1 = authenticatedUser1.userId;
+          expect(userId1, hasLength(36));
+
+          final oauthIdsBefore = await dbService
+              .query<OAuthUserID>()
+              .run()
+              .map((u) => u.oauthUserId)
+              .toSet();
+          expect(oauthIdsBefore, contains(oauthUserId1));
+
+          // change the email but keep the oauthUserId
+          final newEmail = 'renamed@pub.dev';
+          final session2 = await accountBackend.updateClientSessionWithProfile(
+            sessionId: session1.sessionId,
+            profile: AuthResult(
+              oauthUserId: oauthUserId1,
+              email: newEmail,
+              audience: activeConfiguration.pubServerAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: newEmail,
+                audience: activeConfiguration.pubServerAudience,
+              ),
+            ),
+          );
+
+          // resolves to the same user and session
+          expect(session2.sessionId, session1.sessionId);
+          expect(session2.userId, userId1);
+          expect(session2.email, newEmail);
+
+          // User entity's email is updated in place
+          final u = await accountBackend.lookupUserById(userId1);
+          expect(u!.userId, userId1);
+          expect(u.email, newEmail);
+          expect(u.oauthUserId, oauthUserId1);
+
+          // new email resolves to the same user
+          final byNewEmail = await accountBackend.lookupUserByEmail(newEmail);
+          expect(byNewEmail.userId, userId1);
+
+          // the old one no longer resolves
+          expect(await accountBackend.lookupUsersByEmail(email1), isEmpty);
+
+          // no new OAuthUserID mapping is created
+          final oauthIdsAfter = await dbService
+              .query<OAuthUserID>()
+              .run()
+              .map((u) => u.oauthUserId)
+              .toSet();
+          expect(oauthIdsAfter, oauthIdsBefore);
+
+          // re-authenticated session is also updated
+          final reauthenticated = await accountBackend
+              .tryAuthenticateWebSessionUser(
+                sessionId: session1.sessionId,
+                hasStrictCookie: true,
+                csrfTokenInHeader: session1.csrfToken,
+                requiresStrictCookie: true,
+              );
+          expect(reauthenticated?.userId, userId1);
+          expect(reauthenticated?.email, newEmail);
+        },
+      );
     });
   });
 }
