@@ -663,8 +663,7 @@ class PackageNameIndex {
   /// whose collapsed name contains that trigram.
   late final Map<String, List<int>> _trigramPostings;
 
-  // TODO(https://github.com/dart-lang/pub-dev/issues/9462): consider int-based counter implementation
-  late final _counterPool = ScorePool(_packageNames.length);
+  late final _counterPool = IndexedCounterPool(_packageNames.length);
 
   PackageNameIndex(this._packageNames) {
     _data = _packageNames.map((package) {
@@ -752,26 +751,23 @@ class PackageNameIndex {
     }
 
     _counterPool.withPoolItemSync(
-      fn: (countScore) {
-        assert(countScore.length == _packageNames.length);
-
+      fn: (counts) {
         // count the trigrams for each package
         final parts = trigrams(collapsedWord);
         for (final part in parts) {
           final postings = _trigramPostings[part];
           if (postings == null) continue;
           for (final i in postings) {
-            final count = countScore.getValue(i);
-            countScore.setValue(i, count + 1.0);
+            counts.increment(i);
           }
         }
 
         final acceptThreshold = parts.length ~/ 2;
         for (var i = 0; i < _packageNames.length; i++) {
+          final matched = counts.getValue(i);
+          if (matched == 0) continue;
           if (filterOnNonZeros?.isNotPositive(i) ?? false) continue;
-          if (countScore.isNotPositive(i)) continue;
           if (tryScoreWithSubstringMatch(i)) continue;
-          final matched = countScore.getValue(i);
           if (matched >= acceptThreshold) {
             // making sure that match score is minimum 0.5
             final v = matched / parts.length;
