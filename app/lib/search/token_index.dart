@@ -435,10 +435,7 @@ class BitArrayPool extends _AllocationPool<BitArray> {
 /// A reusable pool for [IndexedCounter] instances to spare some memory allocation.
 class IndexedCounterPool extends _AllocationPool<IndexedCounter> {
   IndexedCounterPool(int length)
-    : super(
-        () => IndexedCounter(length),
-        (counter) => counter.reset(),
-      );
+    : super(() => IndexedCounter(length), (counter) => counter.reset());
 }
 
 /// Mutable score list that can accessed via integer index.
