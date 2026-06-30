@@ -432,6 +432,15 @@ class BitArrayPool extends _AllocationPool<BitArray> {
       );
 }
 
+/// A reusable pool for [IndexedCounter] instances to spare some memory allocation.
+class IndexedCounterPool extends _AllocationPool<IndexedCounter> {
+  IndexedCounterPool(int length)
+    : super(
+        () => IndexedCounter(List.filled(length, 0)),
+        (counter) => counter.reset(),
+      );
+}
+
 /// Mutable score list that can accessed via integer index.
 class IndexedScore {
   final List<double> _values;
@@ -499,5 +508,18 @@ class IndexedScore {
       heap.collect(i);
     }
     return heap.getAndRemoveTopK(count).toList();
+  }
+}
+
+/// Integer counter that can be accessed via index.
+extension type IndexedCounter(List<int> values) {
+  void reset() {
+    values.fillRange(0, values.length, 0);
+  }
+
+  int getValue(int index) => values[index];
+
+  void increment(int index) {
+    values[index]++;
   }
 }
