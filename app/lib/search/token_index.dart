@@ -253,9 +253,7 @@ class TokenIndex {
     for (final e in tokens.entries) {
       final weight = e.value / dw;
       final quantized = (weight * 256 - 1).round().clamp(0, 255);
-      builders
-          .putIfAbsent(e.key, PostingsBuilder.new)
-          .add(docIndex, quantized);
+      builders.putIfAbsent(e.key, PostingsBuilder.new).add(docIndex, quantized);
     }
   }
 
