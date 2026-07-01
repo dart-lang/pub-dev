@@ -49,8 +49,9 @@ class TokenMatch {
 ///   index (or 0 for the first entry). Each byte stores 7 data bits in
 ///   bits 0-6; bit 7 is the continuation flag (1 = more bytes follow).
 ///   Typical deltas (1-127) encode in a single byte.
-/// - **Weight**: quantized token weight, 0-255, where the original float
-///   weight is recovered as `(weight + 1) / 256`.
+/// - **Weight**: an application-defined weight byte, 0-255. [TokenIndex] stores
+///   a quantized float weight recovered as `(weight + 1) / 256`; other indexes
+///   (e.g. the package name index) may use it to store a binary indicator instead.
 ///
 /// Example: doc indices [3, 5, 200] with weights [255, 128, 64] encodes as:
 ///
@@ -90,7 +91,7 @@ class TokenPostings {
 
 /// Builds a [TokenPostings] incrementally using 128-byte buffer chunks,
 /// concatenating into a single [Uint8List] at the end.
-class _PostingsBuilder {
+class PostingsBuilder {
   static const _bufferSize = 128;
 
   List<Uint8List>? _chunks;
@@ -166,7 +167,7 @@ class TokenIndex {
   TokenIndex._(this._length, this._postings);
 
   factory TokenIndex(List<String?> values, {bool skipDocumentWeight = false}) {
-    final builders = <String, _PostingsBuilder>{};
+    final builders = <String, PostingsBuilder>{};
     for (var i = 0; i < values.length; i++) {
       final text = values[i];
       if (text == null) continue;
@@ -185,7 +186,7 @@ class TokenIndex {
     List<T> objects,
     List<TokenIndexField> Function(T object) extractFields,
   ) {
-    final builders = <String, _PostingsBuilder>{};
+    final builders = <String, PostingsBuilder>{};
     for (var i = 0; i < objects.length; i++) {
       final merged = <String, double>{};
       for (final field in extractFields(objects[i])) {
@@ -212,7 +213,7 @@ class TokenIndex {
     List<List<String>?> values, {
     bool skipDocumentWeight = false,
   }) {
-    final builders = <String, _PostingsBuilder>{};
+    final builders = <String, PostingsBuilder>{};
     for (var i = 0; i < values.length; i++) {
       final parts = values[i];
       if (parts == null || parts.isEmpty) continue;
@@ -234,7 +235,7 @@ class TokenIndex {
   }
 
   static Map<String, TokenPostings> _finalize(
-    Map<String, _PostingsBuilder> builders,
+    Map<String, PostingsBuilder> builders,
   ) {
     return builders.map((token, builder) => MapEntry(token, builder.build()));
   }
@@ -244,7 +245,7 @@ class TokenIndex {
     int docIndex,
     Map<String, double>? tokens,
     bool skipDocumentWeight,
-    Map<String, _PostingsBuilder> builders,
+    Map<String, PostingsBuilder> builders,
   ) {
     if (tokens == null || tokens.isEmpty) return;
     // Document weight is a highly scaled-down proxy of the length.
@@ -253,7 +254,7 @@ class TokenIndex {
       final weight = e.value / dw;
       final quantized = (weight * 256 - 1).round().clamp(0, 255);
       builders
-          .putIfAbsent(e.key, _PostingsBuilder.new)
+          .putIfAbsent(e.key, PostingsBuilder.new)
           .add(docIndex, quantized);
     }
   }
@@ -519,7 +520,7 @@ extension type IndexedCounter(List<int> values) {
 
   int getValue(int index) => values[index];
 
-  void increment(int index) {
-    values[index]++;
+  void add(int index, int amount) {
+    values[index] += amount;
   }
 }
