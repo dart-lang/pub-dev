@@ -659,9 +659,9 @@ class PackageNameIndex {
   /// Maps the collapsed name to all the original names (e.g. `asyncmap`=> [`async_map`, `as_y_n_cmaP`]).
   late final Map<String, List<String>> _collapsedNameResolvesToMap;
 
-  /// Inverted trigram index: maps each trigram to the package indexes (ascending),
-  /// whose collapsed name contains that trigram.
-  late final Map<String, List<int>> _trigramPostings;
+  /// Inverted n-gram index: maps each n-gram (1-3 characters) to the package
+  /// indexes (ascending) whose collapsed name contains that n-gram.
+  late final Map<String, List<int>> _ngramPostings;
 
   late final _counterPool = IndexedCounterPool(_packageNames.length);
 
@@ -672,17 +672,28 @@ class PackageNameIndex {
       return _PkgNameData(lowercased, collapsed);
     }).toList();
     _collapsedNameResolvesToMap = {};
-    _trigramPostings = {};
+    _ngramPostings = {};
     for (var i = 0; i < _data.length; i++) {
+      final collapsed = _data[i].collapsed;
       _collapsedNameResolvesToMap
-          .putIfAbsent(_data[i].collapsed, () => [])
+          .putIfAbsent(collapsed, () => [])
           .add(_packageNames[i]);
-      // Register only a single trigram -> document index posting.
       // TODO(https://github.com/dart-lang/pub-dev/issues/9462): consider posting weights
-      for (final trigram in trigrams(_data[i].collapsed).toSet()) {
-        _trigramPostings.putIfAbsent(trigram, () => <int>[]).add(i);
+      for (final ngram in _ngrams(collapsed)) {
+        _ngramPostings.putIfAbsent(ngram, () => <int>[]).add(i);
       }
     }
+  }
+
+  Iterable<String> _ngrams(String collapsed) {
+    final result = <String>{};
+    final length = collapsed.length;
+    for (var i = 0; i < length; i++) {
+      for (var j = 1; j <= 3 && i + j <= length; j++) {
+        result.add(collapsed.substring(i, i + j));
+      }
+    }
+    return result;
   }
 
   String _removeUnderscores(String text) => text.replaceAll('_', '');
@@ -739,11 +750,22 @@ class PackageNameIndex {
       return false;
     }
 
-    // Note: short strings (less than a trigram) are not indexed separately,
-    //       we need to do full substring check, evaluating every package.
-    // TODO(https://github.com/dart-lang/pub-dev/issues/9462): consider updating the index + the evaluation algorithm
-    if (collapsedWord.length < 3) {
-      for (var i = 0; i < _data.length; i++) {
+    // Special case: one-character query: substring match will be true for non-collapsed name.
+    if (collapsedWord.length == 1) {
+      final postings = _ngramPostings[collapsedWord];
+      if (postings == null) return;
+      for (final i in postings) {
+        if (filterOnNonZeros?.isNotPositive(i) ?? false) continue;
+        score.setValue(i, 1.0);
+      }
+      return;
+    }
+
+    // Special case 2-3 character queries: a single posting list may be present.
+    if (collapsedWord.length <= 3) {
+      final postings = _ngramPostings[collapsedWord];
+      if (postings == null) return;
+      for (final i in postings) {
         if (filterOnNonZeros?.isNotPositive(i) ?? false) continue;
         tryScoreWithSubstringMatch(i);
       }
@@ -755,7 +777,7 @@ class PackageNameIndex {
         // count the trigrams for each package
         final parts = trigrams(collapsedWord);
         for (final part in parts) {
-          final postings = _trigramPostings[part];
+          final postings = _ngramPostings[part];
           if (postings == null) continue;
           for (final i in postings) {
             counts.increment(i);
@@ -765,15 +787,13 @@ class PackageNameIndex {
         final acceptThreshold = parts.length ~/ 2;
         for (var i = 0; i < _packageNames.length; i++) {
           final matched = counts.getValue(i);
-          if (matched == 0) continue;
+          if (matched == 0 || matched < acceptThreshold) continue;
           if (filterOnNonZeros?.isNotPositive(i) ?? false) continue;
           if (tryScoreWithSubstringMatch(i)) continue;
-          if (matched >= acceptThreshold) {
-            // making sure that match score is minimum 0.5
-            final v = matched / parts.length;
-            if (v >= 0.5) {
-              score.setValue(i, v);
-            }
+          // making sure that match score is minimum 0.5
+          final v = matched / parts.length;
+          if (v >= 0.5) {
+            score.setValue(i, v);
           }
         }
       },
