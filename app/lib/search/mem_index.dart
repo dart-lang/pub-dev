@@ -659,9 +659,14 @@ class PackageNameIndex {
   /// Maps the collapsed name to all the original names (e.g. `asyncmap`=> [`async_map`, `as_y_n_cmaP`]).
   late final Map<String, List<String>> _collapsedNameResolvesToMap;
 
-  /// Inverted trigram index: maps each trigram to the package indexes (ascending),
-  /// whose collapsed name contains that trigram.
-  late final Map<String, List<int>> _trigramPostings;
+  /// Inverted n-gram index: maps each n-gram (1-3 characters) to the token postings
+  /// of the packages whose collapsed name contains that n-gram.
+  ///
+  /// The weight byte is 99 or 100, depending whether the n-gram also occurs
+  /// in the original - e.g. underscored - name, as opposed to appearing only
+  /// after underscores are collapsed.
+  /// The scoring can use it without re-checking substrings.
+  late final Map<String, TokenPostings> _ngramPostings;
 
   late final _counterPool = IndexedCounterPool(_packageNames.length);
 
@@ -672,18 +677,51 @@ class PackageNameIndex {
       return _PkgNameData(lowercased, collapsed);
     }).toList();
     _collapsedNameResolvesToMap = {};
-    _trigramPostings = {};
+    final builders = <String, PostingsBuilder>{};
     for (var i = 0; i < _data.length; i++) {
+      final collapsed = _data[i].collapsed;
       _collapsedNameResolvesToMap
-          .putIfAbsent(_data[i].collapsed, () => [])
+          .putIfAbsent(collapsed, () => [])
           .add(_packageNames[i]);
-      // Register only a single trigram -> document index posting.
-      // TODO(https://github.com/dart-lang/pub-dev/issues/9462): consider posting weights
-      for (final trigram in trigrams(_data[i].collapsed).toSet()) {
-        _trigramPostings.putIfAbsent(trigram, () => <int>[]).add(i);
+      final lowercased = _data[i].lowercased;
+      // Register one posting per distinct 1-, 2- and 3-gram of the collapsed name.
+      for (final ngram in _ngrams(collapsed)) {
+        // The weight byte indicates whether the n-gram also occurs in the
+        // original (e.g. underscored) name. Postings are added in ascending
+        // document index order, as required by the delta encoding.
+        final weight = lowercased.contains(ngram)
+            ? _originalNameWeight
+            : _collapsedNameWeight;
+        builders.putIfAbsent(ngram, PostingsBuilder.new).add(i, weight);
       }
     }
+    _ngramPostings = builders.map((k, b) => MapEntry(k, b.build()));
   }
+
+  Iterable<String> _ngrams(String collapsed) {
+    final result = <String>{};
+    final length = collapsed.length;
+    for (var i = 0; i < length; i++) {
+      for (var j = 1; j <= 3 && i + j <= length; j++) {
+        result.add(collapsed.substring(i, i + j));
+      }
+    }
+    return result;
+  }
+
+  /// Score assigned when the query n-gram(s) occur in the original (underscored)
+  /// package name.
+  static const _originalNameScore = 1.0;
+
+  /// Score assigned when the query n-gram(s) occur only in the collapsed name,
+  /// i.e. the match spans a removed underscore.
+  static const _collapsedNameScore = _collapsedNameWeight / _originalNameWeight;
+
+  /// Posting weight bytes: the match score scaled by 100. Storing them as small
+  /// integers lets the trigram counter sum the weights and recognize a perfect
+  /// all-original match as `parts.length * _originalNameWeight`.
+  static const _originalNameWeight = 100;
+  static const _collapsedNameWeight = 99;
 
   String _removeUnderscores(String text) => text.replaceAll('_', '');
 
@@ -723,57 +761,50 @@ class PackageNameIndex {
     final lowercasedWord = word.toLowerCase();
     final collapsedWord = _removeUnderscores(lowercasedWord);
 
-    bool tryScoreWithSubstringMatch(int index) {
-      final entry = _data[index];
-      if (entry.collapsed.length >= collapsedWord.length &&
-          entry.collapsed.contains(collapsedWord)) {
-        // also check for non-collapsed match
-        if (entry.lowercased.length >= lowercasedWord.length &&
-            entry.lowercased.contains(lowercasedWord)) {
-          score.setValue(index, 1.0);
-        } else {
-          score.setValue(index, 0.99);
-        }
-        return true;
-      }
-      return false;
-    }
-
-    // Note: short strings (less than a trigram) are not indexed separately,
-    //       we need to do full substring check, evaluating every package.
-    // TODO(https://github.com/dart-lang/pub-dev/issues/9462): consider updating the index + the evaluation algorithm
-    if (collapsedWord.length < 3) {
-      for (var i = 0; i < _data.length; i++) {
-        if (filterOnNonZeros?.isNotPositive(i) ?? false) continue;
-        tryScoreWithSubstringMatch(i);
-      }
+    // Short queries (1-3 chars) are themselves a single indexed n-gram: look the
+    // whole query up in the postings and score each candidate directly from its
+    // stored original/collapsed weight, without any substring re-check.
+    if (collapsedWord.length <= 3) {
+      final postings = _ngramPostings[collapsedWord];
+      if (postings == null) return;
+      postings.forEach((i, weight) {
+        if (filterOnNonZeros?.isNotPositive(i) ?? false) return;
+        score.setValue(
+          i,
+          weight == _originalNameWeight
+              ? _originalNameScore
+              : _collapsedNameScore,
+        );
+      });
       return;
     }
 
     _counterPool.withPoolItemSync(
       fn: (counts) {
-        // count the trigrams for each package
+        // Sum the posting weights of the matching trigrams for each package.
         final parts = trigrams(collapsedWord);
         for (final part in parts) {
-          final postings = _trigramPostings[part];
+          final postings = _ngramPostings[part];
           if (postings == null) continue;
-          for (final i in postings) {
-            counts.increment(i);
-          }
+          postings.forEach((i, weight) => counts.add(i, weight));
         }
 
-        final acceptThreshold = parts.length ~/ 2;
+        final n = parts.length;
+        final fullMatchSum = n * _originalNameWeight;
+        final fullMatchCollapsedSum = n * _collapsedNameWeight;
+        final minSum = fullMatchCollapsedSum ~/ 2;
+
         for (var i = 0; i < _packageNames.length; i++) {
-          final matched = counts.getValue(i);
-          if (matched == 0) continue;
+          final sum = counts.getValue(i);
+          // Partial matches must still cover at least half of the trigrams.
+          if (sum < minSum) continue;
           if (filterOnNonZeros?.isNotPositive(i) ?? false) continue;
-          if (tryScoreWithSubstringMatch(i)) continue;
-          if (matched >= acceptThreshold) {
-            // making sure that match score is minimum 0.5
-            final v = matched / parts.length;
-            if (v >= 0.5) {
-              score.setValue(i, v);
-            }
+
+          if (sum >= fullMatchSum) {
+            score.setValue(i, _originalNameScore);
+          } else {
+            // Partial match: fractional relevance score in [0.5, 1.0).
+            score.setValue(i, sum / fullMatchSum);
           }
         }
       },
