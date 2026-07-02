@@ -130,20 +130,7 @@ d.Node pageLayoutNode({
             d.link(
               rel: 'stylesheet',
               type: 'text/css',
-              href: staticUrls.getAssetUrl(
-                '/static/material/bundle/styles.css',
-              ),
-            ),
-            d.link(
-              rel: 'stylesheet',
-              type: 'text/css',
               href: staticUrls.getAssetUrl('/static/css/style.css'),
-            ),
-            d.script(
-              src: staticUrls.getAssetUrl(
-                '/static/material/bundle/script.min.js',
-              ),
-              defer: true,
             ),
             d.script(
               src: staticUrls.getAssetUrl('/static/js/script.dart.js'),
