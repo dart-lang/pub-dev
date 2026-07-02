@@ -97,10 +97,6 @@ class StaticFileCache {
       _resolveDir('third_party/dartdoc/resources'),
       baseDir: thirdPartyDir,
     );
-    _addDirectory(
-      _resolveDir('third_party/material/bundle'),
-      baseDir: thirdPartyDir,
-    );
     _joinFiles(
       path: '/static/highlight/highlight-with-init.js',
       from: [

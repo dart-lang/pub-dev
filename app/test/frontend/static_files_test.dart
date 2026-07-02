@@ -114,8 +114,6 @@ void main() {
         '/static/highlight/github.css',
         '/static/highlight/highlight.pack.js',
         '/static/highlight/init.js',
-        '/static/material/bundle/styles.css',
-        '/static/material/bundle/script.min.js',
       ];
 
       for (final file in files) {
