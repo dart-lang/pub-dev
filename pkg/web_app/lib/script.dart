@@ -9,7 +9,6 @@ import 'src/foldable.dart';
 import 'src/hoverable.dart';
 import 'src/issues.dart';
 import 'src/likes.dart';
-import 'src/mdc/mdc_init.dart' as mdc;
 import 'src/mobile_nav.dart';
 import 'src/page_updater.dart';
 import 'src/screenshot_carousel.dart';
@@ -19,7 +18,6 @@ import 'src/widget/core/text_area.dart';
 import 'src/widget/widget.dart' show setupWidgets;
 
 void main() {
-  window.onLoad.listen((_) => mdc.autoInit());
   setupAccount();
   _setupAllEvents();
   setupPageUpdater(_setupAllEvents);
