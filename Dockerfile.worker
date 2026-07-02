@@ -31,7 +31,7 @@ RUN mkdir -p /home/worker/config/flutter-stable
 RUN XDG_CONFIG_HOME=/home/worker/config/dart-stable tool/setup-dart.sh /home/worker/dart/stable 3.12.2
 
 # Setup Flutter SDK into /home/worker/flutter/{stable,preview}/
-RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.44.3
+RUN XDG_CONFIG_HOME=/home/worker/config/flutter-stable tool/setup-flutter.sh /home/worker/flutter/stable 3.44.4
 
 # Setup webp
 RUN tool/setup-webp.sh /home/worker/bin
@@ -48,7 +48,7 @@ ENV PATH="/home/worker/bin:/home/worker/dart/stable/bin:${PATH}"
 
 # Setup dartdoc
 ENV DARTDOC_DIR=/home/worker/dartdoc
-RUN tool/setup-dartdoc.sh "${DARTDOC_DIR}" 9.0.5
+RUN tool/setup-dartdoc.sh "${DARTDOC_DIR}" 9.0.6
 ENV DARTDOC_BINARY="${DARTDOC_DIR}/build/dartdoc"
 ENV DARTDOC_RESOURCES_DIR="${DARTDOC_DIR}/lib/resources"
 
