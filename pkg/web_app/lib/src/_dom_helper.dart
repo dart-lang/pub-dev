@@ -8,7 +8,6 @@ import 'package:web/web.dart';
 
 import '_focusability.dart';
 import 'deferred/markdown.dart' deferred as md;
-import 'mdc/mdc_dialog.dart';
 import 'web_util.dart';
 
 /// Displays a message via the modal window.
@@ -51,6 +50,13 @@ Future<bool> modalWindow({
     allowedComponents: [content],
   );
   final c = Completer<bool>();
+
+  void cancel() {
+    if (!c.isCompleted) {
+      c.complete(false);
+    }
+  }
+
   final root = _buildDialog(
     titleText: titleText,
     content: content,
@@ -61,21 +67,31 @@ Future<bool> modalWindow({
         c.complete(pushedOk);
       }
     },
+    onDismiss: cancel,
     cancelButtonText: cancelButtonText,
     okButtonText: okButtonText,
   );
+
+  // Close the dialog when the escape key was hit.
+  final keySubscription = window.onKeyDown.listen((event) {
+    if (event.key == 'Escape') {
+      event.preventDefault();
+      cancel();
+    }
+  });
+
   document.body!.append(root);
-  final dialog = MdcDialog.attachTo(root);
+  document.body!.classList.add('pub-dialog-scroll-lock');
+  // Note: this forces a layout event, so that the open transition animates from the hidden state.
+  root.getBoundingClientRect();
+  root.classList.add('pub-dialog--open');
   try {
-    dialog.open();
-    dialog.listenOnClose(() => c.complete(false));
     await c.future;
   } finally {
+    await keySubscription.cancel();
     restoreFocusabilityFn();
-    dialog.destroy();
     root.remove();
-    // Note: This seems to be a bug in the JS library
-    document.body!.classList.remove('mdc-dialog-scroll-lock');
+    document.body!.classList.remove('pub-dialog-scroll-lock');
   }
   return await c.future;
 }
@@ -90,27 +106,26 @@ Element _buildDialog({
   /// The callback will be called with `true` when "OK" was clicked, and `false`
   /// when "Cancel" was clicked.
   required void Function(bool) closing,
+
+  /// Called when the dialog is dismissed without pressing a button (e.g. click outside).
+  required void Function() onDismiss,
 }) {
   final title = document.createElement('h2') as HTMLElement
-    ..classList.add('mdc-dialog__title')
+    ..classList.add('pub-dialog-title')
     ..id = 'pub-dialog-title'
     ..innerText = titleText;
 
   final contentDiv = HTMLDivElement()
-    ..classList.add('mdc-dialog__content')
+    ..classList.add('pub-dialog-content')
     ..id = 'pub-dialog-content'
     ..append(content);
 
-  final footer = document.createElement('footer');
-  footer.classList.add('mdc-dialog__actions');
+  final footer = document.createElement('footer')
+    ..classList.add('pub-dialog-actions');
 
   if (isQuestion) {
     final cancelBtn = HTMLButtonElement()
-      ..classList.addAll([
-        'pub-button',
-        'mdc-dialog__button',
-        '-pub-dom-dialog-cancel-button',
-      ])
+      ..classList.addAll(['pub-button', '-pub-dom-dialog-cancel-button'])
       ..tabIndex = 2
       ..innerText = cancelButtonText ?? 'Cancel';
     cancelBtn.onClick.listen((e) {
@@ -121,11 +136,7 @@ Element _buildDialog({
   }
 
   final okBtn = HTMLButtonElement()
-    ..classList.addAll([
-      'pub-button',
-      'mdc-dialog__button',
-      '-pub-dom-dialog-ok-button',
-    ])
+    ..classList.addAll(['pub-button', '-pub-dom-dialog-ok-button'])
     ..tabIndex = 1
     ..innerText = okButtonText ?? 'Ok';
   okBtn.onClick.listen((e) {
@@ -135,23 +146,29 @@ Element _buildDialog({
   footer.append(okBtn);
 
   final surface = HTMLDivElement()
-    ..classList.add('mdc-dialog__surface')
+    ..classList.add('pub-dialog-surface')
     ..append(title)
     ..append(contentDiv)
     ..append(footer);
 
   final container = HTMLDivElement()
-    ..classList.add('mdc-dialog__container')
+    ..classList.add('pub-dialog-container')
     ..append(surface);
 
+  final scrim = HTMLDivElement()..classList.add('pub-dialog-scrim');
+  scrim.onClick.listen((e) {
+    e.preventDefault();
+    onDismiss();
+  });
+
   final root = HTMLDivElement()
-    ..classList.add('mdc-dialog')
+    ..classList.add('pub-dialog')
     ..setAttribute('role', 'alertdialog')
-    ..setAttribute('aria-model', 'true')
+    ..setAttribute('aria-modal', 'true')
     ..setAttribute('aria-labelledby', 'pub-dialog-title')
     ..setAttribute('aria-describedby', 'pub-dialog-content')
-    ..append(container)
-    ..append(HTMLDivElement()..classList.add('mdc-dialog__scrim'));
+    ..append(scrim)
+    ..append(container);
 
   return root;
 }

@@ -245,7 +245,7 @@ extension PubPageExt on Page {
   Future<void> _waitForModelHidden() async {
     try {
       await waitForSelector(
-        '.mdc-dialog',
+        '.pub-dialog',
         hidden: true,
         timeout: Duration(seconds: 5),
       );
@@ -255,7 +255,7 @@ extension PubPageExt on Page {
     }
 
     // return if the dialog is no longer present
-    final dialogs = await $$('.mdc-dialog');
+    final dialogs = await $$('.pub-dialog');
     if (dialogs.isEmpty) {
       return;
     }
@@ -267,7 +267,7 @@ extension PubPageExt on Page {
 
     // second attempt to wait for the dialog to disappear
     await waitForSelector(
-      '.mdc-dialog',
+      '.pub-dialog',
       hidden: true,
       timeout: Duration(seconds: 5),
     );
