@@ -83,7 +83,7 @@ void main() {
     test('substring: entu', () {
       expect(index.search('entu'), {
         'fluent': 0.5,
-        'fluent_ui': 0.995, // not 1.0
+        'fluent_ui': closeTo(0.995, 0.001), // not 1.0
       });
     });
   });

@@ -38,7 +38,7 @@ void main() {
         'totalCount': 1,
         'sdkLibraryHits': [],
         'packageHits': [
-          {'package': 'stack_trace', 'score': 0.9975},
+          {'package': 'stack_trace', 'score': closeTo(0.9975, 0.001)},
         ],
       });
     });

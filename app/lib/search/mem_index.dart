@@ -22,6 +22,9 @@ import 'token_index.dart';
 final _logger = Logger('search.mem_index');
 final _textSearchTimeout = Duration(milliseconds: 500);
 
+// Quantized equivalent of the `0.01` score.
+const _apiScoreCutoff = scoreQuantization ~/ 100;
+
 class InMemoryPackageIndex {
   final List<PackageDocument> _documents;
   final _nameToIndex = <String, int>{};
@@ -37,8 +40,8 @@ class InMemoryPackageIndex {
   final _tagBitArrays = <String, BitArray>{};
 
   /// Adjusted score takes the overall score and transforms
-  /// it linearly into the [0.4-1.0] range.
-  late final List<double> _adjustedOverallScores;
+  /// it linearly into the [0.4-1.0] range, stored with [scoreQuantization].
+  late final List<int> _adjustedOverallScores;
   late final List<IndexedPackageHit> _overallOrderedHits;
   late final List<IndexedPackageHit> _createdOrderedHits;
   late final List<IndexedPackageHit> _updatedOrderedHits;
@@ -294,7 +297,7 @@ class InMemoryPackageIndex {
         }
         // Check whether the best name match will increase the total item count.
         if (bestNameIndex != null &&
-            packageScores.getValue(bestNameIndex) <= 0.0) {
+            packageScores.isNotPositive(bestNameIndex)) {
           totalCount++;
         }
         indexedHits = _rankWithValues(
@@ -333,7 +336,7 @@ class InMemoryPackageIndex {
       packageHits = indexedHits.map((ps) {
         final apiPages = textResults!.topApiPages?[ps.index]
             // TODO(https://github.com/dart-lang/pub-dev/issues/7106): extract title for the page
-            ?.map((MapEntry<String, double> e) => ApiPageRef(path: e.key))
+            ?.map((MapEntry<String, int> e) => ApiPageRef(path: e.key))
             .toList();
         return ps.hit.change(apiPages: apiPages);
       }).toList();
@@ -418,8 +421,8 @@ class InMemoryPackageIndex {
 
       final overall = popularityScore * 0.5 + pointScore * 0.5;
       doc.overallScore = overall;
-      // adding a base score prevents later multiplication with zero
-      return 0.4 + 0.6 * overall;
+      // adding a base score prevents later multiplication with zero (quantized)
+      return ((0.4 + 0.6 * overall) * scoreQuantization).round();
     }).toList();
   }
 
@@ -445,7 +448,7 @@ class InMemoryPackageIndex {
 
     for (final index in packages.asIntIterable()) {
       if (index >= _documents.length) break;
-      packageScores.setValue(index, 1.0);
+      packageScores.setValue(index, scoreQuantization);
     }
 
     bool aborted = false;
@@ -479,7 +482,7 @@ class InMemoryPackageIndex {
       );
     }
 
-    final topApiPages = List<List<MapEntry<String, double>>?>.filled(
+    final topApiPages = List<List<MapEntry<String, int>>?>.filled(
       _documents.length,
       null,
     );
@@ -492,14 +495,13 @@ class InMemoryPackageIndex {
         ) async {
           for (var i = 0; i < symbolPages.length; i++) {
             final value = symbolPages.getValue(i);
-            if (value < 0.01) continue;
+            if (value < _apiScoreCutoff) continue;
 
             final doc = _apiDocPageKeys[i];
             if (!packages[doc.index]) continue;
 
             // skip if the previously found pages are better than the current one
-            final pages = topApiPages[doc.index] ??=
-                <MapEntry<String, double>>[];
+            final pages = topApiPages[doc.index] ??= <MapEntry<String, int>>[];
             if (pages.length >= maxApiPageCount && pages.last.value > value) {
               continue;
             }
@@ -564,7 +566,7 @@ class InMemoryPackageIndex {
     });
     for (var i = 0; i < score.length; i++) {
       final value = score.getValue(i);
-      if (value <= 0.0 && i != bestNameIndex) continue;
+      if (value <= 0 && i != bestNameIndex) continue;
       heap.collect(i);
     }
     return heap
@@ -574,7 +576,7 @@ class InMemoryPackageIndex {
             i,
             PackageHit(
               package: _documents[i].package,
-              score: score.getValue(i),
+              score: score.getValue(i) / scoreQuantization,
             ),
           ),
         );
@@ -640,7 +642,7 @@ class InMemoryPackageIndex {
 
 class _TextResults {
   final bool hasNoMatch;
-  final List<List<MapEntry<String, double>>?>? topApiPages;
+  final List<List<MapEntry<String, int>>?>? topApiPages;
   final String? errorMessage;
 
   factory _TextResults.empty({String? errorMessage}) {
@@ -710,12 +712,13 @@ class PackageNameIndex {
   }
 
   /// Score assigned when the query n-gram(s) occur in the original (underscored)
-  /// package name.
-  static const _originalNameScore = 1.0;
+  /// package name (1.0 quantized).
+  static const _originalNameScore = scoreQuantization;
 
   /// Score assigned when the query n-gram(s) occur only in the collapsed name,
-  /// i.e. the match spans a removed underscore.
-  static const _collapsedNameScore = _collapsedNameWeight / _originalNameWeight;
+  /// i.e. the match spans a removed underscore (0.99 quantized).
+  static final _collapsedNameScore =
+      (_collapsedNameWeight * scoreQuantization / _originalNameWeight).round();
 
   /// Posting weight bytes: the match score scaled by 100. Storing them as small
   /// integers lets the trigram counter sum the weights and recognize a perfect
@@ -742,7 +745,9 @@ class PackageNameIndex {
     final result = <String, double>{};
     for (var i = 0; i < _packageNames.length; i++) {
       final v = score.getValue(i);
-      if (v > 0.0) result[_packageNames[i]] = v;
+      if (v > 0) {
+        result[_packageNames[i]] = v / scoreQuantization;
+      }
     }
     return result;
   }
@@ -786,7 +791,9 @@ class PackageNameIndex {
         for (final part in parts) {
           final postings = _ngramPostings[part];
           if (postings == null) continue;
-          postings.forEach((i, weight) => counts.add(i, weight));
+          postings.forEach((i, weight) {
+            counts.add(i, weight);
+          });
         }
 
         final n = parts.length;
@@ -804,7 +811,7 @@ class PackageNameIndex {
             score.setValue(i, _originalNameScore);
           } else {
             // Partial match: fractional relevance score in [0.5, 1.0).
-            score.setValue(i, sum / fullMatchSum);
+            score.setValue(i, sum * scoreQuantization ~/ fullMatchSum);
           }
         }
       },
