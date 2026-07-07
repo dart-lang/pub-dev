@@ -59,6 +59,7 @@ const _flutterLibraryAllowlist = {
 final _logger = Logger('search.dart_sdk_mem_index');
 final _dartUri = Uri.parse('https://api.dart.dev/stable/latest/');
 final _flutterUri = Uri.parse('https://api.flutter.dev/flutter/');
+final _top3ApiScoreCutoff = (0.05 * scoreQuantization).round();
 
 /// Tries to load Dart and Flutter SDK's dartdoc `index.json` and build
 /// a search index from it.
@@ -198,9 +199,12 @@ class SdkMemIndex implements SdkIndex {
         words,
         (score) async => Map.fromEntries(
           score
-              .topIndices(3, minValue: 0.05)
+              .topIndices(3, minValue: _top3ApiScoreCutoff)
               .map(
-                (i) => MapEntry(library.tokenIndexKeys[i], score.getValue(i)),
+                (i) => MapEntry(
+                  library.tokenIndexKeys[i],
+                  score.getValue(i) / scoreQuantization,
+                ),
               ),
         ),
       );
