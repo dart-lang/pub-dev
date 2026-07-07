@@ -15,7 +15,7 @@ Future<Map<String, double>> _search(
     final result = <String, double>{};
     for (var i = 0; i < score.length; i++) {
       final v = score.getValue(i);
-      if (v > 0.0) result[keys[i]] = v;
+      if (v > 0) result[keys[i]] = v / scoreQuantization;
     }
     return result;
   });
@@ -126,9 +126,9 @@ void main() {
   group('IndexedScore', () {
     const keys = ['a', 'b', 'c'];
     final score = IndexedScore(3)
-      ..setValue(0, 100.0)
-      ..setValue(1, 30.0)
-      ..setValue(2, 55.0);
+      ..setValue(0, 100)
+      ..setValue(1, 30)
+      ..setValue(2, 55);
 
     test('topIndices', () {
       expect(score.topIndices(1).map((i) => keys[i]), ['a']);

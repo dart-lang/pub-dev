@@ -61,7 +61,7 @@ void main() {
           {'package': 'foo', 'score': 1.0}, // finds package name
           {
             'package': 'other_with_api',
-            'score': closeTo(0.695, 0.001), // finds foo method
+            'score': closeTo(0.694, 0.002), // finds foo method
             'apiPages': [
               {'path': 'main.html'},
             ],

@@ -329,8 +329,14 @@ class TokenIndex {
     for (final entry in tokenMatch.entries) {
       final matchWeight = entry.value;
       final posting = _postings[entry.key]!;
+      // Quantized weights:
+      // - match weight is between 0-256 (0 <= matchWeight * weight <= 1)
+      // - posting weight is between 0-255
+      //
+      // Their multiplication is between 0 and [scoreQuantization].
+      final weightQ = (matchWeight * weight * 256).round();
       posting.forEach((docIndex, w) {
-        score.setValueMaxOf(docIndex, matchWeight * (w + 1) / 256 * weight);
+        score.setValueMaxOf(docIndex, (w + 1) * weightQ);
       });
     }
   }
@@ -413,11 +419,7 @@ abstract class _AllocationPool<T> {
 /// A reusable pool for [IndexedScore] instances to spare some memory allocation.
 class ScorePool extends _AllocationPool<IndexedScore> {
   ScorePool(int length)
-    : super(
-        () => IndexedScore(length),
-        // sets all values to 0.0
-        (score) => score._values.fillRange(0, score.length, 0.0),
-      );
+    : super(() => IndexedScore(length), (score) => score.reset());
 }
 
 /// A reusable pool for [BitArray] instances to spare some memory allocation.
@@ -440,14 +442,24 @@ class IndexedCounterPool extends _AllocationPool<IndexedCounter> {
       );
 }
 
-/// Mutable score list that can accessed via integer index.
-class IndexedScore {
-  final List<double> _values;
+/// Fixed-point scale used by [IndexedScore] to indicate the maximum of its
+/// quantized value.
+const scoreQuantization = 65536;
 
-  IndexedScore(int length, [double value = 0.0])
-    : _values = List<double>.filled(length, value);
+/// Mutable score list that can accessed via integer index.
+///
+/// Values are stored as fixed-point integers at the [scoreQuantization] scale.
+class IndexedScore {
+  final List<int> _values;
+
+  IndexedScore(int length, [int value = 0])
+    : _values = List<int>.filled(length, value);
 
   late final length = _values.length;
+
+  void reset() {
+    _values.fillRange(0, length, 0);
+  }
 
   int positiveCount() {
     var count = 0;
@@ -458,48 +470,43 @@ class IndexedScore {
   }
 
   bool isPositive(int index) {
-    return _values[index] > 0.0;
+    return _values[index] > 0;
   }
 
   bool isNotPositive(int index) {
-    return _values[index] <= 0.0;
+    return _values[index] <= 0;
   }
 
-  double getValue(int index) {
+  int getValue(int index) {
     return _values[index];
   }
 
-  void setValue(int index, double value) {
+  void setValue(int index, int value) {
     _values[index] = value;
   }
 
-  void setValueMaxOf(int index, double value) {
+  void setValueMaxOf(int index, int value) {
     _values[index] = math.max(_values[index], value);
-  }
-
-  /// Sets the positions greater than or equal to [start] and less than [end],
-  /// to [fillValue].
-  void fillRange(int start, int end, double fillValue) {
-    assert(start <= end);
-    if (start == end) return;
-    _values.fillRange(start, end, fillValue);
   }
 
   void multiplyAllFrom(IndexedScore other) {
     multiplyAllFromValues(other._values);
   }
 
-  void multiplyAllFromValues(List<double> values) {
+  /// Multiplies each value with the quantized value at the same index in
+  /// [values], keeping the result at the [scoreQuantization] scale.
+  void multiplyAllFromValues(List<int> values) {
     assert(_values.length == values.length);
     for (var i = 0; i < _values.length; i++) {
-      if (_values[i] == 0.0) continue;
-      final v = values[i];
-      _values[i] = v == 0.0 ? 0.0 : _values[i] * v;
+      final a = _values[i];
+      if (a == 0) continue;
+      final b = values[i];
+      _values[i] = b == 0 ? 0 : (a * b) ~/ scoreQuantization;
     }
   }
 
-  List<int> topIndices(int count, {double? minValue}) {
-    minValue ??= 0.0;
+  List<int> topIndices(int count, {int? minValue}) {
+    minValue ??= 0;
     final heap = Heap<int>((a, b) => -_values[a].compareTo(_values[b]));
     for (var i = 0; i < length; i++) {
       final v = _values[i];
