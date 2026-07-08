@@ -316,21 +316,6 @@ class SessionData {
   }
 }
 
-/// Derived data for [User] for fast lookup.
-@db.Kind(name: 'UserInfo', idType: db.IdType.String)
-class UserInfo extends db.ExpandoModel<String> {
-  String get userId => id!;
-
-  @db.StringListProperty()
-  List<String> packages = <String>[];
-
-  @db.StringListProperty()
-  List<String> publishers = <String>[];
-
-  @db.DateTimeProperty()
-  DateTime? updated;
-}
-
 /// An active consent request sent to a recipient.
 /// Users are identified by their e-mail address, and not by their userId.
 @db.Kind(name: 'Consent', idType: db.IdType.String)

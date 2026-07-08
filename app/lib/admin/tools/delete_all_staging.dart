@@ -47,7 +47,6 @@ Future<String> executeDeleteAllStaging(List<String> args) async {
 
   final entities = <Query, int>{
     dbService.query<AuditLogRecord>(): 500,
-    dbService.query<UserInfo>(): 500,
     dbService.query<OAuthUserID>(): 500,
     dbService.query<UserSession>(): 500,
     dbService.query<User>(): 500,
