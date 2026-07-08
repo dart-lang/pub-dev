@@ -5,6 +5,12 @@
 part of 'schema.dart';
 
 @PrimaryKey(['runtimeVersion', 'package'])
+@Index(name: 'currentFinished', fields: ['runtimeVersion', 'finished'])
+@Index(name: 'currentPendingAt', fields: ['runtimeVersion', 'pendingAt'])
+@Index(
+  name: 'currentDependencyChanged',
+  fields: ['runtimeVersion', 'lastDependencyChanged'],
+)
 abstract final class Task extends Row {
   /// Runtime version this [Task] belongs to.
   String get runtimeVersion;
@@ -32,6 +38,7 @@ abstract final class Task extends Row {
   onDelete: .cascade,
   onUpdate: .cascade,
 )
+@Index(name: 'currentDependency', fields: ['runtimeVersion', 'dependency'])
 abstract final class TaskDependency extends Row {
   String get runtimeVersion;
   String get package;

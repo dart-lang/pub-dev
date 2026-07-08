@@ -107,6 +107,7 @@ final class _$SchemaMigration extends SchemaMigration {
     primaryKey: <String>['schema_name', 'script_name'],
     unique: <List<String>>[],
     foreignKeys: [],
+    indexes: [],
     readRow: _$SchemaMigration._$fromDatabase,
   );
 

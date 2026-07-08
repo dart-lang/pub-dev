@@ -151,6 +151,23 @@ final class _$Task extends Task {
     primaryKey: <String>['runtime_version', 'package'],
     unique: <List<String>>[],
     foreignKeys: [],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: 'currentFinished',
+        sqlName: 'current_finished',
+        columns: ['runtime_version', 'finished'],
+      ),
+      $ForGeneratedCode.indexDefinition(
+        name: 'currentPendingAt',
+        sqlName: 'current_pending_at',
+        columns: ['runtime_version', 'pending_at'],
+      ),
+      $ForGeneratedCode.indexDefinition(
+        name: 'currentDependencyChanged',
+        sqlName: 'current_dependency_changed',
+        columns: ['runtime_version', 'last_dependency_changed'],
+      ),
+    ],
     readRow: _$Task._$fromDatabase,
   );
 
@@ -848,6 +865,13 @@ final class _$TaskDependency extends TaskDependency {
         referencedColumns: ['runtime_version', 'package'],
         onDelete: .cascade,
         onUpdate: .cascade,
+      ),
+    ],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: 'currentDependency',
+        sqlName: 'current_dependency',
+        columns: ['runtime_version', 'dependency'],
       ),
     ],
     readRow: _$TaskDependency._$fromDatabase,
