@@ -25,7 +25,7 @@ void main() {
       processJobsWithFakeRunners: true,
       fn: () async {
         // Read current task from the database.
-        final taskBefore = await primaryDatabase!.withRetry(
+        final taskBefore = await primaryDatabase.withRetry(
           (db) => db.tasks.byKey(runtimeVersion, 'sample').fetch(),
         );
         expect(taskBefore, isNotNull);
@@ -34,7 +34,7 @@ void main() {
         final tempDir = await Directory.systemTemp.createTemp('local_state_');
         final dataFile = '${tempDir.path}/state.jsonl';
         try {
-          final state1 = LocalServerState(database: primaryDatabase!);
+          final state1 = LocalServerState(database: primaryDatabase);
           await state1.save(dataFile);
 
           // Verify the file was created and is non-empty.

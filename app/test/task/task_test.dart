@@ -726,7 +726,7 @@ void main() {
         await taskBackend.runOneLoopCycle();
 
         // verify token is now aborted
-        final ps = await primaryDatabase!.withRetry(
+        final ps = await primaryDatabase.withRetry(
           (schema) => schema.taskLookupOrNull('neon'),
         );
         expect(ps!.state.versions[v.version]?.secretToken, isNull);
@@ -771,7 +771,7 @@ void main() {
             ],
           ),
         );
-        final ps = await primaryDatabase!.withRetry(
+        final ps = await primaryDatabase.withRetry(
           (schema) => schema.taskLookupOrNull('neon'),
         );
         expect(

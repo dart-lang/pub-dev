@@ -31,7 +31,7 @@ void registerPrimaryDatabase(PrimaryDatabase database) =>
     ss.register(#_primaryDatabase, database);
 
 /// The active primary database service.
-PrimaryDatabase? get primaryDatabase => _lookupPrimaryDatabase();
+PrimaryDatabase get primaryDatabase => _lookupPrimaryDatabase()!;
 
 PrimaryDatabase? _lookupPrimaryDatabase() =>
     ss.lookup(#_primaryDatabase) as PrimaryDatabase?;
