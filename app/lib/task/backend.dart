@@ -303,7 +303,11 @@ class TaskBackend {
       // list tasks with dependency updated >= since
       final list = await _database.withRetry(
         (db) => db.tasks
-            .where((t) => t.lastDependencyChanged >= since.asExpr)
+            .where(
+              (t) =>
+                  t.runtimeVersion.equalsValue(runtimeVersion) &
+                  (t.lastDependencyChanged >= since.asExpr),
+            )
             .select((t) => (t.package, t.lastDependencyChanged))
             .stream()
             .map((e) => (name: e.$1, updated: e.$2))
@@ -1347,7 +1351,11 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
     DateTime since,
   ) {
     return tasks
-        .where((task) => task.finished >= since.asExpr)
+        .where(
+          (task) =>
+              task.runtimeVersion.equalsValue(runtimeVersion) &
+              (task.finished >= since.asExpr),
+        )
         .orderBy((task) => [(task.finished, Order.descending)])
         .select((task) => (task.package, task.finished))
         .stream()
