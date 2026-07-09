@@ -16,7 +16,7 @@ void main() {
       'retry returns value',
       fn: () async {
         int count = 0;
-        final rs = await primaryDatabase!.withRetry((db) async {
+        final rs = await primaryDatabase.withRetry((db) async {
           count++;
           return 2;
         });
@@ -31,7 +31,7 @@ void main() {
         int count = 0;
 
         await expectLater(
-          () async => await primaryDatabase!.withRetry((db) async {
+          () async => await primaryDatabase.withRetry((db) async {
             count++;
             throw NotFoundException('');
           }),
@@ -47,7 +47,7 @@ void main() {
         int count = 0;
 
         await expectLater(
-          () async => await primaryDatabase!.withRetry((db) async {
+          () async => await primaryDatabase.withRetry((db) async {
             count++;
             await db.insertBadData();
           }),
@@ -63,8 +63,8 @@ void main() {
         int count = 0;
 
         await expectLater(
-          () async => await primaryDatabase!.withRetry((db) async {
-            await primaryDatabase!.withRetry((db) async {
+          () async => await primaryDatabase.withRetry((db) async {
+            await primaryDatabase.withRetry((db) async {
               count++;
               await db.insertBadData();
             });
@@ -81,8 +81,8 @@ void main() {
         int count = 0;
 
         await expectLater(
-          () async => await primaryDatabase!.withRetry((db) async {
-            await primaryDatabase!.transactWithRetry((db) async {
+          () async => await primaryDatabase.withRetry((db) async {
+            await primaryDatabase.transactWithRetry((db) async {
               count++;
               await db.insertBadData();
             });
@@ -99,7 +99,7 @@ void main() {
       'transactWithRetry returns value',
       fn: () async {
         int count = 0;
-        final rs = await primaryDatabase!.transactWithRetry((db) async {
+        final rs = await primaryDatabase.transactWithRetry((db) async {
           count++;
           return 2;
         });
@@ -114,7 +114,7 @@ void main() {
         int count = 0;
 
         await expectLater(
-          () async => await primaryDatabase!.transactWithRetry((db) async {
+          () async => await primaryDatabase.transactWithRetry((db) async {
             count++;
             throw NotFoundException('');
           }),
@@ -130,7 +130,7 @@ void main() {
         int count = 0;
 
         await expectLater(
-          () async => await primaryDatabase!.transactWithRetry((db) async {
+          () async => await primaryDatabase.transactWithRetry((db) async {
             count++;
             await db.insertBadData();
           }),
@@ -146,8 +146,8 @@ void main() {
         int count = 0;
 
         await expectLater(
-          () async => await primaryDatabase!.transactWithRetry((db) async {
-            await primaryDatabase!.transactWithRetry((db) async {
+          () async => await primaryDatabase.transactWithRetry((db) async {
+            await primaryDatabase.transactWithRetry((db) async {
               count++;
               await db.insertBadData();
             });
@@ -164,8 +164,8 @@ void main() {
         int count = 0;
 
         await expectLater(
-          () async => await primaryDatabase!.transactWithRetry((db) async {
-            await primaryDatabase!.withRetry((db) async {
+          () async => await primaryDatabase.transactWithRetry((db) async {
+            await primaryDatabase.withRetry((db) async {
               count++;
               await db.insertBadData();
             });

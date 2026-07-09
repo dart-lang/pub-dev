@@ -43,7 +43,7 @@ void main() {
     testWithProfile(
       'registered database scope',
       fn: () async {
-        final name = await primaryDatabase!.verifyConnection();
+        final name = await primaryDatabase.verifyConnection();
         expect(name, contains('fake_pub_'));
       },
     );
@@ -51,7 +51,7 @@ void main() {
     testWithProfile(
       'typed schema access',
       fn: () async {
-        await primaryDatabase!.withRetry((db) async {
+        await primaryDatabase.withRetry((db) async {
           await db.tasks
               .insert(
                 runtimeVersion: runtimeVersion.asExpr,
