@@ -1519,7 +1519,11 @@ class PackageBackend {
     sw.reset();
 
     _logger.info('Invalidating cache for package ${newVersion.package}.');
-    triggerPackagePostUpdates(newVersion.package, taskUpdateDependents: true);
+    triggerPackagePostUpdates(
+      newVersion.package,
+      taskUpdateDependents: true,
+      taskPostUploadTracking: true,
+    );
 
     // Let's not block the upload response on these post-upload tasks.
     // The operations should either be non-critical, or should be retried
@@ -2578,6 +2582,9 @@ class _VersionTransactionDataAcccess {
 
   /// Pass the update-dependents flag to the task update operation.
   bool taskUpdateDependents = false,
+
+  /// Pass for post-upload tracking flag to the task update operation.
+  bool taskPostUploadTracking = false,
 }) {
   Future add(Future Function() fn) {
     return asyncQueue.addAsyncFn(fn).future;
@@ -2590,7 +2597,7 @@ class _VersionTransactionDataAcccess {
         () => taskBackend.trackPackage(
           package,
           updateDependents: taskUpdateDependents,
-          isPostUploadTracking: true,
+          isPostUploadTracking: taskPostUploadTracking,
         ),
       ),
     if (!skipExport)
