@@ -2585,20 +2585,20 @@ class _VersionTransactionDataAcccess {
 
   final futures = [
     add(() => purgePackageCache(package)),
-    if (!skipReanalysis)
-      add(
-        () => taskBackend.trackPackage(
-          package,
-          updateDependents: taskUpdateDependents,
-          refreshVersionsCache: true,
-        ),
-      ),
     if (!skipExport)
       add(
         () => apiExporter.synchronizePackage(
           package,
           forceDelete: exportForceDelete,
           skipArchives: skipArchiveExport,
+        ),
+      ),
+    if (!skipReanalysis)
+      add(
+        () => taskBackend.trackPackage(
+          package,
+          updateDependents: taskUpdateDependents,
+          refreshVersionsCache: true,
         ),
       ),
   ];
