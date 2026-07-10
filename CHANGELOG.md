@@ -2,7 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bump runtimeVersion to `2026.07.07`.
+ * Bump runtimeVersion to `2026.07.10`.
  * Upgraded stable Flutter analysis SDK to `3.44.5`.
  * Upgraded dependencies (including: `sanitize_html`, `typed_sql`).
  * Upgraded dartdoc to `9.0.8`.
