@@ -2590,7 +2590,7 @@ class _VersionTransactionDataAcccess {
         () => taskBackend.trackPackage(
           package,
           updateDependents: taskUpdateDependents,
-          refreshVersionsCache: true,
+          isPostUploadTracking: true,
         ),
       ),
     if (!skipExport)

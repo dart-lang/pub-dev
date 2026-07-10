@@ -18,7 +18,7 @@ import 'package:gcloud/storage.dart' show Bucket;
 import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:indexed_blob/indexed_blob.dart'
     show BlobIndexReader, BlobSliceReader, HashIndex;
-import 'package:logging/logging.dart' show Logger;
+import 'package:logging/logging.dart' show Level, Logger;
 import 'package:meta/meta.dart';
 import 'package:pana/models.dart' show Summary;
 import 'package:pool/pool.dart' show Pool;
@@ -369,7 +369,7 @@ class TaskBackend {
   Future<void> trackPackage(
     String packageName, {
     bool updateDependents = false,
-    bool refreshVersionsCache = false,
+    bool isPostUploadTracking = false,
   }) async {
     var lastVersionCreated = initialTimestamp;
     String? latestVersion;
@@ -377,9 +377,12 @@ class TaskBackend {
     try {
       data = await packageBackend.listVersionsCached(
         packageName,
-        refreshVersionsCache: refreshVersionsCache,
+        refreshVersionsCache: isPostUploadTracking,
       );
     } on NotFoundException catch (_) {
+      _log.warning(
+        'trackPackage could not list versions for package "$packageName"',
+      );
       // If package is not visible, we should remove it!
       for (final rv in acceptedRuntimeVersions) {
         await _database.withRetry(
@@ -391,6 +394,7 @@ class TaskBackend {
     final versions = _versionsToTrack(
       data,
     ).map((v) => v.canonicalizedVersion).toList();
+
     final changed = await _database.transactWithRetry((db) async {
       final task = await db.taskLookupOrNull(packageName);
       latestVersion = data.latest.version;
@@ -445,6 +449,15 @@ class TaskBackend {
             .intersection(deselectedVersions.toSet())
             .isEmpty,
       );
+
+      if (isPostUploadTracking) {
+        final level = untrackedVersions.isEmpty ? Level.WARNING : Level.INFO;
+        _log.log(
+          level,
+          'Post-upload task tracking found ${untrackedVersions.length} untracked and '
+          '${deselectedVersions.length} deselected versions for package "$packageName".',
+        );
+      }
 
       // Stop transaction, if there is no changes to be made!
       if (untrackedVersions.isEmpty &&
