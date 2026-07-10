@@ -4,7 +4,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2026.07.07`.
  * Upgraded stable Flutter analysis SDK to `3.44.5`.
- * Upgraded dependencies (including: `sanitize_html`).
+ * Upgraded dependencies (including: `sanitize_html`, `typed_sql`).
+ * Upgraded dartdoc to `9.0.8`.
 
 ## `20260702t101200-all`
  * Bump runtimeVersion to `2026.07.02`.
