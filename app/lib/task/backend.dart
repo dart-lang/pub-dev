@@ -451,6 +451,8 @@ class TaskBackend {
       );
 
       if (isPostUploadTracking) {
+        assert(untrackedVersions.isNotEmpty);
+
         final level = untrackedVersions.isEmpty ? Level.WARNING : Level.INFO;
         _log.log(
           level,
