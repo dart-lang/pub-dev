@@ -371,6 +371,11 @@ class TaskBackend {
     bool updateDependents = false,
     bool isPostUploadTracking = false,
   }) async {
+    if (isPostUploadTracking) {
+      _log.info(
+        'Starting post-upload task tracking for package "$packageName"...',
+      );
+    }
     var lastVersionCreated = initialTimestamp;
     String? latestVersion;
     late package_api.PackageData data;
