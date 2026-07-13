@@ -38,43 +38,55 @@ void _setEventForDetailMetadataToggle() {
   double? origX, origY;
 
   var isVisible = false;
-  // ignore: cancel_subscriptions
-  StreamSubscription<void>? stateSubscription;
   final titleElem = document.head?.querySelector('title') as HTMLElement?;
   final currentTitle = titleElem?.innerText.trim();
   final currentUrl = window.location.toString();
+
+  Future<void> applyVisibility(bool visible) async {
+    if (visible == isVisible) return;
+    isVisible = visible;
+
+    document.querySelector('.detail-wrapper')?.classList.toggle('-active');
+    document.querySelector('.detail-metadata')?.classList.toggle('-active');
+    await window.animationFrame;
+    if (visible) {
+      // store scroll position and scroll to the top
+      origX = window.scrollX;
+      origY = window.scrollY;
+      window.scrollTo(0.toJS, 0);
+    } else {
+      // restore scroll position
+      window.scrollTo((origX ?? 0).toJS, origY ?? 0);
+      origX = null;
+      origY = null;
+    }
+  }
+
+  // Registered eagerly, not lazily on the first click, so a back-navigation
+  // is never missed regardless of how long the open/close animation takes.
+  window.onPopState.listen((event) async {
+    final state = event.state.dartify();
+    // only react on events that are relevant to this component
+    if (state is Map &&
+        state['type'] == 'detail-metadata' &&
+        state['url'] == currentUrl) {
+      await applyVisibility(state['visible'] == true);
+    }
+  });
+
   document.querySelectorAll('.detail-metadata-toggle').toElementList().forEach((
     e,
   ) {
-    e.onClick.listen((_) async {
-      Future<void> toggle() async {
-        isVisible = !isVisible;
-
-        document.querySelector('.detail-wrapper')?.classList.toggle('-active');
-        document.querySelector('.detail-metadata')?.classList.toggle('-active');
-        await window.animationFrame;
-        if (origX == null) {
-          // store scroll position and scroll to the top
-          origX = window.scrollX;
-          origY = window.scrollY;
-          window.scrollTo(0.toJS, 0);
-        } else {
-          // restore scroll position
-          window.scrollTo(origX!.toJS, origY!);
-          origX = null;
-        }
-      }
-
+    e.onClick.listen((_) {
       // when activating, set the current state to hide the view, and the next
-      // state to activate  the view
+      // state to activate the view
       if (!isVisible) {
-        await toggle();
         window.history.replaceState(
           {
             'type': 'detail-metadata',
             'url': currentUrl,
             'visible': false,
-          }.toJSBox,
+          }.jsify(),
           '',
           null,
         );
@@ -83,27 +95,14 @@ void _setEventForDetailMetadataToggle() {
             'type': 'detail-metadata',
             'url': currentUrl,
             'visible': true,
-          }.toJSBox,
+          }.jsify(),
           currentTitle ?? '',
           null,
         );
+        unawaited(applyVisibility(true));
       } else {
         window.history.back();
       }
-
-      // only listen to state events after the first initialization
-      stateSubscription ??= window.onPopState.listen((event) async {
-        final state = event.state is Map ? event.state as Map : null;
-        // only react on events that are relevant to this component
-        if (state is Map &&
-            state['type'] == 'detail-metadata' &&
-            state['url'] == currentUrl) {
-          final shouldBeVisible = state['visible'] == true;
-          if (shouldBeVisible != isVisible) {
-            await toggle();
-          }
-        }
-      });
     });
   });
 }
