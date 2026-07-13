@@ -68,22 +68,21 @@ void main() {
         'control@pub.dev',
         () => requireAuthenticatedWebUser(),
       );
-      await dbService.commit(
-        inserts: [
-          UserSession()
-            ..id = 'target'
-            ..userId = admin.userId
-            ..email = admin.email
-            ..created = clock.now()
-            ..expires = clock.now(),
-          UserSession()
-            ..id = 'control'
-            ..userId = control.userId
-            ..email = control.userId
-            ..created = clock.now()
-            ..expires = clock.now(),
-        ],
-      );
+      final targetSession = UserSession()
+        ..id = 'target'
+        ..userId = admin.userId
+        ..email = admin.email
+        ..created = clock.now()
+        ..expires = clock.now();
+      final controlSession = UserSession()
+        ..id = 'control'
+        ..userId = control.userId
+        ..email = control.userId
+        ..created = clock.now()
+        ..expires = clock.now();
+      await dbService.commit(inserts: [targetSession, controlSession]);
+      await accountBackend.writeUserSessionToSql(targetSession);
+      await accountBackend.writeUserSessionToSql(controlSession);
 
       await _corruptAndFix();
 

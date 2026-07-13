@@ -444,7 +444,7 @@ class AccountBackend {
         return session;
       });
       if (rs != null) {
-        await _writeUserSessionToSql(rs);
+        await writeUserSessionToSql(rs);
         return rs;
       }
     }
@@ -454,7 +454,7 @@ class AccountBackend {
       ..created = now
       ..expires = now.add(_sessionDuration);
     await _db.commit(inserts: [session]);
-    await _writeUserSessionToSql(session);
+    await writeUserSessionToSql(session);
     return session;
   }
 
@@ -518,7 +518,7 @@ class AccountBackend {
     if (result.expiredSessionId != null) {
       await _deleteUserSessionFromSql(result.expiredSessionId!);
     }
-    await _writeUserSessionToSql(result.session);
+    await writeUserSessionToSql(result.session);
 
     final data = SessionData.fromModel(result.session);
     await cache.userSessionData(data.sessionId).set(data);
@@ -619,7 +619,9 @@ class AccountBackend {
     }
   }
 
-  Future<void> _writeUserSessionToSql(UserSession session) async {
+  /// Upserts [session] into the SQL database.
+  @visibleForTesting
+  Future<void> writeUserSessionToSql(UserSession session) async {
     await primaryDatabase.transactWithRetry((db) async {
       // TODO: consider supporting a generated `upsertValue()` in typed_sql
       await db.userSessions
@@ -680,7 +682,7 @@ class AccountBackend {
       );
 
       if (row == null || session.expires!.isAfter(row.expires)) {
-        await _writeUserSessionToSql(session);
+        await writeUserSessionToSql(session);
         updated++;
       }
     }

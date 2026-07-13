@@ -8,13 +8,10 @@ import 'package:pool/pool.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/models.dart';
-import 'package:pub_dev/database/database.dart';
-import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
-import 'package:typed_sql/typed_sql.dart' hide AuthenticationException, Query;
 
 final _logger = Logger('user_merger');
 
@@ -206,20 +203,19 @@ class UserMerger {
     await _processConcurrently(
       _db.query<UserSession>()..filter('userId =', fromUserId),
       (UserSession m) async {
-        await withRetryTransaction(_db, (tx) async {
+        final session = await withRetryTransaction(_db, (tx) async {
           final session = await tx.lookupValue<UserSession>(m.key);
           if (session.userId == fromUserId) {
             session.userId = toUserId;
             tx.insert(session);
           }
+          return session;
         });
+        // Mirror the reassigned session into SQL (session reads are SQL-first).
+        // This also creates SQL rows for Datastore-only (pre-migration)
+        // sessions that the bulk update would have missed.
+        await accountBackend.writeUserSessionToSql(session);
       },
-    );
-    await primaryDatabase.withRetry(
-      (db) => db.userSessions
-          .where((session) => session.userId.equalsValue(fromUserId))
-          .update((_, set) => set(userId: toUserId.asExpr))
-          .execute(),
     );
 
     // Consent's fromUserId attribute
