@@ -106,7 +106,12 @@ Future<void> main(List<String> args) async {
       'SANDBOX_NETWORK_ENABLED': 'true',
     },
     throwOnError: true,
-    retryOptions: RetryOptions(maxAttempts: 3),
+    retryOptions: RetryOptions(
+      maxAttempts: 5,
+      delayFactor: Duration(seconds: 15),
+      maxDelay: Duration(minutes: 4),
+    ),
+    retryIf: (_) => true,
     workingDirectory: rawDartdocOutputFolder.path,
   );
   await unpackPubCacheDir.delete(recursive: true);
