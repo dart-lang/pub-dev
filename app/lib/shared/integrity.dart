@@ -14,7 +14,10 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:retry/retry.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../account/agent.dart';
 import '../account/models.dart';
@@ -172,6 +175,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   Stream<String> _findProblems() async* {
     yield* _checkUsers();
     yield* _checkOAuthUserIDs();
+    yield* _checkUserSessions();
 
     final publisherAttributes = _PublisherAttributes();
     yield* _checkPublishers(publisherAttributes);
@@ -293,6 +297,38 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       } else if (pointer != oauthUserId) {
         yield 'User "$userId" is mapped from OAuthUserID "$oauthUserId", but points to a different one ("$pointer").';
       }
+    }
+  }
+
+  Stream<String> _checkUserSessions() async* {
+    _logger.info('Scanning UserSessions...');
+
+    final sessionIdsInDatastore = <String>{};
+    yield* _queryWithPool<UserSession>((session) async* {
+      sessionIdsInDatastore.add(session.sessionId);
+
+      final userId = session.userId;
+      if (userId != null && !await _userExists(userId)) {
+        yield 'UserSession "${session.sessionId}" does not have a valid userId.';
+      }
+    });
+
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.userSessions.fetch(),
+    );
+    for (final row in rows) {
+      final userId = row.userId;
+      if (userId != null && !await _userExists(userId)) {
+        yield 'SQL UserSession "${row.sessionId}" does not have a valid userId.';
+      }
+
+      if (!sessionIdsInDatastore.contains(row.sessionId)) {
+        yield 'SQL UserSession "${row.sessionId}" does not have a matching Datastore session.';
+      }
+    }
+
+    if (rows.length != sessionIdsInDatastore.length) {
+      yield 'Datastore and SQL UserSession count does not match: ${sessionIdsInDatastore.length} != ${rows.length}';
     }
   }
 
