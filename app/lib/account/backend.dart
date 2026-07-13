@@ -620,7 +620,6 @@ class AccountBackend {
   }
 
   /// Upserts [session] into the SQL database.
-  @visibleForTesting
   Future<void> writeUserSessionToSql(UserSession session) async {
     await primaryDatabase.transactWithRetry((db) async {
       // TODO: consider supporting a generated `upsertValue()` in typed_sql
