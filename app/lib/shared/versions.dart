@@ -24,7 +24,7 @@ final RegExp runtimeVersionPattern = RegExp(r'^\d{4}\.\d{2}\.\d{2}$');
 /// when the version switch happens.
 const _acceptedRuntimeVersions = <String>[
   // The current [runtimeVersion].
-  '2026.07.07',
+  '2026.07.10',
   // Fallback runtime versions.
   '2026.07.02',
   '2026.06.25',
@@ -77,4 +77,4 @@ final String panaVersion = pana.packageVersion;
 
 // keep in-sync with pkg/pub-worker/lib/src/bin/pub_worker_subprocess.dart
 // keep in-sync with Dockerfile.worker
-final String dartdocVersion = '9.0.6';
+final String dartdocVersion = '9.0.8';
