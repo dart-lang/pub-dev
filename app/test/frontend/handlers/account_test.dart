@@ -7,7 +7,6 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
