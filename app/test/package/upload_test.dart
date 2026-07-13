@@ -1608,6 +1608,8 @@ void main() {
           authToken: adminClientToken,
         ).uploadPackageBytes(bytes);
         expect(message.success.message, contains('Successfully uploaded'));
+
+        await asyncQueue.ongoingProcessing;
         await nameTracker.reloadFromDatastore();
 
         await accountBackend.withBearerToken(
