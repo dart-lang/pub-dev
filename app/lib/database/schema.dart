@@ -9,10 +9,17 @@ import 'package:pub_dev/task/models.dart';
 import 'package:typed_sql/typed_sql.dart';
 
 part 'schema.g.dart';
+part 'schema.account.dart';
 part 'schema.task.dart';
 
 @SqlOverride.schema(naming: .snake_case)
 abstract final class PrimarySchema extends Schema {
+  // account tables
+
+  Table<UserSessionRow> get userSessions;
+
+  // task tables
+
   Table<Task> get tasks;
 
   Table<TaskDependency> get taskDependencies;

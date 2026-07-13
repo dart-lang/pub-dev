@@ -13,8 +13,11 @@ import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
 import 'package:pub_dev/admin/models.dart';
+import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 
 import '../audit/models.dart';
+import '../database/database.dart';
+import '../database/schema.dart';
 import '../frontend/request_context.dart';
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
@@ -440,7 +443,10 @@ class AccountBackend {
         tx.insert(session);
         return session;
       });
-      if (rs != null) return rs;
+      if (rs != null) {
+        await _writeUserSessionToSql(rs);
+        return rs;
+      }
     }
 
     // in the absence of a valid existing session, create a new one
@@ -448,6 +454,7 @@ class AccountBackend {
       ..created = now
       ..expires = now.add(_sessionDuration);
     await _db.commit(inserts: [session]);
+    await _writeUserSessionToSql(session);
     return session;
   }
 
@@ -466,7 +473,7 @@ class AccountBackend {
     if (user == null || user.isModerated || user.isDeleted) {
       throw AuthenticationException.failed();
     }
-    final data = await withRetryTransaction(_db, (tx) async {
+    final result = await withRetryTransaction(_db, (tx) async {
       final session = await tx.userSessions.lookupOrNull(sessionId);
       if (session == null || session.isExpired()) {
         throw AuthenticationException.failed('Session has been expired.');
@@ -491,7 +498,7 @@ class AccountBackend {
           ..authenticatedAt = now
           ..expires = now.add(_sessionDuration);
         tx.insert(newSession);
-        return SessionData.fromModel(newSession);
+        return (session: newSession, expiredSessionId: sessionId);
       } else {
         // only update the current one
         session
@@ -504,9 +511,16 @@ class AccountBackend {
           ..authenticatedAt = now
           ..expires = now.add(_sessionDuration);
         tx.insert(session);
-        return SessionData.fromModel(session);
+        return (session: session, expiredSessionId: null);
       }
     });
+
+    if (result.expiredSessionId != null) {
+      await _deleteUserSessionFromSql(result.expiredSessionId!);
+    }
+    await _writeUserSessionToSql(result.session);
+
+    final data = SessionData.fromModel(result.session);
     await cache.userSessionData(data.sessionId).set(data);
     return data;
   }
@@ -576,7 +590,12 @@ class AccountBackend {
   /// Deletes the session entry if it has already expired and
   /// clears the related cache too.
   Future<UserSession?> lookupValidUserSession(String sessionId) async {
-    final session = await _db.userSessions.lookupOrNull(sessionId);
+    // Read from SQL first, falling back to Datastore if the session is not present.
+    var session = await _lookupUserSessionFromSql(sessionId);
+    if (session == null) {
+      final key = _db.emptyKey.append(UserSession, id: sessionId);
+      session = await _db.lookupOrNull<UserSession>(key);
+    }
     if (session == null) {
       return null;
     }
@@ -585,6 +604,105 @@ class AccountBackend {
       return null;
     }
     return session;
+  }
+
+  Future<UserSession?> _lookupUserSessionFromSql(String sessionId) async {
+    try {
+      final row = await primaryDatabase.withRetry(
+        (db) => db.userSessions.byKey(sessionId).fetch(),
+      );
+      if (row == null) return null;
+      return _userSessionFromRow(_db, row);
+    } catch (e, st) {
+      _logger.warning('SQL user session lookup failed: $sessionId', e, st);
+      return null;
+    }
+  }
+
+  Future<void> _writeUserSessionToSql(UserSession session) async {
+    await primaryDatabase.transactWithRetry((db) async {
+      // TODO: consider supporting a clean upsert in typed_sql
+      await db.userSessions.delete(session.sessionId).execute();
+      await db.userSessions
+          .insertValue(
+            sessionId: session.sessionId,
+            userId: session.userId,
+            email: session.email,
+            name: session.name,
+            imageUrl: session.imageUrl,
+            created: session.created!,
+            expires: session.expires!,
+            authenticatedAt: session.authenticatedAt,
+            csrfToken: session.csrfToken,
+            openidNonce: session.openidNonce,
+            accessToken: session.accessToken,
+            grantedScopes: session.grantedScopes,
+          )
+          .execute();
+    });
+  }
+
+  Future<void> _deleteUserSessionFromSql(String sessionId) async {
+    await primaryDatabase.withRetry(
+      (db) => db.userSessions.delete(sessionId).execute(),
+    );
+  }
+
+  /// Copies Datastore [UserSession] entities into the SQL database.
+  ///
+  /// When the `expires` field is newer on the SQL row, it will keep its current
+  /// value, since it indicates it has been updated more recently.
+  Future<({int scanned, int updated})>
+  copyUserSessionsFromDatastoreToSql() async {
+    var scanned = 0;
+    var updated = 0;
+    await for (final session in _db.query<UserSession>().run()) {
+      scanned++;
+      if (session.isExpired()) continue;
+
+      final row = await primaryDatabase.withRetry(
+        (db) => db.userSessions.byKey(session.sessionId).fetch(),
+      );
+
+      if (row == null || session.expires!.isAfter(row.expires)) {
+        await _writeUserSessionToSql(session);
+        updated++;
+      }
+    }
+    _logger.info(
+      'Synced UserSessions Datastore -> SQL: scanned $scanned, updated $updated.',
+    );
+    return (scanned: scanned, updated: updated);
+  }
+
+  /// Copies SQL [UserSessionRow] entries back into Datastore.
+  ///
+  /// When the `expires` field is newer on the Datastore, it will keep its current
+  /// value, since it indicates it has been updated more recently.
+  Future<({int scanned, int updated})>
+  copyUserSessionsFromSqlToDatastore() async {
+    var scanned = 0;
+    var updated = 0;
+
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.userSessions.stream().toList(),
+    );
+
+    for (final row in rows) {
+      scanned++;
+      final key = _db.emptyKey.append(UserSession, id: row.sessionId);
+      final existing = await _db.lookupOrNull<UserSession>(key);
+      if (existing == null ||
+          existing.expires == null ||
+          row.expires.isAfter(existing.expires!)) {
+        await _db.commit(inserts: [_userSessionFromRow(_db, row)]);
+        updated++;
+      }
+    }
+    _logger.info(
+      'Synced UserSessions SQL -> Datastore: scanned $scanned, updated $updated.',
+    );
+    return (scanned: scanned, updated: updated);
   }
 
   /// Deletes sessions associated with a [userId] or [sessionId].
@@ -681,14 +799,19 @@ class _UserSessionDataAccess {
 
   _UserSessionDataAccess(this._db);
 
-  Future<UserSession?> lookupOrNull(String sessionId) async {
-    final key = _db.emptyKey.append(UserSession, id: sessionId);
-    return await _db.lookupOrNull<UserSession>(key);
-  }
-
-  /// Scans Datastore for all sessions the user has, and invalidates
-  /// them all (by deleting the Datastore entry and purging the cache).
+  /// Scans for all sessions the user has, and invalidates
+  /// them all.
   Future<void> expireAllForUserId(String userId) async {
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.userSessions
+          .where((session) => session.userId.equalsValue(userId))
+          .select((session) => (session.sessionId,))
+          .fetch(),
+    );
+    for (final sessionId in rows) {
+      await expire(sessionId);
+    }
+
     final query = _db.query<UserSession>()..filter('userId =', userId);
     final sessionsToDelete = await query.run().toList();
     for (final session in sessionsToDelete) {
@@ -696,8 +819,14 @@ class _UserSessionDataAccess {
     }
   }
 
-  /// Removes the session data from the Datastore and from cache.
+  /// Removes the session data from the SQL store, the Datastore and cache.
+  ///
+  /// Deletes from SQL first, then from Datastore.
   Future<void> expire(String sessionId) async {
+    await primaryDatabase.withRetry(
+      (db) => db.userSessions.delete(sessionId).execute(),
+    );
+
     final key = _db.emptyKey.append(UserSession, id: sessionId);
     try {
       await _db.commit(deletes: [key]);
@@ -708,7 +837,17 @@ class _UserSessionDataAccess {
   }
 
   /// Removes the session data that has expiry before [ts].
+  ///
+  /// Deletes from SQL first, then from Datastore. Returns the number of
+  /// deleted Datastore entities.
   Future<int> expireAllBeforeTimestamp(DateTime ts) async {
+    await primaryDatabase.withRetry(
+      (db) => db.userSessions
+          .where((s) => s.expires.isBeforeValue(ts))
+          .delete()
+          .execute(),
+    );
+
     final query = _db.query<UserSession>()..filter('expires <', ts);
     final count = await _db.deleteWithQuery(query);
     return count.deleted;
@@ -724,4 +863,21 @@ class _UserSessionTransactionDataAcccess {
     final key = _tx.emptyKey.append(UserSession, id: sessionId);
     return await _tx.lookupOrNull<UserSession>(key);
   }
+}
+
+UserSession _userSessionFromRow(DatastoreDB db, UserSessionRow row) {
+  return UserSession()
+    ..parentKey = db.emptyKey
+    ..id = row.sessionId
+    ..userId = row.userId
+    ..email = row.email
+    ..name = row.name
+    ..imageUrl = row.imageUrl
+    ..created = row.created
+    ..expires = row.expires
+    ..authenticatedAt = row.authenticatedAt
+    ..csrfToken = row.csrfToken
+    ..openidNonce = row.openidNonce
+    ..accessToken = row.accessToken
+    ..grantedScopes = row.grantedScopes;
 }
