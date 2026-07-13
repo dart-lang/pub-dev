@@ -621,8 +621,7 @@ class AccountBackend {
 
   Future<void> _writeUserSessionToSql(UserSession session) async {
     await primaryDatabase.transactWithRetry((db) async {
-      // TODO: consider supporting a clean upsert in typed_sql
-      await db.userSessions.delete(session.sessionId).execute();
+      // TODO: consider supporting a generated `upsertValue()` in typed_sql
       await db.userSessions
           .insertValue(
             sessionId: session.sessionId,
@@ -637,6 +636,22 @@ class AccountBackend {
             openidNonce: session.openidNonce,
             accessToken: session.accessToken,
             grantedScopes: session.grantedScopes,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, _, set) => set(
+              userId: session.userId.asExpr,
+              email: session.email.asExpr,
+              name: session.name.asExpr,
+              imageUrl: session.imageUrl.asExpr,
+              created: session.created!.asExpr,
+              expires: session.expires!.asExpr,
+              authenticatedAt: session.authenticatedAt.asExpr,
+              csrfToken: session.csrfToken.asExpr,
+              openidNonce: session.openidNonce.asExpr,
+              accessToken: session.accessToken.asExpr,
+              grantedScopes: session.grantedScopes.asExpr,
+            ),
           )
           .execute();
     });
