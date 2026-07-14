@@ -4,10 +4,12 @@
 
 import 'package:clock/clock.dart';
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../../shared/test_services.dart';
 import '_utils.dart';
@@ -87,10 +89,18 @@ void main() {
         final sessionId = cookies.split(';').last.split('=').last;
         final session = await accountBackend.lookupValidUserSession(sessionId);
         expect(session, isNotNull);
-        session!
-          ..created = clock.now().subtract(Duration(days: 2))
-          ..authenticatedAt = clock.now().subtract(Duration(days: 2));
-        await dbService.commit(inserts: [session]);
+        final newTimestamp = clock.now().subtract(Duration(days: 2));
+        await primaryDatabase.withRetry(
+          (db) => db.userSessions
+              .byKey(sessionId)
+              .update(
+                (_, set) => set(
+                  created: newTimestamp.asExpr,
+                  authenticatedAt: newTimestamp.asExpr,
+                ),
+              )
+              .execute(),
+        );
         await cache.userSessionData(sessionId).purge();
 
         final rs = await issueGet(

@@ -203,13 +203,18 @@ class UserMerger {
     await _processConcurrently(
       _db.query<UserSession>()..filter('userId =', fromUserId),
       (UserSession m) async {
-        await withRetryTransaction(_db, (tx) async {
+        final session = await withRetryTransaction(_db, (tx) async {
           final session = await tx.lookupValue<UserSession>(m.key);
           if (session.userId == fromUserId) {
             session.userId = toUserId;
             tx.insert(session);
           }
+          return session;
         });
+        // Mirror the reassigned session into SQL (session reads are SQL-first).
+        // This also creates SQL rows for Datastore-only (pre-migration)
+        // sessions that the bulk update would have missed.
+        await accountBackend.writeUserSessionToSql(session);
       },
     );
 

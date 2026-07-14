@@ -29,7 +29,14 @@ Map<String, dynamic> _$TaskStateToJson(TaskState instance) => <String, dynamic>{
 
 /// Extension methods for a [Database] operating on [PrimarySchema].
 extension PrimarySchemaSchema on Database<PrimarySchema> {
-  static final _$tables = [_$Task._$table, _$TaskDependency._$table];
+  static final _$tables = [
+    _$UserSessionRow._$table,
+    _$Task._$table,
+    _$TaskDependency._$table,
+  ];
+
+  Table<UserSessionRow> get userSessions =>
+      $ForGeneratedCode.declareTable(this, _$UserSessionRow._$table);
 
   Table<Task> get tasks => $ForGeneratedCode.declareTable(this, _$Task._$table);
 
@@ -65,6 +72,929 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 /// [1]: https://en.wikipedia.org/wiki/Data_definition_language
 String createPrimarySchemaTables(SqlDialect dialect) => $ForGeneratedCode
     .createTableSchema(dialect: dialect, tables: PrimarySchemaSchema._$tables);
+
+final class _$UserSessionRow extends UserSessionRow {
+  _$UserSessionRow._(
+    this.sessionId,
+    this.userId,
+    this.email,
+    this.name,
+    this.imageUrl,
+    this.created,
+    this.expires,
+    this.authenticatedAt,
+    this.csrfToken,
+    this.openidNonce,
+    this.accessToken,
+    this.grantedScopes,
+  );
+
+  @override
+  final String sessionId;
+
+  @override
+  final String? userId;
+
+  @override
+  final String? email;
+
+  @override
+  final String? name;
+
+  @override
+  final String? imageUrl;
+
+  @override
+  final DateTime created;
+
+  @override
+  final DateTime expires;
+
+  @override
+  final DateTime? authenticatedAt;
+
+  @override
+  final String? csrfToken;
+
+  @override
+  final String? openidNonce;
+
+  @override
+  final String? accessToken;
+
+  @override
+  final String? grantedScopes;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'user_sessions',
+    columns: <String>[
+      'session_id',
+      'user_id',
+      'email',
+      'name',
+      'image_url',
+      'created',
+      'expires',
+      'authenticated_at',
+      'csrf_token',
+      'openid_nonce',
+      'access_token',
+      'granted_scopes',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['session_id'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['user_id'],
+      ),
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['expires'],
+      ),
+    ],
+    readRow: _$UserSessionRow._$fromDatabase,
+  );
+
+  static UserSessionRow? _$fromDatabase(RowReader row) {
+    final sessionId = row.readString();
+    final userId = row.readString();
+    final email = row.readString();
+    final name = row.readString();
+    final imageUrl = row.readString();
+    final created = row.readDateTime();
+    final expires = row.readDateTime();
+    final authenticatedAt = row.readDateTime();
+    final csrfToken = row.readString();
+    final openidNonce = row.readString();
+    final accessToken = row.readString();
+    final grantedScopes = row.readString();
+    if (sessionId == null &&
+        userId == null &&
+        email == null &&
+        name == null &&
+        imageUrl == null &&
+        created == null &&
+        expires == null &&
+        authenticatedAt == null &&
+        csrfToken == null &&
+        openidNonce == null &&
+        accessToken == null &&
+        grantedScopes == null) {
+      return null;
+    }
+    return _$UserSessionRow._(
+      sessionId!,
+      userId,
+      email,
+      name,
+      imageUrl,
+      created!,
+      expires!,
+      authenticatedAt,
+      csrfToken,
+      openidNonce,
+      accessToken,
+      grantedScopes,
+    );
+  }
+
+  @override
+  String toString() =>
+      'UserSessionRow(sessionId: "$sessionId", userId: "$userId", email: "$email", name: "$name", imageUrl: "$imageUrl", created: "$created", expires: "$expires", authenticatedAt: "$authenticatedAt", csrfToken: "$csrfToken", openidNonce: "$openidNonce", accessToken: "$accessToken", grantedScopes: "$grantedScopes")';
+}
+
+/// Extension methods for table defined in [UserSessionRow].
+extension TableUserSessionRowExt on Table<UserSessionRow> {
+  /// Insert row into the `userSessions` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<UserSessionRow> insert({
+    required Expr<String> sessionId,
+    Expr<String?>? userId,
+    Expr<String?>? email,
+    Expr<String?>? name,
+    Expr<String?>? imageUrl,
+    required Expr<DateTime> created,
+    required Expr<DateTime> expires,
+    Expr<DateTime?>? authenticatedAt,
+    Expr<String?>? csrfToken,
+    Expr<String?>? openidNonce,
+    Expr<String?>? accessToken,
+    Expr<String?>? grantedScopes,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      sessionId,
+      userId,
+      email,
+      name,
+      imageUrl,
+      created,
+      expires,
+      authenticatedAt,
+      csrfToken,
+      openidNonce,
+      accessToken,
+      grantedScopes,
+    ],
+  );
+
+  /// Insert row into the `userSessions` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<UserSessionRow> insertValue({
+    required String sessionId,
+    String? userId,
+    String? email,
+    String? name,
+    String? imageUrl,
+    required DateTime created,
+    required DateTime expires,
+    DateTime? authenticatedAt,
+    String? csrfToken,
+    String? openidNonce,
+    String? accessToken,
+    String? grantedScopes,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      sessionId.asExpr,
+      userId.asExpr,
+      email.asExpr,
+      name.asExpr,
+      imageUrl.asExpr,
+      created.asExpr,
+      expires.asExpr,
+      authenticatedAt.asExpr,
+      csrfToken.asExpr,
+      openidNonce.asExpr,
+      accessToken.asExpr,
+      grantedScopes.asExpr,
+    ],
+  );
+
+  /// Bulk insert rows into the `userSessions` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<UserSessionRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) sessionId,
+    String? Function(T row)? userId,
+    String? Function(T row)? email,
+    String? Function(T row)? name,
+    String? Function(T row)? imageUrl,
+    required DateTime Function(T row) created,
+    required DateTime Function(T row) expires,
+    DateTime? Function(T row)? authenticatedAt,
+    String? Function(T row)? csrfToken,
+    String? Function(T row)? openidNonce,
+    String? Function(T row)? accessToken,
+    String? Function(T row)? grantedScopes,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [
+      sessionId,
+      userId,
+      email,
+      name,
+      imageUrl,
+      created,
+      expires,
+      authenticatedAt,
+      csrfToken,
+      openidNonce,
+      accessToken,
+      grantedScopes,
+    ],
+  );
+
+  /// Delete a single row from the `userSessions` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<UserSessionRow> delete(String sessionId) => $ForGeneratedCode
+      .deleteSingle(byKey(sessionId), _$UserSessionRow._$table);
+}
+
+/// Extension methods for building queries against the `userSessions` table.
+extension QueryUserSessionRowExt on Query<(Expr<UserSessionRow>,)> {
+  /// Lookup a single row in `userSessions` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<UserSessionRow>,)> byKey(String sessionId) => where(
+    (userSessionRow) => userSessionRow.sessionId.equalsValue(sessionId),
+  ).first;
+
+  /// Update all rows in the `userSessions` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<UserSessionRow> update(
+    UpdateSet<UserSessionRow> Function(
+      Expr<UserSessionRow> userSessionRow,
+      UpdateSet<UserSessionRow> Function({
+        Expr<String> sessionId,
+        Expr<String?> userId,
+        Expr<String?> email,
+        Expr<String?> name,
+        Expr<String?> imageUrl,
+        Expr<DateTime> created,
+        Expr<DateTime> expires,
+        Expr<DateTime?> authenticatedAt,
+        Expr<String?> csrfToken,
+        Expr<String?> openidNonce,
+        Expr<String?> accessToken,
+        Expr<String?> grantedScopes,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<UserSessionRow>(
+    this,
+    _$UserSessionRow._$table,
+    (userSessionRow) => updateBuilder(
+      userSessionRow,
+      ({
+        Expr<String>? sessionId,
+        Expr<String?>? userId,
+        Expr<String?>? email,
+        Expr<String?>? name,
+        Expr<String?>? imageUrl,
+        Expr<DateTime>? created,
+        Expr<DateTime>? expires,
+        Expr<DateTime?>? authenticatedAt,
+        Expr<String?>? csrfToken,
+        Expr<String?>? openidNonce,
+        Expr<String?>? accessToken,
+        Expr<String?>? grantedScopes,
+      }) => $ForGeneratedCode.buildUpdate<UserSessionRow>([
+        sessionId,
+        userId,
+        email,
+        name,
+        imageUrl,
+        created,
+        expires,
+        authenticatedAt,
+        csrfToken,
+        openidNonce,
+        accessToken,
+        grantedScopes,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `userSessions` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<UserSessionRow> delete() =>
+      $ForGeneratedCode.delete(this, _$UserSessionRow._$table);
+}
+
+/// Extension methods for building point queries against the `userSessions` table.
+extension QuerySingleUserSessionRowExt on QuerySingle<(Expr<UserSessionRow>,)> {
+  /// Update the row (if any) in the `userSessions` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<UserSessionRow> update(
+    UpdateSet<UserSessionRow> Function(
+      Expr<UserSessionRow> userSessionRow,
+      UpdateSet<UserSessionRow> Function({
+        Expr<String> sessionId,
+        Expr<String?> userId,
+        Expr<String?> email,
+        Expr<String?> name,
+        Expr<String?> imageUrl,
+        Expr<DateTime> created,
+        Expr<DateTime> expires,
+        Expr<DateTime?> authenticatedAt,
+        Expr<String?> csrfToken,
+        Expr<String?> openidNonce,
+        Expr<String?> accessToken,
+        Expr<String?> grantedScopes,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<UserSessionRow>(
+    this,
+    _$UserSessionRow._$table,
+    (userSessionRow) => updateBuilder(
+      userSessionRow,
+      ({
+        Expr<String>? sessionId,
+        Expr<String?>? userId,
+        Expr<String?>? email,
+        Expr<String?>? name,
+        Expr<String?>? imageUrl,
+        Expr<DateTime>? created,
+        Expr<DateTime>? expires,
+        Expr<DateTime?>? authenticatedAt,
+        Expr<String?>? csrfToken,
+        Expr<String?>? openidNonce,
+        Expr<String?>? accessToken,
+        Expr<String?>? grantedScopes,
+      }) => $ForGeneratedCode.buildUpdate<UserSessionRow>([
+        sessionId,
+        userId,
+        email,
+        name,
+        imageUrl,
+        created,
+        expires,
+        authenticatedAt,
+        csrfToken,
+        openidNonce,
+        accessToken,
+        grantedScopes,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `userSessions` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<UserSessionRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$UserSessionRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `userSessions` table.
+extension ExpressionUserSessionRowExt on Expr<UserSessionRow> {
+  /// The session ID, a random UUID String.
+  Expr<String> get sessionId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// The id of the `User` that has this session.
+  Expr<String?> get userId =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// The email of the `User` that has this session.
+  Expr<String?> get email =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  /// The name of the `User` - given by the authentication provider.
+  Expr<String?> get name =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  /// The profile image URL of the `User` - given by the authentication provider.
+  Expr<String?> get imageUrl =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  /// The time when the session was created.
+  Expr<DateTime> get created =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
+
+  /// The time when the session will expire.
+  Expr<DateTime> get expires =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.dateTime);
+
+  /// The time when the session was last authenticated.
+  Expr<DateTime?> get authenticatedAt =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.dateTime);
+
+  /// The CSRF token that the session uses.
+  Expr<String?> get csrfToken =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.text);
+
+  /// The random value used for OpenID authentication.
+  Expr<String?> get openidNonce =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.text);
+
+  /// The access token from the OpenID authentication.
+  Expr<String?> get accessToken =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.text);
+
+  /// The granted scopes from the OpenID authentication.
+  Expr<String?> get grantedScopes =>
+      $ForGeneratedCode.field(this, 11, $ForGeneratedCode.text);
+}
+
+extension ExpressionNullableUserSessionRowExt on Expr<UserSessionRow?> {
+  /// The session ID, a random UUID String.
+  Expr<String?> get sessionId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// The id of the `User` that has this session.
+  Expr<String?> get userId =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// The email of the `User` that has this session.
+  Expr<String?> get email =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  /// The name of the `User` - given by the authentication provider.
+  Expr<String?> get name =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  /// The profile image URL of the `User` - given by the authentication provider.
+  Expr<String?> get imageUrl =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  /// The time when the session was created.
+  Expr<DateTime?> get created =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
+
+  /// The time when the session will expire.
+  Expr<DateTime?> get expires =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.dateTime);
+
+  /// The time when the session was last authenticated.
+  Expr<DateTime?> get authenticatedAt =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.dateTime);
+
+  /// The CSRF token that the session uses.
+  Expr<String?> get csrfToken =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.text);
+
+  /// The random value used for OpenID authentication.
+  Expr<String?> get openidNonce =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.text);
+
+  /// The access token from the OpenID authentication.
+  Expr<String?> get accessToken =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.text);
+
+  /// The granted scopes from the OpenID authentication.
+  Expr<String?> get grantedScopes =>
+      $ForGeneratedCode.field(this, 11, $ForGeneratedCode.text);
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => sessionId.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+/// `Table<UserSessionRow>` conflict targets for use with `.onConflict`.
+enum UserSessionRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `sessionId`.
+  primaryKey(['session_id']);
+
+  const UserSessionRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertUserSessionRowExt on Insert<UserSessionRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((userSessionRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<UserSessionRow> onConflict(UserSessionRowConflict target) =>
+      $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictUserSessionRowExt
+    on InsertOnConflict<UserSessionRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `userSessionRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<UserSessionRow> update(
+    UpdateSet<UserSessionRow> Function(
+      Expr<UserSessionRow> userSessionRow,
+      Expr<UserSessionRow> excluded,
+      UpdateSet<UserSessionRow> Function({
+        Expr<String> sessionId,
+        Expr<String?> userId,
+        Expr<String?> email,
+        Expr<String?> name,
+        Expr<String?> imageUrl,
+        Expr<DateTime> created,
+        Expr<DateTime> expires,
+        Expr<DateTime?> authenticatedAt,
+        Expr<String?> csrfToken,
+        Expr<String?> openidNonce,
+        Expr<String?> accessToken,
+        Expr<String?> grantedScopes,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<UserSessionRow>(
+    this,
+    (userSessionRow, excluded) => updateBuilder(
+      userSessionRow,
+      excluded,
+      ({
+        Expr<String>? sessionId,
+        Expr<String?>? userId,
+        Expr<String?>? email,
+        Expr<String?>? name,
+        Expr<String?>? imageUrl,
+        Expr<DateTime>? created,
+        Expr<DateTime>? expires,
+        Expr<DateTime?>? authenticatedAt,
+        Expr<String?>? csrfToken,
+        Expr<String?>? openidNonce,
+        Expr<String?>? accessToken,
+        Expr<String?>? grantedScopes,
+      }) => $ForGeneratedCode.buildUpdate<UserSessionRow>([
+        sessionId,
+        userId,
+        email,
+        name,
+        imageUrl,
+        created,
+        expires,
+        authenticatedAt,
+        csrfToken,
+        openidNonce,
+        accessToken,
+        grantedScopes,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleUserSessionRowExt on InsertSingle<UserSessionRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((userSessionRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<UserSessionRow> onConflict(
+    UserSessionRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleUserSessionRowExt
+    on InsertOnConflictSingle<UserSessionRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `userSessionRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<UserSessionRow> update(
+    UpdateSet<UserSessionRow> Function(
+      Expr<UserSessionRow> userSessionRow,
+      Expr<UserSessionRow> excluded,
+      UpdateSet<UserSessionRow> Function({
+        Expr<String> sessionId,
+        Expr<String?> userId,
+        Expr<String?> email,
+        Expr<String?> name,
+        Expr<String?> imageUrl,
+        Expr<DateTime> created,
+        Expr<DateTime> expires,
+        Expr<DateTime?> authenticatedAt,
+        Expr<String?> csrfToken,
+        Expr<String?> openidNonce,
+        Expr<String?> accessToken,
+        Expr<String?> grantedScopes,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<UserSessionRow>(
+    this,
+    (userSessionRow, excluded) => updateBuilder(
+      userSessionRow,
+      excluded,
+      ({
+        Expr<String>? sessionId,
+        Expr<String?>? userId,
+        Expr<String?>? email,
+        Expr<String?>? name,
+        Expr<String?>? imageUrl,
+        Expr<DateTime>? created,
+        Expr<DateTime>? expires,
+        Expr<DateTime?>? authenticatedAt,
+        Expr<String?>? csrfToken,
+        Expr<String?>? openidNonce,
+        Expr<String?>? accessToken,
+        Expr<String?>? grantedScopes,
+      }) => $ForGeneratedCode.buildUpdate<UserSessionRow>([
+        sessionId,
+        userId,
+        email,
+        name,
+        imageUrl,
+        created,
+        expires,
+        authenticatedAt,
+        csrfToken,
+        openidNonce,
+        accessToken,
+        grantedScopes,
+      ]),
+    ),
+  );
+}
 
 final class _$Task extends Task {
   _$Task._(
