@@ -741,8 +741,7 @@ class PackageBackend {
 
       // finalize changes
       final publishingConfig = p.publishingConfig ?? PublishingConfig();
-      p.automatedPublishing = publishingConfig;
-      p.newPublishingConfig = publishingConfig;
+      p.publishingConfig = publishingConfig;
       publishingConfig.githubConfig =
           githubConfig ?? publishingConfig.githubConfig;
       publishingConfig.gcpConfig = gcpConfig ?? publishingConfig.gcpConfig;

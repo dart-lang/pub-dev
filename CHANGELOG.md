@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: Started to cleanup `Package.automatedPublishing` field (in favor of `publishingConfig`).
 
 ## `20260714t095300-all`
  * Bump runtimeVersion to `2026.07.10`.
