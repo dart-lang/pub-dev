@@ -149,15 +149,13 @@ class Package extends db.ExpandoModel<String> {
   @db.StringListProperty()
   List<String>? deletedVersions;
 
-  /// The configuration for automated and manual publishing.
+  @Deprecated('Will be removed, use publishingConfig.')
   @PublishingConfigProperty()
   PublishingConfig? automatedPublishing;
 
-  @PublishingConfigProperty(propertyName: 'publishingConfig')
-  PublishingConfig? newPublishingConfig;
-
-  PublishingConfig? get publishingConfig =>
-      newPublishingConfig ?? automatedPublishing;
+  /// The configuration for automated and manual publishing.
+  @PublishingConfigProperty()
+  PublishingConfig? publishingConfig;
 
   /// The latest point in time at which a security advisory that affects this
   /// package has been synchronized into pub.
