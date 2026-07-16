@@ -410,11 +410,12 @@ class TaskBackend {
               attempts: 0,
             ),
         };
+        final newState = TaskState(versions: versionsMap, abortedTokens: []);
         await db.tasks
             .insert(
               runtimeVersion: runtimeVersion.asExpr,
               package: packageName.asExpr,
-              state: TaskState(versions: versionsMap, abortedTokens: []).asExpr,
+              state: newState.asExpr,
               lastDependencyChanged: initialTimestamp.asExpr,
               finished: initialTimestamp.asExpr,
               pendingAt: derivePendingAt(
@@ -423,6 +424,7 @@ class TaskBackend {
               ).asExpr,
             )
             .execute();
+        await db.upsertTaskState(packageName, newState);
         return true; // no more work for this package, state is synced
       }
 
@@ -495,6 +497,7 @@ class TaskBackend {
             ),
           )
           .execute();
+      await db.upsertTaskState(packageName, newState, oldState: oldState);
       return true;
     });
 
@@ -759,19 +762,21 @@ class TaskBackend {
         lastDependencyChanged: task.lastDependencyChanged,
       );
 
+      final newState = TaskState(
+        versions: newVersions,
+        abortedTokens: task.state.abortedTokens,
+      );
       await db.tasks
           .byKey(runtimeVersion, package)
           .update(
             (_, set) => set(
-              state: TaskState(
-                versions: newVersions,
-                abortedTokens: task.state.abortedTokens,
-              ).asExpr,
+              state: newState.asExpr,
               pendingAt: pendingAt.asExpr,
               finished: clock.now().toUtc().asExpr,
             ),
           )
           .execute();
+      await db.upsertTaskState(package, newState, oldState: task.state);
     });
 
     // Clearing the state cache after the update.
@@ -1386,5 +1391,90 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
         )
         .update((_, set) => set(pendingAt: initialTimestamp.asExpr))
         .execute();
+  }
+
+  /// Keeps `task_versions` and `task_aborted_tokens` in sync with [state],
+  /// which must always be written to `tasks.state` too.
+  ///
+  /// [oldState] is the previously stored state (if any), it is used to
+  /// find entries that have been removed from [state] and need to be
+  /// deleted. It can be omitted when [package] has no prior state, e.g.
+  /// when inserting a new [Task] row.
+  Future<void> upsertTaskState(
+    String package,
+    TaskState state, {
+    TaskState? oldState,
+  }) async {
+    for (final entry in state.versions.entries) {
+      final v = entry.value;
+      // TODO: use typed_sql's upsertValue once it becomes available
+      await taskVersions
+          .insertValue(
+            runtimeVersion: runtimeVersion,
+            package: package,
+            version: entry.key,
+            scheduled: v.scheduled,
+            attempts: v.attempts,
+            zone: v.zone,
+            instance: v.instance,
+            secretToken: v.secretToken,
+            hasDocs: v.docs,
+            hasPana: v.pana,
+            isFinished: v.finished,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              scheduled: excluded.scheduled,
+              attempts: excluded.attempts,
+              zone: excluded.zone,
+              instance: excluded.instance,
+              secretToken: excluded.secretToken,
+              hasDocs: excluded.hasDocs,
+              hasPana: excluded.hasPana,
+              isFinished: excluded.isFinished,
+            ),
+          )
+          .execute();
+    }
+
+    for (final token in state.abortedTokens) {
+      // TODO: use typed_sql's upsertValue once it becomes available
+      await taskAbortedTokens
+          .insertValue(
+            runtimeVersion: runtimeVersion,
+            package: package,
+            token: token.token,
+            expires: token.expires,
+          )
+          .onConflict(.primaryKey)
+          .update((_, excluded, set) => set(expires: excluded.expires))
+          .execute();
+    }
+
+    if (oldState == null) {
+      return;
+    }
+
+    final removedVersions = oldState.versions.keys.whereNot(
+      state.versions.containsKey,
+    );
+    for (final version in removedVersions) {
+      await taskVersions
+          .byKey(runtimeVersion, package, version)
+          .delete()
+          .execute();
+    }
+
+    final currentTokens = state.abortedTokens.map((t) => t.token).toSet();
+    final removedTokens = oldState.abortedTokens
+        .map((t) => t.token)
+        .whereNot(currentTokens.contains);
+    for (final token in removedTokens) {
+      await taskAbortedTokens
+          .byKey(runtimeVersion, package, token)
+          .delete()
+          .execute();
+    }
   }
 }
