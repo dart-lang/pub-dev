@@ -14,6 +14,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded pana to `0.23.18`.
  * Upgraded dartdoc to `9.0.9`.
  * Allow `apis.google.com` and `*.clients6.google.com` in CSP (`connect-src` and `frame-src`).
+ * Note: started to unroll task versions and aborted tokens into SQL tables.
 
 ## `20260806t120500-all`
  * Bump runtimeVersion to `2026.08.06`.

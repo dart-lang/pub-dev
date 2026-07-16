@@ -23,4 +23,8 @@ abstract final class PrimarySchema extends Schema {
   Table<Task> get tasks;
 
   Table<TaskDependency> get taskDependencies;
+
+  Table<TaskVersion> get taskVersions;
+
+  Table<TaskAbortedToken> get taskAbortedTokens;
 }
