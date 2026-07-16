@@ -33,6 +33,8 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$UserSessionRow._$table,
     _$Task._$table,
     _$TaskDependency._$table,
+    _$TaskVersion._$table,
+    _$TaskAbortedToken._$table,
   ];
 
   Table<UserSessionRow> get userSessions =>
@@ -42,6 +44,12 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<TaskDependency> get taskDependencies =>
       $ForGeneratedCode.declareTable(this, _$TaskDependency._$table);
+
+  Table<TaskVersion> get taskVersions =>
+      $ForGeneratedCode.declareTable(this, _$TaskVersion._$table);
+
+  Table<TaskAbortedToken> get taskAbortedTokens =>
+      $ForGeneratedCode.declareTable(this, _$TaskAbortedToken._$table);
 
   /// Create tables defined in [PrimarySchema].
   ///
@@ -1435,6 +1443,36 @@ extension ExpressionTaskExt on Expr<Task> {
             r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
             r.package.equalsUnlessNull(package),
       );
+
+  /// Get [SubQuery] of rows from the `taskVersions` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [TaskVersion] rows,
+  /// where [TaskVersion.runtimeVersion], [TaskVersion.package]
+  /// references [Task.runtimeVersion], [Task.package]
+  /// in this row.
+  SubQuery<(Expr<TaskVersion>,)> get versionRows => $ForGeneratedCode
+      .subqueryTable(_$TaskVersion._$table)
+      .where(
+        (r) =>
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
+            r.package.equalsUnlessNull(package),
+      );
+
+  /// Get [SubQuery] of rows from the `taskAbortedTokens` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [TaskAbortedToken] rows,
+  /// where [TaskAbortedToken.runtimeVersion], [TaskAbortedToken.package]
+  /// references [Task.runtimeVersion], [Task.package]
+  /// in this row.
+  SubQuery<(Expr<TaskAbortedToken>,)> get abortedTokenRows => $ForGeneratedCode
+      .subqueryTable(_$TaskAbortedToken._$table)
+      .where(
+        (r) =>
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
+            r.package.equalsUnlessNull(package),
+      );
 }
 
 extension ExpressionNullableTaskExt on Expr<Task?> {
@@ -1477,6 +1515,40 @@ extension ExpressionNullableTaskExt on Expr<Task?> {
             r.package.equalsUnlessNull(package),
       );
 
+  /// Get [SubQuery] of rows from the `taskVersions` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [TaskVersion] rows,
+  /// where [TaskVersion.runtimeVersion], [TaskVersion.package]
+  /// references [Task.runtimeVersion], [Task.package]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<TaskVersion>,)> get versionRows => $ForGeneratedCode
+      .subqueryTable(_$TaskVersion._$table)
+      .where(
+        (r) =>
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
+            r.package.equalsUnlessNull(package),
+      );
+
+  /// Get [SubQuery] of rows from the `taskAbortedTokens` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [TaskAbortedToken] rows,
+  /// where [TaskAbortedToken.runtimeVersion], [TaskAbortedToken.package]
+  /// references [Task.runtimeVersion], [Task.package]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<TaskAbortedToken>,)> get abortedTokenRows => $ForGeneratedCode
+      .subqueryTable(_$TaskAbortedToken._$table)
+      .where(
+        (r) =>
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
+            r.package.equalsUnlessNull(package),
+      );
+
   /// Check if the row is not `NULL`.
   ///
   /// This will check if _primary key_ fields in this row are `NULL`.
@@ -1492,6 +1564,42 @@ extension ExpressionNullableTaskExt on Expr<Task?> {
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
   Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinTaskTaskAbortedTokenExt
+    on InnerJoin<(Expr<Task>,), (Expr<TaskAbortedToken>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [Task.runtimeVersion] = [TaskAbortedToken.runtimeVersion] and [Task.package] = [TaskAbortedToken.package].
+  Query<(Expr<Task>, Expr<TaskAbortedToken>)> usingTask() => on(
+    (a, b) =>
+        a.runtimeVersion.equalsUnlessNull(b.runtimeVersion) &
+        a.package.equalsUnlessNull(b.package),
+  );
+}
+
+extension LeftJoinTaskTaskAbortedTokenExt
+    on LeftJoin<(Expr<Task>,), (Expr<TaskAbortedToken>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [Task.runtimeVersion] = [TaskAbortedToken.runtimeVersion] and [Task.package] = [TaskAbortedToken.package].
+  Query<(Expr<Task>, Expr<TaskAbortedToken?>)> usingTask() => on(
+    (a, b) =>
+        a.runtimeVersion.equalsUnlessNull(b.runtimeVersion) &
+        a.package.equalsUnlessNull(b.package),
+  );
+}
+
+extension RightJoinTaskTaskAbortedTokenExt
+    on RightJoin<(Expr<Task>,), (Expr<TaskAbortedToken>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [Task.runtimeVersion] = [TaskAbortedToken.runtimeVersion] and [Task.package] = [TaskAbortedToken.package].
+  Query<(Expr<Task?>, Expr<TaskAbortedToken>)> usingTask() => on(
+    (a, b) =>
+        a.runtimeVersion.equalsUnlessNull(b.runtimeVersion) &
+        a.package.equalsUnlessNull(b.package),
+  );
 }
 
 extension InnerJoinTaskTaskDependencyExt
@@ -1524,6 +1632,42 @@ extension RightJoinTaskTaskDependencyExt
   ///
   /// This will match rows where [Task.runtimeVersion] = [TaskDependency.runtimeVersion] and [Task.package] = [TaskDependency.package].
   Query<(Expr<Task?>, Expr<TaskDependency>)> usingTask() => on(
+    (a, b) =>
+        a.runtimeVersion.equalsUnlessNull(b.runtimeVersion) &
+        a.package.equalsUnlessNull(b.package),
+  );
+}
+
+extension InnerJoinTaskTaskVersionExt
+    on InnerJoin<(Expr<Task>,), (Expr<TaskVersion>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [Task.runtimeVersion] = [TaskVersion.runtimeVersion] and [Task.package] = [TaskVersion.package].
+  Query<(Expr<Task>, Expr<TaskVersion>)> usingTask() => on(
+    (a, b) =>
+        a.runtimeVersion.equalsUnlessNull(b.runtimeVersion) &
+        a.package.equalsUnlessNull(b.package),
+  );
+}
+
+extension LeftJoinTaskTaskVersionExt
+    on LeftJoin<(Expr<Task>,), (Expr<TaskVersion>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [Task.runtimeVersion] = [TaskVersion.runtimeVersion] and [Task.package] = [TaskVersion.package].
+  Query<(Expr<Task>, Expr<TaskVersion?>)> usingTask() => on(
+    (a, b) =>
+        a.runtimeVersion.equalsUnlessNull(b.runtimeVersion) &
+        a.package.equalsUnlessNull(b.package),
+  );
+}
+
+extension RightJoinTaskTaskVersionExt
+    on RightJoin<(Expr<Task>,), (Expr<TaskVersion>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [Task.runtimeVersion] = [TaskVersion.runtimeVersion] and [Task.package] = [TaskVersion.package].
+  Query<(Expr<Task?>, Expr<TaskVersion>)> usingTask() => on(
     (a, b) =>
         a.runtimeVersion.equalsUnlessNull(b.runtimeVersion) &
         a.package.equalsUnlessNull(b.package),
@@ -2357,6 +2501,1617 @@ extension InsertOnConflictSingleTaskDependencyExt
         runtimeVersion,
         package,
         dependency,
+      ]),
+    ),
+  );
+}
+
+final class _$TaskVersion extends TaskVersion {
+  _$TaskVersion._(
+    this.runtimeVersion,
+    this.package,
+    this.version,
+    this.scheduled,
+    this.attempts,
+    this.zone,
+    this.instance,
+    this.secretToken,
+    this.hasDocs,
+    this.hasPana,
+    this.isFinished,
+  );
+
+  @override
+  final String runtimeVersion;
+
+  @override
+  final String package;
+
+  @override
+  final String version;
+
+  @override
+  final DateTime scheduled;
+
+  @override
+  final int attempts;
+
+  @override
+  final String? zone;
+
+  @override
+  final String? instance;
+
+  @override
+  final String? secretToken;
+
+  @override
+  final bool hasDocs;
+
+  @override
+  final bool hasPana;
+
+  @override
+  final bool isFinished;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'task_versions',
+    columns: <String>[
+      'runtime_version',
+      'package',
+      'version',
+      'scheduled',
+      'attempts',
+      'zone',
+      'instance',
+      'secret_token',
+      'has_docs',
+      'has_pana',
+      'is_finished',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.integer,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['runtime_version', 'package', 'version'],
+    unique: <List<String>>[],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'task',
+        columns: ['runtime_version', 'package'],
+        referencedTable: 'tasks',
+        referencedColumns: ['runtime_version', 'package'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+    ],
+    indexes: [],
+    readRow: _$TaskVersion._$fromDatabase,
+  );
+
+  static TaskVersion? _$fromDatabase(RowReader row) {
+    final runtimeVersion = row.readString();
+    final package = row.readString();
+    final version = row.readString();
+    final scheduled = row.readDateTime();
+    final attempts = row.readInt();
+    final zone = row.readString();
+    final instance = row.readString();
+    final secretToken = row.readString();
+    final hasDocs = row.readBool();
+    final hasPana = row.readBool();
+    final isFinished = row.readBool();
+    if (runtimeVersion == null &&
+        package == null &&
+        version == null &&
+        scheduled == null &&
+        attempts == null &&
+        zone == null &&
+        instance == null &&
+        secretToken == null &&
+        hasDocs == null &&
+        hasPana == null &&
+        isFinished == null) {
+      return null;
+    }
+    return _$TaskVersion._(
+      runtimeVersion!,
+      package!,
+      version!,
+      scheduled!,
+      attempts!,
+      zone,
+      instance,
+      secretToken,
+      hasDocs!,
+      hasPana!,
+      isFinished!,
+    );
+  }
+
+  @override
+  String toString() =>
+      'TaskVersion(runtimeVersion: "$runtimeVersion", package: "$package", version: "$version", scheduled: "$scheduled", attempts: "$attempts", zone: "$zone", instance: "$instance", secretToken: "$secretToken", hasDocs: "$hasDocs", hasPana: "$hasPana", isFinished: "$isFinished")';
+}
+
+/// Extension methods for table defined in [TaskVersion].
+extension TableTaskVersionExt on Table<TaskVersion> {
+  /// Insert row into the `taskVersions` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<TaskVersion> insert({
+    required Expr<String> runtimeVersion,
+    required Expr<String> package,
+    required Expr<String> version,
+    required Expr<DateTime> scheduled,
+    required Expr<int> attempts,
+    Expr<String?>? zone,
+    Expr<String?>? instance,
+    Expr<String?>? secretToken,
+    required Expr<bool> hasDocs,
+    required Expr<bool> hasPana,
+    required Expr<bool> isFinished,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      runtimeVersion,
+      package,
+      version,
+      scheduled,
+      attempts,
+      zone,
+      instance,
+      secretToken,
+      hasDocs,
+      hasPana,
+      isFinished,
+    ],
+  );
+
+  /// Insert row into the `taskVersions` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<TaskVersion> insertValue({
+    required String runtimeVersion,
+    required String package,
+    required String version,
+    required DateTime scheduled,
+    required int attempts,
+    String? zone,
+    String? instance,
+    String? secretToken,
+    required bool hasDocs,
+    required bool hasPana,
+    required bool isFinished,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      runtimeVersion.asExpr,
+      package.asExpr,
+      version.asExpr,
+      scheduled.asExpr,
+      attempts.asExpr,
+      zone.asExpr,
+      instance.asExpr,
+      secretToken.asExpr,
+      hasDocs.asExpr,
+      hasPana.asExpr,
+      isFinished.asExpr,
+    ],
+  );
+
+  /// Bulk insert rows into the `taskVersions` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<TaskVersion> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) runtimeVersion,
+    required String Function(T row) package,
+    required String Function(T row) version,
+    required DateTime Function(T row) scheduled,
+    required int Function(T row) attempts,
+    String? Function(T row)? zone,
+    String? Function(T row)? instance,
+    String? Function(T row)? secretToken,
+    required bool Function(T row) hasDocs,
+    required bool Function(T row) hasPana,
+    required bool Function(T row) isFinished,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [
+      runtimeVersion,
+      package,
+      version,
+      scheduled,
+      attempts,
+      zone,
+      instance,
+      secretToken,
+      hasDocs,
+      hasPana,
+      isFinished,
+    ],
+  );
+
+  /// Delete a single row from the `taskVersions` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<TaskVersion> delete(
+    String runtimeVersion,
+    String package,
+    String version,
+  ) => $ForGeneratedCode.deleteSingle(
+    byKey(runtimeVersion, package, version),
+    _$TaskVersion._$table,
+  );
+}
+
+/// Extension methods for building queries against the `taskVersions` table.
+extension QueryTaskVersionExt on Query<(Expr<TaskVersion>,)> {
+  /// Lookup a single row in `taskVersions` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<TaskVersion>,)> byKey(
+    String runtimeVersion,
+    String package,
+    String version,
+  ) => where(
+    (taskVersion) =>
+        taskVersion.runtimeVersion.equalsValue(runtimeVersion) &
+        taskVersion.package.equalsValue(package) &
+        taskVersion.version.equalsValue(version),
+  ).first;
+
+  /// Update all rows in the `taskVersions` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<TaskVersion> update(
+    UpdateSet<TaskVersion> Function(
+      Expr<TaskVersion> taskVersion,
+      UpdateSet<TaskVersion> Function({
+        Expr<String> runtimeVersion,
+        Expr<String> package,
+        Expr<String> version,
+        Expr<DateTime> scheduled,
+        Expr<int> attempts,
+        Expr<String?> zone,
+        Expr<String?> instance,
+        Expr<String?> secretToken,
+        Expr<bool> hasDocs,
+        Expr<bool> hasPana,
+        Expr<bool> isFinished,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<TaskVersion>(
+    this,
+    _$TaskVersion._$table,
+    (taskVersion) => updateBuilder(
+      taskVersion,
+      ({
+        Expr<String>? runtimeVersion,
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<DateTime>? scheduled,
+        Expr<int>? attempts,
+        Expr<String?>? zone,
+        Expr<String?>? instance,
+        Expr<String?>? secretToken,
+        Expr<bool>? hasDocs,
+        Expr<bool>? hasPana,
+        Expr<bool>? isFinished,
+      }) => $ForGeneratedCode.buildUpdate<TaskVersion>([
+        runtimeVersion,
+        package,
+        version,
+        scheduled,
+        attempts,
+        zone,
+        instance,
+        secretToken,
+        hasDocs,
+        hasPana,
+        isFinished,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `taskVersions` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<TaskVersion> delete() =>
+      $ForGeneratedCode.delete(this, _$TaskVersion._$table);
+}
+
+/// Extension methods for building point queries against the `taskVersions` table.
+extension QuerySingleTaskVersionExt on QuerySingle<(Expr<TaskVersion>,)> {
+  /// Update the row (if any) in the `taskVersions` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<TaskVersion> update(
+    UpdateSet<TaskVersion> Function(
+      Expr<TaskVersion> taskVersion,
+      UpdateSet<TaskVersion> Function({
+        Expr<String> runtimeVersion,
+        Expr<String> package,
+        Expr<String> version,
+        Expr<DateTime> scheduled,
+        Expr<int> attempts,
+        Expr<String?> zone,
+        Expr<String?> instance,
+        Expr<String?> secretToken,
+        Expr<bool> hasDocs,
+        Expr<bool> hasPana,
+        Expr<bool> isFinished,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<TaskVersion>(
+    this,
+    _$TaskVersion._$table,
+    (taskVersion) => updateBuilder(
+      taskVersion,
+      ({
+        Expr<String>? runtimeVersion,
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<DateTime>? scheduled,
+        Expr<int>? attempts,
+        Expr<String?>? zone,
+        Expr<String?>? instance,
+        Expr<String?>? secretToken,
+        Expr<bool>? hasDocs,
+        Expr<bool>? hasPana,
+        Expr<bool>? isFinished,
+      }) => $ForGeneratedCode.buildUpdate<TaskVersion>([
+        runtimeVersion,
+        package,
+        version,
+        scheduled,
+        attempts,
+        zone,
+        instance,
+        secretToken,
+        hasDocs,
+        hasPana,
+        isFinished,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `taskVersions` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<TaskVersion> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$TaskVersion._$table);
+}
+
+/// Extension methods for expressions on a row in the `taskVersions` table.
+extension ExpressionTaskVersionExt on Expr<TaskVersion> {
+  Expr<String> get runtimeVersion =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String> get package =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<String> get version =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  /// The last time when this was scheduled for analysis.
+  Expr<DateTime> get scheduled =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// The number of attempts to schedule the package version for analysis.
+  Expr<int> get attempts =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.integer);
+
+  /// Name of the zone in which the instance analysing this package version is
+  /// running.
+  Expr<String?> get zone =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  /// Name of the instance analysing this package version.
+  Expr<String?> get instance =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+
+  /// Secret token (UUIDv4) used for authenticating worker requests.
+  Expr<String?> get secretToken =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
+
+  /// True, if dartdoc documentation is available.
+  Expr<bool> get hasDocs =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.boolean);
+
+  /// True, if pana summary is available.
+  Expr<bool> get hasPana =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.boolean);
+
+  /// True, if results have been previously reported on this version.
+  Expr<bool> get isFinished =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.boolean);
+
+  /// Do a subquery lookup of the row from table
+  /// `tasks` referenced in
+  /// [runtimeVersion], [package].
+  ///
+  /// The gets the row from table `tasks` where
+  /// [Task.runtimeVersion], [Task.package]
+  /// is equal to [runtimeVersion], [package].
+  Expr<Task> get task => $ForGeneratedCode
+      .subqueryTable(_$Task._$table)
+      .where(
+        (r) =>
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
+            r.package.equalsUnlessNull(package),
+      )
+      .first
+      .asNotNull();
+}
+
+extension ExpressionNullableTaskVersionExt on Expr<TaskVersion?> {
+  Expr<String?> get runtimeVersion =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String?> get package =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<String?> get version =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  /// The last time when this was scheduled for analysis.
+  Expr<DateTime?> get scheduled =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// The number of attempts to schedule the package version for analysis.
+  Expr<int?> get attempts =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.integer);
+
+  /// Name of the zone in which the instance analysing this package version is
+  /// running.
+  Expr<String?> get zone =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  /// Name of the instance analysing this package version.
+  Expr<String?> get instance =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+
+  /// Secret token (UUIDv4) used for authenticating worker requests.
+  Expr<String?> get secretToken =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
+
+  /// True, if dartdoc documentation is available.
+  Expr<bool?> get hasDocs =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.boolean);
+
+  /// True, if pana summary is available.
+  Expr<bool?> get hasPana =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.boolean);
+
+  /// True, if results have been previously reported on this version.
+  Expr<bool?> get isFinished =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.boolean);
+
+  /// Do a subquery lookup of the row from table
+  /// `tasks` referenced in
+  /// [runtimeVersion], [package].
+  ///
+  /// The gets the row from table `tasks` where
+  /// [Task.runtimeVersion], [Task.package]
+  /// is equal to [runtimeVersion], [package], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<Task?> get task => $ForGeneratedCode
+      .subqueryTable(_$Task._$table)
+      .where(
+        (r) =>
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
+            r.package.equalsUnlessNull(package),
+      )
+      .first;
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() =>
+      runtimeVersion.isNotNull() & package.isNotNull() & version.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinTaskVersionTaskExt
+    on InnerJoin<(Expr<TaskVersion>,), (Expr<Task>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [TaskVersion.runtimeVersion] = [Task.runtimeVersion] and [TaskVersion.package] = [Task.package].
+  Query<(Expr<TaskVersion>, Expr<Task>)> usingTask() => on(
+    (a, b) =>
+        b.runtimeVersion.equalsUnlessNull(a.runtimeVersion) &
+        b.package.equalsUnlessNull(a.package),
+  );
+}
+
+extension LeftJoinTaskVersionTaskExt
+    on LeftJoin<(Expr<TaskVersion>,), (Expr<Task>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [TaskVersion.runtimeVersion] = [Task.runtimeVersion] and [TaskVersion.package] = [Task.package].
+  Query<(Expr<TaskVersion>, Expr<Task?>)> usingTask() => on(
+    (a, b) =>
+        b.runtimeVersion.equalsUnlessNull(a.runtimeVersion) &
+        b.package.equalsUnlessNull(a.package),
+  );
+}
+
+extension RightJoinTaskVersionTaskExt
+    on RightJoin<(Expr<TaskVersion>,), (Expr<Task>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [TaskVersion.runtimeVersion] = [Task.runtimeVersion] and [TaskVersion.package] = [Task.package].
+  Query<(Expr<TaskVersion?>, Expr<Task>)> usingTask() => on(
+    (a, b) =>
+        b.runtimeVersion.equalsUnlessNull(a.runtimeVersion) &
+        b.package.equalsUnlessNull(a.package),
+  );
+}
+
+/// `Table<TaskVersion>` conflict targets for use with `.onConflict`.
+enum TaskVersionConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `runtimeVersion`, `package`, `version`.
+  primaryKey(['runtime_version', 'package', 'version']);
+
+  const TaskVersionConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertTaskVersionExt on Insert<TaskVersion> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((taskVersion, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<TaskVersion> onConflict(TaskVersionConflict target) =>
+      $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictTaskVersionExt on InsertOnConflict<TaskVersion> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `taskVersion` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<TaskVersion> update(
+    UpdateSet<TaskVersion> Function(
+      Expr<TaskVersion> taskVersion,
+      Expr<TaskVersion> excluded,
+      UpdateSet<TaskVersion> Function({
+        Expr<String> runtimeVersion,
+        Expr<String> package,
+        Expr<String> version,
+        Expr<DateTime> scheduled,
+        Expr<int> attempts,
+        Expr<String?> zone,
+        Expr<String?> instance,
+        Expr<String?> secretToken,
+        Expr<bool> hasDocs,
+        Expr<bool> hasPana,
+        Expr<bool> isFinished,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<TaskVersion>(
+    this,
+    (taskVersion, excluded) => updateBuilder(
+      taskVersion,
+      excluded,
+      ({
+        Expr<String>? runtimeVersion,
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<DateTime>? scheduled,
+        Expr<int>? attempts,
+        Expr<String?>? zone,
+        Expr<String?>? instance,
+        Expr<String?>? secretToken,
+        Expr<bool>? hasDocs,
+        Expr<bool>? hasPana,
+        Expr<bool>? isFinished,
+      }) => $ForGeneratedCode.buildUpdate<TaskVersion>([
+        runtimeVersion,
+        package,
+        version,
+        scheduled,
+        attempts,
+        zone,
+        instance,
+        secretToken,
+        hasDocs,
+        hasPana,
+        isFinished,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleTaskVersionExt on InsertSingle<TaskVersion> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((taskVersion, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<TaskVersion> onConflict(TaskVersionConflict target) =>
+      $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleTaskVersionExt
+    on InsertOnConflictSingle<TaskVersion> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `taskVersion` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<TaskVersion> update(
+    UpdateSet<TaskVersion> Function(
+      Expr<TaskVersion> taskVersion,
+      Expr<TaskVersion> excluded,
+      UpdateSet<TaskVersion> Function({
+        Expr<String> runtimeVersion,
+        Expr<String> package,
+        Expr<String> version,
+        Expr<DateTime> scheduled,
+        Expr<int> attempts,
+        Expr<String?> zone,
+        Expr<String?> instance,
+        Expr<String?> secretToken,
+        Expr<bool> hasDocs,
+        Expr<bool> hasPana,
+        Expr<bool> isFinished,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<TaskVersion>(
+    this,
+    (taskVersion, excluded) => updateBuilder(
+      taskVersion,
+      excluded,
+      ({
+        Expr<String>? runtimeVersion,
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<DateTime>? scheduled,
+        Expr<int>? attempts,
+        Expr<String?>? zone,
+        Expr<String?>? instance,
+        Expr<String?>? secretToken,
+        Expr<bool>? hasDocs,
+        Expr<bool>? hasPana,
+        Expr<bool>? isFinished,
+      }) => $ForGeneratedCode.buildUpdate<TaskVersion>([
+        runtimeVersion,
+        package,
+        version,
+        scheduled,
+        attempts,
+        zone,
+        instance,
+        secretToken,
+        hasDocs,
+        hasPana,
+        isFinished,
+      ]),
+    ),
+  );
+}
+
+final class _$TaskAbortedToken extends TaskAbortedToken {
+  _$TaskAbortedToken._(
+    this.runtimeVersion,
+    this.package,
+    this.token,
+    this.expires,
+  );
+
+  @override
+  final String runtimeVersion;
+
+  @override
+  final String package;
+
+  @override
+  final String token;
+
+  @override
+  final DateTime expires;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'task_aborted_tokens',
+    columns: <String>['runtime_version', 'package', 'token', 'expires'],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['runtime_version', 'package', 'token'],
+    unique: <List<String>>[],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'task',
+        columns: ['runtime_version', 'package'],
+        referencedTable: 'tasks',
+        referencedColumns: ['runtime_version', 'package'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+    ],
+    indexes: [],
+    readRow: _$TaskAbortedToken._$fromDatabase,
+  );
+
+  static TaskAbortedToken? _$fromDatabase(RowReader row) {
+    final runtimeVersion = row.readString();
+    final package = row.readString();
+    final token = row.readString();
+    final expires = row.readDateTime();
+    if (runtimeVersion == null &&
+        package == null &&
+        token == null &&
+        expires == null) {
+      return null;
+    }
+    return _$TaskAbortedToken._(runtimeVersion!, package!, token!, expires!);
+  }
+
+  @override
+  String toString() =>
+      'TaskAbortedToken(runtimeVersion: "$runtimeVersion", package: "$package", token: "$token", expires: "$expires")';
+}
+
+/// Extension methods for table defined in [TaskAbortedToken].
+extension TableTaskAbortedTokenExt on Table<TaskAbortedToken> {
+  /// Insert row into the `taskAbortedTokens` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<TaskAbortedToken> insert({
+    required Expr<String> runtimeVersion,
+    required Expr<String> package,
+    required Expr<String> token,
+    required Expr<DateTime> expires,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [runtimeVersion, package, token, expires],
+  );
+
+  /// Insert row into the `taskAbortedTokens` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<TaskAbortedToken> insertValue({
+    required String runtimeVersion,
+    required String package,
+    required String token,
+    required DateTime expires,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      runtimeVersion.asExpr,
+      package.asExpr,
+      token.asExpr,
+      expires.asExpr,
+    ],
+  );
+
+  /// Bulk insert rows into the `taskAbortedTokens` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<TaskAbortedToken> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) runtimeVersion,
+    required String Function(T row) package,
+    required String Function(T row) token,
+    required DateTime Function(T row) expires,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [runtimeVersion, package, token, expires],
+  );
+
+  /// Delete a single row from the `taskAbortedTokens` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<TaskAbortedToken> delete(
+    String runtimeVersion,
+    String package,
+    String token,
+  ) => $ForGeneratedCode.deleteSingle(
+    byKey(runtimeVersion, package, token),
+    _$TaskAbortedToken._$table,
+  );
+}
+
+/// Extension methods for building queries against the `taskAbortedTokens` table.
+extension QueryTaskAbortedTokenExt on Query<(Expr<TaskAbortedToken>,)> {
+  /// Lookup a single row in `taskAbortedTokens` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<TaskAbortedToken>,)> byKey(
+    String runtimeVersion,
+    String package,
+    String token,
+  ) => where(
+    (taskAbortedToken) =>
+        taskAbortedToken.runtimeVersion.equalsValue(runtimeVersion) &
+        taskAbortedToken.package.equalsValue(package) &
+        taskAbortedToken.token.equalsValue(token),
+  ).first;
+
+  /// Update all rows in the `taskAbortedTokens` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<TaskAbortedToken> update(
+    UpdateSet<TaskAbortedToken> Function(
+      Expr<TaskAbortedToken> taskAbortedToken,
+      UpdateSet<TaskAbortedToken> Function({
+        Expr<String> runtimeVersion,
+        Expr<String> package,
+        Expr<String> token,
+        Expr<DateTime> expires,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<TaskAbortedToken>(
+    this,
+    _$TaskAbortedToken._$table,
+    (taskAbortedToken) => updateBuilder(
+      taskAbortedToken,
+      ({
+        Expr<String>? runtimeVersion,
+        Expr<String>? package,
+        Expr<String>? token,
+        Expr<DateTime>? expires,
+      }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
+        runtimeVersion,
+        package,
+        token,
+        expires,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `taskAbortedTokens` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<TaskAbortedToken> delete() =>
+      $ForGeneratedCode.delete(this, _$TaskAbortedToken._$table);
+}
+
+/// Extension methods for building point queries against the `taskAbortedTokens` table.
+extension QuerySingleTaskAbortedTokenExt
+    on QuerySingle<(Expr<TaskAbortedToken>,)> {
+  /// Update the row (if any) in the `taskAbortedTokens` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<TaskAbortedToken> update(
+    UpdateSet<TaskAbortedToken> Function(
+      Expr<TaskAbortedToken> taskAbortedToken,
+      UpdateSet<TaskAbortedToken> Function({
+        Expr<String> runtimeVersion,
+        Expr<String> package,
+        Expr<String> token,
+        Expr<DateTime> expires,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<TaskAbortedToken>(
+    this,
+    _$TaskAbortedToken._$table,
+    (taskAbortedToken) => updateBuilder(
+      taskAbortedToken,
+      ({
+        Expr<String>? runtimeVersion,
+        Expr<String>? package,
+        Expr<String>? token,
+        Expr<DateTime>? expires,
+      }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
+        runtimeVersion,
+        package,
+        token,
+        expires,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `taskAbortedTokens` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<TaskAbortedToken> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$TaskAbortedToken._$table);
+}
+
+/// Extension methods for expressions on a row in the `taskAbortedTokens` table.
+extension ExpressionTaskAbortedTokenExt on Expr<TaskAbortedToken> {
+  Expr<String> get runtimeVersion =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String> get package =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<String> get token =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  Expr<DateTime> get expires =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// Do a subquery lookup of the row from table
+  /// `tasks` referenced in
+  /// [runtimeVersion], [package].
+  ///
+  /// The gets the row from table `tasks` where
+  /// [Task.runtimeVersion], [Task.package]
+  /// is equal to [runtimeVersion], [package].
+  Expr<Task> get task => $ForGeneratedCode
+      .subqueryTable(_$Task._$table)
+      .where(
+        (r) =>
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
+            r.package.equalsUnlessNull(package),
+      )
+      .first
+      .asNotNull();
+}
+
+extension ExpressionNullableTaskAbortedTokenExt on Expr<TaskAbortedToken?> {
+  Expr<String?> get runtimeVersion =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String?> get package =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<String?> get token =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get expires =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// Do a subquery lookup of the row from table
+  /// `tasks` referenced in
+  /// [runtimeVersion], [package].
+  ///
+  /// The gets the row from table `tasks` where
+  /// [Task.runtimeVersion], [Task.package]
+  /// is equal to [runtimeVersion], [package], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<Task?> get task => $ForGeneratedCode
+      .subqueryTable(_$Task._$table)
+      .where(
+        (r) =>
+            r.runtimeVersion.equalsUnlessNull(runtimeVersion) &
+            r.package.equalsUnlessNull(package),
+      )
+      .first;
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() =>
+      runtimeVersion.isNotNull() & package.isNotNull() & token.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinTaskAbortedTokenTaskExt
+    on InnerJoin<(Expr<TaskAbortedToken>,), (Expr<Task>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [TaskAbortedToken.runtimeVersion] = [Task.runtimeVersion] and [TaskAbortedToken.package] = [Task.package].
+  Query<(Expr<TaskAbortedToken>, Expr<Task>)> usingTask() => on(
+    (a, b) =>
+        b.runtimeVersion.equalsUnlessNull(a.runtimeVersion) &
+        b.package.equalsUnlessNull(a.package),
+  );
+}
+
+extension LeftJoinTaskAbortedTokenTaskExt
+    on LeftJoin<(Expr<TaskAbortedToken>,), (Expr<Task>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [TaskAbortedToken.runtimeVersion] = [Task.runtimeVersion] and [TaskAbortedToken.package] = [Task.package].
+  Query<(Expr<TaskAbortedToken>, Expr<Task?>)> usingTask() => on(
+    (a, b) =>
+        b.runtimeVersion.equalsUnlessNull(a.runtimeVersion) &
+        b.package.equalsUnlessNull(a.package),
+  );
+}
+
+extension RightJoinTaskAbortedTokenTaskExt
+    on RightJoin<(Expr<TaskAbortedToken>,), (Expr<Task>,)> {
+  /// Join using the `task` _foreign key_.
+  ///
+  /// This will match rows where [TaskAbortedToken.runtimeVersion] = [Task.runtimeVersion] and [TaskAbortedToken.package] = [Task.package].
+  Query<(Expr<TaskAbortedToken?>, Expr<Task>)> usingTask() => on(
+    (a, b) =>
+        b.runtimeVersion.equalsUnlessNull(a.runtimeVersion) &
+        b.package.equalsUnlessNull(a.package),
+  );
+}
+
+/// `Table<TaskAbortedToken>` conflict targets for use with `.onConflict`.
+enum TaskAbortedTokenConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `runtimeVersion`, `package`, `token`.
+  primaryKey(['runtime_version', 'package', 'token']);
+
+  const TaskAbortedTokenConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertTaskAbortedTokenExt on Insert<TaskAbortedToken> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((taskAbortedToken, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<TaskAbortedToken> onConflict(
+    TaskAbortedTokenConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictTaskAbortedTokenExt
+    on InsertOnConflict<TaskAbortedToken> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `taskAbortedToken` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<TaskAbortedToken> update(
+    UpdateSet<TaskAbortedToken> Function(
+      Expr<TaskAbortedToken> taskAbortedToken,
+      Expr<TaskAbortedToken> excluded,
+      UpdateSet<TaskAbortedToken> Function({
+        Expr<String> runtimeVersion,
+        Expr<String> package,
+        Expr<String> token,
+        Expr<DateTime> expires,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<TaskAbortedToken>(
+    this,
+    (taskAbortedToken, excluded) => updateBuilder(
+      taskAbortedToken,
+      excluded,
+      ({
+        Expr<String>? runtimeVersion,
+        Expr<String>? package,
+        Expr<String>? token,
+        Expr<DateTime>? expires,
+      }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
+        runtimeVersion,
+        package,
+        token,
+        expires,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleTaskAbortedTokenExt on InsertSingle<TaskAbortedToken> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((taskAbortedToken, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<TaskAbortedToken> onConflict(
+    TaskAbortedTokenConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleTaskAbortedTokenExt
+    on InsertOnConflictSingle<TaskAbortedToken> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `taskAbortedToken` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<TaskAbortedToken> update(
+    UpdateSet<TaskAbortedToken> Function(
+      Expr<TaskAbortedToken> taskAbortedToken,
+      Expr<TaskAbortedToken> excluded,
+      UpdateSet<TaskAbortedToken> Function({
+        Expr<String> runtimeVersion,
+        Expr<String> package,
+        Expr<String> token,
+        Expr<DateTime> expires,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<TaskAbortedToken>(
+    this,
+    (taskAbortedToken, excluded) => updateBuilder(
+      taskAbortedToken,
+      excluded,
+      ({
+        Expr<String>? runtimeVersion,
+        Expr<String>? package,
+        Expr<String>? token,
+        Expr<DateTime>? expires,
+      }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
+        runtimeVersion,
+        package,
+        token,
+        expires,
       ]),
     ),
   );
