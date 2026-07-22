@@ -65,13 +65,14 @@ void drawChart(
   final lastDate = data.last.date;
   final firstDate = data.first.date;
   final firstDay = firstDate.copyWith(day: firstDate.day - 7);
-
   final xAxisSpan = lastDate.difference(firstDate);
   // We start with 1 as initial value. In the special case where all downloads
   // are 0 we want a straight line in the bottom of the chart.
   final maxDownloads = data.fold<int>(1, (a, b) => max<int>(a, b.downloads));
 
   final toolTipOffsetFromMouse = 15;
+  // Small margin so the tooltip never touches the very edge of the viewport.
+  final viewportMargin = 8;
 
   (double, double) computeCoordinates(DateTime date, int downloads) {
     final duration = date.difference(firstDate);
@@ -98,6 +99,49 @@ void drawChart(
     final month = date.month < 10 ? '0${date.month}' : '${date.month}';
     final day = date.day < 10 ? '0${date.day}' : '${date.day}';
     return '$year.$month.$day';
+  }
+
+  // Positions the tooltip near the mouse pointer while keeping it fully
+  // inside the viewport, flipping above/left of the cursor when there isn't
+  // enough room below/right.
+  void positionTooltip(MouseEvent e) {
+    final tooltipRect = toolTip.getBoundingClientRect();
+    final viewportWidth = window.innerWidth;
+    final viewportHeight = window.innerHeight;
+
+    var left = e.clientX.toDouble();
+    if (left + tooltipRect.width + viewportMargin > viewportWidth) {
+      // Not enough room to the right: show the tooltip to the left of the
+      // cursor instead.
+      left = e.clientX - tooltipRect.width;
+    }
+    left = left
+        .clamp(
+          viewportMargin,
+          max(
+            viewportMargin,
+            viewportWidth - tooltipRect.width - viewportMargin,
+          ),
+        )
+        .toDouble();
+
+    var top = (e.clientY + toolTipOffsetFromMouse).toDouble();
+    if (top + tooltipRect.height + viewportMargin > viewportHeight) {
+      // Not enough room below: show the tooltip above the cursor instead.
+      top = e.clientY - toolTipOffsetFromMouse - tooltipRect.height;
+    }
+    top = top
+        .clamp(
+          viewportMargin,
+          max(
+            viewportMargin,
+            viewportHeight - tooltipRect.height - viewportMargin,
+          ),
+        )
+        .toDouble();
+
+    toolTip.style.top = '${top + document.scrollingElement!.scrollTop}px';
+    toolTip.style.left = '${left + document.scrollingElement!.scrollLeft}px';
   }
 
   // Render chart
@@ -148,9 +192,6 @@ void drawChart(
   chart.onMouseMove.listen((e) {
     sparklineCursor.style.opacity = '1';
     toolTip.style.opacity = '1';
-    toolTip.style.top =
-        '${e.y + toolTipOffsetFromMouse + document.scrollingElement!.scrollTop}px';
-    toolTip.style.left = '${e.x}px';
 
     final s =
         (e.x - (chart.getBoundingClientRect().x + padding)) / drawingWidth;
@@ -164,19 +205,27 @@ void drawChart(
           s,
         );
     final selectedDay = data[selectedDayIndex];
-    if (selectedDay.date == lastSelectedDay) return;
+    if (selectedDay.date != lastSelectedDay) {
+      final coords = computeCoordinates(
+        selectedDay.date,
+        selectedDay.downloads,
+      );
+      sparklineSpot.setAttribute('cy', '${coords.$2}');
+      sparklineCursor.setAttribute('transform', 'translate(${coords.$1}, 0)');
+      toolTip.textContent =
+          '${formatWithThousandSeperators(selectedDay.downloads)}';
 
-    final coords = computeCoordinates(selectedDay.date, selectedDay.downloads);
-    sparklineSpot.setAttribute('cy', '${coords.$2}');
-    sparklineCursor.setAttribute('transform', 'translate(${coords.$1}, 0)');
-    toolTip.textContent =
-        '${formatWithThousandSeperators(selectedDay.downloads)}';
+      final startDay = selectedDay.date.subtract(Duration(days: 7));
+      chartSubText.textContent =
+          '${formatDate(startDay)} - ${formatDate(selectedDay.date)}';
 
-    final startDay = selectedDay.date.subtract(Duration(days: 7));
-    chartSubText.textContent =
-        '${formatDate(startDay)} - ${formatDate(selectedDay.date)}';
+      lastSelectedDay = selectedDay.date;
+    }
 
-    lastSelectedDay = selectedDay.date;
+    // Re-position on every move (not just when the selected day changes) so
+    // the tooltip tracks the cursor smoothly, and re-clamp against the
+    // viewport since the tooltip's content/size may have just changed.
+    positionTooltip(e);
   });
 
   void hideSparklineCursor(_) {
