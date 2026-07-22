@@ -117,6 +117,18 @@ a {
   @include variables.brightness-on-hover;
 }
 
+// Sections with a permanently dark background (header, footer, banner) use
+// brightness(120%) on hover in both themes, overriding the light-mode default.
+.light-theme .pub-dark-bg a:hover {
+  filter: brightness(120%);
+}
+
+// Links directly wrapping a monochrome icon rely on the icon's opacity-based
+// hover feedback; suppress the brightness filter to avoid stacking effects.
+a:has(> .pub-monochrome-icon):hover {
+  filter: none;
+}
+
 main {
   min-height: calc(100vh - 130px); // top nav (50) + footer (80)
   margin-bottom: 32px;
