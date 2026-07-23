@@ -204,6 +204,7 @@ void main() {
           '/static/dartdoc/resources/docs.dart.js.map',
           '/static/dartdoc/resources/search.png', // probably used through old js
           '/static/dartdoc/resources/search.svg', // probably used through js
+          '/static/dartdoc/resources/search_dark.svg', // probably used through js
         ]);
 
       expect(requestPaths, hasLength(greaterThan(50)));
