@@ -713,14 +713,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.2"
-  sanitize_html:
-    dependency: transitive
-    description:
-      name: sanitize_html
-      sha256: "60257e2b8fd8b13b7c755065c2639a6c800031bb5bd3e30a007fc6739c77b2e1"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
   sass:
     dependency: transitive
     description:

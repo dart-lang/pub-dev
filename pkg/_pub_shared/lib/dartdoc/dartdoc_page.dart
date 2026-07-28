@@ -11,6 +11,8 @@ import 'package:sanitize_html/sanitize_html.dart';
 
 part 'dartdoc_page.g.dart';
 
+final dartdocCustomElements = {'CALLOUT-BOX'};
+
 /// Generates a random nonce used for image proxying markers.
 ///
 /// This makes it practically impossible for an attacker to guess the imageProxyNonce
@@ -157,6 +159,7 @@ final class DartDocPage {
     }
     final sanitized = sanitizeHtml(
       html,
+      allowElements: dartdocCustomElements.contains,
       allowClassName: (_) => true,
       allowElementId: (_) => true,
       addLinkRel: (href) {

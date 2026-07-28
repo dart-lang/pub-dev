@@ -15,6 +15,7 @@ workspace:
   - pkg/indexed_blob
   - pkg/pub_package_reader
   - pkg/puppeteer_screenshots
+  - pkg/sanitize_html
   - pkg/image_proxy
   - pkg/runsc
   - pkg/unzip
