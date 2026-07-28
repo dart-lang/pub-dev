@@ -7,6 +7,7 @@ import 'package:html/dom_parsing.dart' as html_parsing;
 import 'package:html/parser.dart' as html_parser;
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as m;
+import 'package:pub_dev/dartdoc/dartdoc_page.dart' show dartdocCustomElements;
 import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/service/image_proxy/backend.dart';
@@ -101,6 +102,7 @@ String _renderSafeHtml(
   // Renders the sanitized HTML.
   final html = sanitizeHtml(
     processedHtml,
+    allowElements: dartdocCustomElements.contains,
     allowElementId: (String id) =>
         !disableHashIds, // TODO: Use a denylist for ids used by pub site
     allowClassName: (String cn) {
