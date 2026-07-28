@@ -228,7 +228,7 @@ final _elementAttributeValidators =
   'Q': _citeAttributeValidator,
 };
 
-/// An implementation of [html.NodeValidator] that only allows sane HTML tags
+/// An implementation of `html.NodeValidator` that only allows sane HTML tags
 /// and attributes protecting against XSS.
 ///
 /// Modeled after the [rules employed by Github][1] when sanitizing GFM (Github

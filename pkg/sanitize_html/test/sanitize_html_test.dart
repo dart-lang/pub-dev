@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:test/test.dart';
 import 'package:sanitize_html/sanitize_html.dart' show sanitizeHtml;
+import 'package:test/test.dart';
 
 void main() {
   // Calls sanitizeHtml with two different configurations.
