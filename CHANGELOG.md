@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2026.07.28`.
  * Upgraded stable Flutter analysis SDK to `3.44.7`.
+ * Upgraded pana to `0.23.15`.
  * Copied `google/dart-neats#402` into `pkg/sanitize_html`.
 
 ## `20260714t095300-all`
