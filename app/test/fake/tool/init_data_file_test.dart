@@ -9,6 +9,7 @@ import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/server/local_server_state.dart';
 import 'package:pub_dev/fake/tool/init_data_file.dart';
+import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/services.dart';
 import 'package:pub_dev/shared/versions.dart';
@@ -24,6 +25,7 @@ void main() {
       final tempDir = await Directory.systemTemp.createTemp('init_data_');
       final dataFile = '${tempDir.path}/state.jsonl';
       try {
+        registerStaticFileCacheForTest(StaticFileCache.forTests());
         await initDataFile(
           profile: TestProfile(
             defaultUser: 'dev@example.com',
