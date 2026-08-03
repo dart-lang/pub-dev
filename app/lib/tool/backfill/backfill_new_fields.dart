@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:logging/logging.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -21,6 +23,15 @@ Future<void> backfillNewFields() async {
       if (p.publishingConfig == null) {
         _logger.shout(
           'Package "${p.name}" has `automatedPublishing` but no `publishingConfig`.',
+        );
+        return;
+      }
+      // Note: Cheap sanity check, but may be the same object with different JSON output.
+      //       Just in case, we abort the cleanup if it differs.
+      if (json.encode(p.automatedPublishing?.toJson()) !=
+          json.encode(p.publishingConfig?.toJson())) {
+        _logger.shout(
+          'Package "${p.name}" has `automatedPublishing` and `publishingConfig` with different JSON serialization.',
         );
         return;
       }
