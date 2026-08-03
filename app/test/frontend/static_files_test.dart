@@ -159,10 +159,6 @@ void main() {
           '/static/js/script.dart.js.info.data',
           '/static/js/script.dart.js.info.json',
           '/static/js/script.dart.js.map',
-          '/static/material/bundle/script.min.js.map',
-          '/static/material/bundle/styles.css.map',
-          '/static/material/bundle/script.min.js.LICENSE.txt',
-          '/static/material/bundle/styles.min.js',
         ])
         // Images that we are not currently using but keep alongside of the used version.
         ..removeAll([
@@ -175,15 +171,10 @@ void main() {
               e.startsWith('/static/js/script.dart.js_') &&
               (e.endsWith('.part.js') || e.endsWith('.part.js.map')),
         )
-        // material build parts may be present in local dev environment
-        ..removeWhere((e) => e.startsWith('/static/material/node_modules/'))
         // files that are in the third-party directory but not essential to serving
         ..removeAll([
           '/static/css/github-markdown.css-license.txt',
           '/static/highlight/readme.md',
-          '/static/material/package-lock.json',
-          '/static/material/package.json',
-          '/static/material/README.md',
         ])
         // third-party CSS files that are included in the style.scss are no longer referenced elsewhere
         ..removeAll([

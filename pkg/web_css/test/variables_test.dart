@@ -50,9 +50,6 @@ void main() {
         await File('lib/src/_variables.scss').readAsLines(),
       ).toSet();
 
-      // remove Material design variables
-      variables.removeWhere((v) => v.startsWith('--mdc-'));
-
       for (final f
           in Directory('../../third_party/site-shared/dash_design/lib/')
               .listSync(recursive: true)
@@ -104,10 +101,6 @@ void main() {
         for (final m in varRegExp.allMatches(content)) {
           final name = m.group(1)!.trim();
           if (!variables.contains(name)) {
-            // exempt Material Design variables
-            if (name.startsWith('--mdc-')) {
-              continue;
-            }
             // exempt known dash variables
             if (name.startsWith('--dash-') && dashVariables.contains(name)) {
               continue;
