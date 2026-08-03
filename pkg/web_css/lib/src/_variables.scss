@@ -84,11 +84,6 @@
   --pub-button-cancel-background: #f0f0f0;
   --pub-button-cancel-text-color: #000000;
 
-  // Material Design theme customizations
-  --mdc-theme-primary: #1967d2;
-  --mdc-theme-secondary: #0066d9;
-  --mdc-typography-font-family: var(--pub-font-family-body);
-
   --pub-downloads-chart-color-0: var(--pub-markdown-alert-note);
   --pub-downloads-chart-color-bg-0: rgb(9, 105, 218, 0.3);
   --pub-downloads-chart-color-1: var(--pub-markdown-alert-caution);
@@ -221,16 +216,6 @@
 
   --pub-downloads-chart-frame-color: #55585a;
   --pub-downloads-chart-tooltip-background: rgba(18, 19, 23, 0.9);
-
-  // Material Design theme customizations
-  --mdc-theme-surface: var(--pub-neutral-bgColor);
-  --mdc-theme-on-primary: var(--pub-neutral-textColor);
-  --mdc-theme-on-secondary: var(--pub-neutral-textColor);
-  --mdc-theme-on-surface: var(--pub-neutral-textColor);
-  --mdc-filled-button-container-color: rgba(255, 255, 255, 0.1);
-  --mdc-filled-button-label-text-color: var(--pub-neutral-textColor);
-  --mdc-protected-button-disabled-container-color: rgba(255, 255, 255, 0.1);
-  --mdc-protected-button-disabled-label-text-color: var(--pub-neutral-textColor);
 
   // Most of our SVG images are black on transparent background and they
   // are almost invisible in dark mode. Ideally we would have different
