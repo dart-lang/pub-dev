@@ -7,7 +7,6 @@ import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -75,81 +74,8 @@ Duration taskRetryDelay(int attempts) =>
 ///  * `id`, is the `runtimeVersion / packageName`.
 ///  * `PackageState` entities never have a parent.
 @db.Kind(name: 'PackageState', idType: db.IdType.String)
-class PackageState extends db.ExpandoModel<String> {
-  /// Create a key for [runtimeVersion] and [packageName] using the Datastore's empty key.
-  static db.Key<String> createKey(
-    db.Key emptyKey,
-    String runtimeVersion,
-    String packageName,
-  ) =>
-      emptyKey.append<String>(PackageState, id: '$runtimeVersion/$packageName');
-
-  /// Set the [id] using given [runtimeVersion] and [packageName].
-  void setId(String runtimeVersion, String packageName) =>
-      id = '$runtimeVersion/$packageName';
-
-  String get package {
-    final id_ = id;
-    if (id_ == null) {
-      throw StateError(
-        'Use of PackageState.package before id property is defined',
-      );
-    }
-    return id_.split('/').last;
-  }
-
-  /// Runtime version this [PackageState] belongs to.
-  ///
-  /// This is also encoded in the [id], but duplicated here for stronger query
-  /// support.
-  @db.StringProperty(required: true)
-  String? runtimeVersion;
-
-  /// Scheduling state for all versions of this package.
-  @PackageVersionStateMapProperty(required: true)
-  Map<String, PackageVersionStateInfo>? versions;
-
-  /// The list of tokens that were removed from this [PackageState].
-  /// When a worker reports back using one of these tokens, they will
-  /// recieve a [TaskAbortedException].
-  @AbortedTokenListProperty()
-  List<AbortedTokenInfo>? abortedTokens;
-
-  /// Next [DateTime] at which point some package version becomes pending.
-  @db.DateTimeProperty(required: true, indexed: true)
-  DateTime? pendingAt;
-
-  /// List of all package names depended on by some version of this package.
-  ///
-  /// This is all dependencies, including transitive dependencies from any
-  /// version of this package. This property is used to scan for dependent
-  /// packages when a new version of a package is published.
-  @db.StringListProperty(indexed: true)
-  List<String>? dependencies;
-
-  /// Last [DateTime] a dependency was updated.
-  @db.DateTimeProperty(required: true)
-  DateTime? lastDependencyChanged;
-
-  /// The last time the a worker completed with a failure or success.
-  @db.DateTimeProperty(required: true, indexed: true)
-  DateTime finished = initialTimestamp;
-
-  @override
-  String toString() =>
-      'PackageState(' +
-      [
-        'package: $package',
-        'runtimeVersion: $runtimeVersion',
-        'versions:',
-        ...?versions?.entries.map((e) => '    ${e.key}: ${e.value}'),
-        'pendingAt: $pendingAt',
-        'lastDependencyChanged: $lastDependencyChanged',
-        'dependencies: [' + (dependencies ?? []).join(', ') + ']',
-        'finished: $finished',
-      ].join('\n  ') +
-      '\n)';
-}
+@Deprecated('No longer in use.')
+class PackageState extends db.ExpandoModel<String> {}
 
 /// Derive the `pendingAt` field using [versions] and [lastDependencyChanged].
 ///
@@ -247,12 +173,12 @@ List<String> derivePendingVersions({
 }
 
 extension TaskStateExt on Task {
-  /// Returns true if the current [PackageState] instance is new, no version analysis
+  /// Returns true if the current [Task] instance is new, no version analysis
   /// has not completed yet (with neither success nor failure).
   bool get hasNeverFinished => finished == initialTimestamp;
 }
 
-/// State of a given `version` within a [PackageState].
+/// State of a given `version` within a [Task].
 @JsonSerializable(includeIfNull: false)
 class PackageVersionStateInfo {
   PackageVersionStatus get status {
@@ -515,7 +441,7 @@ enum PackageVersionStatus {
   failed,
 }
 
-/// Tracks a token that was removed from the [PackageState], but a worker
+/// Tracks a token that was removed from the [Task], but a worker
 /// may still use it to report a completed task. Such workers may recieve
 /// an error code that says they shouldn't really panic on the rejection.
 @JsonSerializable()

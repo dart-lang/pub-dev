@@ -32,7 +32,7 @@ final class CreateInstancesState {
       CreateInstancesState(zoneBannedUntil: {});
 }
 
-/// Schedule tasks from [PackageState], creating cloud compute worker instances.
+/// Schedule tasks from [Task], creating cloud compute worker instances.
 Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
   CloudCompute compute,
   PrimaryDatabase database, {

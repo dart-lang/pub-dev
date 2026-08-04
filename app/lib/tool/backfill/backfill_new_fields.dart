@@ -8,6 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/task/models.dart';
 
 final _logger = Logger('backfill_new_fields');
 
@@ -46,4 +47,6 @@ Future<void> backfillNewFields() async {
       });
     }
   }
+  _logger.info('Delete old TaskState entities in Datastore');
+  await dbService.deleteWithQuery(dbService.query<PackageState>());
 }
