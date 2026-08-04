@@ -62,7 +62,7 @@ void main() {
 
   group('CSP reporting', () {
     testWithProfile(
-      'HTML response contains reporting-endpoints and report-to in CSP',
+      'HTML response contains reporting-endpoints, report-to, and report-uri in CSP',
       fn: () async {
         final rs = await issueGet('/');
         expect(rs.statusCode, 200);
@@ -73,6 +73,10 @@ void main() {
         expect(
           rs.headers['content-security-policy'],
           contains('report-to csp-endpoint'),
+        );
+        expect(
+          rs.headers['content-security-policy'],
+          contains('report-uri /api/csp-report'),
         );
       },
     );
@@ -85,7 +89,7 @@ void main() {
           '/api/csp-report',
           headers: {'content-type': 'application/reports+json'},
           body:
-              '[{"type":"csp-violation","body":{"effectiveDirective":"connect-src","blockedURL":"https://example.com"}}]',
+              '[{"type":"csp-violation","body":{"effectiveDirective":"connect-src","blockedURL":"https://example.com","documentURL":"https://pub.dev/packages/foo"}}]',
         );
         expect(rs.statusCode, 204);
       },
@@ -99,7 +103,21 @@ void main() {
           '/api/csp-report',
           headers: {'content-type': 'application/csp-report'},
           body:
-              '{"csp-report":{"effective-directive":"connect-src","blocked-uri":"https://example.com"}}',
+              '{"csp-report":{"effective-directive":"connect-src","blocked-uri":"https://example.com","document-uri":"https://pub.dev/packages/foo"}}',
+        );
+        expect(rs.statusCode, 204);
+      },
+    );
+
+    testWithProfile(
+      'Ignores browser extension CSP report cleanly',
+      fn: () async {
+        final rs = await issueHttp(
+          'POST',
+          '/api/csp-report',
+          headers: {'content-type': 'application/reports+json'},
+          body:
+              '[{"type":"csp-violation","body":{"effectiveDirective":"script-src","blockedURL":"chrome-extension://abcdef/content.js"}}]',
         );
         expect(rs.statusCode, 204);
       },
@@ -122,6 +140,15 @@ void main() {
           body: 'not a json',
         );
         expect(rs.statusCode, 400);
+      },
+    );
+
+    testWithProfile(
+      'Rejects oversized CSP report payload',
+      fn: () async {
+        final hugeBody = 'x' * 70000;
+        final rs = await issueHttp('POST', '/api/csp-report', body: hugeBody);
+        expect(rs.statusCode, 413);
       },
     );
   });
