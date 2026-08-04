@@ -524,7 +524,7 @@ class TaskBackend {
     }
   }
 
-  /// Garbage collect [PackageState] and results from old runtimeVersions.
+  /// Garbage collect [Task] and results from old runtimeVersions.
   Future<void> garbageCollect() async {
     await _database.withRetry((db) => db.taskDeleteBeforeGcRuntime());
 
