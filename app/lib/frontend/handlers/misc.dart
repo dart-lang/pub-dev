@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:clock/clock.dart';
@@ -323,4 +324,25 @@ shelf.Response formattedNotFoundHandler(shelf.Request request) {
     ),
     status: 404,
   );
+}
+
+final _cspReportLog = Logger('pub.csp_report');
+
+/// Handles requests for `/api/csp-report`.
+///
+/// Receives and logs Content Security Policy violation reports sent by browsers
+/// via the Reporting API (`report-to`) or legacy `report-uri`.
+Future<shelf.Response> cspReportHandler(shelf.Request request) async {
+  final body = await request.readAsString();
+  if (body.isEmpty) {
+    return shelf.Response(204);
+  }
+  try {
+    json.decode(body);
+    _cspReportLog.warning('CSP violation report received: $body');
+  } on FormatException catch (e) {
+    _cspReportLog.info('Invalid CSP report payload received: $e');
+    return shelf.Response(400);
+  }
+  return shelf.Response(204);
 }

@@ -10,6 +10,7 @@ void main() {
     final csp = defaultContentSecurityPolicySerialized;
     expect(csp, contains("default-src 'self'"));
     expect(csp, contains('upgrade-insecure-requests'));
+    expect(csp, contains('report-to csp-endpoint'));
     expect(csp, contains("frame-ancestors 'none'"));
     expect(csp, contains("base-uri 'self'"));
     expect(csp, contains("form-action 'self'"));

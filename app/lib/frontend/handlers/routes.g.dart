@@ -147,6 +147,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/authorized', service.authorizationConfirmed);
   router.add('GET', r'/consent', service.consentPage);
   router.add('GET', r'/report', service.reportPage);
+  router.add('POST', r'/api/csp-report', service.cspReport);
   router.add(
     'GET',
     r'/experimental/task-summary/<package>/<version>/',

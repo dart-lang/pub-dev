@@ -59,4 +59,70 @@ void main() {
       },
     );
   });
+
+  group('CSP reporting', () {
+    testWithProfile(
+      'HTML response contains reporting-endpoints and report-to in CSP',
+      fn: () async {
+        final rs = await issueGet('/');
+        expect(rs.statusCode, 200);
+        expect(
+          rs.headers['reporting-endpoints'],
+          'csp-endpoint="/api/csp-report"',
+        );
+        expect(
+          rs.headers['content-security-policy'],
+          contains('report-to csp-endpoint'),
+        );
+      },
+    );
+
+    testWithProfile(
+      'Receives valid Reporting API report',
+      fn: () async {
+        final rs = await issueHttp(
+          'POST',
+          '/api/csp-report',
+          headers: {'content-type': 'application/reports+json'},
+          body:
+              '[{"type":"csp-violation","body":{"effectiveDirective":"connect-src","blockedURL":"https://example.com"}}]',
+        );
+        expect(rs.statusCode, 204);
+      },
+    );
+
+    testWithProfile(
+      'Receives valid legacy CSP report',
+      fn: () async {
+        final rs = await issueHttp(
+          'POST',
+          '/api/csp-report',
+          headers: {'content-type': 'application/csp-report'},
+          body:
+              '{"csp-report":{"effective-directive":"connect-src","blocked-uri":"https://example.com"}}',
+        );
+        expect(rs.statusCode, 204);
+      },
+    );
+
+    testWithProfile(
+      'Receives empty CSP report',
+      fn: () async {
+        final rs = await issueHttp('POST', '/api/csp-report', body: '');
+        expect(rs.statusCode, 204);
+      },
+    );
+
+    testWithProfile(
+      'Rejects malformed CSP report payload',
+      fn: () async {
+        final rs = await issueHttp(
+          'POST',
+          '/api/csp-report',
+          body: 'not a json',
+        );
+        expect(rs.statusCode, 400);
+      },
+    );
+  });
 }
