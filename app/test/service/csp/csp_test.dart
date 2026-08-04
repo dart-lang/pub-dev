@@ -24,7 +24,7 @@ void main() {
     expect(
       csp,
       contains(
-        "connect-src 'self' https://www.google-analytics.com/ https://stats.g.doubleclick.net/",
+        "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.g.doubleclick.net",
       ),
     );
 

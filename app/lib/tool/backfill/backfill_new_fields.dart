@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:logging/logging.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -14,12 +16,28 @@ final _logger = Logger('backfill_new_fields');
 /// CHANGELOG.md must be updated with the new fields, and the next
 /// release could remove the backfill from here.
 Future<void> backfillNewFields() async {
-  _logger.info('Backfill new Package.publishingConfig.');
+  _logger.info('Cleanup the Package.publishingConfig migration.');
   await for (final p in dbService.query<Package>().run()) {
-    if (p.automatedPublishing != null && p.newPublishingConfig == null) {
+    if (p.automatedPublishing != null) {
+      // Note: the following code must not happen, but just in case, we abort the cleanup.
+      if (p.publishingConfig == null) {
+        _logger.shout(
+          'Package "${p.name}" has `automatedPublishing` but no `publishingConfig`.',
+        );
+        return;
+      }
+      // Note: Cheap sanity check, but may be the same object with different JSON output.
+      //       Just in case, we abort the cleanup if it differs.
+      if (json.encode(p.automatedPublishing?.toJson()) !=
+          json.encode(p.publishingConfig?.toJson())) {
+        _logger.shout(
+          'Package "${p.name}" has `automatedPublishing` and `publishingConfig` with different JSON serialization.',
+        );
+        return;
+      }
       await withRetryTransaction(dbService, (tx) async {
         final pkg = await tx.lookupValue<Package>(p.key);
-        pkg.newPublishingConfig = pkg.automatedPublishing;
+        pkg.automatedPublishing = null;
         tx.insert(pkg);
       });
     }

@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: Started to cleanup `Package.automatedPublishing` field (in favor of `publishingConfig`).
+ * Note: Allow regional Google Analytics and GTM domains in CSP `connect-src`.
  * Configure CSP `report-to` directive, `Reporting-Endpoints` response header, and `/api/csp-report` reporting endpoint.
 
 ## `20260730t085500-all`
