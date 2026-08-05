@@ -33,13 +33,25 @@ Future<void> backfillNewFields() async {
       }
       // Note: Cheap sanity check, but may be the same object with different JSON output.
       //       Just in case, we abort the cleanup if it differs.
-      if (json.encode(p.automatedPublishing?.toJson()) !=
-          json.encode(p.publishingConfig?.toJson())) {
+      bool jsonDiffers(Object? a, Object? b) =>
+          json.encode(a) != json.encode(b);
+      final isDifferent =
+          jsonDiffers(
+            p.automatedPublishing?.gcpConfig?.toJson(),
+            p.publishingConfig?.gcpConfig?.toJson(),
+          ) ||
+          jsonDiffers(
+            p.automatedPublishing?.githubConfig?.toJson(),
+            p.publishingConfig?.githubConfig?.toJson(),
+          );
+
+      if (isDifferent) {
         _logger.shout(
           'Package "${p.name}" has `automatedPublishing` and `publishingConfig` with different JSON serialization.',
         );
-        return;
+        continue;
       }
+
       await withRetryTransaction(dbService, (tx) async {
         final pkg = await tx.lookupValue<Package>(p.key);
         pkg.automatedPublishing = null;
