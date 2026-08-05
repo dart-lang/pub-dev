@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:clock/clock.dart';
@@ -322,5 +323,110 @@ shelf.Response formattedNotFoundHandler(shelf.Request request) {
       searchQuery: searchQuery,
     ),
     status: 404,
+  );
+}
+
+final _cspReportLog = Logger('pub.csp_report');
+
+final _ignoredCspSchemes = <String>[
+  'chrome-extension:',
+  'moz-extension:',
+  'safari-extension:',
+  'safari-web-extension:',
+  'ms-browser-extension:',
+  'resource:',
+  'about:',
+];
+
+bool _isIgnoredCspUri(String? uri) {
+  if (uri == null || uri.isEmpty) return false;
+  final lower = uri.toLowerCase();
+  return _ignoredCspSchemes.any((scheme) => lower.startsWith(scheme));
+}
+
+bool _isAllowedDocumentOrigin(String? documentUrl) {
+  if (documentUrl == null || documentUrl.isEmpty) return true;
+  final uri = Uri.tryParse(documentUrl);
+  if (uri == null || !uri.hasScheme) return true;
+  final host = uri.host.toLowerCase();
+  return host == 'pub.dev' ||
+      host == 'pub.dartlang.org' ||
+      host == 'localhost' ||
+      host.endsWith('.pub.dev');
+}
+
+/// Handles requests for `/api/csp-report`.
+///
+/// Receives and logs Content Security Policy violation reports sent by browsers
+/// via the Reporting API (`report-to`) or legacy `report-uri`.
+Future<shelf.Response> cspReportHandler(shelf.Request request) async {
+  // Guard against oversized payloads (max 64 KB).
+  if (request.contentLength != null && request.contentLength! > 65536) {
+    return shelf.Response(413);
+  }
+
+  final body = await request.readAsString();
+  if (body.isEmpty) {
+    return shelf.Response(204);
+  }
+  if (body.length > 65536) {
+    return shelf.Response(413);
+  }
+
+  try {
+    final parsed = json.decode(body);
+    if (parsed is List) {
+      // Reporting API payload: array of reports
+      for (final item in parsed) {
+        if (item is Map<String, dynamic>) {
+          final reportBody = item['body'];
+          if (reportBody is Map<String, dynamic>) {
+            _processCspReport(
+              effectiveDirective: reportBody['effectiveDirective'] as String?,
+              blockedUrl: reportBody['blockedURL'] as String?,
+              documentUrl: reportBody['documentURL'] as String?,
+              disposition: reportBody['disposition'] as String?,
+            );
+          }
+        }
+      }
+    } else if (parsed is Map<String, dynamic>) {
+      // Legacy report-uri payload: {"csp-report": {...}}
+      final report = parsed['csp-report'];
+      if (report is Map<String, dynamic>) {
+        _processCspReport(
+          effectiveDirective:
+              (report['effective-directive'] ?? report['violated-directive'])
+                  as String?,
+          blockedUrl:
+              (report['blocked-uri'] ?? report['blockedURL']) as String?,
+          documentUrl:
+              (report['document-uri'] ?? report['documentURL']) as String?,
+          disposition: report['disposition'] as String?,
+        );
+      }
+    }
+  } on FormatException catch (e) {
+    _cspReportLog.fine('Invalid CSP report payload received: $e');
+    return shelf.Response(400);
+  }
+  return shelf.Response(204);
+}
+
+void _processCspReport({
+  String? effectiveDirective,
+  String? blockedUrl,
+  String? documentUrl,
+  String? disposition,
+}) {
+  if (_isIgnoredCspUri(blockedUrl) || _isIgnoredCspUri(documentUrl)) {
+    return;
+  }
+  if (!_isAllowedDocumentOrigin(documentUrl)) {
+    return;
+  }
+  _cspReportLog.info(
+    'CSP violation: effectiveDirective="$effectiveDirective" '
+    'blockedURL="$blockedUrl" documentURL="$documentUrl" disposition="$disposition"',
   );
 }

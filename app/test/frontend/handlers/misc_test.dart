@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../../shared/test_services.dart';
@@ -56,6 +57,111 @@ void main() {
             '/packages/not-oxygen', // link to package page
           ],
         );
+      },
+    );
+  });
+
+  group('CSP reporting', () {
+    final emptyProfile = TestProfile(
+      users: [TestUser(email: 'admin@pub.dev', likes: [])],
+      defaultUser: 'admin@pub.dev',
+    );
+
+    testWithProfile(
+      'HTML response contains reporting-endpoints, report-to, and report-uri in CSP',
+      testProfile: emptyProfile,
+      fn: () async {
+        final rs = await issueGet('/');
+        expect(rs.statusCode, 200);
+        expect(
+          rs.headers['reporting-endpoints'],
+          'csp-endpoint="/api/csp-report"',
+        );
+        expect(
+          rs.headers['content-security-policy'],
+          contains('report-to csp-endpoint'),
+        );
+        expect(
+          rs.headers['content-security-policy'],
+          contains('report-uri /api/csp-report'),
+        );
+      },
+    );
+
+    testWithProfile(
+      'Receives valid Reporting API report',
+      testProfile: emptyProfile,
+      fn: () async {
+        final rs = await issueHttp(
+          'POST',
+          '/api/csp-report',
+          headers: {'content-type': 'application/reports+json'},
+          body:
+              '[{"type":"csp-violation","body":{"effectiveDirective":"connect-src","blockedURL":"https://example.com","documentURL":"https://pub.dev/packages/foo"}}]',
+        );
+        expect(rs.statusCode, 204);
+      },
+    );
+
+    testWithProfile(
+      'Receives valid legacy CSP report',
+      testProfile: emptyProfile,
+      fn: () async {
+        final rs = await issueHttp(
+          'POST',
+          '/api/csp-report',
+          headers: {'content-type': 'application/csp-report'},
+          body:
+              '{"csp-report":{"effective-directive":"connect-src","blocked-uri":"https://example.com","document-uri":"https://pub.dev/packages/foo"}}',
+        );
+        expect(rs.statusCode, 204);
+      },
+    );
+
+    testWithProfile(
+      'Ignores browser extension CSP report cleanly',
+      testProfile: emptyProfile,
+      fn: () async {
+        final rs = await issueHttp(
+          'POST',
+          '/api/csp-report',
+          headers: {'content-type': 'application/reports+json'},
+          body:
+              '[{"type":"csp-violation","body":{"effectiveDirective":"script-src","blockedURL":"chrome-extension://abcdef/content.js"}}]',
+        );
+        expect(rs.statusCode, 204);
+      },
+    );
+
+    testWithProfile(
+      'Receives empty CSP report',
+      testProfile: emptyProfile,
+      fn: () async {
+        final rs = await issueHttp('POST', '/api/csp-report', body: '');
+        expect(rs.statusCode, 204);
+      },
+    );
+
+    testWithProfile(
+      'Rejects malformed CSP report payload',
+      testProfile: emptyProfile,
+      fn: () async {
+        final rs = await issueHttp(
+          'POST',
+          '/api/csp-report',
+          body: 'not a json',
+        );
+        expect(rs.statusCode, 400);
+      },
+    );
+
+    testWithProfile(
+      'Rejects oversized CSP report payload',
+      testProfile: emptyProfile,
+      fn: () async {
+        final hugeBody = 'x' * 70000;
+        final rs = await issueHttp('POST', '/api/csp-report', body: hugeBody);
+        expect(rs.statusCode, 413);
       },
     );
   });

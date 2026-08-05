@@ -163,6 +163,7 @@ shelf.Handler _cspHeaderWrapper(shelf.Handler handler) {
           'x-content-type-options': 'nosniff',
           'x-frame-options': 'deny',
           'content-security-policy': defaultContentSecurityPolicySerialized,
+          'reporting-endpoints': 'csp-endpoint="/api/csp-report"',
         },
       );
     } else {

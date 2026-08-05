@@ -393,6 +393,11 @@ class PubSiteService {
   Future<Response> reportPage(Request request) async =>
       reportPageHandler(request);
 
+  /// Receives Content Security Policy violation reports.
+  @Route.post('/api/csp-report')
+  Future<Response> cspReport(Request request) async =>
+      cspReportHandler(request);
+
   // ****
   // **** Experimental task end-points
   // ****
