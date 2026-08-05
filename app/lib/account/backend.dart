@@ -427,45 +427,45 @@ class AccountBackend {
   /// secrets and post-authorization user information.
   Future<UserSession> createOrUpdateClientSession({String? sessionId}) async {
     final now = clock.now().toUtc();
-    final oldSession = sessionId == null
-        ? null
-        : await lookupValidUserSession(sessionId);
+    final expires = now.add(_sessionDuration);
+
     // try to update old session first
-    if (oldSession != null) {
-      final rs = await withRetryTransaction(_db, (tx) async {
-        final session = await tx.userSessions.lookupOrNull(
-          oldSession.sessionId,
-        );
-        if (session == null) {
+    if (sessionId != null) {
+      final row = await primaryDatabase.transactWithRetry((db) async {
+        final row = await db.userSessions.byKey(sessionId).fetch();
+        if (row == null || now.isAfter(row.expires)) {
           return null;
         }
-        session.expires = now.add(_sessionDuration);
-        tx.insert(session);
-        return session;
+        await db.userSessions
+            .byKey(sessionId)
+            .update((_, set) => set(expires: expires.asExpr))
+            .execute();
+        return row;
       });
-      if (rs != null) {
-        await writeUserSessionToSql(rs);
-        return rs;
+      if (row != null) {
+        final session = _userSessionFromRow(_db, row)..expires = expires;
+        await _mirrorUserSessionToDatastore(session);
+        return session;
       }
     }
 
     // in the absence of a valid existing session, create a new one
     final session = UserSession.init()
       ..created = now
-      ..expires = now.add(_sessionDuration);
-    await _db.commit(inserts: [session]);
+      ..expires = expires;
     await writeUserSessionToSql(session);
+    await _mirrorUserSessionToDatastore(session);
     return session;
   }
 
   /// Updates the [UserSession] entity with the authenticated profile information.
-  ///
   /// Returns the new [SessionData] that is also populated in the cache.
   Future<SessionData> updateClientSessionWithProfile({
     required String sessionId,
     required AuthResult profile,
   }) async {
     final now = clock.now().toUtc();
+    final expires = now.add(_sessionDuration);
     final info = await authProvider.callTokenInfoWithAccessToken(
       accessToken: profile.accessToken ?? '',
     );
@@ -473,18 +473,18 @@ class AccountBackend {
     if (user == null || user.isModerated || user.isDeleted) {
       throw AuthenticationException.failed();
     }
-    final result = await withRetryTransaction(_db, (tx) async {
-      final session = await tx.userSessions.lookupOrNull(sessionId);
-      if (session == null || session.isExpired()) {
+
+    final result = await primaryDatabase.transactWithRetry((db) async {
+      final row = await db.userSessions.byKey(sessionId).fetch();
+      if (row == null || now.isAfter(row.expires)) {
         throw AuthenticationException.failed('Session has been expired.');
       }
-      final oldUserId = session.userId;
+      final oldUserId = row.userId;
       if (oldUserId != null &&
           oldUserId.isNotEmpty &&
           oldUserId != user.userId) {
         // expire old session
-        tx.delete(session.key);
-        await cache.userSessionData(sessionId).purgeAndRepeat();
+        await db.userSessions.byKey(sessionId).delete().execute();
 
         // create a new session
         final newSession = UserSession.init()
@@ -496,12 +496,42 @@ class AccountBackend {
           ..grantedScopes = info.scope
           ..created = now
           ..authenticatedAt = now
-          ..expires = now.add(_sessionDuration);
-        tx.insert(newSession);
+          ..expires = expires;
+        await db.userSessions
+            .insertValue(
+              sessionId: newSession.sessionId,
+              userId: newSession.userId,
+              email: newSession.email,
+              name: newSession.name,
+              imageUrl: newSession.imageUrl,
+              created: newSession.created!,
+              expires: newSession.expires!,
+              authenticatedAt: newSession.authenticatedAt,
+              csrfToken: newSession.csrfToken,
+              openidNonce: newSession.openidNonce,
+              accessToken: newSession.accessToken,
+              grantedScopes: newSession.grantedScopes,
+            )
+            .execute();
         return (session: newSession, expiredSessionId: sessionId);
       } else {
         // only update the current one
-        session
+        await db.userSessions
+            .byKey(sessionId)
+            .update(
+              (_, set) => set(
+                userId: user.userId.asExpr,
+                email: user.email.asExpr,
+                name: profile.name.asExpr,
+                imageUrl: profile.imageUrl.asExpr,
+                accessToken: profile.accessToken.asExpr,
+                grantedScopes: info.scope.asExpr,
+                authenticatedAt: now.asExpr,
+                expires: expires.asExpr,
+              ),
+            )
+            .execute();
+        final session = _userSessionFromRow(_db, row)
           ..userId = user.userId
           ..email = user.email
           ..name = profile.name
@@ -509,16 +539,22 @@ class AccountBackend {
           ..accessToken = profile.accessToken
           ..grantedScopes = info.scope
           ..authenticatedAt = now
-          ..expires = now.add(_sessionDuration);
-        tx.insert(session);
+          ..expires = expires;
         return (session: session, expiredSessionId: null);
       }
     });
 
     if (result.expiredSessionId != null) {
-      await _deleteUserSessionFromSql(result.expiredSessionId!);
+      await cache.userSessionData(result.expiredSessionId!).purgeAndRepeat();
+      await _db.commit(
+        inserts: [result.session],
+        deletes: [
+          _db.emptyKey.append(UserSession, id: result.expiredSessionId!),
+        ],
+      );
+    } else {
+      await _mirrorUserSessionToDatastore(result.session);
     }
-    await writeUserSessionToSql(result.session);
 
     final data = SessionData.fromModel(result.session);
     await cache.userSessionData(data.sessionId).set(data);
@@ -590,12 +626,7 @@ class AccountBackend {
   /// Deletes the session entry if it has already expired and
   /// clears the related cache too.
   Future<UserSession?> lookupValidUserSession(String sessionId) async {
-    // Read from SQL first, falling back to Datastore if the session is not present.
-    var session = await _lookupUserSessionFromSql(sessionId);
-    if (session == null) {
-      final key = _db.emptyKey.append(UserSession, id: sessionId);
-      session = await _db.lookupOrNull<UserSession>(key);
-    }
+    final session = await _lookupUserSessionFromSql(sessionId);
     if (session == null) {
       return null;
     }
@@ -658,10 +689,9 @@ class AccountBackend {
     });
   }
 
-  Future<void> _deleteUserSessionFromSql(String sessionId) async {
-    await primaryDatabase.withRetry(
-      (db) => db.userSessions.delete(sessionId).execute(),
-    );
+  /// Mirrors [session] into Datastore, in case we need to migrate back.
+  Future<void> _mirrorUserSessionToDatastore(UserSession session) async {
+    await _db.commit(inserts: [session]);
   }
 
   /// Copies Datastore [UserSession] entities into the SQL database.
@@ -805,11 +835,6 @@ extension UserSessionDatastoreDBExt on DatastoreDB {
   _UserSessionDataAccess get userSessions => _UserSessionDataAccess(this);
 }
 
-extension UserSessionTransactionWrapperExt on TransactionWrapper {
-  _UserSessionTransactionDataAcccess get userSessions =>
-      _UserSessionTransactionDataAcccess(this);
-}
-
 class _UserSessionDataAccess {
   final DatastoreDB _db;
 
@@ -867,17 +892,6 @@ class _UserSessionDataAccess {
     final query = _db.query<UserSession>()..filter('expires <', ts);
     final count = await _db.deleteWithQuery(query);
     return count.deleted;
-  }
-}
-
-class _UserSessionTransactionDataAcccess {
-  final TransactionWrapper _tx;
-
-  _UserSessionTransactionDataAcccess(this._tx);
-
-  Future<UserSession?> lookupOrNull(String sessionId) async {
-    final key = _tx.emptyKey.append(UserSession, id: sessionId);
-    return await _tx.lookupOrNull<UserSession>(key);
   }
 }
 
