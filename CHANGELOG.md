@@ -2,8 +2,9 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bump runtimeVersion to `2026.08.03`.
+ * Bump runtimeVersion to `2026.08.05`.
  * Upgraded stable Flutter analysis SDK to `3.44.8`.
+ * Upgraded pana to `0.23.16`.
  * Note: Started to cleanup `Package.automatedPublishing` field (in favor of `publishingConfig`).
  * Note: Allow regional Google Analytics and GTM domains in CSP `connect-src`.
  * Note: Switch `UserSession` logic to read from Postgres (but keep writing to Datastore).
