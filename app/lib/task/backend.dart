@@ -53,7 +53,6 @@ import 'package:pub_dev/task/loops/scan_packages_updated.dart';
 import 'package:pub_dev/task/models.dart'
     show
         AbortedTokenInfo,
-        PackageState,
         PackageStateInfo,
         PackageVersionStateInfo,
         PackageVersionStatus,
@@ -224,7 +223,7 @@ class TaskBackend {
   /// Track all package versions.
   ///
   /// This will synchronize any changes from [Package] and [PackageVersion]
-  /// entities to [PackageState] entities.
+  /// entities to [Task] entities.
   ///
   /// This is intended to run as a background tasks that is called once per
   /// day or so.
@@ -525,7 +524,7 @@ class TaskBackend {
     }
   }
 
-  /// Garbage collect [PackageState] and results from old runtimeVersions.
+  /// Garbage collect [Task] and results from old runtimeVersions.
   Future<void> garbageCollect() async {
     await _database.withRetry((db) => db.taskDeleteBeforeGcRuntime());
 
