@@ -73,6 +73,8 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
   'base-uri': <String>["'self'"],
   'form-action': <String>["'self'"],
   'upgrade-insecure-requests': <String>[],
+  'report-to': <String>['csp-endpoint'],
+  'report-uri': <String>['/api/csp-report'],
 };
 
 /// Returns the serialized string of the CSP header.
