@@ -336,11 +336,23 @@ final _ignoredCspSchemes = <String>[
   'ms-browser-extension:',
   'resource:',
   'about:',
+  'blob:',
+  'data:',
 ];
+
+final _ignoredCspKeywords = <String>{
+  'inline',
+  'eval',
+  'wasm-eval',
+  'blob',
+  'data',
+  'self',
+};
 
 bool _isIgnoredCspUri(String? uri) {
   if (uri == null || uri.isEmpty) return false;
   final lower = uri.toLowerCase();
+  if (_ignoredCspKeywords.contains(lower)) return true;
   return _ignoredCspSchemes.any((scheme) => lower.startsWith(scheme));
 }
 

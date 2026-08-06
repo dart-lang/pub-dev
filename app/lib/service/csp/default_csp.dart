@@ -61,6 +61,7 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
     "'self'",
     'https://www.googletagmanager.com/',
     'https://accounts.google.com/',
+    'https://feedback-pa.clients6.google.com',
   ],
   'connect-src': <String>[
     "'self'",
@@ -68,6 +69,9 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
     'https://*.analytics.google.com',
     'https://*.googletagmanager.com',
     'https://*.g.doubleclick.net',
+    'https://www.google.com/',
+    'https://gstatic.com',
+    'https://*.gstatic.com',
   ],
   'frame-ancestors': _none,
   'base-uri': <String>["'self'"],
