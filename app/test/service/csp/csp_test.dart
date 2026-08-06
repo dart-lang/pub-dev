@@ -18,13 +18,13 @@ void main() {
     expect(
       csp,
       contains(
-        "frame-src 'self' https://www.googletagmanager.com/ https://accounts.google.com/ https://feedback-pa.clients6.google.com",
+        "frame-src 'self' https://www.googletagmanager.com/ https://accounts.google.com/ https://*.clients6.google.com",
       ),
     );
     expect(
       csp,
       contains(
-        "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.g.doubleclick.net https://www.google.com/ https://gstatic.com https://*.gstatic.com",
+        "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.g.doubleclick.net https://www.google.com/ https://apis.google.com/ https://gstatic.com https://*.gstatic.com https://*.clients6.google.com",
       ),
     );
 
