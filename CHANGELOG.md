@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Allow Google Feedback in CSP `frame-src`, and `gstatic.com` and `google.com` in `connect-src`.
 
 ## `20260805t095600-all`
  * Bump runtimeVersion to `2026.08.05`.
