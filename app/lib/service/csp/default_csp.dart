@@ -70,7 +70,7 @@ final _defaultContentSecurityPolicyMap = <String, List<String>>{
     'https://*.googletagmanager.com',
     'https://*.g.doubleclick.net',
     'https://www.google.com/',
-    'https://www.gstatic.com/',
+    'https://gstatic.com',
     'https://*.gstatic.com',
   ],
   'frame-ancestors': _none,

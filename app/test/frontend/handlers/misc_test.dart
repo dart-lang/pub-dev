@@ -119,17 +119,28 @@ void main() {
     );
 
     testWithProfile(
-      'Ignores browser extension CSP report cleanly',
+      'Ignores browser extension and client-side eval CSP reports cleanly',
       testProfile: emptyProfile,
       fn: () async {
-        final rs = await issueHttp(
-          'POST',
-          '/api/csp-report',
-          headers: {'content-type': 'application/reports+json'},
-          body:
-              '[{"type":"csp-violation","body":{"effectiveDirective":"script-src","blockedURL":"chrome-extension://abcdef/content.js"}}]',
-        );
-        expect(rs.statusCode, 204);
+        for (final blockedUrl in [
+          'chrome-extension://abcdef/content.js',
+          'moz-extension://abcdef/content.js',
+          'inline',
+          'eval',
+          'wasm-eval',
+          'blob',
+          'blob:https://pub.dev/1234',
+          'data:',
+        ]) {
+          final rs = await issueHttp(
+            'POST',
+            '/api/csp-report',
+            headers: {'content-type': 'application/reports+json'},
+            body:
+                '[{"type":"csp-violation","body":{"effectiveDirective":"script-src","blockedURL":"$blockedUrl"}}]',
+          );
+          expect(rs.statusCode, 204);
+        }
       },
     );
 
