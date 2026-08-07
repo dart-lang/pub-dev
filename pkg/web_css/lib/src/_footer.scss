@@ -14,11 +14,13 @@
   background: var(--pub-footer-background-color);
   color: var(--pub-footer-text-color);
 
-  > a.link {
+  > .link {
     display: inline-block;
     color: var(--pub-footer-text-color);
     padding-right: 12px;
     text-wrap: nowrap;
+
+    filter: brightness(80%);
 
     > .inline-icon {
       display: inline-block;

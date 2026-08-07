@@ -228,7 +228,7 @@ d.Node pageLayoutNode({
             ),
             if (searchBanner != null)
               d.div(
-                classes: ['_banner-bg'],
+                classes: ['_banner-bg', 'pub-dark-bg'],
                 child: d.div(
                   classes: ['container', if (isLanding) 'home-banner'],
                   children: [
@@ -330,7 +330,7 @@ d.Node _siteFooterNode({
 
   return d.element(
     'footer',
-    classes: ['site-footer'],
+    classes: ['site-footer', 'pub-dark-bg'],
     children: [
       link('${urls.dartSiteRoot}/', 'Dart language', sep: false),
       if (moderationNode != null) moderationNode,
