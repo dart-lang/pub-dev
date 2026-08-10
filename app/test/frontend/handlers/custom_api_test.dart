@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
+import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
@@ -192,6 +193,44 @@ void main() {
           'downloadCount30Days': null,
           'tags': contains('sdk:dart'),
         });
+      },
+    );
+  });
+
+  group('daily downloads API', () {
+    testWithProfile(
+      '/api/packages/<package>/daily-downloads - missing download data',
+      fn: () async {
+        final rs = await issueGet('/api/packages/oxygen/daily-downloads');
+        expect(rs.statusCode, 404);
+      },
+    );
+
+    testWithProfile(
+      '/api/packages/<package>/daily-downloads - with download data',
+      fn: () async {
+        await downloadCountsBackend.updateDownloadCounts('oxygen', {
+          '1.0.0': 10,
+          '1.2.0': 5,
+        }, DateTime.utc(2026, 8, 10));
+        final rs = await issueGet('/api/packages/oxygen/daily-downloads');
+        expect(rs.statusCode, 200);
+        final map =
+            json.decode(await rs.readAsString()) as Map<String, dynamic>;
+        expect(map['newestDate'], '2026-08-10T00:00:00.000Z');
+        expect(map['totalDailyDownloads'], hasLength(365));
+        expect((map['totalDailyDownloads'] as List).first, 15);
+        expect(map['majorRangeDailyDownloads'], isNotEmpty);
+      },
+    );
+
+    testWithProfile(
+      '/api/packages/<package>/daily-downloads - unknown package',
+      fn: () async {
+        final rs = await issueGet(
+          '/api/packages/non_existing_pkg/daily-downloads',
+        );
+        expect(rs.statusCode, 404);
       },
     );
   });

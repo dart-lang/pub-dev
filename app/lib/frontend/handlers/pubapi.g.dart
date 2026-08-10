@@ -726,6 +726,19 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('GET', r'/api/packages/<package>/daily-downloads', (
+    Request request,
+    String package,
+  ) async {
+    try {
+      final _$result = await service.packageDailyDownloads(request, package);
+      return $utilities.jsonResponse(_$result.toJson());
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('GET', r'/api/packages/<package>/versions/<version>/score', (
     Request request,
     String package,
