@@ -169,3 +169,23 @@ Map<String, dynamic> _$DailyDownloadCountsToJson(
       )
       .toList(),
 };
+
+VersionDailyDownloadCounts _$VersionDailyDownloadCountsFromJson(
+  Map<String, dynamic> json,
+) => VersionDailyDownloadCounts(
+  package: json['package'] as String,
+  version: json['version'] as String,
+  newestDate: DateTime.parse(json['newestDate'] as String),
+  totalDailyDownloads: (json['totalDailyDownloads'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$VersionDailyDownloadCountsToJson(
+  VersionDailyDownloadCounts instance,
+) => <String, dynamic>{
+  'package': instance.package,
+  'version': instance.version,
+  'newestDate': instance.newestDate.toIso8601String(),
+  'totalDailyDownloads': instance.totalDailyDownloads,
+};

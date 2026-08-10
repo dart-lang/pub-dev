@@ -500,6 +500,18 @@ class PubApiClient {
     );
   }
 
+  Future<_i6.VersionDailyDownloadCounts> packageVersionDailyDownloads(
+    String package,
+    String version,
+  ) async {
+    return _i6.VersionDailyDownloadCounts.fromJson(
+      await _client.requestJson(
+        verb: 'get',
+        path: '/api/packages/$package/versions/$version/daily-downloads',
+      ),
+    );
+  }
+
   Future<_i3.VersionScore> packageVersionScore(
     String package,
     String version,

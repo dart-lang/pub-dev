@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/computations.dart';
+import 'package:pub_dev/service/download_counts/download_counts_archive.dart';
 import 'package:pub_dev/service/download_counts/sync_download_counts.dart';
 import 'package:test/test.dart';
 
@@ -40,6 +41,50 @@ void main() {
         expect(dailyCounts.majorRangeDailyDownloads, isNotNull);
         expect(dailyCounts.majorRangeDailyDownloads!.length, 2);
         expect(dailyCounts.majorRangeDailyDownloads![0].counts.length, 731);
+      },
+    );
+
+    testWithProfile(
+      'build and lookup version daily downloads in archive',
+      fn: () async {
+        final date = DateTime.parse('2026-08-10T00:00:00Z');
+        final archivePair = await DownloadCountsArchive.buildArchive(
+          newestDate: date,
+          packageVersionCounts: {
+            'oxygen': {
+              '1.0.0': [10, 5, -1],
+              '1.2.0': [20, 15, -1],
+            },
+            'flutter_pkg': {
+              '0.0.1': [100, 90, 80],
+            },
+          },
+        );
+
+        await downloadCountsArchive.uploadArchive(archivePair);
+
+        final v1 = await downloadCountsArchive.lookupVersionDailyDownloads(
+          'oxygen',
+          '1.0.0',
+        );
+        expect(v1, isNotNull);
+        expect(v1!.package, 'oxygen');
+        expect(v1.version, '1.0.0');
+        expect(v1.newestDate, date);
+        expect(v1.totalDailyDownloads, [10, 5, -1]);
+
+        final v2 = await downloadCountsArchive.lookupVersionDailyDownloads(
+          'oxygen',
+          '1.2.0',
+        );
+        expect(v2, isNotNull);
+        expect(v2!.totalDailyDownloads, [20, 15, -1]);
+
+        final missing = await downloadCountsArchive.lookupVersionDailyDownloads(
+          'oxygen',
+          '9.9.9',
+        );
+        expect(missing, isNull);
       },
     );
 

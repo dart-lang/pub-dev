@@ -122,3 +122,34 @@ final class DailyDownloadCounts {
       _$DailyDownloadCountsFromJson(json);
   Map<String, dynamic> toJson() => _$DailyDownloadCountsToJson(this);
 }
+
+/// The daily download counts for a specific package version.
+@JsonSerializable(includeIfNull: false)
+final class VersionDailyDownloadCounts {
+  /// The package name.
+  final String package;
+
+  /// The package version string.
+  final String version;
+
+  /// The newest date with download counts data available.
+  final DateTime newestDate;
+
+  /// A list of integers representing daily downloads for this specific version.
+  ///
+  /// The first entry represents downloads on [newestDate] followed by
+  /// [newestDate] - 1 day, [newestDate] - 2 days, and so on.
+  /// Days with no data are represented with `-1`.
+  final List<int> totalDailyDownloads;
+
+  VersionDailyDownloadCounts({
+    required this.package,
+    required this.version,
+    required this.newestDate,
+    required this.totalDailyDownloads,
+  });
+
+  factory VersionDailyDownloadCounts.fromJson(Map<String, dynamic> json) =>
+      _$VersionDailyDownloadCountsFromJson(json);
+  Map<String, dynamic> toJson() => _$VersionDailyDownloadCountsToJson(this);
+}
