@@ -71,13 +71,13 @@ abstract final class TaskVersion extends Row {
 
   /// Name of the zone in which the instance analysing this package version is
   /// running.
-  String? get zone;
+  String? get workerZone;
 
   /// Name of the instance analysing this package version.
-  String? get instance;
+  String? get workerInstance;
 
   /// Secret token (UUIDv4) used for authenticating worker requests.
-  String? get secretToken;
+  String? get workerToken;
 
   /// True, if dartdoc documentation is available.
   bool get hasDocs;
@@ -89,7 +89,7 @@ abstract final class TaskVersion extends Row {
   bool get isFinished;
 }
 
-@PrimaryKey(['runtimeVersion', 'package', 'token'])
+@PrimaryKey(['runtimeVersion', 'package', 'workerToken'])
 @ForeignKey(
   ['runtimeVersion', 'package'],
   table: 'tasks',
@@ -102,7 +102,7 @@ abstract final class TaskVersion extends Row {
 abstract final class TaskAbortedToken extends Row {
   String get runtimeVersion;
   String get package;
-  String get token;
+  String get workerToken;
 
   DateTime get expiresAt;
 }

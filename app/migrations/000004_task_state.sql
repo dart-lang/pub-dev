@@ -2,9 +2,9 @@
 CREATE TABLE "task_aborted_tokens" (
   "runtime_version" text NOT NULL,
   "package" text NOT NULL,
-  "token" text NOT NULL,
+  "worker_token" text NOT NULL,
   "expires_at" timestamptz NOT NULL,
-  PRIMARY KEY ("runtime_version", "package", "token"),
+  PRIMARY KEY ("runtime_version", "package", "worker_token"),
   CONSTRAINT "task_aborted_tokens_fk_task" FOREIGN KEY ("runtime_version", "package") REFERENCES "tasks" ("runtime_version", "package") ON UPDATE CASCADE ON DELETE CASCADE
 );
 
@@ -15,9 +15,9 @@ CREATE TABLE "task_versions" (
   "version" text NOT NULL,
   "scheduled_at" timestamptz NOT NULL,
   "attempts" bigint NOT NULL,
-  "zone" text NULL,
-  "instance" text NULL,
-  "secret_token" text NULL,
+  "worker_zone" text NULL,
+  "worker_instance" text NULL,
+  "worker_token" text NULL,
   "has_docs" boolean NOT NULL,
   "has_pana" boolean NOT NULL,
   "is_finished" boolean NOT NULL,

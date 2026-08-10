@@ -1414,9 +1414,9 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
             version: entry.key,
             scheduledAt: v.scheduled,
             attempts: v.attempts,
-            zone: v.zone,
-            instance: v.instance,
-            secretToken: v.secretToken,
+            workerZone: v.zone,
+            workerInstance: v.instance,
+            workerToken: v.secretToken,
             hasDocs: v.docs,
             hasPana: v.pana,
             isFinished: v.finished,
@@ -1426,9 +1426,9 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
             (_, excluded, set) => set(
               scheduledAt: excluded.scheduledAt,
               attempts: excluded.attempts,
-              zone: excluded.zone,
-              instance: excluded.instance,
-              secretToken: excluded.secretToken,
+              workerZone: excluded.workerZone,
+              workerInstance: excluded.workerInstance,
+              workerToken: excluded.workerToken,
               hasDocs: excluded.hasDocs,
               hasPana: excluded.hasPana,
               isFinished: excluded.isFinished,
@@ -1443,7 +1443,7 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
           .insertValue(
             runtimeVersion: runtimeVersion,
             package: package,
-            token: token.token,
+            workerToken: token.token,
             expiresAt: token.expires,
           )
           .onConflict(.primaryKey)

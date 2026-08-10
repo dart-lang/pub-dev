@@ -2513,9 +2513,9 @@ final class _$TaskVersion extends TaskVersion {
     this.version,
     this.scheduledAt,
     this.attempts,
-    this.zone,
-    this.instance,
-    this.secretToken,
+    this.workerZone,
+    this.workerInstance,
+    this.workerToken,
     this.hasDocs,
     this.hasPana,
     this.isFinished,
@@ -2537,13 +2537,13 @@ final class _$TaskVersion extends TaskVersion {
   final int attempts;
 
   @override
-  final String? zone;
+  final String? workerZone;
 
   @override
-  final String? instance;
+  final String? workerInstance;
 
   @override
-  final String? secretToken;
+  final String? workerToken;
 
   @override
   final bool hasDocs;
@@ -2562,9 +2562,9 @@ final class _$TaskVersion extends TaskVersion {
       'version',
       'scheduled_at',
       'attempts',
-      'zone',
-      'instance',
-      'secret_token',
+      'worker_zone',
+      'worker_instance',
+      'worker_token',
       'has_docs',
       'has_pana',
       'is_finished',
@@ -2670,9 +2670,9 @@ final class _$TaskVersion extends TaskVersion {
     final version = row.readString();
     final scheduledAt = row.readDateTime();
     final attempts = row.readInt();
-    final zone = row.readString();
-    final instance = row.readString();
-    final secretToken = row.readString();
+    final workerZone = row.readString();
+    final workerInstance = row.readString();
+    final workerToken = row.readString();
     final hasDocs = row.readBool();
     final hasPana = row.readBool();
     final isFinished = row.readBool();
@@ -2681,9 +2681,9 @@ final class _$TaskVersion extends TaskVersion {
         version == null &&
         scheduledAt == null &&
         attempts == null &&
-        zone == null &&
-        instance == null &&
-        secretToken == null &&
+        workerZone == null &&
+        workerInstance == null &&
+        workerToken == null &&
         hasDocs == null &&
         hasPana == null &&
         isFinished == null) {
@@ -2695,9 +2695,9 @@ final class _$TaskVersion extends TaskVersion {
       version!,
       scheduledAt!,
       attempts!,
-      zone,
-      instance,
-      secretToken,
+      workerZone,
+      workerInstance,
+      workerToken,
       hasDocs!,
       hasPana!,
       isFinished!,
@@ -2706,7 +2706,7 @@ final class _$TaskVersion extends TaskVersion {
 
   @override
   String toString() =>
-      'TaskVersion(runtimeVersion: "$runtimeVersion", package: "$package", version: "$version", scheduledAt: "$scheduledAt", attempts: "$attempts", zone: "$zone", instance: "$instance", secretToken: "$secretToken", hasDocs: "$hasDocs", hasPana: "$hasPana", isFinished: "$isFinished")';
+      'TaskVersion(runtimeVersion: "$runtimeVersion", package: "$package", version: "$version", scheduledAt: "$scheduledAt", attempts: "$attempts", workerZone: "$workerZone", workerInstance: "$workerInstance", workerToken: "$workerToken", hasDocs: "$hasDocs", hasPana: "$hasPana", isFinished: "$isFinished")';
 }
 
 /// Extension methods for table defined in [TaskVersion].
@@ -2721,9 +2721,9 @@ extension TableTaskVersionExt on Table<TaskVersion> {
     required Expr<String> version,
     required Expr<DateTime> scheduledAt,
     required Expr<int> attempts,
-    Expr<String?>? zone,
-    Expr<String?>? instance,
-    Expr<String?>? secretToken,
+    Expr<String?>? workerZone,
+    Expr<String?>? workerInstance,
+    Expr<String?>? workerToken,
     required Expr<bool> hasDocs,
     required Expr<bool> hasPana,
     required Expr<bool> isFinished,
@@ -2735,9 +2735,9 @@ extension TableTaskVersionExt on Table<TaskVersion> {
       version,
       scheduledAt,
       attempts,
-      zone,
-      instance,
-      secretToken,
+      workerZone,
+      workerInstance,
+      workerToken,
       hasDocs,
       hasPana,
       isFinished,
@@ -2754,9 +2754,9 @@ extension TableTaskVersionExt on Table<TaskVersion> {
     required String version,
     required DateTime scheduledAt,
     required int attempts,
-    String? zone,
-    String? instance,
-    String? secretToken,
+    String? workerZone,
+    String? workerInstance,
+    String? workerToken,
     required bool hasDocs,
     required bool hasPana,
     required bool isFinished,
@@ -2768,9 +2768,9 @@ extension TableTaskVersionExt on Table<TaskVersion> {
       version.asExpr,
       scheduledAt.asExpr,
       attempts.asExpr,
-      zone.asExpr,
-      instance.asExpr,
-      secretToken.asExpr,
+      workerZone.asExpr,
+      workerInstance.asExpr,
+      workerToken.asExpr,
       hasDocs.asExpr,
       hasPana.asExpr,
       isFinished.asExpr,
@@ -2801,9 +2801,9 @@ extension TableTaskVersionExt on Table<TaskVersion> {
     required String Function(T row) version,
     required DateTime Function(T row) scheduledAt,
     required int Function(T row) attempts,
-    String? Function(T row)? zone,
-    String? Function(T row)? instance,
-    String? Function(T row)? secretToken,
+    String? Function(T row)? workerZone,
+    String? Function(T row)? workerInstance,
+    String? Function(T row)? workerToken,
     required bool Function(T row) hasDocs,
     required bool Function(T row) hasPana,
     required bool Function(T row) isFinished,
@@ -2816,9 +2816,9 @@ extension TableTaskVersionExt on Table<TaskVersion> {
       version,
       scheduledAt,
       attempts,
-      zone,
-      instance,
-      secretToken,
+      workerZone,
+      workerInstance,
+      workerToken,
       hasDocs,
       hasPana,
       isFinished,
@@ -2897,9 +2897,9 @@ extension QueryTaskVersionExt on Query<(Expr<TaskVersion>,)> {
         Expr<String> version,
         Expr<DateTime> scheduledAt,
         Expr<int> attempts,
-        Expr<String?> zone,
-        Expr<String?> instance,
-        Expr<String?> secretToken,
+        Expr<String?> workerZone,
+        Expr<String?> workerInstance,
+        Expr<String?> workerToken,
         Expr<bool> hasDocs,
         Expr<bool> hasPana,
         Expr<bool> isFinished,
@@ -2918,9 +2918,9 @@ extension QueryTaskVersionExt on Query<(Expr<TaskVersion>,)> {
         Expr<String>? version,
         Expr<DateTime>? scheduledAt,
         Expr<int>? attempts,
-        Expr<String?>? zone,
-        Expr<String?>? instance,
-        Expr<String?>? secretToken,
+        Expr<String?>? workerZone,
+        Expr<String?>? workerInstance,
+        Expr<String?>? workerToken,
         Expr<bool>? hasDocs,
         Expr<bool>? hasPana,
         Expr<bool>? isFinished,
@@ -2930,9 +2930,9 @@ extension QueryTaskVersionExt on Query<(Expr<TaskVersion>,)> {
         version,
         scheduledAt,
         attempts,
-        zone,
-        instance,
-        secretToken,
+        workerZone,
+        workerInstance,
+        workerToken,
         hasDocs,
         hasPana,
         isFinished,
@@ -2988,9 +2988,9 @@ extension QuerySingleTaskVersionExt on QuerySingle<(Expr<TaskVersion>,)> {
         Expr<String> version,
         Expr<DateTime> scheduledAt,
         Expr<int> attempts,
-        Expr<String?> zone,
-        Expr<String?> instance,
-        Expr<String?> secretToken,
+        Expr<String?> workerZone,
+        Expr<String?> workerInstance,
+        Expr<String?> workerToken,
         Expr<bool> hasDocs,
         Expr<bool> hasPana,
         Expr<bool> isFinished,
@@ -3009,9 +3009,9 @@ extension QuerySingleTaskVersionExt on QuerySingle<(Expr<TaskVersion>,)> {
         Expr<String>? version,
         Expr<DateTime>? scheduledAt,
         Expr<int>? attempts,
-        Expr<String?>? zone,
-        Expr<String?>? instance,
-        Expr<String?>? secretToken,
+        Expr<String?>? workerZone,
+        Expr<String?>? workerInstance,
+        Expr<String?>? workerToken,
         Expr<bool>? hasDocs,
         Expr<bool>? hasPana,
         Expr<bool>? isFinished,
@@ -3021,9 +3021,9 @@ extension QuerySingleTaskVersionExt on QuerySingle<(Expr<TaskVersion>,)> {
         version,
         scheduledAt,
         attempts,
-        zone,
-        instance,
-        secretToken,
+        workerZone,
+        workerInstance,
+        workerToken,
         hasDocs,
         hasPana,
         isFinished,
@@ -3061,15 +3061,15 @@ extension ExpressionTaskVersionExt on Expr<TaskVersion> {
 
   /// Name of the zone in which the instance analysing this package version is
   /// running.
-  Expr<String?> get zone =>
+  Expr<String?> get workerZone =>
       $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
 
   /// Name of the instance analysing this package version.
-  Expr<String?> get instance =>
+  Expr<String?> get workerInstance =>
       $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
 
   /// Secret token (UUIDv4) used for authenticating worker requests.
-  Expr<String?> get secretToken =>
+  Expr<String?> get workerToken =>
       $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
 
   /// True, if dartdoc documentation is available.
@@ -3122,15 +3122,15 @@ extension ExpressionNullableTaskVersionExt on Expr<TaskVersion?> {
 
   /// Name of the zone in which the instance analysing this package version is
   /// running.
-  Expr<String?> get zone =>
+  Expr<String?> get workerZone =>
       $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
 
   /// Name of the instance analysing this package version.
-  Expr<String?> get instance =>
+  Expr<String?> get workerInstance =>
       $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
 
   /// Secret token (UUIDv4) used for authenticating worker requests.
-  Expr<String?> get secretToken =>
+  Expr<String?> get workerToken =>
       $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
 
   /// True, if dartdoc documentation is available.
@@ -3303,9 +3303,9 @@ extension InsertOnConflictTaskVersionExt on InsertOnConflict<TaskVersion> {
         Expr<String> version,
         Expr<DateTime> scheduledAt,
         Expr<int> attempts,
-        Expr<String?> zone,
-        Expr<String?> instance,
-        Expr<String?> secretToken,
+        Expr<String?> workerZone,
+        Expr<String?> workerInstance,
+        Expr<String?> workerToken,
         Expr<bool> hasDocs,
         Expr<bool> hasPana,
         Expr<bool> isFinished,
@@ -3324,9 +3324,9 @@ extension InsertOnConflictTaskVersionExt on InsertOnConflict<TaskVersion> {
         Expr<String>? version,
         Expr<DateTime>? scheduledAt,
         Expr<int>? attempts,
-        Expr<String?>? zone,
-        Expr<String?>? instance,
-        Expr<String?>? secretToken,
+        Expr<String?>? workerZone,
+        Expr<String?>? workerInstance,
+        Expr<String?>? workerToken,
         Expr<bool>? hasDocs,
         Expr<bool>? hasPana,
         Expr<bool>? isFinished,
@@ -3336,9 +3336,9 @@ extension InsertOnConflictTaskVersionExt on InsertOnConflict<TaskVersion> {
         version,
         scheduledAt,
         attempts,
-        zone,
-        instance,
-        secretToken,
+        workerZone,
+        workerInstance,
+        workerToken,
         hasDocs,
         hasPana,
         isFinished,
@@ -3421,9 +3421,9 @@ extension InsertOnConflictSingleTaskVersionExt
         Expr<String> version,
         Expr<DateTime> scheduledAt,
         Expr<int> attempts,
-        Expr<String?> zone,
-        Expr<String?> instance,
-        Expr<String?> secretToken,
+        Expr<String?> workerZone,
+        Expr<String?> workerInstance,
+        Expr<String?> workerToken,
         Expr<bool> hasDocs,
         Expr<bool> hasPana,
         Expr<bool> isFinished,
@@ -3442,9 +3442,9 @@ extension InsertOnConflictSingleTaskVersionExt
         Expr<String>? version,
         Expr<DateTime>? scheduledAt,
         Expr<int>? attempts,
-        Expr<String?>? zone,
-        Expr<String?>? instance,
-        Expr<String?>? secretToken,
+        Expr<String?>? workerZone,
+        Expr<String?>? workerInstance,
+        Expr<String?>? workerToken,
         Expr<bool>? hasDocs,
         Expr<bool>? hasPana,
         Expr<bool>? isFinished,
@@ -3454,9 +3454,9 @@ extension InsertOnConflictSingleTaskVersionExt
         version,
         scheduledAt,
         attempts,
-        zone,
-        instance,
-        secretToken,
+        workerZone,
+        workerInstance,
+        workerToken,
         hasDocs,
         hasPana,
         isFinished,
@@ -3469,7 +3469,7 @@ final class _$TaskAbortedToken extends TaskAbortedToken {
   _$TaskAbortedToken._(
     this.runtimeVersion,
     this.package,
-    this.token,
+    this.workerToken,
     this.expiresAt,
   );
 
@@ -3480,14 +3480,19 @@ final class _$TaskAbortedToken extends TaskAbortedToken {
   final String package;
 
   @override
-  final String token;
+  final String workerToken;
 
   @override
   final DateTime expiresAt;
 
   static final _$table = $ForGeneratedCode.tableDefinition(
     tableName: 'task_aborted_tokens',
-    columns: <String>['runtime_version', 'package', 'token', 'expires_at'],
+    columns: <String>[
+      'runtime_version',
+      'package',
+      'worker_token',
+      'expires_at',
+    ],
     columnInfo: [
       $ForGeneratedCode.columnDefinition(
         type: $ForGeneratedCode.text,
@@ -3518,7 +3523,7 @@ final class _$TaskAbortedToken extends TaskAbortedToken {
         overrides: [],
       ),
     ],
-    primaryKey: <String>['runtime_version', 'package', 'token'],
+    primaryKey: <String>['runtime_version', 'package', 'worker_token'],
     unique: <List<String>>[],
     foreignKeys: [
       $ForGeneratedCode.foreignKeyDefinition(
@@ -3537,20 +3542,25 @@ final class _$TaskAbortedToken extends TaskAbortedToken {
   static TaskAbortedToken? _$fromDatabase(RowReader row) {
     final runtimeVersion = row.readString();
     final package = row.readString();
-    final token = row.readString();
+    final workerToken = row.readString();
     final expiresAt = row.readDateTime();
     if (runtimeVersion == null &&
         package == null &&
-        token == null &&
+        workerToken == null &&
         expiresAt == null) {
       return null;
     }
-    return _$TaskAbortedToken._(runtimeVersion!, package!, token!, expiresAt!);
+    return _$TaskAbortedToken._(
+      runtimeVersion!,
+      package!,
+      workerToken!,
+      expiresAt!,
+    );
   }
 
   @override
   String toString() =>
-      'TaskAbortedToken(runtimeVersion: "$runtimeVersion", package: "$package", token: "$token", expiresAt: "$expiresAt")';
+      'TaskAbortedToken(runtimeVersion: "$runtimeVersion", package: "$package", workerToken: "$workerToken", expiresAt: "$expiresAt")';
 }
 
 /// Extension methods for table defined in [TaskAbortedToken].
@@ -3562,11 +3572,11 @@ extension TableTaskAbortedTokenExt on Table<TaskAbortedToken> {
   InsertSingle<TaskAbortedToken> insert({
     required Expr<String> runtimeVersion,
     required Expr<String> package,
-    required Expr<String> token,
+    required Expr<String> workerToken,
     required Expr<DateTime> expiresAt,
   }) => $ForGeneratedCode.insertInto(
     table: this,
-    values: [runtimeVersion, package, token, expiresAt],
+    values: [runtimeVersion, package, workerToken, expiresAt],
   );
 
   /// Insert row into the `taskAbortedTokens` table.
@@ -3576,14 +3586,14 @@ extension TableTaskAbortedTokenExt on Table<TaskAbortedToken> {
   InsertSingle<TaskAbortedToken> insertValue({
     required String runtimeVersion,
     required String package,
-    required String token,
+    required String workerToken,
     required DateTime expiresAt,
   }) => $ForGeneratedCode.insertInto(
     table: this,
     values: [
       runtimeVersion.asExpr,
       package.asExpr,
-      token.asExpr,
+      workerToken.asExpr,
       expiresAt.asExpr,
     ],
   );
@@ -3609,12 +3619,12 @@ extension TableTaskAbortedTokenExt on Table<TaskAbortedToken> {
     Iterable<T> rows, {
     required String Function(T row) runtimeVersion,
     required String Function(T row) package,
-    required String Function(T row) token,
+    required String Function(T row) workerToken,
     required DateTime Function(T row) expiresAt,
   }) => $ForGeneratedCode.insertValuesMapped(
     table: this,
     rows: rows,
-    mappings: [runtimeVersion, package, token, expiresAt],
+    mappings: [runtimeVersion, package, workerToken, expiresAt],
   );
 
   /// Delete a single row from the `taskAbortedTokens` table, specified by
@@ -3629,9 +3639,9 @@ extension TableTaskAbortedTokenExt on Table<TaskAbortedToken> {
   DeleteSingle<TaskAbortedToken> delete(
     String runtimeVersion,
     String package,
-    String token,
+    String workerToken,
   ) => $ForGeneratedCode.deleteSingle(
-    byKey(runtimeVersion, package, token),
+    byKey(runtimeVersion, package, workerToken),
     _$TaskAbortedToken._$table,
   );
 }
@@ -3645,12 +3655,12 @@ extension QueryTaskAbortedTokenExt on Query<(Expr<TaskAbortedToken>,)> {
   QuerySingle<(Expr<TaskAbortedToken>,)> byKey(
     String runtimeVersion,
     String package,
-    String token,
+    String workerToken,
   ) => where(
     (taskAbortedToken) =>
         taskAbortedToken.runtimeVersion.equalsValue(runtimeVersion) &
         taskAbortedToken.package.equalsValue(package) &
-        taskAbortedToken.token.equalsValue(token),
+        taskAbortedToken.workerToken.equalsValue(workerToken),
   ).first;
 
   /// Update all rows in the `taskAbortedTokens` table matching this [Query].
@@ -3686,7 +3696,7 @@ extension QueryTaskAbortedTokenExt on Query<(Expr<TaskAbortedToken>,)> {
       UpdateSet<TaskAbortedToken> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<String> token,
+        Expr<String> workerToken,
         Expr<DateTime> expiresAt,
       })
       set,
@@ -3700,12 +3710,12 @@ extension QueryTaskAbortedTokenExt on Query<(Expr<TaskAbortedToken>,)> {
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<String>? token,
+        Expr<String>? workerToken,
         Expr<DateTime>? expiresAt,
       }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
         runtimeVersion,
         package,
-        token,
+        workerToken,
         expiresAt,
       ]),
     ),
@@ -3757,7 +3767,7 @@ extension QuerySingleTaskAbortedTokenExt
       UpdateSet<TaskAbortedToken> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<String> token,
+        Expr<String> workerToken,
         Expr<DateTime> expiresAt,
       })
       set,
@@ -3771,12 +3781,12 @@ extension QuerySingleTaskAbortedTokenExt
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<String>? token,
+        Expr<String>? workerToken,
         Expr<DateTime>? expiresAt,
       }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
         runtimeVersion,
         package,
-        token,
+        workerToken,
         expiresAt,
       ]),
     ),
@@ -3799,7 +3809,7 @@ extension ExpressionTaskAbortedTokenExt on Expr<TaskAbortedToken> {
   Expr<String> get package =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
-  Expr<String> get token =>
+  Expr<String> get workerToken =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   Expr<DateTime> get expiresAt =>
@@ -3830,7 +3840,7 @@ extension ExpressionNullableTaskAbortedTokenExt on Expr<TaskAbortedToken?> {
   Expr<String?> get package =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
-  Expr<String?> get token =>
+  Expr<String?> get workerToken =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   Expr<DateTime?> get expiresAt =>
@@ -3861,7 +3871,9 @@ extension ExpressionNullableTaskAbortedTokenExt on Expr<TaskAbortedToken?> {
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
   Expr<bool> isNotNull() =>
-      runtimeVersion.isNotNull() & package.isNotNull() & token.isNotNull();
+      runtimeVersion.isNotNull() &
+      package.isNotNull() &
+      workerToken.isNotNull();
 
   /// Check if the row is `NULL`.
   ///
@@ -3913,8 +3925,8 @@ enum TaskAbortedTokenConflict {
   /// Conflict with an existing row that has a matching primary key.
   ///
   /// Thus, the other row has matching values for:
-  /// `runtimeVersion`, `package`, `token`.
-  primaryKey(['runtime_version', 'package', 'token']);
+  /// `runtimeVersion`, `package`, `workerToken`.
+  primaryKey(['runtime_version', 'package', 'worker_token']);
 
   const TaskAbortedTokenConflict(this._fields);
 
@@ -3993,7 +4005,7 @@ extension InsertOnConflictTaskAbortedTokenExt
       UpdateSet<TaskAbortedToken> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<String> token,
+        Expr<String> workerToken,
         Expr<DateTime> expiresAt,
       })
       set,
@@ -4007,12 +4019,12 @@ extension InsertOnConflictTaskAbortedTokenExt
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<String>? token,
+        Expr<String>? workerToken,
         Expr<DateTime>? expiresAt,
       }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
         runtimeVersion,
         package,
-        token,
+        workerToken,
         expiresAt,
       ]),
     ),
@@ -4091,7 +4103,7 @@ extension InsertOnConflictSingleTaskAbortedTokenExt
       UpdateSet<TaskAbortedToken> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<String> token,
+        Expr<String> workerToken,
         Expr<DateTime> expiresAt,
       })
       set,
@@ -4105,12 +4117,12 @@ extension InsertOnConflictSingleTaskAbortedTokenExt
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<String>? token,
+        Expr<String>? workerToken,
         Expr<DateTime>? expiresAt,
       }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
         runtimeVersion,
         package,
-        token,
+        workerToken,
         expiresAt,
       ]),
     ),
