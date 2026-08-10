@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Allow `apis.google.com` and `*.clients6.google.com` in CSP (`connect-src` and `frame-src`).
 
 ## `20260806t120500-all`
  * Bump runtimeVersion to `2026.08.06`.

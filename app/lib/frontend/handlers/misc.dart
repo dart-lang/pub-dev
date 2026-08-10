@@ -347,6 +347,7 @@ final _ignoredCspKeywords = <String>{
   'blob',
   'data',
   'self',
+  'ms-browser-extension',
 };
 
 bool _isIgnoredCspUri(String? uri) {
