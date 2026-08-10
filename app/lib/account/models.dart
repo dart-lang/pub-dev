@@ -5,9 +5,9 @@
 import 'package:clock/clock.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
-import 'package:pub_dev/shared/utils.dart';
 import 'package:ulid/ulid.dart';
 
+import '../database/schema.dart';
 import '../frontend/static_files.dart';
 import '../shared/datastore.dart' as db;
 
@@ -165,58 +165,13 @@ class UserSession extends db.ExpandoModel<String> {
   /// This is a v4 (random) UUID String.
   String get sessionId => id as String;
 
-  @db.StringProperty()
-  String? userId;
-
-  @db.StringProperty(indexed: false)
-  String? email;
-
-  /// The name of the user given by the authentication provider.
-  /// May be null, or could contain any arbitrary text.
-  @db.StringProperty(indexed: false)
-  String? name;
-
-  @db.StringProperty(indexed: false)
-  String? imageUrl;
-
-  @db.DateTimeProperty(required: true, indexed: false)
-  DateTime? created;
-
-  @db.DateTimeProperty(required: true)
-  DateTime? expires;
-
-  @db.DateTimeProperty(indexed: false)
-  DateTime? authenticatedAt;
-
-  @db.StringProperty(indexed: false)
-  String? csrfToken;
-
-  /// The random value used for OpenID authentication.
-  @db.StringProperty(indexed: false)
-  String? openidNonce;
-
-  /// The access token from the OpenID authentication.
-  ///
-  /// Note: we shall only try to use this token when [authenticatedAt]
-  /// happened in the last hour.
-  ///
-  /// Note: we do not cache the token in redis.
-  @db.StringProperty(indexed: false)
-  String? accessToken;
-
-  /// The granted scopes from the OpenID authentication.
-  @db.StringProperty(indexed: false)
-  String? grantedScopes;
-
   UserSession();
-  UserSession.init() {
-    id = createUuid();
-    csrfToken = createUuid();
-    openidNonce = createUuid();
-  }
+}
 
-  bool isExpired() => clock.now().isAfter(expires!);
-  Duration get maxAge => expires!.difference(clock.now());
+/// Convenience helpers for the SQL-backed session row.
+extension UserSessionRowExt on UserSessionRow {
+  bool isExpired() => clock.now().isAfter(expires);
+  Duration get maxAge => expires.difference(clock.now());
 }
 
 /// Pattern for detecting profile image parameters as specified in [1].
@@ -226,7 +181,7 @@ final _imgParamPattern = RegExp(
   r'=(?:(?:[swh]\d+)|[cp])(?:-(?:(?:[swh]\d+)|[cp]))*$',
 );
 
-/// The cacheable version of [UserSession].
+/// The cacheable version of [UserSessionRow].
 @JsonSerializable()
 class SessionData {
   /// This is a v4 (random) UUID String that is set as a http cookie.
@@ -273,18 +228,18 @@ class SessionData {
     this.grantedScopes,
   });
 
-  factory SessionData.fromModel(UserSession session) {
+  factory SessionData.fromRow(UserSessionRow row) {
     return SessionData(
-      sessionId: session.sessionId,
-      userId: session.userId,
-      email: session.email,
-      name: session.name,
-      imageUrl: session.imageUrl,
-      created: session.created!,
-      expires: session.expires!,
-      authenticatedAt: session.authenticatedAt,
-      csrfToken: session.csrfToken,
-      grantedScopes: (session.grantedScopes ?? '').split(' ').toSet().toList(),
+      sessionId: row.sessionId,
+      userId: row.userId,
+      email: row.email,
+      name: row.name,
+      imageUrl: row.imageUrl,
+      created: row.created,
+      expires: row.expires,
+      authenticatedAt: row.authenticatedAt,
+      csrfToken: row.csrfToken,
+      grantedScopes: (row.grantedScopes ?? '').split(' ').toSet().toList(),
     );
   }
 

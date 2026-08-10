@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:logging/logging.dart';
-import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/task/models.dart';
@@ -18,9 +18,6 @@ final _logger = Logger('backfill_new_fields');
 /// CHANGELOG.md must be updated with the new fields, and the next
 /// release could remove the backfill from here.
 Future<void> backfillNewFields() async {
-  _logger.info('Migrating Datastore UserSession entities to SQL');
-  await accountBackend.copyUserSessionsFromDatastoreToSql();
-
   _logger.info('Cleanup the Package.publishingConfig migration.');
   await for (final p in dbService.query<Package>().run()) {
     if (p.automatedPublishing != null) {
@@ -61,4 +58,7 @@ Future<void> backfillNewFields() async {
   }
   _logger.info('Delete old TaskState entities in Datastore');
   await dbService.deleteWithQuery(dbService.query<PackageState>());
+
+  _logger.info('Delete old UserSession entities in Datastore');
+  await dbService.deleteWithQuery(dbService.query<UserSession>());
 }

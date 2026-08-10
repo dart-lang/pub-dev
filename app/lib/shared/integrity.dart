@@ -302,17 +302,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
   Stream<String> _checkUserSessions() async* {
     _logger.info('Scanning UserSessions...');
-
-    final sessionIdsInDatastore = <String>{};
-    yield* _queryWithPool<UserSession>((session) async* {
-      sessionIdsInDatastore.add(session.sessionId);
-
-      final userId = session.userId;
-      if (userId != null && !await _userExists(userId)) {
-        yield 'UserSession "${session.sessionId}" does not have a valid userId.';
-      }
-    });
-
     final rows = await primaryDatabase.withRetry(
       (db) => db.userSessions.fetch(),
     );
@@ -321,14 +310,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       if (userId != null && !await _userExists(userId)) {
         yield 'SQL UserSession "${row.sessionId}" does not have a valid userId.';
       }
-
-      if (!sessionIdsInDatastore.contains(row.sessionId)) {
-        yield 'SQL UserSession "${row.sessionId}" does not have a matching Datastore session.';
-      }
-    }
-
-    if (rows.length != sessionIdsInDatastore.length) {
-      yield 'Datastore and SQL UserSession count does not match: ${sessionIdsInDatastore.length} != ${rows.length}';
     }
   }
 

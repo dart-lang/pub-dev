@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/account/session_cookie.dart' as session_cookie;
 import 'package:pub_dev/admin/actions/actions.dart';
 
