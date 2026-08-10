@@ -34,12 +34,12 @@ void main() {
         final dailyCounts = await getDailyDownloadCounts(pkg);
         expect(dailyCounts, isNotNull);
         expect(dailyCounts!.newestDate, date);
-        expect(dailyCounts.totalDailyDownloads.length, 365);
+        expect(dailyCounts.totalDailyDownloads.length, 731);
         expect(dailyCounts.totalDailyDownloads[0], 15);
         expect(dailyCounts.totalDailyDownloads[1], -1);
         expect(dailyCounts.majorRangeDailyDownloads, isNotNull);
         expect(dailyCounts.majorRangeDailyDownloads!.length, 2);
-        expect(dailyCounts.majorRangeDailyDownloads![0].counts.length, 365);
+        expect(dailyCounts.majorRangeDailyDownloads![0].counts.length, 731);
       },
     );
 

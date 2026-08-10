@@ -218,7 +218,7 @@ void main() {
         final map =
             json.decode(await rs.readAsString()) as Map<String, dynamic>;
         expect(map['newestDate'], '2026-08-10T00:00:00.000Z');
-        expect(map['totalDailyDownloads'], hasLength(365));
+        expect(map['totalDailyDownloads'], hasLength(731));
         expect((map['totalDailyDownloads'] as List).first, 15);
         expect(map['majorRangeDailyDownloads'], isNotEmpty);
       },

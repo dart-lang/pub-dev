@@ -139,7 +139,7 @@ Future<void> _testExportedApiSynchronization(
       await bucket.readGzippedJson('latest/api/packages/foo/daily-downloads'),
       {
         'newestDate': '2026-08-10T00:00:00.000Z',
-        'totalDailyDownloads': hasLength(365),
+        'totalDailyDownloads': hasLength(731),
         'majorRangeDailyDownloads': isNotEmpty,
         'minorRangeDailyDownloads': isNotEmpty,
         'patchRangeDailyDownloads': isNotEmpty,
@@ -183,7 +183,7 @@ Future<void> _testExportedApiSynchronization(
       ),
       {
         'newestDate': '2026-08-10T00:00:00.000Z',
-        'totalDailyDownloads': hasLength(365),
+        'totalDailyDownloads': hasLength(731),
         'majorRangeDailyDownloads': isNotEmpty,
         'minorRangeDailyDownloads': isNotEmpty,
         'patchRangeDailyDownloads': isNotEmpty,

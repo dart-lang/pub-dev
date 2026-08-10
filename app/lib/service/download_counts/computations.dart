@@ -103,7 +103,7 @@ Future<WeeklyVersionDownloadCounts?> getWeeklyVersionDownloads(
 }
 
 /// Returns daily downloads starting from `newestDate` for [package] and up to
-/// 365 days back.
+/// 2 years (731 days) back.
 ///
 /// Returns `null` if no download data is available for [package].
 Future<DailyDownloadCounts?> getDailyDownloadCounts(String package) async {
@@ -113,12 +113,12 @@ Future<DailyDownloadCounts?> getDailyDownloadCounts(String package) async {
 }
 
 /// Computes daily downloads starting from `newestDate` for [package] and [days]
-/// days back (defaults to 365 days).
+/// days back (defaults to 731 days, i.e. 2 years).
 ///
 /// Returns `null` if no download data is available for [package].
 Future<DailyDownloadCounts?> computeDailyDownloadCounts(
   String package, {
-  int days = 365,
+  int days = maxAge,
 }) async {
   final countData = await downloadCountsBackend.lookupDownloadCountData(
     package,
