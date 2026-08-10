@@ -172,44 +172,25 @@ If a value has not been calculated yet (e.g. for newly created packages) it will
       "versionRange": "1.2.3",
       "counts": [30, 20, 15, /* ... */]
     }
+  ],
+  "versionDailyDownloads": [
+    {
+      "version": "1.2.3",
+      "counts": [30, 20, 15, /* ... */]
+    },
+    {
+      "version": "1.2.0",
+      "counts": [40, 30, 25, /* ... */]
+    }
   ]
 }
 ```
 
-The API returns daily download totals for `<package>` going back up to 2 years (731 days):
+The API returns daily download totals and version breakdowns for `<package>` going back up to 2 years (731 days):
 - `newestDate`: the most recent UTC date for which download data is available.
 - `totalDailyDownloads`: list of daily downloads across all versions. The first entry is for `newestDate`, followed by `newestDate - 1 day`, `newestDate - 2 days`, etc. `-1` represents missing or uncollected telemetry on that day.
 - `majorRangeDailyDownloads`, `minorRangeDailyDownloads`, `patchRangeDailyDownloads`: lists of version ranges (up to 5 per range level) with daily downloads aligned to the same date indices.
-
-
-### Package version daily downloads
-
-**GET** `https://pub.dev/api/packages/<package>/versions/<version>/daily-downloads`
-
-**Response**
-* `cache-control: public, max-age=120`
-* `content-type: application/json; charset="utf-8"`
-
-```js
-{
-  "package": "http",
-  "version": "1.2.0",
-  "newestDate": "2026-08-10T00:00:00.000Z",
-  "totalDailyDownloads": [
-    75,
-    60,
-    45,
-    -1,
-    /* daily downloads for this specific version for up to 731 days */
-  ]
-}
-```
-
-The API returns daily download counts for a specific `<package>` and `<version>` going back up to 2 years (731 days):
-- `package`: name of the package.
-- `version`: version string of the package.
-- `newestDate`: the most recent UTC date for which download data is available.
-- `totalDailyDownloads`: list of daily downloads for this version. The first entry is for `newestDate`, followed by `newestDate - 1 day`, `newestDate - 2 days`, etc. `-1` represents missing or uncollected telemetry on that day.
+- `versionDailyDownloads`: list of specific package versions and their daily download counts aligned to the same date indices.
 
 ## FAQ
 

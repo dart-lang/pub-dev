@@ -23,7 +23,6 @@ import '../../search/backend.dart';
 import '../../search/search_client.dart';
 import '../../search/search_service.dart';
 import '../../service/download_counts/computations.dart';
-import '../../service/download_counts/download_counts_archive.dart';
 import '../../service/topics/count_topics.dart';
 import '../../shared/configuration.dart';
 import '../../shared/exceptions.dart';
@@ -259,32 +258,6 @@ Future<DailyDownloadCounts> packageDailyDownloadsHandler(
   final data = await getDailyDownloadCounts(package);
   if (data == null) {
     throw NotFoundException.resource('daily downloads for "$package"');
-  }
-  return data;
-}
-
-/// Handles `GET /api/packages/<package>/versions/<version>/daily-downloads`.
-Future<VersionDailyDownloadCounts> packageVersionDailyDownloadsHandler(
-  shelf.Request request,
-  String package,
-  String version,
-) async {
-  checkPackageVersionParams(package, version);
-  if (!await packageBackend.isPackageVisible(package)) {
-    throw NotFoundException.resource(package);
-  }
-  final pv = await packageBackend.lookupPackageVersion(package, version);
-  if (pv == null) {
-    throw NotFoundException.resource('$package $version');
-  }
-  final data = await downloadCountsArchive.lookupVersionDailyDownloads(
-    package,
-    version,
-  );
-  if (data == null) {
-    throw NotFoundException.resource(
-      'daily downloads for "$package" version "$version"',
-    );
   }
   return data;
 }

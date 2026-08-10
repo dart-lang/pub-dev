@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
-import 'package:pub_dev/service/download_counts/download_counts_archive.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
@@ -230,53 +229,6 @@ void main() {
       fn: () async {
         final rs = await issueGet(
           '/api/packages/non_existing_pkg/daily-downloads',
-        );
-        expect(rs.statusCode, 404);
-      },
-    );
-
-    testWithProfile(
-      '/api/packages/<package>/versions/<version>/daily-downloads - missing download data',
-      fn: () async {
-        final rs = await issueGet(
-          '/api/packages/oxygen/versions/1.0.0/daily-downloads',
-        );
-        expect(rs.statusCode, 404);
-      },
-    );
-
-    testWithProfile(
-      '/api/packages/<package>/versions/<version>/daily-downloads - with download data',
-      fn: () async {
-        final date = DateTime.utc(2026, 8, 10);
-        final archivePair = await DownloadCountsArchive.buildArchive(
-          newestDate: date,
-          packageVersionCounts: {
-            'oxygen': {
-              '1.0.0': [10, 5, 0],
-            },
-          },
-        );
-        await downloadCountsArchive.uploadArchive(archivePair);
-
-        final rs = await issueGet(
-          '/api/packages/oxygen/versions/1.0.0/daily-downloads',
-        );
-        expect(rs.statusCode, 200);
-        final map =
-            json.decode(await rs.readAsString()) as Map<String, dynamic>;
-        expect(map['package'], 'oxygen');
-        expect(map['version'], '1.0.0');
-        expect(map['newestDate'], '2026-08-10T00:00:00.000Z');
-        expect(map['totalDailyDownloads'], [10, 5, 0]);
-      },
-    );
-
-    testWithProfile(
-      '/api/packages/<package>/versions/<version>/daily-downloads - unknown version',
-      fn: () async {
-        final rs = await issueGet(
-          '/api/packages/oxygen/versions/9.9.9/daily-downloads',
         );
         expect(rs.statusCode, 404);
       },

@@ -458,13 +458,6 @@ class PubApi {
     String package,
   ) => packageDailyDownloadsHandler(request, package);
 
-  @EndPoint.get('/api/packages/<package>/versions/<version>/daily-downloads')
-  Future<VersionDailyDownloadCounts> packageVersionDailyDownloads(
-    Request request,
-    String package,
-    String version,
-  ) => packageVersionDailyDownloadsHandler(request, package, version);
-
   @EndPoint.get('/api/packages/<package>/versions/<version>/score')
   Future<VersionScore> packageVersionScore(
     Request request,

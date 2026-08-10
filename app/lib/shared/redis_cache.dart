@@ -312,22 +312,6 @@ class CachePatterns {
         ),
       )[package];
 
-  Entry<VersionDailyDownloadCounts> versionDailyDownloadCounts(
-    String package,
-    String version,
-  ) => _cache
-      .withPrefix('version-daily-download-counts/')
-      .withTTL(Duration(hours: 6))
-      .withCodec(utf8)
-      .withCodec(json)
-      .withCodec(
-        wrapAsCodec(
-          encode: (VersionDailyDownloadCounts vddc) => vddc.toJson(),
-          decode: (d) =>
-              VersionDailyDownloadCounts.fromJson(d as Map<String, dynamic>),
-        ),
-      )['$package/$version'];
-
   Entry<List<LikeData>> userPackageLikes(String userId) => _cache
       .withPrefix('user-package-likes/')
       .withTTL(Duration(minutes: 60))
