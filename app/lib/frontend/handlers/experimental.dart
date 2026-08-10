@@ -91,8 +91,6 @@ class ExperimentalFlags {
 
   late final isExposeLicenseDiffEnabled = isEnabled('expose-licence-diff');
 
-  bool get isImageProxyEnabled => true;
-
   String encodedAsCookie() => _enabled.join(':');
 
   @override
