@@ -64,7 +64,7 @@ abstract final class TaskVersion extends Row {
   String get version;
 
   /// The last time when this was scheduled for analysis.
-  DateTime get scheduled;
+  DateTime get scheduledAt;
 
   /// The number of attempts to schedule the package version for analysis.
   int get attempts;
@@ -104,7 +104,7 @@ abstract final class TaskAbortedToken extends Row {
   String get package;
   String get token;
 
-  DateTime get expires;
+  DateTime get expiresAt;
 }
 
 @immutable

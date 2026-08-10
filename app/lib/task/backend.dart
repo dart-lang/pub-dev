@@ -1412,7 +1412,7 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
             runtimeVersion: runtimeVersion,
             package: package,
             version: entry.key,
-            scheduled: v.scheduled,
+            scheduledAt: v.scheduled,
             attempts: v.attempts,
             zone: v.zone,
             instance: v.instance,
@@ -1424,7 +1424,7 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
           .onConflict(.primaryKey)
           .update(
             (_, excluded, set) => set(
-              scheduled: excluded.scheduled,
+              scheduledAt: excluded.scheduledAt,
               attempts: excluded.attempts,
               zone: excluded.zone,
               instance: excluded.instance,
@@ -1444,10 +1444,10 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
             runtimeVersion: runtimeVersion,
             package: package,
             token: token.token,
-            expires: token.expires,
+            expiresAt: token.expires,
           )
           .onConflict(.primaryKey)
-          .update((_, excluded, set) => set(expires: excluded.expires))
+          .update((_, excluded, set) => set(expiresAt: excluded.expiresAt))
           .execute();
     }
 

@@ -2511,7 +2511,7 @@ final class _$TaskVersion extends TaskVersion {
     this.runtimeVersion,
     this.package,
     this.version,
-    this.scheduled,
+    this.scheduledAt,
     this.attempts,
     this.zone,
     this.instance,
@@ -2531,7 +2531,7 @@ final class _$TaskVersion extends TaskVersion {
   final String version;
 
   @override
-  final DateTime scheduled;
+  final DateTime scheduledAt;
 
   @override
   final int attempts;
@@ -2560,7 +2560,7 @@ final class _$TaskVersion extends TaskVersion {
       'runtime_version',
       'package',
       'version',
-      'scheduled',
+      'scheduled_at',
       'attempts',
       'zone',
       'instance',
@@ -2668,7 +2668,7 @@ final class _$TaskVersion extends TaskVersion {
     final runtimeVersion = row.readString();
     final package = row.readString();
     final version = row.readString();
-    final scheduled = row.readDateTime();
+    final scheduledAt = row.readDateTime();
     final attempts = row.readInt();
     final zone = row.readString();
     final instance = row.readString();
@@ -2679,7 +2679,7 @@ final class _$TaskVersion extends TaskVersion {
     if (runtimeVersion == null &&
         package == null &&
         version == null &&
-        scheduled == null &&
+        scheduledAt == null &&
         attempts == null &&
         zone == null &&
         instance == null &&
@@ -2693,7 +2693,7 @@ final class _$TaskVersion extends TaskVersion {
       runtimeVersion!,
       package!,
       version!,
-      scheduled!,
+      scheduledAt!,
       attempts!,
       zone,
       instance,
@@ -2706,7 +2706,7 @@ final class _$TaskVersion extends TaskVersion {
 
   @override
   String toString() =>
-      'TaskVersion(runtimeVersion: "$runtimeVersion", package: "$package", version: "$version", scheduled: "$scheduled", attempts: "$attempts", zone: "$zone", instance: "$instance", secretToken: "$secretToken", hasDocs: "$hasDocs", hasPana: "$hasPana", isFinished: "$isFinished")';
+      'TaskVersion(runtimeVersion: "$runtimeVersion", package: "$package", version: "$version", scheduledAt: "$scheduledAt", attempts: "$attempts", zone: "$zone", instance: "$instance", secretToken: "$secretToken", hasDocs: "$hasDocs", hasPana: "$hasPana", isFinished: "$isFinished")';
 }
 
 /// Extension methods for table defined in [TaskVersion].
@@ -2719,7 +2719,7 @@ extension TableTaskVersionExt on Table<TaskVersion> {
     required Expr<String> runtimeVersion,
     required Expr<String> package,
     required Expr<String> version,
-    required Expr<DateTime> scheduled,
+    required Expr<DateTime> scheduledAt,
     required Expr<int> attempts,
     Expr<String?>? zone,
     Expr<String?>? instance,
@@ -2733,7 +2733,7 @@ extension TableTaskVersionExt on Table<TaskVersion> {
       runtimeVersion,
       package,
       version,
-      scheduled,
+      scheduledAt,
       attempts,
       zone,
       instance,
@@ -2752,7 +2752,7 @@ extension TableTaskVersionExt on Table<TaskVersion> {
     required String runtimeVersion,
     required String package,
     required String version,
-    required DateTime scheduled,
+    required DateTime scheduledAt,
     required int attempts,
     String? zone,
     String? instance,
@@ -2766,7 +2766,7 @@ extension TableTaskVersionExt on Table<TaskVersion> {
       runtimeVersion.asExpr,
       package.asExpr,
       version.asExpr,
-      scheduled.asExpr,
+      scheduledAt.asExpr,
       attempts.asExpr,
       zone.asExpr,
       instance.asExpr,
@@ -2799,7 +2799,7 @@ extension TableTaskVersionExt on Table<TaskVersion> {
     required String Function(T row) runtimeVersion,
     required String Function(T row) package,
     required String Function(T row) version,
-    required DateTime Function(T row) scheduled,
+    required DateTime Function(T row) scheduledAt,
     required int Function(T row) attempts,
     String? Function(T row)? zone,
     String? Function(T row)? instance,
@@ -2814,7 +2814,7 @@ extension TableTaskVersionExt on Table<TaskVersion> {
       runtimeVersion,
       package,
       version,
-      scheduled,
+      scheduledAt,
       attempts,
       zone,
       instance,
@@ -2895,7 +2895,7 @@ extension QueryTaskVersionExt on Query<(Expr<TaskVersion>,)> {
         Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> version,
-        Expr<DateTime> scheduled,
+        Expr<DateTime> scheduledAt,
         Expr<int> attempts,
         Expr<String?> zone,
         Expr<String?> instance,
@@ -2916,7 +2916,7 @@ extension QueryTaskVersionExt on Query<(Expr<TaskVersion>,)> {
         Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? version,
-        Expr<DateTime>? scheduled,
+        Expr<DateTime>? scheduledAt,
         Expr<int>? attempts,
         Expr<String?>? zone,
         Expr<String?>? instance,
@@ -2928,7 +2928,7 @@ extension QueryTaskVersionExt on Query<(Expr<TaskVersion>,)> {
         runtimeVersion,
         package,
         version,
-        scheduled,
+        scheduledAt,
         attempts,
         zone,
         instance,
@@ -2986,7 +2986,7 @@ extension QuerySingleTaskVersionExt on QuerySingle<(Expr<TaskVersion>,)> {
         Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> version,
-        Expr<DateTime> scheduled,
+        Expr<DateTime> scheduledAt,
         Expr<int> attempts,
         Expr<String?> zone,
         Expr<String?> instance,
@@ -3007,7 +3007,7 @@ extension QuerySingleTaskVersionExt on QuerySingle<(Expr<TaskVersion>,)> {
         Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? version,
-        Expr<DateTime>? scheduled,
+        Expr<DateTime>? scheduledAt,
         Expr<int>? attempts,
         Expr<String?>? zone,
         Expr<String?>? instance,
@@ -3019,7 +3019,7 @@ extension QuerySingleTaskVersionExt on QuerySingle<(Expr<TaskVersion>,)> {
         runtimeVersion,
         package,
         version,
-        scheduled,
+        scheduledAt,
         attempts,
         zone,
         instance,
@@ -3052,7 +3052,7 @@ extension ExpressionTaskVersionExt on Expr<TaskVersion> {
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   /// The last time when this was scheduled for analysis.
-  Expr<DateTime> get scheduled =>
+  Expr<DateTime> get scheduledAt =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// The number of attempts to schedule the package version for analysis.
@@ -3113,7 +3113,7 @@ extension ExpressionNullableTaskVersionExt on Expr<TaskVersion?> {
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   /// The last time when this was scheduled for analysis.
-  Expr<DateTime?> get scheduled =>
+  Expr<DateTime?> get scheduledAt =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// The number of attempts to schedule the package version for analysis.
@@ -3301,7 +3301,7 @@ extension InsertOnConflictTaskVersionExt on InsertOnConflict<TaskVersion> {
         Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> version,
-        Expr<DateTime> scheduled,
+        Expr<DateTime> scheduledAt,
         Expr<int> attempts,
         Expr<String?> zone,
         Expr<String?> instance,
@@ -3322,7 +3322,7 @@ extension InsertOnConflictTaskVersionExt on InsertOnConflict<TaskVersion> {
         Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? version,
-        Expr<DateTime>? scheduled,
+        Expr<DateTime>? scheduledAt,
         Expr<int>? attempts,
         Expr<String?>? zone,
         Expr<String?>? instance,
@@ -3334,7 +3334,7 @@ extension InsertOnConflictTaskVersionExt on InsertOnConflict<TaskVersion> {
         runtimeVersion,
         package,
         version,
-        scheduled,
+        scheduledAt,
         attempts,
         zone,
         instance,
@@ -3419,7 +3419,7 @@ extension InsertOnConflictSingleTaskVersionExt
         Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> version,
-        Expr<DateTime> scheduled,
+        Expr<DateTime> scheduledAt,
         Expr<int> attempts,
         Expr<String?> zone,
         Expr<String?> instance,
@@ -3440,7 +3440,7 @@ extension InsertOnConflictSingleTaskVersionExt
         Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? version,
-        Expr<DateTime>? scheduled,
+        Expr<DateTime>? scheduledAt,
         Expr<int>? attempts,
         Expr<String?>? zone,
         Expr<String?>? instance,
@@ -3452,7 +3452,7 @@ extension InsertOnConflictSingleTaskVersionExt
         runtimeVersion,
         package,
         version,
-        scheduled,
+        scheduledAt,
         attempts,
         zone,
         instance,
@@ -3470,7 +3470,7 @@ final class _$TaskAbortedToken extends TaskAbortedToken {
     this.runtimeVersion,
     this.package,
     this.token,
-    this.expires,
+    this.expiresAt,
   );
 
   @override
@@ -3483,11 +3483,11 @@ final class _$TaskAbortedToken extends TaskAbortedToken {
   final String token;
 
   @override
-  final DateTime expires;
+  final DateTime expiresAt;
 
   static final _$table = $ForGeneratedCode.tableDefinition(
     tableName: 'task_aborted_tokens',
-    columns: <String>['runtime_version', 'package', 'token', 'expires'],
+    columns: <String>['runtime_version', 'package', 'token', 'expires_at'],
     columnInfo: [
       $ForGeneratedCode.columnDefinition(
         type: $ForGeneratedCode.text,
@@ -3538,19 +3538,19 @@ final class _$TaskAbortedToken extends TaskAbortedToken {
     final runtimeVersion = row.readString();
     final package = row.readString();
     final token = row.readString();
-    final expires = row.readDateTime();
+    final expiresAt = row.readDateTime();
     if (runtimeVersion == null &&
         package == null &&
         token == null &&
-        expires == null) {
+        expiresAt == null) {
       return null;
     }
-    return _$TaskAbortedToken._(runtimeVersion!, package!, token!, expires!);
+    return _$TaskAbortedToken._(runtimeVersion!, package!, token!, expiresAt!);
   }
 
   @override
   String toString() =>
-      'TaskAbortedToken(runtimeVersion: "$runtimeVersion", package: "$package", token: "$token", expires: "$expires")';
+      'TaskAbortedToken(runtimeVersion: "$runtimeVersion", package: "$package", token: "$token", expiresAt: "$expiresAt")';
 }
 
 /// Extension methods for table defined in [TaskAbortedToken].
@@ -3563,10 +3563,10 @@ extension TableTaskAbortedTokenExt on Table<TaskAbortedToken> {
     required Expr<String> runtimeVersion,
     required Expr<String> package,
     required Expr<String> token,
-    required Expr<DateTime> expires,
+    required Expr<DateTime> expiresAt,
   }) => $ForGeneratedCode.insertInto(
     table: this,
-    values: [runtimeVersion, package, token, expires],
+    values: [runtimeVersion, package, token, expiresAt],
   );
 
   /// Insert row into the `taskAbortedTokens` table.
@@ -3577,14 +3577,14 @@ extension TableTaskAbortedTokenExt on Table<TaskAbortedToken> {
     required String runtimeVersion,
     required String package,
     required String token,
-    required DateTime expires,
+    required DateTime expiresAt,
   }) => $ForGeneratedCode.insertInto(
     table: this,
     values: [
       runtimeVersion.asExpr,
       package.asExpr,
       token.asExpr,
-      expires.asExpr,
+      expiresAt.asExpr,
     ],
   );
 
@@ -3610,11 +3610,11 @@ extension TableTaskAbortedTokenExt on Table<TaskAbortedToken> {
     required String Function(T row) runtimeVersion,
     required String Function(T row) package,
     required String Function(T row) token,
-    required DateTime Function(T row) expires,
+    required DateTime Function(T row) expiresAt,
   }) => $ForGeneratedCode.insertValuesMapped(
     table: this,
     rows: rows,
-    mappings: [runtimeVersion, package, token, expires],
+    mappings: [runtimeVersion, package, token, expiresAt],
   );
 
   /// Delete a single row from the `taskAbortedTokens` table, specified by
@@ -3687,7 +3687,7 @@ extension QueryTaskAbortedTokenExt on Query<(Expr<TaskAbortedToken>,)> {
         Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> token,
-        Expr<DateTime> expires,
+        Expr<DateTime> expiresAt,
       })
       set,
     )
@@ -3701,12 +3701,12 @@ extension QueryTaskAbortedTokenExt on Query<(Expr<TaskAbortedToken>,)> {
         Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? token,
-        Expr<DateTime>? expires,
+        Expr<DateTime>? expiresAt,
       }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
         runtimeVersion,
         package,
         token,
-        expires,
+        expiresAt,
       ]),
     ),
   );
@@ -3758,7 +3758,7 @@ extension QuerySingleTaskAbortedTokenExt
         Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> token,
-        Expr<DateTime> expires,
+        Expr<DateTime> expiresAt,
       })
       set,
     )
@@ -3772,12 +3772,12 @@ extension QuerySingleTaskAbortedTokenExt
         Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? token,
-        Expr<DateTime>? expires,
+        Expr<DateTime>? expiresAt,
       }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
         runtimeVersion,
         package,
         token,
-        expires,
+        expiresAt,
       ]),
     ),
   );
@@ -3802,7 +3802,7 @@ extension ExpressionTaskAbortedTokenExt on Expr<TaskAbortedToken> {
   Expr<String> get token =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
-  Expr<DateTime> get expires =>
+  Expr<DateTime> get expiresAt =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// Do a subquery lookup of the row from table
@@ -3833,7 +3833,7 @@ extension ExpressionNullableTaskAbortedTokenExt on Expr<TaskAbortedToken?> {
   Expr<String?> get token =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
-  Expr<DateTime?> get expires =>
+  Expr<DateTime?> get expiresAt =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// Do a subquery lookup of the row from table
@@ -3994,7 +3994,7 @@ extension InsertOnConflictTaskAbortedTokenExt
         Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> token,
-        Expr<DateTime> expires,
+        Expr<DateTime> expiresAt,
       })
       set,
     )
@@ -4008,12 +4008,12 @@ extension InsertOnConflictTaskAbortedTokenExt
         Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? token,
-        Expr<DateTime>? expires,
+        Expr<DateTime>? expiresAt,
       }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
         runtimeVersion,
         package,
         token,
-        expires,
+        expiresAt,
       ]),
     ),
   );
@@ -4092,7 +4092,7 @@ extension InsertOnConflictSingleTaskAbortedTokenExt
         Expr<String> runtimeVersion,
         Expr<String> package,
         Expr<String> token,
-        Expr<DateTime> expires,
+        Expr<DateTime> expiresAt,
       })
       set,
     )
@@ -4106,12 +4106,12 @@ extension InsertOnConflictSingleTaskAbortedTokenExt
         Expr<String>? runtimeVersion,
         Expr<String>? package,
         Expr<String>? token,
-        Expr<DateTime>? expires,
+        Expr<DateTime>? expiresAt,
       }) => $ForGeneratedCode.buildUpdate<TaskAbortedToken>([
         runtimeVersion,
         package,
         token,
-        expires,
+        expiresAt,
       ]),
     ),
   );
