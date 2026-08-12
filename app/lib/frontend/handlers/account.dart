@@ -15,7 +15,6 @@ import '../../account/backend.dart';
 import '../../account/consent_backend.dart';
 import '../../account/default_auth_provider.dart';
 import '../../account/like_backend.dart';
-import '../../account/models.dart';
 import '../../account/session_cookie.dart' as session_cookie;
 import '../../audit/backend.dart';
 import '../../frontend/request_context.dart';

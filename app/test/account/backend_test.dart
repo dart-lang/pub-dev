@@ -328,6 +328,10 @@ void main() {
                 ),
               );
           expect(sessionData.sessionId, isNot(session.sessionId));
+          final oldSessionEntry = await dbService.lookupOrNull<UserSession>(
+            dbService.emptyKey.append(UserSession, id: session.sessionId),
+          );
+          expect(oldSessionEntry, isNull);
           expect(await cache.userSessionData(session.sessionId).get(), isNull);
         },
       );
