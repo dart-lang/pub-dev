@@ -18,7 +18,7 @@ d.Node siteHeaderNode({
   required SearchForm? searchForm,
 }) {
   return d.div(
-    classes: ['site-header'],
+    classes: ['site-header', 'pub-dark-bg'],
     children: [
       d.button(classes: ['hamburger'], ariaLabel: 'menu toggle'),
       if (pageType != PageType.landing)
