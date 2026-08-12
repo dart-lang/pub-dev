@@ -77,4 +77,4 @@ final String panaVersion = pana.packageVersion;
 
 // keep in-sync with pkg/pub-worker/lib/src/bin/pub_worker_subprocess.dart
 // keep in-sync with Dockerfile.worker
-final String dartdocVersion = '9.0.8';
+final String dartdocVersion = '9.0.9';
