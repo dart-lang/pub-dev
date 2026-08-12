@@ -9,11 +9,14 @@ import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/tools/user_merger.dart';
 import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../shared/test_services.dart';
 
@@ -68,30 +71,31 @@ void main() {
         'control@pub.dev',
         () => requireAuthenticatedWebUser(),
       );
-      final targetSession = UserSession()
-        ..id = 'target'
-        ..userId = admin.userId
-        ..email = admin.email
-        ..created = clock.now()
-        ..expires = clock.now();
-      final controlSession = UserSession()
-        ..id = 'control'
-        ..userId = control.userId
-        ..email = control.userId
-        ..created = clock.now()
-        ..expires = clock.now();
-      await dbService.commit(inserts: [targetSession, controlSession]);
-      await accountBackend.writeUserSessionToSql(targetSession);
-      await accountBackend.writeUserSessionToSql(controlSession);
+      await accountBackend.writeUserSessionToSql(
+        sessionId: 'target',
+        userId: admin.userId,
+        email: admin.email,
+        created: clock.now(),
+        expires: clock.now(),
+      );
+      await accountBackend.writeUserSessionToSql(
+        sessionId: 'control',
+        userId: control.userId,
+        email: control.userId,
+        created: clock.now(),
+        expires: clock.now(),
+      );
 
       await _corruptAndFix();
 
-      final list = await dbService.lookup<UserSession>([
-        dbService.emptyKey.append(UserSession, id: 'target'),
-        dbService.emptyKey.append(UserSession, id: 'control'),
-      ]);
-      expect(list[0]!.userId, user.userId);
-      expect(list[1]!.userId, control.userId);
+      final target = await primaryDatabase.withRetry(
+        (db) => db.userSessions.byKey('target').fetch(),
+      );
+      final controlRow = await primaryDatabase.withRetry(
+        (db) => db.userSessions.byKey('control').fetch(),
+      );
+      expect(target!.userId, user.userId);
+      expect(controlRow!.userId, control.userId);
     },
   );
 

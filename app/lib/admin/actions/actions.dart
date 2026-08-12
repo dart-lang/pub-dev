@@ -43,7 +43,6 @@ import 'tool_execute.dart';
 import 'tool_list.dart';
 import 'uploader_count_report.dart';
 import 'user_info.dart';
-import 'user_session_migrate.dart';
 
 export '../../shared/exceptions.dart';
 
@@ -136,6 +135,5 @@ final class AdminAction {
     toolList,
     uploaderCountReport,
     userInfo,
-    userSessionMigrate,
   ];
 }
