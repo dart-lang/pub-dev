@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2026.08.12`.
+ * Upgraded stable Flutter analysis SDK to `3.44.9`.
  * Allow `apis.google.com` and `*.clients6.google.com` in CSP (`connect-src` and `frame-src`).
 
 ## `20260806t120500-all`
