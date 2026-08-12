@@ -613,10 +613,10 @@ packages:
     dependency: transitive
     description:
       name: pana
-      sha256: "36dda6dbf72f2f47bef2790c07359caab46cf9f61c6fe326a9dd4200a50dd9fc"
+      sha256: "27d218134d65896d4bdf9522cbc1924a7df7155867f2b27a0557536300d17329"
       url: "https://pub.dev"
     source: hosted
-    version: "0.23.17"
+    version: "0.23.18"
   path:
     dependency: transitive
     description:
