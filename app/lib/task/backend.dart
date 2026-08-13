@@ -1187,85 +1187,18 @@ class TaskBackend {
     }
 
     final zone = compute.zones.first;
-    final instanceName = compute.generateInstanceName();
-
-    // 3. Atomically assign tokens and state.
-    final payload = await updatePackageStateWithPendingVersions(
-      _database,
-      packageName,
-      zone,
-      instanceName,
+    final res = await schedulePackageInstance(
+      database: _database,
+      compute: compute,
+      package: packageName,
+      zone: zone,
     );
-    if (payload == null) {
-      return {
-        'status': 'none-pending',
-        'message': 'No versions pending analysis.',
-        'package': packageName,
-        if (version != null) 'version': version,
-      };
-    }
 
-    final description =
-        'admin: package:${payload.package} analysis of ${payload.versions.length} versions.';
-
-    var rollbackPackageState = true;
-    try {
-      await purgePackageCache(payload.package);
-      _log.info(
-        'creating instance $instanceName in $zone for package:$packageName',
-      );
-      await compute.createInstance(
-        zone: zone,
-        instanceName: instanceName,
-        dockerImage: activeConfiguration.taskWorkerImage!,
-        arguments: [json.encode(payload)],
-        description: description,
-      );
-      rollbackPackageState = false;
-    } on ZoneExhaustedException catch (e, st) {
-      _log.info(
-        'zone resources exhausted, failed to create $instanceName in $zone',
-        e,
-        st,
-      );
-    } catch (e, st) {
-      _log.warning(
-        'Failed to create instance $instanceName in $zone for package $packageName',
-        e,
-        st,
-      );
-    }
-
-    if (rollbackPackageState) {
-      await _database.transactWithRetry((db) async {
-        final s = await db.taskLookupOrNull(packageName);
-        if (s == null) return;
-        final versions = s.state.versions;
-        versions.addEntries(
-          versions.entries
-              .where((e) => e.value.instance == instanceName)
-              .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
-        );
-        await db.tasks
-            .byKey(runtimeVersion, packageName)
-            .update(
-              (_, set) => set(
-                state: TaskState(
-                  versions: versions,
-                  abortedTokens: s.state.abortedTokens,
-                ).asExpr,
-                pendingAt: derivePendingAt(
-                  versions: versions,
-                  lastDependencyChanged: s.lastDependencyChanged,
-                ).asExpr,
-              ),
-            )
-            .execute();
-      });
+    if (res == null) {
       return {
         'status': 'enqueued',
         'message':
-            'Failed to start instance immediately. Task remains enqueued with highest priority.',
+            'Failed to start instance immediately or no versions pending. Task remains enqueued with highest priority.',
         'package': packageName,
         if (version != null) 'version': version,
       };
@@ -1275,9 +1208,9 @@ class TaskBackend {
       'status': 'started',
       'message': 'Instance created for analysis.',
       'package': packageName,
-      'instance': instanceName,
-      'zone': zone,
-      'versions': payload.versions.map((v) => v.version).toList(),
+      'instance': res.instanceName,
+      'zone': res.zone,
+      'versions': res.payload.versions.map((v) => v.version).toList(),
     };
   }
 
