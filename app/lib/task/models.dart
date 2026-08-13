@@ -68,15 +68,6 @@ final initialTimestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 Duration taskRetryDelay(int attempts) =>
     Duration(hours: 3) * (attempts * attempts);
 
-/// [PackageState] is used for storing the analysis state of a package for a
-/// given `runtimeVersion`.
-///
-///  * `id`, is the `runtimeVersion / packageName`.
-///  * `PackageState` entities never have a parent.
-@db.Kind(name: 'PackageState', idType: db.IdType.String)
-@Deprecated('No longer in use.')
-class PackageState extends db.ExpandoModel<String> {}
-
 /// Derive the `pendingAt` field using [versions] and [lastDependencyChanged].
 ///
 /// When updating PackageState the pendingAt property is set to the minimum of:

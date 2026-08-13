@@ -157,17 +157,6 @@ class LikeData {
   }
 }
 
-/// Tracks the client session, optionally with authenticated
-/// userId and cached profile information.
-@db.Kind(name: 'UserSession', idType: db.IdType.String)
-class UserSession extends db.ExpandoModel<String> {
-  /// Same as [id].
-  /// This is a v4 (random) UUID String.
-  String get sessionId => id as String;
-
-  UserSession();
-}
-
 /// Convenience helpers for the SQL-backed session row.
 extension UserSessionRowExt on UserSessionRow {
   bool isExpired() => clock.now().isAfter(expires);

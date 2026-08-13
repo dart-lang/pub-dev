@@ -11,7 +11,6 @@ import '../../package/models.dart';
 import '../../publisher/models.dart';
 import '../../shared/datastore.dart';
 import '../../shared/env_config.dart';
-import '../../task/models.dart';
 import '../../tool/neat_task/datastore_status_provider.dart';
 
 final _argParser = ArgParser()
@@ -48,7 +47,6 @@ Future<String> executeDeleteAllStaging(List<String> args) async {
   final entities = <Query, int>{
     dbService.query<AuditLogRecord>(): 500,
     dbService.query<OAuthUserID>(): 500,
-    dbService.query<UserSession>(): 500,
     dbService.query<User>(): 500,
     dbService.query<Like>(): 500,
     dbService.query<PackageVersionInfo>(): 500,
@@ -60,7 +58,6 @@ Future<String> executeDeleteAllStaging(List<String> args) async {
     dbService.query<Publisher>(): 500,
     dbService.query<ModeratedPackage>(): 500,
     dbService.query<NeatTaskStatus>(): 500,
-    dbService.query<PackageState>(): 100,
   };
 
   final pool = Pool(concurrency);
