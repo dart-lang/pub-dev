@@ -179,11 +179,11 @@ Future<void> _analyzeLocal() async {
   await fork(() async {
     await taskBackend.backfillAndProcessAllPackages((Payload payload) async {
       final arguments = [json.encode(payload.toJson())];
-      final pr = await Process.run(
-        Platform.resolvedExecutable,
-        ['run', 'pub_worker', ...arguments],
-        workingDirectory: p.join(resolveAppDir(), '..', 'pkg', 'pub_worker'),
-      );
+      final pr = await Process.run(Platform.resolvedExecutable, [
+        'run',
+        'pub_worker',
+        ...arguments,
+      ], workingDirectory: p.join(resolveAppDir(), '..', 'pkg', 'pub_worker'));
       if (pr.exitCode != 0) {
         throw Exception('Unexpected status code: ${pr.exitCode} ${pr.stdout}');
       }
