@@ -6,7 +6,6 @@ import 'package:_pub_shared/data/task_payload.dart';
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
-import 'package:meta/meta.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -245,7 +244,8 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
 
 /// Updates the package state with versions that are already pending or
 /// will be pending soon.
-@visibleForTesting
+///
+/// Returns `null` if the package does not exist or has no pending versions.
 Future<Payload?> updatePackageStateWithPendingVersions(
   PrimaryDatabase database,
   String package,
