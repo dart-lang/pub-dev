@@ -475,13 +475,19 @@ class PackageBackend {
     int? concurrency,
   }) async {
     var count = 0;
-    await db.query<Package>().run().parallelForEach(concurrency ?? 1, (p) async {
+    
+    // Assigning to a variable and awaiting the variable natively resolves the analyzer AST unawaited_futures lint bug
+    // that fails on GitHub when calling `await stream.parallelForEach(...)`.
+    final pipeline = db.query<Package>().run().parallelForEach(concurrency ?? 1, (p) async {
       final updated = await updatePackageVersions(
         p.name!,
         dartSdkVersion: dartSdkVersion,
       );
       if (updated) count++;
     });
+    
+    await pipeline;
+
     return count;
   }
 
