@@ -91,26 +91,27 @@ class _BaseIntegrityChecker {
     final controller = StreamController<String>();
 
     unawaited(
-      streamFn().parallelForEach(_concurrency, (item) async {
-        try {
-          final list = await itemFn(item).toList().timeout(timeLimit!);
-          for (final e in list) {
-            controller.add(e);
-          }
-        } on TimeoutException catch (e, st) {
-          _logger.pubNoticeShout(
-            'integrity-check-timeout',
-            'Integrity check operation timed out.',
-            e,
-            st,
-          );
-          controller.addError(e, st);
-        } catch (e, st) {
-          controller.addError(e, st);
-        }
-      })
-      .catchError(controller.addError)
-      .whenComplete(controller.close),
+      streamFn()
+          .parallelForEach(_concurrency, (item) async {
+            try {
+              final list = await itemFn(item).toList().timeout(timeLimit!);
+              for (final e in list) {
+                controller.add(e);
+              }
+            } on TimeoutException catch (e, st) {
+              _logger.pubNoticeShout(
+                'integrity-check-timeout',
+                'Integrity check operation timed out.',
+                e,
+                st,
+              );
+              controller.addError(e, st);
+            } catch (e, st) {
+              controller.addError(e, st);
+            }
+          })
+          .catchError(controller.addError)
+          .whenComplete(controller.close),
     );
 
     yield* controller.stream;
