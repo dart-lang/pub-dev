@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:json_annotation/json_annotation.dart' hide JsonValue;
 import 'package:meta/meta.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
@@ -10,6 +12,7 @@ import 'package:typed_sql/typed_sql.dart';
 
 part 'schema.g.dart';
 part 'schema.account.dart';
+part 'schema.neat_task.dart';
 part 'schema.task.dart';
 
 @SqlOverride.schema(naming: .snake_case)
@@ -17,6 +20,10 @@ abstract final class PrimarySchema extends Schema {
   // account tables
 
   Table<UserSessionRow> get userSessions;
+
+  // neat periodic task status table
+
+  Table<NeatTaskStatusRow> get neatTaskStatuses;
 
   // task tables
 

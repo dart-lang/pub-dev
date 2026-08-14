@@ -31,6 +31,7 @@ import '../service/email/email_templates.dart'
     show isValidEmail, looksLikeEmail;
 import '../shared/env_config.dart';
 import '../shared/monitoring.dart';
+import '../tool/neat_task/datastore_status_provider.dart';
 import 'configuration.dart';
 import 'datastore.dart';
 import 'parallel_foreach.dart';
@@ -188,6 +189,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     yield* _checkModeratedPackages();
     yield* _checkAuditLogs();
     yield* _checkModerationCases();
+    yield* _checkNeatTaskStatuses();
     yield* _reportPubspecVersionIssues();
 
     if (_unmappedFieldsToObject.isNotEmpty) {
@@ -950,6 +952,30 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       );
       if (appealed == null) {
         yield 'ModerationCase "${mc.caseId}" references an appealed case that does not exists.';
+      }
+    }
+  }
+
+  Stream<String> _checkNeatTaskStatuses() async* {
+    _logger.info('Scanning NeatTaskStatuses...');
+
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.neatTaskStatuses.fetch(),
+    );
+    final keysInDatastore = <(String, String)>{};
+
+    yield* _queryWithPool<NeatTaskStatus>((status) async* {
+      final name = status.name;
+      final runtimeVersion = status.runtimeVersion;
+      if (name == null || runtimeVersion == null) {
+        return;
+      }
+      keysInDatastore.add((name, runtimeVersion));
+    });
+
+    for (final row in rows) {
+      if (!keysInDatastore.contains((row.taskName, row.runtimeVersion))) {
+        yield 'SQL NeatTaskStatus "${row.runtimeVersion}/${row.taskName}" does not have a matching Datastore entity.';
       }
     }
   }

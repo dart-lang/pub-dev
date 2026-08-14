@@ -3,12 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
+import 'package:typed_sql/typed_sql.dart';
 import 'package:ulid/ulid.dart';
 
+import '../../database/database.dart';
+import '../../database/schema.dart';
 import '../../shared/datastore.dart' as db;
 import '../../shared/versions.dart' as versions show runtimeVersion;
 
@@ -69,6 +73,11 @@ String _compositeId(String name, {required bool isRuntimeVersioned}) {
 
 /// Task status provider that uses Datastore and [NeatTaskStatus] entries
 /// to load and store the status of the process.
+///
+/// Datastore remains the authority for claiming tasks: [set] performs its
+/// optimistic-concurrency check against Datastore only. On a successful
+/// [set], the same value is mirrored (best-effort) into the SQL database, so
+/// that the runtime-independent task state is present on a later switch.
 class DatastoreStatusProvider extends NeatStatusProvider {
   final db.DatastoreDB _db;
   final String _name;
@@ -116,7 +125,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
   @override
   Future<bool> set(List<int>? status) async {
     final key = _db.emptyKey.append(NeatTaskStatus, id: _id);
-    final newEtag = await db.withRetryTransaction(_db, (tx) async {
+    final claimed = await db.withRetryTransaction(_db, (tx) async {
       var e = await tx.lookupOrNull<NeatTaskStatus>(key);
       if (e != null && e.etag != _etag) {
         return null;
@@ -127,15 +136,72 @@ class DatastoreStatusProvider extends NeatStatusProvider {
         ..etag = Ulid().toCanonical()
         ..updated = clock.now().toUtc();
       tx.insert(e);
-      return e.etag;
+      return (etag: e.etag!, updated: e.updated!);
     });
-    if (newEtag != null) {
-      _etag = newEtag;
+    if (claimed != null) {
+      _etag = claimed.etag;
+      await _mirrorToSql(
+        status: status ?? <int>[],
+        etag: claimed.etag,
+        updatedAt: claimed.updated,
+      );
       return true;
     } else {
       return false;
     }
   }
+
+  /// Best-effort mirror of the current claim into the SQL database.
+  Future<void> _mirrorToSql({
+    required List<int> status,
+    required String etag,
+    required DateTime updatedAt,
+  }) async {
+    try {
+      await _writeNeatTaskStatusToSql(
+        name: _name,
+        runtimeVersion: _runtimeVersion(
+          _name,
+          isRuntimeVersioned: _isRuntimeVersioned,
+        ),
+        status: status,
+        etag: etag,
+        updatedAt: updatedAt,
+      );
+    } catch (e, st) {
+      _logger.warning('SQL NeatTaskStatus mirror failed: $_id', e, st);
+    }
+  }
+}
+
+Future<void> _writeNeatTaskStatusToSql({
+  required String name,
+  required String runtimeVersion,
+  required List<int> status,
+  required String etag,
+  required DateTime updatedAt,
+}) async {
+  final statusBytes = Uint8List.fromList(status);
+  await primaryDatabase.transactWithRetry((db) async {
+    // TODO: consider supporting a generated `upsertValue()` in typed_sql
+    await db.neatTaskStatuses
+        .insertValue(
+          taskName: name,
+          runtimeVersion: runtimeVersion,
+          status: statusBytes,
+          etag: etag,
+          updatedAt: updatedAt,
+        )
+        .onConflict(.primaryKey)
+        .update(
+          (_, _, set) => set(
+            status: statusBytes.asExpr,
+            etag: etag.asExpr,
+            updatedAt: updatedAt.asExpr,
+          ),
+        )
+        .execute();
+  });
 }
 
 /// Deletes old entities in datastore that were not updated for
@@ -146,14 +212,27 @@ Future<void> deleteOldNeatTaskStatuses(
 }) async {
   final query = dbService.query<NeatTaskStatus>();
   final now = clock.now().toUtc();
+  final deleteBefore = now.subtract(maxAge);
   final count = await dbService.deleteWithQuery<NeatTaskStatus>(
     query,
     where: (status) {
       if (status.updated == null) return true;
-      final diff = now.difference(status.updated!);
-      return diff > maxAge;
+      return status.updated!.isBefore(deleteBefore);
+    },
+    beforeDelete: (values) {
+      for (final status in values) {
+        final name = status.name;
+        final runtimeVersion = status.runtimeVersion;
+        if (name != null && runtimeVersion != null) {}
+      }
     },
   );
+  await primaryDatabase.withRetry((db) async {
+    await db.neatTaskStatuses
+        .where((row) => row.updatedAt.isBeforeValue(deleteBefore))
+        .delete()
+        .execute();
+  });
   _logger.info(
     'delete-old-neat-task-statuses cleared $count entries (${versions.runtimeVersion}).',
   );

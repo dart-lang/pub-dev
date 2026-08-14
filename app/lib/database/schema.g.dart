@@ -31,12 +31,16 @@ Map<String, dynamic> _$TaskStateToJson(TaskState instance) => <String, dynamic>{
 extension PrimarySchemaSchema on Database<PrimarySchema> {
   static final _$tables = [
     _$UserSessionRow._$table,
+    _$NeatTaskStatusRow._$table,
     _$Task._$table,
     _$TaskDependency._$table,
   ];
 
   Table<UserSessionRow> get userSessions =>
       $ForGeneratedCode.declareTable(this, _$UserSessionRow._$table);
+
+  Table<NeatTaskStatusRow> get neatTaskStatuses =>
+      $ForGeneratedCode.declareTable(this, _$NeatTaskStatusRow._$table);
 
   Table<Task> get tasks => $ForGeneratedCode.declareTable(this, _$Task._$table);
 
@@ -991,6 +995,641 @@ extension InsertOnConflictSingleUserSessionRowExt
         openidNonce,
         accessToken,
         grantedScopes,
+      ]),
+    ),
+  );
+}
+
+final class _$NeatTaskStatusRow extends NeatTaskStatusRow {
+  _$NeatTaskStatusRow._(
+    this.taskName,
+    this.runtimeVersion,
+    this.status,
+    this.etag,
+    this.updatedAt,
+  );
+
+  @override
+  final String taskName;
+
+  @override
+  final String runtimeVersion;
+
+  @override
+  final Uint8List status;
+
+  @override
+  final String etag;
+
+  @override
+  final DateTime updatedAt;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'neat_task_statuses',
+    columns: <String>[
+      'task_name',
+      'runtime_version',
+      'status',
+      'etag',
+      'updated_at',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.blob,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['task_name', 'runtime_version'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['updated_at'],
+      ),
+    ],
+    readRow: _$NeatTaskStatusRow._$fromDatabase,
+  );
+
+  static NeatTaskStatusRow? _$fromDatabase(RowReader row) {
+    final taskName = row.readString();
+    final runtimeVersion = row.readString();
+    final status = row.readUint8List();
+    final etag = row.readString();
+    final updatedAt = row.readDateTime();
+    if (taskName == null &&
+        runtimeVersion == null &&
+        status == null &&
+        etag == null &&
+        updatedAt == null) {
+      return null;
+    }
+    return _$NeatTaskStatusRow._(
+      taskName!,
+      runtimeVersion!,
+      status!,
+      etag!,
+      updatedAt!,
+    );
+  }
+
+  @override
+  String toString() =>
+      'NeatTaskStatusRow(taskName: "$taskName", runtimeVersion: "$runtimeVersion", status: "$status", etag: "$etag", updatedAt: "$updatedAt")';
+}
+
+/// Extension methods for table defined in [NeatTaskStatusRow].
+extension TableNeatTaskStatusRowExt on Table<NeatTaskStatusRow> {
+  /// Insert row into the `neatTaskStatuses` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<NeatTaskStatusRow> insert({
+    required Expr<String> taskName,
+    required Expr<String> runtimeVersion,
+    required Expr<Uint8List> status,
+    required Expr<String> etag,
+    required Expr<DateTime> updatedAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [taskName, runtimeVersion, status, etag, updatedAt],
+  );
+
+  /// Insert row into the `neatTaskStatuses` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<NeatTaskStatusRow> insertValue({
+    required String taskName,
+    required String runtimeVersion,
+    required Uint8List status,
+    required String etag,
+    required DateTime updatedAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      taskName.asExpr,
+      runtimeVersion.asExpr,
+      status.asExpr,
+      etag.asExpr,
+      updatedAt.asExpr,
+    ],
+  );
+
+  /// Bulk insert rows into the `neatTaskStatuses` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<NeatTaskStatusRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) taskName,
+    required String Function(T row) runtimeVersion,
+    required Uint8List Function(T row) status,
+    required String Function(T row) etag,
+    required DateTime Function(T row) updatedAt,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [taskName, runtimeVersion, status, etag, updatedAt],
+  );
+
+  /// Delete a single row from the `neatTaskStatuses` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<NeatTaskStatusRow> delete(
+    String taskName,
+    String runtimeVersion,
+  ) => $ForGeneratedCode.deleteSingle(
+    byKey(taskName, runtimeVersion),
+    _$NeatTaskStatusRow._$table,
+  );
+}
+
+/// Extension methods for building queries against the `neatTaskStatuses` table.
+extension QueryNeatTaskStatusRowExt on Query<(Expr<NeatTaskStatusRow>,)> {
+  /// Lookup a single row in `neatTaskStatuses` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<NeatTaskStatusRow>,)> byKey(
+    String taskName,
+    String runtimeVersion,
+  ) => where(
+    (neatTaskStatusRow) =>
+        neatTaskStatusRow.taskName.equalsValue(taskName) &
+        neatTaskStatusRow.runtimeVersion.equalsValue(runtimeVersion),
+  ).first;
+
+  /// Update all rows in the `neatTaskStatuses` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<NeatTaskStatusRow> update(
+    UpdateSet<NeatTaskStatusRow> Function(
+      Expr<NeatTaskStatusRow> neatTaskStatusRow,
+      UpdateSet<NeatTaskStatusRow> Function({
+        Expr<String> taskName,
+        Expr<String> runtimeVersion,
+        Expr<Uint8List> status,
+        Expr<String> etag,
+        Expr<DateTime> updatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<NeatTaskStatusRow>(
+    this,
+    _$NeatTaskStatusRow._$table,
+    (neatTaskStatusRow) => updateBuilder(
+      neatTaskStatusRow,
+      ({
+        Expr<String>? taskName,
+        Expr<String>? runtimeVersion,
+        Expr<Uint8List>? status,
+        Expr<String>? etag,
+        Expr<DateTime>? updatedAt,
+      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatusRow>([
+        taskName,
+        runtimeVersion,
+        status,
+        etag,
+        updatedAt,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `neatTaskStatuses` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<NeatTaskStatusRow> delete() =>
+      $ForGeneratedCode.delete(this, _$NeatTaskStatusRow._$table);
+}
+
+/// Extension methods for building point queries against the `neatTaskStatuses` table.
+extension QuerySingleNeatTaskStatusRowExt
+    on QuerySingle<(Expr<NeatTaskStatusRow>,)> {
+  /// Update the row (if any) in the `neatTaskStatuses` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<NeatTaskStatusRow> update(
+    UpdateSet<NeatTaskStatusRow> Function(
+      Expr<NeatTaskStatusRow> neatTaskStatusRow,
+      UpdateSet<NeatTaskStatusRow> Function({
+        Expr<String> taskName,
+        Expr<String> runtimeVersion,
+        Expr<Uint8List> status,
+        Expr<String> etag,
+        Expr<DateTime> updatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<NeatTaskStatusRow>(
+    this,
+    _$NeatTaskStatusRow._$table,
+    (neatTaskStatusRow) => updateBuilder(
+      neatTaskStatusRow,
+      ({
+        Expr<String>? taskName,
+        Expr<String>? runtimeVersion,
+        Expr<Uint8List>? status,
+        Expr<String>? etag,
+        Expr<DateTime>? updatedAt,
+      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatusRow>([
+        taskName,
+        runtimeVersion,
+        status,
+        etag,
+        updatedAt,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `neatTaskStatuses` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<NeatTaskStatusRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$NeatTaskStatusRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `neatTaskStatuses` table.
+extension ExpressionNeatTaskStatusRowExt on Expr<NeatTaskStatusRow> {
+  /// The name of the task.
+  Expr<String> get taskName =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// The `runtimeVersion` this status is scoped to, or `-` for tasks that
+  /// are not scoped to a specific runtime version.
+  Expr<String> get runtimeVersion =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// The serialized `neat_periodic_task` status payload.
+  Expr<Uint8List> get status =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.blob);
+
+  /// The etag of the entity. Currently it is the Datastore's etag, may be custom hash
+  /// after we complete migration.
+  Expr<String> get etag =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  /// The time this row was last updated.
+  Expr<DateTime> get updatedAt =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
+}
+
+extension ExpressionNullableNeatTaskStatusRowExt on Expr<NeatTaskStatusRow?> {
+  /// The name of the task.
+  Expr<String?> get taskName =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// The `runtimeVersion` this status is scoped to, or `-` for tasks that
+  /// are not scoped to a specific runtime version.
+  Expr<String?> get runtimeVersion =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// The serialized `neat_periodic_task` status payload.
+  Expr<Uint8List?> get status =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.blob);
+
+  /// The etag of the entity. Currently it is the Datastore's etag, may be custom hash
+  /// after we complete migration.
+  Expr<String?> get etag =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  /// The time this row was last updated.
+  Expr<DateTime?> get updatedAt =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => taskName.isNotNull() & runtimeVersion.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+/// `Table<NeatTaskStatusRow>` conflict targets for use with `.onConflict`.
+enum NeatTaskStatusRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `taskName`, `runtimeVersion`.
+  primaryKey(['task_name', 'runtime_version']);
+
+  const NeatTaskStatusRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertNeatTaskStatusRowExt on Insert<NeatTaskStatusRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((neatTaskStatusRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<NeatTaskStatusRow> onConflict(
+    NeatTaskStatusRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictNeatTaskStatusRowExt
+    on InsertOnConflict<NeatTaskStatusRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `neatTaskStatusRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<NeatTaskStatusRow> update(
+    UpdateSet<NeatTaskStatusRow> Function(
+      Expr<NeatTaskStatusRow> neatTaskStatusRow,
+      Expr<NeatTaskStatusRow> excluded,
+      UpdateSet<NeatTaskStatusRow> Function({
+        Expr<String> taskName,
+        Expr<String> runtimeVersion,
+        Expr<Uint8List> status,
+        Expr<String> etag,
+        Expr<DateTime> updatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<NeatTaskStatusRow>(
+    this,
+    (neatTaskStatusRow, excluded) => updateBuilder(
+      neatTaskStatusRow,
+      excluded,
+      ({
+        Expr<String>? taskName,
+        Expr<String>? runtimeVersion,
+        Expr<Uint8List>? status,
+        Expr<String>? etag,
+        Expr<DateTime>? updatedAt,
+      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatusRow>([
+        taskName,
+        runtimeVersion,
+        status,
+        etag,
+        updatedAt,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleNeatTaskStatusRowExt on InsertSingle<NeatTaskStatusRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((neatTaskStatusRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<NeatTaskStatusRow> onConflict(
+    NeatTaskStatusRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleNeatTaskStatusRowExt
+    on InsertOnConflictSingle<NeatTaskStatusRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `neatTaskStatusRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<NeatTaskStatusRow> update(
+    UpdateSet<NeatTaskStatusRow> Function(
+      Expr<NeatTaskStatusRow> neatTaskStatusRow,
+      Expr<NeatTaskStatusRow> excluded,
+      UpdateSet<NeatTaskStatusRow> Function({
+        Expr<String> taskName,
+        Expr<String> runtimeVersion,
+        Expr<Uint8List> status,
+        Expr<String> etag,
+        Expr<DateTime> updatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<NeatTaskStatusRow>(
+    this,
+    (neatTaskStatusRow, excluded) => updateBuilder(
+      neatTaskStatusRow,
+      excluded,
+      ({
+        Expr<String>? taskName,
+        Expr<String>? runtimeVersion,
+        Expr<Uint8List>? status,
+        Expr<String>? etag,
+        Expr<DateTime>? updatedAt,
+      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatusRow>([
+        taskName,
+        runtimeVersion,
+        status,
+        etag,
+        updatedAt,
       ]),
     ),
   );
