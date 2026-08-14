@@ -16,7 +16,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import '../shared/parallel_foreach.dart';
+import 'package:pool/pool.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/package/api_export/exported_api.dart';
 import 'package:pub_dev/scorecard/backend.dart';
@@ -474,20 +474,22 @@ class PackageBackend {
     Version? dartSdkVersion,
     int? concurrency,
   }) async {
+    final pool = Pool(concurrency ?? 1);
     var count = 0;
-    
-    // Assigning to a variable and awaiting the variable natively resolves the analyzer AST unawaited_futures lint bug
-    // that fails on GitHub when calling `await stream.parallelForEach(...)`.
-    final pipeline = db.query<Package>().run().parallelForEach(concurrency ?? 1, (p) async {
-      final updated = await updatePackageVersions(
-        p.name!,
-        dartSdkVersion: dartSdkVersion,
-      );
-      if (updated) count++;
-    });
-    
-    await pipeline;
-
+    final futures = <Future>[];
+    await for (final p in db.query<Package>().run()) {
+      final package = p.name!;
+      final f = pool.withResource(() async {
+        final updated = await updatePackageVersions(
+          package,
+          dartSdkVersion: dartSdkVersion,
+        );
+        if (updated) count++;
+      });
+      futures.add(f);
+    }
+    await Future.wait(futures);
+    await pool.close();
     return count;
   }
 
