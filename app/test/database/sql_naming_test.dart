@@ -38,10 +38,10 @@ void main() {
   // This is a nice naming convention, enforced by this semi-ugly test.
   // If we decide to abandon this convention, then delete this file.
   test('timestamptz columns end with `_at`', () {
-  // NOTE: If this test breaks because of SQL parsing
-  //       issues, feel free to delete it.
-  //       We shall only maintain this test to the extend
-  //       that doing so is easy.
+    // NOTE: If this test breaks because of SQL parsing
+    //       issues, feel free to delete it.
+    //       We shall only maintain this test to the extend
+    //       that doing so is easy.
     for (final file in sqlFiles) {
       final basename = path.basename(file.path);
       final excluded = _exemptedTimestampColumns[basename] ?? const {};
