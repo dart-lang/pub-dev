@@ -69,7 +69,7 @@ can't be updated, administrators must not be able to update publisher options.
           final mc = await tx.lookupValue<ModerationCase>(refCase.key);
           mc.addActionLogEntry(
             ModerationSubject.publisher(publisherId).fqn,
-            valueToSet ? ModerationAction.apply : ModerationAction.revert,
+            valueToSet! ? ModerationAction.apply : ModerationAction.revert,
             note,
           );
           tx.insert(mc);

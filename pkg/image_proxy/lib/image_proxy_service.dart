@@ -250,7 +250,7 @@ Future<shelf.Response> handler(shelf.Request request) async {
           if (location == null) {
             throw RedirectException('No location header in redirect.');
           }
-          return makeRequest(
+          return await makeRequest(
             parsedImageUrl.resolve(location),
             redirectCount: redirectCount + 1,
           );

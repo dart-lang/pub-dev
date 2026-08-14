@@ -187,7 +187,7 @@ Future<R> withFakeServices<R>({
         }
         registerActiveConfiguration(configuration!);
         for (final bucketName in configuration!.allBucketNames) {
-          await storage.createBucket(bucketName);
+          await storage!.createBucket(bucketName);
         }
 
         // register fake services that would have external dependencies

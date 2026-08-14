@@ -341,7 +341,7 @@ void _testUserNotAdminOfPublisher({
         }
         await dbService.commit(inserts: members);
       });
-      final client = await createFakeAuthPubApiClient(email: email);
+      final client = await createFakeAuthPubApiClient(email: email!);
       final rs = fn(client);
       await expectApiException(
         rs,
