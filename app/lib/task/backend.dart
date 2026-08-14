@@ -1085,8 +1085,7 @@ class TaskBackend {
     });
   }
 
-  /// Trigger an immediate analysis scheduling or priority bump for [packageName]
-  /// and an optional [version].
+  /// Trigger an immediate analysis scheduling or priority bump for [packageName].
   ///
   /// Resets the version(s) state so that they are guaranteed to be considered
   /// pending, sets `pendingAt` to [initialTimestamp], and immediately attempts
@@ -1097,71 +1096,11 @@ class TaskBackend {
   ///
   /// It is an error if [packageName] is empty.
   ///
-  /// Throws [InvalidInputException] if [packageName] is not tracked, or if [version]
-  /// is specified but not tracked for [packageName].
-  Future<Map<String, dynamic>> adminBumpPriority(
-    String packageName, {
-    String? version,
-  }) async {
-    // Ensure we're up-to-date.
-    await trackPackage(packageName, refreshVersionsCache: true);
-
-    // 1. Reset version state so it's guaranteed to be pending.
-    await _database.transactWithRetry((db) async {
-      final task = await db.taskLookupOrNull(packageName);
-      if (task == null) {
-        throw InvalidInputException('No task found for "$packageName".');
-      }
-
-      final versions = {...task.state.versions};
-      if (version != null && !versions.containsKey(version)) {
-        throw InvalidInputException(
-          'Version "$version" is not tracked for package "$packageName".',
-        );
-      }
-
-      final targetVersions = version != null
-          ? [version]
-          : versions.keys.toList();
-      final abortedTokens = <AbortedTokenInfo>[];
-      for (final v in targetVersions) {
-        final current = versions[v];
-        if (current == null) continue;
-        if (current.secretToken != null) {
-          abortedTokens.add(
-            AbortedTokenInfo(
-              token: current.secretToken!,
-              expires: current.scheduled.add(maxTaskExecutionTime),
-            ),
-          );
-        }
-        versions[v] = PackageVersionStateInfo(
-          scheduled: initialTimestamp,
-          attempts: 0,
-          docs: current.docs,
-          pana: current.pana,
-          finished: current.finished,
-        );
-      }
-
-      final newAbortedTokens = [
-        ...abortedTokens,
-        ...task.state.abortedTokens,
-      ].where((t) => t.isNotExpired).take(50).toList();
-
-      await db.tasks
-          .byKey(runtimeVersion, packageName)
-          .update(
-            (_, set) => set(
-              state: TaskState(
-                versions: versions,
-                abortedTokens: newAbortedTokens,
-              ).asExpr,
-              pendingAt: initialTimestamp.asExpr,
-            ),
-          )
-          .execute();
-    });
+  /// Throws [InvalidInputException] if [packageName] is not tracked.
+  Future<Map<String, dynamic>> adminBumpPriority(String packageName) async {
+    // Ensure we're up-to-date and prioritized.
+    await trackPackage(packageName);
+    await _database.withRetry((db) => db.taskBumpPriority(packageName));
 
     // 2. Check quota and pick zone.
     final compute = taskWorkerCloudCompute;
@@ -1172,7 +1111,6 @@ class TaskBackend {
         'message':
             'Instance limit reached. Analysis task is enqueued with highest priority.',
         'package': packageName,
-        if (version != null) 'version': version,
       };
     }
 
@@ -1182,7 +1120,6 @@ class TaskBackend {
         'message':
             'No compute zones configured. Analysis task is enqueued with highest priority.',
         'package': packageName,
-        if (version != null) 'version': version,
       };
     }
 
@@ -1200,7 +1137,6 @@ class TaskBackend {
         'message':
             'Failed to start instance immediately or no versions pending. Task remains enqueued with highest priority.',
         'package': packageName,
-        if (version != null) 'version': version,
       };
     }
 
