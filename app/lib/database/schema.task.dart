@@ -67,16 +67,24 @@ abstract final class TaskVersion extends Row {
   DateTime get scheduledAt;
 
   /// The number of attempts to schedule the package version for analysis.
+  ///
+  /// It gets increased every time an attempt is made, 0 means no schedule happened yet.
   int get attempts;
 
   /// Name of the zone in which the instance analysing this package version is
   /// running.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
   String? get workerZone;
 
   /// Name of the instance analysing this package version.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
   String? get workerInstance;
 
   /// Secret token (UUIDv4) used for authenticating worker requests.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
   String? get workerToken;
 
   /// True, if dartdoc documentation is available.
