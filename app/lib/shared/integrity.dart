@@ -13,7 +13,6 @@ import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:pool/pool.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:retry/retry.dart';
@@ -34,6 +33,7 @@ import '../shared/env_config.dart';
 import '../shared/monitoring.dart';
 import 'configuration.dart';
 import 'datastore.dart';
+import 'parallel_foreach.dart';
 import 'storage.dart';
 import 'urls.dart' as urls;
 import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
@@ -88,34 +88,33 @@ class _BaseIntegrityChecker {
     Duration? timeLimit,
   }) async* {
     timeLimit ??= const Duration(minutes: 15);
-    final pool = Pool(_concurrency);
-    final futures = <Future<List<String>>>[];
-    try {
-      await for (final item in streamFn()) {
-        final taskFuture = pool.withResource(() async {
-          final f = itemFn(item).toList();
-          try {
-            return await f.timeout(timeLimit!);
-          } on TimeoutException catch (e, st) {
-            _logger.pubNoticeShout(
-              'integrity-check-timeout',
-              'Integrity check operation timed out.',
-              e,
-              st,
-            );
-            rethrow;
-          }
-        });
-        futures.add(taskFuture);
-      }
-      for (final f in futures) {
-        for (final item in await f) {
-          yield item;
-        }
-      }
-    } finally {
-      await pool.close();
-    }
+    final controller = StreamController<String>();
+
+    unawaited(
+      streamFn()
+          .parallelForEach(_concurrency, (item) async {
+            try {
+              final list = await itemFn(item).toList().timeout(timeLimit!);
+              for (final e in list) {
+                controller.add(e);
+              }
+            } on TimeoutException catch (e, st) {
+              _logger.pubNoticeShout(
+                'integrity-check-timeout',
+                'Integrity check operation timed out.',
+                e,
+                st,
+              );
+              controller.addError(e, st);
+            } catch (e, st) {
+              controller.addError(e, st);
+            }
+          })
+          .catchError(controller.addError)
+          .whenComplete(controller.close),
+    );
+
+    yield* controller.stream;
   }
 
   Stream<String> _queryWithPool<R extends Model>(
