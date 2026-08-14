@@ -10,6 +10,7 @@ import '../../account/backend.dart';
 import '../../account/models.dart';
 import '../../package/backend.dart';
 import '../../shared/datastore.dart';
+import '../../shared/parallel_foreach.dart';
 import '../../shared/utils.dart';
 
 final _logger = Logger('remove_orphaned_likes');
@@ -50,31 +51,37 @@ Future<DeleteCounts> removeOrphanedLikes({
     }
   }
 
-  final counts = await dbService.deleteWithQuery<Like>(
-    dbService.query<Like>(),
-    where: (like) async {
-      final age = clock.now().difference(like.created!);
-      if (age < (minAgeThreshold ?? _minAgeThreshold)) {
-        // Do not check likes that are younger than the threshold to prevent eventual consistency issues.
-        return false;
-      }
+  var found = 0;
+  var deleted = 0;
 
-      if (await isUserIdMissing(like.userId)) {
-        // TODO: investigate if we need to recalculate the like count for the packages.
-        _logger.info(
-          'Removing like for package `${like.package}` because userId `${like.userId}` is missing.',
-        );
-        return true;
-      }
-      if (await isPackageMissing(like.package)) {
-        _logger.info(
-          'Removing like for userId `${like.userId}` because package `${like.package}` is missing.',
-        );
-        return true;
-      }
-      return false;
-    },
-  );
-  _logger.info('Removed ${counts.deleted} orphaned likes.');
-  return counts;
+  final threshold = minAgeThreshold ?? _minAgeThreshold;
+
+  await dbService.query<Like>().run().parallelForEach(10, (like) async {
+    found++;
+    final age = clock.now().difference(like.created!);
+    if (age < threshold) {
+      return;
+    }
+
+    if (await isUserIdMissing(like.userId)) {
+      _logger.info(
+        'Removing like for package `${like.package}` because userId `${like.userId}` is missing.',
+      );
+      await dbService.commit(deletes: [like.key]);
+      deleted++;
+      return;
+    }
+
+    if (await isPackageMissing(like.package)) {
+      _logger.info(
+        'Removing like for userId `${like.userId}` because package `${like.package}` is missing.',
+      );
+      await dbService.commit(deletes: [like.key]);
+      deleted++;
+      return;
+    }
+  });
+
+  _logger.info('Removed $deleted orphaned likes.');
+  return DeleteCounts(found, deleted);
 }
