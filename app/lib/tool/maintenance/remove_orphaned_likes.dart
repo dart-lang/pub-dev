@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 
 import '../../account/backend.dart';
 import '../../account/models.dart';
-import '../../package/backend.dart';
+import '../../package/models.dart';
 import '../../shared/datastore.dart';
 import '../../shared/utils.dart';
 
@@ -24,57 +24,98 @@ Future<DeleteCounts> removeOrphanedLikes({
   final existingUserIds = <String>{};
   final existingPackages = <String>{};
 
-  Future<bool> isUserIdMissing(String userId) async {
-    if (existingUserIds.contains(userId)) {
-      return false;
-    }
-    final user = await accountBackend.lookupUserById(userId);
-    if (user != null) {
-      existingUserIds.add(userId);
-      return false;
-    } else {
-      return true;
-    }
-  }
+  var found = 0;
+  var deleted = 0;
 
-  Future<bool> isPackageMissing(String package) async {
-    if (existingPackages.contains(package)) {
-      return false;
-    }
-    final p = await packageBackend.lookupPackage(package);
-    if (p != null) {
-      existingPackages.add(package);
-      return false;
-    } else {
-      return true;
-    }
-  }
+  final buffer = <Like>[];
 
-  final counts = await dbService.deleteWithQuery<Like>(
-    dbService.query<Like>(),
-    where: (like) async {
+  Future<void> processBuffer() async {
+    if (buffer.isEmpty) return;
+
+    // Filter likes by age
+    final ageThreshold = minAgeThreshold ?? _minAgeThreshold;
+    final oldLikes = buffer.where((like) {
       final age = clock.now().difference(like.created!);
-      if (age < (minAgeThreshold ?? _minAgeThreshold)) {
-        // Do not check likes that are younger than the threshold to prevent eventual consistency issues.
-        return false;
-      }
+      return age >= ageThreshold;
+    }).toList();
 
-      if (await isUserIdMissing(like.userId)) {
-        // TODO: investigate if we need to recalculate the like count for the packages.
+    // 1. Batch lookup missing users
+    final missingUserIds = oldLikes
+        .map((l) => l.userId)
+        .where((id) => !existingUserIds.contains(id))
+        .toSet()
+        .toList();
+
+    if (missingUserIds.isNotEmpty) {
+      for (var i = 0; i < missingUserIds.length; i += 100) {
+        final batch = missingUserIds.skip(i).take(100).toList();
+        final users = await accountBackend.lookupUsersById(batch);
+        for (var j = 0; j < batch.length; j++) {
+          if (users[j] != null) {
+            existingUserIds.add(batch[j]);
+          }
+        }
+      }
+    }
+
+    // 2. Batch lookup missing packages
+    final missingPackages = oldLikes
+        .map((l) => l.package)
+        .where((p) => !existingPackages.contains(p))
+        .toSet()
+        .toList();
+
+    if (missingPackages.isNotEmpty) {
+      for (var i = 0; i < missingPackages.length; i += 100) {
+        final batch = missingPackages.skip(i).take(100).toList();
+        final keys = batch
+            .map((p) => dbService.emptyKey.append(Package, id: p))
+            .toList();
+        final packages = await dbService.lookup<Package>(keys);
+        for (var j = 0; j < batch.length; j++) {
+          if (packages[j] != null) {
+            existingPackages.add(batch[j]);
+          }
+        }
+      }
+    }
+
+    // 3. Delete orphaned likes
+    final deletes = <Like>[];
+    for (final like in oldLikes) {
+      if (!existingUserIds.contains(like.userId)) {
         _logger.info(
           'Removing like for package `${like.package}` because userId `${like.userId}` is missing.',
         );
-        return true;
-      }
-      if (await isPackageMissing(like.package)) {
+        deletes.add(like);
+      } else if (!existingPackages.contains(like.package)) {
         _logger.info(
           'Removing like for userId `${like.userId}` because package `${like.package}` is missing.',
         );
-        return true;
+        deletes.add(like);
       }
-      return false;
-    },
-  );
-  _logger.info('Removed ${counts.deleted} orphaned likes.');
-  return counts;
+    }
+
+    if (deletes.isNotEmpty) {
+      await dbService.commit(deletes: deletes.map((l) => l.key).toList());
+      deleted += deletes.length;
+    }
+
+    buffer.clear();
+  }
+
+  await for (final like in dbService.query<Like>().run()) {
+    found++;
+    buffer.add(like);
+    if (buffer.length >= 500) {
+      await processBuffer();
+    }
+  }
+
+  if (buffer.isNotEmpty) {
+    await processBuffer();
+  }
+
+  _logger.info('Removed $deleted orphaned likes.');
+  return DeleteCounts(found, deleted);
 }
