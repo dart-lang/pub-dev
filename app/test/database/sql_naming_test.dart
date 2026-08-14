@@ -34,6 +34,9 @@ void main() {
     expect(sqlFiles, isNotEmpty);
   });
 
+  // Test that all DateTime fields in the database have a name ending in "At"
+  // This is a nice naming convention, enforced by this semi-ugly test.
+  // If we decide to abandon this convention, then delete this file.
   test('timestamptz columns end with `_at`', () {
   // NOTE: If this test breaks because of SQL parsing
   //       issues, feel free to delete it.
