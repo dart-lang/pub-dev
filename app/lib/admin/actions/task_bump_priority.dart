@@ -10,30 +10,27 @@ final taskBumpPriority = AdminAction(
   name: 'task-bump-priority',
   summary: 'Increase priority and schedule analysis of specific package.',
   description: '''
-This action resets the scheduling state for the given package (and optional version)
-and immediately triggers an analysis worker instance if quota is available.
+This action bumps the priority of the given package.
+Pending/running analysis will be cancelled and analysis of all versions will be
+queued at highest priority.
 
-If the instance quota limit is reached or instance creation fails, it sets the
-priority to the highest level so the background scheduler will pick it up as soon as possible.
+It will also immediately trigger an analysis worker instance if quota is available.
+If the instance quota limit is reached or instance creation fails, the priority
+remains bumped and the background scheduler will pick it up as soon as possible.
 ''',
   options: {
     'package': 'Name of package whose priority should be bumped',
-    'version': 'Optional version of package to analyze',
   },
   invoke: (options) async {
     final package =
         options['package'] ??
         (throw InvalidInputException('Needs a package name'));
     InvalidInputException.checkPackageName(package);
-    final version = options['version'];
-    if (version != null) {
-      InvalidInputException.checkSemanticVersion(version);
-    }
     // Make sure package exists.
     final pkg = await packageBackend.lookupPackage(package);
     if (pkg == null) {
       throw InvalidInputException('No package $package');
     }
-    return await taskBackend.adminBumpPriority(package, version: version);
+    return await taskBackend.adminBumpPriority(package);
   },
 );

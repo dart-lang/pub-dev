@@ -124,33 +124,6 @@ void main() {
     );
 
     testWithProfile(
-      'task-bump-priority with specific version',
-      processJobsWithFakeRunners: true,
-      fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
-        final cloud = taskWorkerCloudCompute as FakeCloudCompute;
-
-        final rs = await client.adminInvokeAction(
-          'task-bump-priority',
-          AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'version': '1.2.0'},
-          ),
-        );
-        expect(rs.output, {
-          'status': 'started',
-          'message': 'Instance created for analysis.',
-          'package': 'oxygen',
-          'instance': startsWith('instance-'),
-          'zone': 'zone-a',
-          'versions': ['1.2.0'],
-        });
-
-        final instances = await cloud.listInstances().toList();
-        expect(instances, hasLength(1));
-      },
-    );
-
-    testWithProfile(
       'task-bump-priority when quota/instance limit is reached',
       processJobsWithFakeRunners: true,
       fn: () async {
@@ -186,21 +159,6 @@ void main() {
         final rs = client.adminInvokeAction(
           'task-bump-priority',
           AdminInvokeActionArguments(arguments: {'package': 'non_existing'}),
-        );
-        await expectApiException(rs, status: 400, code: 'InvalidInput');
-      },
-    );
-
-    testWithProfile(
-      'task-bump-priority with untracked version',
-      processJobsWithFakeRunners: true,
-      fn: () async {
-        final client = createPubApiClient(authToken: siteAdminToken);
-        final rs = client.adminInvokeAction(
-          'task-bump-priority',
-          AdminInvokeActionArguments(
-            arguments: {'package': 'oxygen', 'version': '9.9.9'},
-          ),
         );
         await expectApiException(rs, status: 400, code: 'InvalidInput');
       },
