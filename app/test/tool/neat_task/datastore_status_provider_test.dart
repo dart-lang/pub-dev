@@ -39,21 +39,22 @@ void main() {
         expect(await provider.get(), isEmpty);
         expect(await provider.get(), isEmpty);
 
-        final list = await listStatuses();
-        expect(list.single.id, '-/task-id');
-        expect(list.single.name, 'task-id');
-        expect(list.single.runtimeVersion, '-');
+        final row = await lookupSqlRow('task-id', isRuntimeVersioned: false);
+        expect(row, isNotNull);
+        expect(row!.status, isEmpty);
+        expect(await listStatuses(), isEmpty);
 
+        await deleteOldNeatTaskStatuses(dbService, maxAge: Duration(hours: 1));
+        expect(
+          await lookupSqlRow('task-id', isRuntimeVersioned: false),
+          isNotNull,
+        );
+
+        await deleteOldNeatTaskStatuses(dbService, maxAge: Duration.zero);
         expect(
           await lookupSqlRow('task-id', isRuntimeVersioned: false),
           isNull,
         );
-
-        await deleteOldNeatTaskStatuses(dbService, maxAge: Duration(hours: 1));
-        expect(await listStatuses(), isNotEmpty);
-
-        await deleteOldNeatTaskStatuses(dbService, maxAge: Duration.zero);
-        expect(await listStatuses(), isEmpty);
       },
     );
 
@@ -67,10 +68,10 @@ void main() {
         );
         expect(await provider.get(), isEmpty);
         expect(await provider.get(), isEmpty);
-        final list = await listStatuses();
-        expect(list.single.id, '$runtimeVersion/task-id');
-        expect(list.single.name, 'task-id');
-        expect(list.single.runtimeVersion, runtimeVersion);
+        final row = await lookupSqlRow('task-id', isRuntimeVersioned: true);
+        expect(row, isNotNull);
+        expect(row!.status, isEmpty);
+        expect(await listStatuses(), isEmpty);
       },
     );
 
