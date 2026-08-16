@@ -20,8 +20,7 @@ abstract final class NeatTaskStatusRow extends Row {
   /// The serialized `neat_periodic_task` status payload.
   Uint8List get status;
 
-  /// The etag of the entity. Currently it is the Datastore's etag, may be custom hash
-  /// after we complete migration.
+  /// The etag of the entity, generated whenever the status is claimed.
   String get etag;
 
   /// The time this row was last updated.
