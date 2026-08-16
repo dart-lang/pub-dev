@@ -31,6 +31,7 @@ import '../service/email/email_templates.dart'
     show isValidEmail, looksLikeEmail;
 import '../shared/env_config.dart';
 import '../shared/monitoring.dart';
+import '../shared/versions.dart' as versions show runtimeVersion;
 import '../tool/neat_task/datastore_status_provider.dart';
 import 'configuration.dart';
 import 'datastore.dart';
@@ -962,7 +963,9 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     final rows = await primaryDatabase.withRetry(
       (db) => db.neatTaskStatuses.fetch(),
     );
-    final keysInDatastore = <(String, String)>{};
+    final keysInSql = rows
+        .map((row) => (row.taskName, row.runtimeVersion))
+        .toSet();
 
     yield* _queryWithPool<NeatTaskStatus>((status) async* {
       final name = status.name;
@@ -970,14 +973,13 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       if (name == null || runtimeVersion == null) {
         return;
       }
-      keysInDatastore.add((name, runtimeVersion));
-    });
-
-    for (final row in rows) {
-      if (!keysInDatastore.contains((row.taskName, row.runtimeVersion))) {
-        yield 'SQL NeatTaskStatus "${row.runtimeVersion}/${row.taskName}" does not have a matching Datastore entity.';
+      if (runtimeVersion != '-' && runtimeVersion != versions.runtimeVersion) {
+        return;
       }
-    }
+      if (!keysInSql.contains((name, runtimeVersion))) {
+        yield 'Datastore NeatTaskStatus "$runtimeVersion/$name" does not have a matching SQL row.';
+      }
+    });
   }
 
   Stream<String> _reportPubspecVersionIssues() async* {

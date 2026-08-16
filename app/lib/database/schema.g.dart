@@ -1370,8 +1370,7 @@ extension ExpressionNeatTaskStatusRowExt on Expr<NeatTaskStatusRow> {
   Expr<Uint8List> get status =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.blob);
 
-  /// The etag of the entity. Currently it is the Datastore's etag, may be custom hash
-  /// after we complete migration.
+  /// The etag of the entity, generated whenever the status is claimed.
   Expr<String> get etag =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
 
@@ -1394,8 +1393,7 @@ extension ExpressionNullableNeatTaskStatusRowExt on Expr<NeatTaskStatusRow?> {
   Expr<Uint8List?> get status =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.blob);
 
-  /// The etag of the entity. Currently it is the Datastore's etag, may be custom hash
-  /// after we complete migration.
+  /// The etag of the entity, generated whenever the status is claimed.
   Expr<String?> get etag =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
 
