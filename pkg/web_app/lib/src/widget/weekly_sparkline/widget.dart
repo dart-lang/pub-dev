@@ -70,8 +70,8 @@ void drawChart(
   // are 0 we want a straight line in the bottom of the chart.
   final maxDownloads = data.fold<int>(1, (a, b) => max<int>(a, b.downloads));
 
-  final toolTipOffsetX = 16; // was: translateX(1rem)
-  final toolTipOffsetY = -48; // was: translateY(-3rem)
+  final toolTipOffsetX = 16;
+  final toolTipOffsetY = 33;
   // Small margin so the tooltip never touches the very edge of the viewport.
   final viewportMargin = 8;
 
@@ -103,8 +103,8 @@ void drawChart(
   }
 
   // Positions the tooltip near the mouse pointer while keeping it fully
-  // inside the viewport, flipping above/left of the cursor when there isn't
-  // enough room below/right.
+  // inside the viewport, flipping below/right of the cursor when there isn't
+  // enough room above/left.
   void positionTooltip(MouseEvent e) {
     final tooltipRect = toolTip.getBoundingClientRect();
     final viewportWidth = document.documentElement!.clientWidth;
@@ -126,12 +126,14 @@ void drawChart(
         )
         .toDouble();
 
-    var top = (e.clientY + toolTipOffsetY).toDouble();
-    if (top + tooltipRect.height + viewportMargin > viewportHeight) {
-      // Not enough room below: show the tooltip above the cursor instead,
-      // keeping the same gap (inverted offset).
-      top = e.clientY - tooltipRect.height - toolTipOffsetY;
+    var top = (e.clientY - toolTipOffsetY).toDouble();
+
+    // Not enough room above: show the tooltip below the cursor instead,
+    // keeping the same gap.
+    if (top < viewportMargin) {
+      top = (e.clientY + toolTipOffsetY).toDouble();
     }
+
     top = top
         .clamp(
           viewportMargin,
