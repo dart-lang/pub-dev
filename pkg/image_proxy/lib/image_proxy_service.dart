@@ -410,22 +410,40 @@ Future<Uint8List> readAllBytes(Stream<List<int>> stream, int maxBytes) async {
   return builder.takeBytes();
 }
 
+/// Checks whether [address] belongs to a private, loopback, link-local, multicast,
+/// or reserved network address range to prevent Server-Side Request Forgery (SSRF).
+///
+/// Checks the following address spaces:
+/// - Loopback, link-local, or multicast addresses (`InternetAddress` properties).
+/// - RFC 1122 current network (`0.0.0.0/8`) and loopback (`127.0.0.0/8`).
+/// - RFC 1918 private IPv4 networks (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
+/// - RFC 3927 link-local IPv4 (`169.254.0.0/16`, which includes cloud metadata servers like `169.254.169.254`).
+/// - RFC 6598 carrier-grade NAT / shared address space (`100.64.0.0/10`).
+/// - RFC 4193 IPv6 unique local addresses (`fc00::/7`).
+/// - RFC 3513 IPv6 site-local addresses (`fec0::/10`).
+///
+/// Returns `true` if [address] is within any prohibited network range.
 bool _isProhibitedAddress(InternetAddress address) {
   if (address.isLoopback || address.isLinkLocal || address.isMulticast) {
     return true;
   }
   final raw = address.rawAddress;
   if (address.type == InternetAddressType.IPv4 && raw.length == 4) {
-    if (raw[0] == 0 ||
-        raw[0] == 10 ||
-        raw[0] == 127 ||
-        (raw[0] == 169 && raw[1] == 254) ||
-        (raw[0] == 172 && raw[1] >= 16 && raw[1] <= 31) ||
-        (raw[0] == 192 && raw[1] == 168) ||
+    if (raw[0] == 0 || // 0.0.0.0/8 (RFC 1122)
+        raw[0] == 10 || // 10.0.0.0/8 (RFC 1918)
+        raw[0] == 127 || // 127.0.0.0/8 (RFC 1122)
+        (raw[0] == 169 &&
+            raw[1] == 254) || // 169.254.0.0/16 (RFC 3927 metadata)
+        (raw[0] == 172 &&
+            raw[1] >= 16 &&
+            raw[1] <= 31) || // 172.16.0.0/12 (RFC 1918)
+        (raw[0] == 192 && raw[1] == 168) || // 192.168.0.0/16 (RFC 1918)
         (raw[0] == 100 && raw[1] >= 64 && raw[1] <= 127)) {
+      // 100.64.0.0/10 (RFC 6598)
       return true;
     }
   } else if (address.type == InternetAddressType.IPv6 && raw.length == 16) {
+    // Unique local (fc00::/7) or site-local (fec0::/10)
     if ((raw[0] & 0xfe) == 0xfc ||
         (raw[0] == 0xfe && (raw[1] & 0xc0) == 0xc0)) {
       return true;
@@ -434,6 +452,21 @@ bool _isProhibitedAddress(InternetAddress address) {
   return false;
 }
 
+/// Verifies whether [url] is a safe destination for proxying.
+///
+/// Preconditions:
+/// - [url] must be an absolute HTTP or HTTPS URI.
+///
+/// Checks performed:
+/// 1. Rejects internal hostnames such as `metadata.google.internal`, `.internal` suffixes,
+///    `.local` suffixes (mDNS), and cloud metadata IP string `169.254.169.254`.
+/// 2. Rejects `localhost` and `.localhost` hostnames unless isTesting is enabled.
+/// 3. Resolves the host of [url] via DNS and rejects the destination if any resolved IP address
+///    matches [_isProhibitedAddress]. When isTesting is `true`, loopback IP addresses
+///    are permitted so unit tests can run against local test servers.
+///
+/// If DNS resolution throws a [SocketException], this function returns `true` so that
+/// the caller's HTTP client can attempt connection and throw its expected DNS error.
 Future<bool> _isAllowedDestination(Uri url) async {
   if (!(url.isScheme('http') || url.isScheme('https'))) {
     return false;
