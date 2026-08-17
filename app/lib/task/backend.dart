@@ -1141,18 +1141,20 @@ class TaskBackend {
         ...task.state.abortedTokens,
       ].where((t) => t.isNotExpired).take(50).toList();
 
+      final newState = TaskState(
+        versions: versions,
+        abortedTokens: newAbortedTokens,
+      );
       await db.tasks
           .byKey(runtimeVersion, packageName)
           .update(
             (_, set) => set(
-              state: TaskState(
-                versions: versions,
-                abortedTokens: newAbortedTokens,
-              ).asExpr,
+              state: newState.asExpr,
               pendingAt: initialTimestamp.asExpr,
             ),
           )
           .execute();
+      await db.upsertTaskState(packageName, newState, oldState: task.state);
     });
 
     // 2. Check quota and pick zone.
