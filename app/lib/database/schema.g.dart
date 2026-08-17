@@ -3056,19 +3056,27 @@ extension ExpressionTaskVersionExt on Expr<TaskVersion> {
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// The number of attempts to schedule the package version for analysis.
+  ///
+  /// It gets increased every time an attempt is made, 0 means no schedule happened yet.
   Expr<int> get attempts =>
       $ForGeneratedCode.field(this, 4, $ForGeneratedCode.integer);
 
   /// Name of the zone in which the instance analysing this package version is
   /// running.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
   Expr<String?> get workerZone =>
       $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
 
   /// Name of the instance analysing this package version.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
   Expr<String?> get workerInstance =>
       $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
 
   /// Secret token (UUIDv4) used for authenticating worker requests.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
   Expr<String?> get workerToken =>
       $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
 
@@ -3117,19 +3125,27 @@ extension ExpressionNullableTaskVersionExt on Expr<TaskVersion?> {
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// The number of attempts to schedule the package version for analysis.
+  ///
+  /// It gets increased every time an attempt is made, 0 means no schedule happened yet.
   Expr<int?> get attempts =>
       $ForGeneratedCode.field(this, 4, $ForGeneratedCode.integer);
 
   /// Name of the zone in which the instance analysing this package version is
   /// running.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
   Expr<String?> get workerZone =>
       $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
 
   /// Name of the instance analysing this package version.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
   Expr<String?> get workerInstance =>
       $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
 
   /// Secret token (UUIDv4) used for authenticating worker requests.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
   Expr<String?> get workerToken =>
       $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
 
