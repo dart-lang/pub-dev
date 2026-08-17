@@ -1073,7 +1073,6 @@ class TaskBackend {
     await _database.withRetry((db) async {
       await for (final state in db.taskListAllForCurrentRuntime()) {
         final zone = taskWorkerCloudCompute.zones.first;
-        // ignore: invalid_use_of_visible_for_testing_member
         final payload = await updatePackageStateWithPendingVersions(
           _database,
           state.package,
@@ -1086,13 +1085,117 @@ class TaskBackend {
     });
   }
 
-  /// Trigger a one-off priority bump for [packageName].
+  /// Trigger an immediate analysis scheduling or priority bump for [packageName].
   ///
-  /// Intended to be used for admin actions, not intended for normal operations.
-  Future<void> adminBumpPriority(String packageName) async {
+  /// Resets the version(s) state so that they are guaranteed to be considered
+  /// pending, sets `pendingAt` to [initialTimestamp], and immediately attempts
+  /// to create a worker instance if quota is available.
+  ///
+  /// If instance quota is reached or instance creation fails, the task remains
+  /// enqueued with highest priority and will be picked up on the next scheduler loop.
+  ///
+  /// It is an error if [packageName] is empty.
+  ///
+  /// Throws [InvalidInputException] if [packageName] is not tracked.
+  Future<Map<String, dynamic>> adminBumpPriority(String packageName) async {
     // Ensure we're up-to-date.
-    await trackPackage(packageName);
-    await _database.withRetry((db) => db.taskBumpPriority(packageName));
+    await trackPackage(packageName, refreshVersionsCache: true);
+
+    // 1. Reset version state so it's guaranteed to be pending.
+    await _database.transactWithRetry((db) async {
+      final task = await db.taskLookupOrNull(packageName);
+      if (task == null) {
+        throw InvalidInputException('No task found for "$packageName".');
+      }
+
+      final versions = {...task.state.versions};
+      final targetVersions = versions.keys.toList();
+      final abortedTokens = <AbortedTokenInfo>[];
+      for (final v in targetVersions) {
+        final current = versions[v];
+        if (current == null) continue;
+        if (current.secretToken != null) {
+          abortedTokens.add(
+            AbortedTokenInfo(
+              token: current.secretToken!,
+              expires: current.scheduled.add(maxTaskExecutionTime),
+            ),
+          );
+        }
+        versions[v] = PackageVersionStateInfo(
+          scheduled: initialTimestamp,
+          attempts: 0,
+          docs: current.docs,
+          pana: current.pana,
+          finished: current.finished,
+        );
+      }
+
+      final newAbortedTokens = [
+        ...abortedTokens,
+        ...task.state.abortedTokens,
+      ].where((t) => t.isNotExpired).take(50).toList();
+
+      await db.tasks
+          .byKey(runtimeVersion, packageName)
+          .update(
+            (_, set) => set(
+              state: TaskState(
+                versions: versions,
+                abortedTokens: newAbortedTokens,
+              ).asExpr,
+              pendingAt: initialTimestamp.asExpr,
+            ),
+          )
+          .execute();
+    });
+
+    // 2. Check quota and pick zone.
+    final compute = taskWorkerCloudCompute;
+    final instances = await compute.listInstances().toList();
+    if (instances.length >= activeConfiguration.maxTaskInstances) {
+      return {
+        'status': 'enqueued',
+        'message':
+            'Instance limit reached. Analysis task is enqueued with highest priority.',
+        'package': packageName,
+      };
+    }
+
+    if (compute.zones.isEmpty) {
+      return {
+        'status': 'enqueued',
+        'message':
+            'No compute zones configured. Analysis task is enqueued with highest priority.',
+        'package': packageName,
+      };
+    }
+
+    final zone = compute.zones.first;
+    final res = await schedulePackageInstance(
+      database: _database,
+      compute: compute,
+      package: packageName,
+      zone: zone,
+    );
+
+    if (res == null) {
+      return {
+        'status': 'enqueued',
+        'message':
+            'Failed to start instance immediately or no versions pending. Task remains enqueued with highest priority.',
+        'package': packageName,
+      };
+    }
+
+    return {
+      'status': 'started',
+      'message': 'Instance created for analysis.',
+      'package': packageName,
+      'instance': res.instanceName,
+      'zone': res.zone,
+      'versions': res.payload.versions.map((v) => v.version).toList(),
+    };
   }
 
   /// Returns the latest version of the [package] which has a finished analysis.

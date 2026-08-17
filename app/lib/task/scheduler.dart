@@ -6,7 +6,6 @@ import 'package:_pub_shared/data/task_payload.dart';
 import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
-import 'package:meta/meta.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -100,116 +99,19 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
 
   Future<void> scheduleInstance(({String package}) selected) async {
     pendingPackagesReviewed += 1;
-
-    final instanceName = compute.generateInstanceName();
     final zone = pickZone();
-
-    final payload = await updatePackageStateWithPendingVersions(
-      database,
-      selected.package,
-      zone,
-      instanceName,
-    );
-    if (payload == null) {
-      return;
-    }
-    // Create human readable description for GCP console.
-    final description =
-        'package:${payload.package} analysis of ${payload.versions.length} '
-        'versions.';
-
-    var rollbackPackageState = true;
-    try {
-      // Purging cache is important for the edge case, where the new upload happens
-      // on a different runtime version, and the current one's cache is still stale
-      // and does not have the version yet.
-      // TODO(https://github.com/dart-lang/pub-dev/issues/7268) remove after it gets fixed.
-      await purgePackageCache(payload.package);
-      _log.info(
-        'creating instance $instanceName in $zone for '
-        'package:${selected.package}',
-      );
-      await compute.createInstance(
-        zone: zone,
-        instanceName: instanceName,
-        dockerImage: activeConfiguration.taskWorkerImage!,
-        arguments: [json.encode(payload)],
-        description: description,
-      );
-      rollbackPackageState = false;
-    } on ZoneExhaustedException catch (e, st) {
-      // A zone being exhausted is normal operations, we just use another
-      // zone for 30 minutes.
-      _log.info(
-        'zone resources exhausted, banning ${e.zone} for 30 minutes',
-        e,
-        st,
-      );
-      // Ban usage of zone for 30 minutes
-      banZone(e.zone, minutes: 30);
-    } on QuotaExhaustedException catch (e, st) {
-      // Quota exhausted, this can happen, but it shouldn't. We'll just stop
-      // doing anything for 10 minutes. Hopefully that'll resolve the issue.
-      // We log severe, because this is a reason to adjust the quota or
-      // instance limits.
-      _log.severe(
-        'Quota exhausted trying to create $instanceName, banning all zones '
-        'for 10 minutes',
-        e,
-        st,
-      );
-
-      // Ban all zones for 10 minutes
-      for (final zone in compute.zones) {
-        banZone(zone, minutes: 10);
-      }
-    } catch (e, st) {
-      // No idea what happened, but for robustness we'll stop using the zone
-      // and shout into the logs
-      _log.shout(
-        'Failed to create instance $instanceName, banning zone "$zone" for '
-        '15 minutes',
-        e,
-        st,
-      );
-      // Ban usage of zone for 15 minutes
-      banZone(zone, minutes: 15);
-    }
-    if (rollbackPackageState) {
-      // Restore the state of the PackageState for versions that were
-      // supposed to run on the instance we just failed to create.
-      // If this doesn't work, we'll eventually retry. Hence, correctness
-      // does not hinge on this transaction being successful.
-      await database.transactWithRetry((db) async {
-        final s = await db.taskLookupOrNull(selected.package);
-        if (s == null) {
-          return; // Presumably, the package was deleted.
+    await schedulePackageInstance(
+      database: database,
+      compute: compute,
+      package: selected.package,
+      zone: zone,
+      onZoneFailure: banZone,
+      onQuotaExhausted: (e, st) {
+        for (final zone in compute.zones) {
+          banZone(zone, minutes: 10);
         }
-
-        final versions = s.state.versions;
-        versions.addEntries(
-          versions.entries
-              .where((e) => e.value.instance == instanceName)
-              .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
-        );
-
-        await db.tasks
-            .byKey(runtimeVersion, selected.package)
-            .update(
-              (_, set) => set(
-                state: TaskState(
-                  versions: versions,
-                  abortedTokens: s.state.abortedTokens,
-                ).asExpr,
-                pendingAt: derivePendingAt(
-                  versions: versions,
-                  lastDependencyChanged: s.lastDependencyChanged,
-                ).asExpr,
-              ),
-            )
-            .execute();
-      });
-    }
+      },
+    );
   }
 
   // Creating an instance can be slow, we want to schedule them concurrently.
@@ -243,9 +145,155 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
   );
 }
 
+/// Result of scheduling a worker instance for a package.
+final class SchedulePackageResult {
+  /// Name of the cloud compute instance created.
+  final String instanceName;
+
+  /// Cloud compute zone where the instance is running.
+  final String zone;
+
+  /// The task [Payload] passed to the instance.
+  final Payload payload;
+
+  SchedulePackageResult({
+    required this.instanceName,
+    required this.zone,
+    required this.payload,
+  });
+}
+
+/// Attempts to schedule and start a worker instance for [package] in [zone].
+///
+/// Updates package state with pending versions, purges package cache, creates the
+/// VM instance via [compute], and rolls back the package version state if instance
+/// creation fails.
+///
+/// If [onZoneFailure] is provided, it is called when a zone exhaustion or creation error occurs.
+/// If [onQuotaExhausted] is provided, it is called when a [QuotaExhaustedException] is encountered.
+///
+/// Returns [SchedulePackageResult] if the instance was successfully created.
+/// Returns `null` if no versions were pending or if instance creation failed.
+Future<SchedulePackageResult?> schedulePackageInstance({
+  required PrimaryDatabase database,
+  required CloudCompute compute,
+  required String package,
+  required String zone,
+  void Function(String zone, {int minutes, int hours, int days})? onZoneFailure,
+  void Function(QuotaExhaustedException e, StackTrace st)? onQuotaExhausted,
+}) async {
+  final instanceName = compute.generateInstanceName();
+
+  final payload = await updatePackageStateWithPendingVersions(
+    database,
+    package,
+    zone,
+    instanceName,
+  );
+  if (payload == null) {
+    return null;
+  }
+  // Create human readable description for GCP console.
+  final description =
+      'package:${payload.package} analysis of ${payload.versions.length} '
+      'versions.';
+
+  var rollbackPackageState = true;
+  try {
+    // Purging cache is important for the edge case, where the new upload happens
+    // on a different runtime version, and the current one's cache is still stale
+    // and does not have the version yet.
+    // TODO(https://github.com/dart-lang/pub-dev/issues/7268) remove after it gets fixed.
+    await purgePackageCache(payload.package);
+    _log.info('creating instance $instanceName in $zone for package:$package');
+    await compute.createInstance(
+      zone: zone,
+      instanceName: instanceName,
+      dockerImage: activeConfiguration.taskWorkerImage!,
+      arguments: [json.encode(payload)],
+      description: description,
+    );
+    rollbackPackageState = false;
+    return SchedulePackageResult(
+      instanceName: instanceName,
+      zone: zone,
+      payload: payload,
+    );
+  } on ZoneExhaustedException catch (e, st) {
+    // A zone being exhausted is normal operations, we just use another zone.
+    _log.info(
+      'zone resources exhausted, banning ${e.zone} for 30 minutes',
+      e,
+      st,
+    );
+    onZoneFailure?.call(e.zone, minutes: 30);
+  } on QuotaExhaustedException catch (e, st) {
+    // Quota exhausted, this can happen, but it shouldn't.
+    _log.severe(
+      'Quota exhausted trying to create $instanceName, banning all zones for 10 minutes',
+      e,
+      st,
+    );
+    if (onQuotaExhausted != null) {
+      onQuotaExhausted(e, st);
+    } else if (onZoneFailure != null) {
+      for (final z in compute.zones) {
+        onZoneFailure(z, minutes: 10);
+      }
+    }
+  } catch (e, st) {
+    // No idea what happened, but for robustness we'll stop using the zone
+    // and shout into the logs
+    _log.shout(
+      'Failed to create instance $instanceName, banning zone "$zone" for 15 minutes',
+      e,
+      st,
+    );
+    onZoneFailure?.call(zone, minutes: 15);
+  } finally {
+    if (rollbackPackageState) {
+      // Restore the state of the PackageState for versions that were
+      // supposed to run on the instance we just failed to create.
+      // If this doesn't work, we'll eventually retry. Hence, correctness
+      // does not hinge on this transaction being successful.
+      await database.transactWithRetry((db) async {
+        final s = await db.taskLookupOrNull(package);
+        if (s == null) {
+          return; // Presumably, the package was deleted.
+        }
+
+        final versions = s.state.versions;
+        versions.addEntries(
+          versions.entries
+              .where((e) => e.value.instance == instanceName)
+              .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
+        );
+
+        await db.tasks
+            .byKey(runtimeVersion, package)
+            .update(
+              (_, set) => set(
+                state: TaskState(
+                  versions: versions,
+                  abortedTokens: s.state.abortedTokens,
+                ).asExpr,
+                pendingAt: derivePendingAt(
+                  versions: versions,
+                  lastDependencyChanged: s.lastDependencyChanged,
+                ).asExpr,
+              ),
+            )
+            .execute();
+      });
+    }
+  }
+  return null;
+}
+
 /// Updates the package state with versions that are already pending or
 /// will be pending soon.
-@visibleForTesting
+///
+/// Returns `null` if the package does not exist or has no pending versions.
 Future<Payload?> updatePackageStateWithPendingVersions(
   PrimaryDatabase database,
   String package,

@@ -8,17 +8,15 @@ import 'package:pub_dev/task/backend.dart';
 
 final taskBumpPriority = AdminAction(
   name: 'task-bump-priority',
-  summary: 'Increase priority for task scheduling of specific package',
+  summary: 'Increase priority and schedule analysis of specific package.',
   description: '''
-This action will lower the `PackageState.pendingAt` property for the given
-package. This should cause an analysis task for the package to be scheduled
-sooner.
+This action bumps the priority of the given package.
+Pending/running analysis will be cancelled and analysis of all versions will be
+queued at highest priority.
 
-This will always set `pendingAt` to the same value, it will not trigger new
-analysis, if none is pending, merely increase the priority. Calling it multiple
-times will have no effect, it will always set `pendingAt` to the same value.
-
-This is intended for debugging, or solving one-off issues.
+It will also immediately trigger an analysis worker instance if quota is available.
+If the instance quota limit is reached or instance creation fails, the priority
+remains bumped and the background scheduler will pick it up as soon as possible.
 ''',
   options: {'package': 'Name of package whose priority should be bumped'},
   invoke: (options) async {
@@ -31,8 +29,6 @@ This is intended for debugging, or solving one-off issues.
     if (pkg == null) {
       throw InvalidInputException('No package $package');
     }
-    await taskBackend.adminBumpPriority(package);
-
-    return {'message': 'Priority may have been bumped, good luck!'};
+    return await taskBackend.adminBumpPriority(package);
   },
 );
