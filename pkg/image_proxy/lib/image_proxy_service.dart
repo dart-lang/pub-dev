@@ -464,7 +464,7 @@ Future<bool> _isAllowedDestination(Uri url) async {
         }
       }
     }
-  } catch (_) {
+  } on SocketException {
     // If DNS lookup fails, allow through so client.getUrl throws expected DNS error
   }
   return true;
