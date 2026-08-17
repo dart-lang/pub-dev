@@ -48,6 +48,73 @@ abstract final class TaskDependency extends Row {
   String get dependency;
 }
 
+@PrimaryKey(['runtimeVersion', 'package', 'version'])
+@ForeignKey(
+  ['runtimeVersion', 'package'],
+  table: 'tasks',
+  fields: ['runtimeVersion', 'package'],
+  name: 'task',
+  as: 'versionRows',
+  onDelete: .cascade,
+  onUpdate: .cascade,
+)
+abstract final class TaskVersion extends Row {
+  String get runtimeVersion;
+  String get package;
+  String get version;
+
+  /// The last time when this was scheduled for analysis.
+  DateTime get scheduledAt;
+
+  /// The number of attempts to schedule the package version for analysis.
+  ///
+  /// It gets increased every time an attempt is made, 0 means no schedule happened yet.
+  int get attempts;
+
+  /// Name of the zone in which the instance analysing this package version is
+  /// running.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
+  String? get workerZone;
+
+  /// Name of the instance analysing this package version.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
+  String? get workerInstance;
+
+  /// Secret token (UUIDv4) used for authenticating worker requests.
+  ///
+  /// It is filled only when an active attempt is running, `null` otherwise.
+  String? get workerToken;
+
+  /// True, if dartdoc documentation is available.
+  bool get hasDocs;
+
+  /// True, if pana summary is available.
+  bool get hasPana;
+
+  /// True, if results have been previously reported on this version.
+  bool get isFinished;
+}
+
+@PrimaryKey(['runtimeVersion', 'package', 'workerToken'])
+@ForeignKey(
+  ['runtimeVersion', 'package'],
+  table: 'tasks',
+  fields: ['runtimeVersion', 'package'],
+  name: 'task',
+  as: 'abortedTokenRows',
+  onDelete: .cascade,
+  onUpdate: .cascade,
+)
+abstract final class TaskAbortedToken extends Row {
+  String get runtimeVersion;
+  String get package;
+  String get workerToken;
+
+  DateTime get expiresAt;
+}
+
 @immutable
 @JsonSerializable()
 final class TaskState implements CustomDataType<JsonValue> {

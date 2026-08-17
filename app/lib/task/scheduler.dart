@@ -186,6 +186,10 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
           return; // Presumably, the package was deleted.
         }
 
+        final oldState = TaskState(
+          versions: {...s.state.versions},
+          abortedTokens: s.state.abortedTokens,
+        );
         final versions = s.state.versions;
         versions.addEntries(
           versions.entries
@@ -193,14 +197,15 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
               .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
         );
 
+        final newState = TaskState(
+          versions: versions,
+          abortedTokens: s.state.abortedTokens,
+        );
         await db.tasks
             .byKey(runtimeVersion, selected.package)
             .update(
               (_, set) => set(
-                state: TaskState(
-                  versions: versions,
-                  abortedTokens: s.state.abortedTokens,
-                ).asExpr,
+                state: newState.asExpr,
                 pendingAt: derivePendingAt(
                   versions: versions,
                   lastDependencyChanged: s.lastDependencyChanged,
@@ -208,6 +213,11 @@ Future<(CreateInstancesState, Duration)> runOneCreateInstancesCycle(
               ),
             )
             .execute();
+        await db.upsertTaskState(
+          selected.package,
+          newState,
+          oldState: oldState,
+        );
       });
     }
   }
@@ -281,14 +291,15 @@ Future<Payload?> updatePackageStateWithPendingVersions(
           secretToken: createUuid(),
         ),
     };
+    final newState = TaskState(
+      versions: newVersions,
+      abortedTokens: task.state.abortedTokens,
+    );
     await db.tasks
         .byKey(runtimeVersion, package)
         .update(
           (_, set) => set(
-            state: TaskState(
-              versions: newVersions,
-              abortedTokens: task.state.abortedTokens,
-            ).asExpr,
+            state: newState.asExpr,
             pendingAt: derivePendingAt(
               versions: newVersions,
               lastDependencyChanged: task.lastDependencyChanged,
@@ -296,6 +307,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
           ),
         )
         .execute();
+    await db.upsertTaskState(package, newState, oldState: task.state);
 
     // Create payload
     final payload = Payload(
