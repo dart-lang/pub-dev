@@ -52,6 +52,20 @@ void main() {
     // TODO: add test for PUT /api/account/consent/<consentId> API calls
 
     testWithProfile(
+      '/sign-in/complete?error=... does not render markdown or SSRF image links',
+      fn: () async {
+        await expectHtmlResponse(
+          await issueGet(
+            '/sign-in/complete?error=x%0A%60%60%60%0A%21%5Bi%5D%28http%3A%2F%2Fmetadata.google.internal%2F%3Fvv%3D1%29%0A',
+          ),
+          status: 401,
+          present: ['metadata.google.internal'],
+          absent: ['external-images.pub.dev'],
+        );
+      },
+    );
+
+    testWithProfile(
       '/my-packages',
       fn: () async {
         final cookies = await acquireSessionCookies('admin@pub.dev');

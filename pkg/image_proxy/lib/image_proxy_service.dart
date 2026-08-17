@@ -218,6 +218,12 @@ Future<shelf.Response> handler(shelf.Request request) async {
         headers: securityHeaders,
       );
     }
+    if (!(await _isAllowedDestination(parsedImageUrl))) {
+      return shelf.Response.badRequest(
+        body: 'Prohibited proxied destination url',
+        headers: securityHeaders,
+      );
+    }
 
     Future<
       ({
@@ -250,8 +256,12 @@ Future<shelf.Response> handler(shelf.Request request) async {
           if (location == null) {
             throw RedirectException('No location header in redirect.');
           }
+          final redirectUrl = parsedImageUrl.resolve(location);
+          if (!(await _isAllowedDestination(redirectUrl))) {
+            throw RedirectException('Prohibited redirect destination url.');
+          }
           return await makeRequest(
-            parsedImageUrl.resolve(location),
+            redirectUrl,
             redirectCount: redirectCount + 1,
           );
         }
@@ -398,4 +408,64 @@ Future<Uint8List> readAllBytes(Stream<List<int>> stream, int maxBytes) async {
     builder.add(chunk);
   }
   return builder.takeBytes();
+}
+
+bool _isProhibitedAddress(InternetAddress address) {
+  if (address.isLoopback || address.isLinkLocal || address.isMulticast) {
+    return true;
+  }
+  final raw = address.rawAddress;
+  if (address.type == InternetAddressType.IPv4 && raw.length == 4) {
+    if (raw[0] == 0 ||
+        raw[0] == 10 ||
+        raw[0] == 127 ||
+        (raw[0] == 169 && raw[1] == 254) ||
+        (raw[0] == 172 && raw[1] >= 16 && raw[1] <= 31) ||
+        (raw[0] == 192 && raw[1] == 168) ||
+        (raw[0] == 100 && raw[1] >= 64 && raw[1] <= 127)) {
+      return true;
+    }
+  } else if (address.type == InternetAddressType.IPv6 && raw.length == 16) {
+    if ((raw[0] & 0xfe) == 0xfc ||
+        (raw[0] == 0xfe && (raw[1] & 0xc0) == 0xc0)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+Future<bool> _isAllowedDestination(Uri url) async {
+  if (!(url.isScheme('http') || url.isScheme('https'))) {
+    return false;
+  }
+  if (!url.isAbsolute) {
+    return false;
+  }
+  final host = url.host.toLowerCase();
+  if (host == 'metadata.google.internal' ||
+      host.endsWith('.internal') ||
+      host.endsWith('.local') ||
+      host == '169.254.169.254') {
+    return false;
+  }
+  if (!isTesting) {
+    if (host == 'localhost' || host.endsWith('.localhost')) {
+      return false;
+    }
+  }
+  try {
+    final addresses = await InternetAddress.lookup(host);
+    for (final address in addresses) {
+      if (_isProhibitedAddress(address)) {
+        if (isTesting && address.isLoopback) {
+          // Allow loopback in unit tests
+        } else {
+          return false;
+        }
+      }
+    }
+  } catch (_) {
+    // If DNS lookup fails, allow through so client.getUrl throws expected DNS error
+  }
+  return true;
 }

@@ -503,5 +503,18 @@ Future<void> main() async {
       // The proxy doesn't cache as long time as the original.
       expect(await Utf8Codec().decodeStream(response), 'Image too large');
     }
+    {
+      final response = await getImage(
+        imageProxyPort: imageProxyPort,
+        imageUrl: Uri.parse('http://metadata.google.internal/?vv=1'),
+        day: today,
+      );
+      validateSecurityHeaders(response);
+      expect(response.statusCode, 400);
+      expect(
+        await Utf8Codec().decodeStream(response),
+        'Prohibited proxied destination url',
+      );
+    }
   });
 }

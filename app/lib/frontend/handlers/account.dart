@@ -8,7 +8,6 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/frontend/handlers/cache_control.dart';
 import 'package:pub_dev/package/search_adapter.dart';
-import 'package:pub_dev/shared/markdown.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -28,8 +27,10 @@ import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart' as urls;
 
+import '../dom/dom.dart' as d;
 import '../templates/admin.dart';
 import '../templates/consent.dart';
+import '../templates/layout.dart';
 import '../templates/misc.dart' show renderUnauthenticatedPage;
 
 /// Handles requests for /authorized
@@ -76,7 +77,16 @@ Future<shelf.Response> signInCompleteHandler(shelf.Request request) async {
   final error = params['error'];
   if (error != null && error.isNotEmpty) {
     return htmlResponse(
-      markdownToHtml('There was an error:\n\n```\n$error\n```\n'),
+      renderLayoutPage(
+        PageType.standalone,
+        d.fragment([
+          d.h1(text: 'Sign-in error'),
+          d.p(text: 'There was an error during sign-in:'),
+          d.pre(classes: ['highlight'], text: error),
+        ]),
+        title: 'Sign-in error',
+        noIndex: true,
+      ),
       status: 401,
     );
   }
