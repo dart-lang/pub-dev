@@ -18,9 +18,7 @@ It will also immediately trigger an analysis worker instance if quota is availab
 If the instance quota limit is reached or instance creation fails, the priority
 remains bumped and the background scheduler will pick it up as soon as possible.
 ''',
-  options: {
-    'package': 'Name of package whose priority should be bumped',
-  },
+  options: {'package': 'Name of package whose priority should be bumped'},
   invoke: (options) async {
     final package =
         options['package'] ??
