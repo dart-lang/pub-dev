@@ -1098,9 +1098,57 @@ class TaskBackend {
   ///
   /// Throws [InvalidInputException] if [packageName] is not tracked.
   Future<Map<String, dynamic>> adminBumpPriority(String packageName) async {
-    // Ensure we're up-to-date and prioritized.
-    await trackPackage(packageName);
-    await _database.withRetry((db) => db.taskBumpPriority(packageName));
+    // Ensure we're up-to-date.
+    await trackPackage(packageName, refreshVersionsCache: true);
+
+    // 1. Reset version state so it's guaranteed to be pending.
+    await _database.transactWithRetry((db) async {
+      final task = await db.taskLookupOrNull(packageName);
+      if (task == null) {
+        throw InvalidInputException('No task found for "$packageName".');
+      }
+
+      final versions = {...task.state.versions};
+      final targetVersions = versions.keys.toList();
+      final abortedTokens = <AbortedTokenInfo>[];
+      for (final v in targetVersions) {
+        final current = versions[v];
+        if (current == null) continue;
+        if (current.secretToken != null) {
+          abortedTokens.add(
+            AbortedTokenInfo(
+              token: current.secretToken!,
+              expires: current.scheduled.add(maxTaskExecutionTime),
+            ),
+          );
+        }
+        versions[v] = PackageVersionStateInfo(
+          scheduled: initialTimestamp,
+          attempts: 0,
+          docs: current.docs,
+          pana: current.pana,
+          finished: current.finished,
+        );
+      }
+
+      final newAbortedTokens = [
+        ...abortedTokens,
+        ...task.state.abortedTokens,
+      ].where((t) => t.isNotExpired).take(50).toList();
+
+      await db.tasks
+          .byKey(runtimeVersion, packageName)
+          .update(
+            (_, set) => set(
+              state: TaskState(
+                versions: versions,
+                abortedTokens: newAbortedTokens,
+              ).asExpr,
+              pendingAt: initialTimestamp.asExpr,
+            ),
+          )
+          .execute();
+    });
 
     // 2. Check quota and pick zone.
     final compute = taskWorkerCloudCompute;
