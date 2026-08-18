@@ -189,7 +189,12 @@ class DownloadCountsBackend {
       tx.queueMutations(inserts: [newDownloadCounts]);
       return newDownloadCounts;
     });
-    await cache.downloadCounts(pkg).purge();
+    await Future.wait([
+      cache.downloadCounts(pkg).purge(),
+      cache.dailyDownloadCounts(pkg).purge(),
+      cache.weeklyDownloadCounts(pkg).purge(),
+      cache.weeklyVersionDownloadCounts(pkg).purge(),
+    ]);
     return downloadCounts;
   }
 }
