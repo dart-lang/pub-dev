@@ -15,6 +15,12 @@ final _maxPropertyLength = 1024 * 1024;
 class MemDatastore implements Datastore {
   final _entities = <Key, Entity>{};
 
+  /// monotonically increasing counter for the mutations
+  int _version = 0;
+
+  /// The [_version] at which a specific key was last mutated (inserted/deleted).
+  final _entityVersions = <Key, int>{};
+
   @override
   Future<List<Key>> allocateIds(List<Key> keys) async {
     throw UnimplementedError(
@@ -24,7 +30,7 @@ class MemDatastore implements Datastore {
 
   @override
   Future<Transaction> beginTransaction({bool crossEntityGroup = false}) async {
-    return _Transaction();
+    return _Transaction(_version);
   }
 
   @override
@@ -57,15 +63,29 @@ class MemDatastore implements Datastore {
     inserts.forEach(_checkProperties);
     autoIdInserts.forEach(_checkProperties);
 
-    // TODO: check serializability.
-    // We need to track the keys that have been mutated since the Transaction
-    // was created to ensure that there are no conflicts.
-    // Alternatively: block overlapping transactions.
+    // Conflict detection: if any key in the transaction was mutated by another
+    // (already committed) transaction since this transaction began, abort.
+    if (transaction is _Transaction) {
+      final touchedKeys = {...transaction.readKeys, ...newKeys, ...deletes};
+      for (final key in touchedKeys) {
+        final mutatedAt = _entityVersions[key];
+        if (mutatedAt != null && mutatedAt > transaction.beginVersion) {
+          throw TransactionAbortedError();
+        }
+      }
+    }
 
     // execute commit
-    deletes.forEach((key) => _entities.remove(key));
+    _version++;
+
+    deletes.forEach((key) {
+      _entities.remove(key);
+      _entityVersions[key] = _version;
+    });
+
     inserts.forEach((e) {
       _entities[e.key] = e;
+      _entityVersions[e.key] = _version;
     });
 
     return CommitResult([]);
@@ -149,6 +169,9 @@ class MemDatastore implements Datastore {
   }) async {
     if (keys.any((k) => k.elements.any((e) => e.id == null))) {
       throw ArgumentError('Key contains null.');
+    }
+    if (transaction is _Transaction) {
+      transaction.readKeys.addAll(keys);
     }
     return keys.map((key) {
       _verifyKeyLength(key);
@@ -396,7 +419,15 @@ class MemDatastore implements Datastore {
   }
 }
 
-class _Transaction implements Transaction {}
+class _Transaction implements Transaction {
+  /// The version at the time this transaction began.
+  final int beginVersion;
+
+  /// Keys looked up within this transaction, checked for conflicts on commit.
+  final readKeys = <Key>{};
+
+  _Transaction(this.beginVersion);
+}
 
 class _Page implements Page<Entity> {
   final List<Entity> _items;
