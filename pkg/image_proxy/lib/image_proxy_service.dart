@@ -16,6 +16,8 @@ import 'package:retry/retry.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart';
 
+import 'prohibited_addresses.dart';
+
 enum Severity {
   notice,
   info,
@@ -218,6 +220,12 @@ Future<shelf.Response> handler(shelf.Request request) async {
         headers: securityHeaders,
       );
     }
+    if (!(await _isAllowedDestination(parsedImageUrl))) {
+      return shelf.Response.badRequest(
+        body: 'Prohibited proxied destination url',
+        headers: securityHeaders,
+      );
+    }
 
     Future<
       ({
@@ -250,8 +258,12 @@ Future<shelf.Response> handler(shelf.Request request) async {
           if (location == null) {
             throw RedirectException('No location header in redirect.');
           }
+          final redirectUrl = url.resolve(location);
+          if (!(await _isAllowedDestination(redirectUrl))) {
+            throw RedirectException('Prohibited redirect destination url.');
+          }
           return await makeRequest(
-            parsedImageUrl.resolve(location),
+            redirectUrl,
             redirectCount: redirectCount + 1,
           );
         }
@@ -398,4 +410,55 @@ Future<Uint8List> readAllBytes(Stream<List<int>> stream, int maxBytes) async {
     builder.add(chunk);
   }
   return builder.takeBytes();
+}
+
+/// Verifies whether [url] is a safe destination for proxying.
+///
+/// Preconditions:
+/// - [url] must be an absolute HTTP or HTTPS URI.
+///
+/// Checks performed:
+/// 1. Rejects internal hostnames such as `metadata.google.internal`, `.internal` suffixes,
+///    `.local` suffixes (mDNS), and cloud metadata IP string `169.254.169.254`.
+/// 2. Rejects `localhost` and `.localhost` hostnames unless isTesting is enabled.
+/// 3. Resolves the host of [url] via DNS and rejects the destination if any resolved IP address
+///    matches [isProhibitedAddress]. When isTesting is `true`, loopback IP addresses
+///    are permitted so unit tests can run against local test servers.
+///
+/// If DNS resolution throws a [SocketException], this function returns `true` so that
+/// the caller's HTTP client can attempt connection and throw its expected DNS error.
+Future<bool> _isAllowedDestination(Uri url) async {
+  if (!(url.isScheme('http') || url.isScheme('https'))) {
+    return false;
+  }
+  if (!url.isAbsolute) {
+    return false;
+  }
+  final host = url.host.toLowerCase();
+  if (host == 'metadata.google.internal' ||
+      host.endsWith('.internal') ||
+      host.endsWith('.local') ||
+      host == '169.254.169.254') {
+    return false;
+  }
+  if (!isTesting) {
+    if (host == 'localhost' || host.endsWith('.localhost')) {
+      return false;
+    }
+  }
+  try {
+    final addresses = await InternetAddress.lookup(host);
+    for (final address in addresses) {
+      if (isProhibitedAddress(address)) {
+        if (isTesting && address.isLoopback) {
+          // Allow loopback in unit tests
+        } else {
+          return false;
+        }
+      }
+    }
+  } on SocketException {
+    // If DNS lookup fails, allow through so client.getUrl throws expected DNS error
+  }
+  return true;
 }

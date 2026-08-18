@@ -88,6 +88,15 @@ Future<int> startImageServer() async {
           );
         case 'redirect':
           return shelf.Response.movedPermanently('path/to/image.jpg');
+        case 'redir/step1':
+          return shelf.Response.movedPermanently('/other/step2');
+        case 'other/step2':
+          return shelf.Response.movedPermanently('final.jpg');
+        case 'other/final.jpg':
+          return shelf.Response.ok(
+            File(jpgImagePath).readAsBytesSync(),
+            headers: {'content-type': 'image/jpeg'},
+          );
         case 'redirectForever':
           return shelf.Response.movedPermanently('redirectForever');
         case 'serverError':
@@ -330,6 +339,24 @@ Future<void> main() async {
     }
   });
 
+  test('Follows multi-step relative redirect across paths', () async {
+    final imageProxyPort = await startImageProxy();
+    final imageServerPort = await startImageServer();
+    {
+      final response = await getImage(
+        imageProxyPort: imageProxyPort,
+        imageUrl: Uri.parse('http://localhost:$imageServerPort/redir/step1'),
+        day: today,
+      );
+      validateSecurityHeaders(response);
+
+      expect(response.statusCode, 200);
+      final hash = await sha256.bind(response).single;
+      final expected = sha256.convert(File(jpgImagePath).readAsBytesSync());
+      expect(hash, expected);
+    }
+  });
+
   test('Fails with infinite redirect', () async {
     final imageProxyPort = await startImageProxy();
     final imageServerPort = await startImageServer();
@@ -502,6 +529,19 @@ Future<void> main() async {
       expect(response.statusCode, 400);
       // The proxy doesn't cache as long time as the original.
       expect(await Utf8Codec().decodeStream(response), 'Image too large');
+    }
+    {
+      final response = await getImage(
+        imageProxyPort: imageProxyPort,
+        imageUrl: Uri.parse('http://metadata.google.internal/?vv=1'),
+        day: today,
+      );
+      validateSecurityHeaders(response);
+      expect(response.statusCode, 400);
+      expect(
+        await Utf8Codec().decodeStream(response),
+        'Prohibited proxied destination url',
+      );
     }
   });
 }
