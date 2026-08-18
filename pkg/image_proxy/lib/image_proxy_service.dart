@@ -258,7 +258,7 @@ Future<shelf.Response> handler(shelf.Request request) async {
           if (location == null) {
             throw RedirectException('No location header in redirect.');
           }
-          final redirectUrl = parsedImageUrl.resolve(location);
+          final redirectUrl = url.resolve(location);
           if (!(await _isAllowedDestination(redirectUrl))) {
             throw RedirectException('Prohibited redirect destination url.');
           }
