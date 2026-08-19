@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
@@ -29,6 +30,7 @@ import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspec_parse;
+import 'package:sigstore/sigstore.dart';
 
 import '../account/agent.dart';
 import '../account/backend.dart';
@@ -1208,12 +1210,66 @@ class PackageBackend {
         throw PackageRejectedException.dependencyDoesNotExists(name);
       }
 
+      // Check for an accompanying Sigstore attestation bundle in the incoming bucket.
+      String? attestationContent;
+      final attestationObjectName =
+          '${tmpObjectName(uploadGuid)}.sigstore.json';
+      final attestationInfo = await _incomingBucket.tryInfo(
+        attestationObjectName,
+      );
+      if (attestationInfo?.length != null) {
+        _logger.info('Verifying package attestation ($uploadGuid).');
+        final attestationFilename =
+            '${dir.absolute.path}/attestation.sigstore.json';
+        await _incomingBucket.readWithRetry(
+          attestationObjectName,
+          (input) => _saveTarballToFS(input, attestationFilename),
+        );
+        attestationContent = await File(attestationFilename).readAsString();
+        try {
+          final attestationJson =
+              jsonDecode(attestationContent) as Map<String, dynamic>;
+          final bundle = SigstoreBundle.fromJson(attestationJson);
+          final verifier = AttestationVerifier();
+          final archiveBytes = await file.readAsBytes();
+          final verificationResult = verifier.verify(
+            packageName: pubspec.name,
+            packageVersion: Version.parse(versionString),
+            archiveBytes: archiveBytes,
+            bundle: bundle,
+            pubspecRepository: pubspec.repository?.toString(),
+          );
+          if (!verificationResult.isValid) {
+            throw PackageRejectedException(
+              'Invalid package attestation: '
+              '${verificationResult.errors.join(', ')}',
+            );
+          }
+          _logger.info(
+            'Attestation verified successfully for ${pubspec.name} $versionString '
+            'from repository ${verificationResult.repository}.',
+          );
+        } on PackageRejectedException {
+          rethrow;
+        } catch (e, st) {
+          _logger.warning(
+            'Failed to parse or verify attestation bundle.',
+            e,
+            st,
+          );
+          throw PackageRejectedException(
+            'Failed to verify package attestation: $e',
+          );
+        }
+      }
+
       sw.reset();
       final entities = await _createUploadEntities(
         db,
         agent,
         archive,
         sha256Hash: sha256Hash,
+        attestationContent: attestationContent,
       );
       final (version, uploadMessages) = await _performTarballUpload(
         entities: entities,
@@ -1229,6 +1285,9 @@ class PackageBackend {
       sw.reset();
       await _incomingBucket.deleteWithRetry(uploadObjectName);
       await _incomingBucket.deleteWithRetry(workObjectName);
+      if (attestationInfo?.length != null) {
+        await _incomingBucket.deleteWithRetry(attestationObjectName);
+      }
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return [
         'Successfully uploaded '
@@ -2368,6 +2427,7 @@ Future<_UploadEntities> _createUploadEntities(
   AuthenticatedAgent agent,
   PackageSummary archive, {
   required List<int> sha256Hash,
+  String? attestationContent,
 }) async {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
@@ -2387,6 +2447,7 @@ Future<_UploadEntities> _createUploadEntities(
   final derived = derivePackageVersionEntities(
     archive: archive,
     versionCreated: version.created!,
+    attestationContent: attestationContent,
   );
 
   // TODO: verify if assets sizes are within the transaction limit (10 MB)
@@ -2397,6 +2458,7 @@ Future<_UploadEntities> _createUploadEntities(
 DerivedPackageVersionEntities derivePackageVersionEntities({
   required PackageSummary archive,
   required DateTime versionCreated,
+  String? attestationContent,
 }) {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
   final key = QualifiedVersionKey(
@@ -2454,6 +2516,15 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
         versionCreated: versionCreated,
         path: archive.licensePath,
         textContent: capContent(archive.licenseContent),
+      ),
+    if (attestationContent != null)
+      PackageVersionAsset.init(
+        package: key.package,
+        version: key.version,
+        kind: AssetKind.attestation,
+        versionCreated: versionCreated,
+        path: '${key.package}-${key.version}.sigstore.json',
+        textContent: capContent(attestationContent),
       ),
   ];
 
