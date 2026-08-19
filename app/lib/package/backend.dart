@@ -30,6 +30,7 @@ import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspec_parse;
+import 'package:sigstore/sigstore.dart';
 
 import '../account/agent.dart';
 import '../account/backend.dart';
@@ -62,6 +63,21 @@ final maxAssetContentLength = 256 * 1024;
 final _defaultMaxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
+final _defaultSigstoreTrustedRoot = <String, dynamic>{
+  'mediaType': 'application/vnd.dev.sigstore.trustedroot+json;version=0.1',
+  'certificateAuthorities': [
+    {
+      'subject': {'organization': 'sigstore.dev', 'commonName': 'fulcio'},
+      'uri': 'https://fulcio.sigstore.dev',
+    },
+  ],
+  'tlogs': [
+    {
+      'baseUrl': 'https://rekor.sigstore.dev',
+      'logId': {'keyId': 'test-rekor-key-id'},
+    },
+  ],
+};
 final _validGitHubUserOrRepoRegExp = RegExp(
   r'^[a-z0-9\-\._]+$',
   caseSensitive: false,
@@ -1217,7 +1233,7 @@ class PackageBackend {
         attestationObjectName,
       );
       if (attestationInfo?.length != null) {
-        _logger.info('Reading package attestation ($uploadGuid).');
+        _logger.info('Verifying package attestation ($uploadGuid).');
         final attestationFilename =
             '${dir.absolute.path}/attestation.sigstore.json';
         await _incomingBucket.readWithRetry(
@@ -1227,13 +1243,44 @@ class PackageBackend {
         try {
           final bytes = await File(attestationFilename).readAsBytes();
           attestationContent = utf8.decode(bytes);
-          final decoded = jsonDecode(attestationContent);
-          if (decoded is! Map<String, dynamic>) {
-            throw FormatException('Attestation bundle must be a JSON object.');
+          final attestationJson =
+              jsonDecode(attestationContent) as Map<String, dynamic>;
+          final bundle = SigstoreBundle.fromJson(attestationJson);
+          Map<String, dynamic>? trustedRoot;
+          try {
+            trustedRoot = loadTrustedRoot();
+          } catch (_) {
+            trustedRoot = _defaultSigstoreTrustedRoot;
           }
-        } on FormatException catch (e) {
+          final verifier = AttestationVerifier(trustedRoot: trustedRoot);
+          final archiveBytes = await file.readAsBytes();
+          final verificationResult = verifier.verify(
+            packageName: pubspec.name,
+            packageVersion: Version.parse(versionString),
+            archiveBytes: archiveBytes,
+            bundle: bundle,
+            pubspecRepository: pubspec.repository?.toString(),
+          );
+          if (!verificationResult.isValid) {
+            throw PackageRejectedException(
+              'Invalid package attestation: '
+              '${verificationResult.errors.join(', ')}',
+            );
+          }
+          _logger.info(
+            'Attestation verified successfully for ${pubspec.name} $versionString '
+            'from repository ${verificationResult.repository}.',
+          );
+        } on PackageRejectedException {
+          rethrow;
+        } catch (e, st) {
+          _logger.warning(
+            'Failed to parse or verify attestation bundle.',
+            e,
+            st,
+          );
           throw PackageRejectedException(
-            'Invalid attestation bundle format: $e',
+            'Failed to verify package attestation: $e',
           );
         }
       }

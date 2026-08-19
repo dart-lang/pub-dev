@@ -769,6 +769,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  sigstore:
+    dependency: transitive
+    description:
+      path: "pkgs/sigstore"
+      ref: add-package-sigstore
+      resolved-ref: f1bb450c8234ff8c2a0eaaa4b5061e754822062b
+      url: "https://github.com/dart-lang/labs.git"
+    source: git
+    version: "0.1.0-dev"
   slugid:
     dependency: transitive
     description:
