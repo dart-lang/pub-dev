@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
@@ -1638,6 +1639,49 @@ void main() {
           status: 400,
           code: 'PackageRejected',
           message: 'is too similar to a moderated package',
+        );
+      },
+    );
+
+    testWithProfile(
+      'successful upload with attestation bundle and api retrieval',
+      fn: () async {
+        final pubspecContent =
+            'name: attested_pkg\nversion: 1.0.0\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+        final archiveBytes = await packageArchiveBytes(
+          pubspecContent: pubspecContent,
+        );
+        final bundleJson = {
+          'mediaType': 'application/vnd.dev.sigstore.bundle.v0.3+json',
+          'verificationMaterial': {},
+          'dsseEnvelope': {
+            'payloadType': 'application/vnd.in-toto+json',
+            'payload': base64Encode(utf8.encode('{}')),
+            'signatures': [],
+          },
+        };
+        final attestationBytes = utf8.encode(jsonEncode(bundleJson));
+
+        final client = createPubApiClient(authToken: adminClientToken);
+        final message = await client.uploadPackageBytes(
+          archiveBytes,
+          attestationBytes: attestationBytes,
+        );
+        expect(message.success.message, contains('Successfully uploaded'));
+
+        // Verify attestation asset was stored in Datastore
+        final asset = await packageBackend.lookupPackageVersionAsset(
+          'attested_pkg',
+          '1.0.0',
+          AssetKind.attestation,
+        );
+        expect(asset, isNotNull);
+        expect(asset!.textContent, isNotNull);
+        final storedJson =
+            jsonDecode(asset.textContent!) as Map<String, dynamic>;
+        expect(
+          storedJson['mediaType'],
+          equals('application/vnd.dev.sigstore.bundle.v0.3+json'),
         );
       },
     );

@@ -1208,12 +1208,31 @@ class PackageBackend {
         throw PackageRejectedException.dependencyDoesNotExists(name);
       }
 
+      // Check for an accompanying Sigstore attestation bundle in the incoming bucket.
+      String? attestationContent;
+      final attestationObjectName =
+          '${tmpObjectName(uploadGuid)}.sigstore.json';
+      final attestationInfo = await _incomingBucket.tryInfo(
+        attestationObjectName,
+      );
+      if (attestationInfo?.length != null) {
+        _logger.info('Reading package attestation ($uploadGuid).');
+        final attestationFilename =
+            '${dir.absolute.path}/attestation.sigstore.json';
+        await _incomingBucket.readWithRetry(
+          attestationObjectName,
+          (input) => _saveTarballToFS(input, attestationFilename),
+        );
+        attestationContent = await File(attestationFilename).readAsString();
+      }
+
       sw.reset();
       final entities = await _createUploadEntities(
         db,
         agent,
         archive,
         sha256Hash: sha256Hash,
+        attestationContent: attestationContent,
       );
       final (version, uploadMessages) = await _performTarballUpload(
         entities: entities,
@@ -1229,6 +1248,9 @@ class PackageBackend {
       sw.reset();
       await _incomingBucket.deleteWithRetry(uploadObjectName);
       await _incomingBucket.deleteWithRetry(workObjectName);
+      if (attestationInfo?.length != null) {
+        await _incomingBucket.deleteWithRetry(attestationObjectName);
+      }
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return [
         'Successfully uploaded '
@@ -2368,6 +2390,7 @@ Future<_UploadEntities> _createUploadEntities(
   AuthenticatedAgent agent,
   PackageSummary archive, {
   required List<int> sha256Hash,
+  String? attestationContent,
 }) async {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
@@ -2387,6 +2410,7 @@ Future<_UploadEntities> _createUploadEntities(
   final derived = derivePackageVersionEntities(
     archive: archive,
     versionCreated: version.created!,
+    attestationContent: attestationContent,
   );
 
   // TODO: verify if assets sizes are within the transaction limit (10 MB)
@@ -2397,6 +2421,7 @@ Future<_UploadEntities> _createUploadEntities(
 DerivedPackageVersionEntities derivePackageVersionEntities({
   required PackageSummary archive,
   required DateTime versionCreated,
+  String? attestationContent,
 }) {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
   final key = QualifiedVersionKey(
@@ -2454,6 +2479,15 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
         versionCreated: versionCreated,
         path: archive.licensePath,
         textContent: capContent(archive.licenseContent),
+      ),
+    if (attestationContent != null)
+      PackageVersionAsset.init(
+        package: key.package,
+        version: key.version,
+        kind: AssetKind.attestation,
+        versionCreated: versionCreated,
+        path: '${key.package}-${key.version}.sigstore.json',
+        textContent: capContent(attestationContent),
       ),
   ];
 
