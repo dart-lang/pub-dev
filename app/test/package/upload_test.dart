@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/account/backend.dart';
@@ -1660,24 +1661,86 @@ void main() {
     );
 
     testWithProfile(
-      'successful upload with attestation bundle and api retrieval',
+      'successful upload with valid attestation bundle and api retrieval',
       fn: () async {
         final pubspecContent =
-            'name: attested_pkg\nversion: 1.0.0\ndescription: A package with attestation.\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+            'name: attested_pkg\nversion: 1.0.0\ndescription: A package with attestation.\nrepository: https://github.com/mosuem/attested_pkg\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
         final archiveBytes = await packageArchiveBytes(
           pubspecContent: pubspecContent,
         );
-        final bundleJson = {
-          'mediaType': 'application/vnd.dev.sigstore.bundle.v0.3+json',
-          'verificationMaterial': {},
-          'dsseEnvelope': {
-            'payloadType': 'application/vnd.in-toto+json',
-            'payload': base64Encode(utf8.encode('{}')),
-            'signatures': [],
+        final archiveSha = sha256.convert(archiveBytes).toString();
+
+        final statement = {
+          '_type': 'https://in-toto.io/Statement/v1',
+          'subject': [
+            {
+              'name': 'attested_pkg-1.0.0.tar.gz',
+              'digest': {'sha256': archiveSha},
+            },
+          ],
+          'predicateType': 'https://slsa.dev/provenance/v1',
+          'predicate': {
+            'buildDefinition': {
+              'buildType': 'https://actions.github.io/buildtypes/workflow/v1',
+              'externalParameters': {
+                'workflow': {
+                  'ref': 'refs/tags/v1.0.0',
+                  'repository': 'https://github.com/mosuem/attested_pkg',
+                  'path': '.github/workflows/publish.yaml',
+                },
+              },
+              'resolvedDependencies': [
+                {
+                  'uri':
+                      'git+https://github.com/mosuem/attested_pkg@refs/tags/v1.0.0',
+                  'digest': {
+                    'gitCommit': '7891abbe3dab159e9d0187fc1042d5e0cd82cfad',
+                  },
+                },
+              ],
+            },
+            'runDetails': {
+              'builder': {
+                'id':
+                    'https://github.com/dart-lang/ecosystem/.github/workflows/publish.yaml@refs/heads/main',
+              },
+            },
           },
         };
-        final attestationBytes = utf8.encode(jsonEncode(bundleJson));
 
+        final derBytes = <int>[
+          0x30,
+          0x82,
+          0x01,
+          0x00,
+          ...utf8.encode('https://github.com/mosuem/attested_pkg'),
+          ...utf8.encode('https://token.actions.githubusercontent.com'),
+        ];
+
+        final bundleJson = {
+          'mediaType': 'application/vnd.dev.sigstore.bundle.v0.3+json',
+          'verificationMaterial': {
+            'certificate': {'rawBytes': base64Encode(derBytes)},
+            'tlogEntries': [
+              {
+                'logIndex': '123456',
+                'inclusionProof': {
+                  'rootHash': 'test-root-hash',
+                  'hashes': ['hash1', 'hash2'],
+                },
+              },
+            ],
+          },
+          'dsseEnvelope': {
+            'payloadType': 'application/vnd.in-toto+json',
+            'payload': base64Encode(utf8.encode(jsonEncode(statement))),
+            'signatures': [
+              {'sig': base64Encode(utf8.encode('test-signature'))},
+            ],
+          },
+        };
+
+        final attestationBytes = utf8.encode(jsonEncode(bundleJson));
         final client = createPubApiClient(authToken: adminClientToken);
         final message = await client.uploadPackageBytes(
           archiveBytes,
@@ -1786,6 +1849,64 @@ void main() {
           status: 400,
           code: 'PackageRejected',
           message: 'Invalid attestation bundle format',
+        );
+      },
+    );
+
+    testWithProfile(
+      'upload fails when attestation is invalid or sha256 does not match',
+      fn: () async {
+        final pubspecContent =
+            'name: invalid_attested_pkg\nversion: 1.0.0\ndescription: An invalid attested package.\nrepository: https://github.com/mosuem/invalid_attested_pkg\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+        final archiveBytes = await packageArchiveBytes(
+          pubspecContent: pubspecContent,
+        );
+
+        // Mismatched hash
+        const fakeSha =
+            '0000000000000000000000000000000000000000000000000000000000000000';
+        final statement = {
+          '_type': 'https://in-toto.io/Statement/v1',
+          'subject': [
+            {
+              'name': 'invalid_attested_pkg-1.0.0.tar.gz',
+              'digest': {'sha256': fakeSha},
+            },
+          ],
+          'predicateType': 'https://slsa.dev/provenance/v1',
+          'predicate': {},
+        };
+        final bundleJson = {
+          'mediaType': 'application/vnd.dev.sigstore.bundle.v0.3+json',
+          'verificationMaterial': {
+            'certificate': {
+              'rawBytes': base64Encode([0x30, 0x00]),
+            },
+            'tlogEntries': [
+              {
+                'logIndex': '123',
+                'inclusionProof': {'hashes': <String>[]},
+              },
+            ],
+          },
+          'dsseEnvelope': {
+            'payloadType': 'application/vnd.in-toto+json',
+            'payload': base64Encode(utf8.encode(jsonEncode(statement))),
+            'signatures': [
+              {'sig': base64Encode(utf8.encode('sig'))},
+            ],
+          },
+        };
+
+        final attestationBytes = utf8.encode(jsonEncode(bundleJson));
+        final rs = createPubApiClient(
+          authToken: adminClientToken,
+        ).uploadPackageBytes(archiveBytes, attestationBytes: attestationBytes);
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Invalid package attestation',
         );
       },
     );
