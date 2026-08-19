@@ -22,3 +22,7 @@ workspace:
 
 dev_dependencies:
   lints: ^6.0.0
+
+dependency_overrides:
+  appengine:
+    path: pkg/appengine

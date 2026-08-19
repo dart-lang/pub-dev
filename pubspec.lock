@@ -26,12 +26,11 @@ packages:
     source: hosted
     version: "13.3.0"
   appengine:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: appengine
-      sha256: "66c902badfdb3b5d5464f26a3fba11d0b87205a570195418c22e4fd507080cf4"
-      url: "https://pub.dev"
-    source: hosted
+      path: "pkg/appengine"
+      relative: true
+    source: path
     version: "0.13.12"
   archive:
     dependency: transitive
