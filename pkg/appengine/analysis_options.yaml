@@ -1,0 +1,18 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # TODO: We need to update the grpc generator to escape html entities in
+    # proto comments.
+    unintended_html_in_doc_comment: ignore
+    # proto files import these
+    implementation_imports: ignore
+    # Breaking change to fix
+    constant_identifier_names: ignore
+
+  exclude:
+    - tmp/**
+
+linter:
+  rules:
+    - unnecessary_library_directive

@@ -1,0 +1,35 @@
+# gcloud --project=$E2E_TEST_PROJECT datastore indexes create test/integration/index.yaml
+indexes:
+- kind: User
+  ancestor: no
+  properties:
+  - name: name
+    direction: asc
+  - name: nickname
+    direction: desc
+- kind: User
+  ancestor: no
+  properties:
+  - name: name
+    direction: desc
+  - name: nickname
+    direction: desc
+- kind: User
+  ancestor: no
+  properties:
+  - name: name
+    direction: desc
+  - name: nickname
+    direction: asc
+- kind: User
+  ancestor: no
+  properties:
+  - name: language
+    direction: asc
+  - name: name
+    direction: asc
+- kind: TestQueryKind
+  properties:
+  - name: listproperty
+  - name: test_property
+    direction: desc

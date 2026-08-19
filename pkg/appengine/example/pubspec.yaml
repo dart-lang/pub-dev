@@ -1,0 +1,9 @@
+name: hello_world
+publish_to: none
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  appengine: ^0.13.0
+  logging: ^1.3.0
