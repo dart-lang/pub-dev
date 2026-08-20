@@ -2276,6 +2276,7 @@ extension PackageVersionExt on PackageVersion {
       ),
       archiveSha256: archiveSha256,
       published: created,
+      slsaLevel: slsaLevel,
     );
   }
 }
@@ -2475,7 +2476,8 @@ Future<_UploadEntities> _createUploadEntities(
     ..pubspec = pubspec
     ..libraries = archive.libraries
     ..uploader = agent.agentId
-    ..sha256 = sha256Hash;
+    ..sha256 = sha256Hash
+    ..slsaLevel = attestationContent != null ? 2 : null;
 
   final derived = derivePackageVersionEntities(
     archive: archive,

@@ -132,6 +132,7 @@ d.Node renderPkgHeader(PackagePageData data) {
     titleNode: titleContentNode(
       package: package.name!,
       version: data.version.version!,
+      slsaLevel: data.version.slsaLevel,
     ),
     likeNode: renderLikeButtonAndLabel(
       package: package.name!,
