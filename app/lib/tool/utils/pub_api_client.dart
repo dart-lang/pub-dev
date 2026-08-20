@@ -174,8 +174,27 @@ bool _retryIf(Exception e) {
 
 extension PubApiClientExt on PubApiClient {
   @visibleForTesting
-  Future<String> preparePackageUpload(List<int> bytes) async {
+  Future<String> preparePackageUpload(
+    List<int> bytes, {
+    List<int>? attestationBytes,
+  }) async {
     final uploadInfo = await getPackageUploadUrl();
+
+    // Send the attestion bundle first, so we never accidentally upload a
+    // package without its attestation bundle.
+    if (attestationBytes != null) {
+      final baseKey = uploadInfo.fields!['key']!;
+      final attestationFields = Map<String, String>.from(uploadInfo.fields!);
+      attestationFields['key'] = '$baseKey.sigstore.json';
+      attestationFields.remove('success_action_redirect');
+      final attRequest =
+          http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
+            ..headers[fakeClockHeaderName] = clock.now().toIso8601String()
+            ..fields.addAll(attestationFields)
+            ..files.add(http.MultipartFile.fromBytes('file', attestationBytes))
+            ..followRedirects = false;
+      await attRequest.send();
+    }
 
     final request = http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
       ..headers[fakeClockHeaderName] = clock.now().toIso8601String()
@@ -201,8 +220,14 @@ extension PubApiClientExt on PubApiClient {
   }
 
   @visibleForTesting
-  Future<SuccessMessage> uploadPackageBytes(List<int> bytes) async {
-    final uploadId = await preparePackageUpload(bytes);
+  Future<SuccessMessage> uploadPackageBytes(
+    List<int> bytes, {
+    List<int>? attestationBytes,
+  }) async {
+    final uploadId = await preparePackageUpload(
+      bytes,
+      attestationBytes: attestationBytes,
+    );
     return await finishPackageUpload(uploadId);
   }
 }
