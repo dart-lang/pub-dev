@@ -167,5 +167,27 @@ void main() {
       expect(countedTo, greaterThanOrEqualTo(10));
       expect(countedTo, lessThan(20));
     });
+
+    test('fast streaming items stress test does not deadlock', () async {
+      for (var trial = 0; trial < 10; trial++) {
+        Stream<int> entityStream() async* {
+          for (var b = 0; b < 20; b++) {
+            await Future.delayed(Duration(microseconds: 10));
+            for (var i = 0; i < 50; i++) {
+              yield b * 50 + i;
+            }
+          }
+        }
+
+        var processed = 0;
+        await entityStream()
+            .parallelForEach(4, (item) async {
+              await Stream.fromIterable([item]).toList();
+              processed++;
+            })
+            .timeout(Duration(seconds: 5));
+        expect(processed, 1000);
+      }
+    });
   });
 }

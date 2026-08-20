@@ -8,6 +8,8 @@
 
 import 'dart:async';
 
+import 'package:pool/pool.dart';
+
 /// A [Notifier] allows micro-tasks to [wait] for other micro-tasks to
 /// [notify].
 ///
@@ -98,25 +100,24 @@ extension StreamExtensions<T> on Stream<T> {
     FutureOr<void> Function(T item) each, {
     FutureOr<void> Function(Object e, StackTrace? st) onError = Future.error,
   }) async {
-    // Track the first error, so we rethrow when we're done.
+    final pool = Pool(maxParallel);
     Object? firstError;
     StackTrace? firstStackTrace;
-
-    // Track number of running items.
-    var running = 0;
-    final itemDone = Notifier();
+    var doBreak = false;
 
     try {
-      var doBreak = false;
       await for (final item in this) {
-        // For each item we increment [running] and call [each]
-        running += 1;
+        if (doBreak) break;
+        final resource = await pool.request();
+        if (doBreak) {
+          resource.release();
+          break;
+        }
         unawaited(() async {
           try {
             await each(item);
           } catch (e, st) {
             try {
-              // If [onError] doesn't throw, we'll just continue.
               await onError(e, st);
             } catch (e, st) {
               doBreak = true;
@@ -126,24 +127,12 @@ extension StreamExtensions<T> on Stream<T> {
               }
             }
           } finally {
-            // When [each] is done, we decrement [running] and notify
-            running -= 1;
-            itemDone.notify();
+            resource.release();
           }
         }());
-
-        if (running >= maxParallel) {
-          await itemDone.wait;
-        }
-        if (doBreak) {
-          break;
-        }
       }
     } finally {
-      // Wait for all items to be finished
-      while (running > 0) {
-        await itemDone.wait;
-      }
+      await pool.close();
     }
 
     // If an error happened, then we rethrow the first one.
