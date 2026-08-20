@@ -9,6 +9,7 @@ import '../../../../../package/model_properties.dart';
 import '../../../../../shared/urls.dart' as urls;
 import '../../../../dom/dom.dart' as d;
 import '../../../../static_files.dart';
+import '../badge.dart';
 
 d.Node versionRowNode(
   String package,
@@ -28,7 +29,12 @@ d.Node versionRowNode(
           title: 'Visit $package ${version.version} page',
         ),
       ),
-      d.td(classes: ['badge'], child: null),
+      d.td(
+        classes: ['badge'],
+        child: version.slsaLevel != null
+            ? slsaShieldBadgeNode(version.slsaLevel!)
+            : null,
+      ),
       d.td(
         classes: ['sdk'],
         child: sdk != null

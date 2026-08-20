@@ -20,6 +20,12 @@
     color: var(--pub-badge-red-color);
   }
 
+  &.package-badge-slsa {
+    border-color: var(--pub-badge-default-color);
+    color: var(--pub-badge-default-color);
+    font-weight: 500;
+  }
+
   &.package-badge-name-match {
     position: relative;
     top: -5px;

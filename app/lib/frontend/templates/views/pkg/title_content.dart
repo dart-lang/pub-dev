@@ -4,11 +4,17 @@
 
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart';
+import 'badge.dart';
 
-d.Node titleContentNode({required String package, required String version}) {
+d.Node titleContentNode({
+  required String package,
+  required String version,
+  int? slsaLevel,
+}) {
   return d.fragment([
     d.text('$package $version '),
     copyIcon(package: package, version: version),
+    if (slsaLevel != null) ...[d.text(' '), slsaShieldBadgeNode(slsaLevel)],
   ]);
 }
 
