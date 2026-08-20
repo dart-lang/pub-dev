@@ -180,6 +180,20 @@ extension PubApiClientExt on PubApiClient {
   }) async {
     final uploadInfo = await getPackageUploadUrl();
 
+    if (attestationBytes != null) {
+      final baseKey = uploadInfo.fields!['key']!;
+      final attestationFields = Map<String, String>.from(uploadInfo.fields!);
+      attestationFields['key'] = '$baseKey.sigstore.json';
+      attestationFields.remove('success_action_redirect');
+      final attRequest =
+          http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
+            ..headers[fakeClockHeaderName] = clock.now().toIso8601String()
+            ..fields.addAll(attestationFields)
+            ..files.add(http.MultipartFile.fromBytes('file', attestationBytes))
+            ..followRedirects = false;
+      await attRequest.send();
+    }
+
     final request = http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
       ..headers[fakeClockHeaderName] = clock.now().toIso8601String()
       ..fields.addAll(uploadInfo.fields!)
@@ -195,20 +209,6 @@ extension PubApiClientExt on PubApiClient {
         'Expected HTTP redirect, got ${uploadRs.statusCode}.'
         '\nbody: $body\nheaders: $headers',
       );
-    }
-
-    if (attestationBytes != null) {
-      final baseKey = uploadInfo.fields!['key']!;
-      final attestationFields = Map<String, String>.from(uploadInfo.fields!);
-      attestationFields['key'] = '$baseKey.sigstore.json';
-      attestationFields.remove('success_action_redirect');
-      final attRequest =
-          http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
-            ..headers[fakeClockHeaderName] = clock.now().toIso8601String()
-            ..fields.addAll(attestationFields)
-            ..files.add(http.MultipartFile.fromBytes('file', attestationBytes))
-            ..followRedirects = false;
-      await attRequest.send();
     }
 
     final callbackUri = Uri.parse(
