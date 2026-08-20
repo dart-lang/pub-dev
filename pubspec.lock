@@ -29,10 +29,10 @@ packages:
     dependency: transitive
     description:
       name: appengine
-      sha256: "66c902badfdb3b5d5464f26a3fba11d0b87205a570195418c22e4fd507080cf4"
+      sha256: "52d587b424d0af7505d7994d4ee48c2502dff455f40aaecaea2fdaf238396700"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.12"
+    version: "0.13.13"
   archive:
     dependency: transitive
     description:

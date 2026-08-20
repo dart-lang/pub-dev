@@ -7,7 +7,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  appengine: ^0.13.6
+  appengine: ^0.13.13
   json_annotation: ^4.3.0
   jsontool: ^2.0.0
   pana: ^0.23.18
