@@ -1647,7 +1647,7 @@ void main() {
       'successful upload with attestation bundle and api retrieval',
       fn: () async {
         final pubspecContent =
-            'name: attested_pkg\nversion: 1.0.0\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+            'name: attested_pkg\nversion: 1.0.0\ndescription: A package with attestation.\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
         final archiveBytes = await packageArchiveBytes(
           pubspecContent: pubspecContent,
         );
