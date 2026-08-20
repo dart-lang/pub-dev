@@ -180,6 +180,8 @@ extension PubApiClientExt on PubApiClient {
   }) async {
     final uploadInfo = await getPackageUploadUrl();
 
+    // Send the attestion bundle first, so we never accidentally upload a
+    // package without its attestation bundle.
     if (attestationBytes != null) {
       final baseKey = uploadInfo.fields!['key']!;
       final attestationFields = Map<String, String>.from(uploadInfo.fields!);
