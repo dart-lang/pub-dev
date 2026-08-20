@@ -63,21 +63,6 @@ final maxAssetContentLength = 256 * 1024;
 final _defaultMaxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
-final _defaultSigstoreTrustedRoot = <String, dynamic>{
-  'mediaType': 'application/vnd.dev.sigstore.trustedroot+json;version=0.1',
-  'certificateAuthorities': [
-    {
-      'subject': {'organization': 'sigstore.dev', 'commonName': 'fulcio'},
-      'uri': 'https://fulcio.sigstore.dev',
-    },
-  ],
-  'tlogs': [
-    {
-      'baseUrl': 'https://rekor.sigstore.dev',
-      'logId': {'keyId': 'test-rekor-key-id'},
-    },
-  ],
-};
 final _validGitHubUserOrRepoRegExp = RegExp(
   r'^[a-z0-9\-\._]+$',
   caseSensitive: false,
@@ -118,6 +103,7 @@ class PackageBackend {
 
   /// The Cloud Storage bucket to use for exported API responses (including public tarballs).
   final Bucket _exportedApiBucket;
+  final AttestationVerifier _sigstoreVerifier;
 
   @visibleForTesting
   int maxVersionsPerPackage = _defaultMaxVersionsPerPackage;
@@ -127,8 +113,9 @@ class PackageBackend {
     this._storage,
     this._incomingBucket,
     this._canonicalBucket,
-    this._exportedApiBucket,
-  );
+    this._exportedApiBucket, {
+    AttestationVerifier? sigstoreVerifier,
+  }) : _sigstoreVerifier = sigstoreVerifier ?? AttestationVerifier();
 
   /// Whether the package exists and is not blocked or deleted.
   Future<bool> isPackageVisible(String package) async {
@@ -1247,15 +1234,8 @@ class PackageBackend {
           final attestationJson =
               jsonDecode(attestationContent) as Map<String, dynamic>;
           final bundle = SigstoreBundle.fromJson(attestationJson);
-          Map<String, dynamic>? trustedRoot;
-          try {
-            trustedRoot = loadTrustedRoot();
-          } catch (_) {
-            trustedRoot = _defaultSigstoreTrustedRoot;
-          }
-          final verifier = AttestationVerifier(trustedRoot: trustedRoot);
           final archiveBytes = await file.readAsBytes();
-          final verificationResult = verifier.verify(
+          final verificationResult = _sigstoreVerifier.verify(
             packageName: pubspec.name,
             packageVersion: Version.parse(versionString),
             archiveBytes: archiveBytes,
