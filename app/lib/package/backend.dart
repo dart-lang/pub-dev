@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
@@ -1223,7 +1224,18 @@ class PackageBackend {
           attestationObjectName,
           (input) => _saveTarballToFS(input, attestationFilename),
         );
-        attestationContent = await File(attestationFilename).readAsString();
+        try {
+          final bytes = await File(attestationFilename).readAsBytes();
+          attestationContent = utf8.decode(bytes);
+          final decoded = jsonDecode(attestationContent);
+          if (decoded is! Map<String, dynamic>) {
+            throw FormatException('Attestation bundle must be a JSON object.');
+          }
+        } on FormatException catch (e) {
+          throw PackageRejectedException(
+            'Invalid attestation bundle format: $e',
+          );
+        }
       }
 
       sw.reset();
