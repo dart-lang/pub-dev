@@ -197,11 +197,6 @@ extension PubApiClientExt on PubApiClient {
       );
     }
 
-    final callbackUri = Uri.parse(
-      uploadInfo.fields!['success_action_redirect']!,
-    );
-    final uploadId = callbackUri.queryParameters['upload_id']!;
-
     if (attestationBytes != null) {
       final baseKey = uploadInfo.fields!['key']!;
       final attestationFields = Map<String, String>.from(uploadInfo.fields!);
@@ -216,7 +211,10 @@ extension PubApiClientExt on PubApiClient {
       await attRequest.send();
     }
 
-    return uploadId;
+    final callbackUri = Uri.parse(
+      uploadInfo.fields!['success_action_redirect']!,
+    );
+    return callbackUri.queryParameters['upload_id']!;
   }
 
   @visibleForTesting
