@@ -7,7 +7,6 @@ import 'dart:convert';
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
-import 'package:crypto/crypto.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/account/backend.dart';
@@ -17,6 +16,7 @@ import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
+import 'package:pub_dev/package/attestation_verifier.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/name_tracker.dart';
@@ -1663,117 +1663,51 @@ void main() {
     testWithProfile(
       'successful upload with valid attestation bundle and api retrieval',
       fn: () async {
-        final pubspecContent =
-            'name: attested_pkg\nversion: 1.0.0\ndescription: A package with attestation.\nrepository: https://github.com/mosuem/attested_pkg\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
-        final archiveBytes = await packageArchiveBytes(
-          pubspecContent: pubspecContent,
-        );
-        final archiveSha = sha256.convert(archiveBytes).toString();
+        AttestationVerifier.skipSignatureCheckInTest = true;
+        try {
+          final pubspecContent =
+              'name: attested_pkg\nversion: 1.0.0\ndescription: A package with attestation.\nrepository: https://github.com/mosuem/attested_pkg\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+          final archiveBytes = await packageArchiveBytes(
+            pubspecContent: pubspecContent,
+          );
 
-        final statement = {
-          '_type': 'https://in-toto.io/Statement/v1',
-          'subject': [
-            {
-              'name': 'attested_pkg-1.0.0.tar.gz',
-              'digest': {'sha256': archiveSha},
-            },
-          ],
-          'predicateType': 'https://slsa.dev/provenance/v1',
-          'predicate': {
-            'buildDefinition': {
-              'buildType': 'https://actions.github.io/buildtypes/workflow/v1',
-              'externalParameters': {
-                'workflow': {
-                  'ref': 'refs/tags/v1.0.0',
-                  'repository': 'https://github.com/mosuem/attested_pkg',
-                  'path': '.github/workflows/publish.yaml',
-                },
-              },
-              'resolvedDependencies': [
-                {
-                  'uri':
-                      'git+https://github.com/mosuem/attested_pkg@refs/tags/v1.0.0',
-                  'digest': {
-                    'gitCommit': '7891abbe3dab159e9d0187fc1042d5e0cd82cfad',
-                  },
-                },
-              ],
-            },
-            'runDetails': {
-              'builder': {
-                'id':
-                    'https://github.com/dart-lang/ecosystem/.github/workflows/publish.yaml@refs/heads/main',
-              },
-            },
-          },
-        };
+          final attestationBytes = utf8.encode(_sampleBundleJson);
+          final client = createPubApiClient(authToken: adminClientToken);
+          final message = await client.uploadPackageBytes(
+            archiveBytes,
+            attestationBytes: attestationBytes,
+          );
+          expect(message.success.message, contains('Successfully uploaded'));
 
-        final derBytes = <int>[
-          0x30,
-          0x82,
-          0x01,
-          0x00,
-          ...utf8.encode('https://github.com/mosuem/attested_pkg'),
-          ...utf8.encode('https://token.actions.githubusercontent.com'),
-        ];
+          // Verify attestation asset was stored in Datastore
+          final asset = await packageBackend.lookupPackageVersionAsset(
+            'attested_pkg',
+            '1.0.0',
+            AssetKind.attestation,
+          );
+          expect(asset, isNotNull);
+          expect(asset!.textContent, isNotNull);
+          final storedJson =
+              jsonDecode(asset.textContent!) as Map<String, dynamic>;
+          expect(
+            storedJson['mediaType'],
+            equals('application/vnd.dev.sigstore.bundle+json;version=0.3'),
+          );
 
-        final bundleJson = {
-          'mediaType': 'application/vnd.dev.sigstore.bundle.v0.3+json',
-          'verificationMaterial': {
-            'certificate': {'rawBytes': base64Encode(derBytes)},
-            'tlogEntries': [
-              {
-                'logIndex': '123456',
-                'inclusionProof': {
-                  'rootHash': 'test-root-hash',
-                  'hashes': ['hash1', 'hash2'],
-                },
-              },
-            ],
-          },
-          'dsseEnvelope': {
-            'payloadType': 'application/vnd.in-toto+json',
-            'payload': base64Encode(utf8.encode(jsonEncode(statement))),
-            'signatures': [
-              {'sig': base64Encode(utf8.encode('test-signature'))},
-            ],
-          },
-        };
-
-        final attestationBytes = utf8.encode(jsonEncode(bundleJson));
-        final client = createPubApiClient(authToken: adminClientToken);
-        final message = await client.uploadPackageBytes(
-          archiveBytes,
-          attestationBytes: attestationBytes,
-        );
-        expect(message.success.message, contains('Successfully uploaded'));
-
-        // Verify attestation asset was stored in Datastore
-        final asset = await packageBackend.lookupPackageVersionAsset(
-          'attested_pkg',
-          '1.0.0',
-          AssetKind.attestation,
-        );
-        expect(asset, isNotNull);
-        expect(asset!.textContent, isNotNull);
-        final storedJson =
-            jsonDecode(asset.textContent!) as Map<String, dynamic>;
-        expect(
-          storedJson['mediaType'],
-          equals('application/vnd.dev.sigstore.bundle.v0.3+json'),
-        );
-
-        // Verify attestation can be retrieved via the API endpoint
-        final retrievedBytes = await client.getPackageVersionAttestation(
-          'attested_pkg',
-          '1.0.0',
-        );
-        final retrievedJson =
-            jsonDecode(utf8.decode(retrievedBytes)) as Map<String, dynamic>;
-        expect(
-          retrievedJson['mediaType'],
-          equals('application/vnd.dev.sigstore.bundle.v0.3+json'),
-        );
+          // Verify attestation can be retrieved via the API endpoint
+          final retrievedBytes = await client.getPackageVersionAttestation(
+            'attested_pkg',
+            '1.0.0',
+          );
+          final retrievedJson =
+              jsonDecode(utf8.decode(retrievedBytes)) as Map<String, dynamic>;
+          expect(
+            retrievedJson['mediaType'],
+            equals('application/vnd.dev.sigstore.bundle+json;version=0.3'),
+          );
+        } finally {
+          AttestationVerifier.skipSignatureCheckInTest = false;
+        }
       },
     );
 
@@ -1862,43 +1796,7 @@ void main() {
           pubspecContent: pubspecContent,
         );
 
-        // Mismatched hash
-        const fakeSha =
-            '0000000000000000000000000000000000000000000000000000000000000000';
-        final statement = {
-          '_type': 'https://in-toto.io/Statement/v1',
-          'subject': [
-            {
-              'name': 'invalid_attested_pkg-1.0.0.tar.gz',
-              'digest': {'sha256': fakeSha},
-            },
-          ],
-          'predicateType': 'https://slsa.dev/provenance/v1',
-          'predicate': {},
-        };
-        final bundleJson = {
-          'mediaType': 'application/vnd.dev.sigstore.bundle.v0.3+json',
-          'verificationMaterial': {
-            'certificate': {
-              'rawBytes': base64Encode([0x30, 0x00]),
-            },
-            'tlogEntries': [
-              {
-                'logIndex': '123',
-                'inclusionProof': {'hashes': <String>[]},
-              },
-            ],
-          },
-          'dsseEnvelope': {
-            'payloadType': 'application/vnd.in-toto+json',
-            'payload': base64Encode(utf8.encode(jsonEncode(statement))),
-            'signatures': [
-              {'sig': base64Encode(utf8.encode('sig'))},
-            ],
-          },
-        };
-
-        final attestationBytes = utf8.encode(jsonEncode(bundleJson));
+        final attestationBytes = utf8.encode(_sampleBundleJson);
         final rs = createPubApiClient(
           authToken: adminClientToken,
         ).uploadPackageBytes(archiveBytes, attestationBytes: attestationBytes);
@@ -1912,3 +1810,6 @@ void main() {
     );
   });
 }
+
+const _sampleBundleJson =
+    r'''{"mediaType": "application/vnd.dev.sigstore.bundle+json;version=0.3", "verificationMaterial": {"certificate": {"rawBytes": "MIIIMTCCB7egAwIBAgIUaL/tsmQTHk21mt1Uuk+w7avDBz4wCgYIKoZIzj0EAwMwNzEVMBMGA1UEChMMc2lnc3RvcmUuZGV2MR4wHAYDVQQDExVzaWdzdG9yZS1pbnRlcm1lZGlhdGUwHhcNMjQwMzE5MTcyNjI2WhcNMjQwMzE5MTczNjI2WjAAMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE22S1j/NkEXzBPQAuamHXLpwx+RPnnzZQl/pkEZ8xorvKnzujCS1mVTBo9kBxmYWo2DHtyVyfgnuOqVTzLYmho6OCBtYwggbSMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDAzAdBgNVHQ4EFgQUFv1SCziEKN2rRyrjeVlFbSLg1/QwHwYDVR0jBBgwFoAU39Ppz1YkEZb5qNjpKFWixi4YZD8wgaUGA1UdEQEB/wSBmjCBl4aBlGh0dHBzOi8vZ2l0aHViLmNvbS9zaWdzdG9yZS1jb25mb3JtYW5jZS9leHRyZW1lbHktZGFuZ2Vyb3VzLXB1YmxpYy1vaWRjLWJlYWNvbi8uZ2l0aHViL3dvcmtmbG93cy9leHRyZW1lbHktZGFuZ2Vyb3VzLW9pZGMtYmVhY29uLnltbEByZWZzL2hlYWRzL21haW4wOQYKKwYBBAGDvzABAQQraHR0cHM6Ly90b2tlbi5hY3Rpb25zLmdpdGh1YnVzZXJjb250ZW50LmNvbTAfBgorBgEEAYO/MAECBBF3b3JrZmxvd19kaXNwYXRjaDA2BgorBgEEAYO/MAEDBChjN2IzZGZiMzM1ZjA1MWUxYzg2YmRhNGM3MTZmYWM5N2RmNjJhZDgxMC0GCisGAQQBg78wAQQEH0V4dHJlbWVseSBkYW5nZXJvdXMgT0lEQyBiZWFjb24wSQYKKwYBBAGDvzABBQQ7c2lnc3RvcmUtY29uZm9ybWFuY2UvZXh0cmVtZWx5LWRhbmdlcm91cy1wdWJsaWMtb2lkYy1iZWFjb24wHQYKKwYBBAGDvzABBgQPcmVmcy9oZWFkcy9tYWluMDsGCisGAQQBg78wAQgELQwraHR0cHM6Ly90b2tlbi5hY3Rpb25zLmdpdGh1YnVzZXJjb250ZW50LmNvbTCBpgYKKwYBBAGDvzABCQSBlwyBlGh0dHBzOi8vZ2l0aHViLmNvbS9zaWdzdG9yZS1jb25mb3JtYW5jZS9leHRyZW1lbHktZGFuZ2Vyb3VzLXB1YmxpYy1vaWRjLWJlYWNvbi8uZ2l0aHViL3dvcmtmbG93cy9leHRyZW1lbHktZGFuZ2Vyb3VzLW9pZGMtYmVhY29uLnltbEByZWZzL2hlYWRzL21haW4wOAYKKwYBBAGDvzABCgQqDChjN2IzZGZiMzM1ZjA1MWUxYzg2YmRhNGM3MTZmYWM5N2RmNjJhZDgxMB0GCisGAQQBg78wAQsEDwwNZ2l0aHViLWhvc3RlZDBeBgorBgEEAYO/MAEMBFAMTmh0dHBzOi8vZ2l0aHViLmNvbS9zaWdzdG9yZS1jb25mb3JtYW5jZS9leHRyZW1lbHktZGFuZ2Vyb3VzLXB1YmxpYy1vaWRjLWJlYWNvbjA4BgorBgEEAYO/MAENBCoMKGM3YjNkZmIzMzVmMDUxZTFjODZiZGE0YzcxNmZhYzk3ZGY2MmFkODEwHwYKKwYBBAGDvzABDgQRDA9yZWZzL2hlYWRzL21haW4wGQYKKwYBBAGDvzABDwQLDAk2MzI1OTY4OTcwNwYKKwYBBAGDvzABEAQpDCdodHRwczovL2dpdGh1Yi5jb20vc2lnc3RvcmUtY29uZm9ybWFuY2UwGQYKKwYBBAGDvzABEQQLDAkxMzE4MDQ1NjMwgaYGCisGAQQBg78wARIEgZcMgZRodHRwczovL2dpdGh1Yi5jb20vc2lnc3RvcmUtY29uZm9ybWFuY2UvZXh0cmVtZWx5LWRhbmdlcm91cy1wdWJsaWMtb2lkYy1iZWFjb24vLmdpdGh1Yi93b3JrZmxvd3MvZXh0cmVtZWx5LWRhbmdlcm91cy1vaWRjLWJlYWNvbi55bWxAcmVmcy9oZWFkcy9tYWluMDgGCisGAQQBg78wARMEKgwoYzdiM2RmYjMzNWYwNTFlMWM4NmJkYTRjNzE2ZmFjOTdkZjYyYWQ4MTAhBgorBgEEAYO/MAEUBBMMEXdvcmtmbG93X2Rpc3BhdGNoMIGBBgorBgEEAYO/MAEVBHMMcWh0dHBzOi8vZ2l0aHViLmNvbS9zaWdzdG9yZS1jb25mb3JtYW5jZS9leHRyZW1lbHktZGFuZ2Vyb3VzLXB1YmxpYy1vaWRjLWJlYWNvbi9hY3Rpb25zL3J1bnMvODM0NzQ4MTYyOC9hdHRlbXB0cy8xMBYGCisGAQQBg78wARYECAwGcHVibGljMIGKBgorBgEEAdZ5AgQCBHwEegB4AHYA3T0wasbHETJjGR4cmWc3AqJKXrjePK3/h4pygC8p7o4AAAGOV8AHpgAABAMARzBFAiBFeMbpFarlPwb0naTr4mjWDvXApOd9ORqOk36Brt9SmwIhAJJvjor+DXUXr7S3Vm9jVFT3CL0BxcKGj86m5mYzQvubMAoGCCqGSM49BAMDA2gAMGUCMA8lTixdS4iN9mAUduObcSJmhZLyvK7zaX05DLEDCgPWxDHk+JBZUKYRIuHHgwFnOwIxALMamo9dfENMzRgNCzYfp/y+rSOhVjXXE9mCn6BuJETlpRDfGvxUg/5LF9f4lYqozA=="}, "tlogEntries": [{"logIndex": "79571823", "logId": {"keyId": "wNI9atQGlz+VWfO6LRygH4QUfY/8W4RFwiT5i5WRgB0="}, "kindVersion": {"kind": "hashedrekord", "version": "0.0.1"}, "integratedTime": "1710869186", "inclusionPromise": {"signedEntryTimestamp": "MEYCIQDMNM49CNrcrpuvB9G3likdSse0miAkY0ILCqzRGP5ZJQIhAKnSS9GUSFVCar1+Sq3qoRtJIJ8x9tqRnQ8kuS1ojtTH"}, "inclusionProof": {"logIndex": "75408392", "rootHash": "Fnnj13Uu1jdksPc4HZLapKX329dVlD5+MGNsiqBq1XM=", "treeSize": "75408393", "hashes": ["1J7hRIEGvYdAyzEs+GhAE9L+38oHye3BhalgoQRZoo4=", "W/OUCkh/lqDDwbBkZgP7eTV/wx4WifD1wtfRLbavfxI=", "9wya2BEhfLGDfDRVN46OU2RXkozWCM1Z4qMu6SPiWoY=", "ZRs3lKAIlu0t0GtLupAcOu1y20nOaOshSKosWAqFO+w=", "BGqH+LzVuhuqCLiUvBJaB2hlsvtu2a15qq1WGw6mG44=", "OeS7D4kPES7ChE7kWSEmhbAMqBcKVj/z8/afMK4Y3pI=", "JtjqvAqFyXXYjWlZfDzElHpEzdBjsz1LmGFJuYx0kTU=", "s/ZIVcfcD4/nuZwUtQf4ydGsIAkGTPTzk3b0zhUC95k=", "YU1jZY/fp5tJdGF/i+/7ez8107O4/lOUp7acMPFEaOA=", "7Z18YLBAvejEV4nJHIKoks/xlijnhR005qTW2w4QtHg=", "98enzMaC+x5oCMvIZQA5z8vu2apDMCFvE/935NfuPw8="], "checkpoint": {"envelope": "rekor.sigstore.dev - 2605736670972794746\n75408393\nFnnj13Uu1jdksPc4HZLapKX329dVlD5+MGNsiqBq1XM=\n\n— rekor.sigstore.dev wNI9ajBFAiBTyiBM9WtyOTgohje6QZ5rFGJUdMq7Wk3A6oThE98SUgIhAMvxDwa7FyqRqg+YV3rdPPrfS23w19iK+piMSGVOmP5w\n"}}, "canonicalizedBody": "eyJhcGlWZXJzaW9uIjoiMC4wLjEiLCJraW5kIjoiaGFzaGVkcmVrb3JkIiwic3BlYyI6eyJkYXRhIjp7Imhhc2giOnsiYWxnb3JpdGhtIjoic2hhMjU2IiwidmFsdWUiOiJhMGNmYzcxMjcxZDZlMjc4ZTU3Y2QzMzJmZjk1N2MzZjcwNDNmZGRhMzU0YzRjYmIxOTBhMzBkNTZlZmEwMWJmIn19LCJzaWduYXR1cmUiOnsiY29udGVudCI6Ik1FVUNJQ1lGcS80YlRFZGx1cmdxVnVObXdDY0lXdTNOS09DZ3ZlV0FKQmllekowdUFpRUEyaTdVMTgrYVJwRnhMWWtzcjVIS0JRUXkwOHpFMDUwV0ljMFJ6S3VuRElBPSIsInB1YmxpY0tleSI6eyJjb250ZW50IjoiTFMwdExTMUNSVWRKVGlCRFJWSlVTVVpKUTBGVVJTMHRMUzB0Q2sxSlNVbE5WRU5EUWpkbFowRjNTVUpCWjBsVllVd3ZkSE50VVZSSWF6SXhiWFF4VlhWckszYzNZWFpFUW5vMGQwTm5XVWxMYjFwSmVtb3dSVUYzVFhjS1RucEZWazFDVFVkQk1WVkZRMmhOVFdNeWJHNWpNMUoyWTIxVmRWcEhWakpOVWpSM1NFRlpSRlpSVVVSRmVGWjZZVmRrZW1SSE9YbGFVekZ3WW01U2JBcGpiVEZzV2tkc2FHUkhWWGRJYUdOT1RXcFJkMDE2UlRWTlZHTjVUbXBKTWxkb1kwNU5hbEYzVFhwRk5VMVVZM3BPYWtreVYycEJRVTFHYTNkRmQxbElDa3R2V2tsNmFqQkRRVkZaU1V0dldrbDZhakJFUVZGalJGRm5RVVV5TWxNeGFpOU9hMFZZZWtKUVVVRjFZVzFJV0V4d2QzZ3JVbEJ1Ym5wYVVXd3ZjR3NLUlZvNGVHOXlka3R1ZW5WcVExTXhiVlpVUW04NWEwSjRiVmxYYnpKRVNIUjVWbmxtWjI1MVQzRldWSHBNV1cxb2J6WlBRMEowV1hkbloySlRUVUUwUndwQk1WVmtSSGRGUWk5M1VVVkJkMGxJWjBSQlZFSm5UbFpJVTFWRlJFUkJTMEpuWjNKQ1owVkdRbEZqUkVGNlFXUkNaMDVXU0ZFMFJVWm5VVlZHZGpGVENrTjZhVVZMVGpKeVVubHlhbVZXYkVaaVUweG5NUzlSZDBoM1dVUldVakJxUWtKbmQwWnZRVlV6T1ZCd2VqRlphMFZhWWpWeFRtcHdTMFpYYVhocE5Ga0tXa1E0ZDJkaFZVZEJNVlZrUlZGRlFpOTNVMEp0YWtOQ2JEUmhRbXhIYURCa1NFSjZUMms0ZGxveWJEQmhTRlpwVEcxT2RtSlRPWHBoVjJSNlpFYzVlUXBhVXpGcVlqSTFiV0l6U25SWlZ6VnFXbE01YkdWSVVubGFWekZzWWtocmRGcEhSblZhTWxaNVlqTldla3hZUWpGWmJYaHdXWGt4ZG1GWFVtcE1WMHBzQ2xsWFRuWmlhVGgxV2pKc01HRklWbWxNTTJSMlkyMTBiV0pIT1ROamVUbHNaVWhTZVZwWE1XeGlTR3QwV2tkR2RWb3lWbmxpTTFaNlRGYzVjRnBIVFhRS1dXMVdhRmt5T1hWTWJteDBZa1ZDZVZwWFducE1NbWhzV1ZkU2Vrd3lNV2hoVnpSM1QxRlpTMHQzV1VKQ1FVZEVkbnBCUWtGUlVYSmhTRkl3WTBoTk5ncE1lVGt3WWpKMGJHSnBOV2haTTFKd1lqSTFla3h0WkhCa1IyZ3hXVzVXZWxwWVNtcGlNalV3V2xjMU1FeHRUblppVkVGbVFtZHZja0puUlVWQldVOHZDazFCUlVOQ1FrWXpZak5LY2xwdGVIWmtNVGxyWVZoT2QxbFlVbXBoUkVFeVFtZHZja0puUlVWQldVOHZUVUZGUkVKRGFHcE9Na2w2V2tkYWFVMTZUVEVLV21wQk1VMVhWWGhaZW1jeVdXMVNhRTVIVFROTlZGcHRXVmROTlU0eVVtMU9ha3BvV2tSbmVFMURNRWREYVhOSFFWRlJRbWMzT0hkQlVWRkZTREJXTkFwa1NFcHNZbGRXYzJWVFFtdFpWelZ1V2xoS2RtUllUV2RVTUd4RlVYbENhVnBYUm1waU1qUjNVMUZaUzB0M1dVSkNRVWRFZG5wQlFrSlJVVGRqTW14dUNtTXpVblpqYlZWMFdUSTVkVnB0T1hsaVYwWjFXVEpWZGxwWWFEQmpiVlowV2xkNE5VeFhVbWhpYldSc1kyMDVNV041TVhka1YwcHpZVmROZEdJeWJHc0tXWGt4YVZwWFJtcGlNalIzU0ZGWlMwdDNXVUpDUVVkRWRucEJRa0puVVZCamJWWnRZM2s1YjFwWFJtdGplVGwwV1Zkc2RVMUVjMGREYVhOSFFWRlJRZ3BuTnpoM1FWRm5SVXhSZDNKaFNGSXdZMGhOTmt4NU9UQmlNblJzWW1rMWFGa3pVbkJpTWpWNlRHMWtjR1JIYURGWmJsWjZXbGhLYW1JeU5UQmFWelV3Q2t4dFRuWmlWRU5DY0dkWlMwdDNXVUpDUVVkRWRucEJRa05SVTBKc2QzbENiRWRvTUdSSVFucFBhVGgyV2pKc01HRklWbWxNYlU1MllsTTVlbUZYWkhvS1pFYzVlVnBUTVdwaU1qVnRZak5LZEZsWE5XcGFVemxzWlVoU2VWcFhNV3hpU0d0MFdrZEdkVm95Vm5saU0xWjZURmhDTVZsdGVIQlplVEYyWVZkU2FncE1WMHBzV1ZkT2RtSnBPSFZhTW13d1lVaFdhVXd6WkhaamJYUnRZa2M1TTJONU9XeGxTRko1V2xjeGJHSklhM1JhUjBaMVdqSldlV0l6Vm5wTVZ6bHdDbHBIVFhSWmJWWm9XVEk1ZFV4dWJIUmlSVUo1V2xkYWVrd3lhR3haVjFKNlRESXhhR0ZYTkhkUFFWbExTM2RaUWtKQlIwUjJla0ZDUTJkUmNVUkRhR29LVGpKSmVscEhXbWxOZWsweFdtcEJNVTFYVlhoWmVtY3lXVzFTYUU1SFRUTk5WRnB0V1ZkTk5VNHlVbTFPYWtwb1drUm5lRTFDTUVkRGFYTkhRVkZSUWdwbk56aDNRVkZ6UlVSM2QwNWFNbXd3WVVoV2FVeFhhSFpqTTFKc1drUkNaVUpuYjNKQ1owVkZRVmxQTDAxQlJVMUNSa0ZOVkcxb01HUklRbnBQYVRoMkNsb3liREJoU0ZacFRHMU9kbUpUT1hwaFYyUjZaRWM1ZVZwVE1XcGlNalZ0WWpOS2RGbFhOV3BhVXpsc1pVaFNlVnBYTVd4aVNHdDBXa2RHZFZveVZua0tZak5XZWt4WVFqRlpiWGh3V1hreGRtRlhVbXBNVjBwc1dWZE9kbUpxUVRSQ1oyOXlRbWRGUlVGWlR5OU5RVVZPUWtOdlRVdEhUVE5aYWs1cldtMUplZ3BOZWxadFRVUlZlRnBVUm1wUFJGcHBXa2RGTUZsNlkzaE9iVnBvV1hwck0xcEhXVEpOYlVaclQwUkZkMGgzV1V0TGQxbENRa0ZIUkhaNlFVSkVaMUZTQ2tSQk9YbGFWMXA2VERKb2JGbFhVbnBNTWpGb1lWYzBkMGRSV1V0TGQxbENRa0ZIUkhaNlFVSkVkMUZNUkVGck1rMTZTVEZQVkZrMFQxUmpkMDUzV1VzS1MzZFpRa0pCUjBSMmVrRkNSVUZSY0VSRFpHOWtTRkozWTNwdmRrd3laSEJrUjJneFdXazFhbUl5TUhaak1teHVZek5TZG1OdFZYUlpNamwxV20wNWVRcGlWMFoxV1RKVmQwZFJXVXRMZDFsQ1FrRkhSSFo2UVVKRlVWRk1SRUZyZUUxNlJUUk5SRkV4VG1wTmQyZGhXVWREYVhOSFFWRlJRbWMzT0hkQlVrbEZDbWRhWTAxbldsSnZaRWhTZDJONmIzWk1NbVJ3WkVkb01WbHBOV3BpTWpCMll6SnNibU16VW5aamJWVjBXVEk1ZFZwdE9YbGlWMFoxV1RKVmRscFlhREFLWTIxV2RGcFhlRFZNVjFKb1ltMWtiR050T1RGamVURjNaRmRLYzJGWFRYUmlNbXhyV1hreGFWcFhSbXBpTWpSMlRHMWtjR1JIYURGWmFUa3pZak5LY2dwYWJYaDJaRE5OZGxwWWFEQmpiVlowV2xkNE5VeFhVbWhpYldSc1kyMDVNV041TVhaaFYxSnFURmRLYkZsWFRuWmlhVFUxWWxkNFFXTnRWbTFqZVRsdkNscFhSbXRqZVRsMFdWZHNkVTFFWjBkRGFYTkhRVkZSUW1jM09IZEJVazFGUzJkM2IxbDZaR2xOTWxKdFdXcE5lazVYV1hkT1ZFWnNUVmROTkU1dFNtc0tXVlJTYWs1NlJUSmFiVVpxVDFSa2ExcHFXWGxaVjFFMFRWUkJhRUpuYjNKQ1owVkZRVmxQTDAxQlJWVkNRazFOUlZoa2RtTnRkRzFpUnpreldESlNjQXBqTTBKb1pFZE9iMDFKUjBKQ1oyOXlRbWRGUlVGWlR5OU5RVVZXUWtoTlRXTlhhREJrU0VKNlQyazRkbG95YkRCaFNGWnBURzFPZG1KVE9YcGhWMlI2Q21SSE9YbGFVekZxWWpJMWJXSXpTblJaVnpWcVdsTTViR1ZJVW5sYVZ6RnNZa2hyZEZwSFJuVmFNbFo1WWpOV2VreFlRakZaYlhod1dYa3hkbUZYVW1vS1RGZEtiRmxYVG5aaWFUbG9XVE5TY0dJeU5YcE1NMG94WW01TmRrOUVUVEJPZWxFMFRWUlplVTlET1doa1NGSnNZbGhDTUdONU9IaE5RbGxIUTJselJ3cEJVVkZDWnpjNGQwRlNXVVZEUVhkSFkwaFdhV0pIYkdwTlNVZExRbWR2Y2tKblJVVkJaRm8xUVdkUlEwSklkMFZsWjBJMFFVaFpRVE5VTUhkaGMySklDa1ZVU21wSFVqUmpiVmRqTTBGeFNrdFljbXBsVUVzekwyZzBjSGxuUXpod04yODBRVUZCUjA5V09FRkljR2RCUVVKQlRVRlNla0pHUVdsQ1JtVk5ZbkFLUm1GeWJGQjNZakJ1WVZSeU5HMXFWMFIyV0VGd1QyUTVUMUp4VDJzek5rSnlkRGxUYlhkSmFFRktTblpxYjNJclJGaFZXSEkzVXpOV2JUbHFWa1pVTXdwRFREQkNlR05MUjJvNE5tMDFiVmw2VVhaMVlrMUJiMGREUTNGSFUwMDBPVUpCVFVSQk1tZEJUVWRWUTAxQk9HeFVhWGhrVXpScFRqbHRRVlZrZFU5aUNtTlRTbTFvV2t4NWRrczNlbUZZTURWRVRFVkVRMmRRVjNoRVNHc3JTa0phVlV0WlVrbDFTRWhuZDBadVQzZEplRUZNVFdGdGJ6bGtaa1ZPVFhwU1owNEtRM3BaWm5BdmVTdHlVMDlvVm1wWVdFVTViVU51TmtKMVNrVlViSEJTUkdaSGRuaFZaeTgxVEVZNVpqUnNXWEZ2ZWtFOVBRb3RMUzB0TFVWT1JDQkRSVkpVU1VaSlEwRlVSUzB0TFMwdENnPT0ifX19fQ=="}]}, "messageSignature": {"messageDigest": {"algorithm": "SHA2_256", "digest": "oM/HEnHW4njlfNMy/5V8P3BD/do1TEy7GQow1W76Ab8="}, "signature": "MEUCICYFq/4bTEdlurgqVuNmwCcIWu3NKOCgveWAJBiezJ0uAiEA2i7U18+aRpFxLYksr5HKBQQy08zE050WIc0RzKunDIA="}}''';

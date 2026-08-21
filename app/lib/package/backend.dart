@@ -30,7 +30,6 @@ import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspec_parse;
-import 'package:sigstore/sigstore.dart';
 
 import '../account/agent.dart';
 import '../account/backend.dart';
@@ -49,6 +48,7 @@ import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
+import 'attestation_verifier.dart';
 import 'model_properties.dart';
 import 'models.dart';
 import 'name_tracker.dart';
@@ -1230,10 +1230,27 @@ class PackageBackend {
         );
         try {
           final bytes = await File(attestationFilename).readAsBytes();
-          attestationContent = utf8.decode(bytes);
-          final attestationJson =
-              jsonDecode(attestationContent) as Map<String, dynamic>;
-          final bundle = SigstoreBundle.fromJson(attestationJson);
+          try {
+            attestationContent = utf8.decode(bytes);
+            final decoded = jsonDecode(attestationContent);
+            if (decoded is! Map<String, dynamic>) {
+              throw const FormatException(
+                'Attestation bundle must be a JSON object.',
+              );
+            }
+          } on FormatException catch (e) {
+            throw PackageRejectedException(
+              'Invalid attestation bundle format: $e',
+            );
+          }
+
+          final SigstoreBundle bundle;
+          try {
+            bundle = SigstoreBundle.fromJson(attestationContent);
+          } catch (e) {
+            throw PackageRejectedException('Invalid package attestation: $e');
+          }
+
           final archiveBytes = await file.readAsBytes();
           final verificationResult = _sigstoreVerifier.verify(
             packageName: pubspec.name,
