@@ -48,6 +48,7 @@ import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
+import 'attestation_verifier.dart';
 import 'model_properties.dart';
 import 'models.dart';
 import 'name_tracker.dart';
@@ -102,6 +103,7 @@ class PackageBackend {
 
   /// The Cloud Storage bucket to use for exported API responses (including public tarballs).
   final Bucket _exportedApiBucket;
+  final AttestationVerifier _sigstoreVerifier;
 
   @visibleForTesting
   int maxVersionsPerPackage = _defaultMaxVersionsPerPackage;
@@ -111,8 +113,9 @@ class PackageBackend {
     this._storage,
     this._incomingBucket,
     this._canonicalBucket,
-    this._exportedApiBucket,
-  );
+    this._exportedApiBucket, {
+    AttestationVerifier? sigstoreVerifier,
+  }) : _sigstoreVerifier = sigstoreVerifier ?? AttestationVerifier();
 
   /// Whether the package exists and is not blocked or deleted.
   Future<bool> isPackageVisible(String package) async {
@@ -1217,7 +1220,7 @@ class PackageBackend {
         attestationObjectName,
       );
       if (attestationInfo?.length != null) {
-        _logger.info('Reading package attestation ($uploadGuid).');
+        _logger.info('Verifying package attestation ($uploadGuid).');
         final attestationFilename =
             '${dir.absolute.path}/attestation.sigstore.json';
         await _incomingBucket.readWithRetry(
@@ -1227,13 +1230,35 @@ class PackageBackend {
         try {
           final bytes = await File(attestationFilename).readAsBytes();
           attestationContent = utf8.decode(bytes);
-          final decoded = jsonDecode(attestationContent);
-          if (decoded is! Map<String, dynamic>) {
-            throw FormatException('Attestation bundle must be a JSON object.');
+          final bundle = SigstoreBundle.fromJson(attestationContent);
+          final archiveBytes = await file.readAsBytes();
+          final verificationResult = _sigstoreVerifier.verify(
+            packageName: pubspec.name,
+            packageVersion: Version.parse(versionString),
+            archiveBytes: archiveBytes,
+            bundle: bundle,
+            pubspecRepository: pubspec.repository?.toString(),
+          );
+          if (!verificationResult.isValid) {
+            throw PackageRejectedException(
+              'Invalid package attestation: '
+              '${verificationResult.errors.join(', ')}',
+            );
           }
-        } on FormatException catch (e) {
+          _logger.info(
+            'Attestation verified successfully for ${pubspec.name} $versionString '
+            'from repository ${verificationResult.repository}.',
+          );
+        } on PackageRejectedException {
+          rethrow;
+        } catch (e, st) {
+          _logger.warning(
+            'Failed to parse or verify attestation bundle.',
+            e,
+            st,
+          );
           throw PackageRejectedException(
-            'Invalid attestation bundle format: $e',
+            'Failed to verify package attestation: $e',
           );
         }
       }
