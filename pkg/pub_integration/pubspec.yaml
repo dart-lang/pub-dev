@@ -9,13 +9,15 @@ resolution: workspace
 dependencies:
   _pub_shared:
   args: ^2.0.0
+  crypto: ^3.0.0
   http: ^1.0.0
+  oauth2: ^2.0.0
   path: ^1.8.0
   pub_semver: ^2.0.0
   puppeteer: 3.20.0
   puppeteer_screenshots:
   retry: ^3.1.2
-  oauth2: ^2.0.0
+  tar: ^2.0.0
 
 dev_dependencies:
   coverage: any # test already depends on it
