@@ -323,6 +323,38 @@ void main() {
       );
     });
 
+    group('Attestation publishing overrides', () {
+      testWithProfile(
+        'upload rejected when attestation is required but missing',
+        fn: () async {
+          await withFakeAuthRetryPubApiClient(email: adminAtPubDevEmail, (
+            client,
+          ) async {
+            await client.setAutomatedPublishing(
+              'oxygen',
+              PkgPublishingConfig(
+                attestation: AttestationPublishingConfig(isRequired: true),
+              ),
+            );
+          });
+
+          final bytes = await packageArchiveBytes(
+            pubspecContent: generatePubspecYaml('oxygen', '2.2.0'),
+          );
+          final rs = createPubApiClient(
+            authToken: adminClientToken,
+          ).uploadPackageBytes(bytes);
+          await expectApiException(
+            rs,
+            status: 403,
+            code: 'InsufficientPermissions',
+            message:
+                'Publishing "oxygen" requires a verified Sigstore attestation.',
+          );
+        },
+      );
+    });
+
     group('Uploading with service account', () {
       testWithProfile(
         'service account cannot upload new package',
