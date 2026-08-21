@@ -47,8 +47,9 @@ class PkgPublishingConfig {
   final GitHubPublishingConfig? github;
   final GcpPublishingConfig? gcp;
   final ManualPublishingConfig? manual;
+  final AttestationPublishingConfig? attestation;
 
-  PkgPublishingConfig({this.github, this.gcp, this.manual});
+  PkgPublishingConfig({this.github, this.gcp, this.manual, this.attestation});
 
   factory PkgPublishingConfig.fromJson(Map<String, dynamic> json) =>
       _$PkgPublishingConfigFromJson(json);
@@ -131,6 +132,18 @@ class ManualPublishingConfig {
       _$ManualPublishingConfigFromJson(json);
 
   Map<String, dynamic> toJson() => _$ManualPublishingConfigToJson(this);
+}
+
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
+class AttestationPublishingConfig {
+  bool isRequired;
+
+  AttestationPublishingConfig({this.isRequired = false});
+
+  factory AttestationPublishingConfig.fromJson(Map<String, dynamic> json) =>
+      _$AttestationPublishingConfigFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AttestationPublishingConfigToJson(this);
 }
 
 @JsonSerializable()
