@@ -16,6 +16,11 @@ FROM scratch
 COPY --from=build /runtime/ /
 COPY --from=build /app/server /app/bin/
 
+# Set Dart VM options for container execution:
+# - --old_gen_heap_size=768 caps the old generation heap to trigger GC before container cgroup limits.
+# - --dontneed_on_sweep returns freed heap pages to the OS kernel via madvise(MADV_DONTNEED).
+ENV DART_VM_OPTIONS="--old_gen_heap_size=768,--dontneed_on_sweep"
+
 # Start server.
 EXPOSE 8080
 CMD ["/app/bin/server"]

@@ -47,6 +47,7 @@ steps:
       gcloud run deploy image-proxy-server \
         --image="us-central1-docker.pkg.dev/$PROJECT_ID/image-proxy/image-proxy:$TAG_NAME" \
         --region=us-central1 \
+        --update-env-vars="^@^DART_VM_OPTIONS=--old_gen_heap_size=768,--dontneed_on_sweep"
     env:
       - 'PROJECT_ID=$PROJECT_ID'
       - 'TAG_NAME=$TAG_NAME'
