@@ -932,7 +932,7 @@ void main() {
             email.bodyHtml,
             contains(
               'GitHub Actions details:<br/>\n'
-              '- Repository: <a href="https://github.com/a/b">a/b</a><br/>\n'
+              '- Repository: <a href="https://github.com/a/b">a&#47;b</a><br/>\n'
               '- Commit: <a href="https://github.com/a/b/commit/11223344556677889900aabbccddeeff11223344"><code>11223344556677889900aabbccddeeff11223344</code></a><br/>\n'
               '- Action run: <a href="https://github.com/a/b/actions/runs/',
             ),
