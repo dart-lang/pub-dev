@@ -1483,6 +1483,15 @@ class PackageBackend {
             .toList(),
         uploadMessages: uploadMessages,
         changelogExcerpt: changelogExcerpt,
+        githubRepository: agent is AuthenticatedGitHubAction
+            ? agent.payload.repository
+            : null,
+        githubCommitSha: agent is AuthenticatedGitHubAction
+            ? agent.payload.sha
+            : null,
+        githubRunId: agent is AuthenticatedGitHubAction
+            ? agent.payload.runId
+            : null,
       );
       final outgoingEmail = emailBackend.prepareEntity(email);
 

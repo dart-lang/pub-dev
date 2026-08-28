@@ -223,6 +223,9 @@ EmailMessage createPackageUploadedEmail({
   required List<EmailAddress> authorizedUploaders,
   required List<String> uploadMessages,
   String? changelogExcerpt,
+  String? githubRepository,
+  String? githubCommitSha,
+  String? githubRunId,
 }) {
   final url = pkgPageUrl(
     packageName,
@@ -230,9 +233,41 @@ EmailMessage createPackageUploadedEmail({
     includeHost: true,
   );
   final subject = 'Package uploaded: $packageName $packageVersion';
+
+  String? githubInfoText;
+  String? githubInfoHtml;
+  if (githubRepository != null) {
+    final repoUri = githubRepositoryUrl(githubRepository);
+    final commitUri = githubCommitSha != null
+        ? githubCommitUrl(repository: githubRepository, commit: githubCommitSha)
+        : null;
+    final runUri = githubRunId != null
+        ? githubWorkflowRunUrl(repository: githubRepository, runId: githubRunId)
+        : null;
+
+    final textLines = <String>[
+      'GitHub Actions details:',
+      '- Repository: $repoUri',
+      if (commitUri != null) '- Commit: $commitUri',
+      if (runUri != null) '- Action run: $runUri',
+    ];
+    githubInfoText = textLines.join('\n');
+
+    final htmlLines = <String>[
+      'GitHub Actions details:',
+      '- Repository: <a href="$repoUri">${htmlEscape.convert(githubRepository)}</a>',
+      if (commitUri != null)
+        '- Commit: <a href="$commitUri"><code>${htmlEscape.convert(githubCommitSha!)}</code></a>',
+      if (runUri != null)
+        '- Action run: <a href="$runUri">#${htmlEscape.convert(githubRunId!)}</a>',
+    ];
+    githubInfoHtml = htmlLines.join('<br/>\n');
+  }
+
   final paragraphs = [
     'Dear package maintainer,',
     '$displayId has published a new version ($packageVersion) of the $packageName package to the Dart package site ($primaryHost).',
+    if (githubInfoText != null) githubInfoText,
     'For details, go to $url',
     ...uploadMessages,
     if (changelogExcerpt != null)
@@ -243,6 +278,7 @@ EmailMessage createPackageUploadedEmail({
   final htmlParagraphs = [
     'Dear package maintainer,',
     '$displayId has published a new version ($packageVersion) of the $packageName package to the Dart package site ($primaryHost).',
+    if (githubInfoHtml != null) githubInfoHtml,
     'For details, go to <a href="$url">$url</a>',
     ...uploadMessages,
   ];

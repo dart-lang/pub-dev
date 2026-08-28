@@ -186,4 +186,33 @@ void main() {
       }
     });
   });
+
+  group('GitHub URLs', () {
+    test('repository URL', () {
+      expect(
+        githubRepositoryUrl('dart-lang/pub-dev').toString(),
+        'https://github.com/dart-lang/pub-dev',
+      );
+    });
+
+    test('commit URL', () {
+      expect(
+        githubCommitUrl(
+          repository: 'dart-lang/pub-dev',
+          commit: 'a1b2c3d4e5f6',
+        ).toString(),
+        'https://github.com/dart-lang/pub-dev/commit/a1b2c3d4e5f6',
+      );
+    });
+
+    test('workflow run URL', () {
+      expect(
+        githubWorkflowRunUrl(
+          repository: 'dart-lang/pub-dev',
+          runId: '123456789',
+        ).toString(),
+        'https://github.com/dart-lang/pub-dev/actions/runs/123456789',
+      );
+    });
+  });
 }

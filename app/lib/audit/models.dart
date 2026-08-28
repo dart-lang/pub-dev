@@ -12,6 +12,7 @@ import 'package:pub_dev/service/rate_limit/rate_limit.dart';
 
 import '../account/models.dart';
 import '../shared/datastore.dart' as db;
+import '../shared/urls.dart';
 import '../shared/utils.dart' show createUuid;
 
 @visibleForTesting
@@ -264,13 +265,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
       final repository = uploader.payload.repository;
       final runId = uploader.payload.runId;
       final sha = uploader.payload.sha;
+      final runUri = runId != null
+          ? githubWorkflowRunUrl(repository: repository, runId: runId)
+          : null;
+      final commitUri = sha != null
+          ? githubCommitUrl(repository: repository, commit: sha)
+          : null;
       return [
         ...prefix,
         ' was published from GitHub Actions',
-        if (runId != null)
-          ' (`run_id`: [`$runId`](https://github.com/$repository/actions/runs/$runId))',
+        if (runId != null) ' (`run_id`: [`$runId`]($runUri))',
         ' triggered by pushing',
-        if (sha != null) ' revision `$sha`',
+        if (sha != null) ' revision [`$sha`]($commitUri)',
         ' to the `$repository` repository.',
       ].join();
     } else if (uploader is AuthenticatedGcpServiceAccount) {

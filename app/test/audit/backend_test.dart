@@ -96,7 +96,8 @@ void main() {
         r.summary,
         'Package `pkg` version `1.2.0` was published from GitHub Actions '
         '(`run_id`: [`example-run-id`](https://github.com/abcd/efgh/actions/runs/example-run-id)) '
-        'triggered by pushing revision `some-hash-value` to the `abcd/efgh` repository.',
+        'triggered by pushing revision [`some-hash-value`](https://github.com/abcd/efgh/commit/some-hash-value) '
+        'to the `abcd/efgh` repository.',
       );
       expect(r.data, {
         'package': 'pkg',
