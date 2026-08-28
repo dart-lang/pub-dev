@@ -1474,6 +1474,9 @@ class PackageBackend {
         );
       }
 
+      final ghPayload = agent is AuthenticatedGitHubAction
+          ? agent.payload
+          : null;
       final email = createPackageUploadedEmail(
         packageName: newVersion.package,
         packageVersion: newVersion.version!,
@@ -1483,15 +1486,9 @@ class PackageBackend {
             .toList(),
         uploadMessages: uploadMessages,
         changelogExcerpt: changelogExcerpt,
-        githubRepository: agent is AuthenticatedGitHubAction
-            ? agent.payload.repository
-            : null,
-        githubCommitSha: agent is AuthenticatedGitHubAction
-            ? agent.payload.sha
-            : null,
-        githubRunId: agent is AuthenticatedGitHubAction
-            ? agent.payload.runId
-            : null,
+        githubRepository: ghPayload?.repository,
+        githubCommitSha: ghPayload?.sha,
+        githubRunId: ghPayload?.runId,
       );
       final outgoingEmail = emailBackend.prepareEntity(email);
 

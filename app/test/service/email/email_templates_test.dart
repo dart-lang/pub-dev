@@ -259,5 +259,35 @@ void main() {
         ),
       );
     });
+
+    test('with GitHub Actions details (without commit sha)', () {
+      final message = createPackageUploadedEmail(
+        packageName: 'pkg_foo',
+        packageVersion: '1.0.0',
+        displayId: 'service:github-actions',
+        authorizedUploaders: [EmailAddress('uploader@example.com')],
+        uploadMessages: [],
+        githubRepository: 'dart-lang/browser_launcher',
+        githubRunId: '123456789',
+      );
+      expect(
+        message.bodyText,
+        contains(
+          'GitHub Actions details:\n'
+          '- Repository: https://github.com/dart-lang/browser_launcher\n'
+          '- Action run: https://github.com/dart-lang/browser_launcher/actions/runs/123456789',
+        ),
+      );
+      expect(message.bodyText, isNot(contains('- Commit:')));
+      expect(
+        message.bodyHtml,
+        contains(
+          'GitHub Actions details:<br/>\n'
+          '- Repository: <a href="https://github.com/dart-lang/browser_launcher">dart-lang&#47;browser_launcher</a><br/>\n'
+          '- Action run: <a href="https://github.com/dart-lang/browser_launcher/actions/runs/123456789">#123456789</a>',
+        ),
+      );
+      expect(message.bodyHtml, isNot(contains('- Commit:')));
+    });
   });
 }

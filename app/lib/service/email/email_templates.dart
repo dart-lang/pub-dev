@@ -237,12 +237,14 @@ EmailMessage createPackageUploadedEmail({
   String? githubInfoText;
   String? githubInfoHtml;
   if (githubRepository != null) {
+    final commitSha = githubCommitSha;
+    final runId = githubRunId;
     final repoUri = githubRepositoryUrl(githubRepository);
-    final commitUri = githubCommitSha != null
-        ? githubCommitUrl(repository: githubRepository, commit: githubCommitSha)
+    final commitUri = commitSha != null
+        ? githubCommitUrl(repository: githubRepository, commit: commitSha)
         : null;
-    final runUri = githubRunId != null
-        ? githubWorkflowRunUrl(repository: githubRepository, runId: githubRunId)
+    final runUri = runId != null
+        ? githubWorkflowRunUrl(repository: githubRepository, runId: runId)
         : null;
 
     final textLines = <String>[
@@ -256,10 +258,10 @@ EmailMessage createPackageUploadedEmail({
     final htmlLines = <String>[
       'GitHub Actions details:',
       '- Repository: <a href="$repoUri">${htmlEscape.convert(githubRepository)}</a>',
-      if (commitUri != null)
-        '- Commit: <a href="$commitUri"><code>${htmlEscape.convert(githubCommitSha!)}</code></a>',
-      if (runUri != null)
-        '- Action run: <a href="$runUri">#${htmlEscape.convert(githubRunId!)}</a>',
+      if (commitUri != null && commitSha != null)
+        '- Commit: <a href="$commitUri"><code>${htmlEscape.convert(commitSha)}</code></a>',
+      if (runUri != null && runId != null)
+        '- Action run: <a href="$runUri">#${htmlEscape.convert(runId)}</a>',
     ];
     githubInfoHtml = htmlLines.join('<br/>\n');
   }
