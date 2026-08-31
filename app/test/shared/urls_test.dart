@@ -214,5 +214,49 @@ void main() {
         'https://github.com/dart-lang/pub-dev/actions/runs/123456789',
       );
     });
+
+    test('ref URL', () {
+      expect(
+        githubRefUrl(
+          repository: 'dart-lang/pub-dev',
+          ref: 'refs/tags/v1.0.0',
+        ).toString(),
+        'https://github.com/dart-lang/pub-dev/releases/tag/v1.0.0',
+      );
+      expect(
+        githubRefUrl(
+          repository: 'dart-lang/pub-dev',
+          ref: 'v1.0.0',
+          refType: 'tag',
+        ).toString(),
+        'https://github.com/dart-lang/pub-dev/releases/tag/v1.0.0',
+      );
+      expect(
+        githubRefUrl(
+          repository: 'dart-lang/pub-dev',
+          ref: 'refs/heads/main',
+        ).toString(),
+        'https://github.com/dart-lang/pub-dev/tree/main',
+      );
+      expect(
+        githubRefUrl(
+          repository: 'dart-lang/pub-dev',
+          ref: 'refs/heads/feature/release',
+        ).toString(),
+        'https://github.com/dart-lang/pub-dev/tree/feature/release',
+      );
+      expect(
+        githubRefUrl(
+          repository: 'dart-lang/pub-dev',
+          ref: 'custom-branch',
+          refType: 'branch',
+        ).toString(),
+        'https://github.com/dart-lang/pub-dev/tree/custom-branch',
+      );
+    });
+
+    test('user URL', () {
+      expect(githubUserUrl('octocat').toString(), 'https://github.com/octocat');
+    });
   });
 }

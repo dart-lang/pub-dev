@@ -924,6 +924,7 @@ void main() {
             contains(
               'GitHub Actions details:\n'
               '- Repository: https://github.com/a/b\n'
+              '- Tag: https://github.com/a/b/releases/tag/2.2.0\n'
               '- Commit: https://github.com/a/b/commit/11223344556677889900aabbccddeeff11223344\n'
               '- Action run: https://github.com/a/b/actions/runs/',
             ),
@@ -933,6 +934,7 @@ void main() {
             contains(
               'GitHub Actions details:<br/>\n'
               '- Repository: <a href="https://github.com/a/b">a&#47;b</a><br/>\n'
+              '- Tag: <a href="https://github.com/a/b/releases/tag/2.2.0"><code>2.2.0</code></a><br/>\n'
               '- Commit: <a href="https://github.com/a/b/commit/11223344556677889900aabbccddeeff11223344"><code>11223344556677889900aabbccddeeff11223344</code></a><br/>\n'
               '- Action run: <a href="https://github.com/a/b/actions/runs/',
             ),

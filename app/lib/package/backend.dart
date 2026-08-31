@@ -1489,6 +1489,9 @@ class PackageBackend {
         githubRepository: ghPayload?.repository,
         githubCommitSha: ghPayload?.sha,
         githubRunId: ghPayload?.runId,
+        githubRef: ghPayload?.ref,
+        githubRefType: ghPayload?.refType,
+        githubActor: ghPayload?.actor,
       );
       final outgoingEmail = emailBackend.prepareEntity(email);
 

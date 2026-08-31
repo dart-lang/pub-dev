@@ -226,6 +226,9 @@ EmailMessage createPackageUploadedEmail({
   String? githubRepository,
   String? githubCommitSha,
   String? githubRunId,
+  String? githubRef,
+  String? githubRefType,
+  String? githubActor,
 }) {
   final url = pkgPageUrl(
     packageName,
@@ -246,22 +249,57 @@ EmailMessage createPackageUploadedEmail({
     final runUri = runId != null
         ? githubWorkflowRunUrl(repository: githubRepository, runId: runId)
         : null;
+    final ref = githubRef;
+    String? refLabel;
+    String? refValue;
+    Uri? refUri;
+    if (ref != null) {
+      if (ref.startsWith('refs/tags/')) {
+        refLabel = 'Tag';
+        refValue = ref.substring('refs/tags/'.length);
+      } else if (ref.startsWith('refs/heads/')) {
+        refLabel = 'Branch';
+        refValue = ref.substring('refs/heads/'.length);
+      } else if (githubRefType == 'tag') {
+        refLabel = 'Tag';
+        refValue = ref;
+      } else if (githubRefType == 'branch') {
+        refLabel = 'Branch';
+        refValue = ref;
+      } else {
+        refLabel = 'Ref';
+        refValue = ref;
+      }
+      refUri = githubRefUrl(
+        repository: githubRepository,
+        ref: ref,
+        refType: githubRefType,
+      );
+    }
+    final actor = githubActor;
+    final actorUri = actor != null ? githubUserUrl(actor) : null;
 
     final textLines = <String>[
       'GitHub Actions details:',
       '- Repository: $repoUri',
+      if (refLabel != null && refUri != null) '- $refLabel: $refUri',
       if (commitUri != null) '- Commit: $commitUri',
       if (runUri != null) '- Action run: $runUri',
+      if (actor != null && actorUri != null) '- Triggered by: $actorUri',
     ];
     githubInfoText = textLines.join('\n');
 
     final htmlLines = <String>[
       'GitHub Actions details:',
       '- Repository: <a href="$repoUri">${htmlEscape.convert(githubRepository)}</a>',
+      if (refLabel != null && refValue != null && refUri != null)
+        '- $refLabel: <a href="$refUri"><code>${htmlEscape.convert(refValue)}</code></a>',
       if (commitUri != null && commitSha != null)
         '- Commit: <a href="$commitUri"><code>${htmlEscape.convert(commitSha)}</code></a>',
       if (runUri != null && runId != null)
         '- Action run: <a href="$runUri">#${htmlEscape.convert(runId)}</a>',
+      if (actor != null && actorUri != null)
+        '- Triggered by: <a href="$actorUri">@${htmlEscape.convert(actor)}</a>',
     ];
     githubInfoHtml = htmlLines.join('<br/>\n');
   }

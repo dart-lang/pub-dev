@@ -304,6 +304,66 @@ Uri githubWorkflowRunUrl({required String repository, required String runId}) =>
       pathSegments: [...repository.split('/'), 'actions', 'runs', runId],
     );
 
+/// Returns the GitHub URL for a given Git reference or tag/branch.
+///
+/// Preconditions:
+/// - [repository] must be a non-empty GitHub repository name formatted as `owner/repo`.
+/// - [ref] must be a non-empty Git reference (e.g. `refs/tags/v1.0.0`, `refs/heads/main`, or a tag name).
+///
+/// When [ref] starts with `refs/tags/` or [refType] is `'tag'`, links to the release tag
+/// (`https://github.com/<owner>/<repo>/releases/tag/<tag>`).
+/// Otherwise, links to the tree view (`https://github.com/<owner>/<repo>/tree/<branch>`).
+///
+/// Performance considerations: Runs in O(N) where N is the combined length of [repository] and [ref].
+Uri githubRefUrl({
+  required String repository,
+  required String ref,
+  String? refType,
+}) {
+  if (ref.startsWith('refs/tags/')) {
+    final tag = ref.substring('refs/tags/'.length);
+    return Uri(
+      scheme: 'https',
+      host: 'github.com',
+      pathSegments: [
+        ...repository.split('/'),
+        'releases',
+        'tag',
+        ...tag.split('/'),
+      ],
+    );
+  }
+  if (refType == 'tag') {
+    return Uri(
+      scheme: 'https',
+      host: 'github.com',
+      pathSegments: [
+        ...repository.split('/'),
+        'releases',
+        'tag',
+        ...ref.split('/'),
+      ],
+    );
+  }
+  final target = ref.startsWith('refs/heads/')
+      ? ref.substring('refs/heads/'.length)
+      : ref;
+  return Uri(
+    scheme: 'https',
+    host: 'github.com',
+    pathSegments: [...repository.split('/'), 'tree', ...target.split('/')],
+  );
+}
+
+/// Returns the GitHub user profile URL for a given GitHub username.
+///
+/// Preconditions:
+/// - [actor] must be a non-empty GitHub username.
+///
+/// Performance considerations: Runs in O(N) where N is the length of [actor].
+Uri githubUserUrl(String actor) =>
+    Uri(scheme: 'https', host: 'github.com', pathSegments: [actor]);
+
 /// Returns the consent URL that will be sent to the invited user.
 String consentUrl(String consentId) => '$siteRoot/consent?id=$consentId';
 
