@@ -8,8 +8,8 @@ service: search
 
 resources:
   cpu: 8
-  # Sizing to 24 GB provides sufficient headroom for dual-isolate index renewals
-  # while reducing compute costs.
+  # Sized to accommodate two concurrent in-memory search index copies
+  # during isolate renewals.
   memory_gb: 24
   disk_size_gb: 25
 
