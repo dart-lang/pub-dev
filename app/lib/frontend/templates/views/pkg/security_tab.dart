@@ -371,7 +371,8 @@ d.Node _renderStatusCard(AttestationDetails attestation) {
           d.p(
             text:
                 'This package version was built and published with automated build provenance verified via Sigstore. '
-                'This cryptographically confirms that the package artifact was produced by the source repository\'s automated CI/CD workflow.',
+                'This cryptographically confirms that the package artifact was produced by the source repository\'s automated CI/CD workflow. '
+                'Provenance verifies where and how this package was built, but does not guarantee that the code is free of bugs, security vulnerabilities, or malicious behavior.',
           ),
         ],
       ),
@@ -515,6 +516,7 @@ d.Node _renderBuildCard(AttestationDetails attestation) {
                 text: 'View build execution on GitHub',
                 target: '_blank',
                 rel: 'noopener noreferrer ugc',
+                attributes: {'title': runUrl},
               ),
             ),
           ],
@@ -585,6 +587,7 @@ d.Node _renderAttestationCard(AttestationDetails attestation) {
                       text: 'Entry #$logIndex',
                       target: '_blank',
                       rel: 'noopener noreferrer',
+                      attributes: {'title': rekorUrl},
                     ),
                     if (attestation.rekorTimestamp != null) ...[
                       d.text(' (recorded '),

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gcloud/db.dart' as db;
+import 'package:pub_dev/frontend/dom/dom.dart' as d;
 import 'package:pub_dev/frontend/templates/views/pkg/badge.dart';
+import 'package:pub_dev/frontend/templates/views/pkg/info_box.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/security_tab.dart';
 import 'package:pub_dev/package/model_properties.dart';
 import 'package:pub_dev/package/models.dart';
@@ -181,6 +183,26 @@ void main() {
         html,
         contains('/api/packages/test_pkg/versions/1.0.0/attestation'),
       );
+
+      // Disclaimer and accessibility tooltips
+      expect(
+        html,
+        contains(
+          'does not guarantee that the code is free of bugs, security vulnerabilities, or malicious behavior',
+        ),
+      );
+      expect(
+        html,
+        contains(
+          'title="https://search.sigstore.dev/?logIndex=79571823"',
+        ),
+      );
+      expect(
+        html,
+        contains(
+          'title="https://github.com/sigstore-conformance/extremely-dangerous-public-oidc-beacon/actions/runs/8347481628/attempts/1"',
+        ),
+      );
     });
 
     test('renders educational empty state when no attestation exists', () {
@@ -219,6 +241,37 @@ void main() {
       );
       expect(html, contains('class="package-badge package-badge-slsa"'));
       expect(html, contains('SLSA 2'));
+    });
+  });
+
+  group('packageInfoBoxNode', () {
+    test('renders provenance link when slsaLevel is present', () {
+      final data = _createMockData(slsaLevel: 2);
+      final node = packageInfoBoxNode(
+        data: data,
+        metaLinks: [],
+        docLinks: [],
+        fundingLinks: [],
+        labeledScores: d.div(),
+      );
+      final html = node.toString();
+      expect(html, contains('Provenance</h3>'));
+      expect(html, contains('SLSA 2'));
+      expect(html, contains('href="/packages/test_pkg/security"'));
+      expect(html, contains('View details'));
+    });
+
+    test('does not render provenance link when slsaLevel is null', () {
+      final data = _createMockData(slsaLevel: null);
+      final node = packageInfoBoxNode(
+        data: data,
+        metaLinks: [],
+        docLinks: [],
+        fundingLinks: [],
+        labeledScores: d.div(),
+      );
+      final html = node.toString();
+      expect(html.contains('Provenance</h3>'), isFalse);
     });
   });
 }
