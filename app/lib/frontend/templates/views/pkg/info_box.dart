@@ -15,6 +15,7 @@ import '../../../../service/topics/models.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../shared/images.dart';
+import 'badge.dart';
 import 'screenshots.dart';
 
 /// Links inside the package info box.
@@ -110,6 +111,7 @@ d.Node packageInfoBoxNode({
         ]),
       ),
     if (license != null) _block('License', license),
+    if (version.slsaLevel != null) _provenance(data),
     if (dependencies != null) _block('Dependencies', dependencies),
     _more(
       package.name!,
@@ -192,6 +194,26 @@ d.Node _more(String packageName, {required bool showImplementsLink}) {
           text: 'Packages that implement $packageName',
         ),
       ],
+    ]),
+  );
+}
+
+d.Node _provenance(PackagePageData data) {
+  final slsaLevel = data.version.slsaLevel!;
+  final url = urls.pkgSecurityUrl(
+    data.package.name!,
+    version: data.isLatestStable ? null : data.version.version,
+  );
+  return _block(
+    'Provenance',
+    d.fragment([
+      slsaShieldBadgeNode(slsaLevel, href: url),
+      d.text(' '),
+      d.a(
+        href: url,
+        text: 'View details',
+        title: 'View build provenance details on the Security tab',
+      ),
     ]),
   );
 }
