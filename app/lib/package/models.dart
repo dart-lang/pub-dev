@@ -1147,6 +1147,7 @@ class PackagePageData {
   bool get hasExample => versionInfo.assets.contains(AssetKind.example);
   bool get hasLicense => versionInfo.assets.contains(AssetKind.license);
   bool get hasPubspec => versionInfo.assets.contains(AssetKind.pubspec);
+  bool get hasAttestation => versionInfo.assets.contains(AssetKind.attestation);
 
   bool get isLatestStable => version.version == package.latestVersion;
 

@@ -32,7 +32,10 @@ d.Node versionRowNode(
       d.td(
         classes: ['badge'],
         child: version.slsaLevel != null
-            ? slsaShieldBadgeNode(version.slsaLevel!)
+            ? slsaShieldBadgeNode(
+                version.slsaLevel!,
+                href: urls.pkgSecurityUrl(package, version: version.version),
+              )
             : null,
       ),
       d.td(

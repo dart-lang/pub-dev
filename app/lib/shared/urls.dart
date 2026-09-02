@@ -41,6 +41,7 @@ enum PkgPageTab {
   score,
   admin,
   activityLog,
+  security,
 }
 
 const _pkgPageTabSegments = <PkgPageTab, String>{
@@ -54,6 +55,7 @@ const _pkgPageTabSegments = <PkgPageTab, String>{
   PkgPageTab.score: 'score',
   PkgPageTab.admin: 'admin',
   PkgPageTab.activityLog: 'activity-log',
+  PkgPageTab.security: 'security',
 };
 
 String pkgPageUrl(
@@ -115,6 +117,9 @@ String pkgAdminUrl(String package, {bool? includeHost}) => pkgPageUrl(
 String pkgActivityLogUrl(String package) =>
     pkgPageUrl(package, pkgPageTab: PkgPageTab.activityLog);
 
+String pkgSecurityUrl(String package, {String? version}) =>
+    pkgPageUrl(package, version: version, pkgPageTab: PkgPageTab.security);
+
 String pkgArchiveDownloadUrl(String package, String version, {Uri? baseUri}) {
   final p = Uri.encodeComponent(package);
   final v = Uri.encodeComponent(version);
@@ -124,6 +129,12 @@ String pkgArchiveDownloadUrl(String package, String version, {Uri? baseUri}) {
   } else {
     return baseUri.resolve(path).toString();
   }
+}
+
+String pkgAttestationDownloadUrl(String package, String version) {
+  final p = Uri.encodeComponent(package);
+  final v = Uri.encodeComponent(version);
+  return '/api/packages/$p/versions/$v/attestation';
 }
 
 String pkgFeedUrl(String package) {

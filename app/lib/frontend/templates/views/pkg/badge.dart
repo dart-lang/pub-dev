@@ -21,18 +21,26 @@ d.Node packageBadgeNode({
 }
 
 /// Renders a shield badge with the SLSA provenance level (e.g. SLSA 2).
-d.Node slsaShieldBadgeNode(int level) {
+d.Node slsaShieldBadgeNode(int level, {String? href}) {
+  final content = [
+    d.unsafeRawHtml(
+      '<svg class="slsa-shield-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: -2px; margin-right: 4px;"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" fill="#0175C2"/><text x="12" y="15.5" font-family="Roboto, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#FFFFFF">$level</text></svg>',
+    ),
+    d.text('SLSA $level'),
+  ];
+  final title =
+      'Package provenance is verified with SLSA Level $level attestation.';
+  if (href != null) {
+    return d.a(
+      href: href,
+      classes: ['package-badge', 'package-badge-slsa'],
+      attributes: {'title': title},
+      children: content,
+    );
+  }
   return d.span(
     classes: ['package-badge', 'package-badge-slsa'],
-    attributes: {
-      'title':
-          'Package provenance is verified with SLSA Level $level attestation.',
-    },
-    children: [
-      d.unsafeRawHtml(
-        '<svg class="slsa-shield-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: -2px; margin-right: 4px;"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3z" fill="#0175C2"/><text x="12" y="15.5" font-family="Roboto, sans-serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#FFFFFF">$level</text></svg>',
-      ),
-      d.text('SLSA $level'),
-    ],
+    attributes: {'title': title},
+    children: content,
   );
 }
