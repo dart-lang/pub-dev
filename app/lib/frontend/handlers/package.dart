@@ -239,6 +239,27 @@ Future<shelf.Response> packageScoreHandler(
 
 /// Handles requests for:
 ///
+/// - `/packages/<package>/security`
+/// - `/packages/<package>/versions/<version>/security`
+Future<shelf.Response> packageSecurityHandler(
+  shelf.Request request,
+  String packageName, {
+  String? versionName,
+}) async {
+  return await _handlePackagePage(
+    request: request,
+    packageName: packageName,
+    versionName: versionName,
+    assetKind: AssetKind.attestation,
+    requiresAdmin: false,
+    canonicalUrlFn: (p, v) => urls.pkgSecurityUrl(p, version: v),
+    renderFn: (data) => renderPkgSecurityPage(data),
+    cacheEntry: cache.uiPackageSecurity(packageName, versionName),
+  );
+}
+
+/// Handles requests for:
+///
 /// - `/packages/<package>/score/log.txt`
 /// - `/packages/<package>/versions/<version>/score/log.txt`
 Future<shelf.Response> packageScoreLogTxtHandler(

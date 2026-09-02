@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart';
 import 'badge.dart';
@@ -14,7 +15,13 @@ d.Node titleContentNode({
   return d.fragment([
     d.text('$package $version '),
     copyIcon(package: package, version: version),
-    if (slsaLevel != null) ...[d.text(' '), slsaShieldBadgeNode(slsaLevel)],
+    if (slsaLevel != null) ...[
+      d.text(' '),
+      slsaShieldBadgeNode(
+        slsaLevel,
+        href: urls.pkgSecurityUrl(package, version: version),
+      ),
+    ],
   ]);
 }
 

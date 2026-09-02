@@ -26,6 +26,7 @@ import 'views/pkg/header.dart';
 import 'views/pkg/info_box.dart';
 import 'views/pkg/install_tab.dart';
 import 'views/pkg/score_tab.dart';
+import 'views/pkg/security_tab.dart';
 import 'views/pkg/title_content.dart';
 
 /// Renders the right-side info box (quick summary of the package, mostly coming
@@ -207,6 +208,15 @@ String renderPkgScorePage(PackagePageData data) {
   return _renderPkgPage(data: data, tab: .score, tabContent: _scoreTab(data));
 }
 
+/// Renders the package security page.
+String renderPkgSecurityPage(PackagePageData data) {
+  return _renderPkgPage(
+    data: data,
+    tab: .security,
+    tabContent: _securityTab(data),
+  );
+}
+
 final _pageTitleTabIdentifiers = <urls.PkgPageTab, String>{
   urls.PkgPageTab.changelog: 'changelog',
   urls.PkgPageTab.example: 'example',
@@ -217,6 +227,7 @@ final _pageTitleTabIdentifiers = <urls.PkgPageTab, String>{
   urls.PkgPageTab.admin: 'admin',
   urls.PkgPageTab.activityLog: 'activity log',
   urls.PkgPageTab.versions: 'versions',
+  urls.PkgPageTab.security: 'security',
 };
 
 String _renderPkgPage({
@@ -494,6 +505,14 @@ Tab _scoreTab(PackagePageData data) {
   );
 }
 
+Tab _securityTab(PackagePageData data) {
+  return Tab.withContent(
+    id: 'security',
+    title: 'Security',
+    contentNode: securityTabNode(data),
+  );
+}
+
 d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
   final p = data.package;
   final pv = data.version;
@@ -574,6 +593,14 @@ List<Tab> buildPackageTabs({
         title: 'Scores',
         href: urls.pkgScoreUrl(package.name!, version: linkVersion),
       );
+  final hasSecurity = data.version.slsaLevel != null || data.hasAttestation;
+  final securityTab =
+      contentIf(.security) ??
+      Tab.withLink(
+        id: 'security',
+        title: 'Security',
+        href: urls.pkgSecurityUrl(package.name!, version: linkVersion),
+      );
   final adminTab =
       contentIf(.admin) ??
       Tab.withLink(
@@ -597,6 +624,7 @@ List<Tab> buildPackageTabs({
     if (tab == .pubspec) content,
     versionsTab,
     scoreTab,
+    if (hasSecurity || tab == .security) securityTab,
     if (data.isAdmin) adminTab,
     if (data.isAdmin) activityLogTab,
   ];
