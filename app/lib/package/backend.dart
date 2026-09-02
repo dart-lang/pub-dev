@@ -410,7 +410,11 @@ class PackageBackend {
     InvalidInputException.checkSemanticVersion(version);
     final cv = canonicalizeVersion(version);
     final object = 'latest/api/archives/$package-$cv.tar.gz';
-    return Uri.parse(_exportedApiBucket.objectUrl(object));
+    return await uploadSigner.buildDownloadUrl(
+      activeConfiguration.exportedApiBucketName!,
+      object,
+      Duration(minutes: 15),
+    );
   }
 
   /// Updates the stable, prerelease and preview versions of [package].

@@ -8,6 +8,9 @@ import 'dart:convert';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/iam/v1.dart' as iam;
 import 'package:http/http.dart' as http;
@@ -52,7 +55,11 @@ Future<UploadSignerService> createUploadSigner(http.Client authClient) async {
 ///
 /// See here for a broader explanation:
 /// https://cloud.google.com/storage/docs/xml-api/post-object
+// TODO(jonasfj): Rename to BucketSignerService.
 abstract class UploadSignerService {
+  /// The Google Access ID (e.g. service account email) used for signing.
+  String get googleAccessId;
+
   static const int maxUploadSize = 100 * 1024 * 1024;
   static final Uri _uploadUrl = Uri.parse('https://storage.googleapis.com');
 
@@ -97,6 +104,69 @@ abstract class UploadSignerService {
     return UploadInfo(url: _uploadUrl.toString(), fields: fields);
   }
 
+  /// Builds a V4 signed URL for downloading a Google Cloud Storage object.
+  Future<Uri> buildDownloadUrl(
+    String bucket,
+    String object,
+    Duration lifetime,
+  ) async {
+    final now = clock.now().toUtc();
+    final datetime = now
+        .toIso8601String()
+        .replaceAll('-', '')
+        .replaceAll(':', '')
+        .replaceAll(RegExp(r'\.\d+'), '');
+    final date = datetime.split('T').first;
+    final scope = '$date/auto/storage/goog4_request';
+
+    final canonicalQueryParameters = {
+      'X-Goog-Algorithm': 'GOOG4-RSA-SHA256',
+      'X-Goog-Credential': '$googleAccessId/$scope',
+      'X-Goog-Date': datetime,
+      'X-Goog-Expires': '${lifetime.inSeconds}',
+      'X-Goog-SignedHeaders': 'host',
+    };
+
+    final canonicalQueryString = canonicalQueryParameters.entries
+        .sortedBy((e) => e.key)
+        .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+
+    final canonicalUri = '/$bucket/$object';
+
+    final canonicalRequest = [
+      'GET',
+      canonicalUri,
+      canonicalQueryString,
+      'host:storage.googleapis.com\n',
+      'host',
+      'UNSIGNED-PAYLOAD', // 'GET' request has no payload
+    ].join('\n');
+
+    final canonicalRequestHash = hex.encode(
+      sha256.convert(utf8.encode(canonicalRequest)).bytes,
+    );
+
+    final stringToSign = [
+      'GOOG4-RSA-SHA256',
+      datetime,
+      scope,
+      canonicalRequestHash,
+    ].join('\n');
+
+    final result = await sign(utf8.encode(stringToSign));
+
+    return Uri(
+      scheme: 'https',
+      host: 'storage.googleapis.com',
+      path: canonicalUri,
+      queryParameters: {
+        ...canonicalQueryParameters,
+        'X-Goog-Signature': hex.encode(result.bytes),
+      },
+    );
+  }
+
   Future<SigningResult> sign(List<int> bytes);
 }
 
@@ -109,6 +179,9 @@ class _IamBasedUploadSigner extends UploadSignerService {
   final http.Client authClient;
 
   _IamBasedUploadSigner(this.projectId, this.email, this.authClient);
+
+  @override
+  String get googleAccessId => email;
 
   @override
   Future<SigningResult> sign(List<int> bytes) async {

@@ -12,6 +12,9 @@ class FakeUploadSignerService implements UploadSignerService {
   FakeUploadSignerService(this._storagePrefix);
 
   @override
+  String get googleAccessId => 'fake-google-access-id';
+
+  @override
   Future<UploadInfo> buildUpload(
     String bucket,
     String object,
@@ -28,6 +31,15 @@ class FakeUploadSignerService implements UploadSignerService {
           'success_action_redirect': successRedirectUrl,
       },
     );
+  }
+
+  @override
+  Future<Uri> buildDownloadUrl(
+    String bucket,
+    String object,
+    Duration lifetime,
+  ) async {
+    return Uri.parse('$_storagePrefix/$bucket/$object');
   }
 
   @override
