@@ -33,7 +33,6 @@ final urls = <String>[
   // package archive
   'https://pub.dev/packages/http/versions/0.13.1.tar.gz',
   'https://pub.dartlang.org/packages/http/versions/0.13.1.tar.gz',
-  'https://storage.googleapis.com/pub-packages/packages/http-0.13.1.tar.gz',
 ];
 final uris = urls.map((u) => Uri.parse(u)).toList();
 final hosts = uris.map((u) => u.host).toSet().toList();
