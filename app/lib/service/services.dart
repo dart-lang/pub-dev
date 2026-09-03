@@ -38,6 +38,8 @@ import '../fake/server/fake_client_context.dart';
 import '../fake/server/fake_storage_server.dart';
 import '../frontend/handlers.dart';
 import '../package/backend.dart';
+import '../package/download_signer_service.dart';
+import '../package/fake_download_signer_service.dart';
 import '../package/name_tracker.dart';
 import '../package/screenshots/backend.dart';
 import '../package/search_adapter.dart';
@@ -109,6 +111,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
             : loggingEmailSender,
       );
       registerUploadSigner(await createUploadSigner(authClient));
+      registerDownloadSigner(await createDownloadSigner(authClient));
       registerSecretBackend(GcpSecretBackend(authClient));
 
       // Configure a CloudCompute pool for later use in TaskBackend
@@ -198,6 +201,7 @@ Future<R> withFakeServices<R>({
         registerEmailSender(
           FakeEmailSender(outputDir: envConfig.fakeEmailSenderOutputDir),
         );
+        registerDownloadSigner(FakeDownloadSignerService());
         registerUploadSigner(
           FakeUploadSignerService(configuration!.storageBaseUrl!),
         );

@@ -28,3 +28,4 @@ admins:
   - removeUsers
   - manageAssignedTags
   - removePackage
+downloadSignerServiceAccount: foo@example.com

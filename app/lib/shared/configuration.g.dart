@@ -37,6 +37,7 @@ Configuration _$ConfigurationFromJson(
       'externalServiceAudience',
       'gmailRelayServiceAccount',
       'uploadSignerServiceAccount',
+      'downloadSignerServiceAccount',
       'blockRobots',
       'productionHosts',
       'primaryApiUri',
@@ -130,6 +131,10 @@ Configuration _$ConfigurationFromJson(
       'uploadSignerServiceAccount',
       (v) => v as String?,
     ),
+    downloadSignerServiceAccount: $checkedConvert(
+      'downloadSignerServiceAccount',
+      (v) => v as String,
+    ),
     blockRobots: $checkedConvert('blockRobots', (v) => v as bool),
     productionHosts: $checkedConvert(
       'productionHosts',
@@ -204,6 +209,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'externalServiceAudience': instance.externalServiceAudience,
       'gmailRelayServiceAccount': instance.gmailRelayServiceAccount,
       'uploadSignerServiceAccount': instance.uploadSignerServiceAccount,
+      'downloadSignerServiceAccount': instance.downloadSignerServiceAccount,
       'blockRobots': instance.blockRobots,
       'productionHosts': instance.productionHosts,
       'primaryApiUri': instance.primaryApiUri?.toString(),

@@ -189,6 +189,9 @@ final class Configuration {
   /// https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signBlob
   final String? uploadSignerServiceAccount;
 
+  /// The service account used for signing download URLs.
+  final String downloadSignerServiceAccount;
+
   /// Whether indexing of the content by robots should be blocked.
   final bool blockRobots;
 
@@ -274,6 +277,7 @@ final class Configuration {
     required this.externalServiceAudience,
     required this.gmailRelayServiceAccount,
     required this.uploadSignerServiceAccount,
+    required this.downloadSignerServiceAccount,
     required this.blockRobots,
     required this.productionHosts,
     required this.primaryApiUri,
@@ -341,6 +345,7 @@ final class Configuration {
       defaultServiceBaseUrl: 'http://localhost:$frontendPort/',
       gmailRelayServiceAccount: null, // disable email sending
       uploadSignerServiceAccount: null,
+      downloadSignerServiceAccount: 'fake-download-signer@example.com',
       blockRobots: false,
       productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('http://localhost:$frontendPort/'),
@@ -393,6 +398,7 @@ final class Configuration {
       defaultServiceBaseUrl: primaryApiUri?.toString() ?? 'http://localhost:0/',
       gmailRelayServiceAccount: null, // disable email sending
       uploadSignerServiceAccount: null,
+      downloadSignerServiceAccount: 'fake-download-signer@example.com',
       blockRobots: true,
       productionHosts: ['localhost'],
       primaryApiUri: primaryApiUri ?? Uri.parse('https://pub.dev/'),
