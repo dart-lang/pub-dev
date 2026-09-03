@@ -1,5 +1,4 @@
 projectId: foo
-imageBucketName: foo
 searchSnapshotBucketName: foo
 canonicalPackagesBucketName: foo
 reportsBucketName: foo

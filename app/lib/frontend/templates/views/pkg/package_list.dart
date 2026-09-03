@@ -9,12 +9,11 @@ import 'package:clock/clock.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/liked_package_list.dart';
 
 import '../../../../package/models.dart';
-import '../../../../package/screenshots/backend.dart';
 import '../../../../search/search_service.dart';
 import '../../../../service/topics/models.dart';
 import '../../../../shared/urls.dart' as urls;
+import '../../../../task/backend.dart';
 import '../../../dom/dom.dart' as d;
-
 import '../../../static_files.dart' show staticUrls;
 import '../../_consts.dart';
 import '../../package_misc.dart';
@@ -159,7 +158,7 @@ d.Node _packageItem(
   final screenshotUrls = <String>[];
   final screenshotDescriptions = <String>[];
   if (hasScreenshots) {
-    thumbnailUrl = imageStorage.getImageUrl(
+    thumbnailUrl = taskBackend.resourceUrl(
       view.name,
       releases.stable.version,
       screenshots.first.webp100Thumbnail,
@@ -167,7 +166,7 @@ d.Node _packageItem(
 
     for (final screenshot in screenshots) {
       screenshotUrls.add(
-        imageStorage.getImageUrl(
+        taskBackend.resourceUrl(
           view.name,
           releases.stable.version,
           screenshot.webpImage,

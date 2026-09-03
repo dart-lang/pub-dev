@@ -17,7 +17,6 @@ void main() {
     final expectedValue = 'foo';
     expect(config.projectId, expectedValue);
     expect(config.canonicalPackagesBucketName, expectedValue);
-    expect(config.imageBucketName, expectedValue);
     expect(config.reportsBucketName, expectedValue);
     expect(config.downloadCountsBucketName, expectedValue);
     expect(config.admins![0].email, 'foo@foo.foo');

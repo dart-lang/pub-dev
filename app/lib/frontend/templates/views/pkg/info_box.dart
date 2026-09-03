@@ -10,9 +10,9 @@ import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
 import '../../../../package/models.dart';
 import '../../../../package/overrides.dart' show sdkPackageUrls;
-import '../../../../package/screenshots/backend.dart';
 import '../../../../service/topics/models.dart';
 import '../../../../shared/urls.dart' as urls;
+import '../../../../task/backend.dart';
 import '../../../dom/dom.dart' as d;
 import '../shared/images.dart';
 import 'screenshots.dart';
@@ -62,14 +62,14 @@ d.Node packageInfoBoxNode({
   final screenshotUrls = <String>[];
   final screenshotDescriptions = <String>[];
   if (screenshots != null && screenshots.isNotEmpty) {
-    thumbnailUrl = imageStorage.getImageUrl(
+    thumbnailUrl = taskBackend.resourceUrl(
       package.name!,
       version.version!,
       screenshots.first.webp190Thumbnail,
     );
     for (final screenshot in screenshots) {
       screenshotUrls.add(
-        imageStorage.getImageUrl(
+        taskBackend.resourceUrl(
           package.name!,
           version.version!,
           screenshot.webpImage,
