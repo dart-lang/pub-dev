@@ -380,56 +380,47 @@ Future uploadBytesWithRetry(
 /// Converts [map] into a stream of UTF-8 JSON bytes, periodically pausing
 /// to yield to the event loop so health checks and other pending tasks are
 /// not starved.
+///
+/// If [map] contains a `documents` map (as in search snapshots), its entries
+/// are serialized in batches, yielding control to the event loop between batches.
 Stream<List<int>> chunkedJsonUtf8Encode(
   Map<String, dynamic> map, {
   int batchSize = 200,
 }) async* {
-  yield [0x7B]; // '{'
-  var isFirstKey = true;
-  for (final entry in map.entries) {
-    if (!isFirstKey) {
-      yield [0x2C]; // ','
-    }
-    isFirstKey = false;
-    yield jsonUtf8Encoder.convert(entry.key);
-    yield [0x3A]; // ':'
-    final value = entry.value;
-    if (value is Map && value.length > batchSize) {
-      yield [0x7B]; // '{'
-      var isFirstSubKey = true;
-      var count = 0;
-      final buffer = BytesBuilder(copy: false);
-      for (final subEntry in value.entries) {
-        if (!isFirstSubKey) {
-          buffer.addByte(0x2C); // ','
-        }
-        isFirstSubKey = false;
-        buffer.add(jsonUtf8Encoder.convert(subEntry.key));
-        buffer.addByte(0x3A); // ':'
-        buffer.add(jsonUtf8Encoder.convert(subEntry.value));
-        count++;
-        if (count >= batchSize) {
-          yield buffer.takeBytes();
-          count = 0;
-          await Future<void>.delayed(Duration.zero);
-        }
-      }
-      if (buffer.isNotEmpty) {
-        yield buffer.takeBytes();
-      }
-      yield [0x7D]; // '}'
-    } else {
-      yield jsonUtf8Encoder.convert(value);
-    }
+  final documents = map['documents'];
+  if (documents is! Map) {
+    yield jsonUtf8Encoder.convert(map);
+    return;
   }
-  yield [0x7D]; // '}'
-}
 
-Stream<List<int>> _streamWithBreathingSpace(List<List<int>> chunks) async* {
-  for (final chunk in chunks) {
-    yield chunk;
-    await Future<void>.delayed(Duration.zero);
+  final otherEntries = map.entries
+      .where((e) => e.key != 'documents')
+      .map((e) {
+        return '${json.encode(e.key)}:${json.encode(e.value)}';
+      })
+      .join(',');
+
+  yield utf8.encode(
+    '{$otherEntries${otherEntries.isEmpty ? '' : ','}"documents":{',
+  );
+
+  var isFirst = true;
+  var batch = <String>[];
+  for (final entry in documents.entries) {
+    batch.add('${json.encode(entry.key)}:${json.encode(entry.value)}');
+    if (batch.length >= batchSize) {
+      final prefix = isFirst ? '' : ',';
+      isFirst = false;
+      yield utf8.encode(prefix + batch.join(','));
+      batch = <String>[];
+      await Future<void>.delayed(Duration.zero);
+    }
   }
+  if (batch.isNotEmpty) {
+    final prefix = isFirst ? '' : ',';
+    yield utf8.encode(prefix + batch.join(','));
+  }
+  yield utf8.encode('}}');
 }
 
 /// Utility class to access versioned JSON data that follows the name pattern:
@@ -466,7 +457,7 @@ class VersionedJsonStorage {
             size: totalSize,
             mode: 420, // 644₈
           ),
-          _streamWithBreathingSpace(chunks),
+          Stream.fromIterable(chunks),
         ),
       ]).transform(tarWriter).transform(_gzip.encoder);
 
