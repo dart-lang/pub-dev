@@ -8,9 +8,9 @@ service: search
 
 resources:
   cpu: 8
-  # This is the max memory we can request for 8 cpus.
-  # https://cloud.google.com/appengine/docs/flexible/reference/app-yaml?tab=python
-  memory_gb: 51.6
+  # Sized to accommodate two concurrent in-memory search index copies
+  # during isolate renewals.
+  memory_gb: 24
   disk_size_gb: 25
 
 #manual_scaling:
