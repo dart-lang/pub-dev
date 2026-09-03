@@ -228,5 +228,106 @@ void main() {
       expect(message.bodyHtml, isNot(contains('<p><div')));
       expect(message.bodyHtml, isNot(matches(RegExp(r'<p>\s*<div'))));
     });
+
+    test('with GitHub Actions details', () {
+      final message = createPackageUploadedEmail(
+        packageName: 'pkg_foo',
+        packageVersion: '1.0.0',
+        displayId: 'service:github-actions',
+        authorizedUploaders: [EmailAddress('uploader@example.com')],
+        uploadMessages: [],
+        githubRepository: 'dart-lang/browser_launcher',
+        githubCommitSha: 'a1b2c3d4e5f67890123456789012345678901234',
+        githubRunId: '123456789',
+        githubRef: 'refs/tags/1.0.0',
+        githubActor: 'octocat',
+      );
+      expect(
+        message.bodyText,
+        contains(
+          'GitHub Actions details:\n'
+          '- Repository: https://github.com/dart-lang/browser_launcher\n'
+          '- Tag: https://github.com/dart-lang/browser_launcher/releases/tag/1.0.0\n'
+          '- Commit: https://github.com/dart-lang/browser_launcher/commit/a1b2c3d4e5f67890123456789012345678901234\n'
+          '- Action run: https://github.com/dart-lang/browser_launcher/actions/runs/123456789\n'
+          '- Triggered by: https://github.com/octocat',
+        ),
+      );
+      expect(
+        message.bodyHtml,
+        contains(
+          'GitHub Actions details:<br/>\n'
+          '- Repository: <a href="https://github.com/dart-lang/browser_launcher">dart-lang&#47;browser_launcher</a><br/>\n'
+          '- Tag: <a href="https://github.com/dart-lang/browser_launcher/releases/tag/1.0.0"><code>1.0.0</code></a><br/>\n'
+          '- Commit: <a href="https://github.com/dart-lang/browser_launcher/commit/a1b2c3d4e5f67890123456789012345678901234"><code>a1b2c3d4e5f67890123456789012345678901234</code></a><br/>\n'
+          '- Action run: <a href="https://github.com/dart-lang/browser_launcher/actions/runs/123456789">#123456789</a><br/>\n'
+          '- Triggered by: <a href="https://github.com/octocat">@octocat</a>',
+        ),
+      );
+    });
+
+    test('with GitHub Actions details on branch', () {
+      final message = createPackageUploadedEmail(
+        packageName: 'pkg_foo',
+        packageVersion: '1.0.0',
+        displayId: 'service:github-actions',
+        authorizedUploaders: [EmailAddress('uploader@example.com')],
+        uploadMessages: [],
+        githubRepository: 'dart-lang/browser_launcher',
+        githubCommitSha: 'a1b2c3d4e5f67890123456789012345678901234',
+        githubRunId: '123456789',
+        githubRef: 'refs/heads/main',
+      );
+      expect(
+        message.bodyText,
+        contains(
+          'GitHub Actions details:\n'
+          '- Repository: https://github.com/dart-lang/browser_launcher\n'
+          '- Branch: https://github.com/dart-lang/browser_launcher/tree/main\n'
+          '- Commit: https://github.com/dart-lang/browser_launcher/commit/a1b2c3d4e5f67890123456789012345678901234\n'
+          '- Action run: https://github.com/dart-lang/browser_launcher/actions/runs/123456789',
+        ),
+      );
+      expect(
+        message.bodyHtml,
+        contains(
+          'GitHub Actions details:<br/>\n'
+          '- Repository: <a href="https://github.com/dart-lang/browser_launcher">dart-lang&#47;browser_launcher</a><br/>\n'
+          '- Branch: <a href="https://github.com/dart-lang/browser_launcher/tree/main"><code>main</code></a><br/>\n'
+          '- Commit: <a href="https://github.com/dart-lang/browser_launcher/commit/a1b2c3d4e5f67890123456789012345678901234"><code>a1b2c3d4e5f67890123456789012345678901234</code></a><br/>\n'
+          '- Action run: <a href="https://github.com/dart-lang/browser_launcher/actions/runs/123456789">#123456789</a>',
+        ),
+      );
+    });
+
+    test('with GitHub Actions details (without commit sha)', () {
+      final message = createPackageUploadedEmail(
+        packageName: 'pkg_foo',
+        packageVersion: '1.0.0',
+        displayId: 'service:github-actions',
+        authorizedUploaders: [EmailAddress('uploader@example.com')],
+        uploadMessages: [],
+        githubRepository: 'dart-lang/browser_launcher',
+        githubRunId: '123456789',
+      );
+      expect(
+        message.bodyText,
+        contains(
+          'GitHub Actions details:\n'
+          '- Repository: https://github.com/dart-lang/browser_launcher\n'
+          '- Action run: https://github.com/dart-lang/browser_launcher/actions/runs/123456789',
+        ),
+      );
+      expect(message.bodyText, isNot(contains('- Commit:')));
+      expect(
+        message.bodyHtml,
+        contains(
+          'GitHub Actions details:<br/>\n'
+          '- Repository: <a href="https://github.com/dart-lang/browser_launcher">dart-lang&#47;browser_launcher</a><br/>\n'
+          '- Action run: <a href="https://github.com/dart-lang/browser_launcher/actions/runs/123456789">#123456789</a>',
+        ),
+      );
+      expect(message.bodyHtml, isNot(contains('- Commit:')));
+    });
   });
 }

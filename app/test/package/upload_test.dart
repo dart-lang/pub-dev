@@ -891,6 +891,7 @@ void main() {
             ref: 'refs/tags/2.2.0',
             repositoryId: 'repo-id-1',
             repositoryOwnerId: 'owner-id-234',
+            sha: '11223344556677889900aabbccddeeff11223344',
           );
           final pubspecContent = generatePubspecYaml('_dummy_pkg', '2.2.0');
           final bytes = await packageArchiveBytes(
@@ -918,6 +919,26 @@ void main() {
               'service:github-actions has published a new version (2.2.0)',
             ),
           );
+          expect(
+            email.bodyText,
+            contains(
+              'GitHub Actions details:\n'
+              '- Repository: https://github.com/a/b\n'
+              '- Tag: https://github.com/a/b/releases/tag/2.2.0\n'
+              '- Commit: https://github.com/a/b/commit/11223344556677889900aabbccddeeff11223344\n'
+              '- Action run: https://github.com/a/b/actions/runs/',
+            ),
+          );
+          expect(
+            email.bodyHtml,
+            contains(
+              'GitHub Actions details:<br/>\n'
+              '- Repository: <a href="https://github.com/a/b">a&#47;b</a><br/>\n'
+              '- Tag: <a href="https://github.com/a/b/releases/tag/2.2.0"><code>2.2.0</code></a><br/>\n'
+              '- Commit: <a href="https://github.com/a/b/commit/11223344556677889900aabbccddeeff11223344"><code>11223344556677889900aabbccddeeff11223344</code></a><br/>\n'
+              '- Action run: <a href="https://github.com/a/b/actions/runs/',
+            ),
+          );
 
           final audits = await auditBackend.listRecordsForPackageVersion(
             '_dummy_pkg',
@@ -943,13 +964,16 @@ void main() {
           );
           expect(
             publishedAudit.summary,
-            contains('triggered by pushing to the `a/b` repository.'),
+            contains(
+              'triggered by pushing revision [`11223344556677889900aabbccddeeff11223344`](https://github.com/a/b/commit/11223344556677889900aabbccddeeff11223344) to the `a/b` repository.',
+            ),
           );
           expect(publishedAudit.data, {
             'package': '_dummy_pkg',
             'version': '2.2.0',
             'repository': 'a/b',
             'run_id': isNotEmpty,
+            'sha': '11223344556677889900aabbccddeeff11223344',
           });
         },
       );

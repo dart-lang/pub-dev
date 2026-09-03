@@ -281,6 +281,74 @@ String? inferServiceProviderName(String? url) {
   return null;
 }
 
+/// Returns the GitHub repository URL.
+Uri githubRepositoryUrl(String repository) => Uri(
+  scheme: 'https',
+  host: 'github.com',
+  pathSegments: repository.split('/'),
+);
+
+/// Returns the GitHub commit URL for a given repository and commit SHA.
+Uri githubCommitUrl({required String repository, required String commit}) =>
+    Uri(
+      scheme: 'https',
+      host: 'github.com',
+      pathSegments: [...repository.split('/'), 'commit', commit],
+    );
+
+/// Returns the GitHub Actions workflow run URL for a given repository and run ID.
+Uri githubWorkflowRunUrl({required String repository, required String runId}) =>
+    Uri(
+      scheme: 'https',
+      host: 'github.com',
+      pathSegments: [...repository.split('/'), 'actions', 'runs', runId],
+    );
+
+/// Returns the GitHub URL for a given Git reference or tag/branch.
+Uri githubRefUrl({
+  required String repository,
+  required String ref,
+  String? refType,
+}) {
+  if (ref.startsWith('refs/tags/')) {
+    final tag = ref.substring('refs/tags/'.length);
+    return Uri(
+      scheme: 'https',
+      host: 'github.com',
+      pathSegments: [
+        ...repository.split('/'),
+        'releases',
+        'tag',
+        ...tag.split('/'),
+      ],
+    );
+  }
+  if (refType == 'tag') {
+    return Uri(
+      scheme: 'https',
+      host: 'github.com',
+      pathSegments: [
+        ...repository.split('/'),
+        'releases',
+        'tag',
+        ...ref.split('/'),
+      ],
+    );
+  }
+  final target = ref.startsWith('refs/heads/')
+      ? ref.substring('refs/heads/'.length)
+      : ref;
+  return Uri(
+    scheme: 'https',
+    host: 'github.com',
+    pathSegments: [...repository.split('/'), 'tree', ...target.split('/')],
+  );
+}
+
+/// Returns the GitHub user profile URL for a given GitHub username.
+Uri githubUserUrl(String actor) =>
+    Uri(scheme: 'https', host: 'github.com', pathSegments: [actor]);
+
 /// Returns the consent URL that will be sent to the invited user.
 String consentUrl(String consentId) => '$siteRoot/consent?id=$consentId';
 
