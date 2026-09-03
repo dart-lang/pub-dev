@@ -382,10 +382,11 @@ Future uploadBytesWithRetry(
 /// not starved.
 ///
 /// If [map] contains a `documents` map (as in search snapshots), its entries
-/// are serialized in batches, yielding control to the event loop between batches.
+/// are serialized in batches, yielding control to the event loop when
+/// [maxDurationPerBatch] has elapsed.
 Stream<List<int>> chunkedJsonUtf8Encode(
   Map<String, dynamic> map, {
-  int batchSize = 200,
+  Duration maxDurationPerBatch = const Duration(milliseconds: 20),
 }) async* {
   final documents = map['documents'];
   if (documents is! Map) {
@@ -406,14 +407,16 @@ Stream<List<int>> chunkedJsonUtf8Encode(
 
   var isFirst = true;
   var batch = <String>[];
+  final sw = Stopwatch()..start();
   for (final entry in documents.entries) {
     batch.add('${json.encode(entry.key)}:${json.encode(entry.value)}');
-    if (batch.length >= batchSize) {
+    if (sw.elapsed >= maxDurationPerBatch) {
       final prefix = isFirst ? '' : ',';
       isFirst = false;
       yield utf8.encode(prefix + batch.join(','));
       batch = <String>[];
       await Future<void>.delayed(Duration.zero);
+      sw.reset();
     }
   }
   if (batch.isNotEmpty) {

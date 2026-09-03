@@ -67,7 +67,7 @@ void main() {
         final expectedBytes = jsonUtf8Encoder.convert(largeMap);
         final chunks = await chunkedJsonUtf8Encode(
           largeMap,
-          batchSize: 50,
+          maxDurationPerBatch: Duration.zero,
         ).toList();
         expect(chunks.length, greaterThan(1));
 
