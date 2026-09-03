@@ -39,7 +39,6 @@ import '../fake/server/fake_storage_server.dart';
 import '../frontend/handlers.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
-import '../package/screenshots/backend.dart';
 import '../package/search_adapter.dart';
 import '../package/upload_signer_service.dart';
 import '../publisher/backend.dart';
@@ -298,11 +297,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
         registerScopeExitCallback(searchClient.close);
         registerSearchAdapter(SearchAdapter());
 
-        registerImageStorage(
-          ImageStorage(
-            storageService.bucket(activeConfiguration.imageBucketName!),
-          ),
-        );
         registerTopPackages(TopPackages());
         registerScopeExitCallback(topPackages.close);
         registerYoutubeBackend(YoutubeBackend());

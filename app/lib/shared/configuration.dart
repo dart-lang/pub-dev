@@ -68,7 +68,6 @@ final class Configuration {
   final String? incomingPackagesBucketName;
 
   /// The name of the Cloud Storage bucket to use for uploaded images.
-  final String? imageBucketName;
 
   /// The name of the Cloud Storage bucket to use for generated reports.
   final String? reportsBucketName;
@@ -253,7 +252,6 @@ final class Configuration {
     required this.canonicalPackagesBucketName,
     required this.incomingPackagesBucketName,
     required this.projectId,
-    required this.imageBucketName,
     required this.reportsBucketName,
     required this.downloadCountsBucketName,
     required this.searchSnapshotBucketName,
@@ -319,7 +317,6 @@ final class Configuration {
       canonicalPackagesBucketName: 'fake-canonical-packages',
       incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-fake',
-      imageBucketName: 'fake-bucket-image',
       reportsBucketName: 'fake-bucket-reports',
       downloadCountsBucketName: 'fake-bucket-download-counts',
       searchSnapshotBucketName: 'fake-bucket-search',
@@ -371,7 +368,6 @@ final class Configuration {
       canonicalPackagesBucketName: 'fake-canonical-packages',
       incomingPackagesBucketName: 'fake-incoming-packages',
       projectId: 'dartlang-pub-test',
-      imageBucketName: 'fake-bucket-image',
       reportsBucketName: 'fake-bucket-reports',
       downloadCountsBucketName: 'fake-bucket-download-counts',
       searchSnapshotBucketName: 'fake-bucket-search',
@@ -418,7 +414,6 @@ final class Configuration {
   /// All the bucket names inside this configuration.
   late final allBucketNames = List<String>.unmodifiable(<String>[
     canonicalPackagesBucketName!,
-    imageBucketName!,
     reportsBucketName!,
     downloadCountsBucketName!,
     incomingPackagesBucketName!,
