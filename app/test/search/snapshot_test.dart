@@ -4,6 +4,7 @@
 
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:pub_dev/shared/storage.dart';
+import 'package:pub_dev/shared/utils.dart' show jsonUtf8Encoder;
 import 'package:pub_dev/shared/versions.dart';
 import 'package:test/test.dart';
 
@@ -23,5 +24,56 @@ void main() {
 
       expect(await storage.getContentAsJsonMapFromTarGz(), {'data': 1});
     });
+
+    scopedTest(
+      'large map round-trips correctly through chunked upload',
+      () async {
+        final bucket = MemStorage(buckets: ['test']).bucket('test');
+        final storage = VersionedJsonStorage(bucket, 'test/');
+        final largeMap = {
+          'updated': '2026-09-03T12:00:00.000Z',
+          'documents': {
+            for (var i = 0; i < 500; i++)
+              'pkg_$i': {
+                'package': 'pkg_$i',
+                'description': 'description for package $i',
+                'tags': ['sdk:dart', 'is:null-safe'],
+                'version': '1.0.$i',
+              },
+          },
+        };
+
+        await storage.uploadDataAsJsonMap(largeMap);
+        final restored = await storage.getContentAsJsonMapFromTarGz();
+        expect(restored, equals(largeMap));
+      },
+    );
+
+    test(
+      'chunkedJsonUtf8Encode produces identical bytes to jsonUtf8Encoder',
+      () async {
+        final largeMap = {
+          'updated': '2026-09-03T12:00:00.000Z',
+          'documents': {
+            for (var i = 0; i < 250; i++)
+              'pkg_$i': {
+                'package': 'pkg_$i',
+                'description': 'description for package $i',
+                'tags': ['sdk:dart'],
+              },
+          },
+        };
+
+        final expectedBytes = jsonUtf8Encoder.convert(largeMap);
+        final chunks = await chunkedJsonUtf8Encode(
+          largeMap,
+          batchSize: 50,
+        ).toList();
+        expect(chunks.length, greaterThan(1));
+
+        final actualBytes = chunks.expand((c) => c).toList();
+        expect(actualBytes, equals(expectedBytes));
+      },
+    );
   });
 }
