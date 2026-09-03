@@ -54,6 +54,7 @@ Future<UploadSignerService> createUploadSigner(http.Client authClient) async {
 /// https://cloud.google.com/storage/docs/xml-api/post-object
 abstract class UploadSignerService {
   static const int maxUploadSize = 100 * 1024 * 1024;
+  static const int maxAttestationUploadSize = 10 * 1024 * 1024;
   static final Uri _uploadUrl = Uri.parse('https://storage.googleapis.com');
 
   Future<UploadInfo> buildUpload(
@@ -62,6 +63,8 @@ abstract class UploadSignerService {
     Duration lifetime, {
     String? successRedirectUrl,
     int maxUploadSize = maxUploadSize,
+    String? attestationObject,
+    int maxAttestationUploadSize = maxAttestationUploadSize,
   }) async {
     final now = clock.now().toUtc();
     final expirationString = now.add(lifetime).toIso8601String();
@@ -94,7 +97,41 @@ abstract class UploadSignerService {
         'success_action_redirect': successRedirectUrl,
     };
 
-    return UploadInfo(url: _uploadUrl.toString(), fields: fields);
+    Map<String, String>? attestationFields;
+    if (attestationObject != null) {
+      final attestationKey = '$bucket/$attestationObject';
+      final attestationConditions = [
+        {'key': attestationKey},
+        {'expires': expirationString},
+        ['content-length-range', 0, maxAttestationUploadSize],
+      ];
+      final attestationPolicyMap = {
+        'expiration': expirationString,
+        'conditions': attestationConditions,
+      };
+      final attestationPolicyString = base64.encode(
+        jsonUtf8Encoder.convert(attestationPolicyMap),
+      );
+      final SigningResult attestationResult = await sign(
+        ascii.encode(attestationPolicyString),
+      );
+      final attestationSignatureString = base64.encode(attestationResult.bytes);
+
+      attestationFields = {
+        'key': attestationKey,
+        'Expires': expirationString,
+        'GoogleAccessId': attestationResult.googleAccessId,
+        'policy': attestationPolicyString,
+        'signature': attestationSignatureString,
+      };
+    }
+
+    return UploadInfo(
+      url: _uploadUrl.toString(),
+      fields: fields,
+      attestationUrl: attestationObject != null ? _uploadUrl.toString() : null,
+      attestationFields: attestationFields,
+    );
   }
 
   Future<SigningResult> sign(List<int> bytes);

@@ -180,17 +180,19 @@ extension PubApiClientExt on PubApiClient {
   }) async {
     final uploadInfo = await getPackageUploadUrl();
 
-    // Send the attestion bundle first, so we never accidentally upload a
+    // Send the attestation bundle first, so we never accidentally upload a
     // package without its attestation bundle.
     if (attestationBytes != null) {
-      final baseKey = uploadInfo.fields!['key']!;
-      final attestationFields = Map<String, String>.from(uploadInfo.fields!);
-      attestationFields['key'] = '$baseKey.sigstore.json';
-      attestationFields.remove('success_action_redirect');
+      if (uploadInfo.attestationUrl == null ||
+          uploadInfo.attestationFields == null) {
+        throw StateError(
+          'Server does not support uploading package attestations.',
+        );
+      }
       final attRequest =
-          http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
+          http.MultipartRequest('POST', Uri.parse(uploadInfo.attestationUrl!))
             ..headers[fakeClockHeaderName] = clock.now().toIso8601String()
-            ..fields.addAll(attestationFields)
+            ..fields.addAll(uploadInfo.attestationFields!)
             ..files.add(http.MultipartFile.fromBytes('file', attestationBytes))
             ..followRedirects = false;
       await attRequest.send();

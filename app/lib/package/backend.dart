@@ -1064,6 +1064,7 @@ class PackageBackend {
       object,
       lifetime,
       successRedirectUrl: '$url',
+      attestationObject: '$object.sigstore.json',
     );
   }
 

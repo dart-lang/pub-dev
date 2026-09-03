@@ -1644,6 +1644,22 @@ void main() {
     );
 
     testWithProfile(
+      'getPackageUploadUrl returns attestationUrl and attestationFields',
+      fn: () async {
+        final client = createPubApiClient(authToken: adminClientToken);
+        final uploadInfo = await client.getPackageUploadUrl();
+        expect(uploadInfo.url, isNotEmpty);
+        expect(uploadInfo.fields, isNotNull);
+        expect(uploadInfo.attestationUrl, isNotEmpty);
+        expect(uploadInfo.attestationFields, isNotNull);
+        expect(
+          uploadInfo.attestationFields!['key'],
+          endsWith('.sigstore.json'),
+        );
+      },
+    );
+
+    testWithProfile(
       'successful upload with attestation bundle and api retrieval',
       fn: () async {
         final pubspecContent =
