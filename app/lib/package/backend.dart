@@ -47,6 +47,7 @@ import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
+import 'download_signer_service.dart';
 import 'model_properties.dart';
 import 'models.dart';
 import 'name_tracker.dart';
@@ -410,7 +411,11 @@ class PackageBackend {
     InvalidInputException.checkSemanticVersion(version);
     final cv = canonicalizeVersion(version);
     final object = 'latest/api/archives/$package-$cv.tar.gz';
-    return Uri.parse(_exportedApiBucket.objectUrl(object));
+    return await downloadSigner.buildDownloadUrl(
+      _exportedApiBucket.bucketName,
+      object,
+      Duration(minutes: 15),
+    );
   }
 
   /// Updates the stable, prerelease and preview versions of [package].

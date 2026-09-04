@@ -151,3 +151,5 @@ rateLimits:
     daily: 200
 imageProxyHmacKeyVersion: projects/dartlang-pub/locations/us-central1/keyRings/image-proxy-key-ring/cryptoKeys/image-proxy-mac-key/cryptoKeyVersions/2
 imageProxyServiceBaseUrl: https://external-images.pub.dev
+
+downloadSignerServiceAccount: package-download-signer@dartlang-pub.iam.gserviceaccount.com
