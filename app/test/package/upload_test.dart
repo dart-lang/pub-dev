@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
@@ -1662,6 +1663,153 @@ void main() {
           status: 400,
           code: 'PackageRejected',
           message: 'is too similar to a moderated package',
+        );
+      },
+    );
+
+    testWithProfile(
+      'getPackageUploadUrl returns attestationUrl and attestationFields',
+      fn: () async {
+        final client = createPubApiClient(authToken: adminClientToken);
+        final uploadInfo = await client.getPackageUploadUrl();
+        expect(uploadInfo.url, isNotEmpty);
+        expect(uploadInfo.fields, isNotNull);
+        expect(uploadInfo.attestationUrl, isNotEmpty);
+        expect(uploadInfo.attestationFields, isNotNull);
+        expect(
+          uploadInfo.attestationFields!['key'],
+          endsWith('.sigstore.json'),
+        );
+      },
+    );
+
+    testWithProfile(
+      'successful upload with attestation bundle and api retrieval',
+      fn: () async {
+        final pubspecContent =
+            'name: attested_pkg\nversion: 1.0.0\ndescription: A package with attestation.\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+        final archiveBytes = await packageArchiveBytes(
+          pubspecContent: pubspecContent,
+        );
+        final bundleJson = {
+          'mediaType': 'application/vnd.dev.sigstore.bundle.v0.3+json',
+          'verificationMaterial': {},
+          'dsseEnvelope': {
+            'payloadType': 'application/vnd.in-toto+json',
+            'payload': base64Encode(utf8.encode('{}')),
+            'signatures': [],
+          },
+        };
+        final attestationBytes = utf8.encode(jsonEncode(bundleJson));
+
+        final client = createPubApiClient(authToken: adminClientToken);
+        final message = await client.uploadPackageBytes(
+          archiveBytes,
+          attestationBytes: attestationBytes,
+        );
+        expect(message.success.message, contains('Successfully uploaded'));
+
+        // Verify attestation asset was stored in Datastore
+        final asset = await packageBackend.lookupPackageVersionAsset(
+          'attested_pkg',
+          '1.0.0',
+          AssetKind.attestation,
+        );
+        expect(asset, isNotNull);
+        expect(asset!.textContent, isNotNull);
+        final storedJson =
+            jsonDecode(asset.textContent!) as Map<String, dynamic>;
+        expect(
+          storedJson['mediaType'],
+          equals('application/vnd.dev.sigstore.bundle.v0.3+json'),
+        );
+
+        // Verify attestation can be retrieved via the API endpoint
+        final retrievedBytes = await client.getPackageVersionAttestation(
+          'attested_pkg',
+          '1.0.0',
+        );
+        final retrievedJson =
+            jsonDecode(utf8.decode(retrievedBytes)) as Map<String, dynamic>;
+        expect(
+          retrievedJson['mediaType'],
+          equals('application/vnd.dev.sigstore.bundle.v0.3+json'),
+        );
+      },
+    );
+
+    testWithProfile(
+      'retrieving attestation of a package without attestation returns 404',
+      fn: () async {
+        final pubspecContent =
+            'name: unattested_pkg\nversion: 1.0.0\ndescription: A package without attestation.\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+        final archiveBytes = await packageArchiveBytes(
+          pubspecContent: pubspecContent,
+        );
+
+        final client = createPubApiClient(authToken: adminClientToken);
+        final message = await client.uploadPackageBytes(archiveBytes);
+        expect(message.success.message, contains('Successfully uploaded'));
+
+        final rs = client.getPackageVersionAttestation(
+          'unattested_pkg',
+          '1.0.0',
+        );
+        await expectApiException(
+          rs,
+          status: 404,
+          code: 'NotFound',
+          message: 'Could not find `attestation for unattested_pkg 1.0.0`.',
+        );
+      },
+    );
+
+    testWithProfile(
+      'upload fails when attestation bundle has invalid JSON or invalid bytes',
+      fn: () async {
+        final pubspecContent =
+            'name: bad_attested_pkg\nversion: 1.0.0\ndescription: A package with bad attestation.\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+        final archiveBytes = await packageArchiveBytes(
+          pubspecContent: pubspecContent,
+        );
+
+        // 1. Invalid non-UTF8 / tampered raw bytes
+        final rs1 = createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(
+              archiveBytes,
+              attestationBytes: [0xFF, 0xFE, 0xFD],
+            );
+        await expectApiException(
+          rs1,
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Invalid attestation bundle format',
+        );
+
+        // 2. Invalid non-JSON string
+        final rs2 = createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(
+              archiveBytes,
+              attestationBytes: utf8.encode('this is not json'),
+            );
+        await expectApiException(
+          rs2,
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Invalid attestation bundle format',
+        );
+
+        // 3. Non-object JSON
+        final rs3 = createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(
+              archiveBytes,
+              attestationBytes: utf8.encode('[1, 2, 3]'),
+            );
+        await expectApiException(
+          rs3,
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Invalid attestation bundle format',
         );
       },
     );

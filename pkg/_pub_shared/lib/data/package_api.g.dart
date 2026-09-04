@@ -11,10 +11,19 @@ UploadInfo _$UploadInfoFromJson(Map<String, dynamic> json) => UploadInfo(
   fields: (json['fields'] as Map<String, dynamic>?)?.map(
     (k, e) => MapEntry(k, e as String),
   ),
+  attestationUrl: json['attestationUrl'] as String?,
+  attestationFields: (json['attestationFields'] as Map<String, dynamic>?)?.map(
+    (k, e) => MapEntry(k, e as String),
+  ),
 );
 
 Map<String, dynamic> _$UploadInfoToJson(UploadInfo instance) =>
-    <String, dynamic>{'url': instance.url, 'fields': instance.fields};
+    <String, dynamic>{
+      'url': instance.url,
+      'fields': instance.fields,
+      'attestationUrl': instance.attestationUrl,
+      'attestationFields': instance.attestationFields,
+    };
 
 PkgOptions _$PkgOptionsFromJson(Map<String, dynamic> json) => PkgOptions(
   isDiscontinued: json['isDiscontinued'] as bool?,
