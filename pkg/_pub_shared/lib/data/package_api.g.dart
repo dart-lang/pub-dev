@@ -50,6 +50,11 @@ PkgPublishingConfig _$PkgPublishingConfigFromJson(
   manual: json['manual'] == null
       ? null
       : ManualPublishingConfig.fromJson(json['manual'] as Map<String, dynamic>),
+  attestation: json['attestation'] == null
+      ? null
+      : AttestationPublishingConfig.fromJson(
+          json['attestation'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$PkgPublishingConfigToJson(
@@ -58,6 +63,7 @@ Map<String, dynamic> _$PkgPublishingConfigToJson(
   'github': ?instance.github?.toJson(),
   'gcp': ?instance.gcp?.toJson(),
   'manual': ?instance.manual?.toJson(),
+  'attestation': ?instance.attestation?.toJson(),
 };
 
 GitHubPublishingConfig _$GitHubPublishingConfigFromJson(
@@ -105,6 +111,16 @@ ManualPublishingConfig _$ManualPublishingConfigFromJson(
 Map<String, dynamic> _$ManualPublishingConfigToJson(
   ManualPublishingConfig instance,
 ) => <String, dynamic>{'isEnabled': instance.isEnabled};
+
+AttestationPublishingConfig _$AttestationPublishingConfigFromJson(
+  Map<String, dynamic> json,
+) => AttestationPublishingConfig(
+  isRequired: json['isRequired'] as bool? ?? false,
+);
+
+Map<String, dynamic> _$AttestationPublishingConfigToJson(
+  AttestationPublishingConfig instance,
+) => <String, dynamic>{'isRequired': instance.isRequired};
 
 VersionOptions _$VersionOptionsFromJson(Map<String, dynamic> json) =>
     VersionOptions(isRetracted: json['isRetracted'] as bool?);
