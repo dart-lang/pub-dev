@@ -377,55 +377,6 @@ Future uploadBytesWithRetry(
   () => Stream.fromIterable([bytes]),
 );
 
-/// Converts [map] into a stream of UTF-8 JSON bytes, periodically pausing
-/// to yield to the event loop so health checks and other pending tasks are
-/// not starved.
-///
-/// If [map] contains a `documents` map (as in search snapshots), its entries
-/// are serialized in batches, yielding control to the event loop when
-/// [maxDurationPerBatch] has elapsed.
-Stream<List<int>> chunkedJsonUtf8Encode(
-  Map<String, dynamic> map, {
-  Duration maxDurationPerBatch = const Duration(milliseconds: 20),
-}) async* {
-  final documents = map['documents'];
-  if (documents is! Map) {
-    yield jsonUtf8Encoder.convert(map);
-    return;
-  }
-
-  final otherEntries = map.entries
-      .where((e) => e.key != 'documents')
-      .map((e) {
-        return '${json.encode(e.key)}:${json.encode(e.value)}';
-      })
-      .join(',');
-
-  yield utf8.encode(
-    '{$otherEntries${otherEntries.isEmpty ? '' : ','}"documents":{',
-  );
-
-  var isFirst = true;
-  var batch = <String>[];
-  final sw = Stopwatch()..start();
-  for (final entry in documents.entries) {
-    batch.add('${json.encode(entry.key)}:${json.encode(entry.value)}');
-    if (sw.elapsed >= maxDurationPerBatch) {
-      final prefix = isFirst ? '' : ',';
-      isFirst = false;
-      yield utf8.encode(prefix + batch.join(','));
-      batch = <String>[];
-      await Future<void>.delayed(Duration.zero);
-      sw.reset();
-    }
-  }
-  if (batch.isNotEmpty) {
-    final prefix = isFirst ? '' : ',';
-    yield utf8.encode(prefix + batch.join(','));
-  }
-  yield utf8.encode('}}');
-}
-
 /// Utility class to access versioned JSON data that follows the name pattern:
 /// "/path-prefix/runtime-version.json.gz".
 class VersionedJsonStorage {
@@ -446,21 +397,15 @@ class VersionedJsonStorage {
   Future<void> uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final tarGzObjectName = _tarGzObjectName();
     try {
-      final chunks = <List<int>>[];
-      var totalSize = 0;
-      await for (final chunk in chunkedJsonUtf8Encode(map)) {
-        chunks.add(chunk);
-        totalSize += chunk.length;
-      }
-
+      final contentBytes = jsonUtf8Encoder.convert(map);
       final stream = Stream<TarEntry>.fromIterable([
         TarEntry(
           TarHeader(
             name: 'snapshot.json',
-            size: totalSize,
+            size: contentBytes.length,
             mode: 420, // 644₈
           ),
-          Stream.fromIterable(chunks),
+          Stream.fromIterable([contentBytes]),
         ),
       ]).transform(tarWriter).transform(_gzip.encoder);
 
