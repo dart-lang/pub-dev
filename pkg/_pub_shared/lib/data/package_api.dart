@@ -279,6 +279,10 @@ class VersionInfo {
   /// This is an optional field of the API response, it may be `null` or omitted.
   final DateTime? published;
 
+  /// The SLSA provenance level if the version has an attestation (e.g. 2).
+  @JsonKey(name: 'slsa_level')
+  final int? slsaLevel;
+
   VersionInfo({
     required this.version,
     required this.retracted,
@@ -286,6 +290,7 @@ class VersionInfo {
     required this.archiveUrl,
     required this.archiveSha256,
     required this.published,
+    this.slsaLevel,
   });
 
   factory VersionInfo.fromJson(Map<String, dynamic> json) =>
