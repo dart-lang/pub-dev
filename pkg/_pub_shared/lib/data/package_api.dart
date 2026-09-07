@@ -18,18 +18,7 @@ class UploadInfo {
   /// The fields the uploader should add to the multipart upload.
   final Map<String, String>? fields;
 
-  /// The endpoint where the optional package attestation bundle should be posted.
-  final String? attestationUrl;
-
-  /// The fields the uploader should add to the attestation multipart upload.
-  final Map<String, String>? attestationFields;
-
-  UploadInfo({
-    required this.url,
-    required this.fields,
-    this.attestationUrl,
-    this.attestationFields,
-  });
+  UploadInfo({required this.url, required this.fields});
 
   factory UploadInfo.fromJson(Map<String, dynamic> json) =>
       _$UploadInfoFromJson(json);

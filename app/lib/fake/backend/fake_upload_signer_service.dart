@@ -19,8 +19,6 @@ class FakeUploadSignerService implements UploadSignerService {
     String? successRedirectUrl,
     String predefinedAcl = 'project-private',
     int maxUploadSize = UploadSignerService.maxUploadSize,
-    String? attestationObject,
-    int maxAttestationUploadSize = UploadSignerService.maxAttestationUploadSize,
   }) async {
     return UploadInfo(
       url: Uri.parse('$_storagePrefix/$bucket/$object').toString(),
@@ -29,12 +27,6 @@ class FakeUploadSignerService implements UploadSignerService {
         if (successRedirectUrl != null)
           'success_action_redirect': successRedirectUrl,
       },
-      attestationUrl: attestationObject != null
-          ? Uri.parse('$_storagePrefix/$bucket/$attestationObject').toString()
-          : null,
-      attestationFields: attestationObject != null
-          ? <String, String>{'key': '$bucket/$attestationObject'}
-          : null,
     );
   }
 

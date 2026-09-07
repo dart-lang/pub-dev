@@ -30,6 +30,8 @@ class PubApiClient {
 
   final _i2.Client _client;
 
+  _i2.Client get client => _client;
+
   Future<List<int>> listVersions(String package) async {
     return await _client.requestBytes(
       verb: 'get',

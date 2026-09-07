@@ -174,29 +174,8 @@ bool _retryIf(Exception e) {
 
 extension PubApiClientExt on PubApiClient {
   @visibleForTesting
-  Future<String> preparePackageUpload(
-    List<int> bytes, {
-    List<int>? attestationBytes,
-  }) async {
+  Future<String> preparePackageUpload(List<int> bytes) async {
     final uploadInfo = await getPackageUploadUrl();
-
-    // Send the attestation bundle first, so we never accidentally upload a
-    // package without its attestation bundle.
-    if (attestationBytes != null) {
-      if (uploadInfo.attestationUrl == null ||
-          uploadInfo.attestationFields == null) {
-        throw StateError(
-          'Server does not support uploading package attestations.',
-        );
-      }
-      final attRequest =
-          http.MultipartRequest('POST', Uri.parse(uploadInfo.attestationUrl!))
-            ..headers[fakeClockHeaderName] = clock.now().toIso8601String()
-            ..fields.addAll(uploadInfo.attestationFields!)
-            ..files.add(http.MultipartFile.fromBytes('file', attestationBytes))
-            ..followRedirects = false;
-      await attRequest.send();
-    }
 
     final request = http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
       ..headers[fakeClockHeaderName] = clock.now().toIso8601String()
@@ -226,10 +205,29 @@ extension PubApiClientExt on PubApiClient {
     List<int> bytes, {
     List<int>? attestationBytes,
   }) async {
-    final uploadId = await preparePackageUpload(
-      bytes,
-      attestationBytes: attestationBytes,
-    );
-    return await finishPackageUpload(uploadId);
+    final uploadId = await preparePackageUpload(bytes);
+    if (attestationBytes != null) {
+      List<int> bodyBytes;
+      try {
+        final decoded = jsonDecode(utf8.decode(attestationBytes));
+        if (decoded is Map<String, dynamic> &&
+            decoded.containsKey('attestation')) {
+          bodyBytes = attestationBytes;
+        } else {
+          bodyBytes = utf8.encode(jsonEncode({'attestation': decoded}));
+        }
+      } catch (_) {
+        bodyBytes = attestationBytes;
+      }
+      final rsJson = await client.sendRaw(
+        verb: 'post',
+        path: '/api/packages/versions/newUploadFinish/$uploadId',
+        headers: {'content-type': 'application/json; charset="utf-8"'},
+        bodyBytes: bodyBytes,
+      );
+      return SuccessMessage.fromJson(rsJson);
+    } else {
+      return await finishPackageUpload(uploadId);
+    }
   }
 }

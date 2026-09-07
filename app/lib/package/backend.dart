@@ -1064,13 +1064,15 @@ class PackageBackend {
       object,
       lifetime,
       successRedirectUrl: '$url',
-      attestationObject: '$object.sigstore.json',
     );
   }
 
   /// Finishes the upload of a package and returns the list of messages
   /// related to the publishing.
-  Future<List<String>> publishUploadedBlob(String uploadGuid) async {
+  Future<List<String>> publishUploadedBlob(
+    String uploadGuid, {
+    String? attestationContent,
+  }) async {
     final restriction = await getUploadRestrictionStatus();
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
@@ -1210,24 +1212,8 @@ class PackageBackend {
         throw PackageRejectedException.dependencyDoesNotExists(name);
       }
 
-      // Check for an accompanying Sigstore attestation bundle in the incoming bucket.
-      String? attestationContent;
-      final attestationObjectName =
-          '${tmpObjectName(uploadGuid)}.sigstore.json';
-      final attestationInfo = await _incomingBucket.tryInfo(
-        attestationObjectName,
-      );
-      if (attestationInfo?.length != null) {
-        _logger.info('Reading package attestation ($uploadGuid).');
-        final attestationFilename =
-            '${dir.absolute.path}/attestation.sigstore.json';
-        await _incomingBucket.readWithRetry(
-          attestationObjectName,
-          (input) => _saveTarballToFS(input, attestationFilename),
-        );
+      if (attestationContent != null) {
         try {
-          final bytes = await File(attestationFilename).readAsBytes();
-          attestationContent = utf8.decode(bytes);
           final decoded = jsonDecode(attestationContent);
           if (decoded is! Map<String, dynamic>) {
             throw FormatException('Attestation bundle must be a JSON object.');
@@ -1261,9 +1247,6 @@ class PackageBackend {
       sw.reset();
       await _incomingBucket.deleteWithRetry(uploadObjectName);
       await _incomingBucket.deleteWithRetry(workObjectName);
-      if (attestationInfo?.length != null) {
-        await _incomingBucket.deleteWithRetry(attestationObjectName);
-      }
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return [
         'Successfully uploaded '

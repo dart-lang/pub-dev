@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/advisories_api.dart';
@@ -165,6 +167,7 @@ class PubApi {
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-packages
   ///
   ///     GET /api/packages/versions/newUploadFinish
+  ///     POST /api/packages/versions/newUploadFinish
   ///     [200 OK]
   ///     {
   ///       "success" : {
@@ -172,6 +175,7 @@ class PubApi {
   ///       },
   ///     }
   @EndPoint.get('/api/packages/versions/newUploadFinish')
+  @EndPoint.post('/api/packages/versions/newUploadFinish')
   Future<SuccessMessage> packageUploadCallback(Request request) async {
     final uploadId = request.requestedUri.queryParameters['upload_id'];
     InvalidInputException.checkNotNull(uploadId, 'upload_id');
@@ -179,11 +183,44 @@ class PubApi {
   }
 
   @EndPoint.get('/api/packages/versions/newUploadFinish/<uploadId>')
+  @EndPoint.post('/api/packages/versions/newUploadFinish/<uploadId>')
   Future<SuccessMessage> finishPackageUpload(
     Request request,
     String uploadId,
   ) async {
-    final messages = await packageBackend.publishUploadedBlob(uploadId);
+    String? attestationContent;
+    if (request.method == 'POST') {
+      try {
+        final bytes = await request.read().expand((i) => i).toList();
+        if (bytes.isEmpty) {
+          throw PackageRejectedException(
+            'Invalid attestation bundle format: request body must contain an "attestation" object.',
+          );
+        }
+        final bodyText = utf8.decode(bytes);
+        final bodyJson = jsonDecode(bodyText);
+        if (bodyJson is Map<String, dynamic> &&
+            bodyJson.containsKey('attestation')) {
+          final attestation = bodyJson['attestation'];
+          if (attestation is! Map<String, dynamic>) {
+            throw PackageRejectedException(
+              'Invalid attestation bundle format: attestation must be a JSON object.',
+            );
+          }
+          attestationContent = jsonEncode(attestation);
+        } else {
+          throw PackageRejectedException(
+            'Invalid attestation bundle format: request body must contain an "attestation" object.',
+          );
+        }
+      } on FormatException catch (e) {
+        throw PackageRejectedException('Invalid attestation bundle format: $e');
+      }
+    }
+    final messages = await packageBackend.publishUploadedBlob(
+      uploadId,
+      attestationContent: attestationContent,
+    );
     return SuccessMessage(success: Message(message: messages.join('\n')));
   }
 
