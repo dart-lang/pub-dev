@@ -209,6 +209,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.2"
+  code_assets:
+    dependency: transitive
+    description:
+      name: code_assets
+      sha256: bf394f466ba9205f1812a0433b392d6af280f155f56651eda7c18cc32ed493b8
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
   code_builder:
     dependency: transitive
     description:
@@ -377,6 +385,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
+  hooks:
+    dependency: transitive
+    description:
+      name: hooks
+      sha256: eaac480a35ec0814146c2c48d96aaa829e0e44a7662c88ae84c9edf4bc35651f
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.0"
   html:
     dependency: transitive
     description:
@@ -697,6 +713,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.20.0"
+  record_use:
+    dependency: transitive
+    description:
+      name: record_use
+      sha256: "1cb8564af8d43b464294411db9217f5ec04891c6f22ee2c32d73ae05e88a6bd2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
   retry:
     dependency: transitive
     description:
@@ -769,6 +793,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  sigstore:
+    dependency: transitive
+    description:
+      name: sigstore
+      sha256: "04c0dda858b534915faa82a9a877e94169c9b9d4546bba5a83f940c78b32736f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   slugid:
     dependency: transitive
     description:
