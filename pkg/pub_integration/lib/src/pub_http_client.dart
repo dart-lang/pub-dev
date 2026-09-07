@@ -78,6 +78,23 @@ class PubHttpClient {
     }
   }
 
+  /// Get the Sigstore attestation bundle for a specific package version,
+  /// or null if it does not exist.
+  Future<String?> getAttestation(String package, String version) async {
+    final rs = await _http.get(
+      _pubHostedUrl.resolve(
+        '/api/packages/$package/versions/$version/attestation',
+      ),
+    );
+    if (rs.statusCode == 404) {
+      return null;
+    } else if (rs.statusCode == 200) {
+      return rs.body;
+    } else {
+      throw Exception('Unexpected result: ${rs.statusCode} ${rs.reasonPhrase}');
+    }
+  }
+
   /// Get the content of the latest version page of a package or null if it does
   /// not exists.
   Future<String?> getLatestVersionPage(String package, {String? tab}) async {
@@ -293,6 +310,69 @@ class PubHttpClient {
     if (rs.statusCode != 200) {
       throw Exception('Unexpected status code: ${rs.statusCode}');
     }
+  }
+
+  /// Uploads a package tarball and optional attestation bundle to the server.
+  Future<Response> uploadPackage({
+    required String authToken,
+    required List<int> packageBytes,
+    List<int>? attestationBytes,
+  }) async {
+    final initRs = await _http.get(
+      _pubHostedUrl.resolve('/api/packages/versions/new'),
+      headers: {'authorization': 'Bearer $authToken'},
+    );
+    if (initRs.statusCode != 200) {
+      return initRs;
+    }
+    final initMap = jsonDecode(initRs.body) as Map<String, dynamic>;
+    final uploadUrl = Uri.parse(initMap['url'] as String);
+    final fields = (initMap['fields'] as Map<String, dynamic>)
+        .cast<String, String>();
+
+    // Upload archive multipart
+    final uploadReq = MultipartRequest('POST', uploadUrl)
+      ..fields.addAll(fields)
+      ..files.add(
+        MultipartFile.fromBytes(
+          'file',
+          packageBytes,
+          filename: 'package.tar.gz',
+        ),
+      )
+      ..followRedirects = false;
+    final uploadStream = await _http.send(uploadReq);
+    final uploadRs = await Response.fromStream(uploadStream);
+
+    if (attestationBytes != null) {
+      final baseKey = fields['key'];
+      final attFields = Map<String, String>.from(fields);
+      if (baseKey != null) {
+        attFields['key'] = '$baseKey.sigstore.json';
+      }
+      attFields.remove('success_action_redirect');
+      final attReq = MultipartRequest('POST', uploadUrl)
+        ..fields.addAll(attFields)
+        ..files.add(
+          MultipartFile.fromBytes(
+            'file',
+            attestationBytes,
+            filename: 'attestation.sigstore.json',
+          ),
+        )
+        ..followRedirects = false;
+      await _http.send(attReq);
+    }
+
+    final location = uploadRs.headers['location'];
+    if (location == null) {
+      return uploadRs;
+    }
+    final finishUri = Uri.parse(location);
+    return await _http.get(
+      finishUri,
+      headers: {'authorization': 'Bearer $authToken'},
+    );
   }
 
   /// Free resources.

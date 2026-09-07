@@ -176,4 +176,21 @@ class DartToolClient {
       expectedOutputContains: expectedOutputContains,
     );
   }
+
+  Future<void> publishArchive({
+    required String archivePath,
+    String? attestationPath,
+    String? expectedErrorContains,
+    String? expectedOutputContains,
+  }) async {
+    final args = ['pub', 'publish', '--force', '--from-archive', archivePath];
+    if (attestationPath != null) {
+      args.addAll(['--with-attestation', attestationPath]);
+    }
+    await runDart(
+      args,
+      expectedErrorContains: expectedErrorContains,
+      expectedOutputContains: expectedOutputContains,
+    );
+  }
 }
