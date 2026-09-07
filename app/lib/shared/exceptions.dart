@@ -590,6 +590,15 @@ class AuthorizationException extends ResponseException {
     );
   }
 
+  /// Signaling that an attestation is required for publishing.
+  factory AuthorizationException.attestationRequired(String package) {
+    return AuthorizationException._(
+      'Publishing "$package" requires a verified Sigstore attestation. '
+      'To publish, provide a valid attestation or disable the requirement on the package admin page '
+      '(see ${pkgAdminUrl(package, includeHost: true)}).',
+    );
+  }
+
   @override
   String toString() => '$code: $message'; // used by package:pub_server
 }
