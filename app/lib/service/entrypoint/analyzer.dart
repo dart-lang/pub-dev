@@ -18,6 +18,7 @@ import '../../task/backend.dart';
 import '../../tool/neat_task/pub_dev_tasks.dart';
 
 import '../download_counts/backend.dart';
+import '_isolate.dart';
 
 final Logger logger = Logger('pub.analyzer');
 
@@ -37,8 +38,12 @@ class AnalyzerCommand extends Command {
       registerScopeExitCallback(() => taskBackend.stop());
 
       setupPeriodTaskSchedulers();
-      // TODO: rewrite this loop to have a start/stop logic
-      scheduleMicrotask(searchBackend.updateSnapshotInForeverLoop);
+      final snapshotWorker = await startWorkerIsolate(
+        logger: logger,
+        entryPoint: _snapshotWorkerEntryPoint,
+        kind: 'snapshot',
+      );
+      registerScopeExitCallback(snapshotWorker.close);
 
       await apiExporter.start();
       registerScopeExitCallback(() => apiExporter.stop());
@@ -46,4 +51,9 @@ class AnalyzerCommand extends Command {
       await runHandler(logger, analyzerServiceHandler);
     });
   }
+}
+
+Future<void> _snapshotWorkerEntryPoint(EntryMessage message) async {
+  message.protocolSendPort.send(ReadyMessage());
+  await searchBackend.updateSnapshotInForeverLoop();
 }
