@@ -51,6 +51,14 @@ void main() {
           await issueGet('/packages/oxygen/versions/1.2.00/changelog'),
           '/packages/oxygen/versions/1.2.0/changelog',
         );
+        await expectRedirectResponse(
+          await issueGet('/packages/oxYgen/security'),
+          '/packages/oxygen/security',
+        );
+        await expectRedirectResponse(
+          await issueGet('/packages/oxYgen/versions/1.2.0/security'),
+          '/packages/oxygen/versions/1.2.0/security',
+        );
       },
     );
 
@@ -177,6 +185,7 @@ void main() {
           '/packages/pkg/pubspec',
           '/packages/pkg/license',
           '/packages/pkg/score',
+          '/packages/pkg/security',
         ];
         for (final url in urls) {
           await expectHtmlResponse(
@@ -185,6 +194,35 @@ void main() {
             absent: ['Homepage'],
           );
         }
+      },
+    );
+
+    testWithProfile(
+      '/packages/oxygen/security - found',
+      fn: () async {
+        await expectHtmlResponse(
+          await issueGet('/packages/oxygen/security'),
+          present: [
+            'oxygen 1.2.0',
+            'Build Provenance',
+            'No build provenance attestation available',
+            'Learn how to automate publishing with provenance on dart.dev',
+          ],
+        );
+      },
+    );
+
+    testWithProfile(
+      '/packages/oxygen/versions/1.2.0/security - found',
+      fn: () async {
+        await expectHtmlResponse(
+          await issueGet('/packages/oxygen/versions/1.2.0/security'),
+          present: [
+            'oxygen 1.2.0',
+            'Build Provenance',
+            'No build provenance attestation available',
+          ],
+        );
       },
     );
 

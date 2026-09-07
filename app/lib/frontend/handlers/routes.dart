@@ -131,6 +131,13 @@ class PubSiteService {
     String version,
   ) => packageScoreHandler(request, package, versionName: version);
 
+  @Route.get('/packages/<package>/versions/<version>/security')
+  Future<Response> packageVersionSecurity(
+    Request request,
+    String package,
+    String version,
+  ) => packageSecurityHandler(request, package, versionName: version);
+
   @Route.get('/packages/<package>/versions/<version>/score/log.txt')
   Future<Response> packageVersionScoreLogTxt(
     Request request,
@@ -180,6 +187,10 @@ class PubSiteService {
   @Route.get('/packages/<package>/score')
   Future<Response> packageScore(Request request, String package) =>
       packageScoreHandler(request, package);
+
+  @Route.get('/packages/<package>/security')
+  Future<Response> packageSecurity(Request request, String package) =>
+      packageSecurityHandler(request, package);
 
   @Route.get('/packages/<package>/score/log.txt')
   Future<Response> packageScoreLogTxt(Request request, String package) =>

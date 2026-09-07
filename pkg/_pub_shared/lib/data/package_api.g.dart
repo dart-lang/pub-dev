@@ -183,6 +183,7 @@ VersionInfo _$VersionInfoFromJson(Map<String, dynamic> json) => VersionInfo(
   published: json['published'] == null
       ? null
       : DateTime.parse(json['published'] as String),
+  slsaLevel: (json['slsa_level'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
@@ -193,6 +194,7 @@ Map<String, dynamic> _$VersionInfoToJson(VersionInfo instance) =>
       'archive_url': ?instance.archiveUrl,
       'archive_sha256': ?instance.archiveSha256,
       'published': ?instance.published?.toIso8601String(),
+      'slsa_level': ?instance.slsaLevel,
     };
 
 VersionScore _$VersionScoreFromJson(Map<String, dynamic> json) => VersionScore(

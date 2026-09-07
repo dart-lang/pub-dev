@@ -2285,6 +2285,7 @@ extension PackageVersionExt on PackageVersion {
       ),
       archiveSha256: archiveSha256,
       published: created,
+      slsaLevel: slsaLevel,
     );
   }
 }
@@ -2332,6 +2333,7 @@ Future<void> purgePackageCache(String package) async {
     cache.uiPackageExample(package, null).purge(),
     cache.uiPackageInstall(package, null).purge(),
     cache.uiPackageScore(package, null).purge(),
+    cache.uiPackageSecurity(package, null).purge(),
     cache.uiPackageVersions(package).purge(),
     cache.uiLandingPageContent().purge(),
     cache.allPackagesAtomFeedXml().purge(),
@@ -2484,7 +2486,8 @@ Future<_UploadEntities> _createUploadEntities(
     ..pubspec = pubspec
     ..libraries = archive.libraries
     ..uploader = agent.agentId
-    ..sha256 = sha256Hash;
+    ..sha256 = sha256Hash
+    ..slsaLevel = attestationContent != null ? 2 : null;
 
   final derived = derivePackageVersionEntities(
     archive: archive,

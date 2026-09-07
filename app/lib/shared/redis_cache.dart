@@ -104,6 +104,11 @@ class CachePatterns {
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)['$package-$version'];
 
+  Entry<String> uiPackageSecurity(String package, String? version) => _cache
+      .withPrefix('ui-package-security/')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)['$package-$version'];
+
   Entry<String> uiPackageVersions(String package) => _cache
       .withPrefix('ui-package-versions/')
       .withTTL(Duration(minutes: 10))
