@@ -59,6 +59,16 @@ class PubApiClient {
     );
   }
 
+  Future<List<int>> getPackageVersionAttestation(
+    String package,
+    String version,
+  ) async {
+    return await _client.requestBytes(
+      verb: 'get',
+      path: '/api/packages/$package/versions/$version/attestation',
+    );
+  }
+
   Future<List<int>> fetchPackage(String package, String version) async {
     return await _client.requestBytes(
       verb: 'get',
