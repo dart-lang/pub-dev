@@ -5,6 +5,7 @@
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/advisories_api.dart';
+import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:_pub_shared/data/task_api.dart';
@@ -450,6 +451,12 @@ class PubApi {
   @EndPoint.get('/api/packages/<package>/score')
   Future<VersionScore> packageScore(Request request, String package) =>
       packageVersionScoreHandler(request, package);
+
+  @EndPoint.get('/api/packages/<package>/daily-downloads')
+  Future<DailyDownloadCounts> packageDailyDownloads(
+    Request request,
+    String package,
+  ) => packageDailyDownloadsHandler(request, package);
 
   @EndPoint.get('/api/packages/<package>/versions/<version>/score')
   Future<VersionScore> packageVersionScore(

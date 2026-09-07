@@ -299,6 +299,19 @@ class CachePatterns {
         ),
       )[package];
 
+  Entry<DailyDownloadCounts> dailyDownloadCounts(String package) => _cache
+      .withPrefix('daily-download-counts/')
+      .withTTL(Duration(hours: 6))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(
+        wrapAsCodec(
+          encode: (DailyDownloadCounts ddc) => ddc.toJson(),
+          decode: (d) =>
+              DailyDownloadCounts.fromJson(d as Map<String, dynamic>),
+        ),
+      )[package];
+
   Entry<List<LikeData>> userPackageLikes(String userId) => _cache
       .withPrefix('user-package-likes/')
       .withTTL(Duration(minutes: 60))
