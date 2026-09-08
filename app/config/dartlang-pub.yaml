@@ -1,7 +1,4 @@
 # Configuration for production deployment.
-# This will use the Datastore from the cloud project and the Cloud Storage
-# bucket 'pub-packages'. The credentials for accessing the Cloud
-# Storage is retrieved from the Datastore.
 ---
 canonicalPackagesBucketName: dartlang-pub-canonical-packages
 incomingPackagesBucketName: dartlang-pub-incoming-packages
