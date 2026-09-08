@@ -83,10 +83,9 @@ class PubApi {
   /// Downloading package.
   ///
   /// This is the endpoint we link to from the version listing.
-  ///
-  /// While this is here a redirect to a bucket, and will be done this way on
-  /// staging, on pub.dev we actually serve this endpoint directly from a bucket
-  /// via GCLB (load balancer), and will never trigger this handler.
+  /// This end-point is generally handled by GCLB which serves it directly from the bucket.
+  /// But when hitting the service directly we redirect to the primary host (e.g. `pub.dev`
+  /// or `staging.pub.dev`). In testing we redirect to the bucket.
   @EndPoint.get('/api/archives/<package|[^-/]+>-<version>.tar.gz')
   Future<Response> fetchPackage(
     Request request,
@@ -94,8 +93,15 @@ class PubApi {
     String version,
   ) async {
     checkPackageVersionParams(package, version);
+    final redirectUrl = await packageBackend.downloadUrl(package, version);
+    if (request.requestedUri.host == redirectUrl.host &&
+        request.requestedUri.path == redirectUrl.path) {
+      return Response.badRequest(
+        body: 'Direct archive requests on this host are not supported.',
+      );
+    }
     return Response.seeOther(
-      await packageBackend.downloadUrl(package, version),
+      redirectUrl,
       headers: CacheControl.clientApi.headers,
     );
   }

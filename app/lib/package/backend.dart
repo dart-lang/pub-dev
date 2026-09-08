@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+
 import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
@@ -42,6 +43,7 @@ import '../service/email/models.dart';
 import '../service/secret/backend.dart';
 import '../shared/configuration.dart';
 import '../shared/datastore.dart';
+import '../shared/env_config.dart';
 import '../shared/exceptions.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/storage.dart';
@@ -408,9 +410,18 @@ class PackageBackend {
   /// Get a [Uri] which can be used to download a tarball of the pub package.
   Future<Uri> downloadUrl(String package, String version) async {
     InvalidInputException.checkSemanticVersion(version);
-    final cv = canonicalizeVersion(version);
+    final cv = canonicalizeVersion(version)!;
     final object = 'latest/api/archives/$package-$cv.tar.gz';
-    return Uri.parse(_exportedApiBucket.objectUrl(object));
+    if (envConfig.isRunningLocally) {
+      return Uri.parse(_exportedApiBucket.objectUrl(object));
+    }
+    return Uri.parse(
+      urls.pkgArchiveDownloadUrl(
+        package,
+        cv,
+        baseUri: activeConfiguration.primarySiteUri,
+      ),
+    );
   }
 
   /// Updates the stable, prerelease and preview versions of [package].
