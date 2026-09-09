@@ -345,9 +345,19 @@ Uri githubRefUrl({
   );
 }
 
+final _githubUsernameRegExp = RegExp(
+  r'^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$',
+);
+
 /// Returns the GitHub user profile URL for a given GitHub username.
-Uri githubUserUrl(String actor) =>
-    Uri(scheme: 'https', host: 'github.com', pathSegments: [actor]);
+///
+/// Returns `null` if [actor] is not a valid human GitHub username
+/// (for example, automated bot identities such as `github-actions[bot]`).
+Uri? githubUserUrl(String actor) {
+  if (actor.endsWith('[bot]')) return null;
+  if (!_githubUsernameRegExp.hasMatch(actor)) return null;
+  return Uri(scheme: 'https', host: 'github.com', pathSegments: [actor]);
+}
 
 /// Returns the consent URL that will be sent to the invited user.
 String consentUrl(String consentId) => '$siteRoot/consent?id=$consentId';

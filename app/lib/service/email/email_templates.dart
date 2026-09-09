@@ -285,7 +285,10 @@ EmailMessage createPackageUploadedEmail({
       if (refLabel != null && refUri != null) '- $refLabel: $refUri',
       if (commitUri != null) '- Commit: $commitUri',
       if (runUri != null) '- Action run: $runUri',
-      if (actor != null && actorUri != null) '- Triggered by: $actorUri',
+      if (actor != null)
+        actorUri != null
+            ? '- Triggered by: $actorUri'
+            : '- Triggered by: @$actor',
     ];
     githubInfoText = textLines.join('\n');
 
@@ -298,8 +301,10 @@ EmailMessage createPackageUploadedEmail({
         '- Commit: <a href="$commitUri"><code>${htmlEscape.convert(commitSha)}</code></a>',
       if (runUri != null && runId != null)
         '- Action run: <a href="$runUri">#${htmlEscape.convert(runId)}</a>',
-      if (actor != null && actorUri != null)
-        '- Triggered by: <a href="$actorUri">@${htmlEscape.convert(actor)}</a>',
+      if (actor != null)
+        actorUri != null
+            ? '- Triggered by: <a href="$actorUri">@${htmlEscape.convert(actor)}</a>'
+            : '- Triggered by: @${htmlEscape.convert(actor)}',
     ];
     githubInfoHtml = htmlLines.join('<br/>\n');
   }
