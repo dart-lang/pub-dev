@@ -17,6 +17,7 @@ import 'package:shelf_router/shelf_router.dart';
 import '../../account/consent_backend.dart';
 import '../../admin/backend.dart';
 import '../../package/backend.dart' hide InviteStatus;
+import '../../package/models.dart' show AssetKind;
 import '../../publisher/backend.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
@@ -80,6 +81,31 @@ class PubApi {
     );
   }
 
+  /// Fetches the Sigstore attestation bundle for a specific (package, version) pair.
+  @EndPoint.get('/api/packages/<package>/versions/<version>/attestation')
+  Future<Response> getPackageVersionAttestation(
+    Request request,
+    String package,
+    String version,
+  ) async {
+    checkPackageVersionParams(package, version);
+    final asset = await packageBackend.lookupPackageVersionAsset(
+      package,
+      version,
+      AssetKind.attestation,
+    );
+    if (asset == null || asset.textContent == null) {
+      throw NotFoundException.resource('attestation for $package $version');
+    }
+    return Response.ok(
+      asset.textContent,
+      headers: {
+        'content-type': 'application/json; charset="utf-8"',
+        ...CacheControl.clientApi.headers,
+      },
+    );
+  }
+
   /// Downloading package.
   ///
   /// This is the endpoint we link to from the version listing.
@@ -132,7 +158,39 @@ class PubApi {
       // integration tests before we switch traffic.
       await packageBackend.startUpload(
         request.requestedUri.resolve('/api/packages/versions/newUploadFinish'),
+        attestationUrlPrefix: request.requestedUri.resolve(
+          '/api/packages/versions/newUploadAttestation',
+        ),
       );
+
+  /// Upload an attestation for a package archive that is being uploaded.
+  ///
+  /// The attestation is uploaded before the package archive, and is verified
+  /// and stored when the upload is finished.
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-with-an-attestation
+  ///
+  ///     POST /api/packages/versions/newUploadAttestation/<uploadId>
+  ///     <attestation JSON bundle>
+  ///     [200 OK]
+  ///     {
+  ///       "success" : {
+  ///         "message": "Attestation uploaded.",
+  ///       },
+  ///     }
+  @EndPoint.post('/api/packages/versions/newUploadAttestation/<uploadId>')
+  Future<SuccessMessage> uploadPackageAttestation(
+    Request request,
+    String uploadId,
+  ) async {
+    final bytes = await request.read().expand((i) => i).toList();
+    if (bytes.isEmpty) {
+      throw PackageRejectedException(
+        'Invalid attestation bundle format: the request body is empty.',
+      );
+    }
+    await packageBackend.uploadAttestation(uploadId, bytes);
+    return SuccessMessage(success: Message(message: 'Attestation uploaded.'));
+  }
 
   /// Finish async upload.
   /// TODO: Link to the spec once it has the details updated:

@@ -118,6 +118,19 @@ code.Class _buildClientClass(ClassElement cls, List<Handler> handlers) =>
               ),
           ),
         )
+        ..methods.add(
+          code.Method(
+            (b) => b
+              ..name = 'client'
+              ..type = code.MethodType.getter
+              ..returns = code.refer(
+                'Client',
+                'package:api_builder/_client_utils.dart',
+              )
+              ..lambda = true
+              ..body = code.refer('_client').code,
+          ),
+        )
         ..methods.addAll(
           _removeDuplicateHandlers(handlers).map(_buildClientMethod),
         ),

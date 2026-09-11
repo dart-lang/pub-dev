@@ -30,6 +30,8 @@ class PubApiClient {
 
   final _i2.Client _client;
 
+  _i2.Client get client => _client;
+
   Future<List<int>> listVersions(String package) async {
     return await _client.requestBytes(
       verb: 'get',
@@ -59,6 +61,16 @@ class PubApiClient {
     );
   }
 
+  Future<List<int>> getPackageVersionAttestation(
+    String package,
+    String version,
+  ) async {
+    return await _client.requestBytes(
+      verb: 'get',
+      path: '/api/packages/$package/versions/$version/attestation',
+    );
+  }
+
   Future<List<int>> fetchPackage(String package, String version) async {
     return await _client.requestBytes(
       verb: 'get',
@@ -71,6 +83,15 @@ class PubApiClient {
       await _client.requestJson(
         verb: 'get',
         path: '/api/packages/versions/new',
+      ),
+    );
+  }
+
+  Future<_i3.SuccessMessage> uploadPackageAttestation(String uploadId) async {
+    return _i3.SuccessMessage.fromJson(
+      await _client.requestJson(
+        verb: 'post',
+        path: '/api/packages/versions/newUploadAttestation/$uploadId',
       ),
     );
   }

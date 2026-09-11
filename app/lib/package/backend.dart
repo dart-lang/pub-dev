@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
@@ -57,10 +58,22 @@ import 'upload_signer_service.dart';
 // that is stored separately in the database.
 final maxAssetContentLength = 256 * 1024;
 
+// The maximum length of an attestation bundle.
+//
+// Note: unlike other assets, attestations are rejected when they are longer
+//       than this, as a truncated attestation could never be verified.
+final maxAttestationContentLength = 128 * 1024;
+
 /// The maximum number of versions a package is allowed to have.
 final _defaultMaxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
+
+/// Matches the UUIDs created by `createUuid()`, used to identify uploads.
+final _uuidRegExp = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+  caseSensitive: false,
+);
 final _validGitHubUserOrRepoRegExp = RegExp(
   r'^[a-z0-9\-\._]+$',
   caseSensitive: false,
@@ -1036,7 +1049,16 @@ class PackageBackend {
     return pv.toApiVersionInfo();
   }
 
-  Future<api.UploadInfo> startUpload(Uri redirectUrl) async {
+  /// Starts an upload, returning the parameters the client needs to upload the
+  /// package archive.
+  ///
+  /// [redirectUrl] is the URL the client is redirected to when the archive has
+  /// been uploaded, and [attestationUrlPrefix] is the URL prefix where the
+  /// client may upload an attestation of the archive.
+  Future<api.UploadInfo> startUpload(
+    Uri redirectUrl, {
+    required Uri attestationUrlPrefix,
+  }) async {
     final restriction = await getUploadRestrictionStatus();
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
@@ -1058,11 +1080,56 @@ class PackageBackend {
     _logger.info(
       'Redirecting pub client to google cloud storage (uuid: $guid)',
     );
-    return uploadSigner.buildUpload(
+    final uploadInfo = await uploadSigner.buildUpload(
       bucket,
       object,
       lifetime,
       successRedirectUrl: '$url',
+    );
+    return api.UploadInfo(
+      url: uploadInfo.url,
+      fields: uploadInfo.fields,
+      attestationUrl: '$attestationUrlPrefix/$guid',
+    );
+  }
+
+  /// Stores the attestation [bytes] uploaded for the upload with [uploadGuid].
+  ///
+  /// The attestation is verified and stored with the package version when the
+  /// upload is finished, see [publishUploadedBlob].
+  Future<void> uploadAttestation(String uploadGuid, List<int> bytes) async {
+    final restriction = await getUploadRestrictionStatus();
+    if (restriction == UploadRestrictionStatus.noUploads) {
+      throw PackageRejectedException.uploadRestricted();
+    }
+    await requireAuthenticatedClient();
+    InvalidInputException.check(
+      _uuidRegExp.hasMatch(uploadGuid),
+      'Invalid upload id.',
+    );
+    if (bytes.length > maxAttestationContentLength) {
+      throw PackageRejectedException(
+        'Attestation bundle is too large '
+        '(max $maxAttestationContentLength bytes).',
+      );
+    }
+    // Verify that the bundle is a JSON object before storing it. It can only be
+    // verified against the archive when the upload is finished.
+    try {
+      final decoded = jsonDecode(utf8.decode(bytes));
+      if (decoded is! Map<String, dynamic>) {
+        throw FormatException('Attestation bundle must be a JSON object.');
+      }
+    } on FormatException catch (e) {
+      throw PackageRejectedException('Invalid attestation bundle format: $e');
+    }
+
+    _logger.info('Uploading attestation (uuid: $uploadGuid).');
+    await uploadWithRetry(
+      _incomingBucket,
+      tmpAttestationObjectName(uploadGuid),
+      bytes.length,
+      () => Stream.value(bytes),
     );
   }
 
@@ -1080,6 +1147,7 @@ class PackageBackend {
     return await withTempDirectory((Directory dir) async {
       // Check the existence of the uploaded file
       final uploadObjectName = tmpObjectName(uploadGuid);
+      final attestationObjectName = tmpAttestationObjectName(uploadGuid);
       final info = await _incomingBucket.tryInfo(uploadObjectName);
       if (info?.length == null) {
         throw PackageRejectedException.archiveEmpty();
@@ -1208,12 +1276,26 @@ class PackageBackend {
         throw PackageRejectedException.dependencyDoesNotExists(name);
       }
 
+      // Read the attestation, if one was uploaded for this upload.
+      // Note: the content has been validated to be a JSON object when it was
+      //       uploaded, see [uploadAttestation].
+      String? attestationContent;
+      if (await _incomingBucket.tryInfo(attestationObjectName) != null) {
+        attestationContent = utf8.decode(
+          await _incomingBucket.readAsBytes(
+            attestationObjectName,
+            maxSize: maxAttestationContentLength,
+          ),
+        );
+      }
+
       sw.reset();
       final entities = await _createUploadEntities(
         db,
         agent,
         archive,
         sha256Hash: sha256Hash,
+        attestationContent: attestationContent,
       );
       final (version, uploadMessages) = await _performTarballUpload(
         entities: entities,
@@ -1229,6 +1311,9 @@ class PackageBackend {
       sw.reset();
       await _incomingBucket.deleteWithRetry(uploadObjectName);
       await _incomingBucket.deleteWithRetry(workObjectName);
+      if (attestationContent != null) {
+        await _incomingBucket.deleteWithRetry(attestationObjectName);
+      }
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return [
         'Successfully uploaded '
@@ -2377,6 +2462,7 @@ Future<_UploadEntities> _createUploadEntities(
   AuthenticatedAgent agent,
   PackageSummary archive, {
   required List<int> sha256Hash,
+  String? attestationContent,
 }) async {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
@@ -2396,6 +2482,7 @@ Future<_UploadEntities> _createUploadEntities(
   final derived = derivePackageVersionEntities(
     archive: archive,
     versionCreated: version.created!,
+    attestationContent: attestationContent,
   );
 
   // TODO: verify if assets sizes are within the transaction limit (10 MB)
@@ -2406,6 +2493,7 @@ Future<_UploadEntities> _createUploadEntities(
 DerivedPackageVersionEntities derivePackageVersionEntities({
   required PackageSummary archive,
   required DateTime versionCreated,
+  String? attestationContent,
 }) {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
   final key = QualifiedVersionKey(
@@ -2464,6 +2552,17 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
         path: archive.licensePath,
         textContent: capContent(archive.licenseContent),
       ),
+    if (attestationContent != null)
+      PackageVersionAsset.init(
+        package: key.package,
+        version: key.version,
+        kind: AssetKind.attestation,
+        versionCreated: versionCreated,
+        path: '${key.package}-${key.version}.sigstore.json',
+        // Note: not capped, a truncated attestation could never be verified.
+        //       The length is checked when the attestation is uploaded.
+        textContent: attestationContent,
+      ),
   ];
 
   final versionInfo = PackageVersionInfo()
@@ -2481,6 +2580,11 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
 /// The GCS object name of an temporary object [guid] - excluding leading '/'.
 @visibleForTesting
 String tmpObjectName(String guid) => 'tmp/$guid';
+
+/// The GCS object name of the attestation uploaded for the temporary object
+/// [guid] - excluding leading '/'.
+@visibleForTesting
+String tmpAttestationObjectName(String guid) => 'tmp/$guid.attestation.json';
 
 /// Verify that the [package] and the optional [version] parameter looks as acceptable input.
 void checkPackageVersionParams(String package, [String? version]) {
