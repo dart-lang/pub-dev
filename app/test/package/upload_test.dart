@@ -41,6 +41,7 @@ void main() {
         fn: () async {
           final rs = packageBackend.startUpload(
             Uri.parse('http://example.com/'),
+            attestationUrlPrefix: Uri.parse('http://example.com/attestation'),
           );
           await expectLater(rs, throwsA(isA<AuthenticationException>()));
         },
@@ -50,14 +51,26 @@ void main() {
         'successful',
         fn: () async {
           final redirectUri = Uri.parse('http://blobstore.com/upload');
+          final attestationUrlPrefix = Uri.parse(
+            'http://blobstore.com/attestation',
+          );
           await accountBackend.withBearerToken(userClientToken, () async {
-            final info = await packageBackend.startUpload(redirectUri);
+            final info = await packageBackend.startUpload(
+              redirectUri,
+              attestationUrlPrefix: attestationUrlPrefix,
+            );
             expect(info.url, startsWith('http://localhost:'));
             expect(info.url, contains('/fake-incoming-packages/tmp/'));
             expect(info.fields, {
               'key': startsWith('fake-incoming-packages/tmp/'),
               'success_action_redirect': startsWith('$redirectUri?upload_id='),
             });
+            // The attestation is uploaded with the same upload id as the
+            // archive.
+            final uploadId = Uri.parse(
+              info.fields!['success_action_redirect']!,
+            ).queryParameters['upload_id'];
+            expect(info.attestationUrl, '$attestationUrlPrefix/$uploadId');
           });
         },
       );
@@ -1770,6 +1783,48 @@ void main() {
           status: 400,
           code: 'PackageRejected',
           message: 'Invalid attestation bundle format',
+        );
+      },
+    );
+    testWithProfile(
+      'attestation upload fails with an invalid upload id',
+      fn: () async {
+        final rs = createPubApiClient(authToken: adminClientToken).client
+            .sendRaw(
+              verb: 'post',
+              path: '/api/packages/versions/newUploadAttestation/not-a-uuid',
+              headers: {'content-type': 'application/json; charset="utf-8"'},
+              bodyBytes: utf8.encode('{}'),
+            );
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'InvalidInput',
+          message: 'Invalid upload id.',
+        );
+      },
+    );
+
+    testWithProfile(
+      'upload fails when attestation bundle is too large',
+      fn: () async {
+        final pubspecContent =
+            'name: large_attested_pkg\nversion: 1.0.0\ndescription: A package with a large attestation.\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+        final archiveBytes = await packageArchiveBytes(
+          pubspecContent: pubspecContent,
+        );
+        final attestationBytes = utf8.encode(
+          jsonEncode({'payload': 'x' * maxAttestationContentLength}),
+        );
+
+        final rs = createPubApiClient(
+          authToken: adminClientToken,
+        ).uploadPackageBytes(archiveBytes, attestationBytes: attestationBytes);
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Attestation bundle is too large',
         );
       },
     );

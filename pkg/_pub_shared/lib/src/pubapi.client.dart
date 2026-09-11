@@ -87,6 +87,15 @@ class PubApiClient {
     );
   }
 
+  Future<_i3.SuccessMessage> uploadPackageAttestation(String uploadId) async {
+    return _i3.SuccessMessage.fromJson(
+      await _client.requestJson(
+        verb: 'post',
+        path: '/api/packages/versions/newUploadAttestation/$uploadId',
+      ),
+    );
+  }
+
   Future<_i3.SuccessMessage> packageUploadCallback() async {
     return _i3.SuccessMessage.fromJson(
       await _client.requestJson(

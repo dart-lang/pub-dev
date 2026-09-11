@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/advisories_api.dart';
@@ -160,14 +158,45 @@ class PubApi {
       // integration tests before we switch traffic.
       await packageBackend.startUpload(
         request.requestedUri.resolve('/api/packages/versions/newUploadFinish'),
+        attestationUrlPrefix: request.requestedUri.resolve(
+          '/api/packages/versions/newUploadAttestation',
+        ),
       );
+
+  /// Upload an attestation for a package archive that is being uploaded.
+  ///
+  /// The attestation is uploaded before the package archive, and is verified
+  /// and stored when the upload is finished.
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-with-an-attestation
+  ///
+  ///     POST /api/packages/versions/newUploadAttestation/<uploadId>
+  ///     <attestation JSON bundle>
+  ///     [200 OK]
+  ///     {
+  ///       "success" : {
+  ///         "message": "Attestation uploaded.",
+  ///       },
+  ///     }
+  @EndPoint.post('/api/packages/versions/newUploadAttestation/<uploadId>')
+  Future<SuccessMessage> uploadPackageAttestation(
+    Request request,
+    String uploadId,
+  ) async {
+    final bytes = await request.read().expand((i) => i).toList();
+    if (bytes.isEmpty) {
+      throw PackageRejectedException(
+        'Invalid attestation bundle format: the request body is empty.',
+      );
+    }
+    await packageBackend.uploadAttestation(uploadId, bytes);
+    return SuccessMessage(success: Message(message: 'Attestation uploaded.'));
+  }
 
   /// Finish async upload.
   /// TODO: Link to the spec once it has the details updated:
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-packages
   ///
   ///     GET /api/packages/versions/newUploadFinish
-  ///     POST /api/packages/versions/newUploadFinish
   ///     [200 OK]
   ///     {
   ///       "success" : {
@@ -175,7 +204,6 @@ class PubApi {
   ///       },
   ///     }
   @EndPoint.get('/api/packages/versions/newUploadFinish')
-  @EndPoint.post('/api/packages/versions/newUploadFinish')
   Future<SuccessMessage> packageUploadCallback(Request request) async {
     final uploadId = request.requestedUri.queryParameters['upload_id'];
     InvalidInputException.checkNotNull(uploadId, 'upload_id');
@@ -183,44 +211,11 @@ class PubApi {
   }
 
   @EndPoint.get('/api/packages/versions/newUploadFinish/<uploadId>')
-  @EndPoint.post('/api/packages/versions/newUploadFinish/<uploadId>')
   Future<SuccessMessage> finishPackageUpload(
     Request request,
     String uploadId,
   ) async {
-    String? attestationContent;
-    if (request.method == 'POST') {
-      try {
-        final bytes = await request.read().expand((i) => i).toList();
-        if (bytes.isEmpty) {
-          throw PackageRejectedException(
-            'Invalid attestation bundle format: request body must contain an "attestation" object.',
-          );
-        }
-        final bodyText = utf8.decode(bytes);
-        final bodyJson = jsonDecode(bodyText);
-        if (bodyJson is Map<String, dynamic> &&
-            bodyJson.containsKey('attestation')) {
-          final attestation = bodyJson['attestation'];
-          if (attestation is! Map<String, dynamic>) {
-            throw PackageRejectedException(
-              'Invalid attestation bundle format: attestation must be a JSON object.',
-            );
-          }
-          attestationContent = jsonEncode(attestation);
-        } else {
-          throw PackageRejectedException(
-            'Invalid attestation bundle format: request body must contain an "attestation" object.',
-          );
-        }
-      } on FormatException catch (e) {
-        throw PackageRejectedException('Invalid attestation bundle format: $e');
-      }
-    }
-    final messages = await packageBackend.publishUploadedBlob(
-      uploadId,
-      attestationContent: attestationContent,
-    );
+    final messages = await packageBackend.publishUploadedBlob(uploadId);
     return SuccessMessage(success: Message(message: messages.join('\n')));
   }
 
