@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:_pub_shared/dartdoc/dartdoc_page.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/frontend/dom/dom.dart' as d;
@@ -349,10 +351,27 @@ extension DartDocSidebarRender on DartDocSidebar {
   String render() => _replaceImageMarkers(content, imageProxyNonce);
 }
 
+/// Substitutes image proxy markers in the stored, sanitized [html] with the
+/// URLs that should actually be fetched.
+///
+/// A marker has the form
+/// `${imageProxyMarkerPrefix}{<nonce>}:{<percent-encoded original url>}`. The
+/// [imageProxyNonce] is unguessable, so package authors cannot forge a marker.
+///
+/// The prefix is optional to retain backward compatibility with pages stored
+/// when the prefix was stripped at generation time.
+///
+/// Returns [html] unchanged if [imageProxyNonce] is `null`.
 String _replaceImageMarkers(String html, String? imageProxyNonce) {
   if (imageProxyNonce == null) return html;
   final imageMarkerRegExp = RegExp(
-    RegExp.escape('{$imageProxyNonce}:{') + r'([^} ]+)' + RegExp.escape('}'),
+    '(?:${RegExp.escape(imageProxyMarkerPrefix)})?' +
+        RegExp.escape('{$imageProxyNonce}:{') +
+        // Exclude the characters that could terminate the attribute or the tag
+        // we are substituting into. They cannot legitimately occur here, since
+        // the original URL was percent-encoded.
+        r'''([^}<>"' ]+)''' +
+        RegExp.escape('}'),
   );
   return html.replaceAllMapped(imageMarkerRegExp, (match) {
     final originalUrl = Uri.decodeComponent(match.group(1)!);
@@ -363,6 +382,12 @@ String _replaceImageMarkers(String html, String? imageProxyNonce) {
         replacementUrl = imageProxyBackend.imageProxyUrl(uri) ?? originalUrl;
       }
     }
-    return replacementUrl;
+    // The substitution lands inside an attribute value of already-sanitized
+    // HTML, so it must be escaped; `originalUrl` is attacker controlled.
+    return _attributeEscape.convert(replacementUrl);
   });
 }
+
+/// Escapes the characters that are significant inside a double-quoted HTML
+/// attribute value (`&`, `<`, `>` and `"`), leaving `/` alone.
+const _attributeEscape = HtmlEscape(HtmlEscapeMode.attribute);

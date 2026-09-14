@@ -256,6 +256,11 @@ class SaneHtmlValidator {
   }
 
   void _sanitize(Node node) {
+    // Comments carry no meaning for the rendered output, strip them entirely.
+    if (node is Comment) {
+      node.remove();
+      return;
+    }
     if (node is Element) {
       final tagName = node.localName!.toUpperCase();
       if (!_allowedElements.contains(tagName) &&
