@@ -367,10 +367,11 @@ String _replaceImageMarkers(String html, String? imageProxyNonce) {
   final imageMarkerRegExp = RegExp(
     '(?:${RegExp.escape(imageProxyMarkerPrefix)})?' +
         RegExp.escape('{$imageProxyNonce}:{') +
-        // Exclude the characters that could terminate the attribute or the tag
-        // we are substituting into. They cannot legitimately occur here, since
-        // the original URL was percent-encoded.
-        r'''([^}<>"' ]+)''' +
+        // Exactly the alphabet `Uri.encodeComponent` can emit: unreserved
+        // characters plus `%` for the percent-escapes. Anything outside it did
+        // not come from the marking step, and in particular none of these
+        // characters can terminate the attribute or the tag we substitute into.
+        r"""([A-Za-z0-9\-_.!~*'()%]+)""" +
         RegExp.escape('}'),
   );
   return html.replaceAllMapped(imageMarkerRegExp, (match) {
