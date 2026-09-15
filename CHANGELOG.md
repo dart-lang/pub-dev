@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2026.09.14`.
+ * Note: started to unroll task versions and aborted tokens into SQL tables.
 
 ## `20260903t123900-all`
  * Bump runtimeVersion to `2026.09.01`.
@@ -14,7 +15,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `3.13.1`
  * Upgraded stable Flutter analysis SDK to `3.47.0`.
  * Upgraded dependencies.
- * Note: started to unroll task versions and aborted tokens into SQL tables.
 
 ## `20260812t113900-all`
  * Bump runtimeVersion to `2026.08.12`.
