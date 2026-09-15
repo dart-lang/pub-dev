@@ -462,15 +462,25 @@ class Release {
 class PublishingConfig {
   GitHubPublishingConfig? githubConfig;
   GitHubPublishingLock? githubLock;
+
+  /// Set when publishing from GitHub Actions was disabled automatically,
+  /// cleared when the GitHub config is updated by a package admin.
+  AutomatedPublishingDisabledInfo? githubDisabledInfo;
   GcpPublishingConfig? gcpConfig;
   GcpPublishingLock? gcpLock;
+
+  /// Set when publishing with a Google Cloud service account was disabled
+  /// automatically, cleared when the GCP config is updated by a package admin.
+  AutomatedPublishingDisabledInfo? gcpDisabledInfo;
   ManualPublishingConfig? manualConfig;
 
   PublishingConfig({
     this.githubConfig,
     this.githubLock,
+    this.githubDisabledInfo,
     this.gcpConfig,
     this.gcpLock,
+    this.gcpDisabledInfo,
     this.manualConfig,
   });
 
@@ -507,6 +517,25 @@ class PublishingConfigProperty extends db.Property {
   bool validate(db.ModelDB mdb, Object? value) =>
       super.validate(mdb, value) &&
       (value == null || value is PublishingConfig);
+}
+
+/// Describes why and when an automated publishing method was disabled by
+/// the system (not by a package admin).
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class AutomatedPublishingDisabledInfo {
+  final DateTime disabled;
+  final String reason;
+
+  AutomatedPublishingDisabledInfo({
+    required this.disabled,
+    required this.reason,
+  });
+
+  factory AutomatedPublishingDisabledInfo.fromJson(Map<String, dynamic> json) =>
+      _$AutomatedPublishingDisabledInfoFromJson(json);
+
+  Map<String, dynamic> toJson() =>
+      _$AutomatedPublishingDisabledInfoToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)

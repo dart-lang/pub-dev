@@ -731,12 +731,18 @@ class PackageBackend {
       if (githubChanged) {
         p.publishingConfig?.githubLock = null;
       }
+      if (githubConfig != null) {
+        p.publishingConfig?.githubDisabledInfo = null;
+      }
       final gcpChanged =
           (gcpConfig?.isEnabled != current?.gcpConfig?.isEnabled) ||
           (gcpConfig?.serviceAccountEmail !=
               current?.gcpConfig?.serviceAccountEmail);
       if (gcpChanged) {
         p.publishingConfig?.gcpLock = null;
+      }
+      if (gcpConfig != null) {
+        p.publishingConfig?.gcpDisabledInfo = null;
       }
 
       // finalize changes
@@ -1740,15 +1746,69 @@ class PackageBackend {
         _logger.info(
           'Disabled automated publishing using GitHub Actions for package:${package.name} because account identifier changed.',
         );
-        await withRetryTransaction(db, (tx) async {
-          final p = await tx.lookupValue<Package>(package.key);
-          p.publishingConfig!.githubConfig!.isEnabled = false;
-          tx.insert(p);
-        });
+        await _disableAutomatedPublishing(
+          agent: agent,
+          package: package,
+          methodLabel: 'GitHub Actions',
+          reason: 'the GitHub repository identifiers changed',
+          update: (config, info) {
+            config.githubConfig!.isEnabled = false;
+            config.githubDisabledInfo = info;
+          },
+        );
         throw AuthorizationException.githubActionIssue(
           'GitHub repository identifiers changed, disabling automated publishing',
         );
       }
+    }
+  }
+
+  /// Disables an automated publishing method of [package] inside a
+  /// transaction, records the event in the audit log and notifies the
+  /// package admins via email.
+  Future<void> _disableAutomatedPublishing({
+    required AuthenticatedAgent agent,
+    required Package package,
+    required String methodLabel,
+    required String reason,
+    required void Function(
+      PublishingConfig config,
+      AutomatedPublishingDisabledInfo info,
+    )
+    update,
+  }) async {
+    final adminEmails = await _listAdminNotificationEmailsForPackage(package);
+    OutgoingEmail? email;
+    await withRetryTransaction(db, (tx) async {
+      final p = await tx.lookupValue<Package>(package.key);
+      final info = AutomatedPublishingDisabledInfo(
+        disabled: clock.now().toUtc(),
+        reason: reason,
+      );
+      update(p.publishingConfig!, info);
+      p.updated = info.disabled;
+      tx.insert(p);
+      tx.insert(
+        AuditLogRecord.packagePublicationAutomationDisabled(
+          agent: agent,
+          package: p.name!,
+          publisherId: p.publisherId,
+          methodLabel: methodLabel,
+          reason: reason,
+        ),
+      );
+      email = emailBackend.prepareEntity(
+        createAutomatedPublishingDisabledEmail(
+          packageName: p.name!,
+          methodLabel: methodLabel,
+          reason: reason,
+          authorizedAdmins: adminEmails.map((e) => EmailAddress(e)).toList(),
+        ),
+      );
+      tx.insert(email!);
+    });
+    if (email != null) {
+      await emailBackend.trySendOutgoingEmail(email!);
     }
   }
 
@@ -1784,11 +1844,16 @@ class PackageBackend {
         _logger.info(
           'Disabled automated publishing using GCP service account for package:${package.name} because account identifier changed.',
         );
-        await withRetryTransaction(db, (tx) async {
-          final p = await tx.lookupValue<Package>(package.key);
-          p.publishingConfig!.gcpConfig!.isEnabled = false;
-          tx.insert(p);
-        });
+        await _disableAutomatedPublishing(
+          agent: agent,
+          package: package,
+          methodLabel: 'Google Cloud service account',
+          reason: 'the Google Cloud service account identifiers changed',
+          update: (config, info) {
+            config.gcpConfig!.isEnabled = false;
+            config.gcpDisabledInfo = info;
+          },
+        );
         throw AuthorizationException.githubActionIssue(
           'Google Cloud Service account identifiers changed, disabling automated publishing',
         );

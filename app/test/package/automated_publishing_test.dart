@@ -7,6 +7,8 @@ import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -95,6 +97,55 @@ void main() {
         expect(
           record.summary,
           '`admin@pub.dev` updated the publication automation config of package `oxygen`.',
+        );
+      },
+    );
+
+    testWithProfile(
+      'update clears the disabled info of the updated section',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        await client.setAutomatedPublishing(
+          'oxygen',
+          PkgPublishingConfig(
+            github: GitHubPublishingConfig(
+              isEnabled: true,
+              repository: 'dart-lang/pub-dev',
+              tagPattern: '{{version}}',
+            ),
+            gcp: GcpPublishingConfig(
+              isEnabled: true,
+              serviceAccountEmail: 'project@x.gserviceaccount.com',
+            ),
+          ),
+        );
+        final p = await packageBackend.lookupPackage('oxygen');
+        final info = AutomatedPublishingDisabledInfo(
+          disabled: DateTime.utc(2026, 9, 1),
+          reason: 'the identifiers changed',
+        );
+        p!.publishingConfig!.githubDisabledInfo = info;
+        p.publishingConfig!.gcpDisabledInfo = info;
+        await dbService.commit(inserts: [p]);
+
+        await client.setAutomatedPublishing(
+          'oxygen',
+          PkgPublishingConfig(
+            github: GitHubPublishingConfig(
+              isEnabled: true,
+              repository: 'dart-lang/pub-dev',
+              tagPattern: '{{version}}',
+              isWorkflowDispatchEventEnabled: true,
+            ),
+          ),
+        );
+        final updated = await packageBackend.lookupPackage('oxygen');
+        expect(updated!.publishingConfig!.githubDisabledInfo, isNull);
+        expect(
+          updated.publishingConfig!.gcpDisabledInfo!.toJson(),
+          info.toJson(),
         );
       },
     );

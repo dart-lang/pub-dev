@@ -400,6 +400,29 @@ ${_footer('transfer')}
   return EmailMessage(_notificationsFrom, authorizedAdmins, subject, bodyText);
 }
 
+/// Creates the [EmailMessage] that will be sent to the package admins when an
+/// automated publishing method was disabled by the system.
+EmailMessage createAutomatedPublishingDisabledEmail({
+  required String packageName,
+  required String methodLabel,
+  required String reason,
+  required List<EmailAddress> authorizedAdmins,
+}) {
+  final url = pkgAdminUrl(packageName, includeHost: true);
+  final subject = 'Automated publishing disabled: $packageName ($methodLabel)';
+  final bodyText =
+      '''Dear package maintainer,
+
+Publishing from $methodLabel has been disabled for the $packageName package, because $reason.
+
+If this change was expected, review the publishing settings and enable the method again at $url
+
+${_footer('change')}
+''';
+
+  return EmailMessage(_notificationsFrom, authorizedAdmins, subject, bodyText);
+}
+
 /// Creates the report page [EmailMessage] that we be sent to pub dev admins.
 EmailMessage createReportPageAdminEmail({
   required String caseId,

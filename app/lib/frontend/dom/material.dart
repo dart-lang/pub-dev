@@ -84,6 +84,7 @@ d.Node textField({
   required String? label,
   String? name,
   String? value,
+  String? autocomplete,
 }) {
   return d.div(
     classes: ['pub-text-field'],
@@ -100,6 +101,7 @@ d.Node textField({
         name: name,
         classes: ['pub-text-field-input'],
         value: value,
+        autocomplete: autocomplete,
       ),
     ],
   );
@@ -209,6 +211,7 @@ d.Node checkbox({
   required String label,
   required bool checked,
   bool indeterminate = false,
+  String? autocomplete,
   d.Node Function(String label)? labelNodeContent,
 }) {
   labelNodeContent ??= d.text;
@@ -219,6 +222,7 @@ d.Node checkbox({
         type: 'checkbox',
         id: id,
         classes: ['pub-checkbox-input'],
+        autocomplete: autocomplete,
         attributes: {
           if (checked) 'checked': 'checked',
           if (indeterminate) 'data-indeterminate': 'true',

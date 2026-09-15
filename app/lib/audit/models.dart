@@ -872,6 +872,36 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     );
   }
 
+  /// Returns [AuditLogRecord] for the event when an automated publishing
+  /// method of a package was disabled by the system, because the identifiers
+  /// of the publishing agent did not match the ones stored at the first
+  /// successful publishing.
+  factory AuditLogRecord.packagePublicationAutomationDisabled({
+    required AuthenticatedAgent agent,
+    required String package,
+    required String? publisherId,
+    required String methodLabel,
+    required String reason,
+  }) {
+    return AuditLogRecord._init()
+      ..kind = AuditLogRecordKind.packagePublicationAutomationDisabled
+      ..agent = agent.agentId
+      ..summary =
+          'Publishing from $methodLabel was disabled for package `$package`, '
+          'because $reason.'
+      ..data = {
+        'package': package,
+        'methodLabel': methodLabel,
+        'reason': reason,
+        if (agent.email != null) 'email': agent.email,
+        if (publisherId != null) 'publisherId': publisherId,
+      }
+      ..users = []
+      ..packages = [package]
+      ..packageVersions = []
+      ..publishers = [if (publisherId != null) publisherId];
+  }
+
   /// Returns [AuditLogRecord] for the package uploader removed operation.
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
@@ -911,6 +941,11 @@ abstract class AuditLogRecordKind {
   /// Event that a package was updated with new automated publishing config.
   static const packagePublicationAutomationUpdated =
       'package-publication-automation-updated';
+
+  /// Event that an automated publishing method of a package was disabled by
+  /// the system, because the publishing agent's identifiers changed.
+  static const packagePublicationAutomationDisabled =
+      'package-publication-automation-disabled';
 
   /// Event that a package version was updated with new options
   static const packageVersionOptionsUpdated = 'package-version-options-updated';

@@ -46,6 +46,11 @@ PublishingConfig _$PublishingConfigFromJson(Map<String, dynamic> json) =>
           : GitHubPublishingLock.fromJson(
               json['githubLock'] as Map<String, dynamic>,
             ),
+      githubDisabledInfo: json['githubDisabledInfo'] == null
+          ? null
+          : AutomatedPublishingDisabledInfo.fromJson(
+              json['githubDisabledInfo'] as Map<String, dynamic>,
+            ),
       gcpConfig: json['gcpConfig'] == null
           ? null
           : GcpPublishingConfig.fromJson(
@@ -54,6 +59,11 @@ PublishingConfig _$PublishingConfigFromJson(Map<String, dynamic> json) =>
       gcpLock: json['gcpLock'] == null
           ? null
           : GcpPublishingLock.fromJson(json['gcpLock'] as Map<String, dynamic>),
+      gcpDisabledInfo: json['gcpDisabledInfo'] == null
+          ? null
+          : AutomatedPublishingDisabledInfo.fromJson(
+              json['gcpDisabledInfo'] as Map<String, dynamic>,
+            ),
       manualConfig: json['manualConfig'] == null
           ? null
           : ManualPublishingConfig.fromJson(
@@ -65,10 +75,26 @@ Map<String, dynamic> _$PublishingConfigToJson(PublishingConfig instance) =>
     <String, dynamic>{
       'githubConfig': ?instance.githubConfig?.toJson(),
       'githubLock': ?instance.githubLock?.toJson(),
+      'githubDisabledInfo': ?instance.githubDisabledInfo?.toJson(),
       'gcpConfig': ?instance.gcpConfig?.toJson(),
       'gcpLock': ?instance.gcpLock?.toJson(),
+      'gcpDisabledInfo': ?instance.gcpDisabledInfo?.toJson(),
       'manualConfig': ?instance.manualConfig?.toJson(),
     };
+
+AutomatedPublishingDisabledInfo _$AutomatedPublishingDisabledInfoFromJson(
+  Map<String, dynamic> json,
+) => AutomatedPublishingDisabledInfo(
+  disabled: DateTime.parse(json['disabled'] as String),
+  reason: json['reason'] as String,
+);
+
+Map<String, dynamic> _$AutomatedPublishingDisabledInfoToJson(
+  AutomatedPublishingDisabledInfo instance,
+) => <String, dynamic>{
+  'disabled': instance.disabled.toIso8601String(),
+  'reason': instance.reason,
+};
 
 GitHubPublishingLock _$GitHubPublishingLockFromJson(
   Map<String, dynamic> json,
