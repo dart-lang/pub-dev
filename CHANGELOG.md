@@ -8,6 +8,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded dependencies (incl. `ulid`).
  * Note: started to unroll task versions and aborted tokens into SQL tables.
  * Note: `GlobalLock` claims are now stored in SQL (mirrored best-effort into Datastore).
+ * Note: `neat_periodic_task` status data is now stored in SQL (mirrored best-effort into Datastore).
 
 ## `20260903t123900-all`
  * Bump runtimeVersion to `2026.09.01`.
@@ -19,7 +20,6 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `3.13.1`
  * Upgraded stable Flutter analysis SDK to `3.47.0`.
  * Upgraded dependencies.
- * Note: `neat_periodic_task` status data is now stored in SQL (mirrored best-effort into Datastore).
 
 ## `20260812t113900-all`
  * Bump runtimeVersion to `2026.08.12`.
