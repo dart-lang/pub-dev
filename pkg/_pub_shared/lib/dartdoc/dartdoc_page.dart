@@ -174,9 +174,11 @@ final class DartDocPage {
         return ['ugc', 'nofollow'];
       },
     );
-    // The prefix is used to make the marker look like a valid absolute URL,
-    // which prevents the sanitizer from stripping it or prepending it with a base URL.
-    return sanitized.replaceAll(_prefix, '');
+    // NOTE: Never post-process this string. Any string-level transformation of
+    // sanitized HTML can re-introduce active markup (see the
+    // `imageProxyMarkerPrefix` doc comment). The marker prefix is intentionally
+    // left in place and resolved at render time.
+    return sanitized;
   }
 
   /// Marks images for proxying by replacing the src attribute with a marker.
@@ -195,16 +197,14 @@ final class DartDocPage {
         if (uri != null &&
             (uri.scheme == 'http' || uri.scheme == 'https') &&
             !uri.isTrustedHost) {
-          // Prepend a _prefix so that sanitize_html doesn't strip it as invalid.
-          // It will be removed after sanitization in _sanitizeAndMarkImages.
+          // Prepend the marker prefix so that sanitize_html doesn't strip the
+          // src as an invalid/relative URL.
           img.attributes['src'] =
-              '$_prefix{$imageProxyNonce}:{${Uri.encodeComponent(src)}}';
+              '$imageProxyMarkerPrefix{$imageProxyNonce}:{${Uri.encodeComponent(src)}}';
         }
       }
     }
   }
-
-  static const _prefix = 'https://pub.dev/image-proxy-marker/';
 
   /// Indicates that the [DartDocPage] was could not parse any displayable
   /// content from the dartdoc output. Such page is a redirect page that was
@@ -327,6 +327,19 @@ const trustedTargetHost = [
   'flutter.dev',
   'pub.dev',
 ];
+
+/// Prefix used to make an image proxy marker look like a valid absolute URL,
+/// which prevents the sanitizer from stripping it or resolving it against a
+/// base URL.
+///
+/// The full marker has the form
+/// `${imageProxyMarkerPrefix}{<nonce>}:{<percent-encoded original url>}` and is
+/// substituted with the real (proxied) URL when the stored page is rendered.
+///
+/// The marker deliberately survives sanitization verbatim. It must not be
+/// rewritten or removed by string operations on the sanitized HTML, as
+/// post-sanitization edits can accidentally alter the HTML structure.
+const imageProxyMarkerPrefix = 'https://pub.dev/image-proxy-marker/';
 
 /// URI schemes that are trusted and can be rendered. Other URI schemes must be
 /// rejected and the URL mustn't be displayed.
