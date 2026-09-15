@@ -896,7 +896,7 @@ class AuditLogRecord extends db.ExpandoModel<String> {
         if (agent.email != null) 'email': agent.email,
         if (publisherId != null) 'publisherId': publisherId,
       }
-      ..users = []
+      ..users = [if (agent is AuthenticatedUser) agent.userId]
       ..packages = [package]
       ..packageVersions = []
       ..publishers = [if (publisherId != null) publisherId];

@@ -102,6 +102,41 @@ void main() {
     );
 
     testWithProfile(
+      'partial update keeps the lock of the omitted section',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: adminAtPubDevEmail,
+        );
+        await client.setAutomatedPublishing(
+          'oxygen',
+          PkgPublishingConfig(
+            github: GitHubPublishingConfig(
+              isEnabled: true,
+              repository: 'dart-lang/pub-dev',
+              tagPattern: '{{version}}',
+            ),
+          ),
+        );
+        final p = await packageBackend.lookupPackage('oxygen');
+        final lock = GitHubPublishingLock(
+          repositoryOwnerId: 'owner-id',
+          repositoryId: 'repo-id',
+        );
+        p!.publishingConfig!.githubLock = lock;
+        await dbService.commit(inserts: [p]);
+
+        await client.setAutomatedPublishing(
+          'oxygen',
+          PkgPublishingConfig(manual: ManualPublishingConfig(isEnabled: false)),
+        );
+        final updated = await packageBackend.lookupPackage('oxygen');
+        expect(updated!.publishingConfig!.githubLock!.toJson(), lock.toJson());
+        expect(updated.publishingConfig!.githubConfig!.isEnabled, isTrue);
+        expect(updated.publishingConfig!.manualConfig!.isEnabled, isFalse);
+      },
+    );
+
+    testWithProfile(
       'update clears the disabled info of the updated section',
       fn: () async {
         final client = await createFakeAuthPubApiClient(

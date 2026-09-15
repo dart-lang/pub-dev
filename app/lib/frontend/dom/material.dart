@@ -246,6 +246,7 @@ d.Node dropdown({
   required String label,
   required Iterable<d.Node> options,
   Iterable<String>? classes,
+  String? autocomplete,
 }) {
   return d.div(
     classes: ['pub-select', ...?classes],
@@ -255,7 +256,12 @@ d.Node dropdown({
         attributes: {'for': id},
         text: label,
       ),
-      d.select(id: id, classes: ['pub-select-input'], children: options),
+      d.select(
+        id: id,
+        classes: ['pub-select-input'],
+        autocomplete: autocomplete,
+        children: options,
+      ),
     ],
   );
 }

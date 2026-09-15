@@ -229,7 +229,7 @@ class _PkgAdminWidget {
       if (!githubChanged && !gcpChanged && !manualChanged) {
         await modalMessage(
           'No changes',
-          'The publishing config has not been changed.',
+          'The publishing configuration has not been changed.',
         );
         return;
       }

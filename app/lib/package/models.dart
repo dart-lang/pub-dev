@@ -464,13 +464,14 @@ class PublishingConfig {
   GitHubPublishingLock? githubLock;
 
   /// Set when publishing from GitHub Actions was disabled automatically,
-  /// cleared when the GitHub config is updated by a package admin.
+  /// cleared when the GitHub configuration is updated by a package admin.
   AutomatedPublishingDisabledInfo? githubDisabledInfo;
   GcpPublishingConfig? gcpConfig;
   GcpPublishingLock? gcpLock;
 
   /// Set when publishing with a Google Cloud service account was disabled
-  /// automatically, cleared when the GCP config is updated by a package admin.
+  /// automatically, cleared when the Google Cloud configuration is updated by
+  /// a package admin.
   AutomatedPublishingDisabledInfo? gcpDisabledInfo;
   ManualPublishingConfig? manualConfig;
 
@@ -523,7 +524,13 @@ class PublishingConfigProperty extends db.Property {
 /// the system (not by a package admin).
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class AutomatedPublishingDisabledInfo {
+  /// The [reason] code used when the identifiers of the publishing agent did
+  /// not match the ones stored at the first successful publishing.
+  static const identifiersChanged = 'identifiers-changed';
+
   final DateTime disabled;
+
+  /// A stable code describing the reason, see [identifiersChanged].
   final String reason;
 
   AutomatedPublishingDisabledInfo({

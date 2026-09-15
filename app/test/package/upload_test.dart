@@ -448,7 +448,7 @@ void main() {
           });
           expect(
             pkgAfter.publishingConfig!.gcpDisabledInfo!.reason,
-            'the Google Cloud service account identifiers changed',
+            AutomatedPublishingDisabledInfo.identifiersChanged,
           );
 
           final audits = await auditBackend.listRecordsForPackage('oxygen');
@@ -473,6 +473,26 @@ void main() {
           expect(
             email.recipients.map((e) => e.email),
             contains('admin@pub.dev'),
+          );
+
+          // A repeated attempt is rejected without a second notification.
+          await expectApiException(
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes),
+            status: 403,
+            code: 'InsufficientPermissions',
+            message: 'publishing with service account is not enabled',
+          );
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final auditsAfter = await auditBackend.listRecordsForPackage(
+            'oxygen',
+          );
+          expect(
+            auditsAfter.records.where(
+              (e) =>
+                  e.kind ==
+                  AuditLogRecordKind.packagePublicationAutomationDisabled,
+            ),
+            hasLength(1),
           );
         },
       );
@@ -821,7 +841,7 @@ void main() {
             });
             expect(
               pkg.publishingConfig!.githubDisabledInfo!.reason,
-              'the GitHub repository identifiers changed',
+              AutomatedPublishingDisabledInfo.identifiersChanged,
             );
             expect(
               pkg.publishingConfig!.githubDisabledInfo!.disabled,
