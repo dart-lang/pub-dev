@@ -170,7 +170,7 @@ final _imgParamPattern = RegExp(
   r'=(?:(?:[swh]\d+)|[cp])(?:-(?:(?:[swh]\d+)|[cp]))*$',
 );
 
-/// The cacheable version of [UserSessionRow].
+/// The cacheable version of [UserSession].
 @JsonSerializable()
 class SessionData {
   /// This is a v4 (random) UUID String that is set as a http cookie.
