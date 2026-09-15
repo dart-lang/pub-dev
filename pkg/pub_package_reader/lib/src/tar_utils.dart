@@ -16,7 +16,7 @@ const _defaultMode = 420; // 644₈
 const _executableMask = 0x49; // 001 001 001
 
 /// Abstract interface that once separated process-based tar and package:tar.
-class TarArchive {
+final class TarArchive {
   final String _path;
 
   /// Maps the normalized names to their original value;
@@ -96,12 +96,17 @@ class TarArchive {
   }
 
   /// Creates a new instance by scanning the archive at [path].
+  ///
+  /// Throws [TarException] if the archive contains invalid entry names, non-normalized
+  /// paths, duplicate entries, symlinks, entries pointing outside of the archive,
+  /// entries exceeding limits, or entries with invalid mode bits.
   static Future<TarArchive> scan(
     String path, {
     int? maxFileCount,
     int? maxTotalLengthBytes,
   }) async {
     final names = <String>{};
+    final normalizedNames = <String>{};
     final reader = TarReader(
       File(path).openRead().transform(gzip.decoder),
       disallowTrailingData: true,
@@ -142,18 +147,33 @@ class TarArchive {
       }
 
       final normalizedName = _normalize(entry.name);
-      if (p.isAbsolute(normalizedName)) {
+      if (p.posix.isAbsolute(normalizedName)) {
         throw TarException('Tar entry has absolute name: `${entry.name}`.');
       }
-      if (p.split(normalizedName).contains('..')) {
+      if (p.posix.split(normalizedName).contains('..')) {
         throw TarException(
           'Tar entry points outside of the archive: `${entry.name}`.',
         );
       }
 
-      if (!names.add(entry.name)) {
+      // In POSIX tar archives, directory entries conventionally end with a
+      // trailing slash, which `p.posix.normalize` strips. We accept directory
+      // entries both with and without a trailing slash, while `normalizedNames`
+      // prevents collisions between the two.
+      final expectedName =
+          entry.type == TypeFlag.dir && entry.name.endsWith('/')
+          ? '$normalizedName/'
+          : normalizedName;
+      if (normalizedName == '.' || entry.name != expectedName) {
+        throw TarException(
+          'Tar entry name is not normalized: `${entry.name}`.',
+        );
+      }
+
+      if (!normalizedNames.add(normalizedName)) {
         throw TarException('Duplicate tar entry: `${entry.name}`.');
       }
+      names.add(entry.name);
       if (entry.header.linkName != null) {
         throw TarException('Symlinks not allowed: `${entry.name}`.');
       }
@@ -171,9 +191,9 @@ Map<String, String> _normalizeNames(List<String> names) {
   return files;
 }
 
-String _normalize(String path) => p.normalize(path).trim();
+String _normalize(String path) => p.posix.normalize(path).trim();
 
-class TarException implements Exception {
+final class TarException implements Exception {
   final String message;
 
   TarException(this.message);

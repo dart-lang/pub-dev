@@ -13,6 +13,8 @@ Future<void> writeTarGzFile(
   File file, {
   Map<String, String>? textFiles,
   Map<String, String>? symlinks,
+  List<String>? directories,
+  List<TarEntry>? rawEntries,
 }) async {
   await () async* {
         if (textFiles != null) {
@@ -37,6 +39,23 @@ Future<void> writeTarGzFile(
               ),
               Uint8List(0),
             );
+          }
+        }
+        if (directories != null) {
+          for (final d in directories) {
+            yield TarEntry.data(
+              TarHeader(
+                name: d,
+                typeFlag: TypeFlag.dir,
+                mode: 493, // 755₈
+              ),
+              Uint8List(0),
+            );
+          }
+        }
+        if (rawEntries != null) {
+          for (final entry in rawEntries) {
+            yield entry;
           }
         }
       }()

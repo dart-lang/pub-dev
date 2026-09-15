@@ -39,6 +39,79 @@ void main() {
     );
   });
 
+  scopedTest('dartdoc images are proxied with prefixed marker', () async {
+    registerActiveConfiguration(
+      Configuration.test(
+        primarySiteUri: Uri.parse('https://pub.dev/'),
+        imageProxyServiceBaseUrl: 'https://proxy.pub.dev',
+      ),
+    );
+    registerRequestContext(
+      RequestContext(experimentalFlags: ExperimentalFlags.empty),
+    );
+    registerImageProxyBackend(_FakeImageProxyBackend());
+
+    final imageProxyNonce = '1234567890abcdef1234567890abcdef';
+    final sidebar = DartDocSidebar(
+      content:
+          '<img src="$imageProxyMarkerPrefix'
+          '{$imageProxyNonce}:{https%3A%2F%2Fexample.com%2Fimage.png}">',
+      imageProxyNonce: imageProxyNonce,
+    );
+    expect(
+      sidebar.render(),
+      '<img src="https://proxy.pub.dev/proxied/'
+      'https%3A%2F%2Fexample.com%2Fimage.png">',
+    );
+  });
+
+  scopedTest('markers survive unreserved characters in the URL', () async {
+    registerActiveConfiguration(
+      Configuration.test(
+        primarySiteUri: Uri.parse('https://pub.dev/'),
+        imageProxyServiceBaseUrl: 'https://proxy.pub.dev',
+      ),
+    );
+    registerRequestContext(
+      RequestContext(experimentalFlags: ExperimentalFlags.empty),
+    );
+    registerImageProxyBackend(_FakeImageProxyBackend());
+
+    // `Uri.encodeComponent` leaves `-_.!~*'()` unescaped, so the marker payload
+    // can legitimately contain them.
+    final imageProxyNonce = '1234567890abcdef1234567890abcdef';
+    final original = "https://example.com/a'b(c)!d*e~f.png";
+    final sidebar = DartDocSidebar(
+      content:
+          '<img src="$imageProxyMarkerPrefix'
+          '{$imageProxyNonce}:{${Uri.encodeComponent(original)}}">',
+      imageProxyNonce: imageProxyNonce,
+    );
+    expect(sidebar.render(), isNot(contains(imageProxyMarkerPrefix)));
+    expect(sidebar.render(), contains('https://proxy.pub.dev/proxied/'));
+  });
+
+  scopedTest(
+    'substituted image URLs cannot break out of the attribute',
+    () async {
+      registerActiveConfiguration(Configuration.test());
+      registerRequestContext(
+        RequestContext(experimentalFlags: ExperimentalFlags.empty),
+      );
+
+      final imageProxyNonce = '1234567890abcdef1234567890abcdef';
+      final evil = Uri.encodeComponent(
+        'https://example.com/a"onerror="alert(1)',
+      );
+      final sidebar = DartDocSidebar(
+        content:
+            '<img src="$imageProxyMarkerPrefix{$imageProxyNonce}:{$evil}">',
+        imageProxyNonce: imageProxyNonce,
+      );
+      expect(sidebar.render(), isNot(contains('onerror="')));
+    },
+  );
+
   scopedTest('normal double curlies are preserved', () async {
     registerActiveConfiguration(Configuration.test());
     registerRequestContext(
