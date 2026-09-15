@@ -24,7 +24,7 @@ jobs:
         path: ~/.pub-cache
         key: ${{runner.os}}-pub-cache
     - name: Setup Dart SDK
-      uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
       with:
         sdk: ${{env.DART_SDK_VERSION}}
     - name: Checkout repository
@@ -66,7 +66,7 @@ jobs:
         path: ~/.pub-cache
         key: ${{runner.os}}-pub-cache
     - name: Setup Dart SDK
-      uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
       with:
         sdk: ${{env.DART_SDK_VERSION}}
     - name: Checkout repository
@@ -106,7 +106,7 @@ jobs:
         path: ~/.pub-cache
         key: ${{runner.os}}-pub-cache
     - name: Setup Dart SDK
-      uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
       with:
         sdk: ${{env.DART_SDK_VERSION}}
     - name: Checkout repository
@@ -163,7 +163,7 @@ jobs:
         path: ~/.pub-cache
         key: ${{runner.os}}-pub-cache
     - name: Setup Dart SDK
-      uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
       with:
         sdk: ${{env.DART_SDK_VERSION}}
     - name: Checkout repository
