@@ -1148,10 +1148,8 @@ class TaskBackend {
       await db.tasks
           .byKey(runtimeVersion, packageName)
           .update(
-            (_, set) => set(
-              state: newState.asExpr,
-              pendingAt: initialTimestamp.asExpr,
-            ),
+            (_, set) =>
+                set(state: newState.asExpr, pendingAt: initialTimestamp.asExpr),
           )
           .execute();
       await db.upsertTaskState(packageName, newState, oldState: task.state);
