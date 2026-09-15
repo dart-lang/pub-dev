@@ -425,9 +425,7 @@ class AccountBackend {
 
   /// Updates an existing or creates a new client session for pre-authorization
   /// secrets and post-authorization user information.
-  Future<UserSessionRow> createOrUpdateClientSession({
-    String? sessionId,
-  }) async {
+  Future<UserSession> createOrUpdateClientSession({String? sessionId}) async {
     final now = clock.now().toUtc();
     final expires = now.add(_sessionDuration);
 
@@ -459,7 +457,7 @@ class AccountBackend {
     );
   }
 
-  /// Updates the [UserSessionRow] with the authenticated profile information.
+  /// Updates the [UserSession] with the authenticated profile information.
   /// Returns the new [SessionData] that is also populated in the cache.
   Future<SessionData> updateClientSessionWithProfile({
     required String sessionId,
@@ -596,13 +594,13 @@ class AccountBackend {
     return data;
   }
 
-  /// Returns the [UserSessionRow] associated with the [sessionId] or
+  /// Returns the [UserSession] associated with the [sessionId] or
   /// `null` if it does not exists.
   ///
   /// Deletes the session entry if it has already expired and
   /// clears the related cache too.
-  Future<UserSessionRow?> lookupValidUserSession(String sessionId) async {
-    UserSessionRow? session;
+  Future<UserSession?> lookupValidUserSession(String sessionId) async {
+    UserSession? session;
     try {
       session = await primaryDatabase.withRetry(
         (db) => db.userSessions.byKey(sessionId).fetch(),
@@ -622,7 +620,7 @@ class AccountBackend {
   }
 
   /// Upserts a session with the given fields into the SQL database.
-  Future<UserSessionRow> writeUserSessionToSql({
+  Future<UserSession> writeUserSessionToSql({
     required String sessionId,
     String? userId,
     String? email,

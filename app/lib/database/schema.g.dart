@@ -30,7 +30,7 @@ Map<String, dynamic> _$TaskStateToJson(TaskState instance) => <String, dynamic>{
 /// Extension methods for a [Database] operating on [PrimarySchema].
 extension PrimarySchemaSchema on Database<PrimarySchema> {
   static final _$tables = [
-    _$UserSessionRow._$table,
+    _$UserSession._$table,
     _$GlobalLockStateRow._$table,
     _$Task._$table,
     _$TaskDependency._$table,
@@ -38,8 +38,8 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$TaskAbortedToken._$table,
   ];
 
-  Table<UserSessionRow> get userSessions =>
-      $ForGeneratedCode.declareTable(this, _$UserSessionRow._$table);
+  Table<UserSession> get userSessions =>
+      $ForGeneratedCode.declareTable(this, _$UserSession._$table);
 
   Table<GlobalLockStateRow> get globalLockStates =>
       $ForGeneratedCode.declareTable(this, _$GlobalLockStateRow._$table);
@@ -85,8 +85,8 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 String createPrimarySchemaTables(SqlDialect dialect) => $ForGeneratedCode
     .createTableSchema(dialect: dialect, tables: PrimarySchemaSchema._$tables);
 
-final class _$UserSessionRow extends UserSessionRow {
-  _$UserSessionRow._(
+final class _$UserSession extends UserSession {
+  _$UserSession._(
     this.sessionId,
     this.userId,
     this.email,
@@ -254,10 +254,10 @@ final class _$UserSessionRow extends UserSessionRow {
         columns: ['expires'],
       ),
     ],
-    readRow: _$UserSessionRow._$fromDatabase,
+    readRow: _$UserSession._$fromDatabase,
   );
 
-  static UserSessionRow? _$fromDatabase(RowReader row) {
+  static UserSession? _$fromDatabase(RowReader row) {
     final sessionId = row.readString();
     final userId = row.readString();
     final email = row.readString();
@@ -284,7 +284,7 @@ final class _$UserSessionRow extends UserSessionRow {
         grantedScopes == null) {
       return null;
     }
-    return _$UserSessionRow._(
+    return _$UserSession._(
       sessionId!,
       userId,
       email,
@@ -302,16 +302,16 @@ final class _$UserSessionRow extends UserSessionRow {
 
   @override
   String toString() =>
-      'UserSessionRow(sessionId: "$sessionId", userId: "$userId", email: "$email", name: "$name", imageUrl: "$imageUrl", created: "$created", expires: "$expires", authenticatedAt: "$authenticatedAt", csrfToken: "$csrfToken", openidNonce: "$openidNonce", accessToken: "$accessToken", grantedScopes: "$grantedScopes")';
+      'UserSession(sessionId: "$sessionId", userId: "$userId", email: "$email", name: "$name", imageUrl: "$imageUrl", created: "$created", expires: "$expires", authenticatedAt: "$authenticatedAt", csrfToken: "$csrfToken", openidNonce: "$openidNonce", accessToken: "$accessToken", grantedScopes: "$grantedScopes")';
 }
 
-/// Extension methods for table defined in [UserSessionRow].
-extension TableUserSessionRowExt on Table<UserSessionRow> {
+/// Extension methods for table defined in [UserSession].
+extension TableUserSessionExt on Table<UserSession> {
   /// Insert row into the `userSessions` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
-  InsertSingle<UserSessionRow> insert({
+  InsertSingle<UserSession> insert({
     required Expr<String> sessionId,
     Expr<String?>? userId,
     Expr<String?>? email,
@@ -346,7 +346,7 @@ extension TableUserSessionRowExt on Table<UserSessionRow> {
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
-  InsertSingle<UserSessionRow> insertValue({
+  InsertSingle<UserSession> insertValue({
     required String sessionId,
     String? userId,
     String? email,
@@ -394,7 +394,7 @@ extension TableUserSessionRowExt on Table<UserSessionRow> {
   ///
   /// Returns a [Insert] statement on which `.execute` must be
   /// called for the rows to be inserted.
-  Insert<UserSessionRow> insertValuesMapped<T>(
+  Insert<UserSession> insertValuesMapped<T>(
     Iterable<T> rows, {
     required String Function(T row) sessionId,
     String? Function(T row)? userId,
@@ -436,18 +436,18 @@ extension TableUserSessionRowExt on Table<UserSessionRow> {
   /// To delete multiple rows, using `.where()` to filter which rows
   /// should be deleted. If you wish to delete all rows, use
   /// `.where((_) => toExpr(true)).delete()`.
-  DeleteSingle<UserSessionRow> delete(String sessionId) => $ForGeneratedCode
-      .deleteSingle(byKey(sessionId), _$UserSessionRow._$table);
+  DeleteSingle<UserSession> delete(String sessionId) =>
+      $ForGeneratedCode.deleteSingle(byKey(sessionId), _$UserSession._$table);
 }
 
 /// Extension methods for building queries against the `userSessions` table.
-extension QueryUserSessionRowExt on Query<(Expr<UserSessionRow>,)> {
+extension QueryUserSessionExt on Query<(Expr<UserSession>,)> {
   /// Lookup a single row in `userSessions` table using the _primary key_.
   ///
   /// Returns a [QuerySingle] object, which returns at-most one row,
   /// when `.fetch()` is called.
-  QuerySingle<(Expr<UserSessionRow>,)> byKey(String sessionId) => where(
-    (userSessionRow) => userSessionRow.sessionId.equalsValue(sessionId),
+  QuerySingle<(Expr<UserSession>,)> byKey(String sessionId) => where(
+    (userSession) => userSession.sessionId.equalsValue(sessionId),
   ).first;
 
   /// Update all rows in the `userSessions` table matching this [Query].
@@ -477,10 +477,10 @@ extension QueryUserSessionRowExt on Query<(Expr<UserSessionRow>,)> {
   /// > the expressions for updating the rows. You should **never** invoke
   /// > the `set` function more than once, and the result should always
   /// > be returned immediately.
-  Update<UserSessionRow> update(
-    UpdateSet<UserSessionRow> Function(
-      Expr<UserSessionRow> userSessionRow,
-      UpdateSet<UserSessionRow> Function({
+  Update<UserSession> update(
+    UpdateSet<UserSession> Function(
+      Expr<UserSession> userSession,
+      UpdateSet<UserSession> Function({
         Expr<String> sessionId,
         Expr<String?> userId,
         Expr<String?> email,
@@ -497,11 +497,11 @@ extension QueryUserSessionRowExt on Query<(Expr<UserSessionRow>,)> {
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.update<UserSessionRow>(
+  ) => $ForGeneratedCode.update<UserSession>(
     this,
-    _$UserSessionRow._$table,
-    (userSessionRow) => updateBuilder(
-      userSessionRow,
+    _$UserSession._$table,
+    (userSession) => updateBuilder(
+      userSession,
       ({
         Expr<String>? sessionId,
         Expr<String?>? userId,
@@ -515,7 +515,7 @@ extension QueryUserSessionRowExt on Query<(Expr<UserSessionRow>,)> {
         Expr<String?>? openidNonce,
         Expr<String?>? accessToken,
         Expr<String?>? grantedScopes,
-      }) => $ForGeneratedCode.buildUpdate<UserSessionRow>([
+      }) => $ForGeneratedCode.buildUpdate<UserSession>([
         sessionId,
         userId,
         email,
@@ -536,12 +536,12 @@ extension QueryUserSessionRowExt on Query<(Expr<UserSessionRow>,)> {
   ///
   /// Returns a [Delete] statement on which `.execute()` must be called
   /// for the rows to be deleted.
-  Delete<UserSessionRow> delete() =>
-      $ForGeneratedCode.delete(this, _$UserSessionRow._$table);
+  Delete<UserSession> delete() =>
+      $ForGeneratedCode.delete(this, _$UserSession._$table);
 }
 
 /// Extension methods for building point queries against the `userSessions` table.
-extension QuerySingleUserSessionRowExt on QuerySingle<(Expr<UserSessionRow>,)> {
+extension QuerySingleUserSessionExt on QuerySingle<(Expr<UserSession>,)> {
   /// Update the row (if any) in the `userSessions` table matching this
   /// [QuerySingle].
   ///
@@ -571,10 +571,10 @@ extension QuerySingleUserSessionRowExt on QuerySingle<(Expr<UserSessionRow>,)> {
   /// > the expressions for updating the rows. You should **never** invoke
   /// > the `set` function more than once, and the result should always
   /// > be returned immediately.
-  UpdateSingle<UserSessionRow> update(
-    UpdateSet<UserSessionRow> Function(
-      Expr<UserSessionRow> userSessionRow,
-      UpdateSet<UserSessionRow> Function({
+  UpdateSingle<UserSession> update(
+    UpdateSet<UserSession> Function(
+      Expr<UserSession> userSession,
+      UpdateSet<UserSession> Function({
         Expr<String> sessionId,
         Expr<String?> userId,
         Expr<String?> email,
@@ -591,11 +591,11 @@ extension QuerySingleUserSessionRowExt on QuerySingle<(Expr<UserSessionRow>,)> {
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateSingle<UserSessionRow>(
+  ) => $ForGeneratedCode.updateSingle<UserSession>(
     this,
-    _$UserSessionRow._$table,
-    (userSessionRow) => updateBuilder(
-      userSessionRow,
+    _$UserSession._$table,
+    (userSession) => updateBuilder(
+      userSession,
       ({
         Expr<String>? sessionId,
         Expr<String?>? userId,
@@ -609,7 +609,7 @@ extension QuerySingleUserSessionRowExt on QuerySingle<(Expr<UserSessionRow>,)> {
         Expr<String?>? openidNonce,
         Expr<String?>? accessToken,
         Expr<String?>? grantedScopes,
-      }) => $ForGeneratedCode.buildUpdate<UserSessionRow>([
+      }) => $ForGeneratedCode.buildUpdate<UserSession>([
         sessionId,
         userId,
         email,
@@ -631,12 +631,12 @@ extension QuerySingleUserSessionRowExt on QuerySingle<(Expr<UserSessionRow>,)> {
   /// Returns a [DeleteSingle] statement on which `.execute()` must be called
   /// for the row to be deleted. The resulting statement will **not**
   /// fail, if there are no rows matching this query exists.
-  DeleteSingle<UserSessionRow> delete() =>
-      $ForGeneratedCode.deleteSingle(this, _$UserSessionRow._$table);
+  DeleteSingle<UserSession> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$UserSession._$table);
 }
 
 /// Extension methods for expressions on a row in the `userSessions` table.
-extension ExpressionUserSessionRowExt on Expr<UserSessionRow> {
+extension ExpressionUserSessionExt on Expr<UserSession> {
   /// The session ID, a random UUID String.
   Expr<String> get sessionId =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
@@ -686,7 +686,7 @@ extension ExpressionUserSessionRowExt on Expr<UserSessionRow> {
       $ForGeneratedCode.field(this, 11, $ForGeneratedCode.text);
 }
 
-extension ExpressionNullableUserSessionRowExt on Expr<UserSessionRow?> {
+extension ExpressionNullableUserSessionExt on Expr<UserSession?> {
   /// The session ID, a random UUID String.
   Expr<String?> get sessionId =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
@@ -752,20 +752,20 @@ extension ExpressionNullableUserSessionRowExt on Expr<UserSessionRow?> {
   Expr<bool> isNull() => isNotNull().not();
 }
 
-/// `Table<UserSessionRow>` conflict targets for use with `.onConflict`.
-enum UserSessionRowConflict {
+/// `Table<UserSession>` conflict targets for use with `.onConflict`.
+enum UserSessionConflict {
   /// Conflict with an existing row that has a matching primary key.
   ///
   /// Thus, the other row has matching values for:
   /// `sessionId`.
   primaryKey(['session_id']);
 
-  const UserSessionRowConflict(this._fields);
+  const UserSessionConflict(this._fields);
 
   final List<String> _fields;
 }
 
-extension InsertUserSessionRowExt on Insert<UserSessionRow> {
+extension InsertUserSessionExt on Insert<UserSession> {
   /// Build an `INSERT` statement with an `ON CONFLICT` clause.
   ///
   /// The [target] argument specifies the _conflict target_ to be
@@ -775,7 +775,7 @@ extension InsertUserSessionRowExt on Insert<UserSessionRow> {
   /// If a row to be inserted violates the _conflict target_ constraint,
   /// then the conflict action is triggered:
   /// * `.doNothing()` to skip insertion of the new row, and,
-  /// * `.update((userSessionRow, excluded, set) => set(...))` to
+  /// * `.update((userSession, excluded, set) => set(...))` to
   ///   update the conflicting row.
   ///
   /// If a row to be inserted violates a constraint other than the one
@@ -783,19 +783,18 @@ extension InsertUserSessionRowExt on Insert<UserSessionRow> {
   /// will fail.
   ///
   /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
-  InsertOnConflict<UserSessionRow> onConflict(UserSessionRowConflict target) =>
+  InsertOnConflict<UserSession> onConflict(UserSessionConflict target) =>
       $ForGeneratedCode.insertOnConflict(this, target._fields);
 }
 
-extension InsertOnConflictUserSessionRowExt
-    on InsertOnConflict<UserSessionRow> {
+extension InsertOnConflictUserSessionExt on InsertOnConflict<UserSession> {
   /// Build an `INSERT` statement an [upsert-clause][1].
   ///
   /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
   /// constraint previously specified as _conflict target_, the existing
   /// row is updated using the expressions defined with the
   /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
-  ///   * `userSessionRow` an [Expr] representing the existing row in
+  ///   * `userSession` an [Expr] representing the existing row in
   ///     the database,
   ///   * `excluded` an [Expr] representing the row to be inserted in the
   ///     database, and,
@@ -829,11 +828,11 @@ extension InsertOnConflictUserSessionRowExt
   /// > be returned immediately.
   ///
   /// [1]: https://www.sqlite.org/lang_upsert.html
-  Upsert<UserSessionRow> update(
-    UpdateSet<UserSessionRow> Function(
-      Expr<UserSessionRow> userSessionRow,
-      Expr<UserSessionRow> excluded,
-      UpdateSet<UserSessionRow> Function({
+  Upsert<UserSession> update(
+    UpdateSet<UserSession> Function(
+      Expr<UserSession> userSession,
+      Expr<UserSession> excluded,
+      UpdateSet<UserSession> Function({
         Expr<String> sessionId,
         Expr<String?> userId,
         Expr<String?> email,
@@ -850,10 +849,10 @@ extension InsertOnConflictUserSessionRowExt
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateOnConflict<UserSessionRow>(
+  ) => $ForGeneratedCode.updateOnConflict<UserSession>(
     this,
-    (userSessionRow, excluded) => updateBuilder(
-      userSessionRow,
+    (userSession, excluded) => updateBuilder(
+      userSession,
       excluded,
       ({
         Expr<String>? sessionId,
@@ -868,7 +867,7 @@ extension InsertOnConflictUserSessionRowExt
         Expr<String?>? openidNonce,
         Expr<String?>? accessToken,
         Expr<String?>? grantedScopes,
-      }) => $ForGeneratedCode.buildUpdate<UserSessionRow>([
+      }) => $ForGeneratedCode.buildUpdate<UserSession>([
         sessionId,
         userId,
         email,
@@ -886,7 +885,7 @@ extension InsertOnConflictUserSessionRowExt
   );
 }
 
-extension InsertSingleUserSessionRowExt on InsertSingle<UserSessionRow> {
+extension InsertSingleUserSessionExt on InsertSingle<UserSession> {
   /// Build an `INSERT` statement with an `ON CONFLICT` clause.
   ///
   /// The [target] argument specifies the _conflict target_ to be
@@ -896,7 +895,7 @@ extension InsertSingleUserSessionRowExt on InsertSingle<UserSessionRow> {
   /// If a row to be inserted violates the _conflict target_ constraint,
   /// then the conflict action is triggered:
   /// * `.doNothing()` to skip insertion of the new row, and,
-  /// * `.update((userSessionRow, excluded, set) => set(...))` to
+  /// * `.update((userSession, excluded, set) => set(...))` to
   ///   update the conflicting row.
   ///
   /// If a row to be inserted violates a constraint other than the one
@@ -904,20 +903,19 @@ extension InsertSingleUserSessionRowExt on InsertSingle<UserSessionRow> {
   /// will fail.
   ///
   /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
-  InsertOnConflictSingle<UserSessionRow> onConflict(
-    UserSessionRowConflict target,
-  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+  InsertOnConflictSingle<UserSession> onConflict(UserSessionConflict target) =>
+      $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
 }
 
-extension InsertOnConflictSingleUserSessionRowExt
-    on InsertOnConflictSingle<UserSessionRow> {
+extension InsertOnConflictSingleUserSessionExt
+    on InsertOnConflictSingle<UserSession> {
   /// Build an `INSERT` statement an [upsert-clause][1].
   ///
   /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
   /// constraint previously specified as _conflict target_, the existing
   /// row is updated using the expressions defined with the
   /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
-  ///   * `userSessionRow` an [Expr] representing the existing row in
+  ///   * `userSession` an [Expr] representing the existing row in
   ///     the database,
   ///   * `excluded` an [Expr] representing the row to be inserted in the
   ///     database, and,
@@ -951,11 +949,11 @@ extension InsertOnConflictSingleUserSessionRowExt
   /// > be returned immediately.
   ///
   /// [1]: https://www.sqlite.org/lang_upsert.html
-  UpsertSingle<UserSessionRow> update(
-    UpdateSet<UserSessionRow> Function(
-      Expr<UserSessionRow> userSessionRow,
-      Expr<UserSessionRow> excluded,
-      UpdateSet<UserSessionRow> Function({
+  UpsertSingle<UserSession> update(
+    UpdateSet<UserSession> Function(
+      Expr<UserSession> userSession,
+      Expr<UserSession> excluded,
+      UpdateSet<UserSession> Function({
         Expr<String> sessionId,
         Expr<String?> userId,
         Expr<String?> email,
@@ -972,10 +970,10 @@ extension InsertOnConflictSingleUserSessionRowExt
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateOnConflictSingle<UserSessionRow>(
+  ) => $ForGeneratedCode.updateOnConflictSingle<UserSession>(
     this,
-    (userSessionRow, excluded) => updateBuilder(
-      userSessionRow,
+    (userSession, excluded) => updateBuilder(
+      userSession,
       excluded,
       ({
         Expr<String>? sessionId,
@@ -990,7 +988,7 @@ extension InsertOnConflictSingleUserSessionRowExt
         Expr<String?>? openidNonce,
         Expr<String?>? accessToken,
         Expr<String?>? grantedScopes,
-      }) => $ForGeneratedCode.buildUpdate<UserSessionRow>([
+      }) => $ForGeneratedCode.buildUpdate<UserSession>([
         sessionId,
         userId,
         email,

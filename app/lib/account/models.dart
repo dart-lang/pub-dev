@@ -158,7 +158,7 @@ class LikeData {
 }
 
 /// Convenience helpers for the SQL-backed session row.
-extension UserSessionRowExt on UserSessionRow {
+extension UserSessionExt on UserSession {
   bool isExpired() => clock.now().isAfter(expires);
   Duration get maxAge => expires.difference(clock.now());
 }
@@ -217,7 +217,7 @@ class SessionData {
     this.grantedScopes,
   });
 
-  factory SessionData.fromRow(UserSessionRow row) {
+  factory SessionData.fromRow(UserSession row) {
     return SessionData(
       sessionId: row.sessionId,
       userId: row.userId,
