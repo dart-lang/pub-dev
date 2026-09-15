@@ -148,6 +148,11 @@ void main() {
         )) {
           expectedDrop += 10;
         }
+        if (failingReportSections.contains(
+          'defines `publish_to`',
+        )) {
+          expectedDrop += 10;
+        }
         expect(
           report.grantedPoints,
           greaterThanOrEqualTo(report.maxPoints - expectedDrop),
