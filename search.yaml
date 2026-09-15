@@ -10,7 +10,7 @@ resources:
   cpu: 8
   # Sized to accommodate two concurrent in-memory search index copies
   # during isolate renewals.
-  memory_gb: 24
+  memory_gb: 32
   disk_size_gb: 25
 
 #manual_scaling:
