@@ -81,6 +81,27 @@ void main() {
         'Failed to scan tar archive. (Duplicate tar entry: `README.md`.)',
       );
     });
+
+    test('duplicate directory with and without trailing slash', () async {
+      await _withTempDir((tempDir) async {
+        final file = File(p.join(tempDir, 'x.tar.gz'));
+        await writeTarGzFile(
+          file,
+          directories: ['dir', 'dir/'],
+          textFiles: {'dir/file.txt': 'content'},
+        );
+        await expectLater(
+          TarArchive.scan(file.path),
+          throwsA(
+            isA<TarException>().having(
+              (e) => e.message,
+              'message',
+              contains('Duplicate tar entry: `dir/`.'),
+            ),
+          ),
+        );
+      });
+    });
   });
 
   group('tar entry test', () {
@@ -131,6 +152,78 @@ void main() {
           );
         });
       }
+    });
+
+    test('non-normalized path in the tar entry', () async {
+      final alternatives = [
+        './abc',
+        './pubspec.yaml',
+        'abc/./def',
+        'abc//def',
+        'abc/def/',
+        'abc/../abc/def',
+        'abc/def ',
+        ' abc/def',
+        '.',
+        './',
+      ];
+      for (final path in alternatives) {
+        await _withTempDir((tempDir) async {
+          final file = File(p.join(tempDir, 'x.tar.gz'));
+          await writeTarGzFile(file, textFiles: {path: 'content'});
+          await expectLater(
+            TarArchive.scan(file.path),
+            throwsA(
+              isA<TarException>().having(
+                (e) => e.message,
+                'message',
+                contains('Tar entry name is not normalized: `$path`.'),
+              ),
+            ),
+          );
+        });
+      }
+    });
+
+    test('valid normalized paths and directories', () async {
+      await _withTempDir((tempDir) async {
+        final file = File(p.join(tempDir, 'x.tar.gz'));
+        await writeTarGzFile(
+          file,
+          directories: ['dir1/', 'dir2'],
+          textFiles: {
+            'pubspec.yaml': 'name: abc',
+            'lib/foo.dart': 'void main() {}',
+            '.gitignore': 'build/',
+          },
+        );
+        final archive = await TarArchive.scan(file.path);
+        expect(
+          archive.fileNames,
+          containsAll([
+            'dir1',
+            'dir2',
+            'pubspec.yaml',
+            'lib/foo.dart',
+            '.gitignore',
+          ]),
+        );
+      });
+    });
+
+    test('non-normalized entry in summarizePackageArchive', () async {
+      await _withTempDir((tempDir) async {
+        final file = File(p.join(tempDir, 'x.tar.gz'));
+        await writeTarGzFile(
+          file,
+          textFiles: {'./pubspec.yaml': minimalTextFiles['pubspec.yaml']!},
+        );
+        final summary = await summarizePackageArchive(file.path);
+        expect(
+          summary.issues.single.message,
+          'Failed to scan tar archive. (Tar entry name is not normalized: `./pubspec.yaml`.)',
+        );
+      });
     });
   });
 }
