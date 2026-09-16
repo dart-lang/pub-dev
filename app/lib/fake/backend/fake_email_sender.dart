@@ -33,7 +33,7 @@ class FakeEmailSender implements EmailSender {
     }
     sentMessages.add(message);
     if (_outputDir != null) {
-      final uuid = message.localMessageId ?? Ulid().toCanonical();
+      final uuid = message.localMessageId ?? Ulid().toBase32(lowercase: true);
       final file = File(p.join(_outputDir, '$uuid.json'));
       await file.parent.create(recursive: true);
       await file.writeAsString(json.encode(message.toJson()));

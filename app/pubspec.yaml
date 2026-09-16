@@ -52,7 +52,7 @@ dependencies:
   # 3rd-party packages with pinned versions
   mailer: '6.6.0'
   postgres: '3.5.12'
-  ulid: '2.0.1'
+  ulid: '2.1.0'
   tar: '2.0.2'
   api_builder:
 
