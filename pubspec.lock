@@ -925,10 +925,10 @@ packages:
     dependency: transitive
     description:
       name: ulid
-      sha256: "05d2e53f2964c899675ab70a5719a6a4b36516477008877011a1c4a1991df591"
+      sha256: "3c5fde1c499961fc75c0dc527e9d95a47dda78209bf7d7f015c11fb760e99dc6"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "2.2.0"
   uuid:
     dependency: transitive
     description:
