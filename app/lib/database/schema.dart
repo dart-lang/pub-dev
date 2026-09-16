@@ -10,6 +10,7 @@ import 'package:typed_sql/typed_sql.dart';
 
 part 'schema.g.dart';
 part 'schema.account.dart';
+part 'schema.global_lock.dart';
 part 'schema.task.dart';
 
 @SqlOverride.schema(naming: .snake_case)
@@ -17,6 +18,10 @@ abstract final class PrimarySchema extends Schema {
   // account tables
 
   Table<UserSessionRow> get userSessions;
+
+  // global lock table
+
+  Table<GlobalLockStateRow> get globalLockStates;
 
   // task tables
 

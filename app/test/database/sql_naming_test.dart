@@ -13,6 +13,7 @@ import 'package:test/test.dart';
 const _exemptedTimestampColumns = {
   '000001_task.sql': {'last_dependency_changed', 'finished'},
   '000003_user_session.sql': {'created', 'expires'},
+  '000005_global_lock.sql': {'locked_until'},
 };
 
 final _timestamptzColumnPattern = RegExp(r'"(\w+)"\s+timestamptz');

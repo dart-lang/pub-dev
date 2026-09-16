@@ -6,23 +6,34 @@ import 'dart:async';
 
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/task/global_lock_models.dart';
+import 'package:typed_sql/typed_sql.dart';
 import 'package:ulid/ulid.dart' show Ulid;
 
 final _log = Logger('pub.global_lock');
+
+/// The claimId and expiration of a [GlobalLockState] row, as read from SQL.
+typedef _LockState = ({String claimId, DateTime lockedUntil});
 
 class GlobalLock {
   final String _lockId;
   final Duration _expiration;
   final DatastoreDB _db;
+  final PrimaryDatabase _primaryDatabase;
 
-  GlobalLock._(this._lockId, this._expiration, this._db);
+  GlobalLock._(this._lockId, this._expiration, this._db, this._primaryDatabase);
 
+  // Note: [dbService] and [primaryDatabase] are resolved here once, and
+  // then held onto directly. This ensures that claiming, refreshing and
+  // releasing the lock keeps working even if called after the current
+  // service scope has started exiting for a clean scope exit.
   static GlobalLock create(
     String lockId, {
     Duration expiration = const Duration(minutes: 25),
-  }) => GlobalLock._(lockId, expiration, dbService);
+  }) => GlobalLock._(lockId, expiration, dbService, primaryDatabase);
 
   /// Call [fn] while retaining a claim to this lock. This will wait until the
   /// lock is acquired.
@@ -37,7 +48,7 @@ class GlobalLock {
     abort ??= Completer();
 
     final c = await claim(abort: abort);
-    final claimId = c._entry.claimId;
+    final claimId = c._claimId;
     var refreshed = Future.value(true);
     final done = Completer<void>();
     try {
@@ -95,39 +106,81 @@ class GlobalLock {
     final claimId = Ulid().toString();
 
     // Try to claim or get the lock
-    final e = await _tryClaimOrGet(claimId);
+    final state = await _tryClaimOrGet(claimId);
 
     // Check if we got a claim
-    if (e != null && _hasClaim(e, claimId)) {
+    if (_hasClaim(state, claimId)) {
       _log.info('established claim $claimId on $_lockId');
-      return GlobalLockClaim._(e, _expiration, _db);
+      return GlobalLockClaim._(
+        _lockId,
+        claimId,
+        state!.lockedUntil,
+        _expiration,
+        _db,
+        _primaryDatabase,
+      );
     }
     return null;
   }
 
-  Future<GlobalLockState?> _tryClaimOrGet(String claimId) async {
-    final k = _db.emptyKey.append(GlobalLockState, id: _lockId);
+  /// Try to claim the lock in SQL.
+  ///
+  /// On a successful SQL claim, the claim is mirrored (best-effort) into
+  /// Datastore, so that processes not yet switched to the SQL-based
+  /// implementation see it too.
+  Future<_LockState?> _tryClaimOrGet(String claimId) async {
     try {
-      return await withRetryTransaction(_db, (tx) async {
-        var e = await tx.lookupOrNull<GlobalLockState>(k);
-        if (e == null ||
-            e.claimId == '' ||
-            e.lockedUntil!.isBefore(clock.now().toUtc())) {
-          // Claim the lock, if not currently locked
-          e = GlobalLockState()
-            ..id = _lockId
-            ..claimId = claimId
-            ..lockedUntil = clock.now().add(_expiration).toUtc();
-          tx.insert(e);
-        }
-        return e;
-      });
-    } on TransactionAbortedError {
-      // Note: withRetryTransaction will have retried this, so this means we
-      // a high write congestion -- or, many connection exceptions.
-      _log.shout('Write congestion trying to claim $_lockId');
+      final now = clock.now().toUtc();
+      final lockedUntil = now.add(_expiration).toUtc();
+      final row = await _primaryDatabase.withRetry(
+        (db) => db.globalLockStates
+            .insertValue(
+              lockId: _lockId,
+              claimId: claimId,
+              lockedUntil: lockedUntil,
+            )
+            .onConflict(.primaryKey)
+            .update(
+              (_, excluded, set) => set(
+                claimId: excluded.claimId,
+                lockedUntil: excluded.lockedUntil,
+              ),
+            )
+            .where(
+              (existing, _) =>
+                  existing.claimId.equalsValue('') |
+                  existing.lockedUntil.isBeforeValue(now),
+            )
+            .returnUpserted()
+            .executeAndFetch(),
+      );
+      if (row == null) {
+        // Someone else already holds an active claim in SQL.
+        return await _fetchSqlState();
+      }
+      await _mirrorToDatastore(
+        _db,
+        _lockId,
+        claimId: claimId,
+        lockedUntil: lockedUntil,
+      );
+      return (claimId: row.claimId, lockedUntil: row.lockedUntil);
+    } on DatabaseException catch (e, st) {
+      // Note: primaryDatabase.withRetry will have retried this, so this
+      // means we have a high write congestion -- or, many connection issues.
+      _log.shout('Write congestion trying to claim $_lockId', e, st);
       return null;
     }
+  }
+
+  Future<_LockState?> _fetchSqlState() async {
+    final row = await _primaryDatabase.withRetry(
+      (db) => db.globalLockStates.byKey(_lockId).fetch(),
+    );
+    if (row == null) {
+      return null;
+    }
+    return (claimId: row.claimId, lockedUntil: row.lockedUntil);
   }
 
   /// Claim lock, trying as many times as necessary.
@@ -143,27 +196,34 @@ class GlobalLock {
     final claimId = Ulid().toString();
     final s = clock.stopwatch()..start();
 
-    var e = await _tryClaimOrGet(claimId);
+    var state = await _tryClaimOrGet(claimId);
 
-    while (!_hasClaim(e, claimId) &&
+    while (!_hasClaim(state, claimId) &&
         (timeout == null || s.elapsed < timeout) &&
         !abort.isCompleted) {
-      if (e != null) {
+      if (state != null) {
         // Sleep till lockedUntil, and always sleep at-least 10% of _expiration
-        var delay = e.lockedUntil!.difference(clock.now().toUtc());
+        var delay = state.lockedUntil.difference(clock.now().toUtc());
         if (delay < _expiration * 0.1) {
           delay = _expiration * 0.1;
         }
         // Wait for delay or abort
         await abort.future.timeout(delay, onTimeout: () => null);
       }
-      e = await _tryClaimOrGet(claimId);
+      state = await _tryClaimOrGet(claimId);
     }
 
     // Check if we got a claim
-    if (e != null && _hasClaim(e, claimId)) {
+    if (_hasClaim(state, claimId)) {
       _log.info('established claim $claimId on $_lockId');
-      return GlobalLockClaim._(e, _expiration, _db);
+      return GlobalLockClaim._(
+        _lockId,
+        claimId,
+        state!.lockedUntil,
+        _expiration,
+        _db,
+        _primaryDatabase,
+      );
     }
     throw TimeoutException(
       'failed to acquire GlobalLock within timeout',
@@ -172,20 +232,49 @@ class GlobalLock {
   }
 }
 
-/// `true`, if [e] is claimed by [claimId], `false` if [e] is `null`.
-bool _hasClaim(GlobalLockState? e, String claimId) {
-  return e != null &&
-      e.claimId == claimId &&
-      e.lockedUntil!.isAfter(clock.now().toUtc());
+/// `true`, if [state] is claimed by [claimId], `false` if [state] is `null`.
+bool _hasClaim(_LockState? state, String claimId) {
+  return state != null &&
+      state.claimId == claimId &&
+      state.lockedUntil.isAfter(clock.now().toUtc());
+}
+
+/// Best-effort mirror of a claim (or its release) into Datastore, so that
+/// processes not yet switched to the SQL-based implementation still see it.
+Future<void> _mirrorToDatastore(
+  DatastoreDB dbService,
+  String lockId, {
+  required String claimId,
+  required DateTime lockedUntil,
+}) async {
+  try {
+    final e = GlobalLockState()
+      ..id = lockId
+      ..claimId = claimId
+      ..lockedUntil = lockedUntil;
+    await dbService.commit(inserts: [e]);
+  } catch (e, st) {
+    _log.warning('Datastore GlobalLockState mirror failed: $lockId', e, st);
+  }
 }
 
 class GlobalLockClaim {
-  GlobalLockState _entry;
+  final String _lockId;
+  final String _claimId;
+  DateTime _lockedUntil;
   final Duration _expiration;
   final DatastoreDB _db;
+  final PrimaryDatabase _primaryDb;
   Future<void>? _released;
 
-  GlobalLockClaim._(this._entry, this._expiration, this._db);
+  GlobalLockClaim._(
+    this._lockId,
+    this._claimId,
+    this._lockedUntil,
+    this._expiration,
+    this._db,
+    this._primaryDb,
+  );
 
   /// `true`, if this claim to the lock is still valid.
   ///
@@ -197,15 +286,13 @@ class GlobalLockClaim {
   /// [expires] as _deadline_ for other operations.
   bool get valid =>
       _released == null &&
-      _entry.lockedUntil!
-          .subtract(_expiration * 0.25)
-          .isAfter(clock.now().toUtc());
+      _lockedUntil.subtract(_expiration * 0.25).isAfter(clock.now().toUtc());
 
   /// Point in time at which this claim expires, if not [refresh]'ed.
   ///
   /// To protect against clock drift we consider the claim invalid when 75% of
   /// the expiration time has passed.
-  DateTime get expires => _entry.lockedUntil!;
+  DateTime get expires => _lockedUntil;
 
   /// Refresh the claim, setting the expiration into the future.
   ///
@@ -213,28 +300,32 @@ class GlobalLockClaim {
   /// method.
   Future<bool> refresh() async {
     try {
-      final e = await withRetryTransaction(_db, (tx) async {
-        final e = await tx.lookupOrNull<GlobalLockState>(_entry.key);
-
-        if (e != null && _hasClaim(e, _entry.claimId!)) {
-          e.claimId = _entry.claimId;
-          e.lockedUntil = clock.now().add(_expiration).toUtc();
-          tx.insert(e);
-        }
-        return e;
-      });
-
-      // If we refreshed the claim we update internal state
-      if (e != null && _hasClaim(e, _entry.claimId!)) {
-        _entry = e;
-        _log.info('refreshed claim ${_entry.claimId} on ${_entry.lockId}');
-        return true;
+      final newLockedUntil = clock.now().add(_expiration).toUtc();
+      final rows = await _primaryDb.withRetry(
+        (db) => db.globalLockStates
+            .where(
+              (row) =>
+                  row.lockId.equalsValue(_lockId) &
+                  row.claimId.equalsValue(_claimId),
+            )
+            .update((row, set) => set(lockedUntil: newLockedUntil.asExpr))
+            .returnUpdated()
+            .executeAndFetch(),
+      );
+      if (rows.isEmpty) {
+        return false;
       }
-      return false;
-    } on TransactionAbortedError {
-      // Note: withRetryTransaction will have retried this, so this means we
-      // a high write congestion -- or, many connection exceptions.
-      _log.shout('Write congestion trying to refresh $_entry.lockId');
+      _lockedUntil = newLockedUntil;
+      await _mirrorToDatastore(
+        _db,
+        _lockId,
+        claimId: _claimId,
+        lockedUntil: newLockedUntil,
+      );
+      _log.info('refreshed claim $_claimId on $_lockId');
+      return true;
+    } on DatabaseException catch (e, st) {
+      _log.shout('Write congestion trying to refresh $_lockId', e, st);
       return false;
     }
   }
@@ -250,19 +341,30 @@ class GlobalLockClaim {
   }
 
   Future<void> _release() async {
+    final now = clock.now().toUtc();
     try {
-      await withRetryTransaction(_db, (tx) async {
-        final e = await tx.lookupOrNull<GlobalLockState>(_entry.key);
-
-        if (e != null && _hasClaim(e, _entry.claimId!)) {
-          _log.info('releasing claim ${_entry.claimId} on ${_entry.lockId}');
-          e.claimId = '';
-          e.lockedUntil = clock.now().toUtc();
-          tx.insert(e);
-        }
-      });
-    } on TransactionAbortedError {
+      final rows = await _primaryDb.withRetry(
+        (db) => db.globalLockStates
+            .where(
+              (row) =>
+                  row.lockId.equalsValue(_lockId) &
+                  row.claimId.equalsValue(_claimId),
+            )
+            .update(
+              (row, set) => set(claimId: ''.asExpr, lockedUntil: now.asExpr),
+            )
+            .returnUpdated()
+            .executeAndFetch(),
+      );
+      if (rows.isEmpty) {
+        return;
+      }
+    } on DatabaseException {
       // Ignore write congestion if releasing the lock
+      return;
     }
+    // Note: the release is not mirrored into Datastore. The mirrored claim
+    // there will simply expire at `lockedUntil` like any other claim.
+    _log.info('releasing claim $_claimId on $_lockId');
   }
 }
