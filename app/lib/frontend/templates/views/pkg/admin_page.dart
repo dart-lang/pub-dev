@@ -7,6 +7,7 @@ import 'package:_pub_shared/data/package_api.dart';
 import '../../../../account/models.dart';
 import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
+import '../../../../shared/utils.dart' show shortDateFormat;
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
 import '../shared/toc.dart';
@@ -71,6 +72,7 @@ d.Node packageAdminPageNode({
           ),
         if (userPublishers.isNotEmpty) ...[
           material.dropdown(
+            autocomplete: 'off',
             id: '-admin-set-publisher-input',
             label: 'Select a publisher',
             classes: ['-admin-dropdown'],
@@ -162,6 +164,7 @@ d.Node packageAdminPageNode({
               d.div(
                 classes: ['-pub-form-textfield-row'],
                 child: material.textField(
+                  autocomplete: 'off',
                   id: '-pkg-admin-invite-uploader-input',
                   label: 'Email address',
                 ),
@@ -184,6 +187,7 @@ d.Node packageAdminPageNode({
     d.div(
       classes: ['-pub-form-checkbox-row'],
       child: material.checkbox(
+        autocomplete: 'off',
         id: '-admin-is-discontinued-checkbox',
         label: 'Mark "discontinued"',
         checked: package.isDiscontinued,
@@ -205,6 +209,7 @@ d.Node packageAdminPageNode({
         classes: ['-pub-form-textfield-row'],
         children: [
           material.textField(
+            autocomplete: 'off',
             id: '-package-replaced-by',
             label: null,
             value: package.replacedBy,
@@ -227,6 +232,7 @@ d.Node packageAdminPageNode({
       d.div(
         classes: ['-pub-form-checkbox-row'],
         child: material.checkbox(
+          autocomplete: 'off',
           id: '-admin-is-unlisted-checkbox',
           label: 'Mark "unlisted"',
           checked: package.isUnlisted,
@@ -254,6 +260,7 @@ d.Node packageAdminPageNode({
         d.h3(text: 'Retract package version'),
         if (retractableVersions.isNotEmpty) ...[
           material.dropdown(
+            autocomplete: 'off',
             id: '-admin-retract-package-version-input',
             label: 'Select a version',
             classes: ['-admin-dropdown'],
@@ -287,6 +294,7 @@ d.Node packageAdminPageNode({
       children: [
         if (retractedVersions.isNotEmpty) ...[
           material.dropdown(
+            autocomplete: 'off',
             id: '-admin-restore-retract-package-version-input',
             label: 'Select a version',
             classes: ['-admin-dropdown'],
@@ -335,12 +343,19 @@ d.Node _automatedPublishing(Package package) {
     ),
     d.a(name: 'github-actions'),
     d.h3(text: 'Publishing from GitHub Actions'),
+    if (package.publishingConfig?.githubDisabledInfo case final info?)
+      _automatedPublishingDisabledWarning(
+        methodLabel: 'GitHub Actions',
+        identifiersLabel: 'GitHub repository',
+        info: info,
+      ),
     d.div(
       classes: [
         '-pub-form-checkbox-row',
         '-pub-form-checkbox-toggle-next-sibling',
       ],
       child: material.checkbox(
+        autocomplete: 'off',
         id: '-pkg-admin-automated-github-enabled',
         label: 'Enable publishing from GitHub Actions',
         checked: isGitHubEnabled,
@@ -355,6 +370,7 @@ d.Node _automatedPublishing(Package package) {
         d.div(
           classes: ['-pub-form-textfield-row'],
           child: material.textField(
+            autocomplete: 'off',
             id: '-pkg-admin-automated-github-repository',
             label: 'Repository (<owner>/<repository>)',
             value: github?.repository,
@@ -364,6 +380,7 @@ d.Node _automatedPublishing(Package package) {
           classes: ['-pub-form-textfield-row'],
           children: [
             material.textField(
+              autocomplete: 'off',
               id: '-pkg-admin-automated-github-tagpattern',
               label: 'Tag pattern',
               value: github?.tagPattern ?? 'v{{version}}',
@@ -379,6 +396,7 @@ d.Node _automatedPublishing(Package package) {
         d.div(
           classes: ['-pub-form-checkbox-row'],
           child: material.checkbox(
+            autocomplete: 'off',
             id: '-pkg-admin-automated-github-push-events',
             label: 'Enable publishing from `push` events',
             checked: github?.isPushEventEnabled ?? true,
@@ -392,6 +410,7 @@ d.Node _automatedPublishing(Package package) {
         d.div(
           classes: ['-pub-form-checkbox-row'],
           child: material.checkbox(
+            autocomplete: 'off',
             id: '-pkg-admin-automated-github-workflowdispatch-events',
             label: 'Enable publishing from `workflow_dispatch` events',
             checked: github?.isWorkflowDispatchEventEnabled ?? false,
@@ -409,6 +428,7 @@ d.Node _automatedPublishing(Package package) {
             '-pub-form-checkbox-toggle-next-sibling',
           ],
           child: material.checkbox(
+            autocomplete: 'off',
             id: '-pkg-admin-automated-github-requireenv',
             label: 'Require GitHub Actions environment',
             checked: github?.requireEnvironment ?? false,
@@ -422,6 +442,7 @@ d.Node _automatedPublishing(Package package) {
               '-pub-form-block-hidden',
           ],
           child: material.textField(
+            autocomplete: 'off',
             id: '-pkg-admin-automated-github-environment',
             label: 'Environment',
             value: github?.environment,
@@ -432,6 +453,12 @@ d.Node _automatedPublishing(Package package) {
     ),
     d.a(name: 'google-cloud-service-account'),
     d.h3(text: 'Publishing with Google Cloud Service account'),
+    if (package.publishingConfig?.gcpDisabledInfo case final info?)
+      _automatedPublishingDisabledWarning(
+        methodLabel: 'Google Cloud service account',
+        identifiersLabel: 'Google Cloud service account',
+        info: info,
+      ),
     d.markdown(
       'When publishing with a GCP _service account_ is enabled, the service account configured here '
       'will be able to create temporary tokens that allows publishing of this package. '
@@ -444,6 +471,7 @@ d.Node _automatedPublishing(Package package) {
         '-pub-form-checkbox-toggle-next-sibling',
       ],
       child: material.checkbox(
+        autocomplete: 'off',
         id: '-pkg-admin-automated-gcp-enabled',
         label: 'Enable publishing with Google Cloud Service account',
         checked: gcp?.isEnabled ?? false,
@@ -458,6 +486,7 @@ d.Node _automatedPublishing(Package package) {
         d.div(
           classes: ['-pub-form-textfield-row'],
           child: material.textField(
+            autocomplete: 'off',
             id: '-pkg-admin-automated-gcp-serviceaccountemail',
             label: 'Service account email',
             value: gcp?.serviceAccountEmail,
@@ -489,12 +518,33 @@ It is recommended to disable when automated publishing is enabled.'''),
     d.div(
       classes: ['-pub-form-checkbox-row'],
       child: material.checkbox(
+        autocomplete: 'off',
         id: '-pkg-admin-manual-publishing-enabled',
         label: 'Enable manual publishing',
         checked: manual?.isEnabled ?? true,
       ),
     ),
   ]);
+}
+
+d.Node _automatedPublishingDisabledWarning({
+  required String methodLabel,
+  required String identifiersLabel,
+  required AutomatedPublishingDisabledInfo info,
+}) {
+  final date = shortDateFormat.format(info.disabled);
+  final reason = switch (info.reason) {
+    AutomatedPublishingDisabledInfo.identifiersChanged =>
+      'the $identifiersLabel identifiers changed',
+    _ => info.reason,
+  };
+  return d.p(
+    classes: ['warning'],
+    text:
+        'Publishing from $methodLabel was disabled automatically on $date, '
+        'because $reason. If this change was expected, review the '
+        'settings below and enable it again.',
+  );
 }
 
 d.Node _exampleGitHubWorkflow(GitHubPublishingConfig github) {

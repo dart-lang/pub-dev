@@ -446,6 +446,54 @@ void main() {
             'isEnabled': false,
             'serviceAccountEmail': 'admin@x.gserviceaccount.com',
           });
+          expect(
+            pkgAfter.publishingConfig!.gcpDisabledInfo!.reason,
+            AutomatedPublishingDisabledInfo.identifiersChanged,
+          );
+
+          final audits = await auditBackend.listRecordsForPackage('oxygen');
+          final record = audits.records.firstWhere(
+            (e) =>
+                e.kind ==
+                AuditLogRecordKind.packagePublicationAutomationDisabled,
+          );
+          expect(
+            record.summary,
+            'Publishing from Google Cloud service account was disabled for '
+            'package `oxygen`, because the Google Cloud service account '
+            'identifiers changed.',
+          );
+
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final email = fakeEmailSender.sentMessages.single;
+          expect(
+            email.subject,
+            'Automated publishing disabled: oxygen (Google Cloud service account)',
+          );
+          expect(
+            email.recipients.map((e) => e.email),
+            contains('admin@pub.dev'),
+          );
+
+          // A repeated attempt is rejected without a second notification.
+          await expectApiException(
+            createPubApiClient(authToken: token).uploadPackageBytes(bytes),
+            status: 403,
+            code: 'InsufficientPermissions',
+            message: 'publishing with service account is not enabled',
+          );
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final auditsAfter = await auditBackend.listRecordsForPackage(
+            'oxygen',
+          );
+          expect(
+            auditsAfter.records.where(
+              (e) =>
+                  e.kind ==
+                  AuditLogRecordKind.packagePublicationAutomationDisabled,
+            ),
+            hasLength(1),
+          );
         },
       );
 
@@ -791,6 +839,37 @@ void main() {
               'isPushEventEnabled': true,
               'isWorkflowDispatchEventEnabled': false,
             });
+            expect(
+              pkg.publishingConfig!.githubDisabledInfo!.reason,
+              AutomatedPublishingDisabledInfo.identifiersChanged,
+            );
+            expect(
+              pkg.publishingConfig!.githubDisabledInfo!.disabled,
+              isNotNull,
+            );
+
+            final audits = await auditBackend.listRecordsForPackage('oxygen');
+            final record = audits.records.firstWhere(
+              (e) =>
+                  e.kind ==
+                  AuditLogRecordKind.packagePublicationAutomationDisabled,
+            );
+            expect(
+              record.summary,
+              'Publishing from GitHub Actions was disabled for package `oxygen`, '
+              'because the GitHub repository identifiers changed.',
+            );
+
+            final email = fakeEmailSender.sentMessages.last;
+            expect(
+              email.subject,
+              'Automated publishing disabled: oxygen (GitHub Actions)',
+            );
+            expect(
+              email.recipients.map((e) => e.email),
+              contains('admin@pub.dev'),
+            );
+            expect(email.bodyText, contains('/packages/oxygen/admin'));
           }
         },
       );

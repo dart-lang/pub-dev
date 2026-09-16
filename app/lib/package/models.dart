@@ -462,15 +462,28 @@ class Release {
 class PublishingConfig {
   GitHubPublishingConfig? githubConfig;
   GitHubPublishingLock? githubLock;
+
+  /// Set when publishing from GitHub Actions was disabled automatically,
+  /// cleared together with [githubLock] when a package admin changes the
+  /// enabled state or the repository of the GitHub configuration.
+  AutomatedPublishingDisabledInfo? githubDisabledInfo;
   GcpPublishingConfig? gcpConfig;
   GcpPublishingLock? gcpLock;
+
+  /// Set when publishing with a Google Cloud service account was disabled
+  /// automatically, cleared together with [gcpLock] when a package admin
+  /// changes the enabled state or the service account email of the Google
+  /// Cloud configuration.
+  AutomatedPublishingDisabledInfo? gcpDisabledInfo;
   ManualPublishingConfig? manualConfig;
 
   PublishingConfig({
     this.githubConfig,
     this.githubLock,
+    this.githubDisabledInfo,
     this.gcpConfig,
     this.gcpLock,
+    this.gcpDisabledInfo,
     this.manualConfig,
   });
 
@@ -507,6 +520,31 @@ class PublishingConfigProperty extends db.Property {
   bool validate(db.ModelDB mdb, Object? value) =>
       super.validate(mdb, value) &&
       (value == null || value is PublishingConfig);
+}
+
+/// Describes why and when an automated publishing method was disabled by
+/// the system (not by a package admin).
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class AutomatedPublishingDisabledInfo {
+  /// The [reason] code used when the identifiers of the publishing agent did
+  /// not match the ones stored at the first successful publishing.
+  static const identifiersChanged = 'identifiers-changed';
+
+  final DateTime disabled;
+
+  /// A stable code describing the reason, see [identifiersChanged].
+  final String reason;
+
+  AutomatedPublishingDisabledInfo({
+    required this.disabled,
+    required this.reason,
+  });
+
+  factory AutomatedPublishingDisabledInfo.fromJson(Map<String, dynamic> json) =>
+      _$AutomatedPublishingDisabledInfoFromJson(json);
+
+  Map<String, dynamic> toJson() =>
+      _$AutomatedPublishingDisabledInfoToJson(this);
 }
 
 @JsonSerializable(explicitToJson: true, includeIfNull: false)

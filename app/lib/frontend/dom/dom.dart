@@ -764,12 +764,16 @@ Node select({
   Iterable<Node>? children,
   Node? child,
   String? text,
+  String? autocomplete,
 }) {
   return dom.element(
     'select',
     id: id,
     classes: classes,
-    attributes: attributes,
+    attributes: <String, String>{
+      if (autocomplete != null) 'autocomplete': autocomplete,
+      ...?attributes,
+    },
     children: children,
     child: child,
     text: text,
