@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
@@ -194,45 +193,7 @@ class _PkgAdminWidget {
     if (updateButton == null || githubRepositoryInput == null) {
       return;
     }
-
-    GitHubPublishingConfig readGithubConfig() => GitHubPublishingConfig(
-      isEnabled: githubEnabledCheckbox!.checked,
-      repository: githubRepositoryInput.value,
-      tagPattern: githubTagPatternInput!.value,
-      isPushEventEnabled: githubIsPushEventsCheckbox!.checked,
-      isWorkflowDispatchEventEnabled:
-          githubIsWorkflowDispatchEventsCheckbox!.checked,
-      requireEnvironment: githubRequireEnvironmentCheckbox!.checked,
-      environment: githubEnvironmentInput!.value,
-    );
-    GcpPublishingConfig readGcpConfig() => GcpPublishingConfig(
-      isEnabled: gcpEnabledCheckbox!.checked,
-      serviceAccountEmail: gcpServiceAccountEmailInput!.value,
-    );
-    ManualPublishingConfig readManualConfig() => ManualPublishingConfig(
-      isEnabled: manualPublishingEnabledCheckbox?.checked ?? true,
-    );
-
-    final initialGithubJson = json.encode(readGithubConfig().toJson());
-    final initialGcpJson = json.encode(readGcpConfig().toJson());
-    final initialManualJson = json.encode(readManualConfig().toJson());
-
     updateButton.onClick.listen((event) async {
-      final githubConfig = readGithubConfig();
-      final gcpConfig = readGcpConfig();
-      final manualConfig = readManualConfig();
-      final githubChanged =
-          json.encode(githubConfig.toJson()) != initialGithubJson;
-      final gcpChanged = json.encode(gcpConfig.toJson()) != initialGcpJson;
-      final manualChanged =
-          json.encode(manualConfig.toJson()) != initialManualJson;
-      if (!githubChanged && !gcpChanged && !manualChanged) {
-        await modalMessage(
-          'No changes',
-          'The publishing configuration has not been changed.',
-        );
-        return;
-      }
       await api_client.rpc<void>(
         confirmQuestion:
             'Are you sure you want to update the publishing config?',
@@ -240,9 +201,23 @@ class _PkgAdminWidget {
           await api_client.client.setAutomatedPublishing(
             pageData.pkgData!.package,
             PkgPublishingConfig(
-              github: githubChanged ? githubConfig : null,
-              gcp: gcpChanged ? gcpConfig : null,
-              manual: manualChanged ? manualConfig : null,
+              github: GitHubPublishingConfig(
+                isEnabled: githubEnabledCheckbox!.checked,
+                repository: githubRepositoryInput.value,
+                tagPattern: githubTagPatternInput!.value,
+                isPushEventEnabled: githubIsPushEventsCheckbox!.checked,
+                isWorkflowDispatchEventEnabled:
+                    githubIsWorkflowDispatchEventsCheckbox!.checked,
+                requireEnvironment: githubRequireEnvironmentCheckbox!.checked,
+                environment: githubEnvironmentInput!.value,
+              ),
+              gcp: GcpPublishingConfig(
+                isEnabled: gcpEnabledCheckbox!.checked,
+                serviceAccountEmail: gcpServiceAccountEmailInput!.value,
+              ),
+              manual: ManualPublishingConfig(
+                isEnabled: manualPublishingEnabledCheckbox?.checked ?? true,
+              ),
             ),
           );
         },

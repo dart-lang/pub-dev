@@ -731,6 +731,7 @@ class PackageBackend {
               (githubConfig.repository != current?.githubConfig?.repository));
       if (githubChanged) {
         p.publishingConfig?.githubLock = null;
+        p.publishingConfig?.githubDisabledInfo = null;
       }
       final gcpChanged =
           gcpConfig != null &&
@@ -739,19 +740,15 @@ class PackageBackend {
                   current?.gcpConfig?.serviceAccountEmail));
       if (gcpChanged) {
         p.publishingConfig?.gcpLock = null;
+        p.publishingConfig?.gcpDisabledInfo = null;
       }
 
       // finalize changes
       final publishingConfig = p.publishingConfig ?? PublishingConfig();
       p.publishingConfig = publishingConfig;
-      if (githubConfig != null) {
-        publishingConfig.githubConfig = githubConfig;
-        publishingConfig.githubDisabledInfo = null;
-      }
-      if (gcpConfig != null) {
-        publishingConfig.gcpConfig = gcpConfig;
-        publishingConfig.gcpDisabledInfo = null;
-      }
+      publishingConfig.githubConfig =
+          githubConfig ?? publishingConfig.githubConfig;
+      publishingConfig.gcpConfig = gcpConfig ?? publishingConfig.gcpConfig;
       publishingConfig.manualConfig =
           manualConfig ?? publishingConfig.manualConfig;
 

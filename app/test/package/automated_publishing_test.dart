@@ -137,7 +137,7 @@ void main() {
     );
 
     testWithProfile(
-      'update clears the disabled info of the updated section',
+      'update clears the disabled info of the changed section',
       fn: () async {
         final client = await createFakeAuthPubApiClient(
           email: adminAtPubDevEmail,
@@ -173,6 +173,34 @@ void main() {
               repository: 'dart-lang/pub-dev',
               tagPattern: '{{version}}',
               isWorkflowDispatchEventEnabled: true,
+            ),
+            gcp: GcpPublishingConfig(
+              isEnabled: true,
+              serviceAccountEmail: 'project@x.gserviceaccount.com',
+            ),
+          ),
+        );
+        final unchanged = await packageBackend.lookupPackage('oxygen');
+        expect(
+          unchanged!.publishingConfig!.githubDisabledInfo!.toJson(),
+          info.toJson(),
+        );
+        expect(
+          unchanged.publishingConfig!.gcpDisabledInfo!.toJson(),
+          info.toJson(),
+        );
+
+        await client.setAutomatedPublishing(
+          'oxygen',
+          PkgPublishingConfig(
+            github: GitHubPublishingConfig(
+              isEnabled: false,
+              repository: 'dart-lang/pub-dev',
+              tagPattern: '{{version}}',
+            ),
+            gcp: GcpPublishingConfig(
+              isEnabled: true,
+              serviceAccountEmail: 'project@x.gserviceaccount.com',
             ),
           ),
         );

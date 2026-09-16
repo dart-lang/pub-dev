@@ -464,14 +464,16 @@ class PublishingConfig {
   GitHubPublishingLock? githubLock;
 
   /// Set when publishing from GitHub Actions was disabled automatically,
-  /// cleared when the GitHub configuration is updated by a package admin.
+  /// cleared together with [githubLock] when a package admin changes the
+  /// enabled state or the repository of the GitHub configuration.
   AutomatedPublishingDisabledInfo? githubDisabledInfo;
   GcpPublishingConfig? gcpConfig;
   GcpPublishingLock? gcpLock;
 
   /// Set when publishing with a Google Cloud service account was disabled
-  /// automatically, cleared when the Google Cloud configuration is updated by
-  /// a package admin.
+  /// automatically, cleared together with [gcpLock] when a package admin
+  /// changes the enabled state or the service account email of the Google
+  /// Cloud configuration.
   AutomatedPublishingDisabledInfo? gcpDisabledInfo;
   ManualPublishingConfig? manualConfig;
 
