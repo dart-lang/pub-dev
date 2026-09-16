@@ -22,13 +22,18 @@ class GlobalLock {
   final String _lockId;
   final Duration _expiration;
   final DatastoreDB _db;
+  final PrimaryDatabase _primaryDatabase;
 
-  GlobalLock._(this._lockId, this._expiration, this._db);
+  GlobalLock._(this._lockId, this._expiration, this._db, this._primaryDatabase);
 
+  // Note: [dbService] and [primaryDatabase] are resolved here once, and
+  // then held onto directly. This ensures that claiming, refreshing and
+  // releasing the lock keeps working even if called after the current
+  // service scope has started exiting for a clean scope exit.
   static GlobalLock create(
     String lockId, {
     Duration expiration = const Duration(minutes: 25),
-  }) => GlobalLock._(lockId, expiration, dbService);
+  }) => GlobalLock._(lockId, expiration, dbService, primaryDatabase);
 
   /// Call [fn] while retaining a claim to this lock. This will wait until the
   /// lock is acquired.
@@ -112,6 +117,7 @@ class GlobalLock {
         state!.lockedUntil,
         _expiration,
         _db,
+        _primaryDatabase,
       );
     }
     return null;
@@ -126,7 +132,7 @@ class GlobalLock {
     try {
       final now = clock.now().toUtc();
       final lockedUntil = now.add(_expiration).toUtc();
-      final row = await primaryDatabase.withRetry(
+      final row = await _primaryDatabase.withRetry(
         (db) => db.globalLockStates
             .insertValue(
               lockId: _lockId,
@@ -168,7 +174,7 @@ class GlobalLock {
   }
 
   Future<_LockState?> _fetchSqlState() async {
-    final row = await primaryDatabase.withRetry(
+    final row = await _primaryDatabase.withRetry(
       (db) => db.globalLockStates.byKey(_lockId).fetch(),
     );
     if (row == null) {
@@ -216,6 +222,7 @@ class GlobalLock {
         state!.lockedUntil,
         _expiration,
         _db,
+        _primaryDatabase,
       );
     }
     throw TimeoutException(
@@ -257,6 +264,7 @@ class GlobalLockClaim {
   DateTime _lockedUntil;
   final Duration _expiration;
   final DatastoreDB _db;
+  final PrimaryDatabase _primaryDb;
   Future<void>? _released;
 
   GlobalLockClaim._(
@@ -265,6 +273,7 @@ class GlobalLockClaim {
     this._lockedUntil,
     this._expiration,
     this._db,
+    this._primaryDb,
   );
 
   /// `true`, if this claim to the lock is still valid.
@@ -292,7 +301,7 @@ class GlobalLockClaim {
   Future<bool> refresh() async {
     try {
       final newLockedUntil = clock.now().add(_expiration).toUtc();
-      final rows = await primaryDatabase.withRetry(
+      final rows = await _primaryDb.withRetry(
         (db) => db.globalLockStates
             .where(
               (row) =>
@@ -334,7 +343,7 @@ class GlobalLockClaim {
   Future<void> _release() async {
     final now = clock.now().toUtc();
     try {
-      final rows = await primaryDatabase.withRetry(
+      final rows = await _primaryDb.withRetry(
         (db) => db.globalLockStates
             .where(
               (row) =>
