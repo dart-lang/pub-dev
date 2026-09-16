@@ -329,5 +329,42 @@ void main() {
       );
       expect(message.bodyHtml, isNot(contains('- Commit:')));
     });
+
+    test('with GitHub Actions details (bot actor)', () {
+      final message = createPackageUploadedEmail(
+        packageName: 'pkg_foo',
+        packageVersion: '1.0.0',
+        displayId: 'service:github-actions',
+        authorizedUploaders: [EmailAddress('uploader@example.com')],
+        uploadMessages: [],
+        githubRepository: 'dart-lang/browser_launcher',
+        githubCommitSha: 'a1b2c3d4e5f67890123456789012345678901234',
+        githubRunId: '123456789',
+        githubRef: 'refs/tags/1.0.0',
+        githubActor: 'github-actions[bot]',
+      );
+      expect(
+        message.bodyText,
+        contains(
+          'GitHub Actions details:\n'
+          '- Repository: https://github.com/dart-lang/browser_launcher\n'
+          '- Tag: https://github.com/dart-lang/browser_launcher/releases/tag/1.0.0\n'
+          '- Commit: https://github.com/dart-lang/browser_launcher/commit/a1b2c3d4e5f67890123456789012345678901234\n'
+          '- Action run: https://github.com/dart-lang/browser_launcher/actions/runs/123456789\n'
+          '- Triggered by: @github-actions[bot]',
+        ),
+      );
+      expect(
+        message.bodyHtml,
+        contains(
+          'GitHub Actions details:<br/>\n'
+          '- Repository: <a href="https://github.com/dart-lang/browser_launcher">dart-lang&#47;browser_launcher</a><br/>\n'
+          '- Tag: <a href="https://github.com/dart-lang/browser_launcher/releases/tag/1.0.0"><code>1.0.0</code></a><br/>\n'
+          '- Commit: <a href="https://github.com/dart-lang/browser_launcher/commit/a1b2c3d4e5f67890123456789012345678901234"><code>a1b2c3d4e5f67890123456789012345678901234</code></a><br/>\n'
+          '- Action run: <a href="https://github.com/dart-lang/browser_launcher/actions/runs/123456789">#123456789</a><br/>\n'
+          '- Triggered by: @github-actions[bot]',
+        ),
+      );
+    });
   });
 }

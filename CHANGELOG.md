@@ -3,7 +3,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Added `githubDisabledInfo` and `gcpDisabledInfo` fields to `PublishingConfig`
-   (stored inside the JSON of `Package.publishingConfig`, no backfill needed).
+ * Bump runtimeVersion to `2026.09.14`.
+ * Note: started to unroll task versions and aborted tokens into SQL tables.
 
 ## `20260903t123900-all`
  * Bump runtimeVersion to `2026.09.01`.

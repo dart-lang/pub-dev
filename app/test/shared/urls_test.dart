@@ -257,6 +257,12 @@ void main() {
 
     test('user URL', () {
       expect(githubUserUrl('octocat').toString(), 'https://github.com/octocat');
+      expect(githubUserUrl('github-actions[bot]'), isNull);
+      expect(githubUserUrl('dependabot[bot]'), isNull);
+      expect(githubUserUrl('-invalid'), isNull);
+      expect(githubUserUrl('invalid-'), isNull);
+      expect(githubUserUrl('in--valid'), isNull);
+      expect(githubUserUrl(''), isNull);
     });
   });
 }
