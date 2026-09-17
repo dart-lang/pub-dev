@@ -6,23 +6,18 @@ import 'package:pub_semver/pub_semver.dart';
 /// Parses writable directory paths from the `SANDBOX_OUTPUT` or
 /// `SANDBOX_OUTPUT_JSON` environment variables.
 ///
-/// Only one of [sandboxOutput] (legacy colon-separated paths) or
-/// [sandboxOutputJson] (JSON-encoded list of strings) may be non-empty at a
-/// time.
+/// If [sandboxOutputJson] is non-empty, parses it as a JSON-encoded list of
+/// strings. Otherwise falls back to [sandboxOutput] (legacy colon-separated
+/// paths).
 ///
-/// Throws a [FormatException] if both are non-empty, or if
-/// [sandboxOutputJson] is not a valid JSON list of strings.
+/// Throws a [FormatException] if [sandboxOutputJson] is non-empty and not a
+/// valid JSON list of strings.
 List<String> parseSandboxOutput({
   String? sandboxOutput,
   String? sandboxOutputJson,
 }) {
   final hasLegacy = sandboxOutput != null && sandboxOutput.isNotEmpty;
   final hasJson = sandboxOutputJson != null && sandboxOutputJson.isNotEmpty;
-  if (hasLegacy && hasJson) {
-    throw FormatException(
-      'Only one of SANDBOX_OUTPUT or SANDBOX_OUTPUT_JSON may be configured at a time.',
-    );
-  }
   if (hasJson) {
     final decoded = json.decode(sandboxOutputJson);
     if (decoded is List && decoded.every((e) => e is String)) {

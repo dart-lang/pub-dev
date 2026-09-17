@@ -124,13 +124,13 @@ void main() {
       );
     });
 
-    test('throws FormatException when both are configured', () {
+    test('prefers SANDBOX_OUTPUT_JSON when both are configured', () {
       expect(
-        () => parseSandboxOutput(
+        parseSandboxOutput(
           sandboxOutput: '/tmp/a',
           sandboxOutputJson: '["/tmp/b"]',
         ),
-        throwsFormatException,
+        ['/tmp/b'],
       );
     });
 

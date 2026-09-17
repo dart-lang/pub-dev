@@ -74,8 +74,8 @@ The `bin/sandbox_runner.dart` executable launches gVisor sandboxes for isolated 
 | Variable                     | Description                                                                 |
 |------------------------------|-----------------------------------------------------------------------------|
 | `SANDBOX_NETWORK_ENABLED`    | Set to `"true"` to enable network access within the sandbox.                |
-| `SANDBOX_OUTPUT`             | Colon-separated list of writable directory paths within the sandbox (deprecated; mutually exclusive with `SANDBOX_OUTPUT_JSON`). |
-| `SANDBOX_OUTPUT_JSON`        | JSON-encoded list of writable directory paths within the sandbox (mutually exclusive with `SANDBOX_OUTPUT`). |
+| `SANDBOX_OUTPUT`             | Colon-separated list of writable directory paths within the sandbox (deprecated; used as fallback if `SANDBOX_OUTPUT_JSON` is not set). |
+| `SANDBOX_OUTPUT_JSON`        | JSON-encoded list of writable directory paths within the sandbox (preferred over `SANDBOX_OUTPUT`). |
 | `SANDBOX_DEBUG_LOG_DIR`      | Directory path for gVisor debug logs (optional, for local testing).         |
 
 ### Pass-Through Variables
