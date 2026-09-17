@@ -6,10 +6,8 @@ part of 'schema.dart';
 
 /// Tracks the client session, optionally with authenticated
 /// userId and cached profile information.
-///
-/// TODO: rename to `UserSession` after the Datastore migration is completed.
 @PrimaryKey(['sessionId'])
-abstract final class UserSessionRow extends Row {
+abstract final class UserSession extends Row {
   /// The session ID, a random UUID String.
   String get sessionId;
 

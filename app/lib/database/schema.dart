@@ -17,7 +17,7 @@ part 'schema.task.dart';
 abstract final class PrimarySchema extends Schema {
   // account tables
 
-  Table<UserSessionRow> get userSessions;
+  Table<UserSession> get userSessions;
 
   // global lock table
 

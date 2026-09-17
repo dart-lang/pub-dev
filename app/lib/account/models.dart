@@ -157,19 +157,8 @@ class LikeData {
   }
 }
 
-/// Tracks the client session, optionally with authenticated
-/// userId and cached profile information.
-@db.Kind(name: 'UserSession', idType: db.IdType.String)
-class UserSession extends db.ExpandoModel<String> {
-  /// Same as [id].
-  /// This is a v4 (random) UUID String.
-  String get sessionId => id as String;
-
-  UserSession();
-}
-
 /// Convenience helpers for the SQL-backed session row.
-extension UserSessionRowExt on UserSessionRow {
+extension UserSessionExt on UserSession {
   bool isExpired() => clock.now().isAfter(expires);
   Duration get maxAge => expires.difference(clock.now());
 }
@@ -181,7 +170,7 @@ final _imgParamPattern = RegExp(
   r'=(?:(?:[swh]\d+)|[cp])(?:-(?:(?:[swh]\d+)|[cp]))*$',
 );
 
-/// The cacheable version of [UserSessionRow].
+/// The cacheable version of [UserSession].
 @JsonSerializable()
 class SessionData {
   /// This is a v4 (random) UUID String that is set as a http cookie.
@@ -228,7 +217,7 @@ class SessionData {
     this.grantedScopes,
   });
 
-  factory SessionData.fromRow(UserSessionRow row) {
+  factory SessionData.fromRow(UserSession row) {
     return SessionData(
       sessionId: row.sessionId,
       userId: row.userId,
