@@ -158,7 +158,11 @@ class DatastoreStatusProvider extends NeatStatusProvider {
               updatedAt: excluded.updatedAt,
             ),
           )
-          .where((existing, _) => existing.etag.equalsValue(previousEtag))
+          .where(
+            (existing, _) =>
+                existing.etag.equalsValue(previousEtag) |
+                existing.etag.equalsValue(newEtag),
+          )
           .returnUpserted()
           .executeAndFetch(),
     );
