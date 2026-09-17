@@ -102,33 +102,35 @@ class DatastoreStatusProvider extends NeatStatusProvider {
 
   @override
   Future<List<int>> get() async {
-    final row = await primaryDatabase.transactWithRetry((db) async {
-      var row = await db.neatTaskStatuses
-          .byKey(_name, _runtimeVersionValue)
-          .fetch();
-      if (row != null) {
-        return row;
-      }
+    var row = await primaryDatabase.withRetry(
+      (db) => db.neatTaskStatuses.byKey(_name, _runtimeVersionValue).fetch(),
+    );
+    if (row == null) {
       final now = clock.now().toUtc();
       final etag = Ulid().toBase32(lowercase: true);
-      row = await db.neatTaskStatuses
-          .insertValue(
-            taskName: _name,
-            runtimeVersion: _runtimeVersionValue,
-            status: Uint8List(0),
-            etag: etag,
-            updatedAt: now,
-          )
-          .onConflict(.primaryKey)
-          .doNothing()
-          .returnInserted()
-          .executeAndFetch();
-      row ??= await db.neatTaskStatuses
-          .byKey(_name, _runtimeVersionValue)
-          .fetch();
-      return row;
-    });
-    _etag = row!.etag;
+      row = await primaryDatabase.withRetry((db) async {
+        final inserted = await db.neatTaskStatuses
+            .insertValue(
+              taskName: _name,
+              runtimeVersion: _runtimeVersionValue,
+              status: Uint8List(0),
+              etag: etag,
+              updatedAt: now,
+            )
+            .onConflict(.primaryKey)
+            .doNothing()
+            .returnInserted()
+            .executeAndFetch();
+        return inserted ??
+            await db.neatTaskStatuses
+                .byKey(_name, _runtimeVersionValue)
+                .fetch();
+      });
+    }
+    if (row == null) {
+      throw DatabaseException('Failed to initialize NeatTaskStatus row: $_id');
+    }
+    _etag = row.etag;
     return row.status;
   }
 
