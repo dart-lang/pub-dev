@@ -35,9 +35,10 @@ Future<void> main(List<String> args) async {
   /// The directory identified by `PUB_CACHE`.
   final pubCacheDir = _resolveDirectoryByEnvVar('PUB_CACHE');
 
-  /// The directories identified by `SANDBOX_OUTPUT` (if present, is writable).
+  /// The directories identified by `SANDBOX_OUTPUT` or `SANDBOX_OUTPUT_JSON` (if present, is writable).
   final outputFolders = parseSandboxOutput(
-    Platform.environment['SANDBOX_OUTPUT'],
+    sandboxOutput: Platform.environment['SANDBOX_OUTPUT'],
+    sandboxOutputJson: Platform.environment['SANDBOX_OUTPUT_JSON'],
   ).toSet().map(_resolveDirectory).nonNulls.toList();
 
   /// The directory identified by `XDG_CONFIG_HOME` (may be writable, depends on `SANDBOX_PROCESS_KIND`).

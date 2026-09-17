@@ -3,26 +3,40 @@ import 'dart:typed_data' show Uint8List, BytesBuilder;
 
 import 'package:pub_semver/pub_semver.dart';
 
-/// Parses the `SANDBOX_OUTPUT` environment variable value into a list of
-/// directory paths.
+/// Parses writable directory paths from the `SANDBOX_OUTPUT` or
+/// `SANDBOX_OUTPUT_JSON` environment variables.
 ///
-/// Expects a JSON-encoded list of strings (e.g. `["/tmp/a", "/tmp/b"]`), or
-/// returns an empty list if [rawSandboxOutput] is `null` or empty.
+/// Only one of [sandboxOutput] (legacy colon-separated paths) or
+/// [sandboxOutputJson] (JSON-encoded list of strings) may be non-empty at a
+/// time.
 ///
-/// Throws a [FormatException] if [rawSandboxOutput] is non-empty and not
-/// a valid JSON list of strings.
-List<String> parseSandboxOutput(String? rawSandboxOutput) {
-  if (rawSandboxOutput == null || rawSandboxOutput.isEmpty) {
-    return const <String>[];
+/// Throws a [FormatException] if both are non-empty, or if
+/// [sandboxOutputJson] is not a valid JSON list of strings.
+List<String> parseSandboxOutput({
+  String? sandboxOutput,
+  String? sandboxOutputJson,
+}) {
+  final hasLegacy = sandboxOutput != null && sandboxOutput.isNotEmpty;
+  final hasJson = sandboxOutputJson != null && sandboxOutputJson.isNotEmpty;
+  if (hasLegacy && hasJson) {
+    throw FormatException(
+      'Only one of SANDBOX_OUTPUT or SANDBOX_OUTPUT_JSON may be configured at a time.',
+    );
   }
-  final decoded = json.decode(rawSandboxOutput);
-  if (decoded is List && decoded.every((e) => e is String)) {
-    return decoded.cast<String>();
+  if (hasJson) {
+    final decoded = json.decode(sandboxOutputJson);
+    if (decoded is List && decoded.every((e) => e is String)) {
+      return decoded.cast<String>();
+    }
+    throw FormatException(
+      'Expected a JSON list of strings in SANDBOX_OUTPUT_JSON',
+      sandboxOutputJson,
+    );
   }
-  throw FormatException(
-    'Expected a JSON list of strings in SANDBOX_OUTPUT',
-    rawSandboxOutput,
-  );
+  if (hasLegacy) {
+    return sandboxOutput.split(':').where((e) => e.isNotEmpty).toList();
+  }
+  return const <String>[];
 }
 
 /// Convert chunked [stream] to [Uint8List].

@@ -99,23 +99,50 @@ void main() {
 
   group('parseSandboxOutput', () {
     test('handles null and empty input', () {
-      expect(parseSandboxOutput(null), isEmpty);
-      expect(parseSandboxOutput(''), isEmpty);
+      expect(parseSandboxOutput(), isEmpty);
+      expect(
+        parseSandboxOutput(sandboxOutput: '', sandboxOutputJson: ''),
+        isEmpty,
+      );
     });
 
-    test('parses JSON array of paths including paths with colons', () {
+    test('parses legacy colon-separated SANDBOX_OUTPUT', () {
+      expect(parseSandboxOutput(sandboxOutput: '/tmp/a:/tmp/b::/tmp/c'), [
+        '/tmp/a',
+        '/tmp/b',
+        '/tmp/c',
+      ]);
+    });
+
+    test('parses JSON array in SANDBOX_OUTPUT_JSON including colons', () {
       expect(
         parseSandboxOutput(
-          r'["/tmp/a","/tmp/with:colon","C:\\Users\\test\\out"]',
+          sandboxOutputJson:
+              r'["/tmp/a","/tmp/with:colon","C:\\Users\\test\\out"]',
         ),
         ['/tmp/a', '/tmp/with:colon', r'C:\Users\test\out'],
       );
     });
 
+    test('throws FormatException when both are configured', () {
+      expect(
+        () => parseSandboxOutput(
+          sandboxOutput: '/tmp/a',
+          sandboxOutputJson: '["/tmp/b"]',
+        ),
+        throwsFormatException,
+      );
+    });
+
     test('throws FormatException on invalid JSON or non-string list', () {
-      expect(() => parseSandboxOutput('/tmp/a:/tmp/b'), throwsFormatException);
-      expect(() => parseSandboxOutput('[invalid'), throwsFormatException);
-      expect(() => parseSandboxOutput('[123]'), throwsFormatException);
+      expect(
+        () => parseSandboxOutput(sandboxOutputJson: '[invalid'),
+        throwsFormatException,
+      );
+      expect(
+        () => parseSandboxOutput(sandboxOutputJson: '[123]'),
+        throwsFormatException,
+      );
     });
   });
 }
