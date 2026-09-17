@@ -8,6 +8,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded dependencies (incl. `ulid`).
  * Note: started to unroll task versions and aborted tokens into SQL tables.
  * Note: `GlobalLock` claims are now stored in SQL (mirrored best-effort into Datastore).
+ * Note: `neat_periodic_task` status data is now stored in SQL (mirrored best-effort into Datastore).
 
 ## `20260903t123900-all`
  * Bump runtimeVersion to `2026.09.01`.
