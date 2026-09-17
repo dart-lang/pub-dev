@@ -615,7 +615,7 @@ class AccountBackend {
       return null;
     }
     if (session.isExpired()) {
-      await _db.userSessions.expire(session.sessionId);
+      await _expireSession(session.sessionId);
       return null;
     }
     return session;
@@ -676,10 +676,10 @@ class AccountBackend {
   /// Deletes sessions associated with a [userId] or [sessionId].
   Future<void> deleteUserSessions({String? userId, String? sessionId}) async {
     if (sessionId != null) {
-      await _db.userSessions.expire(sessionId);
+      await _expireSession(sessionId);
     }
     if (userId != null) {
-      await _db.userSessions.expireAllForUserId(userId);
+      await _expireSessionsForUserId(userId);
     }
   }
 
@@ -688,8 +688,16 @@ class AccountBackend {
     final now = clock.now().toUtc();
     // account for possible clock skew
     final ts = now.subtract(Duration(minutes: 15));
-    final count = await _db.userSessions.expireAllBeforeTimestamp(ts);
-    _logger.info('Deleted $count UserSession entries.');
+    final sessionIds = await primaryDatabase.withRetry(
+      (db) => db.userSessions
+          .where((s) => s.expires.isBeforeValue(ts))
+          .select((s) => (s.sessionId,))
+          .fetch(),
+    );
+    for (final sessionId in sessionIds) {
+      await _expireSession(sessionId);
+    }
+    _logger.info('Deleted ${sessionIds.length} UserSession entries.');
   }
 
   /// Updates the moderated status of a user.
@@ -724,7 +732,7 @@ class AccountBackend {
         tx.insert(mc);
       }
     });
-    await _db.userSessions.expireAllForUserId(userId);
+    await _expireSessionsForUserId(userId);
     await purgeAccountCache(userId: userId);
   }
 
@@ -741,6 +749,27 @@ class AccountBackend {
     }
     return query.run();
   }
+
+  /// Scans for all sessions the user has, and invalidates them all.
+  Future<void> _expireSessionsForUserId(String userId) async {
+    final sessionIds = await primaryDatabase.withRetry(
+      (db) => db.userSessions
+          .where((session) => session.userId.equalsValue(userId))
+          .select((session) => (session.sessionId,))
+          .fetch(),
+    );
+    for (final sessionId in sessionIds) {
+      await _expireSession(sessionId);
+    }
+  }
+
+  /// Removes the session data from the SQL store and cache.
+  Future<void> _expireSession(String sessionId) async {
+    await primaryDatabase.withRetry(
+      (db) => db.userSessions.delete(sessionId).execute(),
+    );
+    await cache.userSessionData(sessionId).purge();
+  }
 }
 
 /// Purge [cache] entries for given [userId].
@@ -750,49 +779,4 @@ Future<void> purgeAccountCache({required String userId}) async {
     cache.publisherPage(userId).purgeAndRepeat(),
     cache.userUploaderOfPackages(userId).purgeAndRepeat(),
   ]);
-}
-
-/// Low-level, narrowly typed data access methods for [UserSessionRow] entity.
-extension UserSessionDatastoreDBExt on DatastoreDB {
-  _UserSessionDataAccess get userSessions => _UserSessionDataAccess();
-}
-
-class _UserSessionDataAccess {
-  /// Scans for all sessions the user has, and invalidates
-  /// them all.
-  Future<void> expireAllForUserId(String userId) async {
-    final rows = await primaryDatabase.withRetry(
-      (db) => db.userSessions
-          .where((session) => session.userId.equalsValue(userId))
-          .select((session) => (session.sessionId,))
-          .fetch(),
-    );
-    for (final sessionId in rows) {
-      await expire(sessionId);
-    }
-  }
-
-  /// Removes the session data from the SQL store and cache.
-  Future<void> expire(String sessionId) async {
-    await primaryDatabase.withRetry(
-      (db) => db.userSessions.delete(sessionId).execute(),
-    );
-    await cache.userSessionData(sessionId).purge();
-  }
-
-  /// Removes the session data that has expiry before [ts].
-  ///
-  /// Returns the number of deleted rows.
-  Future<int> expireAllBeforeTimestamp(DateTime ts) async {
-    final sessionIds = await primaryDatabase.withRetry(
-      (db) => db.userSessions
-          .where((s) => s.expires.isBeforeValue(ts))
-          .select((s) => (s.sessionId,))
-          .fetch(),
-    );
-    for (final sessionId in sessionIds) {
-      await expire(sessionId);
-    }
-    return sessionIds.length;
-  }
 }
