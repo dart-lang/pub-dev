@@ -103,7 +103,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
         }
         tx.insert(
           NeatTaskStatus.init(_name, isRuntimeVersioned: _isRuntimeVersioned)
-            ..etag = Ulid().toCanonical()
+            ..etag = Ulid().toBase32(lowercase: true)
             ..statusBase64 = base64.encode(<int>[]),
         );
       });
@@ -124,7 +124,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
       e ??= NeatTaskStatus.init(_name, isRuntimeVersioned: _isRuntimeVersioned);
       e
         ..statusBase64 = base64.encode(status ?? <int>[])
-        ..etag = Ulid().toCanonical()
+        ..etag = Ulid().toBase32(lowercase: true)
         ..updated = clock.now().toUtc();
       tx.insert(e);
       return e.etag;

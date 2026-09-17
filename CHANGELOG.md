@@ -2,7 +2,10 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Bump runtimeVersion to `2026.09.14`.
+ * Bump runtimeVersion to `2026.09.16`.
+ * Upgraded stable Dart analysis SDK to `3.13.4`
+ * Upgraded stable Flutter analysis SDK to `3.47.4`.
+ * Upgraded dependencies (incl. `ulid`).
  * Note: started to unroll task versions and aborted tokens into SQL tables.
  * Note: `GlobalLock` claims are now stored in SQL (mirrored best-effort into Datastore).
 
