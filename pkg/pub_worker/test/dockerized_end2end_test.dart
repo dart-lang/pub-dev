@@ -55,111 +55,107 @@ void main() {
     }
 
     // TODO: investigate why this is not running on GitHub properly
-    test(
-      'build and use docker image to analyze packages',
-      () async {
-        await buildWorkerDockerImage();
+    test('build and use docker image to analyze packages', () async {
+      await buildWorkerDockerImage();
 
-        final packagesWithScreenshots = {'google_fonts'};
-        final packages = ['retry', ...packagesWithScreenshots];
-        final versions = await Future.wait(
-          packages.map((p) => analyzePackage(p)),
+      final packagesWithScreenshots = {'google_fonts'};
+      final packages = ['retry', ...packagesWithScreenshots];
+      final versions = await Future.wait(
+        packages.map((p) => analyzePackage(p)),
+      );
+
+      for (var i = 0; i < packages.length; i++) {
+        final package = packages[i];
+        final version = versions[i];
+        final result = await server.waitForResult(package, version);
+
+        final logTxtBytes = await result.index.fetch('log.txt');
+        final logTxt = logTxtBytes == null
+            ? '[no log.txt]'
+            : utf8.decode(gzip.decode(logTxtBytes));
+
+        // verify unexpected failures
+        final unexpectedFragments = [
+          'Failed to run',
+          'certificate verification failed',
+          'access denied',
+        ];
+        for (final fragment in unexpectedFragments) {
+          if (logTxt.toLowerCase().contains(fragment.toLowerCase())) {
+            fail('Log contains "$fragment":\n$logTxt');
+          }
+        }
+
+        // verify log for sandboxed executions
+        final expectedFragments = [
+          'build/sandbox_runner /home/worker/dart/stable/bin/dart pub',
+          'build/sandbox_runner git',
+          'sandbox_runner /home/worker/dartdoc/build/dartdoc',
+          if (packagesWithScreenshots.contains(package))
+            'build/sandbox_runner webpinfo',
+        ];
+        for (final fragment in expectedFragments) {
+          expect(logTxt, contains(fragment));
+        }
+
+        final docIndex = await result.index.fetch('doc/index.html');
+        expect(
+          docIndex,
+          isNotNull,
+          reason: '$package must have documentation, see log:\n$logTxt',
         );
 
-        for (var i = 0; i < packages.length; i++) {
-          final package = packages[i];
-          final version = versions[i];
-          final result = await server.waitForResult(package, version);
+        final panaSummaryBytes = await result.index.fetch('summary.json');
+        expect(panaSummaryBytes, isNotNull);
+        final summary = Summary.fromJson(
+          json.decode(utf8.decode(gzip.decode(panaSummaryBytes!)))
+              as Map<String, dynamic>,
+        );
+        final report = summary.report!;
+        expect(report.maxPoints, greaterThan(100));
 
-          final logTxtBytes = await result.index.fetch('log.txt');
-          final logTxt = logTxtBytes == null
-              ? '[no log.txt]'
-              : utf8.decode(gzip.decode(logTxtBytes));
+        // check the presence of a license
+        expect(summary.tags, isNotNull);
+        expect(
+          summary.tags!.any(
+            (tag) => tag.startsWith('license:') && tag != 'license:unknown',
+          ),
+          isTrue,
+          reason: summary.tags.toString(),
+        );
 
-          // verify unexpected failures
-          final unexpectedFragments = [
-            'Failed to run',
-            'certificate verification failed',
-            'access denied',
-          ];
-          for (final fragment in unexpectedFragments) {
-            if (logTxt.toLowerCase().contains(fragment.toLowerCase())) {
-              fail('Log contains "$fragment":\n$logTxt');
-            }
-          }
-
-          // verify log for sandboxed executions
-          final expectedFragments = [
-            'build/sandbox_runner /home/worker/dart/stable/bin/dart pub',
-            'build/sandbox_runner git',
-            'sandbox_runner /home/worker/dartdoc/build/dartdoc',
-            if (packagesWithScreenshots.contains(package))
-              'build/sandbox_runner webpinfo',
-          ];
-          for (final fragment in expectedFragments) {
-            expect(logTxt, contains(fragment));
-          }
-
-          final docIndex = await result.index.fetch('doc/index.html');
+        if (packagesWithScreenshots.contains(package)) {
           expect(
-            docIndex,
-            isNotNull,
-            reason: '$package must have documentation, see log:\n$logTxt',
-          );
-
-          final panaSummaryBytes = await result.index.fetch('summary.json');
-          expect(panaSummaryBytes, isNotNull);
-          final summary = Summary.fromJson(
-            json.decode(utf8.decode(gzip.decode(panaSummaryBytes!)))
-                as Map<String, dynamic>,
-          );
-          final report = summary.report!;
-          expect(report.maxPoints, greaterThan(100));
-
-          // check the presence of a license
-          expect(summary.tags, isNotNull);
-          expect(
-            summary.tags!.any(
-              (tag) => tag.startsWith('license:') && tag != 'license:unknown',
-            ),
-            isTrue,
-            reason: summary.tags.toString(),
-          );
-
-          if (packagesWithScreenshots.contains(package)) {
-            expect(
-              summary.screenshots ?? [],
-              isNotEmpty,
-              reason: '$package must have screenshots, see log:\n$logTxt',
-            );
-          }
-
-          final failingReportSections = report.sections
-              .where((s) => s.grantedPoints != s.maxPoints)
-              .map((e) => e.summary)
-              .join('\n');
-          // allow points drop due to lints and other temporary issues
-          var expectedDrop = 10;
-          if (failingReportSections.contains(
-            "Issue tracker URL doesn't exist.",
-          )) {
-            expectedDrop += 10;
-          }
-          if (failingReportSections.contains(
-            "is deprecated and shouldn't be used",
-          )) {
-            expectedDrop += 10;
-          }
-          expect(
-            report.grantedPoints,
-            greaterThanOrEqualTo(report.maxPoints - expectedDrop),
-            reason: failingReportSections,
+            summary.screenshots ?? [],
+            isNotEmpty,
+            reason: '$package must have screenshots, see log:\n$logTxt',
           );
         }
 
-        // TODO: consider docker cleanup
-      },
-      timeout: Timeout(Duration(minutes: 15)),
-    );
+        final failingReportSections = report.sections
+            .where((s) => s.grantedPoints != s.maxPoints)
+            .map((e) => e.summary)
+            .join('\n');
+        // allow points drop due to lints and other temporary issues
+        var expectedDrop = 10;
+        if (failingReportSections.contains(
+          "Issue tracker URL doesn't exist.",
+        )) {
+          expectedDrop += 10;
+        }
+        if (failingReportSections.contains(
+          "is deprecated and shouldn't be used",
+        )) {
+          expectedDrop += 10;
+        }
+        expect(
+          report.grantedPoints,
+          greaterThanOrEqualTo(report.maxPoints - expectedDrop),
+          reason: failingReportSections,
+        );
+      }
+
+      // TODO: consider docker cleanup
+    }, timeout: Timeout(Duration(minutes: 15)));
   });
 }
