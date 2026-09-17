@@ -128,7 +128,7 @@ class DatastoreStatusProvider extends NeatStatusProvider {
       });
     }
     if (row == null) {
-      throw DatabaseException('Failed to initialize NeatTaskStatus row: $_id');
+      throw StateError('Failed to initialize NeatTaskStatus row: $_id');
     }
     _etag = row.etag;
     return row.status;
