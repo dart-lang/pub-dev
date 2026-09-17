@@ -70,7 +70,7 @@ Duration taskRetryDelay(int attempts) =>
 
 /// Derive the `pendingAt` field using [versions] and [lastDependencyChanged].
 ///
-/// When updating PackageState the pendingAt property is set to the minimum of:
+/// When updating Task the pendingAt property is set to the minimum of:
 ///   * `scheduled + 31 days` for any version,
 ///   * `scheduled + 24 hours` for any version where `dependencyChanged > scheduled`
 ///   * `scheduled + 3 hours * attempts^2` for any version where `attempts > 0 && attempts < 3`.
