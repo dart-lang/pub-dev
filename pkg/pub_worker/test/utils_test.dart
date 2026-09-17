@@ -96,4 +96,33 @@ void main() {
       false,
     );
   });
+
+  group('parseSandboxOutput', () {
+    test('handles null and empty input', () {
+      expect(parseSandboxOutput(null), isEmpty);
+      expect(parseSandboxOutput(''), isEmpty);
+    });
+
+    test('parses legacy colon-separated paths', () {
+      expect(parseSandboxOutput('/tmp/a:/tmp/b::/tmp/c'), [
+        '/tmp/a',
+        '/tmp/b',
+        '/tmp/c',
+      ]);
+    });
+
+    test('parses JSON array of paths including paths with colons', () {
+      expect(
+        parseSandboxOutput(
+          r'["/tmp/a","/tmp/with:colon","C:\\Users\\test\\out"]',
+        ),
+        ['/tmp/a', '/tmp/with:colon', r'C:\Users\test\out'],
+      );
+    });
+
+    test('throws FormatException on invalid JSON or non-string list', () {
+      expect(() => parseSandboxOutput('[invalid'), throwsFormatException);
+      expect(() => parseSandboxOutput('[123]'), throwsFormatException);
+    });
+  });
 }

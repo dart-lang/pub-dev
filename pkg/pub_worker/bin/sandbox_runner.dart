@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:pub_worker/src/utils.dart';
 import 'package:runsc/runsc.dart';
 
 /// Runs the provided [args] list and runs it in a sandbox.
@@ -35,13 +36,9 @@ Future<void> main(List<String> args) async {
   final pubCacheDir = _resolveDirectoryByEnvVar('PUB_CACHE');
 
   /// The directories identified by `SANDBOX_OUTPUT` (if present, is writable).
-  final outputFolders = (Platform.environment['SANDBOX_OUTPUT'] ?? '')
-      .split(':')
-      .toSet()
-      .where((e) => e.isNotEmpty)
-      .map(_resolveDirectory)
-      .nonNulls
-      .toList();
+  final outputFolders = parseSandboxOutput(
+    Platform.environment['SANDBOX_OUTPUT'],
+  ).toSet().map(_resolveDirectory).nonNulls.toList();
 
   /// The directory identified by `XDG_CONFIG_HOME` (may be writable, depends on `SANDBOX_PROCESS_KIND`).
   final configHomeDir = _resolveDirectoryByEnvVar('XDG_CONFIG_HOME');
