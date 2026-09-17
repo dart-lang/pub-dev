@@ -47,6 +47,10 @@ class PrimaryDatabase {
   late final _dialect = SqlDialect.postgres();
   late final _db = Database<PrimarySchema>(_adapter, _dialect);
 
+  /// The underlying database adapter for testing.
+  @visibleForTesting
+  DatabaseAdapter get adapterForTesting => _adapter;
+
   /// Gets the connection string either from the environment variable or from
   /// the secret backend, connects to it and registers the primary database
   /// service in the current scope.
