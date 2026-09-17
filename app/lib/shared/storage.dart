@@ -403,15 +403,10 @@ class VersionedJsonStorage {
 
   /// Upload the current data to the storage bucket.
   ///
-  /// [map] is encoded into a temporary file, and the tar + gzip encoding and
-  /// the upload are streamed from that file. Peak memory use is therefore
-  /// independent of the payload size.
-  ///
-  /// This matters because the payload can be large: the search snapshot is
-  /// ~1.5 GB of JSON. Encoding it into a single byte array, as this used to
-  /// do, allocated that much in one contiguous chunk, which stalled *every*
-  /// isolate sharing the heap — including the main isolate serving the health
-  /// checks — for long enough that AppEngine killed the instance.
+  /// [map] is encoded into a temporary file so the uncompressed byte length is
+  /// known for the tar header without holding the encoded JSON in memory. The
+  /// tar + gzip encoding and the bucket upload are then streamed from that file,
+  /// keeping peak memory independent of the payload size.
   Future<void> uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final tarGzObjectName = _tarGzObjectName();
     try {
@@ -563,8 +558,7 @@ final _chunkedJsonUtf8Encoder = JsonUtf8Encoder(null, null, 64 * 1024);
 ///
 /// The writes are deliberately synchronous: an asynchronous sink would queue
 /// the chunks up instead, which reintroduces the full-payload allocation this
-/// exists to avoid. It also means the chunks may safely be views into a buffer
-/// that the encoder reuses.
+/// exists to avoid.
 ///
 /// It is an error to call this with an [object] that the JSON encoder cannot
 /// handle; see [JsonUtf8Encoder].
@@ -581,8 +575,9 @@ int _writeAsJsonSync(Object? object, File file) {
   }
 }
 
-/// A [Sink] that writes the byte chunks it receives straight through to a file.
-final class _CountingFileSink implements Sink<List<int>> {
+/// A [ByteConversionSink] that writes the byte chunks it receives straight
+/// through to a file without copying slices.
+final class _CountingFileSink extends ByteConversionSink {
   final RandomAccessFile _raf;
 
   /// The number of bytes written so far.
@@ -591,9 +586,13 @@ final class _CountingFileSink implements Sink<List<int>> {
   _CountingFileSink(this._raf);
 
   @override
-  void add(List<int> data) {
-    _raf.writeFromSync(data);
-    length += data.length;
+  void add(List<int> chunk) => addSlice(chunk, 0, chunk.length, false);
+
+  @override
+  void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    _raf.writeFromSync(chunk, start, end);
+    length += end - start;
+    if (isLast) close();
   }
 
   @override
