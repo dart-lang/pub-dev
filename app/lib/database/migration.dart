@@ -35,11 +35,27 @@ abstract final class SchemaMigration extends Row {
 /// Executes migrations [scripts] in alphabetical order into
 /// the [target] database, tracking the updates in the schema
 /// migrations [table].
+///
+/// If all migrations in [scripts] have already been applied to [table] and
+/// [table] contains additional migrations with names alphabetically after the
+/// last script in [scripts] (for example, when running an older application
+/// version against a database migrated by a newer version), no new migrations
+/// are executed and [onWarning] is invoked with a summary of the newer
+/// migrations.
+///
+/// It is an error if:
+/// * [scripts] contains duplicate script names.
+/// * Any existing migration in [table] has a different SHA-256 hash than the
+///   corresponding script in [scripts].
+/// * [table] contains unknown migrations that precede the last script in
+///   [scripts], or unknown migrations exist while one or more scripts in
+///   [scripts] have not yet been applied.
 Future<void> migrateScripts({
   required DatabaseAdapter target,
   required Table<SchemaMigration> table,
   required String schemaName,
   required List<({String name, String content})> scripts,
+  void Function(String message)? onWarning,
 }) async {
   scripts.sort((a, b) => a.name.compareTo(b.name));
 
@@ -69,21 +85,40 @@ Future<void> migrateScripts({
     }
   }
 
-  // early exit if everything matches
-  if (scripts.length == existingRows.length &&
-      existingRows.every((row) => hashes.containsKey(row.scriptName))) {
-    return;
-  }
+  final existingNames = existingRows.map((r) => r.scriptName).toSet();
+  final allLocalScriptsApplied = hashes.keys.every(existingNames.contains);
 
-  // check if all the rows have corresponding scripts
+  // Check if all the rows have corresponding scripts.
+  // If all local scripts are already applied, allow extra rows in the database
+  // only if they are alphabetically after all local scripts (e.g. when running
+  // an older version alongside or rolling back from a newer version).
+  final lastScriptName = scripts.lastOrNull?.name;
   final rowsWithoutScript = existingRows
       .where((row) => !hashes.containsKey(row.scriptName))
       .toList();
   if (rowsWithoutScript.isNotEmpty) {
-    throw ArgumentError(
-      'Existing history without local files (${rowsWithoutScript.length} items): '
+    final isForwardCompatible =
+        allLocalScriptsApplied &&
+        lastScriptName != null &&
+        rowsWithoutScript.every(
+          (row) => row.scriptName.compareTo(lastScriptName) > 0,
+        );
+    if (!isForwardCompatible) {
+      throw ArgumentError(
+        'Existing history without local files (${rowsWithoutScript.length} items): '
+        '${rowsWithoutScript.take(5).map((row) => '`${row.scriptName}`').join(', ')}',
+      );
+    }
+    onWarning?.call(
+      'Database schema `$schemaName` contains ${rowsWithoutScript.length} newer '
+      'migration(s) not present locally: '
       '${rowsWithoutScript.take(5).map((row) => '`${row.scriptName}`').join(', ')}',
     );
+  }
+
+  // early exit if all local scripts are already applied
+  if (allLocalScriptsApplied) {
+    return;
   }
 
   // update attempts
