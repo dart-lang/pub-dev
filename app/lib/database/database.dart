@@ -169,7 +169,6 @@ class PrimaryDatabase {
       table: migrationDb.schemaMigrations,
       schemaName: 'pub-dev-primary',
       scripts: scripts,
-      onWarning: _logger.warning,
     );
   }
 

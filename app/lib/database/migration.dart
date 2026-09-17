@@ -40,8 +40,7 @@ abstract final class SchemaMigration extends Row {
 /// [table] contains additional migrations with names alphabetically after the
 /// last script in [scripts] (for example, when running an older application
 /// version against a database migrated by a newer version), no new migrations
-/// are executed and [onWarning] is invoked with a summary of the newer
-/// migrations.
+/// are executed.
 ///
 /// It is an error if:
 /// * [scripts] contains duplicate script names.
@@ -55,7 +54,6 @@ Future<void> migrateScripts({
   required Table<SchemaMigration> table,
   required String schemaName,
   required List<({String name, String content})> scripts,
-  void Function(String message)? onWarning,
 }) async {
   scripts.sort((a, b) => a.name.compareTo(b.name));
 
@@ -109,11 +107,6 @@ Future<void> migrateScripts({
         '${rowsWithoutScript.take(5).map((row) => '`${row.scriptName}`').join(', ')}',
       );
     }
-    onWarning?.call(
-      'Database schema `$schemaName` contains ${rowsWithoutScript.length} newer '
-      'migration(s) not present locally: '
-      '${rowsWithoutScript.take(5).map((row) => '`${row.scriptName}`').join(', ')}',
-    );
   }
 
   // early exit if all local scripts are already applied

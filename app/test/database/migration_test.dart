@@ -36,7 +36,6 @@ void main() {
           );
 
           // 2. Older version (only knows about 000001 and 000002) runs migrateScripts.
-          final warnings = <String>[];
           await migrateScripts(
             target: adapter,
             table: table,
@@ -45,17 +44,12 @@ void main() {
               (name: '000001_first.sql', content: 'SELECT 1;'),
               (name: '000002_second.sql', content: 'SELECT 2;'),
             ],
-            onWarning: warnings.add,
           );
 
-          expect(warnings, hasLength(1));
-          expect(
-            warnings.single,
-            contains(
-              'Database schema `test-forward-compat` contains 1 newer migration(s) '
-              'not present locally: `000003_third.sql`',
-            ),
-          );
+          final rows = await table
+              .where((m) => m.schemaName.equalsValue(schemaName))
+              .fetch();
+          expect(rows, hasLength(3));
         });
       },
     );
