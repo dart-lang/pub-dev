@@ -6,26 +6,23 @@ import 'package:pub_semver/pub_semver.dart';
 /// Parses the `SANDBOX_OUTPUT` environment variable value into a list of
 /// directory paths.
 ///
-/// Supports both a JSON-encoded list of strings (e.g. `["/tmp/a", "/tmp/b"]`)
-/// and a legacy colon-separated string (e.g. `/tmp/a:/tmp/b`).
+/// Expects a JSON-encoded list of strings (e.g. `["/tmp/a", "/tmp/b"]`), or
+/// returns an empty list if [rawSandboxOutput] is `null` or empty.
 ///
-/// Throws a [FormatException] if [rawSandboxOutput] starts with `[` but is not
+/// Throws a [FormatException] if [rawSandboxOutput] is non-empty and not
 /// a valid JSON list of strings.
 List<String> parseSandboxOutput(String? rawSandboxOutput) {
   if (rawSandboxOutput == null || rawSandboxOutput.isEmpty) {
     return const <String>[];
   }
-  if (rawSandboxOutput.startsWith('[')) {
-    final decoded = json.decode(rawSandboxOutput);
-    if (decoded is List && decoded.every((e) => e is String)) {
-      return decoded.cast<String>();
-    }
-    throw FormatException(
-      'Expected a JSON list of strings in SANDBOX_OUTPUT',
-      rawSandboxOutput,
-    );
+  final decoded = json.decode(rawSandboxOutput);
+  if (decoded is List && decoded.every((e) => e is String)) {
+    return decoded.cast<String>();
   }
-  return rawSandboxOutput.split(':').where((e) => e.isNotEmpty).toList();
+  throw FormatException(
+    'Expected a JSON list of strings in SANDBOX_OUTPUT',
+    rawSandboxOutput,
+  );
 }
 
 /// Convert chunked [stream] to [Uint8List].

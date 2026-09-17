@@ -103,14 +103,6 @@ void main() {
       expect(parseSandboxOutput(''), isEmpty);
     });
 
-    test('parses legacy colon-separated paths', () {
-      expect(parseSandboxOutput('/tmp/a:/tmp/b::/tmp/c'), [
-        '/tmp/a',
-        '/tmp/b',
-        '/tmp/c',
-      ]);
-    });
-
     test('parses JSON array of paths including paths with colons', () {
       expect(
         parseSandboxOutput(
@@ -121,6 +113,7 @@ void main() {
     });
 
     test('throws FormatException on invalid JSON or non-string list', () {
+      expect(() => parseSandboxOutput('/tmp/a:/tmp/b'), throwsFormatException);
       expect(() => parseSandboxOutput('[invalid'), throwsFormatException);
       expect(() => parseSandboxOutput('[123]'), throwsFormatException);
     });
