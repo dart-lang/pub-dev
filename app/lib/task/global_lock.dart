@@ -8,32 +8,29 @@ import 'package:clock/clock.dart';
 import 'package:logging/logging.dart' show Logger;
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
-import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/task/global_lock_models.dart';
 import 'package:typed_sql/typed_sql.dart';
 import 'package:ulid/ulid.dart' show Ulid;
 
 final _log = Logger('pub.global_lock');
 
-/// The claimId and expiration of a [GlobalLockState] row, as read from SQL.
+/// The claimId and expiration of a [GlobalLockStateRow] row, as read from SQL.
 typedef _LockState = ({String claimId, DateTime lockedUntil});
 
 class GlobalLock {
   final String _lockId;
   final Duration _expiration;
-  final DatastoreDB _db;
   final PrimaryDatabase _primaryDatabase;
 
-  GlobalLock._(this._lockId, this._expiration, this._db, this._primaryDatabase);
+  GlobalLock._(this._lockId, this._expiration, this._primaryDatabase);
 
-  // Note: [dbService] and [primaryDatabase] are resolved here once, and
-  // then held onto directly. This ensures that claiming, refreshing and
-  // releasing the lock keeps working even if called after the current
-  // service scope has started exiting for a clean scope exit.
+  // Note: [primaryDatabase] is resolved here once, and then held onto
+  // directly. This ensures that claiming, refreshing and releasing the lock
+  // keeps working even if called after the current service scope has started
+  // exiting for a clean scope exit.
   static GlobalLock create(
     String lockId, {
     Duration expiration = const Duration(minutes: 25),
-  }) => GlobalLock._(lockId, expiration, dbService, primaryDatabase);
+  }) => GlobalLock._(lockId, expiration, primaryDatabase);
 
   /// Call [fn] while retaining a claim to this lock. This will wait until the
   /// lock is acquired.
@@ -116,7 +113,6 @@ class GlobalLock {
         claimId,
         state!.lockedUntil,
         _expiration,
-        _db,
         _primaryDatabase,
       );
     }
@@ -124,10 +120,6 @@ class GlobalLock {
   }
 
   /// Try to claim the lock in SQL.
-  ///
-  /// On a successful SQL claim, the claim is mirrored (best-effort) into
-  /// Datastore, so that processes not yet switched to the SQL-based
-  /// implementation see it too.
   Future<_LockState?> _tryClaimOrGet(String claimId) async {
     try {
       final now = clock.now().toUtc();
@@ -158,12 +150,6 @@ class GlobalLock {
         // Someone else already holds an active claim in SQL.
         return await _fetchSqlState();
       }
-      await _mirrorToDatastore(
-        _db,
-        _lockId,
-        claimId: claimId,
-        lockedUntil: lockedUntil,
-      );
       return (claimId: row.claimId, lockedUntil: row.lockedUntil);
     } on DatabaseException catch (e, st) {
       // Note: primaryDatabase.withRetry will have retried this, so this
@@ -221,7 +207,6 @@ class GlobalLock {
         claimId,
         state!.lockedUntil,
         _expiration,
-        _db,
         _primaryDatabase,
       );
     }
@@ -239,31 +224,11 @@ bool _hasClaim(_LockState? state, String claimId) {
       state.lockedUntil.isAfter(clock.now().toUtc());
 }
 
-/// Best-effort mirror of a claim (or its release) into Datastore, so that
-/// processes not yet switched to the SQL-based implementation still see it.
-Future<void> _mirrorToDatastore(
-  DatastoreDB dbService,
-  String lockId, {
-  required String claimId,
-  required DateTime lockedUntil,
-}) async {
-  try {
-    final e = GlobalLockState()
-      ..id = lockId
-      ..claimId = claimId
-      ..lockedUntil = lockedUntil;
-    await dbService.commit(inserts: [e]);
-  } catch (e, st) {
-    _log.warning('Datastore GlobalLockState mirror failed: $lockId', e, st);
-  }
-}
-
 class GlobalLockClaim {
   final String _lockId;
   final String _claimId;
   DateTime _lockedUntil;
   final Duration _expiration;
-  final DatastoreDB _db;
   final PrimaryDatabase _primaryDb;
   Future<void>? _released;
 
@@ -272,7 +237,6 @@ class GlobalLockClaim {
     this._claimId,
     this._lockedUntil,
     this._expiration,
-    this._db,
     this._primaryDb,
   );
 
@@ -316,12 +280,6 @@ class GlobalLockClaim {
         return false;
       }
       _lockedUntil = newLockedUntil;
-      await _mirrorToDatastore(
-        _db,
-        _lockId,
-        claimId: _claimId,
-        lockedUntil: newLockedUntil,
-      );
       _log.info('refreshed claim $_claimId on $_lockId');
       return true;
     } on DatabaseException catch (e, st) {
@@ -363,8 +321,6 @@ class GlobalLockClaim {
       // Ignore write congestion if releasing the lock
       return;
     }
-    // Note: the release is not mirrored into Datastore. The mirrored claim
-    // there will simply expire at `lockedUntil` like any other claim.
     _log.info('releasing claim $_claimId on $_lockId');
   }
 }

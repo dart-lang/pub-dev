@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/task/global_lock_models.dart';
 
 final _logger = Logger('backfill_new_fields');
 
@@ -54,4 +55,6 @@ Future<void> backfillNewFields() async {
       });
     }
   }
+  _logger.info('Delete old GlobalLockState entities in Datastore');
+  await dbService.deleteWithQuery(dbService.query<GlobalLockState>());
 }
