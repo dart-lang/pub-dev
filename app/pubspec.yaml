@@ -51,7 +51,7 @@ dependencies:
   pana: '0.23.19'
   # 3rd-party packages with pinned versions
   mailer: '6.6.0'
-  postgres: '3.5.14'
+  postgres: '3.5.15'
   ulid: '2.2.0'
   tar: '2.0.2'
   api_builder:
