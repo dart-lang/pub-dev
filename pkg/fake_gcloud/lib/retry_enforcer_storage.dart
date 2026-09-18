@@ -40,6 +40,10 @@ void _verifyRetryOnStack() {
   if (firstRealFrame.contains('package:retry/')) {
     return;
   }
+  // detect `package:circuit_breaker` (see `pub_dev/shared/resilience.dart`)
+  if (firstRealFrame.contains('package:circuit_breaker/')) {
+    return;
+  }
   // detect lib/shared/utils.dart use
   if (firstRealFrame.contains('retryAsync')) {
     return;

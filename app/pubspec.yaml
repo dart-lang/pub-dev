@@ -10,6 +10,8 @@ dependencies:
   args: '^2.0.0'
   basics: ^0.10.0
   chunked_stream: ^1.1.0
+  circuit_breaker: ^0.1.0
+  circuit_breaker_http: ^0.1.0
   clock: ^1.1.0
   collection: ^1.18.0
   convert: '^3.0.0'

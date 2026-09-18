@@ -11,11 +11,14 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/frontend/dom/dom.dart' show isSelfClosing;
 import 'package:pub_dev/service/announcement/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/shared/resilience.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart' as xml;
 
 Future scoped(Function() func) {
   return fork(() async {
+    registerResilience(PubResilience.create());
+    registerScopeExitCallback(resilience.close);
     return func();
   });
 }
@@ -37,6 +40,8 @@ void scopedTest(
       try {
         await fork(() async {
           // double fork to allow further override
+          registerResilience(PubResilience.create());
+          registerScopeExitCallback(resilience.close);
           registerActiveConfiguration(Configuration.test());
           registerAnnouncementBackend(AnnouncementBackend());
           return await fork(() async => func());

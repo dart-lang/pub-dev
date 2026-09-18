@@ -33,6 +33,7 @@ import '../service/openid/openid_models.dart' show OpenIdData;
 import '../service/secret/backend.dart';
 import '../task/models.dart';
 import 'convert.dart';
+import 'resilience.dart';
 import 'versions.dart';
 
 final Logger _log = Logger('rediscache');
@@ -623,9 +624,18 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
   @override
   Future<T?> get(String key) async {
     try {
-      return await _delegate
-          .get(key)
-          .timeout(_defaultCacheReadTimeout, onTimeout: () => null);
+      return await resilience.redisCache.execute(
+        () => _delegate.get(key),
+        timeout: _defaultCacheReadTimeout,
+      );
+    } on CircuitBreakerOpenException {
+      // Redis is known to be unhealthy. A page render does a double-digit
+      // number of lookups, so paying `_defaultCacheReadTimeout` for each of
+      // them would dominate the latency of the request. Report a cache miss
+      // right away instead.
+      return null;
+    } on ResilienceTimeoutException catch (e) {
+      _log.info('Redis access timed out.', e);
     } on IntermittentCacheException catch (e) {
       _log.info('Redis access failed.', e);
     } catch (e, st) {
@@ -635,14 +645,26 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
   }
 
   @override
-  Future<void> purge(String key) => _delegate
-      .purge(key)
-      .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
+  Future<void> purge(String key) => _write(() => _delegate.purge(key));
 
   @override
-  Future<void> set(String key, T value, [Duration? ttl]) => _delegate
-      .set(key, value, ttl)
-      .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
+  Future<void> set(String key, T value, [Duration? ttl]) =>
+      _write(() => _delegate.set(key, value, ttl));
+
+  /// Runs a cache write, ignoring the failure modes that only mean the cache
+  /// did not get updated.
+  Future<void> _write(Future<void> Function() fn) async {
+    try {
+      await resilience.redisCache.execute(
+        fn,
+        timeout: _defaultCacheWriteTimeout,
+      );
+    } on CircuitBreakerOpenException {
+      // Redis is unhealthy, see `get`.
+    } on ResilienceTimeoutException {
+      // Same as the previous `.timeout(_, onTimeout: () => null)`.
+    }
+  }
 }
 
 extension EntryPurgeExt<T> on Entry<T> {

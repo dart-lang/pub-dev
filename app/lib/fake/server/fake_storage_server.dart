@@ -8,14 +8,29 @@ import 'dart:io';
 
 import 'package:chunked_stream/chunked_stream.dart';
 import 'package:fake_gcloud/mem_storage.dart';
+import 'package:gcloud/storage.dart';
+import 'package:googleapis/storage/v1.dart' show DetailedApiRequestError;
 import 'package:logging/logging.dart';
 import 'package:mime/mime.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 
-import '../../shared/storage.dart' show BucketExt;
-
 final _logger = Logger('storage');
+
+/// Returns the [ObjectInfo] of [name], or `null` when it does not exist.
+///
+/// This intentionally does not use `BucketExt.tryInfo` from
+/// `package:pub_dev/shared/storage.dart`: the backing storage is in-memory, so
+/// there is nothing to retry, and the server is also started outside of a
+/// service scope by `fake_server_entrypoint.dart`.
+Future<ObjectInfo?> _tryInfo(Bucket bucket, String name) async {
+  try {
+    return await bucket.info(name);
+  } on DetailedApiRequestError catch (e) {
+    if (e.status == 404) return null;
+    rethrow;
+  }
+}
 
 class FakeStorageServer {
   final MemStorage _storage;
@@ -54,7 +69,7 @@ class FakeStorageServer {
       final bucketName = segments.first;
       final objectName = segments.skip(1).join('/');
       final bucket = _storage.bucket(bucketName);
-      final exists = await bucket.tryInfo(objectName);
+      final exists = await _tryInfo(bucket, objectName);
       if (exists == null) {
         return Response.notFound('404 Not Found');
       }
@@ -72,7 +87,7 @@ class FakeStorageServer {
       final bucketName = segments.first;
       final objectName = segments.skip(1).join('/');
       final bucket = _storage.bucket(bucketName);
-      final exists = await bucket.tryInfo(objectName);
+      final exists = await _tryInfo(bucket, objectName);
       if (exists == null) {
         return Response.notFound('404 Not Found');
       }

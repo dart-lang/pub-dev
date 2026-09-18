@@ -22,3 +22,18 @@ workspace:
 
 dev_dependencies:
   lints: ^6.0.0
+
+# `circuit_breaker` and `circuit_breaker_http` are not published on pub.dev yet,
+# so the workspace pins them to a git commit.
+# TODO: drop this block once both packages are published.
+dependency_overrides:
+  circuit_breaker:
+    git:
+      url: https://github.com/sigurdm/circuit_breaker.git
+      path: pkgs/circuit_breaker
+      ref: a052dda6be20993a0c94f464ba7866f67084c730
+  circuit_breaker_http:
+    git:
+      url: https://github.com/sigurdm/circuit_breaker.git
+      path: pkgs/circuit_breaker_http
+      ref: a052dda6be20993a0c94f464ba7866f67084c730

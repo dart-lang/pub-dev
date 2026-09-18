@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:googleapis/secretmanager/v1.dart' as secretmanager;
@@ -13,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/monitoring.dart';
+import 'package:pub_dev/shared/resilience.dart';
 
 import 'models.dart';
 
@@ -72,8 +72,13 @@ final class GcpSecretBackend extends SecretBackend {
 
   Future<String?> _lookup(String id) async {
     try {
-      return await withRetryHttpClient(client: _client, (client) async {
-        final api = secretmanager.SecretManagerApi(client);
+      // The Secret Manager API only takes an `http.Client` at construction
+      // time and reports failures as `DetailedApiRequestError`, so resilience
+      // is applied around the call rather than inside the client. The resource
+      // is configured with a `statusCodeExtractor` that understands those
+      // errors.
+      return await resilience.secretManager.execute(() async {
+        final api = secretmanager.SecretManagerApi(_client);
         final secret = await api.projects.secrets.versions.access(
           'projects/${activeConfiguration.projectId}/secrets/$id/versions/latest',
         );
@@ -82,7 +87,7 @@ final class GcpSecretBackend extends SecretBackend {
           return null;
         }
         return utf8.decode(base64.decode(data));
-      });
+      }, retryOn: isTransientGcpError);
     } catch (e, st) {
       // Log the issue
       _log.pubNoticeShout(
