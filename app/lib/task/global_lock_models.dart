@@ -4,22 +4,8 @@
 
 import 'package:pub_dev/shared/datastore.dart' as db;
 
-/// [GlobalLockState] is used for locking in a distributed system.
-///
-///  * `id`, is the `lockId`.
-///  * `GlobalLockState` entities never have a parent.
+/// `GlobalLock` claims are now stored in SQL, this entity is only kept
+/// around to delete leftover entities from Datastore.
 @db.Kind(name: 'GlobalLockState', idType: db.IdType.String)
-class GlobalLockState extends db.ExpandoModel<String> {
-  /// Get the lockId
-  String? get lockId => id;
-
-  /// Unique ULID identifying the claim currently holding the lock.
-  ///
-  /// Empty, if not currently locked.
-  @db.StringProperty(required: true, indexed: false)
-  String? claimId;
-
-  /// DateTime at which point the lock becomes free again.
-  @db.DateTimeProperty(required: true)
-  DateTime? lockedUntil;
-}
+@Deprecated('No longer in use.')
+class GlobalLockState extends db.ExpandoModel<String> {}
