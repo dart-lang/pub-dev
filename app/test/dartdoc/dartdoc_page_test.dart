@@ -376,7 +376,7 @@ extension on XmlElement {
 
   XmlElement renameAndClone(String newName) {
     return XmlElement(
-      XmlName(newName),
+      XmlName.parts(newName),
       attributes.map((n) => n.copy()),
       children.map((n) => n.copy()),
       isSelfClosing,
