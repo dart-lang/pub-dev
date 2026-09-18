@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2026.09.18`.
+ * Upgraded dependencies (incl. `postgres`)
  * Note: Stopped mirroring `GlobalLock` entries to Datastore.
 
 ## `20260917t131800-all`

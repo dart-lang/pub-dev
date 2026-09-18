@@ -349,10 +349,10 @@ packages:
     dependency: transitive
     description:
       name: googleapis_auth
-      sha256: ea53b290aaf1fdff615c8d79091b02c9150ff81c48f7f3b7460598c444f3c50a
+      sha256: d31822528becea550f7c7a9ab73a4518e31e48f201ab574be7e141f262923f27
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.3"
+    version: "2.3.4"
   graphs:
     dependency: transitive
     description:
@@ -661,10 +661,10 @@ packages:
     dependency: transitive
     description:
       name: postgres
-      sha256: "123de5cbadc56a7e8d9fa485c780b6b56940b4081f4c74f3a5578682757c299b"
+      sha256: "8cff73f10dd29ea644b19eaf834c5ec333924dab50021312cd418d373867901b"
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.12"
+    version: "3.5.15"
   protobuf:
     dependency: transitive
     description:
@@ -693,10 +693,10 @@ packages:
     dependency: transitive
     description:
       name: puppeteer
-      sha256: "08b0fe9e119c0feec72c9a519f973119b1fc336c28576f3be8e42c6244269ed0"
+      sha256: "272fae28aa8491b76830fba82737007938c7f8a56d6d0aa314aee0298eb2a39f"
       url: "https://pub.dev"
     source: hosted
-    version: "3.20.0"
+    version: "3.26.0"
   retry:
     dependency: transitive
     description:
@@ -989,10 +989,10 @@ packages:
     dependency: transitive
     description:
       name: xml
-      sha256: "971043b3a0d3da28727e40ed3e0b5d18b742fa5a68665cca88e74b7876d5e025"
+      sha256: "67f0aff7be013d107995e9b75bf4e7f2c3ef2dfdb2c8e68024bba0a7fd5756a4"
       url: "https://pub.dev"
     source: hosted
-    version: "6.6.1"
+    version: "7.0.1"
   yaml:
     dependency: transitive
     description:
