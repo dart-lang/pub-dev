@@ -100,6 +100,11 @@ bool isTransientGcpError(Object error) {
 /// Each dependency is modelled as a named [BoundResource] with its own circuit
 /// breaker, retry budget and timeouts, so that a brownout in one dependency
 /// cannot exhaust the resources of the others.
+///
+// TODO: none of the thresholds, deadlines or window sizes below are derived
+//       from production measurements — they are plausible-looking defaults.
+//       Each resource needs its numbers picked from the observed latency and
+//       error rate of the dependency it guards before this is switched on.
 final class PubResilience {
   /// The context owning the circuit state of every resource below.
   final ResilienceContext context;
@@ -180,6 +185,13 @@ final class PubResilience {
   /// per hour per instance. A time-based failure window would never reach
   /// `minimumNumberOfCalls`, hence the count-based window over the last few
   /// calls.
+  ///
+  // TODO: `attemptTimeout`, `timeout` and the window size are guesses, not
+  //       measurements. The previous `withRetryHttpClient` path set no timeout
+  //       at all. A secret lookup failing means we degrade without the secret
+  //       (see `GcpSecretBackend._lookup`), so a too-short deadline here is a
+  //       silent feature outage rather than a visible error — check the real
+  //       Secret Manager latency before trusting these.
   late final BoundResource secretManager = context.resource(
     'secret-manager',
     config: httpResourceConfig(
@@ -198,6 +210,13 @@ final class PubResilience {
     ),
   );
 
+  // TODO: the deadlines below are guesses, they are not derived from measured
+  //       search service latency. They are also new behaviour: the previous
+  //       `withRetryHttpClient` path set no timeout at all, so a slow search
+  //       response used to be waited out rather than abandoned. Pick these from
+  //       the p99 of `/search` before relying on them, and note that
+  //       `attemptTimeout` below the real p99 turns a slow backend into a
+  //       self-inflicted outage.
   static ResourceConfig _searchServiceConfig() => httpResourceConfig(
     circuitBreaker: CircuitBreakerConfig(
       consecutiveFailuresThreshold: 5,
