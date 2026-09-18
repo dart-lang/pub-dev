@@ -729,10 +729,10 @@ void main() {
         final ps = await primaryDatabase.withRetry(
           (schema) => schema.taskLookupOrNull('neon'),
         );
-        expect(ps!.state.versions[v.version]?.secretToken, isNull);
-        expect(ps.state.abortedTokens, isNotEmpty);
+        expect(ps!.state!.versions[v.version]?.secretToken, isNull);
+        expect(ps.state!.abortedTokens, isNotEmpty);
         expect(
-          ps.state.abortedTokens.where((x) => x.token == v.token),
+          ps.state!.abortedTokens.where((x) => x.token == v.token),
           isNotEmpty,
         );
 
@@ -775,7 +775,7 @@ void main() {
           (schema) => schema.taskLookupOrNull('neon'),
         );
         expect(
-          ps!.state.abortedTokens.where((x) => x.token == v.token),
+          ps!.state!.abortedTokens.where((x) => x.token == v.token),
           isEmpty,
         );
 
