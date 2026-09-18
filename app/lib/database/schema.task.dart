@@ -16,7 +16,7 @@ abstract final class Task extends Row {
   String get runtimeVersion;
   String get package;
 
-  TaskState get state;
+  TaskState? get state;
 
   /// Next [DateTime] at which point some package version becomes pending.
   DateTime get pendingAt;

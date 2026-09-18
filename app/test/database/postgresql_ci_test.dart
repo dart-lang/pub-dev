@@ -78,7 +78,7 @@ void main() {
           expect(rows, hasLength(1));
           expect(rows.first.$1, 'foo');
           expect(rows.first.$2, runtimeVersion);
-          expect(rows.first.$3.toJson(), {
+          expect(rows.first.$3!.toJson(), {
             'versions': {'1.0.0': isNotNull},
             'abortedTokens': [],
           });

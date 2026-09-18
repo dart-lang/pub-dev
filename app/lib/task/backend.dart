@@ -429,13 +429,13 @@ class TaskBackend {
 
       // List versions that not tracked, but should be
       final untrackedVersions = [
-        ...versions.whereNot(task.state.versions.containsKey),
+        ...versions.whereNot(task.state!.versions.containsKey),
       ];
 
       // List of versions that are tracked, but don't exist. These have
       // probably been deselected by _versionsToTrack.
       final deselectedVersions = [
-        ...task.state.versions.keys.whereNot(versions.contains),
+        ...task.state!.versions.keys.whereNot(versions.contains),
       ];
 
       // There should never be an overlap between versions untracked and
@@ -454,7 +454,7 @@ class TaskBackend {
         return false;
       }
 
-      final oldState = task.state;
+      final oldState = task.state!;
       final newState = TaskState(
         abortedTokens: [
           ...oldState.versions.entries
@@ -467,7 +467,7 @@ class TaskBackend {
                   expires: vs.scheduled.add(maxTaskExecutionTime),
                 ),
               ),
-          ...task.state.abortedTokens,
+          ...task.state!.abortedTokens,
         ].where((t) => t.isNotExpired).take(50).toList(),
         versions: {
           // Remove versions that have been deselected
@@ -600,7 +600,7 @@ class TaskBackend {
     final versionState = _authorizeWorkerCallback(
       package,
       version,
-      task.state,
+      task.state!,
       token,
     );
 
@@ -735,7 +735,7 @@ class TaskBackend {
       final versionState = _authorizeWorkerCallback(
         package,
         version,
-        task.state,
+        task.state!,
         token,
       );
 
@@ -744,7 +744,7 @@ class TaskBackend {
 
       // Remove instanceName, zone, secretToken, and set attempts = 0
       final newVersions = {
-        ...task.state.versions,
+        ...task.state!.versions,
         version: versionState.complete(
           docs: hasDocIndexHtml,
           pana: summary != null,
@@ -763,7 +763,7 @@ class TaskBackend {
 
       final newState = TaskState(
         versions: newVersions,
-        abortedTokens: task.state.abortedTokens,
+        abortedTokens: task.state!.abortedTokens,
       );
       await db.tasks
           .byKey(runtimeVersion, package)
@@ -1050,7 +1050,7 @@ class TaskBackend {
         return PackageStateInfo(
           runtimeVersion: task.runtimeVersion,
           package: package,
-          versions: task.state.versions,
+          versions: task.state!.versions,
         );
       }
       return PackageStateInfo.empty(package: package);
@@ -1113,7 +1113,7 @@ class TaskBackend {
         throw InvalidInputException('No task found for "$packageName".');
       }
 
-      final versions = {...task.state.versions};
+      final versions = {...task.state!.versions};
       final targetVersions = versions.keys.toList();
       final abortedTokens = <AbortedTokenInfo>[];
       for (final v in targetVersions) {
@@ -1138,7 +1138,7 @@ class TaskBackend {
 
       final newAbortedTokens = [
         ...abortedTokens,
-        ...task.state.abortedTokens,
+        ...task.state!.abortedTokens,
       ].where((t) => t.isNotExpired).take(50).toList();
 
       final newState = TaskState(
@@ -1216,7 +1216,7 @@ class TaskBackend {
         if (task == null || task.hasNeverFinished) {
           continue;
         }
-        final bestVersion = task.state.versions.entries
+        final bestVersion = task.state!.versions.entries
             .where((e) => e.value.finished)
             .map((e) => Version.parse(e.key))
             .latestVersion;
@@ -1263,7 +1263,7 @@ class TaskBackend {
           }
           List<Version>? candidates;
           if (preferDocsCompleted) {
-            final finishedDocCandidates = task.state.versions.entries
+            final finishedDocCandidates = task.state!.versions.entries
                 .where((e) => e.value.docs)
                 .map((e) => Version.parse(e.key))
                 .toList();
@@ -1272,7 +1272,7 @@ class TaskBackend {
             }
           }
 
-          candidates ??= task.state.versions.entries
+          candidates ??= task.state!.versions.entries
               .where((e) => e.value.finished)
               .map((e) => Version.parse(e.key))
               .toList();
