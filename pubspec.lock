@@ -169,6 +169,24 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.2"
+  circuit_breaker:
+    dependency: "direct overridden"
+    description:
+      path: "pkgs/circuit_breaker"
+      ref: a052dda6be20993a0c94f464ba7866f67084c730
+      resolved-ref: a052dda6be20993a0c94f464ba7866f67084c730
+      url: "https://github.com/sigurdm/circuit_breaker.git"
+    source: git
+    version: "0.1.0"
+  circuit_breaker_http:
+    dependency: "direct overridden"
+    description:
+      path: "pkgs/circuit_breaker_http"
+      ref: a052dda6be20993a0c94f464ba7866f67084c730
+      resolved-ref: a052dda6be20993a0c94f464ba7866f67084c730
+      url: "https://github.com/sigurdm/circuit_breaker.git"
+    source: git
+    version: "0.1.0"
   cli_config:
     dependency: transitive
     description:

@@ -6,14 +6,15 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:_pub_shared/search/tags.dart';
-import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:http/http.dart' as http;
 
 import '../../account/like_backend.dart';
 import '../../frontend/request_context.dart';
 import '../shared/configuration.dart';
 import '../shared/redis_cache.dart' show cache;
+import '../shared/resilience.dart';
 import '../shared/utils.dart';
 
 import 'search_service.dart';
@@ -29,7 +30,10 @@ SearchClient get searchClient => ss.lookup(#_searchClient) as SearchClient;
 /// indexed data.
 class SearchClient {
   /// The HTTP client used for making calls to our search service.
-  final _httpClient = httpRetryClient();
+  ///
+  /// Deliberately without a retry wrapper: retries, per-attempt timeouts and
+  /// circuit breaking are applied by [PubResilience.searchService].
+  final _httpClient = http.Client();
 
   /// Before this timestamp we may use the fallback search service URL, which
   /// is the unversioned service URL, potentially getting responses from an
@@ -75,51 +79,62 @@ class SearchClient {
       packages = likedPackages.map((l) => l.package!).toList();
     }
 
-    // Returns the status code and the body of the last response, or null on timeout.
+    var data = query.toSearchRequestData();
+    if (userId != null && hasLikedByMeTag) {
+      final newQuery = data.query
+          ?.replaceAll(AccountTag.isLikedByMe, ' ')
+          .trim();
+      final newTags = data.tags!
+          .where((e) => e != AccountTag.isLikedByMe)
+          .toList();
+      data = data.replace(query: newQuery, tags: newTags, packages: packages);
+    }
+    final body = json.encode(data.toJson());
+
+    // Returns the status code and the body of the last response, or `null`
+    // when the service could not be reached at all.
     Future<({int statusCode, String? body})?> doCallHttpServiceEndpoint({
       String? prefix,
     }) async {
       final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;
+      // The versioned and the unversioned endpoint are separate resources: an
+      // unhealthy new version must not keep us from reaching the old one.
+      final resource = prefix == null
+          ? resilience.searchService
+          : resilience.fallbackSearchService;
+      // NOTE: Keeping the query parameter to help investigating logs.
+      final uri = Uri.parse(
+        '$httpHostPort/search',
+      ).replace(queryParameters: {'q': data.query});
       try {
-        return await withRetryHttpClient(
-          (client) async {
-            var data = query.toSearchRequestData();
-            if (userId != null && hasLikedByMeTag) {
-              final newQuery = data.query
-                  ?.replaceAll(AccountTag.isLikedByMe, ' ')
-                  .trim();
-              final newTags = data.tags!
-                  .where((e) => e != AccountTag.isLikedByMe)
-                  .toList();
-              data = data.replace(
-                query: newQuery,
-                tags: newTags,
-                packages: packages,
-              );
-            }
-            // NOTE: Keeping the query parameter to help investigating logs.
-            final uri = Uri.parse(
-              '$httpHostPort/search',
-            ).replace(queryParameters: {'q': data.query});
-            final rs = await client.post(
-              uri,
-              headers: {
-                ...?cloudTraceHeaders(),
-                'content-type': 'application/json',
-              },
-              body: json.encode(data.toJson()),
-            );
-            return (statusCode: rs.statusCode, body: rs.body);
-          },
-          client: _httpClient,
-          retryIf: (e) =>
-              (e is UnexpectedStatusException &&
-              e.statusCode == searchIndexNotReadyCode),
+        final rs = await resource.executeHttp(
+          _httpClient,
+          () => abortableRequest(
+            'POST',
+            uri,
+            headers: {
+              ...?cloudTraceHeaders(),
+              'content-type': 'application/json',
+            },
+            body: body,
+          ),
+          // The search endpoint is a read; `POST` is only used to carry the
+          // query, so replaying a request is safe.
+          idempotent: true,
+          validateStatus: (rs) => rs.statusCode == 200,
+          retryOn: (e) =>
+              HttpClassifier.isTransient(e) ||
+              (e is HttpResponseException &&
+                  e.statusCode == searchIndexNotReadyCode),
         );
-      } on TimeoutException {
-        return null;
-      } on UnexpectedStatusException catch (e) {
+        return (statusCode: rs.statusCode, body: rs.body);
+      } on HttpResponseException catch (e) {
         return (statusCode: e.statusCode, body: null);
+      } on ResilienceException {
+        // Circuit open, shed by the throttler, or out of time.
+        return null;
+      } on http.ClientException {
+        return null;
       }
     }
 
