@@ -21,7 +21,7 @@ import 'package:tar/tar.dart';
 
 import 'configuration.dart';
 import 'utils.dart'
-    show contentType, jsonUtf8Encoder, ByteArrayEqualsExt, DeleteCounts;
+    show contentType, withTempDirectory, ByteArrayEqualsExt, DeleteCounts;
 import 'versions.dart' as versions;
 
 final _gzip = GZipCodec();
@@ -341,10 +341,18 @@ Future<int> deleteBucketFolderRecursively(
 }
 
 /// Uploads content from [openStream] to the [bucket] as [objectName].
+///
+/// [length] is the total number of bytes [openStream] will emit, if it is
+/// known in advance. Pass `null` when it isn't, e.g. when the stream is
+/// compressed on the fly; the upload then uses a resumable upload instead of
+/// requiring the content to be buffered to determine its size.
+///
+/// [openStream] may be called more than once, as the upload is retried on
+/// transient failures, and must return an equivalent stream each time.
 Future uploadWithRetry(
   Bucket bucket,
   String objectName,
-  int length,
+  int? length,
   Stream<List<int>> Function() openStream, {
   ObjectMetadata? metadata,
 }) async {
@@ -394,23 +402,34 @@ class VersionedJsonStorage {
   }
 
   /// Upload the current data to the storage bucket.
+  ///
+  /// [map] is encoded into a temporary file so the uncompressed byte length is
+  /// known for the tar header without holding the encoded JSON in memory. The
+  /// tar + gzip encoding and the bucket upload are then streamed from that file,
+  /// keeping peak memory independent of the payload size.
   Future<void> uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final tarGzObjectName = _tarGzObjectName();
     try {
-      final contentBytes = jsonUtf8Encoder.convert(map);
-      final stream = Stream<TarEntry>.fromIterable([
-        TarEntry(
-          TarHeader(
-            name: 'snapshot.json',
-            size: contentBytes.length,
-            mode: 420, // 644₈
-          ),
-          Stream.fromIterable([contentBytes]),
-        ),
-      ]).transform(tarWriter).transform(_gzip.encoder);
-
-      final bytes = await readByteStream(stream);
-      await uploadBytesWithRetry(_bucket, tarGzObjectName, bytes);
+      await withTempDirectory((dir) async {
+        final jsonFile = File(p.join(dir.path, 'snapshot.json'));
+        final length = _writeAsJsonSync(map, jsonFile);
+        await uploadWithRetry(
+          _bucket,
+          tarGzObjectName,
+          // The compressed size isn't known until the stream is exhausted.
+          null,
+          () => Stream<TarEntry>.fromIterable([
+            TarEntry(
+              TarHeader(
+                name: 'snapshot.json',
+                size: length,
+                mode: 420, // 644₈
+              ),
+              jsonFile.openRead(),
+            ),
+          ]).transform(tarWriter).transform(_gzip.encoder),
+        );
+      }, prefix: 'versioned-json-storage');
     } catch (e, st) {
       _logger.warning('Unable to upload data file: $tarGzObjectName', e, st);
     }
@@ -525,6 +544,59 @@ class VersionedJsonStorage {
     version ??= versions.runtimeVersion;
     return '$_prefix$version$_tarGzExtension';
   }
+}
+
+/// Encodes JSON in 64 KiB chunks: large enough to keep the number of write
+/// syscalls down, small enough to stay clear of the large-object heap.
+final _chunkedJsonUtf8Encoder = JsonUtf8Encoder(null, null, 64 * 1024);
+
+/// Encodes [object] as UTF-8 JSON into [file], returning the number of bytes
+/// written.
+///
+/// The encoder emits its output in chunks, and every chunk is written to disk
+/// before the next one is produced, so only a single chunk is ever alive.
+///
+/// The writes are deliberately synchronous: an asynchronous sink would queue
+/// the chunks up instead, which reintroduces the full-payload allocation this
+/// exists to avoid.
+///
+/// It is an error to call this with an [object] that the JSON encoder cannot
+/// handle; see [JsonUtf8Encoder].
+int _writeAsJsonSync(Object? object, File file) {
+  final raf = file.openSync(mode: FileMode.writeOnly);
+  try {
+    final sink = _CountingFileSink(raf);
+    _chunkedJsonUtf8Encoder.startChunkedConversion(sink)
+      ..add(object)
+      ..close();
+    return sink.length;
+  } finally {
+    raf.closeSync();
+  }
+}
+
+/// A [ByteConversionSink] that writes the byte chunks it receives straight
+/// through to a file without copying slices.
+final class _CountingFileSink extends ByteConversionSink {
+  final RandomAccessFile _raf;
+
+  /// The number of bytes written so far.
+  int length = 0;
+
+  _CountingFileSink(this._raf);
+
+  @override
+  void add(List<int> chunk) => addSlice(chunk, 0, chunk.length, false);
+
+  @override
+  void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    _raf.writeFromSync(chunk, start, end);
+    length += end - start;
+    if (isLast) close();
+  }
+
+  @override
+  void close() {}
 }
 
 /// Additional methods on object metadata.
