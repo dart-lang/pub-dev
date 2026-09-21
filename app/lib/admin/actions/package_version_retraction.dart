@@ -4,6 +4,8 @@
 
 import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
+import '../../audit/backend.dart';
+import '../../audit/models.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../shared/datastore.dart';
@@ -63,6 +65,7 @@ value of `set-retracted`, which should either be `true` or `false`.
     }
 
     final versionKey = pkg.key.append(PackageVersion, id: version);
+    AuditLogRecord? auditLogRecord;
     final after = await withRetryTransaction(dbService, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
       final pv = await tx.lookupOrNull<PackageVersion>(versionKey);
@@ -74,7 +77,7 @@ value of `set-retracted`, which should either be `true` or `false`.
       }
 
       if (isRetracted != pv.isRetracted) {
-        await packageBackend.doUpdateRetractedStatus(
+        auditLogRecord = await packageBackend.doUpdateRetractedStatus(
           SupportAgent(),
           tx,
           p,
@@ -88,6 +91,9 @@ value of `set-retracted`, which should either be `true` or `false`.
         'isRetracted': pv.isRetracted,
       };
     });
+    if (auditLogRecord != null) {
+      await auditBackend.mirrorToSql(auditLogRecord!);
+    }
     triggerPackagePostUpdates(packageName);
 
     return {'before': before, 'after': after};

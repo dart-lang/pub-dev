@@ -14,6 +14,7 @@ import 'package:pub_dev/account/agent.dart';
 import '../account/auth_provider.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
+import '../audit/backend.dart';
 import '../audit/models.dart';
 import '../frontend/request_context.dart';
 import '../service/email/email_templates.dart';
@@ -208,6 +209,11 @@ class PublisherBackend {
 
     // Create the publisher
     final now = clock.now().toUtc();
+    final auditLogRecord = await AuditLogRecord.publisherCreated(
+      user: user,
+      publisherId: publisherId,
+    );
+    var created = false;
     await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
       final p = await tx.lookupOrNull<Publisher>(key);
@@ -226,6 +232,7 @@ class PublisherBackend {
       }
 
       // Create publisher
+      created = true;
       tx.queueMutations(
         inserts: [
           Publisher.init(
@@ -240,13 +247,13 @@ class PublisherBackend {
             ..created = now
             ..updated = now
             ..role = PublisherMemberRole.admin,
-          await AuditLogRecord.publisherCreated(
-            user: user,
-            publisherId: publisherId,
-          ),
+          auditLogRecord,
         ],
       );
     });
+    if (created) {
+      await auditBackend.mirrorToSql(auditLogRecord);
+    }
     await purgeAccountCache(userId: user.userId);
     await cache.allPublishersPage().purge();
 
@@ -299,6 +306,10 @@ class PublisherBackend {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     await requirePublisherAdmin(publisherId, user.userId);
+    final auditLogRecord = await AuditLogRecord.publisherUpdated(
+      user: user,
+      publisherId: publisherId,
+    );
     final p = await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
       final p = await tx.lookupValue<Publisher>(key);
@@ -361,14 +372,10 @@ class PublisherBackend {
       p.updated = clock.now().toUtc();
 
       tx.insert(p);
-      tx.insert(
-        await AuditLogRecord.publisherUpdated(
-          user: user,
-          publisherId: publisherId,
-        ),
-      );
+      tx.insert(auditLogRecord);
       return p;
     });
+    await auditBackend.mirrorToSql(auditLogRecord);
 
     await purgePublisherCache(publisherId);
     return _asPublisherInfo(p);
@@ -391,20 +398,20 @@ class PublisherBackend {
       'Invalid email: `$contactEmail`',
     );
 
+    final auditLogRecord = await AuditLogRecord.publisherContactInviteAccepted(
+      user: user,
+      publisherId: publisherId,
+      contactEmail: contactEmail,
+    );
     await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(Publisher, id: publisherId);
       final p = await tx.lookupValue<Publisher>(key);
       p.contactEmail = contactEmail;
       p.updated = clock.now().toUtc();
       tx.insert(p);
-      tx.insert(
-        await AuditLogRecord.publisherContactInviteAccepted(
-          user: user,
-          publisherId: publisherId,
-          contactEmail: contactEmail,
-        ),
-      );
+      tx.insert(auditLogRecord);
     });
+    await auditBackend.mirrorToSql(auditLogRecord);
   }
 
   /// Invites a user to become a publisher admin.
@@ -577,6 +584,7 @@ class PublisherBackend {
         memberToRemove: memberUser!,
       );
       await _db.commit(inserts: [auditLogRecord], deletes: [pm.key]);
+      await auditBackend.mirrorToSql(auditLogRecord);
     }
     await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);
@@ -594,6 +602,11 @@ class PublisherBackend {
       await requirePublisherAdmin(publisherId, consentRequestFromAgent);
     }
     final user = await accountBackend.lookupUserById(userId);
+    final auditLogRecord = await AuditLogRecord.publisherMemberInviteAccepted(
+      user: user!,
+      publisherId: publisherId,
+    );
+    var added = false;
     await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey
           .append(Publisher, id: publisherId)
@@ -601,6 +614,7 @@ class PublisherBackend {
       final member = await tx.lookupOrNull<PublisherMember>(key);
       if (member != null) return;
       final now = clock.now().toUtc();
+      added = true;
       tx.queueMutations(
         inserts: [
           PublisherMember()
@@ -610,13 +624,13 @@ class PublisherBackend {
             ..created = now
             ..updated = now
             ..role = PublisherMemberRole.admin,
-          await AuditLogRecord.publisherMemberInviteAccepted(
-            user: user!,
-            publisherId: publisherId,
-          ),
+          auditLogRecord,
         ],
       );
     });
+    if (added) {
+      await auditBackend.mirrorToSql(auditLogRecord);
+    }
     await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);
   }

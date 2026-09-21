@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:logging/logging.dart';
+import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/task/global_lock_models.dart';
@@ -57,4 +58,9 @@ Future<void> backfillNewFields() async {
   }
   _logger.info('Delete old GlobalLockState entities in Datastore');
   await dbService.deleteWithQuery(dbService.query<GlobalLockState>());
+
+  // NOTE: Keep these around until all of the audit log record is migrated to use SQL.
+  _logger.info('Backfilling audit log records...');
+  await auditBackend.backfillSqlFromDatastore();
+  await auditBackend.backfillDatastoreFromSql();
 }
