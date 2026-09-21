@@ -21,7 +21,7 @@ void main() {
       expect(list.map((l) => l.name).toSet(), {'test/$runtimeVersion.tar.gz'});
 
       final info = await bucket.info('test/$runtimeVersion.tar.gz');
-      expect(info.length, greaterThan(0));
+      expect(info.length, 103);
 
       expect(await storage.getContentAsJsonMapFromTarGz(), {'data': 1});
     });
