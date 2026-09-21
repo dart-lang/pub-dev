@@ -211,9 +211,6 @@ class SearchBackend {
     // start monitoring
     var lastQueryStarted = firstClaimed;
     while (claim.valid) {
-      // Sleeping before the first query lets the packages that were updated
-      // while the initial scan was running accumulate into a single upload,
-      // instead of triggering one right after the upload above.
       await (sleep ?? Future.delayed)(sleepDuration);
 
       final now = clock.now().toUtc();
