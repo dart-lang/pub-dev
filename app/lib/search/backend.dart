@@ -140,6 +140,7 @@ class SearchBackend {
   Future<void> doCreateAndUpdateSnapshot(
     GlobalLockClaim claim, {
     Duration sleepDuration = const Duration(minutes: 2),
+    Future<void> Function(Duration)? sleep,
     int concurrency = _defaultSnapshotBuildConcurrency,
   }) async {
     final firstClaimed = clock.now();
@@ -213,7 +214,7 @@ class SearchBackend {
       // Sleeping before the first query lets the packages that were updated
       // while the initial scan was running accumulate into a single upload,
       // instead of triggering one right after the upload above.
-      await Future.delayed(sleepDuration);
+      await (sleep ?? Future.delayed)(sleepDuration);
 
       final now = clock.now().toUtc();
       if (now.isAfter(workUntil)) {

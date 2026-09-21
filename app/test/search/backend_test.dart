@@ -50,50 +50,40 @@ void main() {
     testWithProfile(
       'picks up packages updated during the initial scan',
       fn: () async {
-        // The claim needs to outlive the clock jump below.
         final claim = FakeGlobalLockClaim(clock.now().add(Duration(hours: 1)));
-        final snapshotBuild = searchBackend.doCreateAndUpdateSnapshot(
+        var sleepCalls = 0;
+        await searchBackend.doCreateAndUpdateSnapshot(
           claim,
           concurrency: 2,
-          sleepDuration: Duration(seconds: 3),
+          sleep: (_) async {
+            sleepCalls++;
+            if (sleepCalls == 1) {
+              // The initial scan and first upload have just completed.
+              // Publish a package as if it happened during the initial scan,
+              // then advance the clock well past the 5-minute lookback window
+              // before allowing the first incremental query to run.
+              await importProfile(
+                profile: TestProfile(
+                  defaultUser: 'admin@pub.dev',
+                  generatedPackages: [
+                    GeneratedTestPackage(
+                      name: 'late_arrival',
+                      versions: [GeneratedTestVersion(version: '1.0.0')],
+                      publisher: 'example.com',
+                    ),
+                  ],
+                ),
+              );
+              clockControl.elapse(minutes: 30);
+            } else {
+              // Stop the loop after the first incremental iteration completes.
+              claim.expires = clock.now();
+            }
+          },
         );
 
-        // Wait for the initial scan to complete and upload its snapshot.
-        while (await searchBackend.fetchSnapshotDocuments() == null) {
-          await Future.delayed(Duration(milliseconds: 10));
-        }
-
-        // Publish a package as if it had happened while the initial scan was
-        // running, then move the clock well past the 5 minute window that the
-        // incremental query looks back by.
-        await importProfile(
-          profile: TestProfile(
-            defaultUser: 'admin@pub.dev',
-            generatedPackages: [
-              GeneratedTestPackage(
-                name: 'late_arrival',
-                versions: [GeneratedTestVersion(version: '1.0.0')],
-                publisher: 'example.com',
-              ),
-            ],
-          ),
-        );
-        clockControl.elapse(minutes: 30);
-
-        // The monitoring loop should pick the package up in its first query.
-        // The deadline uses wall-clock time, as [clock] is under test control.
-        final deadline = DateTime.now().add(Duration(seconds: 15));
-        var documents = await searchBackend.fetchSnapshotDocuments();
-        while (!documents!.any((d) => d.package == 'late_arrival') &&
-            DateTime.now().isBefore(deadline)) {
-          await Future.delayed(Duration(milliseconds: 50));
-          documents = await searchBackend.fetchSnapshotDocuments();
-        }
-
-        claim.expires = clock.now();
-        await snapshotBuild;
-
-        expect(documents.map((d) => d.package), contains('late_arrival'));
+        final documents = await searchBackend.fetchSnapshotDocuments();
+        expect(documents!.map((d) => d.package), contains('late_arrival'));
       },
     );
   });
