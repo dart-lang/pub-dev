@@ -341,18 +341,10 @@ Future<int> deleteBucketFolderRecursively(
 }
 
 /// Uploads content from [openStream] to the [bucket] as [objectName].
-///
-/// [length] is the total number of bytes [openStream] will emit, if it is
-/// known in advance. Pass `null` when it isn't, e.g. when the stream is
-/// compressed on the fly; the upload then uses a resumable upload instead of
-/// requiring the content to be buffered to determine its size.
-///
-/// [openStream] may be called more than once, as the upload is retried on
-/// transient failures, and must return an equivalent stream each time.
 Future uploadWithRetry(
   Bucket bucket,
   String objectName,
-  int? length,
+  int length,
   Stream<List<int>> Function() openStream, {
   ObjectMetadata? metadata,
 }) async {
@@ -403,31 +395,37 @@ class VersionedJsonStorage {
 
   /// Upload the current data to the storage bucket.
   ///
-  /// [map] is encoded into a temporary file so the uncompressed byte length is
-  /// known for the tar header without holding the encoded JSON in memory. The
-  /// tar + gzip encoding and the bucket upload are then streamed from that file,
-  /// keeping peak memory independent of the payload size.
+  /// [map] is encoded into a temporary JSON file and then compressed into a
+  /// temporary `.tar.gz` file on disk before streaming the upload, keeping peak
+  /// memory independent of the payload size while still providing the known
+  /// compressed byte length to the bucket upload.
   Future<void> uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final tarGzObjectName = _tarGzObjectName();
     try {
       await withTempDirectory((dir) async {
         final jsonFile = File(p.join(dir.path, 'snapshot.json'));
-        final length = _writeAsJsonSync(map, jsonFile);
+        final jsonLength = _writeAsJsonSync(map, jsonFile);
+        final tarGzFile = File(p.join(dir.path, 'snapshot.tar.gz'));
+        await Stream<TarEntry>.fromIterable([
+              TarEntry(
+                TarHeader(
+                  name: 'snapshot.json',
+                  size: jsonLength,
+                  mode: 420, // 644₈
+                ),
+                jsonFile.openRead(),
+              ),
+            ])
+            .transform(tarWriter)
+            .transform(_gzip.encoder)
+            .pipe(tarGzFile.openWrite());
+        await jsonFile.delete();
+        final tarGzLength = await tarGzFile.length();
         await uploadWithRetry(
           _bucket,
           tarGzObjectName,
-          // The compressed size isn't known until the stream is exhausted.
-          null,
-          () => Stream<TarEntry>.fromIterable([
-            TarEntry(
-              TarHeader(
-                name: 'snapshot.json',
-                size: length,
-                mode: 420, // 644₈
-              ),
-              jsonFile.openRead(),
-            ),
-          ]).transform(tarWriter).transform(_gzip.encoder),
+          tarGzLength,
+          tarGzFile.openRead,
         );
       }, prefix: 'versioned-json-storage');
     } catch (e, st) {
