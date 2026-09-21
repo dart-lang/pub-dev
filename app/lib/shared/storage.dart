@@ -566,25 +566,26 @@ final _chunkedJsonUtf8Encoder = JsonUtf8Encoder(null, null, 64 * 1024);
 int _writeAsJsonSync(Object? object, File file) {
   final randomAccessFile = file.openSync(mode: FileMode.writeOnly);
   try {
-    final sink = _CountingFileSink(randomAccessFile);
-    _chunkedJsonUtf8Encoder.startChunkedConversion(sink)
+    _chunkedJsonUtf8Encoder.startChunkedConversion(
+        _RandomAccessFileSink(randomAccessFile),
+      )
       ..add(object)
       ..close();
-    return sink.length;
   } finally {
     randomAccessFile.closeSync();
   }
+  return file.lengthSync();
 }
 
-/// A [ByteConversionSink] that writes chunks synchronously to [_file] and
-/// tracks the total number of bytes written.
-final class _CountingFileSink extends ByteConversionSink {
+/// A [ByteConversionSink] that writes chunks synchronously to [_file].
+///
+/// Extending [ByteConversionSink] rather than implementing [Sink] matters:
+/// [JsonUtf8Encoder.startChunkedConversion] otherwise adapts the sink and
+/// copies every chunk before handing it over.
+final class _RandomAccessFileSink extends ByteConversionSink {
   final RandomAccessFile _file;
 
-  /// The number of bytes written so far.
-  int length = 0;
-
-  _CountingFileSink(this._file);
+  _RandomAccessFileSink(this._file);
 
   @override
   void add(List<int> chunk) => addSlice(chunk, 0, chunk.length, false);
@@ -592,7 +593,6 @@ final class _CountingFileSink extends ByteConversionSink {
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
     _file.writeFromSync(chunk, start, end);
-    length += end - start;
     if (isLast) close();
   }
 
