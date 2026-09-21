@@ -557,34 +557,34 @@ final _chunkedJsonUtf8Encoder = JsonUtf8Encoder(null, null, 64 * 1024);
 /// backpressure to a synchronous caller and would buffer the entire encoded
 /// output in memory before flushing.
 int _writeAsJsonSync(Object? object, File file) {
-  final raf = file.openSync(mode: FileMode.writeOnly);
+  final randomAccessFile = file.openSync(mode: FileMode.writeOnly);
   try {
-    final sink = _CountingFileSink(raf);
+    final sink = _CountingFileSink(randomAccessFile);
     _chunkedJsonUtf8Encoder.startChunkedConversion(sink)
       ..add(object)
       ..close();
     return sink.length;
   } finally {
-    raf.closeSync();
+    randomAccessFile.closeSync();
   }
 }
 
-/// A [ByteConversionSink] that writes chunks synchronously to [_raf] and tracks
-/// the total number of bytes written.
+/// A [ByteConversionSink] that writes chunks synchronously to [_file] and
+/// tracks the total number of bytes written.
 final class _CountingFileSink extends ByteConversionSink {
-  final RandomAccessFile _raf;
+  final RandomAccessFile _file;
 
   /// The number of bytes written so far.
   int length = 0;
 
-  _CountingFileSink(this._raf);
+  _CountingFileSink(this._file);
 
   @override
   void add(List<int> chunk) => addSlice(chunk, 0, chunk.length, false);
 
   @override
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    _raf.writeFromSync(chunk, start, end);
+    _file.writeFromSync(chunk, start, end);
     length += end - start;
     if (isLast) close();
   }
