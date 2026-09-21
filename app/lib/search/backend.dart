@@ -140,7 +140,7 @@ class SearchBackend {
   Future<void> doCreateAndUpdateSnapshot(
     GlobalLockClaim claim, {
     Duration sleepDuration = const Duration(minutes: 2),
-    Future<void> Function(Duration)? sleep,
+    Future<void> Function()? onCycle,
     int concurrency = _defaultSnapshotBuildConcurrency,
   }) async {
     final firstClaimed = clock.now();
@@ -211,10 +211,13 @@ class SearchBackend {
     // start monitoring
     var lastQueryStarted = firstClaimed;
     while (claim.valid) {
-      await (sleep ?? Future.delayed)(sleepDuration);
+      await Future.delayed(sleepDuration);
+      if (onCycle != null) {
+        await onCycle();
+      }
 
       final now = clock.now().toUtc();
-      if (now.isAfter(workUntil)) {
+      if (!claim.valid || now.isAfter(workUntil)) {
         break;
       }
 

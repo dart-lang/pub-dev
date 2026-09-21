@@ -51,13 +51,14 @@ void main() {
       'picks up packages updated during the initial scan',
       fn: () async {
         final claim = FakeGlobalLockClaim(clock.now().add(Duration(hours: 1)));
-        var sleepCalls = 0;
+        var cycle = 0;
         await searchBackend.doCreateAndUpdateSnapshot(
           claim,
           concurrency: 2,
-          sleep: (_) async {
-            sleepCalls++;
-            if (sleepCalls == 1) {
+          sleepDuration: Duration.zero,
+          onCycle: () async {
+            cycle++;
+            if (cycle == 1) {
               // The initial scan and first upload have just completed.
               // Publish a package as if it happened during the initial scan,
               // then advance the clock well past the 5-minute lookback window
