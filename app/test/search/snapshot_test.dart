@@ -27,10 +27,7 @@ void main() {
     });
 
     scopedTest('Round-trips a payload spanning many encoder chunks', () async {
-      // The upload encodes the JSON in 64 KiB chunks, writing each one to disk
-      // before the next is produced, and the chunks may be views into a buffer
-      // that the encoder reuses. A payload well past that size is needed to
-      // exercise more than a single chunk.
+      // Exceeds the 64 KiB chunk size used when encoding snapshots to disk.
       final random = Random(123);
       final map = {
         for (var i = 0; i < 20000; i++)

@@ -393,12 +393,11 @@ class VersionedJsonStorage {
     }
   }
 
-  /// Upload the current data to the storage bucket.
+  /// Uploads [map] to the storage bucket as a `.tar.gz` archive containing
+  /// `snapshot.json`.
   ///
-  /// [map] is encoded into a temporary JSON file and then compressed into a
-  /// temporary `.tar.gz` file on disk before streaming the upload, keeping peak
-  /// memory independent of the payload size while still providing the known
-  /// compressed byte length to the bucket upload.
+  /// Stages the uncompressed JSON and the `.tar.gz` archive in temporary files
+  /// on disk so large snapshots (e.g. >1 GB) are never held in memory at once.
   Future<void> uploadDataAsJsonMap(Map<String, dynamic> map) async {
     final tarGzObjectName = _tarGzObjectName();
     try {
@@ -544,22 +543,19 @@ class VersionedJsonStorage {
   }
 }
 
-/// Encodes JSON in 64 KiB chunks: large enough to keep the number of write
-/// syscalls down, small enough to stay clear of the large-object heap.
+/// Uses a 64 KiB buffer (rather than [JsonUtf8Encoder]'s 256-byte default) to
+/// avoid tiny write syscalls while keeping buffers small enough for the Dart
+/// VM's nursery (objects >= 256 KiB allocate in old space).
 final _chunkedJsonUtf8Encoder = JsonUtf8Encoder(null, null, 64 * 1024);
 
-/// Encodes [object] as UTF-8 JSON into [file], returning the number of bytes
+/// Encodes [object] as UTF-8 JSON into [file] and returns the number of bytes
 /// written.
 ///
-/// The encoder emits its output in chunks, and every chunk is written to disk
-/// before the next one is produced, so only a single chunk is ever alive.
-///
-/// The writes are deliberately synchronous: an asynchronous sink would queue
-/// the chunks up instead, which reintroduces the full-payload allocation this
-/// exists to avoid.
-///
-/// It is an error to call this with an [object] that the JSON encoder cannot
-/// handle; see [JsonUtf8Encoder].
+/// Because [JsonUtf8Encoder.startChunkedConversion] emits all chunks
+/// synchronously during `add`, each chunk must be written with
+/// [RandomAccessFile.writeFromSync]; an async [IOSink] cannot apply
+/// backpressure to a synchronous caller and would buffer the entire encoded
+/// output in memory before flushing.
 int _writeAsJsonSync(Object? object, File file) {
   final raf = file.openSync(mode: FileMode.writeOnly);
   try {
@@ -573,8 +569,8 @@ int _writeAsJsonSync(Object? object, File file) {
   }
 }
 
-/// A [ByteConversionSink] that writes the byte chunks it receives straight
-/// through to a file without copying slices.
+/// A [ByteConversionSink] that writes chunks synchronously to [_raf] and tracks
+/// the total number of bytes written.
 final class _CountingFileSink extends ByteConversionSink {
   final RandomAccessFile _raf;
 
