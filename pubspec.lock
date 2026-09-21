@@ -661,10 +661,10 @@ packages:
     dependency: transitive
     description:
       name: postgres
-      sha256: "8cff73f10dd29ea644b19eaf834c5ec333924dab50021312cd418d373867901b"
+      sha256: a2a79fb36abeb11fc92b4a24867802e3c77bd67619515c138a03ead09ca2b23d
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.15"
+    version: "3.5.16"
   protobuf:
     dependency: transitive
     description:
