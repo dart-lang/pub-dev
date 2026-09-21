@@ -210,15 +210,21 @@ class SearchBackend {
     // start monitoring
     var lastQueryStarted = firstClaimed;
     while (claim.valid) {
+      // Sleeping before the first query lets the packages that were updated
+      // while the initial scan was running accumulate into a single upload,
+      // instead of triggering one right after the upload above.
+      await Future.delayed(sleepDuration);
+
       final now = clock.now().toUtc();
       if (now.isAfter(workUntil)) {
         break;
       }
 
+      // query updates since the previous query was started, which on the first
+      // iteration is when the initial scan started
+      final recentlyUpdated = await _queryRecentlyUpdated(lastQueryStarted);
       lastQueryStarted = now;
 
-      // query updates
-      final recentlyUpdated = await _queryRecentlyUpdated(lastQueryStarted);
       for (final e in recentlyUpdated.entries) {
         if (!claim.valid) {
           break;
@@ -236,8 +242,6 @@ class SearchBackend {
         await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
         lastUploadedSnapshotTimestamp = snapshot.updated!;
       }
-
-      await Future.delayed(sleepDuration);
     }
     await pool.close();
   }
