@@ -402,8 +402,14 @@ class VersionedJsonStorage {
     final tarGzObjectName = _tarGzObjectName();
     try {
       await withTempDirectory((dir) async {
+        // A tar header declares the entry size before its contents, so the
+        // JSON is encoded to a file first to learn its length.
         final jsonFile = File(p.join(dir.path, 'snapshot.json'));
         final jsonLength = _writeAsJsonSync(map, jsonFile);
+
+        // Likewise, the upload needs the compressed length up front, so the
+        // archive is also written to a file rather than streamed directly to
+        // the bucket.
         final tarGzFile = File(p.join(dir.path, 'snapshot.tar.gz'));
         await Stream<TarEntry>.fromIterable([
               TarEntry(
@@ -419,6 +425,7 @@ class VersionedJsonStorage {
             .transform(_gzip.encoder)
             .pipe(tarGzFile.openWrite());
         await jsonFile.delete();
+
         final tarGzLength = await tarGzFile.length();
         await uploadWithRetry(
           _bucket,
