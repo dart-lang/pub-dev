@@ -112,9 +112,10 @@ extension ToXmlExt on Node {
         final e = this as Element;
         final tag = e.localName ?? '';
         return xml.XmlElement(
-          xml.XmlName(tag),
+          xml.XmlName.parts(tag),
           e.attributes.entries.map(
-            (e) => xml.XmlAttribute(xml.XmlName(e.key.toString()), e.value),
+            (e) =>
+                xml.XmlAttribute(xml.XmlName.parts(e.key.toString()), e.value),
           ),
           e.nodes.map((e) => e.toXml()).toList(),
           isSelfClosing(tag),

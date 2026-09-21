@@ -51,7 +51,7 @@ dependencies:
   pana: '0.23.19'
   # 3rd-party packages with pinned versions
   mailer: '6.6.0'
-  postgres: '3.5.12'
+  postgres: '3.5.16'
   ulid: '2.2.0'
   tar: '2.0.2'
   api_builder:
@@ -64,5 +64,5 @@ dev_dependencies:
   shelf_router_generator: ^1.1.4
   source_gen: '^4.0.0'
   test: ^1.16.5
-  xml: ^6.0.0
+  xml: ^7.0.0
 
