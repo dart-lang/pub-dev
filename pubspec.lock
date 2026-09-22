@@ -917,10 +917,10 @@ packages:
     dependency: transitive
     description:
       name: typed_sql
-      sha256: "9f6cbb8313c35f645da9d593bef78c6e5e225452a5c0e53252840fccf70a4779"
+      sha256: "89a64360d43b69840bb0c5ed9e5d6004d83053129061c19cc24b913bf908a1b7"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.13"
+    version: "0.1.14"
   ulid:
     dependency: transitive
     description:

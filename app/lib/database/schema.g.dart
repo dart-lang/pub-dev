@@ -342,6 +342,61 @@ extension TableUserSessionExt on Table<UserSession> {
     ],
   );
 
+  /// Insert row into the `userSessions` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `userId`, `email`, `name`, `imageUrl`, `created`, `expires`, `authenticatedAt`, `csrfToken`, `openidNonce`, `accessToken`, `grantedScopes`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<UserSession> upsert({
+    required Expr<String> sessionId,
+    Expr<String?>? userId,
+    Expr<String?>? email,
+    Expr<String?>? name,
+    Expr<String?>? imageUrl,
+    required Expr<DateTime> created,
+    required Expr<DateTime> expires,
+    Expr<DateTime?>? authenticatedAt,
+    Expr<String?>? csrfToken,
+    Expr<String?>? openidNonce,
+    Expr<String?>? accessToken,
+    Expr<String?>? grantedScopes,
+  }) =>
+      insert(
+            sessionId: sessionId,
+            userId: userId,
+            email: email,
+            name: name,
+            imageUrl: imageUrl,
+            created: created,
+            expires: expires,
+            authenticatedAt: authenticatedAt,
+            csrfToken: csrfToken,
+            openidNonce: openidNonce,
+            accessToken: accessToken,
+            grantedScopes: grantedScopes,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              userId: excluded.userId,
+              email: excluded.email,
+              name: excluded.name,
+              imageUrl: excluded.imageUrl,
+              created: excluded.created,
+              expires: excluded.expires,
+              authenticatedAt: excluded.authenticatedAt,
+              csrfToken: excluded.csrfToken,
+              openidNonce: excluded.openidNonce,
+              accessToken: excluded.accessToken,
+              grantedScopes: excluded.grantedScopes,
+            ),
+          );
+
   /// Insert row into the `userSessions` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
@@ -376,6 +431,61 @@ extension TableUserSessionExt on Table<UserSession> {
       grantedScopes.asExpr,
     ],
   );
+
+  /// Insert row into the `userSessions` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `userId`, `email`, `name`, `imageUrl`, `created`, `expires`, `authenticatedAt`, `csrfToken`, `openidNonce`, `accessToken`, `grantedScopes`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<UserSession> upsertValue({
+    required String sessionId,
+    String? userId,
+    String? email,
+    String? name,
+    String? imageUrl,
+    required DateTime created,
+    required DateTime expires,
+    DateTime? authenticatedAt,
+    String? csrfToken,
+    String? openidNonce,
+    String? accessToken,
+    String? grantedScopes,
+  }) =>
+      insertValue(
+            sessionId: sessionId,
+            userId: userId,
+            email: email,
+            name: name,
+            imageUrl: imageUrl,
+            created: created,
+            expires: expires,
+            authenticatedAt: authenticatedAt,
+            csrfToken: csrfToken,
+            openidNonce: openidNonce,
+            accessToken: accessToken,
+            grantedScopes: grantedScopes,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              userId: excluded.userId,
+              email: excluded.email,
+              name: excluded.name,
+              imageUrl: excluded.imageUrl,
+              created: excluded.created,
+              expires: excluded.expires,
+              authenticatedAt: excluded.authenticatedAt,
+              csrfToken: excluded.csrfToken,
+              openidNonce: excluded.openidNonce,
+              accessToken: excluded.accessToken,
+              grantedScopes: excluded.grantedScopes,
+            ),
+          );
 
   /// Bulk insert rows into the `userSessions` table.
   ///
@@ -1081,6 +1191,27 @@ extension TableGlobalLockStateRowExt on Table<GlobalLockStateRow> {
     values: [lockId, claimId, lockedUntil],
   );
 
+  /// Insert row into the `globalLockStates` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `claimId`, `lockedUntil`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<GlobalLockStateRow> upsert({
+    required Expr<String> lockId,
+    required Expr<String> claimId,
+    required Expr<DateTime> lockedUntil,
+  }) => insert(lockId: lockId, claimId: claimId, lockedUntil: lockedUntil)
+      .onConflict(.primaryKey)
+      .update(
+        (_, excluded, set) =>
+            set(claimId: excluded.claimId, lockedUntil: excluded.lockedUntil),
+      );
+
   /// Insert row into the `globalLockStates` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
@@ -1093,6 +1224,27 @@ extension TableGlobalLockStateRowExt on Table<GlobalLockStateRow> {
     table: this,
     values: [lockId.asExpr, claimId.asExpr, lockedUntil.asExpr],
   );
+
+  /// Insert row into the `globalLockStates` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `claimId`, `lockedUntil`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<GlobalLockStateRow> upsertValue({
+    required String lockId,
+    required String claimId,
+    required DateTime lockedUntil,
+  }) => insertValue(lockId: lockId, claimId: claimId, lockedUntil: lockedUntil)
+      .onConflict(.primaryKey)
+      .update(
+        (_, excluded, set) =>
+            set(claimId: excluded.claimId, lockedUntil: excluded.lockedUntil),
+      );
 
   /// Bulk insert rows into the `globalLockStates` table.
   ///
@@ -1693,6 +1845,42 @@ extension TableTaskExt on Table<Task> {
     ],
   );
 
+  /// Insert row into the `tasks` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `state`, `pendingAt`, `lastDependencyChanged`, `finished`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<Task> upsert({
+    required Expr<String> runtimeVersion,
+    required Expr<String> package,
+    required Expr<TaskState> state,
+    required Expr<DateTime> pendingAt,
+    required Expr<DateTime> lastDependencyChanged,
+    required Expr<DateTime> finished,
+  }) =>
+      insert(
+            runtimeVersion: runtimeVersion,
+            package: package,
+            state: state,
+            pendingAt: pendingAt,
+            lastDependencyChanged: lastDependencyChanged,
+            finished: finished,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              state: excluded.state,
+              pendingAt: excluded.pendingAt,
+              lastDependencyChanged: excluded.lastDependencyChanged,
+              finished: excluded.finished,
+            ),
+          );
+
   /// Insert row into the `tasks` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
@@ -1715,6 +1903,42 @@ extension TableTaskExt on Table<Task> {
       finished.asExpr,
     ],
   );
+
+  /// Insert row into the `tasks` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `state`, `pendingAt`, `lastDependencyChanged`, `finished`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<Task> upsertValue({
+    required String runtimeVersion,
+    required String package,
+    required TaskState state,
+    required DateTime pendingAt,
+    required DateTime lastDependencyChanged,
+    required DateTime finished,
+  }) =>
+      insertValue(
+            runtimeVersion: runtimeVersion,
+            package: package,
+            state: state,
+            pendingAt: pendingAt,
+            lastDependencyChanged: lastDependencyChanged,
+            finished: finished,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              state: excluded.state,
+              pendingAt: excluded.pendingAt,
+              lastDependencyChanged: excluded.lastDependencyChanged,
+              finished: excluded.finished,
+            ),
+          );
 
   /// Bulk insert rows into the `tasks` table.
   ///
@@ -2507,6 +2731,26 @@ extension TableTaskDependencyExt on Table<TaskDependency> {
     values: [runtimeVersion, package, dependency],
   );
 
+  /// Insert row into the `taskDependencies` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// nothing, as all fields are part of the _primary key_,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<TaskDependency> upsert({
+    required Expr<String> runtimeVersion,
+    required Expr<String> package,
+    required Expr<String> dependency,
+  }) => insert(
+    runtimeVersion: runtimeVersion,
+    package: package,
+    dependency: dependency,
+  ).onConflict(.primaryKey).update((_, excluded, set) => set());
+
   /// Insert row into the `taskDependencies` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
@@ -2519,6 +2763,26 @@ extension TableTaskDependencyExt on Table<TaskDependency> {
     table: this,
     values: [runtimeVersion.asExpr, package.asExpr, dependency.asExpr],
   );
+
+  /// Insert row into the `taskDependencies` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// nothing, as all fields are part of the _primary key_,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<TaskDependency> upsertValue({
+    required String runtimeVersion,
+    required String package,
+    required String dependency,
+  }) => insertValue(
+    runtimeVersion: runtimeVersion,
+    package: package,
+    dependency: dependency,
+  ).onConflict(.primaryKey).update((_, excluded, set) => set());
 
   /// Bulk insert rows into the `taskDependencies` table.
   ///
@@ -3270,6 +3534,56 @@ extension TableTaskVersionExt on Table<TaskVersion> {
     ],
   );
 
+  /// Insert row into the `taskVersions` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `scheduledAt`, `attempts`, `workerZone`, `workerInstance`, `workerToken`, `hasDocs`, `hasPana`, `isFinished`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<TaskVersion> upsert({
+    required Expr<String> runtimeVersion,
+    required Expr<String> package,
+    required Expr<String> version,
+    required Expr<DateTime> scheduledAt,
+    required Expr<int> attempts,
+    Expr<String?>? workerZone,
+    Expr<String?>? workerInstance,
+    Expr<String?>? workerToken,
+    required Expr<bool> hasDocs,
+    required Expr<bool> hasPana,
+    required Expr<bool> isFinished,
+  }) =>
+      insert(
+            runtimeVersion: runtimeVersion,
+            package: package,
+            version: version,
+            scheduledAt: scheduledAt,
+            attempts: attempts,
+            workerZone: workerZone,
+            workerInstance: workerInstance,
+            workerToken: workerToken,
+            hasDocs: hasDocs,
+            hasPana: hasPana,
+            isFinished: isFinished,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              scheduledAt: excluded.scheduledAt,
+              attempts: excluded.attempts,
+              workerZone: excluded.workerZone,
+              workerInstance: excluded.workerInstance,
+              workerToken: excluded.workerToken,
+              hasDocs: excluded.hasDocs,
+              hasPana: excluded.hasPana,
+              isFinished: excluded.isFinished,
+            ),
+          );
+
   /// Insert row into the `taskVersions` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
@@ -3302,6 +3616,56 @@ extension TableTaskVersionExt on Table<TaskVersion> {
       isFinished.asExpr,
     ],
   );
+
+  /// Insert row into the `taskVersions` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `scheduledAt`, `attempts`, `workerZone`, `workerInstance`, `workerToken`, `hasDocs`, `hasPana`, `isFinished`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<TaskVersion> upsertValue({
+    required String runtimeVersion,
+    required String package,
+    required String version,
+    required DateTime scheduledAt,
+    required int attempts,
+    String? workerZone,
+    String? workerInstance,
+    String? workerToken,
+    required bool hasDocs,
+    required bool hasPana,
+    required bool isFinished,
+  }) =>
+      insertValue(
+            runtimeVersion: runtimeVersion,
+            package: package,
+            version: version,
+            scheduledAt: scheduledAt,
+            attempts: attempts,
+            workerZone: workerZone,
+            workerInstance: workerInstance,
+            workerToken: workerToken,
+            hasDocs: hasDocs,
+            hasPana: hasPana,
+            isFinished: isFinished,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              scheduledAt: excluded.scheduledAt,
+              attempts: excluded.attempts,
+              workerZone: excluded.workerZone,
+              workerInstance: excluded.workerInstance,
+              workerToken: excluded.workerToken,
+              hasDocs: excluded.hasDocs,
+              hasPana: excluded.hasPana,
+              isFinished: excluded.isFinished,
+            ),
+          );
 
   /// Bulk insert rows into the `taskVersions` table.
   ///
@@ -4121,6 +4485,31 @@ extension TableTaskAbortedTokenExt on Table<TaskAbortedToken> {
     values: [runtimeVersion, package, workerToken, expiresAt],
   );
 
+  /// Insert row into the `taskAbortedTokens` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `expiresAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<TaskAbortedToken> upsert({
+    required Expr<String> runtimeVersion,
+    required Expr<String> package,
+    required Expr<String> workerToken,
+    required Expr<DateTime> expiresAt,
+  }) =>
+      insert(
+            runtimeVersion: runtimeVersion,
+            package: package,
+            workerToken: workerToken,
+            expiresAt: expiresAt,
+          )
+          .onConflict(.primaryKey)
+          .update((_, excluded, set) => set(expiresAt: excluded.expiresAt));
+
   /// Insert row into the `taskAbortedTokens` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
@@ -4139,6 +4528,31 @@ extension TableTaskAbortedTokenExt on Table<TaskAbortedToken> {
       expiresAt.asExpr,
     ],
   );
+
+  /// Insert row into the `taskAbortedTokens` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `expiresAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<TaskAbortedToken> upsertValue({
+    required String runtimeVersion,
+    required String package,
+    required String workerToken,
+    required DateTime expiresAt,
+  }) =>
+      insertValue(
+            runtimeVersion: runtimeVersion,
+            package: package,
+            workerToken: workerToken,
+            expiresAt: expiresAt,
+          )
+          .onConflict(.primaryKey)
+          .update((_, excluded, set) => set(expiresAt: excluded.expiresAt));
 
   /// Bulk insert rows into the `taskAbortedTokens` table.
   ///

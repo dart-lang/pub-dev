@@ -636,7 +636,7 @@ class AccountBackend {
   }) async {
     return await primaryDatabase.transactWithRetry((db) async {
       return await db.userSessions
-          .insertValue(
+          .upsertValue(
             sessionId: sessionId,
             userId: userId,
             email: email,
@@ -649,22 +649,6 @@ class AccountBackend {
             openidNonce: openidNonce,
             accessToken: accessToken,
             grantedScopes: grantedScopes,
-          )
-          .onConflict(.primaryKey)
-          .update(
-            (_, _, set) => set(
-              userId: userId.asExpr,
-              email: email.asExpr,
-              name: name.asExpr,
-              imageUrl: imageUrl.asExpr,
-              created: created.asExpr,
-              expires: expires.asExpr,
-              authenticatedAt: authenticatedAt.asExpr,
-              csrfToken: csrfToken.asExpr,
-              openidNonce: openidNonce.asExpr,
-              accessToken: accessToken.asExpr,
-              grantedScopes: grantedScopes.asExpr,
-            ),
           )
           .returnUpserted()
           .executeAndFetch();
