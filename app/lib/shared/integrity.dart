@@ -40,6 +40,14 @@ import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
 
 final _random = math.Random.secure();
 
+/// Grace period before a missing cross-storage mirror (Datastore <-> SQL) of
+/// an [AuditLogRecord] is reported, to avoid false positives while the
+/// record is still being mirrored.
+const _auditLogMirrorGracePeriod = Duration(days: 2);
+
+bool _isOlderThanAuditLogMirrorGracePeriod(DateTime dt) =>
+    dt.isBefore(clock.now().toUtc().subtract(_auditLogMirrorGracePeriod));
+
 /// The unmapped/unused fields that we expect to be present on some entities.
 /// The presence of such fields won't be reported as integrity issue, only
 /// the absent ones will be reported.
@@ -187,6 +195,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     yield* _checkLikes();
     yield* _checkModeratedPackages();
     yield* _checkAuditLogs();
+    yield* _checkAuditLogsSql();
     yield* _checkModerationCases();
     yield* _reportPubspecVersionIssues();
 
@@ -824,6 +833,113 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       final p = parts[0];
       if (!_moderatedPackages.contains(p) && await _packageMissing(p)) {
         yield 'AuditLogRecord "${r.id}" has missing package "$p" in package version "$pv".';
+      }
+    }
+
+    // Only check once the record is old enough that mirroring should have completed,
+    // to avoid false positives on freshly written records.
+    if (r.created != null &&
+        _isOlderThanAuditLogMirrorGracePeriod(r.created!)) {
+      final sqlRow = await primaryDatabase.withRetry(
+        (db) => db.auditLogRecords.byKey(r.id!).fetch(),
+      );
+      if (sqlRow == null) {
+        yield 'AuditLogRecord "${r.id}" has no corresponding SQL mirror.';
+      }
+    }
+  }
+
+  /// Checks the SQL mirror of [AuditLogRecord] (`auditLogRecords` +
+  /// `auditLogAssociation`).
+  Stream<String> _checkAuditLogsSql() async* {
+    _logger.info('Scanning SQL AuditLogRecords...');
+    for (var lastId = ''; ;) {
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.auditLogRecords
+            .where((r) => r.id.greaterThanValue(lastId))
+            .orderBy((r) => [(r.id, Order.ascending)])
+            .limit(100)
+            .fetch(),
+      );
+      if (rows.isEmpty) {
+        break;
+      }
+      for (final row in rows) {
+        yield* _checkAuditLogSqlRow(row);
+      }
+      lastId = rows.last.id;
+    }
+  }
+
+  Stream<String> _checkAuditLogSqlRow(AuditLogRecordRow row) async* {
+    final label = 'SQL AuditLogRecord "${row.id}"';
+    final isRetainedRecord = !row.expiresAt.isBefore(clock.now().toUtc());
+
+    yield* _checkAgentValid(
+      row.agent,
+      entityType: 'SQL AuditLogRecord',
+      entityId: row.id,
+      isRetainedRecord: isRetainedRecord,
+    );
+
+    final associations = await primaryDatabase.withRetry(
+      (db) => db.auditLogAssociations
+          .where((a) => a.recordId.equalsValue(row.id))
+          .fetch(),
+    );
+    final users = associations
+        .whereKind(AuditLogAssociationKind.user)
+        .map((a) => a.value)
+        .toList();
+    final packages = associations
+        .whereKind(AuditLogAssociationKind.package)
+        .map((a) => a.value)
+        .toList();
+    final packageVersions = associations
+        .whereKind(AuditLogAssociationKind.packageVersion)
+        .map((a) => a.value)
+        .toList();
+
+    if (users.isEmpty) {
+      if (!looksLikeServiceAgent(row.agent)) {
+        yield '$label has no users.';
+      }
+    } else {
+      for (final u in users) {
+        yield* _checkUserValid(
+          u,
+          entityType: 'SQL AuditLogRecord',
+          entityId: row.id,
+          isRetainedRecord: isRetainedRecord,
+        );
+      }
+    }
+
+    for (final p in packages) {
+      if (!_moderatedPackages.contains(p) && await _packageMissing(p)) {
+        yield '$label has missing package "$p".';
+      }
+    }
+
+    for (final pv in packageVersions) {
+      final parts = pv.split('/');
+      if (parts.length != 2) {
+        yield '$label has invalid package version "$pv".';
+        continue;
+      }
+      final p = parts[0];
+      if (!_moderatedPackages.contains(p) && await _packageMissing(p)) {
+        yield '$label has missing package "$p" in package version "$pv".';
+      }
+    }
+
+    // Only check once the row is old enough that mirroring should have
+    // completed, to avoid false positives on freshly written records.
+    if (_isOlderThanAuditLogMirrorGracePeriod(row.createdAt)) {
+      final key = _db.emptyKey.append(AuditLogRecord, id: row.id);
+      final existing = await _db.lookupOrNull<AuditLogRecord>(key);
+      if (existing == null) {
+        yield '$label has no corresponding Datastore entity.';
       }
     }
   }

@@ -35,6 +35,7 @@ import '../account/agent.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/models.dart' show User;
+import '../audit/backend.dart';
 import '../audit/models.dart';
 import '../publisher/backend.dart';
 import '../service/email/backend.dart';
@@ -546,6 +547,7 @@ class PackageBackend {
     }
 
     final pkg = await _requirePackageAdmin(package, user.userId);
+    AuditLogRecord? auditLogRecord;
     await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
 
@@ -579,15 +581,17 @@ class PackageBackend {
         'isUnlisted: ${p.isUnlisted}',
       );
       tx.insert(p);
-      tx.insert(
-        await AuditLogRecord.packageOptionsUpdated(
-          agent: authenticatedUser,
-          package: p.name!,
-          publisherId: p.publisherId,
-          options: optionsChanges,
-        ),
+      auditLogRecord = await AuditLogRecord.packageOptionsUpdated(
+        agent: authenticatedUser,
+        package: p.name!,
+        publisherId: p.publisherId,
+        options: optionsChanges,
       );
+      tx.insert(auditLogRecord!);
     });
+    if (auditLogRecord != null) {
+      await auditBackend.mirrorToSql(auditLogRecord!);
+    }
     triggerPackagePostUpdates(package, skipArchiveExport: true);
   }
 
@@ -603,6 +607,7 @@ class PackageBackend {
 
     final pkg = await _requirePackageAdmin(package, user.userId);
     final versionKey = pkg.key.append(PackageVersion, id: version);
+    AuditLogRecord? auditLogRecord;
     await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
       final pv = await tx.lookupOrNull<PackageVersion>(versionKey);
@@ -626,7 +631,7 @@ class PackageBackend {
             'Can\'t undo retraction of package "$package" version "$version".',
           );
         }
-        await doUpdateRetractedStatus(
+        auditLogRecord = await doUpdateRetractedStatus(
           authenticatedUser,
           tx,
           p,
@@ -635,6 +640,9 @@ class PackageBackend {
         );
       }
     });
+    if (auditLogRecord != null) {
+      await auditBackend.mirrorToSql(auditLogRecord!);
+    }
     await purgeScorecardData(
       package,
       version,
@@ -652,7 +660,8 @@ class PackageBackend {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     final pkg = await _requirePackageAdmin(package, user.userId);
-    return await withRetryTransaction(db, (tx) async {
+    AuditLogRecord? auditLogRecord;
+    final result = await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
       final githubConfig = body.github;
       final gcpConfig = body.gcp;
@@ -761,26 +770,29 @@ class PackageBackend {
 
       p.updated = clock.now().toUtc();
       tx.insert(p);
-      tx.insert(
-        await AuditLogRecord.packagePublicationAutomationUpdated(
-          package: p.name!,
-          publisherId: p.publisherId,
-          user: user,
-        ),
+      auditLogRecord = await AuditLogRecord.packagePublicationAutomationUpdated(
+        package: p.name!,
+        publisherId: p.publisherId,
+        user: user,
       );
+      tx.insert(auditLogRecord!);
       return api.PkgPublishingConfig(
         github: p.publishingConfig!.githubConfig,
         gcp: p.publishingConfig!.gcpConfig,
         manual: p.publishingConfig!.manualConfig,
       );
     });
+    if (auditLogRecord != null) {
+      await auditBackend.mirrorToSql(auditLogRecord!);
+    }
+    return result;
   }
 
   /// Updates the retracted status inside a transaction.
   ///
   /// This is a helper method, and should be used only after appropriate
   /// input validation.
-  Future<void> doUpdateRetractedStatus(
+  Future<AuditLogRecord> doUpdateRetractedStatus(
     AuthenticatedAgent agent,
     TransactionWrapper tx,
     Package p,
@@ -814,15 +826,15 @@ class PackageBackend {
 
     tx.insert(p);
     tx.insert(pv);
-    tx.insert(
-      await AuditLogRecord.packageVersionOptionsUpdated(
-        agent: agent,
-        package: p.name!,
-        version: pv.version!,
-        publisherId: p.publisherId,
-        options: ['retracted'],
-      ),
+    final auditLogRecord = await AuditLogRecord.packageVersionOptionsUpdated(
+      agent: agent,
+      package: p.name!,
+      version: pv.version!,
+      publisherId: p.publisherId,
+      options: ['retracted'],
     );
+    tx.insert(auditLogRecord);
+    return auditLogRecord;
   }
 
   /// Whether [userId] is a package admin (through direct uploaders list or
@@ -904,6 +916,7 @@ class PackageBackend {
 
     OutgoingEmail? email;
     String? currentPublisherId;
+    AuditLogRecord? auditLogRecord;
     final rs = await withRetryTransaction(db, (tx) async {
       final package = await tx.lookupValue<Package>(key);
       if (package.publisherId == newPublisherId) {
@@ -916,14 +929,13 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(
-        await AuditLogRecord.packageTransferred(
-          user: user,
-          package: package.name!,
-          fromPublisherId: currentPublisherId,
-          toPublisherId: package.publisherId!,
-        ),
+      auditLogRecord = await AuditLogRecord.packageTransferred(
+        user: user,
+        package: package.name!,
+        fromPublisherId: currentPublisherId,
+        toPublisherId: package.publisherId!,
       );
+      tx.insert(auditLogRecord!);
 
       email = emailBackend.prepareEntity(
         createPackageTransferEmail(
@@ -939,6 +951,9 @@ class PackageBackend {
       tx.insert(email!);
       return _asPackagePublisherInfo(package);
     });
+    if (auditLogRecord != null) {
+      await auditBackend.mirrorToSql(auditLogRecord!);
+    }
     await purgePublisherCache(newPublisherId);
 
     if (email != null) {
@@ -1384,6 +1399,8 @@ class PackageBackend {
 
     // Add the new package to the repository by storing the tarball and
     // inserting metadata to datastore (which happens atomically).
+    AuditLogRecord? packageCreatedRecord;
+    AuditLogRecord? packagePublishedRecord;
     final (pv, outgoingEmail) = await withRetryTransaction(db, (tx) async {
       _logger.info('Starting datastore transaction.');
 
@@ -1506,6 +1523,22 @@ class PackageBackend {
       );
       final outgoingEmail = emailBackend.prepareEntity(email);
 
+      if (isNew) {
+        packageCreatedRecord = AuditLogRecord.packageCreated(
+          uploader: agent,
+          package: newVersion.package,
+          created: newVersion.created!,
+          publisherId: package!.publisherId,
+        );
+      }
+      packagePublishedRecord = AuditLogRecord.packagePublished(
+        uploader: agent,
+        package: newVersion.package,
+        version: newVersion.version!,
+        created: newVersion.created!,
+        publisherId: package!.publisherId,
+      );
+
       final inserts = <Model>[
         package!,
         newVersion,
@@ -1513,26 +1546,20 @@ class PackageBackend {
         ...entities.assets,
         if (activeConfiguration.isPublishedEmailNotificationEnabled)
           outgoingEmail,
-        if (isNew)
-          AuditLogRecord.packageCreated(
-            uploader: agent,
-            package: newVersion.package,
-            created: newVersion.created!,
-            publisherId: package!.publisherId,
-          ),
-        AuditLogRecord.packagePublished(
-          uploader: agent,
-          package: newVersion.package,
-          version: newVersion.version!,
-          created: newVersion.created!,
-          publisherId: package!.publisherId,
-        ),
+        if (packageCreatedRecord != null) packageCreatedRecord!,
+        packagePublishedRecord!,
       ];
 
       _logger.info('Trying to commit datastore changes.');
       tx.queueMutations(inserts: inserts);
       return (newVersion, outgoingEmail);
     });
+    if (packageCreatedRecord != null) {
+      await auditBackend.mirrorToSql(packageCreatedRecord!);
+    }
+    if (packagePublishedRecord != null) {
+      await auditBackend.mirrorToSql(packagePublishedRecord!);
+    }
     _logger.info('Upload successful. [package-uploaded]');
     _logger.info('Upload transaction completed in ${sw.elapsed}.');
     sw.reset();
@@ -1883,6 +1910,7 @@ class PackageBackend {
     User uploader, {
     required String consentRequestFromAgent,
   }) async {
+    AuditLogRecord? auditLogRecord;
     final uploaderUserId = await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
@@ -1904,14 +1932,16 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(
-        await AuditLogRecord.uploaderInviteAccepted(
-          user: uploader,
-          package: packageName,
-        ),
+      auditLogRecord = await AuditLogRecord.uploaderInviteAccepted(
+        user: uploader,
+        package: packageName,
       );
+      tx.insert(auditLogRecord!);
       return uploader.userId;
     });
+    if (auditLogRecord != null) {
+      await auditBackend.mirrorToSql(auditLogRecord!);
+    }
     await purgeAccountCache(userId: uploaderUserId);
     triggerPackagePostUpdates(
       packageName,
@@ -1943,6 +1973,7 @@ class PackageBackend {
     uploaderEmail = uploaderEmail.toLowerCase();
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
+    AuditLogRecord? auditLogRecord;
     final uploaderUserId = await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
@@ -1989,15 +2020,17 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
-      tx.insert(
-        await AuditLogRecord.uploaderRemoved(
-          agent: authenticatedUser,
-          package: packageName,
-          uploaderUser: uploader,
-        ),
+      auditLogRecord = await AuditLogRecord.uploaderRemoved(
+        agent: authenticatedUser,
+        package: packageName,
+        uploaderUser: uploader,
       );
+      tx.insert(auditLogRecord!);
       return uploader.userId;
     });
+    if (auditLogRecord != null) {
+      await auditBackend.mirrorToSql(auditLogRecord!);
+    }
     await purgeAccountCache(userId: uploaderUserId);
     triggerPackagePostUpdates(
       packageName,

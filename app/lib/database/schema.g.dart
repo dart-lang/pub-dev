@@ -31,6 +31,8 @@ Map<String, dynamic> _$TaskStateToJson(TaskState instance) => <String, dynamic>{
 extension PrimarySchemaSchema on Database<PrimarySchema> {
   static final _$tables = [
     _$UserSession._$table,
+    _$AuditLogRecordRow._$table,
+    _$AuditLogAssociation._$table,
     _$GlobalLockStateRow._$table,
     _$Task._$table,
     _$TaskDependency._$table,
@@ -40,6 +42,12 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<UserSession> get userSessions =>
       $ForGeneratedCode.declareTable(this, _$UserSession._$table);
+
+  Table<AuditLogRecordRow> get auditLogRecords =>
+      $ForGeneratedCode.declareTable(this, _$AuditLogRecordRow._$table);
+
+  Table<AuditLogAssociation> get auditLogAssociations =>
+      $ForGeneratedCode.declareTable(this, _$AuditLogAssociation._$table);
 
   Table<GlobalLockStateRow> get globalLockStates =>
       $ForGeneratedCode.declareTable(this, _$GlobalLockStateRow._$table);
@@ -1111,6 +1119,1534 @@ extension InsertOnConflictSingleUserSessionExt
         openidNonce,
         accessToken,
         grantedScopes,
+      ]),
+    ),
+  );
+}
+
+final class _$AuditLogRecordRow extends AuditLogRecordRow {
+  _$AuditLogRecordRow._(
+    this.id,
+    this.createdAt,
+    this.expiresAt,
+    this.kind,
+    this.agent,
+    this.summary,
+    this.dataJson,
+  );
+
+  @override
+  final String id;
+
+  @override
+  final DateTime createdAt;
+
+  @override
+  final DateTime expiresAt;
+
+  @override
+  final String kind;
+
+  @override
+  final String agent;
+
+  @override
+  final String summary;
+
+  @override
+  final JsonValue? dataJson;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'audit_log_records',
+    columns: <String>[
+      'id',
+      'created_at',
+      'expires_at',
+      'kind',
+      'agent',
+      'summary',
+      'data_json',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['id'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['expires_at'],
+      ),
+    ],
+    readRow: _$AuditLogRecordRow._$fromDatabase,
+  );
+
+  static AuditLogRecordRow? _$fromDatabase(RowReader row) {
+    final id = row.readString();
+    final createdAt = row.readDateTime();
+    final expiresAt = row.readDateTime();
+    final kind = row.readString();
+    final agent = row.readString();
+    final summary = row.readString();
+    final dataJson = row.readJsonValue();
+    if (id == null &&
+        createdAt == null &&
+        expiresAt == null &&
+        kind == null &&
+        agent == null &&
+        summary == null &&
+        dataJson == null) {
+      return null;
+    }
+    return _$AuditLogRecordRow._(
+      id!,
+      createdAt!,
+      expiresAt!,
+      kind!,
+      agent!,
+      summary!,
+      dataJson,
+    );
+  }
+
+  @override
+  String toString() =>
+      'AuditLogRecordRow(id: "$id", createdAt: "$createdAt", expiresAt: "$expiresAt", kind: "$kind", agent: "$agent", summary: "$summary", dataJson: "$dataJson")';
+}
+
+/// Extension methods for table defined in [AuditLogRecordRow].
+extension TableAuditLogRecordRowExt on Table<AuditLogRecordRow> {
+  /// Insert row into the `auditLogRecords` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<AuditLogRecordRow> insert({
+    required Expr<String> id,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> expiresAt,
+    required Expr<String> kind,
+    required Expr<String> agent,
+    required Expr<String> summary,
+    Expr<JsonValue?>? dataJson,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [id, createdAt, expiresAt, kind, agent, summary, dataJson],
+  );
+
+  /// Insert row into the `auditLogRecords` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `expiresAt`, `kind`, `agent`, `summary`, `dataJson`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<AuditLogRecordRow> upsert({
+    required Expr<String> id,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> expiresAt,
+    required Expr<String> kind,
+    required Expr<String> agent,
+    required Expr<String> summary,
+    Expr<JsonValue?>? dataJson,
+  }) =>
+      insert(
+            id: id,
+            createdAt: createdAt,
+            expiresAt: expiresAt,
+            kind: kind,
+            agent: agent,
+            summary: summary,
+            dataJson: dataJson,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              expiresAt: excluded.expiresAt,
+              kind: excluded.kind,
+              agent: excluded.agent,
+              summary: excluded.summary,
+              dataJson: excluded.dataJson,
+            ),
+          );
+
+  /// Insert row into the `auditLogRecords` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<AuditLogRecordRow> insertValue({
+    required String id,
+    required DateTime createdAt,
+    required DateTime expiresAt,
+    required String kind,
+    required String agent,
+    required String summary,
+    JsonValue? dataJson,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      id.asExpr,
+      createdAt.asExpr,
+      expiresAt.asExpr,
+      kind.asExpr,
+      agent.asExpr,
+      summary.asExpr,
+      dataJson.asExpr,
+    ],
+  );
+
+  /// Insert row into the `auditLogRecords` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `expiresAt`, `kind`, `agent`, `summary`, `dataJson`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<AuditLogRecordRow> upsertValue({
+    required String id,
+    required DateTime createdAt,
+    required DateTime expiresAt,
+    required String kind,
+    required String agent,
+    required String summary,
+    JsonValue? dataJson,
+  }) =>
+      insertValue(
+            id: id,
+            createdAt: createdAt,
+            expiresAt: expiresAt,
+            kind: kind,
+            agent: agent,
+            summary: summary,
+            dataJson: dataJson,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              expiresAt: excluded.expiresAt,
+              kind: excluded.kind,
+              agent: excluded.agent,
+              summary: excluded.summary,
+              dataJson: excluded.dataJson,
+            ),
+          );
+
+  /// Bulk insert rows into the `auditLogRecords` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<AuditLogRecordRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) id,
+    required DateTime Function(T row) createdAt,
+    required DateTime Function(T row) expiresAt,
+    required String Function(T row) kind,
+    required String Function(T row) agent,
+    required String Function(T row) summary,
+    JsonValue? Function(T row)? dataJson,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [id, createdAt, expiresAt, kind, agent, summary, dataJson],
+  );
+
+  /// Delete a single row from the `auditLogRecords` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<AuditLogRecordRow> delete(String id) =>
+      $ForGeneratedCode.deleteSingle(byKey(id), _$AuditLogRecordRow._$table);
+}
+
+/// Extension methods for building queries against the `auditLogRecords` table.
+extension QueryAuditLogRecordRowExt on Query<(Expr<AuditLogRecordRow>,)> {
+  /// Lookup a single row in `auditLogRecords` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<AuditLogRecordRow>,)> byKey(String id) =>
+      where((auditLogRecordRow) => auditLogRecordRow.id.equalsValue(id)).first;
+
+  /// Update all rows in the `auditLogRecords` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<AuditLogRecordRow> update(
+    UpdateSet<AuditLogRecordRow> Function(
+      Expr<AuditLogRecordRow> auditLogRecordRow,
+      UpdateSet<AuditLogRecordRow> Function({
+        Expr<String> id,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
+        Expr<String> kind,
+        Expr<String> agent,
+        Expr<String> summary,
+        Expr<JsonValue?> dataJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<AuditLogRecordRow>(
+    this,
+    _$AuditLogRecordRow._$table,
+    (auditLogRecordRow) => updateBuilder(
+      auditLogRecordRow,
+      ({
+        Expr<String>? id,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
+        Expr<String>? kind,
+        Expr<String>? agent,
+        Expr<String>? summary,
+        Expr<JsonValue?>? dataJson,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogRecordRow>([
+        id,
+        createdAt,
+        expiresAt,
+        kind,
+        agent,
+        summary,
+        dataJson,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `auditLogRecords` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<AuditLogRecordRow> delete() =>
+      $ForGeneratedCode.delete(this, _$AuditLogRecordRow._$table);
+}
+
+/// Extension methods for building point queries against the `auditLogRecords` table.
+extension QuerySingleAuditLogRecordRowExt
+    on QuerySingle<(Expr<AuditLogRecordRow>,)> {
+  /// Update the row (if any) in the `auditLogRecords` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<AuditLogRecordRow> update(
+    UpdateSet<AuditLogRecordRow> Function(
+      Expr<AuditLogRecordRow> auditLogRecordRow,
+      UpdateSet<AuditLogRecordRow> Function({
+        Expr<String> id,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
+        Expr<String> kind,
+        Expr<String> agent,
+        Expr<String> summary,
+        Expr<JsonValue?> dataJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<AuditLogRecordRow>(
+    this,
+    _$AuditLogRecordRow._$table,
+    (auditLogRecordRow) => updateBuilder(
+      auditLogRecordRow,
+      ({
+        Expr<String>? id,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
+        Expr<String>? kind,
+        Expr<String>? agent,
+        Expr<String>? summary,
+        Expr<JsonValue?>? dataJson,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogRecordRow>([
+        id,
+        createdAt,
+        expiresAt,
+        kind,
+        agent,
+        summary,
+        dataJson,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `auditLogRecords` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<AuditLogRecordRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$AuditLogRecordRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `auditLogRecords` table.
+extension ExpressionAuditLogRecordRowExt on Expr<AuditLogRecordRow> {
+  /// Matches `AuditLogRecord.id`.
+  Expr<String> get id =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<DateTime> get createdAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime> get expiresAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  Expr<String> get kind =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  Expr<String> get agent =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  Expr<String> get summary =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  /// Free-form data, mirrors `AuditLogRecord.data` as a JSONB column.
+  Expr<JsonValue?> get dataJson =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.jsonValue);
+
+  /// Get [SubQuery] of rows from the `auditLogAssociations` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [AuditLogAssociation] rows,
+  /// where [AuditLogAssociation.recordId]
+  /// references [AuditLogRecordRow.id]
+  /// in this row.
+  SubQuery<(Expr<AuditLogAssociation>,)> get associations => $ForGeneratedCode
+      .subqueryTable(_$AuditLogAssociation._$table)
+      .where((r) => r.recordId.equalsUnlessNull(id));
+}
+
+extension ExpressionNullableAuditLogRecordRowExt on Expr<AuditLogRecordRow?> {
+  /// Matches `AuditLogRecord.id`.
+  Expr<String?> get id =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get createdAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime?> get expiresAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  Expr<String?> get kind =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  Expr<String?> get agent =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  Expr<String?> get summary =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  /// Free-form data, mirrors `AuditLogRecord.data` as a JSONB column.
+  Expr<JsonValue?> get dataJson =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.jsonValue);
+
+  /// Get [SubQuery] of rows from the `auditLogAssociations` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [AuditLogAssociation] rows,
+  /// where [AuditLogAssociation.recordId]
+  /// references [AuditLogRecordRow.id]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<AuditLogAssociation>,)> get associations => $ForGeneratedCode
+      .subqueryTable(_$AuditLogAssociation._$table)
+      .where((r) => r.recordId.equalsUnlessNull(id));
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => id.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinAuditLogRecordRowAuditLogAssociationExt
+    on InnerJoin<(Expr<AuditLogRecordRow>,), (Expr<AuditLogAssociation>,)> {
+  /// Join using the `record` _foreign key_.
+  ///
+  /// This will match rows where [AuditLogRecordRow.id] = [AuditLogAssociation.recordId].
+  Query<(Expr<AuditLogRecordRow>, Expr<AuditLogAssociation>)> usingRecord() =>
+      on((a, b) => a.id.equalsUnlessNull(b.recordId));
+}
+
+extension LeftJoinAuditLogRecordRowAuditLogAssociationExt
+    on LeftJoin<(Expr<AuditLogRecordRow>,), (Expr<AuditLogAssociation>,)> {
+  /// Join using the `record` _foreign key_.
+  ///
+  /// This will match rows where [AuditLogRecordRow.id] = [AuditLogAssociation.recordId].
+  Query<(Expr<AuditLogRecordRow>, Expr<AuditLogAssociation?>)> usingRecord() =>
+      on((a, b) => a.id.equalsUnlessNull(b.recordId));
+}
+
+extension RightJoinAuditLogRecordRowAuditLogAssociationExt
+    on RightJoin<(Expr<AuditLogRecordRow>,), (Expr<AuditLogAssociation>,)> {
+  /// Join using the `record` _foreign key_.
+  ///
+  /// This will match rows where [AuditLogRecordRow.id] = [AuditLogAssociation.recordId].
+  Query<(Expr<AuditLogRecordRow?>, Expr<AuditLogAssociation>)> usingRecord() =>
+      on((a, b) => a.id.equalsUnlessNull(b.recordId));
+}
+
+/// `Table<AuditLogRecordRow>` conflict targets for use with `.onConflict`.
+enum AuditLogRecordRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `id`.
+  primaryKey(['id']);
+
+  const AuditLogRecordRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertAuditLogRecordRowExt on Insert<AuditLogRecordRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((auditLogRecordRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<AuditLogRecordRow> onConflict(
+    AuditLogRecordRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictAuditLogRecordRowExt
+    on InsertOnConflict<AuditLogRecordRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `auditLogRecordRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<AuditLogRecordRow> update(
+    UpdateSet<AuditLogRecordRow> Function(
+      Expr<AuditLogRecordRow> auditLogRecordRow,
+      Expr<AuditLogRecordRow> excluded,
+      UpdateSet<AuditLogRecordRow> Function({
+        Expr<String> id,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
+        Expr<String> kind,
+        Expr<String> agent,
+        Expr<String> summary,
+        Expr<JsonValue?> dataJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<AuditLogRecordRow>(
+    this,
+    (auditLogRecordRow, excluded) => updateBuilder(
+      auditLogRecordRow,
+      excluded,
+      ({
+        Expr<String>? id,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
+        Expr<String>? kind,
+        Expr<String>? agent,
+        Expr<String>? summary,
+        Expr<JsonValue?>? dataJson,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogRecordRow>([
+        id,
+        createdAt,
+        expiresAt,
+        kind,
+        agent,
+        summary,
+        dataJson,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleAuditLogRecordRowExt on InsertSingle<AuditLogRecordRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((auditLogRecordRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<AuditLogRecordRow> onConflict(
+    AuditLogRecordRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleAuditLogRecordRowExt
+    on InsertOnConflictSingle<AuditLogRecordRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `auditLogRecordRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<AuditLogRecordRow> update(
+    UpdateSet<AuditLogRecordRow> Function(
+      Expr<AuditLogRecordRow> auditLogRecordRow,
+      Expr<AuditLogRecordRow> excluded,
+      UpdateSet<AuditLogRecordRow> Function({
+        Expr<String> id,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
+        Expr<String> kind,
+        Expr<String> agent,
+        Expr<String> summary,
+        Expr<JsonValue?> dataJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<AuditLogRecordRow>(
+    this,
+    (auditLogRecordRow, excluded) => updateBuilder(
+      auditLogRecordRow,
+      excluded,
+      ({
+        Expr<String>? id,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
+        Expr<String>? kind,
+        Expr<String>? agent,
+        Expr<String>? summary,
+        Expr<JsonValue?>? dataJson,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogRecordRow>([
+        id,
+        createdAt,
+        expiresAt,
+        kind,
+        agent,
+        summary,
+        dataJson,
+      ]),
+    ),
+  );
+}
+
+final class _$AuditLogAssociation extends AuditLogAssociation {
+  _$AuditLogAssociation._(
+    this.recordId,
+    this.recordCreatedAt,
+    this.kind,
+    this.value,
+  );
+
+  @override
+  final String recordId;
+
+  @override
+  final DateTime recordCreatedAt;
+
+  @override
+  final String kind;
+
+  @override
+  final String value;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'audit_log_associations',
+    columns: <String>['record_id', 'record_created_at', 'kind', 'value'],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['record_id', 'kind', 'value'],
+    unique: <List<String>>[],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'record',
+        columns: ['record_id'],
+        referencedTable: 'audit_log_records',
+        referencedColumns: ['id'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+    ],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: 'kindValue',
+        sqlName: 'kind_value',
+        columns: ['kind', 'value'],
+      ),
+    ],
+    readRow: _$AuditLogAssociation._$fromDatabase,
+  );
+
+  static AuditLogAssociation? _$fromDatabase(RowReader row) {
+    final recordId = row.readString();
+    final recordCreatedAt = row.readDateTime();
+    final kind = row.readString();
+    final value = row.readString();
+    if (recordId == null &&
+        recordCreatedAt == null &&
+        kind == null &&
+        value == null) {
+      return null;
+    }
+    return _$AuditLogAssociation._(recordId!, recordCreatedAt!, kind!, value!);
+  }
+
+  @override
+  String toString() =>
+      'AuditLogAssociation(recordId: "$recordId", recordCreatedAt: "$recordCreatedAt", kind: "$kind", value: "$value")';
+}
+
+/// Extension methods for table defined in [AuditLogAssociation].
+extension TableAuditLogAssociationExt on Table<AuditLogAssociation> {
+  /// Insert row into the `auditLogAssociations` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<AuditLogAssociation> insert({
+    required Expr<String> recordId,
+    required Expr<DateTime> recordCreatedAt,
+    required Expr<String> kind,
+    required Expr<String> value,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [recordId, recordCreatedAt, kind, value],
+  );
+
+  /// Insert row into the `auditLogAssociations` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `recordCreatedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<AuditLogAssociation> upsert({
+    required Expr<String> recordId,
+    required Expr<DateTime> recordCreatedAt,
+    required Expr<String> kind,
+    required Expr<String> value,
+  }) =>
+      insert(
+            recordId: recordId,
+            recordCreatedAt: recordCreatedAt,
+            kind: kind,
+            value: value,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) =>
+                set(recordCreatedAt: excluded.recordCreatedAt),
+          );
+
+  /// Insert row into the `auditLogAssociations` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<AuditLogAssociation> insertValue({
+    required String recordId,
+    required DateTime recordCreatedAt,
+    required String kind,
+    required String value,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      recordId.asExpr,
+      recordCreatedAt.asExpr,
+      kind.asExpr,
+      value.asExpr,
+    ],
+  );
+
+  /// Insert row into the `auditLogAssociations` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `recordCreatedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<AuditLogAssociation> upsertValue({
+    required String recordId,
+    required DateTime recordCreatedAt,
+    required String kind,
+    required String value,
+  }) =>
+      insertValue(
+            recordId: recordId,
+            recordCreatedAt: recordCreatedAt,
+            kind: kind,
+            value: value,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) =>
+                set(recordCreatedAt: excluded.recordCreatedAt),
+          );
+
+  /// Bulk insert rows into the `auditLogAssociations` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<AuditLogAssociation> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) recordId,
+    required DateTime Function(T row) recordCreatedAt,
+    required String Function(T row) kind,
+    required String Function(T row) value,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [recordId, recordCreatedAt, kind, value],
+  );
+
+  /// Delete a single row from the `auditLogAssociations` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<AuditLogAssociation> delete(
+    String recordId,
+    String kind,
+    String value,
+  ) => $ForGeneratedCode.deleteSingle(
+    byKey(recordId, kind, value),
+    _$AuditLogAssociation._$table,
+  );
+}
+
+/// Extension methods for building queries against the `auditLogAssociations` table.
+extension QueryAuditLogAssociationExt on Query<(Expr<AuditLogAssociation>,)> {
+  /// Lookup a single row in `auditLogAssociations` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<AuditLogAssociation>,)> byKey(
+    String recordId,
+    String kind,
+    String value,
+  ) => where(
+    (auditLogAssociation) =>
+        auditLogAssociation.recordId.equalsValue(recordId) &
+        auditLogAssociation.kind.equalsValue(kind) &
+        auditLogAssociation.value.equalsValue(value),
+  ).first;
+
+  /// Update all rows in the `auditLogAssociations` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<AuditLogAssociation> update(
+    UpdateSet<AuditLogAssociation> Function(
+      Expr<AuditLogAssociation> auditLogAssociation,
+      UpdateSet<AuditLogAssociation> Function({
+        Expr<String> recordId,
+        Expr<DateTime> recordCreatedAt,
+        Expr<String> kind,
+        Expr<String> value,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<AuditLogAssociation>(
+    this,
+    _$AuditLogAssociation._$table,
+    (auditLogAssociation) => updateBuilder(
+      auditLogAssociation,
+      ({
+        Expr<String>? recordId,
+        Expr<DateTime>? recordCreatedAt,
+        Expr<String>? kind,
+        Expr<String>? value,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
+        recordId,
+        recordCreatedAt,
+        kind,
+        value,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `auditLogAssociations` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<AuditLogAssociation> delete() =>
+      $ForGeneratedCode.delete(this, _$AuditLogAssociation._$table);
+}
+
+/// Extension methods for building point queries against the `auditLogAssociations` table.
+extension QuerySingleAuditLogAssociationExt
+    on QuerySingle<(Expr<AuditLogAssociation>,)> {
+  /// Update the row (if any) in the `auditLogAssociations` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<AuditLogAssociation> update(
+    UpdateSet<AuditLogAssociation> Function(
+      Expr<AuditLogAssociation> auditLogAssociation,
+      UpdateSet<AuditLogAssociation> Function({
+        Expr<String> recordId,
+        Expr<DateTime> recordCreatedAt,
+        Expr<String> kind,
+        Expr<String> value,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<AuditLogAssociation>(
+    this,
+    _$AuditLogAssociation._$table,
+    (auditLogAssociation) => updateBuilder(
+      auditLogAssociation,
+      ({
+        Expr<String>? recordId,
+        Expr<DateTime>? recordCreatedAt,
+        Expr<String>? kind,
+        Expr<String>? value,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
+        recordId,
+        recordCreatedAt,
+        kind,
+        value,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `auditLogAssociations` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<AuditLogAssociation> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$AuditLogAssociation._$table);
+}
+
+/// Extension methods for expressions on a row in the `auditLogAssociations` table.
+extension ExpressionAuditLogAssociationExt on Expr<AuditLogAssociation> {
+  Expr<String> get recordId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// Same as the parent's createAt column.
+  Expr<DateTime> get recordCreatedAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  /// One of [AuditLogAssociationKind]'s values - matching the corresponding
+  /// `AuditLogRecord` field name.
+  Expr<String> get kind =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  /// The associated id: userId, package name, `package/version`, or
+  /// publisherId - depending on [kind].
+  Expr<String> get value =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `auditLogRecords` referenced in
+  /// [recordId].
+  ///
+  /// The gets the row from table `auditLogRecords` where
+  /// [AuditLogRecordRow.id]
+  /// is equal to [recordId].
+  Expr<AuditLogRecordRow> get record => $ForGeneratedCode
+      .subqueryTable(_$AuditLogRecordRow._$table)
+      .where((r) => r.id.equalsUnlessNull(recordId))
+      .first
+      .asNotNull();
+}
+
+extension ExpressionNullableAuditLogAssociationExt
+    on Expr<AuditLogAssociation?> {
+  Expr<String?> get recordId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// Same as the parent's createAt column.
+  Expr<DateTime?> get recordCreatedAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  /// One of [AuditLogAssociationKind]'s values - matching the corresponding
+  /// `AuditLogRecord` field name.
+  Expr<String?> get kind =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  /// The associated id: userId, package name, `package/version`, or
+  /// publisherId - depending on [kind].
+  Expr<String?> get value =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `auditLogRecords` referenced in
+  /// [recordId].
+  ///
+  /// The gets the row from table `auditLogRecords` where
+  /// [AuditLogRecordRow.id]
+  /// is equal to [recordId], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<AuditLogRecordRow?> get record => $ForGeneratedCode
+      .subqueryTable(_$AuditLogRecordRow._$table)
+      .where((r) => r.id.equalsUnlessNull(recordId))
+      .first;
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() =>
+      recordId.isNotNull() & kind.isNotNull() & value.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinAuditLogAssociationAuditLogRecordRowExt
+    on InnerJoin<(Expr<AuditLogAssociation>,), (Expr<AuditLogRecordRow>,)> {
+  /// Join using the `record` _foreign key_.
+  ///
+  /// This will match rows where [AuditLogAssociation.recordId] = [AuditLogRecordRow.id].
+  Query<(Expr<AuditLogAssociation>, Expr<AuditLogRecordRow>)> usingRecord() =>
+      on((a, b) => b.id.equalsUnlessNull(a.recordId));
+}
+
+extension LeftJoinAuditLogAssociationAuditLogRecordRowExt
+    on LeftJoin<(Expr<AuditLogAssociation>,), (Expr<AuditLogRecordRow>,)> {
+  /// Join using the `record` _foreign key_.
+  ///
+  /// This will match rows where [AuditLogAssociation.recordId] = [AuditLogRecordRow.id].
+  Query<(Expr<AuditLogAssociation>, Expr<AuditLogRecordRow?>)> usingRecord() =>
+      on((a, b) => b.id.equalsUnlessNull(a.recordId));
+}
+
+extension RightJoinAuditLogAssociationAuditLogRecordRowExt
+    on RightJoin<(Expr<AuditLogAssociation>,), (Expr<AuditLogRecordRow>,)> {
+  /// Join using the `record` _foreign key_.
+  ///
+  /// This will match rows where [AuditLogAssociation.recordId] = [AuditLogRecordRow.id].
+  Query<(Expr<AuditLogAssociation?>, Expr<AuditLogRecordRow>)> usingRecord() =>
+      on((a, b) => b.id.equalsUnlessNull(a.recordId));
+}
+
+/// `Table<AuditLogAssociation>` conflict targets for use with `.onConflict`.
+enum AuditLogAssociationConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `recordId`, `kind`, `value`.
+  primaryKey(['record_id', 'kind', 'value']);
+
+  const AuditLogAssociationConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertAuditLogAssociationExt on Insert<AuditLogAssociation> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((auditLogAssociation, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<AuditLogAssociation> onConflict(
+    AuditLogAssociationConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictAuditLogAssociationExt
+    on InsertOnConflict<AuditLogAssociation> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `auditLogAssociation` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<AuditLogAssociation> update(
+    UpdateSet<AuditLogAssociation> Function(
+      Expr<AuditLogAssociation> auditLogAssociation,
+      Expr<AuditLogAssociation> excluded,
+      UpdateSet<AuditLogAssociation> Function({
+        Expr<String> recordId,
+        Expr<DateTime> recordCreatedAt,
+        Expr<String> kind,
+        Expr<String> value,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<AuditLogAssociation>(
+    this,
+    (auditLogAssociation, excluded) => updateBuilder(
+      auditLogAssociation,
+      excluded,
+      ({
+        Expr<String>? recordId,
+        Expr<DateTime>? recordCreatedAt,
+        Expr<String>? kind,
+        Expr<String>? value,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
+        recordId,
+        recordCreatedAt,
+        kind,
+        value,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleAuditLogAssociationExt
+    on InsertSingle<AuditLogAssociation> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((auditLogAssociation, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<AuditLogAssociation> onConflict(
+    AuditLogAssociationConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleAuditLogAssociationExt
+    on InsertOnConflictSingle<AuditLogAssociation> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `auditLogAssociation` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<AuditLogAssociation> update(
+    UpdateSet<AuditLogAssociation> Function(
+      Expr<AuditLogAssociation> auditLogAssociation,
+      Expr<AuditLogAssociation> excluded,
+      UpdateSet<AuditLogAssociation> Function({
+        Expr<String> recordId,
+        Expr<DateTime> recordCreatedAt,
+        Expr<String> kind,
+        Expr<String> value,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<AuditLogAssociation>(
+    this,
+    (auditLogAssociation, excluded) => updateBuilder(
+      auditLogAssociation,
+      excluded,
+      ({
+        Expr<String>? recordId,
+        Expr<DateTime>? recordCreatedAt,
+        Expr<String>? kind,
+        Expr<String>? value,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
+        recordId,
+        recordCreatedAt,
+        kind,
+        value,
       ]),
     ),
   );

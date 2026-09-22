@@ -10,6 +10,7 @@ import 'package:typed_sql/typed_sql.dart';
 
 part 'schema.g.dart';
 part 'schema.account.dart';
+part 'schema.audit.dart';
 part 'schema.global_lock.dart';
 part 'schema.task.dart';
 
@@ -18,6 +19,12 @@ abstract final class PrimarySchema extends Schema {
   // account tables
 
   Table<UserSession> get userSessions;
+
+  // audit tables
+
+  Table<AuditLogRecordRow> get auditLogRecords;
+
+  Table<AuditLogAssociation> get auditLogAssociations;
 
   // global lock table
 

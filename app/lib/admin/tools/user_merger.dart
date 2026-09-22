@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
@@ -244,7 +245,7 @@ class UserMerger {
     await _processConcurrently(
       _db.query<AuditLogRecord>()..filter('agent =', fromUserId),
       (AuditLogRecord alr) async {
-        await withRetryTransaction(_db, (tx) async {
+        final r = await withRetryTransaction(_db, (tx) async {
           final r = await _db.lookupValue<AuditLogRecord>(alr.key);
           r.agent = toUserId;
           r.data = r.data?.map(
@@ -254,7 +255,9 @@ class UserMerger {
             ),
           );
           tx.insert(r);
+          return r;
         });
+        await auditBackend.mirrorToSql(r);
       },
     );
 
@@ -262,7 +265,7 @@ class UserMerger {
     await _processConcurrently(
       _db.query<AuditLogRecord>()..filter('users =', fromUserId),
       (AuditLogRecord alr) async {
-        await withRetryTransaction(_db, (tx) async {
+        final r = await withRetryTransaction(_db, (tx) async {
           final r = await _db.lookupValue<AuditLogRecord>(alr.key);
           r.users!.remove(fromUserId);
           r.users!.add(toUserId);
@@ -273,7 +276,9 @@ class UserMerger {
             ),
           );
           tx.insert(r);
+          return r;
         });
+        await auditBackend.mirrorToSql(r);
       },
     );
 
