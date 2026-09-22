@@ -173,8 +173,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "pkgs/circuit_breaker"
-      ref: a052dda6be20993a0c94f464ba7866f67084c730
-      resolved-ref: a052dda6be20993a0c94f464ba7866f67084c730
+      ref: b245d4f04712193a1e9993a8bd6ccab786f6ff66
+      resolved-ref: b245d4f04712193a1e9993a8bd6ccab786f6ff66
       url: "https://github.com/sigurdm/circuit_breaker.git"
     source: git
     version: "0.1.0"
@@ -182,8 +182,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "pkgs/circuit_breaker_http"
-      ref: a052dda6be20993a0c94f464ba7866f67084c730
-      resolved-ref: a052dda6be20993a0c94f464ba7866f67084c730
+      ref: b245d4f04712193a1e9993a8bd6ccab786f6ff66
+      resolved-ref: b245d4f04712193a1e9993a8bd6ccab786f6ff66
       url: "https://github.com/sigurdm/circuit_breaker.git"
     source: git
     version: "0.1.0"
@@ -199,10 +199,10 @@ packages:
     dependency: transitive
     description:
       name: cli_pkg
-      sha256: "8a75add8e512f7bcd1a8ce2b320ca72374ce674005fa9c55bf04c65400b8290a"
+      sha256: "1b3915a8924e8a495ec24b8ee076c182211d0bd563699a2c8ed9af33bf296af8"
       url: "https://pub.dev"
     source: hosted
-    version: "2.16.0"
+    version: "2.15.2"
   cli_repl:
     dependency: transitive
     description:
@@ -1028,4 +1028,4 @@ packages:
     source: hosted
     version: "2.2.4"
 sdks:
-  dart: ">=3.13.0 <4.0.0"
+  dart: ">=3.11.0 <4.0.0"

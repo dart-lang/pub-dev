@@ -12,6 +12,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:circuit_breaker/circuit_breaker.dart';
 import 'package:circuit_breaker_http/circuit_breaker_http.dart';
@@ -106,21 +107,26 @@ bool isTransientGcpError(Object error) {
 //       Each resource needs its numbers picked from the observed latency and
 //       error rate of the dependency it guards before this is switched on.
 final class PubResilience {
+  /// How often [reportMetrics] writes the metrics of every resource to the log.
+  static const _reportInterval = Duration(minutes: 1);
+
   /// The context owning the circuit state of every resource below.
   final ResilienceContext context;
 
   StreamSubscription<ResilienceEvent>? _subscription;
+  Timer? _reportTimer;
 
   PubResilience._(this.context);
 
-  /// Creates the resilience policies and starts reporting their events to the
-  /// log.
+  /// Creates the resilience policies and starts reporting their events and
+  /// metrics to the log.
   ///
   /// The number of tracked resources is bounded, so dynamically named resources
   /// (for example one per upstream host) cannot grow without limit.
   factory PubResilience.create() {
     final rs = PubResilience._(ResilienceContext(maxResources: 1024));
     rs._startLogging();
+    rs._startReporting();
     return rs;
   }
 
@@ -272,8 +278,66 @@ final class PubResilience {
     });
   }
 
-  /// Stops reporting events and releases the tracked circuit state.
+  /// The resources whose metrics are written to the log by [reportMetrics].
+  ///
+  /// Listed explicitly rather than enumerated from the context so that a
+  /// resource created dynamically at runtime cannot start a new log series.
+  late final List<BoundResource> _reportedResources = [
+    cloudStorage,
+    searchService,
+    fallbackSearchService,
+    redisCache,
+    secretManager,
+  ];
+
+  /// The `circuitOpens` total of each resource at the previous report, used to
+  /// turn a monotonic counter into a per-interval rate.
+  final _previousCircuitOpens = <String, int>{};
+
+  void _startReporting() {
+    _reportTimer = Timer.periodic(_reportInterval, (_) => reportMetrics());
+  }
+
+  /// Writes one structured line per resource, and notices any resource whose
+  /// circuit opened more than once since the previous report.
+  ///
+  /// The counters are cumulative, so a rate is the difference between two of
+  /// these lines. That is what makes the numbers meaningful across instances:
+  /// each AppEngine instance keeps its own circuit state, and only differences
+  /// of monotonic counters can be summed over a fleet.
+  ///
+  /// Repeated opening is reported separately from opening because it is a
+  /// different failure: a circuit that opens and recovers twenty times an hour
+  /// is never observed open, but is degrading every request that hits it while
+  /// it is.
+  ///
+  // TODO: this writes the snapshot as a JSON string inside a text log entry,
+  //       so a log-based metric has to extract values with a regex. Emitting a
+  //       structured payload, or exporting to Cloud Monitoring directly, would
+  //       be better — but neither exists in pub.dev today.
+  void reportMetrics() {
+    for (final boundResource in _reportedResources) {
+      final snapshot = boundResource.getSnapshot();
+      _logger.info('[resilience] ${json.encode(snapshot.toJson())}');
+
+      final opens = snapshot.counters.circuitOpens;
+      final previous = _previousCircuitOpens[snapshot.resourceName] ?? 0;
+      _previousCircuitOpens[snapshot.resourceName] = opens;
+      if (opens - previous > 1) {
+        _logger.pubNoticeWarning(
+          'circuit-flapping',
+          'Circuit breaker for `${snapshot.resourceName}` opened '
+              '${opens - previous} times in the last $_reportInterval.',
+        );
+      }
+    }
+  }
+
+  /// Stops reporting events and metrics, and releases the tracked circuit
+  /// state.
   Future<void> close() async {
+    _reportTimer?.cancel();
+    _reportTimer = null;
     await _subscription?.cancel();
     _subscription = null;
     context.dispose();
