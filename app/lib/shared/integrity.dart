@@ -858,7 +858,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     );
     for (final row in rows) {
       final label = 'SQL AuditLogRecord "${row.id}"';
-      final isRetainedRecord = !row.expires.isBefore(clock.now().toUtc());
+      final isRetainedRecord = !row.expiresAt.isBefore(clock.now().toUtc());
 
       yield* _checkAgentValid(
         row.agent,
@@ -920,7 +920,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
       // Only check once the row is old enough that mirroring should have
       // completed, to avoid false positives on freshly written records.
-      if (_isOlderThanAuditLogMirrorGracePeriod(row.created)) {
+      if (_isOlderThanAuditLogMirrorGracePeriod(row.createdAt)) {
         final key = _db.emptyKey.append(AuditLogRecord, id: row.id);
         final existing = await _db.lookupOrNull<AuditLogRecord>(key);
         if (existing == null) {

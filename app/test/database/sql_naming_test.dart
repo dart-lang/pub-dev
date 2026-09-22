@@ -14,7 +14,6 @@ const _exemptedTimestampColumns = {
   '000001_task.sql': {'last_dependency_changed', 'finished'},
   '000003_user_session.sql': {'created', 'expires'},
   '000005_global_lock.sql': {'locked_until'},
-  '000006_audit_log_records.sql': {'created', 'expires'},
 };
 
 final _timestamptzColumnPattern = RegExp(r'"(\w+)"\s+timestamptz');

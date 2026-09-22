@@ -143,8 +143,8 @@ class AuditBackend {
     await db.auditLogRecords
         .insertValue(
           id: id,
-          created: record.created!,
-          expires: record.expires!,
+          createdAt: record.created!,
+          expiresAt: record.expires!,
           kind: record.kind!,
           agent: record.agent!,
           summary: record.summary!,
@@ -153,8 +153,8 @@ class AuditBackend {
         .onConflict(.primaryKey)
         .update(
           (_, excluded, set) => set(
-            created: excluded.created,
-            expires: excluded.expires,
+            createdAt: excluded.createdAt,
+            expiresAt: excluded.expiresAt,
             kind: excluded.kind,
             agent: excluded.agent,
             summary: excluded.summary,
@@ -235,8 +235,8 @@ class AuditBackend {
       );
       final record = AuditLogRecord()
         ..id = row.id
-        ..created = row.created
-        ..expires = row.expires
+        ..created = row.createdAt
+        ..expires = row.expiresAt
         ..kind = row.kind
         ..agent = row.agent
         ..summary = row.summary
@@ -270,7 +270,7 @@ class AuditBackend {
   Future<void> deleteExpiredSqlRecords() async {
     await primaryDatabase.withRetry(
       (db) => db.auditLogRecords
-          .where((r) => r.expires.isBeforeValue(clock.now().toUtc()))
+          .where((r) => r.expiresAt.isBeforeValue(clock.now().toUtc()))
           .delete()
           .execute(),
     );

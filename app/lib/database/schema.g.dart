@@ -1127,8 +1127,8 @@ extension InsertOnConflictSingleUserSessionExt
 final class _$AuditLogRecordRow extends AuditLogRecordRow {
   _$AuditLogRecordRow._(
     this.id,
-    this.created,
-    this.expires,
+    this.createdAt,
+    this.expiresAt,
     this.kind,
     this.agent,
     this.summary,
@@ -1139,10 +1139,10 @@ final class _$AuditLogRecordRow extends AuditLogRecordRow {
   final String id;
 
   @override
-  final DateTime created;
+  final DateTime createdAt;
 
   @override
-  final DateTime expires;
+  final DateTime expiresAt;
 
   @override
   final String kind;
@@ -1160,8 +1160,8 @@ final class _$AuditLogRecordRow extends AuditLogRecordRow {
     tableName: 'audit_log_records',
     columns: <String>[
       'id',
-      'created',
-      'expires',
+      'created_at',
+      'expires_at',
       'kind',
       'agent',
       'summary',
@@ -1225,7 +1225,7 @@ final class _$AuditLogRecordRow extends AuditLogRecordRow {
       $ForGeneratedCode.indexDefinition(
         name: null,
         sqlName: null,
-        columns: ['expires'],
+        columns: ['expires_at'],
       ),
     ],
     readRow: _$AuditLogRecordRow._$fromDatabase,
@@ -1233,15 +1233,15 @@ final class _$AuditLogRecordRow extends AuditLogRecordRow {
 
   static AuditLogRecordRow? _$fromDatabase(RowReader row) {
     final id = row.readString();
-    final created = row.readDateTime();
-    final expires = row.readDateTime();
+    final createdAt = row.readDateTime();
+    final expiresAt = row.readDateTime();
     final kind = row.readString();
     final agent = row.readString();
     final summary = row.readString();
     final dataJson = row.readJsonValue();
     if (id == null &&
-        created == null &&
-        expires == null &&
+        createdAt == null &&
+        expiresAt == null &&
         kind == null &&
         agent == null &&
         summary == null &&
@@ -1250,8 +1250,8 @@ final class _$AuditLogRecordRow extends AuditLogRecordRow {
     }
     return _$AuditLogRecordRow._(
       id!,
-      created!,
-      expires!,
+      createdAt!,
+      expiresAt!,
       kind!,
       agent!,
       summary!,
@@ -1261,7 +1261,7 @@ final class _$AuditLogRecordRow extends AuditLogRecordRow {
 
   @override
   String toString() =>
-      'AuditLogRecordRow(id: "$id", created: "$created", expires: "$expires", kind: "$kind", agent: "$agent", summary: "$summary", dataJson: "$dataJson")';
+      'AuditLogRecordRow(id: "$id", createdAt: "$createdAt", expiresAt: "$expiresAt", kind: "$kind", agent: "$agent", summary: "$summary", dataJson: "$dataJson")';
 }
 
 /// Extension methods for table defined in [AuditLogRecordRow].
@@ -1272,15 +1272,15 @@ extension TableAuditLogRecordRowExt on Table<AuditLogRecordRow> {
   /// called for the row to be inserted.
   InsertSingle<AuditLogRecordRow> insert({
     required Expr<String> id,
-    required Expr<DateTime> created,
-    required Expr<DateTime> expires,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> expiresAt,
     required Expr<String> kind,
     required Expr<String> agent,
     required Expr<String> summary,
     Expr<JsonValue?>? dataJson,
   }) => $ForGeneratedCode.insertInto(
     table: this,
-    values: [id, created, expires, kind, agent, summary, dataJson],
+    values: [id, createdAt, expiresAt, kind, agent, summary, dataJson],
   );
 
   /// Insert row into the `auditLogRecords` table.
@@ -1289,8 +1289,8 @@ extension TableAuditLogRecordRowExt on Table<AuditLogRecordRow> {
   /// called for the row to be inserted.
   InsertSingle<AuditLogRecordRow> insertValue({
     required String id,
-    required DateTime created,
-    required DateTime expires,
+    required DateTime createdAt,
+    required DateTime expiresAt,
     required String kind,
     required String agent,
     required String summary,
@@ -1299,8 +1299,8 @@ extension TableAuditLogRecordRowExt on Table<AuditLogRecordRow> {
     table: this,
     values: [
       id.asExpr,
-      created.asExpr,
-      expires.asExpr,
+      createdAt.asExpr,
+      expiresAt.asExpr,
       kind.asExpr,
       agent.asExpr,
       summary.asExpr,
@@ -1328,8 +1328,8 @@ extension TableAuditLogRecordRowExt on Table<AuditLogRecordRow> {
   Insert<AuditLogRecordRow> insertValuesMapped<T>(
     Iterable<T> rows, {
     required String Function(T row) id,
-    required DateTime Function(T row) created,
-    required DateTime Function(T row) expires,
+    required DateTime Function(T row) createdAt,
+    required DateTime Function(T row) expiresAt,
     required String Function(T row) kind,
     required String Function(T row) agent,
     required String Function(T row) summary,
@@ -1337,7 +1337,7 @@ extension TableAuditLogRecordRowExt on Table<AuditLogRecordRow> {
   }) => $ForGeneratedCode.insertValuesMapped(
     table: this,
     rows: rows,
-    mappings: [id, created, expires, kind, agent, summary, dataJson],
+    mappings: [id, createdAt, expiresAt, kind, agent, summary, dataJson],
   );
 
   /// Delete a single row from the `auditLogRecords` table, specified by
@@ -1394,8 +1394,8 @@ extension QueryAuditLogRecordRowExt on Query<(Expr<AuditLogRecordRow>,)> {
       Expr<AuditLogRecordRow> auditLogRecordRow,
       UpdateSet<AuditLogRecordRow> Function({
         Expr<String> id,
-        Expr<DateTime> created,
-        Expr<DateTime> expires,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
         Expr<String> kind,
         Expr<String> agent,
         Expr<String> summary,
@@ -1411,16 +1411,16 @@ extension QueryAuditLogRecordRowExt on Query<(Expr<AuditLogRecordRow>,)> {
       auditLogRecordRow,
       ({
         Expr<String>? id,
-        Expr<DateTime>? created,
-        Expr<DateTime>? expires,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
         Expr<String>? kind,
         Expr<String>? agent,
         Expr<String>? summary,
         Expr<JsonValue?>? dataJson,
       }) => $ForGeneratedCode.buildUpdate<AuditLogRecordRow>([
         id,
-        created,
-        expires,
+        createdAt,
+        expiresAt,
         kind,
         agent,
         summary,
@@ -1474,8 +1474,8 @@ extension QuerySingleAuditLogRecordRowExt
       Expr<AuditLogRecordRow> auditLogRecordRow,
       UpdateSet<AuditLogRecordRow> Function({
         Expr<String> id,
-        Expr<DateTime> created,
-        Expr<DateTime> expires,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
         Expr<String> kind,
         Expr<String> agent,
         Expr<String> summary,
@@ -1491,16 +1491,16 @@ extension QuerySingleAuditLogRecordRowExt
       auditLogRecordRow,
       ({
         Expr<String>? id,
-        Expr<DateTime>? created,
-        Expr<DateTime>? expires,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
         Expr<String>? kind,
         Expr<String>? agent,
         Expr<String>? summary,
         Expr<JsonValue?>? dataJson,
       }) => $ForGeneratedCode.buildUpdate<AuditLogRecordRow>([
         id,
-        created,
-        expires,
+        createdAt,
+        expiresAt,
         kind,
         agent,
         summary,
@@ -1524,10 +1524,10 @@ extension ExpressionAuditLogRecordRowExt on Expr<AuditLogRecordRow> {
   Expr<String> get id =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
-  Expr<DateTime> get created =>
+  Expr<DateTime> get createdAt =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
 
-  Expr<DateTime> get expires =>
+  Expr<DateTime> get expiresAt =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
 
   Expr<String> get kind =>
@@ -1560,10 +1560,10 @@ extension ExpressionNullableAuditLogRecordRowExt on Expr<AuditLogRecordRow?> {
   Expr<String?> get id =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
-  Expr<DateTime?> get created =>
+  Expr<DateTime?> get createdAt =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
 
-  Expr<DateTime?> get expires =>
+  Expr<DateTime?> get expiresAt =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
 
   Expr<String?> get kind =>
@@ -1720,8 +1720,8 @@ extension InsertOnConflictAuditLogRecordRowExt
       Expr<AuditLogRecordRow> excluded,
       UpdateSet<AuditLogRecordRow> Function({
         Expr<String> id,
-        Expr<DateTime> created,
-        Expr<DateTime> expires,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
         Expr<String> kind,
         Expr<String> agent,
         Expr<String> summary,
@@ -1737,16 +1737,16 @@ extension InsertOnConflictAuditLogRecordRowExt
       excluded,
       ({
         Expr<String>? id,
-        Expr<DateTime>? created,
-        Expr<DateTime>? expires,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
         Expr<String>? kind,
         Expr<String>? agent,
         Expr<String>? summary,
         Expr<JsonValue?>? dataJson,
       }) => $ForGeneratedCode.buildUpdate<AuditLogRecordRow>([
         id,
-        created,
-        expires,
+        createdAt,
+        expiresAt,
         kind,
         agent,
         summary,
@@ -1827,8 +1827,8 @@ extension InsertOnConflictSingleAuditLogRecordRowExt
       Expr<AuditLogRecordRow> excluded,
       UpdateSet<AuditLogRecordRow> Function({
         Expr<String> id,
-        Expr<DateTime> created,
-        Expr<DateTime> expires,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
         Expr<String> kind,
         Expr<String> agent,
         Expr<String> summary,
@@ -1844,16 +1844,16 @@ extension InsertOnConflictSingleAuditLogRecordRowExt
       excluded,
       ({
         Expr<String>? id,
-        Expr<DateTime>? created,
-        Expr<DateTime>? expires,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
         Expr<String>? kind,
         Expr<String>? agent,
         Expr<String>? summary,
         Expr<JsonValue?>? dataJson,
       }) => $ForGeneratedCode.buildUpdate<AuditLogRecordRow>([
         id,
-        created,
-        expires,
+        createdAt,
+        expiresAt,
         kind,
         agent,
         summary,

@@ -14,10 +14,10 @@ abstract final class AuditLogRecordRow extends Row {
   /// Matches `AuditLogRecord.id`.
   String get id;
 
-  DateTime get created;
+  DateTime get createdAt;
 
   @Index.field()
-  DateTime get expires;
+  DateTime get expiresAt;
 
   String get kind;
   String get agent;
