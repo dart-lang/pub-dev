@@ -29,7 +29,13 @@ SearchClient get searchClient => ss.lookup(#_searchClient) as SearchClient;
 /// indexed data.
 class SearchClient {
   /// The HTTP client used for making calls to our search service.
-  final _httpClient = httpRetryClient();
+  ///
+  /// This is the only retry layer on the search path: it retries the transient
+  /// status codes and socket errors of a single request. Search is on the
+  /// critical path of rendering a page, so the attempt count is kept low — the
+  /// caller falls back to an error result rather than waiting out a long
+  /// backoff.
+  final _httpClient = httpRetryClient(retries: 2);
 
   /// Before this timestamp we may use the fallback search service URL, which
   /// is the unversioned service URL, potentially getting responses from an
@@ -81,45 +87,37 @@ class SearchClient {
     }) async {
       final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;
       try {
-        return await withRetryHttpClient(
-          (client) async {
-            var data = query.toSearchRequestData();
-            if (userId != null && hasLikedByMeTag) {
-              final newQuery = data.query
-                  ?.replaceAll(AccountTag.isLikedByMe, ' ')
-                  .trim();
-              final newTags = data.tags!
-                  .where((e) => e != AccountTag.isLikedByMe)
-                  .toList();
-              data = data.replace(
-                query: newQuery,
-                tags: newTags,
-                packages: packages,
-              );
-            }
-            // NOTE: Keeping the query parameter to help investigating logs.
-            final uri = Uri.parse(
-              '$httpHostPort/search',
-            ).replace(queryParameters: {'q': data.query});
-            final rs = await client.post(
-              uri,
-              headers: {
-                ...?cloudTraceHeaders(),
-                'content-type': 'application/json',
-              },
-              body: json.encode(data.toJson()),
-            );
-            return (statusCode: rs.statusCode, body: rs.body);
+        var data = query.toSearchRequestData();
+        if (userId != null && hasLikedByMeTag) {
+          final newQuery = data.query
+              ?.replaceAll(AccountTag.isLikedByMe, ' ')
+              .trim();
+          final newTags = data.tags!
+              .where((e) => e != AccountTag.isLikedByMe)
+              .toList();
+          data = data.replace(
+            query: newQuery,
+            tags: newTags,
+            packages: packages,
+          );
+        }
+        // NOTE: Keeping the query parameter to help investigating logs.
+        final uri = Uri.parse(
+          '$httpHostPort/search',
+        ).replace(queryParameters: {'q': data.query});
+        final rs = await _httpClient.post(
+          uri,
+          headers: {
+            ...?cloudTraceHeaders(),
+            'content-type': 'application/json',
           },
-          client: _httpClient,
-          retryIf: (e) =>
-              (e is UnexpectedStatusException &&
-              e.statusCode == searchIndexNotReadyCode),
+          body: json.encode(data.toJson()),
         );
+        return (statusCode: rs.statusCode, body: rs.body);
       } on TimeoutException {
+        // No timeout is configured on the request today, so this cannot fire;
+        // it is kept so that adding one does not turn into a 500.
         return null;
-      } on UnexpectedStatusException catch (e) {
-        return (statusCode: e.statusCode, body: null);
       }
     }
 
