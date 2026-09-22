@@ -3394,7 +3394,7 @@ extension TableTaskExt on Table<Task> {
   UpsertSingle<Task> upsert({
     required Expr<String> runtimeVersion,
     required Expr<String> package,
-    required Expr<TaskState> state,
+    Expr<TaskState?>? state,
     required Expr<DateTime> pendingAt,
     required Expr<DateTime> lastDependencyChanged,
     required Expr<DateTime> finished,
@@ -3453,7 +3453,7 @@ extension TableTaskExt on Table<Task> {
   UpsertSingle<Task> upsertValue({
     required String runtimeVersion,
     required String package,
-    required TaskState state,
+    TaskState? state,
     required DateTime pendingAt,
     required DateTime lastDependencyChanged,
     required DateTime finished,
