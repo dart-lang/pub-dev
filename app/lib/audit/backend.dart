@@ -141,7 +141,7 @@ class AuditBackend {
   ) async {
     final id = record.id!;
     await db.auditLogRecords
-        .insertValue(
+        .upsertValue(
           id: id,
           createdAt: record.created!,
           expiresAt: record.expires!,
@@ -149,17 +149,6 @@ class AuditBackend {
           agent: record.agent!,
           summary: record.summary!,
           dataJson: record.data == null ? null : JsonValue(record.data),
-        )
-        .onConflict(.primaryKey)
-        .update(
-          (_, excluded, set) => set(
-            createdAt: excluded.createdAt,
-            expiresAt: excluded.expiresAt,
-            kind: excluded.kind,
-            agent: excluded.agent,
-            summary: excluded.summary,
-            dataJson: excluded.dataJson,
-          ),
         )
         .execute();
 

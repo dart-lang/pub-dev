@@ -1283,6 +1283,46 @@ extension TableAuditLogRecordRowExt on Table<AuditLogRecordRow> {
     values: [id, createdAt, expiresAt, kind, agent, summary, dataJson],
   );
 
+  /// Insert row into the `auditLogRecords` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `expiresAt`, `kind`, `agent`, `summary`, `dataJson`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<AuditLogRecordRow> upsert({
+    required Expr<String> id,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> expiresAt,
+    required Expr<String> kind,
+    required Expr<String> agent,
+    required Expr<String> summary,
+    Expr<JsonValue?>? dataJson,
+  }) =>
+      insert(
+            id: id,
+            createdAt: createdAt,
+            expiresAt: expiresAt,
+            kind: kind,
+            agent: agent,
+            summary: summary,
+            dataJson: dataJson,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              expiresAt: excluded.expiresAt,
+              kind: excluded.kind,
+              agent: excluded.agent,
+              summary: excluded.summary,
+              dataJson: excluded.dataJson,
+            ),
+          );
+
   /// Insert row into the `auditLogRecords` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
@@ -1307,6 +1347,46 @@ extension TableAuditLogRecordRowExt on Table<AuditLogRecordRow> {
       dataJson.asExpr,
     ],
   );
+
+  /// Insert row into the `auditLogRecords` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `expiresAt`, `kind`, `agent`, `summary`, `dataJson`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<AuditLogRecordRow> upsertValue({
+    required String id,
+    required DateTime createdAt,
+    required DateTime expiresAt,
+    required String kind,
+    required String agent,
+    required String summary,
+    JsonValue? dataJson,
+  }) =>
+      insertValue(
+            id: id,
+            createdAt: createdAt,
+            expiresAt: expiresAt,
+            kind: kind,
+            agent: agent,
+            summary: summary,
+            dataJson: dataJson,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              expiresAt: excluded.expiresAt,
+              kind: excluded.kind,
+              agent: excluded.agent,
+              summary: excluded.summary,
+              dataJson: excluded.dataJson,
+            ),
+          );
 
   /// Bulk insert rows into the `auditLogRecords` table.
   ///
@@ -1973,6 +2053,34 @@ extension TableAuditLogAssociationExt on Table<AuditLogAssociation> {
     values: [recordId, recordCreatedAt, kind, value],
   );
 
+  /// Insert row into the `auditLogAssociations` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `recordCreatedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<AuditLogAssociation> upsert({
+    required Expr<String> recordId,
+    required Expr<DateTime> recordCreatedAt,
+    required Expr<String> kind,
+    required Expr<String> value,
+  }) =>
+      insert(
+            recordId: recordId,
+            recordCreatedAt: recordCreatedAt,
+            kind: kind,
+            value: value,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) =>
+                set(recordCreatedAt: excluded.recordCreatedAt),
+          );
+
   /// Insert row into the `auditLogAssociations` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
@@ -1991,6 +2099,34 @@ extension TableAuditLogAssociationExt on Table<AuditLogAssociation> {
       value.asExpr,
     ],
   );
+
+  /// Insert row into the `auditLogAssociations` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `recordCreatedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<AuditLogAssociation> upsertValue({
+    required String recordId,
+    required DateTime recordCreatedAt,
+    required String kind,
+    required String value,
+  }) =>
+      insertValue(
+            recordId: recordId,
+            recordCreatedAt: recordCreatedAt,
+            kind: kind,
+            value: value,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) =>
+                set(recordCreatedAt: excluded.recordCreatedAt),
+          );
 
   /// Bulk insert rows into the `auditLogAssociations` table.
   ///
