@@ -55,6 +55,14 @@ void main() {
 
     // Uses timer to implement delays
     'lib/task/clock_control.dart',
+
+    // Uses timer to report the resilience metrics of this isolate.
+    //
+    // Circuit state is per-isolate, so every isolate has to report its own
+    // numbers. The `neat_periodic_task` scheduler takes a `GlobalLock` and
+    // therefore runs on a single instance, and `cached_value` recomputes a
+    // value on demand rather than emitting on a schedule.
+    'lib/shared/resilience.dart',
   };
 
   test('Timer is used only with a permitted pattern', () {

@@ -311,10 +311,14 @@ final class PubResilience {
   /// is never observed open, but is degrading every request that hits it while
   /// it is.
   ///
-  // TODO: this writes the snapshot as a JSON string inside a text log entry,
-  //       so a log-based metric has to extract values with a regex. Emitting a
-  //       structured payload, or exporting to Cloud Monitoring directly, would
-  //       be better — but neither exists in pub.dev today.
+  // TODO: the snapshot is encoded as a JSON string inside the log message, so a
+  //       log-based metric has to pull values back out with a regex. It could
+  //       be a real `jsonPayload` instead: outside a request handler
+  //       `setupAppEngineLogging` already prints structured JSON to stdout, and
+  //       `LogRecord.object` carries a non-`String` message all the way there.
+  //       Inside a request handler the appengine logging service only accepts a
+  //       string, so such a payload would silently degrade to text — which is
+  //       why this is not done here.
   void reportMetrics() {
     for (final boundResource in _reportedResources) {
       final snapshot = boundResource.getSnapshot();
