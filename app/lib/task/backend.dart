@@ -1509,9 +1509,8 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
   }) async {
     for (final entry in state.versions.entries) {
       final v = entry.value;
-      // TODO: use typed_sql's upsertValue once it becomes available
       await taskVersions
-          .insertValue(
+          .upsertValue(
             runtimeVersion: runtimeVersion,
             package: package,
             version: entry.key,
@@ -1524,33 +1523,17 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
             hasPana: v.pana,
             isFinished: v.finished,
           )
-          .onConflict(.primaryKey)
-          .update(
-            (_, excluded, set) => set(
-              scheduledAt: excluded.scheduledAt,
-              attempts: excluded.attempts,
-              workerZone: excluded.workerZone,
-              workerInstance: excluded.workerInstance,
-              workerToken: excluded.workerToken,
-              hasDocs: excluded.hasDocs,
-              hasPana: excluded.hasPana,
-              isFinished: excluded.isFinished,
-            ),
-          )
           .execute();
     }
 
     for (final token in state.abortedTokens) {
-      // TODO: use typed_sql's upsertValue once it becomes available
       await taskAbortedTokens
-          .insertValue(
+          .upsertValue(
             runtimeVersion: runtimeVersion,
             package: package,
             workerToken: token.token,
             expiresAt: token.expires,
           )
-          .onConflict(.primaryKey)
-          .update((_, excluded, set) => set(expiresAt: excluded.expiresAt))
           .execute();
     }
 
