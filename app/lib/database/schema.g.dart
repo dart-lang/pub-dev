@@ -3235,7 +3235,7 @@ final class _$Task extends Task {
   final String package;
 
   @override
-  final TaskState state;
+  final TaskState? state;
 
   @override
   final DateTime pendingAt;
@@ -3273,7 +3273,7 @@ final class _$Task extends Task {
       ),
       $ForGeneratedCode.columnDefinition(
         type: $ForGeneratedCode.jsonValue,
-        isNotNull: true,
+        isNotNull: false,
         defaultValue: null,
         autoIncrement: false,
         overrides: [],
@@ -3344,7 +3344,7 @@ final class _$Task extends Task {
     return _$Task._(
       runtimeVersion!,
       package!,
-      state!,
+      state,
       pendingAt!,
       lastDependencyChanged!,
       finished!,
@@ -3365,7 +3365,7 @@ extension TableTaskExt on Table<Task> {
   InsertSingle<Task> insert({
     required Expr<String> runtimeVersion,
     required Expr<String> package,
-    required Expr<TaskState> state,
+    Expr<TaskState?>? state,
     required Expr<DateTime> pendingAt,
     required Expr<DateTime> lastDependencyChanged,
     required Expr<DateTime> finished,
@@ -3394,7 +3394,7 @@ extension TableTaskExt on Table<Task> {
   UpsertSingle<Task> upsert({
     required Expr<String> runtimeVersion,
     required Expr<String> package,
-    required Expr<TaskState> state,
+    Expr<TaskState?>? state,
     required Expr<DateTime> pendingAt,
     required Expr<DateTime> lastDependencyChanged,
     required Expr<DateTime> finished,
@@ -3424,7 +3424,7 @@ extension TableTaskExt on Table<Task> {
   InsertSingle<Task> insertValue({
     required String runtimeVersion,
     required String package,
-    required TaskState state,
+    TaskState? state,
     required DateTime pendingAt,
     required DateTime lastDependencyChanged,
     required DateTime finished,
@@ -3453,7 +3453,7 @@ extension TableTaskExt on Table<Task> {
   UpsertSingle<Task> upsertValue({
     required String runtimeVersion,
     required String package,
-    required TaskState state,
+    TaskState? state,
     required DateTime pendingAt,
     required DateTime lastDependencyChanged,
     required DateTime finished,
@@ -3497,7 +3497,7 @@ extension TableTaskExt on Table<Task> {
     Iterable<T> rows, {
     required String Function(T row) runtimeVersion,
     required String Function(T row) package,
-    required TaskState Function(T row) state,
+    TaskState? Function(T row)? state,
     required DateTime Function(T row) pendingAt,
     required DateTime Function(T row) lastDependencyChanged,
     required DateTime Function(T row) finished,
@@ -3507,7 +3507,7 @@ extension TableTaskExt on Table<Task> {
     mappings: [
       runtimeVersion,
       package,
-      (T v) => state(v).toDatabase(),
+      state != null ? (T v) => state(v)?.toDatabase() : null,
       pendingAt,
       lastDependencyChanged,
       finished,
@@ -3576,7 +3576,7 @@ extension QueryTaskExt on Query<(Expr<Task>,)> {
       UpdateSet<Task> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<TaskState> state,
+        Expr<TaskState?> state,
         Expr<DateTime> pendingAt,
         Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
@@ -3592,7 +3592,7 @@ extension QueryTaskExt on Query<(Expr<Task>,)> {
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<TaskState>? state,
+        Expr<TaskState?>? state,
         Expr<DateTime>? pendingAt,
         Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
@@ -3651,7 +3651,7 @@ extension QuerySingleTaskExt on QuerySingle<(Expr<Task>,)> {
       UpdateSet<Task> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<TaskState> state,
+        Expr<TaskState?> state,
         Expr<DateTime> pendingAt,
         Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
@@ -3667,7 +3667,7 @@ extension QuerySingleTaskExt on QuerySingle<(Expr<Task>,)> {
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<TaskState>? state,
+        Expr<TaskState?>? state,
         Expr<DateTime>? pendingAt,
         Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
@@ -3700,7 +3700,7 @@ extension ExpressionTaskExt on Expr<Task> {
   Expr<String> get package =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
-  Expr<TaskState> get state =>
+  Expr<TaskState?> get state =>
       $ForGeneratedCode.field(this, 2, TaskStateExt._exprType);
 
   /// Next [DateTime] at which point some package version becomes pending.
@@ -4043,7 +4043,7 @@ extension InsertOnConflictTaskExt on InsertOnConflict<Task> {
       UpdateSet<Task> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<TaskState> state,
+        Expr<TaskState?> state,
         Expr<DateTime> pendingAt,
         Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
@@ -4059,7 +4059,7 @@ extension InsertOnConflictTaskExt on InsertOnConflict<Task> {
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<TaskState>? state,
+        Expr<TaskState?>? state,
         Expr<DateTime>? pendingAt,
         Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
@@ -4145,7 +4145,7 @@ extension InsertOnConflictSingleTaskExt on InsertOnConflictSingle<Task> {
       UpdateSet<Task> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<TaskState> state,
+        Expr<TaskState?> state,
         Expr<DateTime> pendingAt,
         Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
@@ -4161,7 +4161,7 @@ extension InsertOnConflictSingleTaskExt on InsertOnConflictSingle<Task> {
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<TaskState>? state,
+        Expr<TaskState?>? state,
         Expr<DateTime>? pendingAt,
         Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,

@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bump runtimeVersion to `2026.09.22`.
  * Upgraded dependencies (incl. `typed_sql`)
  * Note: started to sync `AuditLogRecord` entities to/from SQL.
+ * Note: `task` table's state is now nullable.
 
 ## `20260922t083500-all`
  * Bump runtimeVersion to `2026.09.18`.
