@@ -6,6 +6,8 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/search/sdk_mem_index.dart';
+import 'package:pub_dev/tool/test_profile/importer.dart';
+import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
 import '../shared/test_services.dart';
@@ -42,6 +44,47 @@ void main() {
         );
         documents = await searchBackend.fetchSnapshotDocuments();
         expect(documents, isNotEmpty);
+      },
+    );
+
+    testWithProfile(
+      'picks up packages updated during the initial scan',
+      fn: () async {
+        final claim = FakeGlobalLockClaim(clock.now().add(Duration(hours: 1)));
+        var cycle = 0;
+        await searchBackend.doCreateAndUpdateSnapshot(
+          claim,
+          concurrency: 2,
+          sleepDuration: Duration.zero,
+          onCycle: () async {
+            cycle++;
+            if (cycle == 1) {
+              // The initial scan and first upload have just completed.
+              // Publish a package as if it happened during the initial scan,
+              // then advance the clock well past the 5-minute lookback window
+              // before allowing the first incremental query to run.
+              await importProfile(
+                profile: TestProfile(
+                  defaultUser: 'admin@pub.dev',
+                  generatedPackages: [
+                    GeneratedTestPackage(
+                      name: 'late_arrival',
+                      versions: [GeneratedTestVersion(version: '1.0.0')],
+                      publisher: 'example.com',
+                    ),
+                  ],
+                ),
+              );
+              clockControl.elapse(minutes: 30);
+            } else {
+              // Stop the loop after the first incremental iteration completes.
+              claim.expires = clock.now();
+            }
+          },
+        );
+
+        final documents = await searchBackend.fetchSnapshotDocuments();
+        expect(documents!.map((d) => d.package), contains('late_arrival'));
       },
     );
   });
