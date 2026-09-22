@@ -4,7 +4,6 @@
 
 import 'dart:async' show FutureOr, Zone;
 
-import 'package:_pub_shared/utils/http.dart';
 import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
@@ -55,6 +54,7 @@ import '../shared/datastore.dart';
 import '../shared/env_config.dart';
 import '../shared/handler_helpers.dart';
 import '../shared/redis_cache.dart' show setupCache;
+import '../shared/resilience.dart';
 import '../shared/storage.dart';
 import '../shared/versions.dart';
 import '../task/backend.dart';
@@ -82,16 +82,20 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       setupAppEngineLogging();
     }
     return await fork(() async {
-      // retrying auth client for storage service
+      registerResilience(PubResilience.create());
+      registerScopeExitCallback(resilience.close);
+
       final authClient = await auth.clientViaApplicationDefaultCredentials(
         scopes: [...Storage.SCOPES],
       );
-      final retryingAuthClient = httpRetryClient(innerClient: authClient);
-      registerScopeExitCallback(() async => retryingAuthClient.close());
+      // Retries and circuit breaking for storage are handled by the
+      // `cloud-storage` resource in `package:pub_dev/shared/resilience.dart`,
+      // so this client must not retry on its own.
+      registerScopeExitCallback(() async => authClient.close());
 
-      // override storageService with retrying http client
+      // override storageService with the shared auth client
       registerStorageService(
-        Storage(retryingAuthClient, activeConfiguration.projectId),
+        Storage(authClient, activeConfiguration.projectId),
       );
 
       // register services with external dependencies
@@ -153,6 +157,9 @@ Future<R> withFakeServices<R>({
   storage ??= MemStorage();
   // TODO: update `package:gcloud` to have a typed fork.
   return await fork(() async {
+        registerResilience(PubResilience.create());
+        registerScopeExitCallback(resilience.close);
+
         register(#appengine.context, FakeClientContext());
         registerDbService(DatastoreDB(datastore!));
         registerStorageService(RetryEnforcerStorage(storage!));

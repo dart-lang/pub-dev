@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:_pub_shared/utils/http.dart' show isRetryableException;
 import 'package:chunked_stream/chunked_stream.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/storage.dart';
@@ -16,10 +15,10 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:pool/pool.dart';
 import 'package:pub_dev/shared/env_config.dart';
-import 'package:retry/retry.dart';
 import 'package:tar/tar.dart';
 
 import 'configuration.dart';
+import 'resilience.dart';
 import 'utils.dart'
     show contentType, withTempDirectory, ByteArrayEqualsExt, DeleteCounts;
 import 'versions.dart' as versions;
@@ -89,18 +88,14 @@ extension BucketExt on Bucket {
 
   /// Returns an [ObjectInfo] if [name] exists, `null` otherwise.
   Future<ObjectInfo?> tryInfo(String name) async {
-    return await retry(
-      () async {
-        try {
-          return await info(name);
-        } on DetailedApiRequestError catch (e) {
-          if (e.status == 404) return null;
-          rethrow;
-        }
-      },
-      maxAttempts: 3,
-      retryIf: isRetryableException,
-    );
+    return await _retry(() async {
+      try {
+        return await info(name);
+      } on DetailedApiRequestError catch (e) {
+        if (e.status == 404) return null;
+        rethrow;
+      }
+    });
   }
 
   /// Delete an object with default retry.
@@ -157,22 +152,27 @@ extension BucketExt on Bucket {
     if (maxSize != null && length != null && maxSize < length) {
       throw MaximumSizeExceeded(maxSize);
     }
-    return _retry(() async {
-      final timeout = Duration(seconds: 30);
-      final deadline = clock.now().add(timeout);
+    // `maxSize` is a caller error, not a backend failure, so it must not count
+    // against the `cloud-storage` circuit breaker. The read is still aborted as
+    // soon as the limit is passed; the exception is raised outside the policy.
+    var tooLarge = false;
+    final bytes = await _retry(() async {
+      tooLarge = false;
       final builder = BytesBuilder(copy: false);
       final stream = read(objectName, offset: offset, length: length);
       await for (final chunk in stream) {
         builder.add(chunk);
         if (maxSize != null && builder.length > maxSize) {
-          throw MaximumSizeExceeded(maxSize);
-        }
-        if (deadline.isBefore(clock.now())) {
-          throw TimeoutException('Reading $objectName timed out.', timeout);
+          tooLarge = true;
+          return Uint8List(0);
         }
       }
       return builder.toBytes();
-    });
+    }, attemptTimeout: const Duration(seconds: 30));
+    if (tooLarge) {
+      throw MaximumSizeExceeded(maxSize!);
+    }
+    return bytes;
   }
 
   /// Read object content as byte stream using the callback function to receive data chunks.
@@ -265,18 +265,29 @@ extension PageExt<T> on Page<T> {
   }
 }
 
+/// Runs [fn] against Google Cloud Storage under the shared `cloud-storage`
+/// resilience policy.
+///
+/// Retries transient failures (see [isTransientGcpError]) with exponential
+/// backoff and a retry budget, and fails fast with a
+/// [CircuitBreakerOpenException] while the circuit is open. Client errors such
+/// as the `404` that [BucketExt.tryInfo] relies on are neither retried nor
+/// counted against the backend.
+///
+/// [attemptTimeout] bounds a single attempt. Unlike a deadline checked between
+/// stream events, it also fires while an attempt makes no progress at all.
+/// Throws [ResilienceTimeoutException] when an attempt exceeds it.
+///
+/// Retry attempts are reported on `resilience.context.events` and logged
+/// centrally, so callers no longer pass their own `onRetry` hook.
 Future<R> _retry<R>(
   Future<R> Function() fn, {
-  FutureOr<void> Function(Exception)? onRetry,
-}) async {
-  return await retry(
-    fn,
-    maxAttempts: 3,
-    delayFactor: Duration(seconds: 2),
-    retryIf: isRetryableException,
-    onRetry: onRetry,
-  );
-}
+  Duration? attemptTimeout,
+}) async => await resilience.cloudStorage.execute(
+  fn,
+  retryOn: isTransientGcpError,
+  attemptTimeout: attemptTimeout,
+);
 
 /// Returns a valid `gs://` URI for a given [bucket] + [path] combination.
 String bucketUri(Bucket bucket, String path) =>
@@ -348,21 +359,16 @@ Future uploadWithRetry(
   Stream<List<int>> Function() openStream, {
   ObjectMetadata? metadata,
 }) async {
-  await _retry(
-    () async {
-      final sink = bucket.write(
-        objectName,
-        length: length,
-        contentType: metadata?.contentType ?? contentType(objectName),
-        metadata: metadata,
-      );
-      await sink.addStream(openStream());
-      await sink.close();
-    },
-    onRetry: (e) {
-      _logger.info('Upload to $objectName failed.', e, StackTrace.current);
-    },
-  );
+  await _retry(() async {
+    final sink = bucket.write(
+      objectName,
+      length: length,
+      contentType: metadata?.contentType ?? contentType(objectName),
+      metadata: metadata,
+    );
+    await sink.addStream(openStream());
+    await sink.close();
+  });
 }
 
 /// Uploads content from [bytes] to the [bucket] as [objectName].
