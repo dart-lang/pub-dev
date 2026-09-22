@@ -24,7 +24,7 @@ abstract final class PrimarySchema extends Schema {
 
   Table<AuditLogRecordRow> get auditLogRecords;
 
-  Table<AuditLogAssociation> get auditLogAssociation;
+  Table<AuditLogAssociation> get auditLogAssociations;
 
   // global lock table
 

@@ -163,7 +163,7 @@ class AuditBackend {
         )
         .execute();
 
-    await db.auditLogAssociation
+    await db.auditLogAssociations
         .where((a) => a.recordId.equalsValue(id))
         .delete()
         .execute();
@@ -179,7 +179,7 @@ class AuditBackend {
         (kind: AuditLogAssociationKind.publisher, value: pub),
     ];
     if (associations.isNotEmpty) {
-      await db.auditLogAssociation
+      await db.auditLogAssociations
           .insertValuesMapped(
             associations,
             recordId: (_) => id,
@@ -229,7 +229,7 @@ class AuditBackend {
         continue;
       }
       final associations = await primaryDatabase.withRetry(
-        (db) => db.auditLogAssociation
+        (db) => db.auditLogAssociations
             .where((a) => a.recordId.equalsValue(row.id))
             .fetch(),
       );
@@ -282,7 +282,7 @@ class AuditBackend {
   Future<void> deleteSqlRecordsForPackage(String package) async {
     try {
       await primaryDatabase.transactWithRetry((db) async {
-        final recordIds = await db.auditLogAssociation
+        final recordIds = await db.auditLogAssociations
             .where(
               (a) =>
                   a.kind.equalsValue(AuditLogAssociationKind.package) &

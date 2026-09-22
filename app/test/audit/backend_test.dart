@@ -192,7 +192,7 @@ void main() {
         });
 
         final associations = await primaryDatabase.withRetry(
-          (db) => db.auditLogAssociation
+          (db) => db.auditLogAssociations
               .where((a) => a.recordId.equalsValue(record.id!))
               .fetch(),
         );
@@ -220,7 +220,7 @@ void main() {
         expect(rows, hasLength(1));
 
         final associations = await primaryDatabase.withRetry(
-          (db) => db.auditLogAssociation
+          (db) => db.auditLogAssociations
               .where((a) => a.recordId.equalsValue(record.id!))
               .fetch(),
         );
@@ -294,7 +294,7 @@ void main() {
         );
         expect(expiredRow, isNull);
         final expiredAssociations = await primaryDatabase.withRetry(
-          (db) => db.auditLogAssociation
+          (db) => db.auditLogAssociations
               .where((a) => a.recordId.equalsValue(expired.id!))
               .fetch(),
         );

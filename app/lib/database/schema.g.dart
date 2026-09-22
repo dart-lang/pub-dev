@@ -46,7 +46,7 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
   Table<AuditLogRecordRow> get auditLogRecords =>
       $ForGeneratedCode.declareTable(this, _$AuditLogRecordRow._$table);
 
-  Table<AuditLogAssociation> get auditLogAssociation =>
+  Table<AuditLogAssociation> get auditLogAssociations =>
       $ForGeneratedCode.declareTable(this, _$AuditLogAssociation._$table);
 
   Table<GlobalLockStateRow> get globalLockStates =>
@@ -1543,7 +1543,7 @@ extension ExpressionAuditLogRecordRowExt on Expr<AuditLogRecordRow> {
   Expr<JsonValue?> get dataJson =>
       $ForGeneratedCode.field(this, 6, $ForGeneratedCode.jsonValue);
 
-  /// Get [SubQuery] of rows from the `auditLogAssociation` table which
+  /// Get [SubQuery] of rows from the `auditLogAssociations` table which
   /// reference this row.
   ///
   /// This returns a [SubQuery] of [AuditLogAssociation] rows,
@@ -1579,7 +1579,7 @@ extension ExpressionNullableAuditLogRecordRowExt on Expr<AuditLogRecordRow?> {
   Expr<JsonValue?> get dataJson =>
       $ForGeneratedCode.field(this, 6, $ForGeneratedCode.jsonValue);
 
-  /// Get [SubQuery] of rows from the `auditLogAssociation` table which
+  /// Get [SubQuery] of rows from the `auditLogAssociations` table which
   /// reference this row.
   ///
   /// This returns a [SubQuery] of [AuditLogAssociation] rows,
@@ -1876,7 +1876,7 @@ final class _$AuditLogAssociation extends AuditLogAssociation {
   final String value;
 
   static final _$table = $ForGeneratedCode.tableDefinition(
-    tableName: 'audit_log_association',
+    tableName: 'audit_log_associations',
     columns: <String>['record_id', 'kind', 'value'],
     columnInfo: [
       $ForGeneratedCode.columnDefinition(
@@ -1940,7 +1940,7 @@ final class _$AuditLogAssociation extends AuditLogAssociation {
 
 /// Extension methods for table defined in [AuditLogAssociation].
 extension TableAuditLogAssociationExt on Table<AuditLogAssociation> {
-  /// Insert row into the `auditLogAssociation` table.
+  /// Insert row into the `auditLogAssociations` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
@@ -1953,7 +1953,7 @@ extension TableAuditLogAssociationExt on Table<AuditLogAssociation> {
     values: [recordId, kind, value],
   );
 
-  /// Insert row into the `auditLogAssociation` table.
+  /// Insert row into the `auditLogAssociations` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
@@ -1966,7 +1966,7 @@ extension TableAuditLogAssociationExt on Table<AuditLogAssociation> {
     values: [recordId.asExpr, kind.asExpr, value.asExpr],
   );
 
-  /// Bulk insert rows into the `auditLogAssociation` table.
+  /// Bulk insert rows into the `auditLogAssociations` table.
   ///
   /// This method takes an `Iterable<T>` and requires that you provide
   /// a _mapping function_ from `T` to each column to be inserted.
@@ -1994,7 +1994,7 @@ extension TableAuditLogAssociationExt on Table<AuditLogAssociation> {
     mappings: [recordId, kind, value],
   );
 
-  /// Delete a single row from the `auditLogAssociation` table, specified by
+  /// Delete a single row from the `auditLogAssociations` table, specified by
   /// _primary key_.
   ///
   /// Returns a [DeleteSingle] statement on which `.execute()` must be
@@ -2013,9 +2013,9 @@ extension TableAuditLogAssociationExt on Table<AuditLogAssociation> {
   );
 }
 
-/// Extension methods for building queries against the `auditLogAssociation` table.
+/// Extension methods for building queries against the `auditLogAssociations` table.
 extension QueryAuditLogAssociationExt on Query<(Expr<AuditLogAssociation>,)> {
-  /// Lookup a single row in `auditLogAssociation` table using the _primary key_.
+  /// Lookup a single row in `auditLogAssociations` table using the _primary key_.
   ///
   /// Returns a [QuerySingle] object, which returns at-most one row,
   /// when `.fetch()` is called.
@@ -2030,7 +2030,7 @@ extension QueryAuditLogAssociationExt on Query<(Expr<AuditLogAssociation>,)> {
         auditLogAssociation.value.equalsValue(value),
   ).first;
 
-  /// Update all rows in the `auditLogAssociation` table matching this [Query].
+  /// Update all rows in the `auditLogAssociations` table matching this [Query].
   ///
   /// The changes to be applied to each row matching this [Query] are
   /// defined using the [updateBuilder], which is given an [Expr]
@@ -2082,7 +2082,7 @@ extension QueryAuditLogAssociationExt on Query<(Expr<AuditLogAssociation>,)> {
     ),
   );
 
-  /// Delete all rows in the `auditLogAssociation` table matching this [Query].
+  /// Delete all rows in the `auditLogAssociations` table matching this [Query].
   ///
   /// Returns a [Delete] statement on which `.execute()` must be called
   /// for the rows to be deleted.
@@ -2090,10 +2090,10 @@ extension QueryAuditLogAssociationExt on Query<(Expr<AuditLogAssociation>,)> {
       $ForGeneratedCode.delete(this, _$AuditLogAssociation._$table);
 }
 
-/// Extension methods for building point queries against the `auditLogAssociation` table.
+/// Extension methods for building point queries against the `auditLogAssociations` table.
 extension QuerySingleAuditLogAssociationExt
     on QuerySingle<(Expr<AuditLogAssociation>,)> {
-  /// Update the row (if any) in the `auditLogAssociation` table matching this
+  /// Update the row (if any) in the `auditLogAssociations` table matching this
   /// [QuerySingle].
   ///
   /// The changes to be applied to the row matching this [QuerySingle] are
@@ -2147,7 +2147,7 @@ extension QuerySingleAuditLogAssociationExt
     ),
   );
 
-  /// Delete the row (if any) in the `auditLogAssociation` table matching this [QuerySingle].
+  /// Delete the row (if any) in the `auditLogAssociations` table matching this [QuerySingle].
   ///
   /// Returns a [DeleteSingle] statement on which `.execute()` must be called
   /// for the row to be deleted. The resulting statement will **not**
@@ -2156,7 +2156,7 @@ extension QuerySingleAuditLogAssociationExt
       $ForGeneratedCode.deleteSingle(this, _$AuditLogAssociation._$table);
 }
 
-/// Extension methods for expressions on a row in the `auditLogAssociation` table.
+/// Extension methods for expressions on a row in the `auditLogAssociations` table.
 extension ExpressionAuditLogAssociationExt on Expr<AuditLogAssociation> {
   Expr<String> get recordId =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);

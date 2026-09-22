@@ -868,7 +868,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       );
 
       final associations = await primaryDatabase.withRetry(
-        (db) => db.auditLogAssociation
+        (db) => db.auditLogAssociations
             .where((a) => a.recordId.equalsValue(row.id))
             .fetch(),
       );
