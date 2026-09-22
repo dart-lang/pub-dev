@@ -195,12 +195,9 @@ class AuditBackend {
 
   /// Copies audit log records from Datastore into SQL, for records that are
   /// not yet present in SQL.
-  Future<int> backfillSqlFromDatastore({int? limit}) async {
+  Future<int> backfillSqlFromDatastore() async {
     var count = 0;
     await for (final record in _db.query<AuditLogRecord>().run()) {
-      if (limit != null && count >= limit) {
-        break;
-      }
       final existing = await primaryDatabase.withRetry(
         (db) => db.auditLogRecords.byKey(record.id!).fetch(),
       );
@@ -215,19 +212,13 @@ class AuditBackend {
 
   /// Copies audit log records from SQL into Datastore, for records that are
   /// not yet present in Datastore.
-  Future<int> backfillDatastoreFromSql({int? limit}) async {
-    final rows = await primaryDatabase.withRetry(
-      (db) => db.auditLogRecords.fetch(),
-    );
+  Future<int> backfillDatastoreFromSql() async {
     var count = 0;
-    for (final row in rows) {
-      if (limit != null && count >= limit) {
-        break;
-      }
+    Future<void> backfillRow(AuditLogRecordRow row) async {
       final key = _db.emptyKey.append(AuditLogRecord, id: row.id);
       final existing = await _db.lookupOrNull<AuditLogRecord>(key);
       if (existing != null) {
-        continue;
+        return;
       }
       final associations = await primaryDatabase.withRetry(
         (db) => db.auditLogAssociations
@@ -261,6 +252,24 @@ class AuditBackend {
       await _db.commit(inserts: [record]);
       count++;
     }
+
+    for (var lastId = ''; ;) {
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.auditLogRecords
+            .where((r) => r.id.greaterThanValue(lastId))
+            .orderBy((r) => [(r.id, Order.ascending)])
+            .limit(100)
+            .fetch(),
+      );
+      if (rows.isEmpty) {
+        break;
+      }
+      for (final row in rows) {
+        await backfillRow(row);
+      }
+      lastId = rows.last.id;
+    }
+
     return count;
   }
 
