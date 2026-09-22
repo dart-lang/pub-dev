@@ -45,6 +45,9 @@ abstract final class AuditLogRecordRow extends Row {
 abstract final class AuditLogAssociation extends Row {
   String get recordId;
 
+  /// Same as the parent's createAt column.
+  DateTime get recordCreatedAt;
+
   /// One of [AuditLogAssociationKind]'s values - matching the corresponding
   /// `AuditLogRecord` field name.
   String get kind;

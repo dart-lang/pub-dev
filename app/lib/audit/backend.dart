@@ -183,6 +183,7 @@ class AuditBackend {
           .insertValuesMapped(
             associations,
             recordId: (_) => id,
+            recordCreatedAt: (_) => record.created!,
             kind: (a) => a.kind,
             value: (a) => a.value,
           )

@@ -1864,10 +1864,18 @@ extension InsertOnConflictSingleAuditLogRecordRowExt
 }
 
 final class _$AuditLogAssociation extends AuditLogAssociation {
-  _$AuditLogAssociation._(this.recordId, this.kind, this.value);
+  _$AuditLogAssociation._(
+    this.recordId,
+    this.recordCreatedAt,
+    this.kind,
+    this.value,
+  );
 
   @override
   final String recordId;
+
+  @override
+  final DateTime recordCreatedAt;
 
   @override
   final String kind;
@@ -1877,10 +1885,17 @@ final class _$AuditLogAssociation extends AuditLogAssociation {
 
   static final _$table = $ForGeneratedCode.tableDefinition(
     tableName: 'audit_log_associations',
-    columns: <String>['record_id', 'kind', 'value'],
+    columns: <String>['record_id', 'record_created_at', 'kind', 'value'],
     columnInfo: [
       $ForGeneratedCode.columnDefinition(
         type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
         isNotNull: true,
         defaultValue: null,
         autoIncrement: false,
@@ -1925,17 +1940,21 @@ final class _$AuditLogAssociation extends AuditLogAssociation {
 
   static AuditLogAssociation? _$fromDatabase(RowReader row) {
     final recordId = row.readString();
+    final recordCreatedAt = row.readDateTime();
     final kind = row.readString();
     final value = row.readString();
-    if (recordId == null && kind == null && value == null) {
+    if (recordId == null &&
+        recordCreatedAt == null &&
+        kind == null &&
+        value == null) {
       return null;
     }
-    return _$AuditLogAssociation._(recordId!, kind!, value!);
+    return _$AuditLogAssociation._(recordId!, recordCreatedAt!, kind!, value!);
   }
 
   @override
   String toString() =>
-      'AuditLogAssociation(recordId: "$recordId", kind: "$kind", value: "$value")';
+      'AuditLogAssociation(recordId: "$recordId", recordCreatedAt: "$recordCreatedAt", kind: "$kind", value: "$value")';
 }
 
 /// Extension methods for table defined in [AuditLogAssociation].
@@ -1946,11 +1965,12 @@ extension TableAuditLogAssociationExt on Table<AuditLogAssociation> {
   /// called for the row to be inserted.
   InsertSingle<AuditLogAssociation> insert({
     required Expr<String> recordId,
+    required Expr<DateTime> recordCreatedAt,
     required Expr<String> kind,
     required Expr<String> value,
   }) => $ForGeneratedCode.insertInto(
     table: this,
-    values: [recordId, kind, value],
+    values: [recordId, recordCreatedAt, kind, value],
   );
 
   /// Insert row into the `auditLogAssociations` table.
@@ -1959,11 +1979,17 @@ extension TableAuditLogAssociationExt on Table<AuditLogAssociation> {
   /// called for the row to be inserted.
   InsertSingle<AuditLogAssociation> insertValue({
     required String recordId,
+    required DateTime recordCreatedAt,
     required String kind,
     required String value,
   }) => $ForGeneratedCode.insertInto(
     table: this,
-    values: [recordId.asExpr, kind.asExpr, value.asExpr],
+    values: [
+      recordId.asExpr,
+      recordCreatedAt.asExpr,
+      kind.asExpr,
+      value.asExpr,
+    ],
   );
 
   /// Bulk insert rows into the `auditLogAssociations` table.
@@ -1986,12 +2012,13 @@ extension TableAuditLogAssociationExt on Table<AuditLogAssociation> {
   Insert<AuditLogAssociation> insertValuesMapped<T>(
     Iterable<T> rows, {
     required String Function(T row) recordId,
+    required DateTime Function(T row) recordCreatedAt,
     required String Function(T row) kind,
     required String Function(T row) value,
   }) => $ForGeneratedCode.insertValuesMapped(
     table: this,
     rows: rows,
-    mappings: [recordId, kind, value],
+    mappings: [recordId, recordCreatedAt, kind, value],
   );
 
   /// Delete a single row from the `auditLogAssociations` table, specified by
@@ -2062,6 +2089,7 @@ extension QueryAuditLogAssociationExt on Query<(Expr<AuditLogAssociation>,)> {
       Expr<AuditLogAssociation> auditLogAssociation,
       UpdateSet<AuditLogAssociation> Function({
         Expr<String> recordId,
+        Expr<DateTime> recordCreatedAt,
         Expr<String> kind,
         Expr<String> value,
       })
@@ -2073,12 +2101,17 @@ extension QueryAuditLogAssociationExt on Query<(Expr<AuditLogAssociation>,)> {
     _$AuditLogAssociation._$table,
     (auditLogAssociation) => updateBuilder(
       auditLogAssociation,
-      ({Expr<String>? recordId, Expr<String>? kind, Expr<String>? value}) =>
-          $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
-            recordId,
-            kind,
-            value,
-          ]),
+      ({
+        Expr<String>? recordId,
+        Expr<DateTime>? recordCreatedAt,
+        Expr<String>? kind,
+        Expr<String>? value,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
+        recordId,
+        recordCreatedAt,
+        kind,
+        value,
+      ]),
     ),
   );
 
@@ -2127,6 +2160,7 @@ extension QuerySingleAuditLogAssociationExt
       Expr<AuditLogAssociation> auditLogAssociation,
       UpdateSet<AuditLogAssociation> Function({
         Expr<String> recordId,
+        Expr<DateTime> recordCreatedAt,
         Expr<String> kind,
         Expr<String> value,
       })
@@ -2138,12 +2172,17 @@ extension QuerySingleAuditLogAssociationExt
     _$AuditLogAssociation._$table,
     (auditLogAssociation) => updateBuilder(
       auditLogAssociation,
-      ({Expr<String>? recordId, Expr<String>? kind, Expr<String>? value}) =>
-          $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
-            recordId,
-            kind,
-            value,
-          ]),
+      ({
+        Expr<String>? recordId,
+        Expr<DateTime>? recordCreatedAt,
+        Expr<String>? kind,
+        Expr<String>? value,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
+        recordId,
+        recordCreatedAt,
+        kind,
+        value,
+      ]),
     ),
   );
 
@@ -2161,15 +2200,19 @@ extension ExpressionAuditLogAssociationExt on Expr<AuditLogAssociation> {
   Expr<String> get recordId =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
+  /// Same as the parent's createAt column.
+  Expr<DateTime> get recordCreatedAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
   /// One of [AuditLogAssociationKind]'s values - matching the corresponding
   /// `AuditLogRecord` field name.
   Expr<String> get kind =>
-      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   /// The associated id: userId, package name, `package/version`, or
   /// publisherId - depending on [kind].
   Expr<String> get value =>
-      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
 
   /// Do a subquery lookup of the row from table
   /// `auditLogRecords` referenced in
@@ -2190,15 +2233,19 @@ extension ExpressionNullableAuditLogAssociationExt
   Expr<String?> get recordId =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
+  /// Same as the parent's createAt column.
+  Expr<DateTime?> get recordCreatedAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
   /// One of [AuditLogAssociationKind]'s values - matching the corresponding
   /// `AuditLogRecord` field name.
   Expr<String?> get kind =>
-      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
   /// The associated id: userId, package name, `package/version`, or
   /// publisherId - depending on [kind].
   Expr<String?> get value =>
-      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
 
   /// Do a subquery lookup of the row from table
   /// `auditLogRecords` referenced in
@@ -2343,6 +2390,7 @@ extension InsertOnConflictAuditLogAssociationExt
       Expr<AuditLogAssociation> excluded,
       UpdateSet<AuditLogAssociation> Function({
         Expr<String> recordId,
+        Expr<DateTime> recordCreatedAt,
         Expr<String> kind,
         Expr<String> value,
       })
@@ -2354,12 +2402,17 @@ extension InsertOnConflictAuditLogAssociationExt
     (auditLogAssociation, excluded) => updateBuilder(
       auditLogAssociation,
       excluded,
-      ({Expr<String>? recordId, Expr<String>? kind, Expr<String>? value}) =>
-          $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
-            recordId,
-            kind,
-            value,
-          ]),
+      ({
+        Expr<String>? recordId,
+        Expr<DateTime>? recordCreatedAt,
+        Expr<String>? kind,
+        Expr<String>? value,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
+        recordId,
+        recordCreatedAt,
+        kind,
+        value,
+      ]),
     ),
   );
 }
@@ -2436,6 +2489,7 @@ extension InsertOnConflictSingleAuditLogAssociationExt
       Expr<AuditLogAssociation> excluded,
       UpdateSet<AuditLogAssociation> Function({
         Expr<String> recordId,
+        Expr<DateTime> recordCreatedAt,
         Expr<String> kind,
         Expr<String> value,
       })
@@ -2447,12 +2501,17 @@ extension InsertOnConflictSingleAuditLogAssociationExt
     (auditLogAssociation, excluded) => updateBuilder(
       auditLogAssociation,
       excluded,
-      ({Expr<String>? recordId, Expr<String>? kind, Expr<String>? value}) =>
-          $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
-            recordId,
-            kind,
-            value,
-          ]),
+      ({
+        Expr<String>? recordId,
+        Expr<DateTime>? recordCreatedAt,
+        Expr<String>? kind,
+        Expr<String>? value,
+      }) => $ForGeneratedCode.buildUpdate<AuditLogAssociation>([
+        recordId,
+        recordCreatedAt,
+        kind,
+        value,
+      ]),
     ),
   );
 }
