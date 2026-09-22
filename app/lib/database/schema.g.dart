@@ -3349,6 +3349,39 @@ extension TableNeatTaskStatusRowExt on Table<NeatTaskStatusRow> {
     values: [taskName, runtimeVersion, status, etag, updatedAt],
   );
 
+  /// Insert row into the `neatTaskStatuses` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `status`, `etag`, `updatedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<NeatTaskStatusRow> upsert({
+    required Expr<String> taskName,
+    required Expr<String> runtimeVersion,
+    required Expr<Uint8List> status,
+    required Expr<String> etag,
+    required Expr<DateTime> updatedAt,
+  }) =>
+      insert(
+            taskName: taskName,
+            runtimeVersion: runtimeVersion,
+            status: status,
+            etag: etag,
+            updatedAt: updatedAt,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              status: excluded.status,
+              etag: excluded.etag,
+              updatedAt: excluded.updatedAt,
+            ),
+          );
+
   /// Insert row into the `neatTaskStatuses` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
@@ -3369,6 +3402,39 @@ extension TableNeatTaskStatusRowExt on Table<NeatTaskStatusRow> {
       updatedAt.asExpr,
     ],
   );
+
+  /// Insert row into the `neatTaskStatuses` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `status`, `etag`, `updatedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<NeatTaskStatusRow> upsertValue({
+    required String taskName,
+    required String runtimeVersion,
+    required Uint8List status,
+    required String etag,
+    required DateTime updatedAt,
+  }) =>
+      insertValue(
+            taskName: taskName,
+            runtimeVersion: runtimeVersion,
+            status: status,
+            etag: etag,
+            updatedAt: updatedAt,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              status: excluded.status,
+              etag: excluded.etag,
+              updatedAt: excluded.updatedAt,
+            ),
+          );
 
   /// Bulk insert rows into the `neatTaskStatuses` table.
   ///
