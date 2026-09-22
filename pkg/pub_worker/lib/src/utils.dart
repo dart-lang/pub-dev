@@ -1,6 +1,38 @@
+import 'dart:convert' show json;
 import 'dart:typed_data' show Uint8List, BytesBuilder;
 
 import 'package:pub_semver/pub_semver.dart';
+
+/// Parses writable directory paths from the `SANDBOX_OUTPUT` or
+/// `SANDBOX_OUTPUT_JSON` environment variables.
+///
+/// If [sandboxOutputJson] is non-empty, parses it as a JSON-encoded list of
+/// strings. Otherwise falls back to [sandboxOutput] (legacy colon-separated
+/// paths).
+///
+/// Throws a [FormatException] if [sandboxOutputJson] is non-empty and not a
+/// valid JSON list of strings.
+List<String> parseSandboxOutput({
+  String? sandboxOutput,
+  String? sandboxOutputJson,
+}) {
+  final hasLegacy = sandboxOutput != null && sandboxOutput.isNotEmpty;
+  final hasJson = sandboxOutputJson != null && sandboxOutputJson.isNotEmpty;
+  if (hasJson) {
+    final decoded = json.decode(sandboxOutputJson);
+    if (decoded is List && decoded.every((e) => e is String)) {
+      return decoded.cast<String>();
+    }
+    throw FormatException(
+      'Expected a JSON list of strings in SANDBOX_OUTPUT_JSON',
+      sandboxOutputJson,
+    );
+  }
+  if (hasLegacy) {
+    return sandboxOutput.split(':').where((e) => e.isNotEmpty).toList();
+  }
+  return const <String>[];
+}
 
 /// Convert chunked [stream] to [Uint8List].
 Future<Uint8List> streamToBuffer(Stream<List<int>> stream) async {
