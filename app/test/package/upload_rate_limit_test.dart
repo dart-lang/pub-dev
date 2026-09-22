@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/admin/actions/package_version_retraction.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
@@ -264,6 +265,45 @@ environment:
               package: 'b',
               version: '0.1.0',
               time: Duration(minutes: 3),
+            );
+          },
+        );
+      },
+    );
+
+    testWithProfile(
+      'support agent actions bypass package rate limits',
+      testProfile: TestProfile(defaultUser: adminAtPubDevEmail),
+      fn: () async {
+        await _withRateLimits(
+          [
+            RateLimit(
+              operation: AuditLogRecordKind.packageVersionOptionsUpdated,
+              scope: RateLimitScope.package,
+              burst: 1,
+            ),
+          ],
+          () async {
+            await upload(package: 'a', version: '1.0.0', time: Duration.zero);
+            await upload(
+              package: 'a',
+              version: '1.1.0',
+              time: Duration(minutes: 3),
+            );
+            await withClock(
+              Clock.fixed(refTime.add(Duration(minutes: 5))),
+              () async {
+                await packageVersionRetraction.invoke({
+                  'package': 'a',
+                  'version': '1.0.0',
+                  'set-retracted': 'true',
+                });
+                await packageVersionRetraction.invoke({
+                  'package': 'a',
+                  'version': '1.1.0',
+                  'set-retracted': 'true',
+                });
+              },
             );
           },
         );
