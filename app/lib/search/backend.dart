@@ -140,6 +140,7 @@ class SearchBackend {
   Future<void> doCreateAndUpdateSnapshot(
     GlobalLockClaim claim, {
     Duration sleepDuration = const Duration(minutes: 2),
+    Future<void> Function()? onCycle,
     int concurrency = _defaultSnapshotBuildConcurrency,
   }) async {
     final firstClaimed = clock.now();
@@ -210,15 +211,21 @@ class SearchBackend {
     // start monitoring
     var lastQueryStarted = firstClaimed;
     while (claim.valid) {
+      await Future.delayed(sleepDuration);
+      if (onCycle != null) {
+        await onCycle();
+      }
+
       final now = clock.now().toUtc();
-      if (now.isAfter(workUntil)) {
+      if (!claim.valid || now.isAfter(workUntil)) {
         break;
       }
 
+      // query updates since the previous query was started, which on the first
+      // iteration is when the initial scan started
+      final recentlyUpdated = await _queryRecentlyUpdated(lastQueryStarted);
       lastQueryStarted = now;
 
-      // query updates
-      final recentlyUpdated = await _queryRecentlyUpdated(lastQueryStarted);
       for (final e in recentlyUpdated.entries) {
         if (!claim.valid) {
           break;
@@ -236,8 +243,6 @@ class SearchBackend {
         await _snapshotStorage.uploadDataAsJsonMap(snapshot.toJson());
         lastUploadedSnapshotTimestamp = snapshot.updated!;
       }
-
-      await Future.delayed(sleepDuration);
     }
     await pool.close();
   }
