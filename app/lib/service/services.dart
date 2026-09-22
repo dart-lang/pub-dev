@@ -86,7 +86,15 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
       final authClient = await auth.clientViaApplicationDefaultCredentials(
         scopes: [...Storage.SCOPES],
       );
-      final retryingAuthClient = httpRetryClient(innerClient: authClient);
+      // Retries a single request, on top of the per-operation retries in
+      // `storage.dart`. The two multiply, so this layer is deliberately
+      // shallow: it is here to absorb a single transient blip inside a
+      // multi-request operation such as a resumable upload, not to keep trying
+      // on its own.
+      final retryingAuthClient = httpRetryClient(
+        innerClient: authClient,
+        retries: 1,
+      );
       registerScopeExitCallback(() async => retryingAuthClient.close());
 
       // override storageService with retrying http client
