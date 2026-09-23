@@ -1115,7 +1115,7 @@ class PackagePageData {
   final Package package;
   final LatestReleases latestReleases;
   final PackageVersion version;
-  final PackageVersionInfo versionInfo;
+  final List<String> assets;
   final PackageVersionAsset? asset;
   final ScoreCardData scoreCard;
   final bool isAdmin;
@@ -1127,7 +1127,7 @@ class PackagePageData {
     required this.package,
     LatestReleases? latestReleases,
     required this.version,
-    required this.versionInfo,
+    required this.assets,
     required this.asset,
     required this.scoreCard,
     required this.isAdmin,
@@ -1135,11 +1135,11 @@ class PackagePageData {
     required this.weeklyDownloadCounts,
   }) : latestReleases = latestReleases ?? package.latestReleases;
 
-  bool get hasReadme => versionInfo.assets.contains(AssetKind.readme);
-  bool get hasChangelog => versionInfo.assets.contains(AssetKind.changelog);
-  bool get hasExample => versionInfo.assets.contains(AssetKind.example);
-  bool get hasLicense => versionInfo.assets.contains(AssetKind.license);
-  bool get hasPubspec => versionInfo.assets.contains(AssetKind.pubspec);
+  bool get hasReadme => assets.contains(AssetKind.readme);
+  bool get hasChangelog => assets.contains(AssetKind.changelog);
+  bool get hasExample => assets.contains(AssetKind.example);
+  bool get hasLicense => assets.contains(AssetKind.license);
+  bool get hasPubspec => assets.contains(AssetKind.pubspec);
 
   bool get isLatestStable => version.version == package.latestVersion;
 
