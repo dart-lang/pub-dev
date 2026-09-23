@@ -7,6 +7,14 @@ import 'package:clock/clock.dart';
 import '../../shared/datastore.dart' as db;
 import '../../shared/utils.dart';
 
+/// The maximum number of delivery attempts before an [OutgoingEmail] is
+/// considered dead.
+const outgoingEmailMaxAttempts = 2;
+
+/// How long a claim is honored before an [OutgoingEmail] is considered dead,
+/// assuming the worker that claimed it died without clearing [OutgoingEmail.claimId].
+const outgoingEmailClaimExpiration = Duration(hours: 8);
+
 /// A record of an outgoing email to a single recipient.
 @db.Kind(name: 'OutgoingEmail', idType: db.IdType.String)
 class OutgoingEmail extends db.Model {
@@ -71,10 +79,11 @@ class OutgoingEmail extends db.Model {
   bool get mayAttemptNow => isAlive && clock.now().isAfter(pendingAt!);
 
   /// Whether we consider the outgoing email alive and try sending.
-  bool get isAlive => attempts < 2;
+  bool get isAlive => attempts < outgoingEmailMaxAttempts;
   bool get isNotAlive => !isAlive;
 
   bool get hasExpiredClaim =>
       claimId != null &&
-      clock.now().difference((lastAttempted ?? created)!) > Duration(hours: 8);
+      clock.now().difference((lastAttempted ?? created)!) >
+          outgoingEmailClaimExpiration;
 }

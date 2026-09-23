@@ -957,6 +957,7 @@ class PackageBackend {
     await purgePublisherCache(newPublisherId);
 
     if (email != null) {
+      await emailBackend.mirrorToSql(email!);
       await emailBackend.trySendOutgoingEmail(email!);
     }
     if (currentPublisherId != null) {
@@ -1560,6 +1561,7 @@ class PackageBackend {
     if (packagePublishedRecord != null) {
       await auditBackend.mirrorToSql(packagePublishedRecord!);
     }
+    await emailBackend.mirrorToSql(outgoingEmail);
     _logger.info('Upload successful. [package-uploaded]');
     _logger.info('Upload transaction completed in ${sw.elapsed}.');
     sw.reset();
