@@ -46,7 +46,7 @@ import '../shared/configuration.dart';
 import '../shared/datastore.dart';
 import '../shared/env_config.dart';
 import '../shared/exceptions.dart';
-import '../shared/redis_cache.dart' show cache;
+import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
 import '../shared/storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
@@ -316,6 +316,20 @@ class PackageBackend {
     return await db.lookupOrNull<PackageVersionInfo>(
       db.emptyKey.append(PackageVersionInfo, id: qvk.qualifiedVersion),
     );
+  }
+
+  /// Returns the list of `AssetKind` values that exist for [package] [version].
+  ///
+  /// Returns an empty list if the [version] is not a semantic version or if
+  /// the info entity does not exist in the datastore.
+  Future<List<String>> getAssets(String package, String version) async {
+    final assets = await cache
+        .packageVersionAssetKinds(package, version)
+        .obtain(() async {
+          final info = await lookupPackageVersionInfo(package, version);
+          return info?.assets ?? <String>[];
+        });
+    return assets ?? <String>[];
   }
 
   /// Looks up a specific package version's asset object.

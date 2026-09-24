@@ -156,6 +156,22 @@ class CachePatterns {
       .withTTL(Duration(hours: 1))
       .withCodec(utf8)['$package-$version'];
 
+  /// Cache for the list of `AssetKind` values that exist for a package version.
+  Entry<List<String>> packageVersionAssetKinds(
+    String package,
+    String version,
+  ) => _cache
+      .withPrefix('package-version-asset-kinds/')
+      .withTTL(Duration(hours: 12))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(
+        wrapAsCodec(
+          encode: (List<String> v) => v,
+          decode: (d) => (d as List).cast<String>(),
+        ),
+      )['$package-$version'];
+
   Entry<List<int>> packageData(String package) => _cache
       .withPrefix('api-package-data-by-uri/')
       .withTTL(Duration(minutes: 10))['$package'];
