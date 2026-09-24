@@ -347,7 +347,6 @@ class ConsentBackend {
     }
     return count;
   }
-  }
 }
 
 /// Callback that will be called on consent actions.

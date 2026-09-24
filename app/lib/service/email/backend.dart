@@ -113,7 +113,7 @@ class EmailBackend {
     if (entry == null) {
       return 0;
     }
-    await mirrorToSql(entry);
+    await _applySqlMirror(upsert: entry);
 
     final recipientEmails = entry.recipientEmails ?? const <String>[];
     final sent = <String>[];
@@ -137,7 +137,7 @@ class EmailBackend {
       }
     }
 
-    var deleted = false;
+    String? deletedId;
     final updated = await withRetryTransaction(_db, (tx) async {
       final o = await tx.lookupOrNull<OutgoingEmail>(key);
       if (o == null) {
@@ -156,7 +156,7 @@ class EmailBackend {
         o.recipientEmails?.remove(email);
       }
       if (o.recipientEmails?.isEmpty ?? false) {
-        deleted = true;
+        deletedId = id;
         tx.delete(key);
         return null;
       } else {
@@ -165,14 +165,36 @@ class EmailBackend {
         return o;
       }
     });
-    if (deleted) {
-      await primaryDatabase.withRetry(
-        (db) => db.outgoingEmails.byKey(id).delete().execute(),
-      );
-    } else if (updated != null) {
-      await mirrorToSql(updated);
-    }
+    await _applySqlMirror(upsert: updated, deleteId: deletedId);
     return sent.length;
+  }
+
+  /// Applies the outcome of a Datastore transaction (either [upsert] or
+  /// [deleteId]) to the SQL mirror (best-effort).
+  ///
+  /// This is called with values returned from a Datastore transaction,
+  /// but runs outside of it, so a failure here can't affect (or abort)
+  /// the Datastore transaction logic that produced those values.
+  Future<void> _applySqlMirror({
+    OutgoingEmail? upsert,
+    String? deleteId,
+  }) async {
+    try {
+      if (deleteId != null) {
+        await primaryDatabase.withRetry(
+          (db) => db.outgoingEmails.byKey(deleteId).delete().execute(),
+        );
+      } else if (upsert != null) {
+        await mirrorToSql(upsert);
+      }
+    } catch (e, st) {
+      _logger.warning(
+        'Failed to update SQL mirror for OutgoingEmail '
+        '"${deleteId ?? upsert?.uuid}".',
+        e,
+        st,
+      );
+    }
   }
 
   /// Deletes entries that exceeded the maximum attempt count.
