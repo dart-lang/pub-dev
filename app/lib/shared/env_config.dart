@@ -28,7 +28,8 @@ class _EnvConfig {
       Platform.environment['GAE_VERSION'] ?? Platform.environment['K_REVISION'];
 
   /// Instance identifier of this service in AppEngine, `null` if running
-  /// locally or on Cloud Run.
+  /// locally or on Cloud Run (Cloud Run Services do not expose an instance
+  /// identifier in environment variables).
   ///
   /// NOTE: use only for narrow debug flows.
   late final _instance = Platform.environment['GAE_INSTANCE'];
