@@ -18,27 +18,20 @@ class _EnvConfig {
   /// Service in AppEngine or Cloud Run that this process is running in, `null`
   /// if running locally.
   late final service =
-      Platform.environment['GAE_SERVICE'] ??
-      Platform.environment['K_SERVICE'] ??
-      Platform.environment['CLOUD_RUN_JOB'];
+      Platform.environment['GAE_SERVICE'] ?? Platform.environment['K_SERVICE'];
 
   /// Version or revision of this service in AppEngine or Cloud Run, `null` if
   /// running locally.
   ///
   /// Can be used to construct URLs for the given service.
   late final _version =
-      Platform.environment['GAE_VERSION'] ??
-      Platform.environment['K_REVISION'] ??
-      Platform.environment['CLOUD_RUN_EXECUTION'];
+      Platform.environment['GAE_VERSION'] ?? Platform.environment['K_REVISION'];
 
-  /// Instance or task identifier of this service in AppEngine or Cloud Run,
-  /// `null` if running locally.
+  /// Instance identifier of this service in AppEngine, `null` if running
+  /// locally or on Cloud Run.
   ///
   /// NOTE: use only for narrow debug flows.
-  late final _instance =
-      Platform.environment['GAE_INSTANCE'] ??
-      Platform.environment['K_REVISION'] ??
-      Platform.environment['CLOUD_RUN_TASK_INDEX'];
+  late final _instance = Platform.environment['GAE_INSTANCE'];
 
   /// HTTP port for the server to listen on (defaults to 8080).
   late final port = int.tryParse(Platform.environment['PORT'] ?? '') ?? 8080;
