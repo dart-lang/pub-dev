@@ -4,7 +4,6 @@
 
 import 'dart:async' show FutureOr, Zone;
 
-import 'package:_pub_shared/utils/http.dart';
 import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
