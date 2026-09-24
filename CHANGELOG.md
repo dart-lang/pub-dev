@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20260924t135800-all`
  * Bump runtimeVersion to `2026.09.22`.
  * Upgraded dependencies (incl. `typed_sql`)
  * Note: started to sync `AuditLogRecord` entities to/from SQL.
