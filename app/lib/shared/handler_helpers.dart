@@ -37,9 +37,10 @@ Future<void> runHandler(
   Logger logger,
   shelf.Handler handler, {
   bool sanitize = false,
-  int port = 8080,
+  int? port,
   Future<void> Function()? processTerminationSignal,
 }) async {
+  port ??= envConfig.port;
   handler = wrapHandler(logger, handler, sanitize: sanitize);
   if (envConfig.isRunningInAppengine) {
     await runAppEngine(

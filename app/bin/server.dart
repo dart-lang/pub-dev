@@ -6,6 +6,7 @@ import 'package:args/command_runner.dart';
 
 import 'package:pub_dev/service/entrypoint/analyzer.dart';
 import 'package:pub_dev/service/entrypoint/frontend.dart';
+import 'package:pub_dev/service/entrypoint/job.dart';
 import 'package:pub_dev/service/entrypoint/search.dart';
 import 'package:pub_dev/shared/env_config.dart';
 
@@ -13,11 +14,17 @@ void main(List<String> args) async {
   final runner = CommandRunner('pub_dev', 'pub.dev services')
     ..addCommand(AnalyzerCommand())
     ..addCommand(DefaultCommand())
+    ..addCommand(JobCommand())
     ..addCommand(SearchCommand());
 
   if (args.isEmpty && envConfig.isRunningInAppengine) {
-    final service = envConfig.gaeService;
-    if (service != null && service.isNotEmpty) {
+    if (envConfig.cloudRunJob case final jobName? when jobName.isNotEmpty) {
+      final normalizedJob = jobName.startsWith('pub-')
+          ? jobName.substring(4)
+          : jobName;
+      args = ['job', normalizedJob];
+    } else if (envConfig.defaultServiceCommand case final service?
+        when service.isNotEmpty) {
       args = [service];
     }
   }
