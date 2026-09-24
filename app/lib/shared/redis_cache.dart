@@ -555,7 +555,7 @@ void _registerCache(CachePatterns cache) => ss.register(#_cache, cache);
 /// - otherwise, a local in-memory cache.
 Future<void> setupCache() async {
   // Use in-memory cache, if not running on AppEngine
-  if (envConfig.isRunningInAppengine) {
+  if (envConfig.isRunningInCloud) {
     await _registerRedisCache();
   } else {
     _log.warning('using in-memory cache instead of redis');

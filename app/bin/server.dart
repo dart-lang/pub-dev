@@ -17,16 +17,8 @@ void main(List<String> args) async {
     ..addCommand(JobCommand())
     ..addCommand(SearchCommand());
 
-  if (args.isEmpty && envConfig.isRunningInAppengine) {
-    if (envConfig.cloudRunJob case final jobName? when jobName.isNotEmpty) {
-      final normalizedJob = jobName.startsWith('pub-')
-          ? jobName.substring(4)
-          : jobName;
-      args = ['job', normalizedJob];
-    } else if (envConfig.defaultServiceCommand case final service?
-        when service.isNotEmpty) {
-      args = [service];
-    }
+  if (args.isEmpty && envConfig.isRunningInCloud && envConfig.service != null) {
+    args = [envConfig.service!];
   }
 
   await runner.run(args);

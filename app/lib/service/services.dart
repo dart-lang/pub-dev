@@ -77,7 +77,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
     throw StateError('Already in withServices scope.');
   }
   return withAppEngineServices(() async {
-    if (envConfig.isRunningInAppengine) {
+    if (envConfig.isRunningInCloud) {
       setupAppEngineLogging();
     }
     return await fork(() async {

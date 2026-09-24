@@ -23,7 +23,7 @@ Future<void> main(List<String> args, var message) async {
   final timer = Timer.periodic(Duration(milliseconds: 250), (_) {});
 
   final ServicesWrapperFn servicesWrapperFn;
-  if (envConfig.isRunningInAppengine) {
+  if (envConfig.isRunningInCloud) {
     servicesWrapperFn = withServices;
     setupAppEngineLogging();
   } else {
