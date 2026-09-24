@@ -9,6 +9,7 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:http/http.dart' as http;
 
 import '../../account/like_backend.dart';
 import '../../frontend/request_context.dart';
@@ -30,12 +31,11 @@ SearchClient get searchClient => ss.lookup(#_searchClient) as SearchClient;
 class SearchClient {
   /// The HTTP client used for making calls to our search service.
   ///
-  /// This is the only retry layer on the search path: it retries the transient
-  /// status codes and socket errors of a single request. Search is on the
-  /// critical path of rendering a page, so the attempt count is kept low — the
-  /// caller falls back to an error result rather than waiting out a long
-  /// backoff.
-  final _httpClient = httpRetryClient(retries: 2);
+  /// This client does not retry: `withRetryHttpClient` is the single retry
+  /// layer on the search path. Stacking a `RetryClient` underneath it
+  /// multiplies the attempts, and `RetryClient` cannot retry a connection that
+  /// drops while the response body is being read anyway.
+  final _httpClient = http.Client();
 
   /// Before this timestamp we may use the fallback search service URL, which
   /// is the unversioned service URL, potentially getting responses from an
@@ -87,37 +87,46 @@ class SearchClient {
     }) async {
       final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;
       try {
-        var data = query.toSearchRequestData();
-        if (userId != null && hasLikedByMeTag) {
-          final newQuery = data.query
-              ?.replaceAll(AccountTag.isLikedByMe, ' ')
-              .trim();
-          final newTags = data.tags!
-              .where((e) => e != AccountTag.isLikedByMe)
-              .toList();
-          data = data.replace(
-            query: newQuery,
-            tags: newTags,
-            packages: packages,
+        return await withRetryHttpClient((client) async {
+          var data = query.toSearchRequestData();
+          if (userId != null && hasLikedByMeTag) {
+            final newQuery = data.query
+                ?.replaceAll(AccountTag.isLikedByMe, ' ')
+                .trim();
+            final newTags = data.tags!
+                .where((e) => e != AccountTag.isLikedByMe)
+                .toList();
+            data = data.replace(
+              query: newQuery,
+              tags: newTags,
+              packages: packages,
+            );
+          }
+          // NOTE: Keeping the query parameter to help investigating logs.
+          final uri = Uri.parse(
+            '$httpHostPort/search',
+          ).replace(queryParameters: {'q': data.query});
+          final rs = await client.post(
+            uri,
+            headers: {
+              ...?cloudTraceHeaders(),
+              'content-type': 'application/json',
+            },
+            body: json.encode(data.toJson()),
           );
-        }
-        // NOTE: Keeping the query parameter to help investigating logs.
-        final uri = Uri.parse(
-          '$httpHostPort/search',
-        ).replace(queryParameters: {'q': data.query});
-        final rs = await _httpClient.post(
-          uri,
-          headers: {
-            ...?cloudTraceHeaders(),
-            'content-type': 'application/json',
-          },
-          body: json.encode(data.toJson()),
-        );
-        return (statusCode: rs.statusCode, body: rs.body);
+          // Throwing hands transient statuses to the retry loop. Any other
+          // status is an answer, and is returned for the caller to interpret.
+          final status = UnexpectedStatusException(rs.statusCode, uri);
+          if (isRetryableException(status)) {
+            throw status;
+          }
+          return (statusCode: rs.statusCode, body: rs.body);
+        }, client: _httpClient);
       } on TimeoutException {
-        // No timeout is configured on the request today, so this cannot fire;
-        // it is kept so that adding one does not turn into a 500.
         return null;
+      } on UnexpectedStatusException catch (e) {
+        // A transient status that persisted through every attempt.
+        return (statusCode: e.statusCode, body: null);
       }
     }
 
