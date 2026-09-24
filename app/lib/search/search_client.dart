@@ -9,6 +9,7 @@ import 'package:_pub_shared/search/tags.dart';
 import 'package:_pub_shared/utils/http.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
+import 'package:http/http.dart' as http;
 
 import '../../account/like_backend.dart';
 import '../../frontend/request_context.dart';
@@ -29,7 +30,12 @@ SearchClient get searchClient => ss.lookup(#_searchClient) as SearchClient;
 /// indexed data.
 class SearchClient {
   /// The HTTP client used for making calls to our search service.
-  final _httpClient = httpRetryClient();
+  ///
+  /// This client does not retry: `withRetryHttpClient` is the single retry
+  /// layer on the search path. Stacking a `RetryClient` underneath it
+  /// multiplies the attempts, and `RetryClient` cannot retry a connection that
+  /// drops while the response body is being read anyway.
+  final _httpClient = http.Client();
 
   /// Before this timestamp we may use the fallback search service URL, which
   /// is the unversioned service URL, potentially getting responses from an
@@ -109,16 +115,25 @@ class SearchClient {
               },
               body: json.encode(data.toJson()),
             );
+            // Throwing hands transient statuses (and 600 index-not-ready) to the
+            // retry loop. Any other status is an answer, and is returned for the
+            // caller to interpret.
+            final status = UnexpectedStatusException(rs.statusCode, uri);
+            if (isRetryableException(status) ||
+                rs.statusCode == searchIndexNotReadyCode) {
+              throw status;
+            }
             return (statusCode: rs.statusCode, body: rs.body);
           },
           client: _httpClient,
           retryIf: (e) =>
-              (e is UnexpectedStatusException &&
-              e.statusCode == searchIndexNotReadyCode),
+              e is UnexpectedStatusException &&
+              e.statusCode == searchIndexNotReadyCode,
         );
       } on TimeoutException {
         return null;
       } on UnexpectedStatusException catch (e) {
+        // A transient status that persisted through every attempt.
         return (statusCode: e.statusCode, body: null);
       }
     }
