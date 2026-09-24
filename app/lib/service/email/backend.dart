@@ -7,8 +7,11 @@ import 'dart:math';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/utils.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../../shared/datastore.dart';
 import 'email_sender.dart';
@@ -110,6 +113,7 @@ class EmailBackend {
     if (entry == null) {
       return 0;
     }
+    await _applySqlMirror(upsert: entry);
 
     final recipientEmails = entry.recipientEmails ?? const <String>[];
     final sent = <String>[];
@@ -133,31 +137,64 @@ class EmailBackend {
       }
     }
 
-    await withRetryTransaction(_db, (tx) async {
+    String? deletedId;
+    final updated = await withRetryTransaction(_db, (tx) async {
       final o = await tx.lookupOrNull<OutgoingEmail>(key);
       if (o == null) {
         _logger.shout(
           'OutgoingEmail was removed while sending emails (claimId="$claimId").',
         );
-        return;
+        return null;
       }
       if (o.claimId != claimId) {
         _logger.shout(
           'OutgoingEmail `claimId` changed while sending emails (claimId="$claimId").',
         );
-        return;
+        return null;
       }
       for (final email in sent) {
         o.recipientEmails?.remove(email);
       }
       if (o.recipientEmails?.isEmpty ?? false) {
+        deletedId = id;
         tx.delete(key);
+        return null;
       } else {
         o.claimId = null;
         tx.insert(o);
+        return o;
       }
     });
+    await _applySqlMirror(upsert: updated, deleteId: deletedId);
     return sent.length;
+  }
+
+  /// Applies the outcome of a Datastore transaction (either [upsert] or
+  /// [deleteId]) to the SQL mirror (best-effort).
+  ///
+  /// This is called with values returned from a Datastore transaction,
+  /// but runs outside of it, so a failure here can't affect (or abort)
+  /// the Datastore transaction logic that produced those values.
+  Future<void> _applySqlMirror({
+    OutgoingEmail? upsert,
+    String? deleteId,
+  }) async {
+    try {
+      if (deleteId != null) {
+        await primaryDatabase.withRetry(
+          (db) => db.outgoingEmails.byKey(deleteId).delete().execute(),
+        );
+      } else if (upsert != null) {
+        await mirrorToSql(upsert);
+      }
+    } catch (e, st) {
+      _logger.warning(
+        'Failed to update SQL mirror for OutgoingEmail '
+        '"${deleteId ?? upsert?.uuid}".',
+        e,
+        st,
+      );
+    }
   }
 
   /// Deletes entries that exceeded the maximum attempt count.
@@ -176,6 +213,63 @@ class EmailBackend {
         }
       },
     );
+
+    await primaryDatabase.withRetry(
+      (db) => db.outgoingEmails
+          .where(
+            (e) =>
+                e.attempts.greaterThanOrEqualValue(outgoingEmailMaxAttempts) |
+                (e.claimId.isNotNull() &
+                    e.lastAttemptedAt
+                        .orElse(e.createdAt)
+                        .isBeforeValue(
+                          clock.now().toUtc().subtract(
+                            outgoingEmailClaimExpiration,
+                          ),
+                        )),
+          )
+          .delete()
+          .execute(),
+    );
+
     return stats.deleted;
+  }
+
+  /// Mirrors [email] into SQL (best-effort).
+  Future<void> mirrorToSql(OutgoingEmail email) async {
+    await primaryDatabase.transactWithRetry(
+      (db) => db.outgoingEmails
+          .upsertValue(
+            id: email.uuid,
+            createdAt: email.created!,
+            attempts: email.attempts,
+            lastAttemptedAt: email.lastAttempted,
+            claimId: email.claimId,
+            pendingAt: email.pendingAt!,
+            fromEmail: email.fromEmail!,
+            recipientEmailsJson: JsonValue(email.recipientEmails),
+            subject: email.subject!,
+            bodyText: email.bodyText!,
+            bodyHtml: email.bodyHtml!,
+          )
+          .execute(),
+    );
+  }
+
+  /// Copies [OutgoingEmail] entries from Datastore into SQL, for entries
+  /// that are not yet present in SQL.
+  Future<int> backfillSqlFromDatastore() async {
+    var count = 0;
+    await for (final email in _db.query<OutgoingEmail>().run()) {
+      final existing = await primaryDatabase.withRetry(
+        (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
+      );
+      if (existing != null) {
+        continue;
+      }
+      await mirrorToSql(email);
+      count++;
+    }
+    return count;
   }
 }

@@ -6,8 +6,11 @@ import 'package:_pub_shared/data/account_api.dart' as api;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:retry/retry.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../account/agent.dart';
 import '../audit/backend.dart';
@@ -160,6 +163,7 @@ class ConsentBackend {
       );
       await _db.commit(inserts: [consent, auditLogRecord]);
       await auditBackend.mirrorToSql(auditLogRecord);
+      await mirrorToSql(consent);
       await dedupCacheEntry.set(consent.consentId);
       return await _sendNotification(activeAgent.displayId, consent);
     });
@@ -237,17 +241,21 @@ class ConsentBackend {
         consentUrl: consentUrl(consent.consentId),
       ),
     );
+    Consent? updated;
     final status = await withRetryTransaction(_db, (tx) async {
       final c = await tx.lookupValue<Consent>(consent.key);
       c.notificationCount++;
       c.lastNotified = clock.now().toUtc();
       tx.insert(c);
       tx.insert(email);
+      updated = c;
       return api.InviteStatus(
         emailSent: true,
         nextNotification: c.nextNotification,
       );
     });
+    await mirrorToSql(updated!);
+    await emailBackend.mirrorToSql(email);
     await emailBackend.trySendOutgoingEmail(email);
     return status;
   }
@@ -266,6 +274,13 @@ class ConsentBackend {
         );
       }
     }
+
+    await primaryDatabase.withRetry(
+      (db) => db.consents
+          .where((c) => c.expiresAt.isBeforeValue(clock.now().toUtc()))
+          .delete()
+          .execute(),
+    );
   }
 
   /// Returns the [Consent] for [consentId] and checks if it is for [user].
@@ -296,7 +311,41 @@ class ConsentBackend {
         final c = await tx.lookupOrNull<Consent>(consent.key);
         if (c != null) tx.delete(c.key);
       });
+      await primaryDatabase.withRetry(
+        (db) => db.consents.byKey(consent.consentId).delete().execute(),
+      );
     }, maxAttempts: 3);
+  }
+
+  /// Mirrors [consent] into SQL (best-effort).
+  Future<void> mirrorToSql(Consent consent) async {
+    await primaryDatabase.transactWithRetry(
+      (db) => db.consents
+          .upsertValue(
+            id: consent.consentId,
+            email: consent.email!,
+            dedupId: consent.dedupId!,
+            kind: consent.kind!,
+            argsJson: JsonValue(consent.args),
+            fromAgent: consent.fromAgent!,
+            createdAt: consent.created!,
+            expiresAt: consent.expires!,
+            lastNotifiedAt: consent.lastNotified,
+            notificationCount: consent.notificationCount,
+          )
+          .execute(),
+    );
+  }
+
+  /// Copies [Consent] entries from Datastore into SQL, for entries that are
+  /// not yet present in SQL.
+  Future<int> backfillSqlFromDatastore() async {
+    var count = 0;
+    await for (final consent in _db.query<Consent>().run()) {
+      await mirrorToSql(consent);
+      count++;
+    }
+    return count;
   }
 }
 

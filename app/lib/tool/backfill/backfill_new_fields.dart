@@ -5,8 +5,10 @@
 import 'dart:convert';
 
 import 'package:logging/logging.dart';
+import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/service/email/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/task/global_lock_models.dart';
 
@@ -63,4 +65,12 @@ Future<void> backfillNewFields() async {
   _logger.info('Backfilling audit log records...');
   await auditBackend.backfillSqlFromDatastore();
   await auditBackend.backfillDatastoreFromSql();
+
+  // NOTE: Keep this around until Consent is migrated to use SQL.
+  _logger.info('Backfilling consents...');
+  await consentBackend.backfillSqlFromDatastore();
+
+  // NOTE: Keep this around until OutgoingEmail is migrated to use SQL.
+  _logger.info('Backfilling outgoing emails...');
+  await emailBackend.backfillSqlFromDatastore();
 }

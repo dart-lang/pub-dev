@@ -33,6 +33,8 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$UserSession._$table,
     _$AuditLogRecordRow._$table,
     _$AuditLogAssociation._$table,
+    _$ConsentRow._$table,
+    _$OutgoingEmailRow._$table,
     _$GlobalLockStateRow._$table,
     _$NeatTaskStatusRow._$table,
     _$Task._$table,
@@ -49,6 +51,12 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<AuditLogAssociation> get auditLogAssociations =>
       $ForGeneratedCode.declareTable(this, _$AuditLogAssociation._$table);
+
+  Table<ConsentRow> get consents =>
+      $ForGeneratedCode.declareTable(this, _$ConsentRow._$table);
+
+  Table<OutgoingEmailRow> get outgoingEmails =>
+      $ForGeneratedCode.declareTable(this, _$OutgoingEmailRow._$table);
 
   Table<GlobalLockStateRow> get globalLockStates =>
       $ForGeneratedCode.declareTable(this, _$GlobalLockStateRow._$table);
@@ -2651,6 +2659,1904 @@ extension InsertOnConflictSingleAuditLogAssociationExt
         recordCreatedAt,
         kind,
         value,
+      ]),
+    ),
+  );
+}
+
+final class _$ConsentRow extends ConsentRow {
+  _$ConsentRow._(
+    this.id,
+    this.email,
+    this.dedupId,
+    this.kind,
+    this.argsJson,
+    this.fromAgent,
+    this.createdAt,
+    this.expiresAt,
+    this.lastNotifiedAt,
+    this.notificationCount,
+  );
+
+  @override
+  final String id;
+
+  @override
+  final String email;
+
+  @override
+  final String dedupId;
+
+  @override
+  final String kind;
+
+  @override
+  final JsonValue argsJson;
+
+  @override
+  final String fromAgent;
+
+  @override
+  final DateTime createdAt;
+
+  @override
+  final DateTime expiresAt;
+
+  @override
+  final DateTime? lastNotifiedAt;
+
+  @override
+  final int notificationCount;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'consents',
+    columns: <String>[
+      'id',
+      'email',
+      'dedup_id',
+      'kind',
+      'args_json',
+      'from_agent',
+      'created_at',
+      'expires_at',
+      'last_notified_at',
+      'notification_count',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.integer,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['id'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['dedup_id'],
+      ),
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['expires_at'],
+      ),
+    ],
+    readRow: _$ConsentRow._$fromDatabase,
+  );
+
+  static ConsentRow? _$fromDatabase(RowReader row) {
+    final id = row.readString();
+    final email = row.readString();
+    final dedupId = row.readString();
+    final kind = row.readString();
+    final argsJson = row.readJsonValue();
+    final fromAgent = row.readString();
+    final createdAt = row.readDateTime();
+    final expiresAt = row.readDateTime();
+    final lastNotifiedAt = row.readDateTime();
+    final notificationCount = row.readInt();
+    if (id == null &&
+        email == null &&
+        dedupId == null &&
+        kind == null &&
+        argsJson == null &&
+        fromAgent == null &&
+        createdAt == null &&
+        expiresAt == null &&
+        lastNotifiedAt == null &&
+        notificationCount == null) {
+      return null;
+    }
+    return _$ConsentRow._(
+      id!,
+      email!,
+      dedupId!,
+      kind!,
+      argsJson!,
+      fromAgent!,
+      createdAt!,
+      expiresAt!,
+      lastNotifiedAt,
+      notificationCount!,
+    );
+  }
+
+  @override
+  String toString() =>
+      'ConsentRow(id: "$id", email: "$email", dedupId: "$dedupId", kind: "$kind", argsJson: "$argsJson", fromAgent: "$fromAgent", createdAt: "$createdAt", expiresAt: "$expiresAt", lastNotifiedAt: "$lastNotifiedAt", notificationCount: "$notificationCount")';
+}
+
+/// Extension methods for table defined in [ConsentRow].
+extension TableConsentRowExt on Table<ConsentRow> {
+  /// Insert row into the `consents` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<ConsentRow> insert({
+    required Expr<String> id,
+    required Expr<String> email,
+    required Expr<String> dedupId,
+    required Expr<String> kind,
+    required Expr<JsonValue> argsJson,
+    required Expr<String> fromAgent,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> expiresAt,
+    Expr<DateTime?>? lastNotifiedAt,
+    required Expr<int> notificationCount,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      id,
+      email,
+      dedupId,
+      kind,
+      argsJson,
+      fromAgent,
+      createdAt,
+      expiresAt,
+      lastNotifiedAt,
+      notificationCount,
+    ],
+  );
+
+  /// Insert row into the `consents` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `email`, `dedupId`, `kind`, `argsJson`, `fromAgent`, `createdAt`, `expiresAt`, `lastNotifiedAt`, `notificationCount`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<ConsentRow> upsert({
+    required Expr<String> id,
+    required Expr<String> email,
+    required Expr<String> dedupId,
+    required Expr<String> kind,
+    required Expr<JsonValue> argsJson,
+    required Expr<String> fromAgent,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> expiresAt,
+    Expr<DateTime?>? lastNotifiedAt,
+    required Expr<int> notificationCount,
+  }) =>
+      insert(
+            id: id,
+            email: email,
+            dedupId: dedupId,
+            kind: kind,
+            argsJson: argsJson,
+            fromAgent: fromAgent,
+            createdAt: createdAt,
+            expiresAt: expiresAt,
+            lastNotifiedAt: lastNotifiedAt,
+            notificationCount: notificationCount,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              email: excluded.email,
+              dedupId: excluded.dedupId,
+              kind: excluded.kind,
+              argsJson: excluded.argsJson,
+              fromAgent: excluded.fromAgent,
+              createdAt: excluded.createdAt,
+              expiresAt: excluded.expiresAt,
+              lastNotifiedAt: excluded.lastNotifiedAt,
+              notificationCount: excluded.notificationCount,
+            ),
+          );
+
+  /// Insert row into the `consents` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<ConsentRow> insertValue({
+    required String id,
+    required String email,
+    required String dedupId,
+    required String kind,
+    required JsonValue argsJson,
+    required String fromAgent,
+    required DateTime createdAt,
+    required DateTime expiresAt,
+    DateTime? lastNotifiedAt,
+    required int notificationCount,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      id.asExpr,
+      email.asExpr,
+      dedupId.asExpr,
+      kind.asExpr,
+      argsJson.asExpr,
+      fromAgent.asExpr,
+      createdAt.asExpr,
+      expiresAt.asExpr,
+      lastNotifiedAt.asExpr,
+      notificationCount.asExpr,
+    ],
+  );
+
+  /// Insert row into the `consents` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `email`, `dedupId`, `kind`, `argsJson`, `fromAgent`, `createdAt`, `expiresAt`, `lastNotifiedAt`, `notificationCount`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<ConsentRow> upsertValue({
+    required String id,
+    required String email,
+    required String dedupId,
+    required String kind,
+    required JsonValue argsJson,
+    required String fromAgent,
+    required DateTime createdAt,
+    required DateTime expiresAt,
+    DateTime? lastNotifiedAt,
+    required int notificationCount,
+  }) =>
+      insertValue(
+            id: id,
+            email: email,
+            dedupId: dedupId,
+            kind: kind,
+            argsJson: argsJson,
+            fromAgent: fromAgent,
+            createdAt: createdAt,
+            expiresAt: expiresAt,
+            lastNotifiedAt: lastNotifiedAt,
+            notificationCount: notificationCount,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              email: excluded.email,
+              dedupId: excluded.dedupId,
+              kind: excluded.kind,
+              argsJson: excluded.argsJson,
+              fromAgent: excluded.fromAgent,
+              createdAt: excluded.createdAt,
+              expiresAt: excluded.expiresAt,
+              lastNotifiedAt: excluded.lastNotifiedAt,
+              notificationCount: excluded.notificationCount,
+            ),
+          );
+
+  /// Bulk insert rows into the `consents` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<ConsentRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) id,
+    required String Function(T row) email,
+    required String Function(T row) dedupId,
+    required String Function(T row) kind,
+    required JsonValue Function(T row) argsJson,
+    required String Function(T row) fromAgent,
+    required DateTime Function(T row) createdAt,
+    required DateTime Function(T row) expiresAt,
+    DateTime? Function(T row)? lastNotifiedAt,
+    required int Function(T row) notificationCount,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [
+      id,
+      email,
+      dedupId,
+      kind,
+      argsJson,
+      fromAgent,
+      createdAt,
+      expiresAt,
+      lastNotifiedAt,
+      notificationCount,
+    ],
+  );
+
+  /// Delete a single row from the `consents` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<ConsentRow> delete(String id) =>
+      $ForGeneratedCode.deleteSingle(byKey(id), _$ConsentRow._$table);
+}
+
+/// Extension methods for building queries against the `consents` table.
+extension QueryConsentRowExt on Query<(Expr<ConsentRow>,)> {
+  /// Lookup a single row in `consents` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<ConsentRow>,)> byKey(String id) =>
+      where((consentRow) => consentRow.id.equalsValue(id)).first;
+
+  /// Update all rows in the `consents` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<ConsentRow> update(
+    UpdateSet<ConsentRow> Function(
+      Expr<ConsentRow> consentRow,
+      UpdateSet<ConsentRow> Function({
+        Expr<String> id,
+        Expr<String> email,
+        Expr<String> dedupId,
+        Expr<String> kind,
+        Expr<JsonValue> argsJson,
+        Expr<String> fromAgent,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
+        Expr<DateTime?> lastNotifiedAt,
+        Expr<int> notificationCount,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<ConsentRow>(
+    this,
+    _$ConsentRow._$table,
+    (consentRow) => updateBuilder(
+      consentRow,
+      ({
+        Expr<String>? id,
+        Expr<String>? email,
+        Expr<String>? dedupId,
+        Expr<String>? kind,
+        Expr<JsonValue>? argsJson,
+        Expr<String>? fromAgent,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
+        Expr<DateTime?>? lastNotifiedAt,
+        Expr<int>? notificationCount,
+      }) => $ForGeneratedCode.buildUpdate<ConsentRow>([
+        id,
+        email,
+        dedupId,
+        kind,
+        argsJson,
+        fromAgent,
+        createdAt,
+        expiresAt,
+        lastNotifiedAt,
+        notificationCount,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `consents` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<ConsentRow> delete() =>
+      $ForGeneratedCode.delete(this, _$ConsentRow._$table);
+}
+
+/// Extension methods for building point queries against the `consents` table.
+extension QuerySingleConsentRowExt on QuerySingle<(Expr<ConsentRow>,)> {
+  /// Update the row (if any) in the `consents` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<ConsentRow> update(
+    UpdateSet<ConsentRow> Function(
+      Expr<ConsentRow> consentRow,
+      UpdateSet<ConsentRow> Function({
+        Expr<String> id,
+        Expr<String> email,
+        Expr<String> dedupId,
+        Expr<String> kind,
+        Expr<JsonValue> argsJson,
+        Expr<String> fromAgent,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
+        Expr<DateTime?> lastNotifiedAt,
+        Expr<int> notificationCount,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<ConsentRow>(
+    this,
+    _$ConsentRow._$table,
+    (consentRow) => updateBuilder(
+      consentRow,
+      ({
+        Expr<String>? id,
+        Expr<String>? email,
+        Expr<String>? dedupId,
+        Expr<String>? kind,
+        Expr<JsonValue>? argsJson,
+        Expr<String>? fromAgent,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
+        Expr<DateTime?>? lastNotifiedAt,
+        Expr<int>? notificationCount,
+      }) => $ForGeneratedCode.buildUpdate<ConsentRow>([
+        id,
+        email,
+        dedupId,
+        kind,
+        argsJson,
+        fromAgent,
+        createdAt,
+        expiresAt,
+        lastNotifiedAt,
+        notificationCount,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `consents` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<ConsentRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$ConsentRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `consents` table.
+extension ExpressionConsentRowExt on Expr<ConsentRow> {
+  /// Matches `Consent.consentId`.
+  Expr<String> get id =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String> get email =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// Used to detect duplicate invites.
+  Expr<String> get dedupId =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  /// One of the `ConsentKind` values.
+  Expr<String> get kind =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  /// The arguments for the consent, a JSON array of strings.
+  Expr<JsonValue> get argsJson =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.jsonValue);
+
+  /// May be an `User.userId` or `support@pub.dev`.
+  Expr<String> get fromAgent =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  Expr<DateTime> get createdAt =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime> get expiresAt =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime?> get lastNotifiedAt =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.dateTime);
+
+  Expr<int> get notificationCount =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.integer);
+}
+
+extension ExpressionNullableConsentRowExt on Expr<ConsentRow?> {
+  /// Matches `Consent.consentId`.
+  Expr<String?> get id =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String?> get email =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// Used to detect duplicate invites.
+  Expr<String?> get dedupId =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  /// One of the `ConsentKind` values.
+  Expr<String?> get kind =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  /// The arguments for the consent, a JSON array of strings.
+  Expr<JsonValue?> get argsJson =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.jsonValue);
+
+  /// May be an `User.userId` or `support@pub.dev`.
+  Expr<String?> get fromAgent =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get createdAt =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime?> get expiresAt =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime?> get lastNotifiedAt =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.dateTime);
+
+  Expr<int?> get notificationCount =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.integer);
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => id.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+/// `Table<ConsentRow>` conflict targets for use with `.onConflict`.
+enum ConsentRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `id`.
+  primaryKey(['id']);
+
+  const ConsentRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertConsentRowExt on Insert<ConsentRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((consentRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<ConsentRow> onConflict(ConsentRowConflict target) =>
+      $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictConsentRowExt on InsertOnConflict<ConsentRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `consentRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<ConsentRow> update(
+    UpdateSet<ConsentRow> Function(
+      Expr<ConsentRow> consentRow,
+      Expr<ConsentRow> excluded,
+      UpdateSet<ConsentRow> Function({
+        Expr<String> id,
+        Expr<String> email,
+        Expr<String> dedupId,
+        Expr<String> kind,
+        Expr<JsonValue> argsJson,
+        Expr<String> fromAgent,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
+        Expr<DateTime?> lastNotifiedAt,
+        Expr<int> notificationCount,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<ConsentRow>(
+    this,
+    (consentRow, excluded) => updateBuilder(
+      consentRow,
+      excluded,
+      ({
+        Expr<String>? id,
+        Expr<String>? email,
+        Expr<String>? dedupId,
+        Expr<String>? kind,
+        Expr<JsonValue>? argsJson,
+        Expr<String>? fromAgent,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
+        Expr<DateTime?>? lastNotifiedAt,
+        Expr<int>? notificationCount,
+      }) => $ForGeneratedCode.buildUpdate<ConsentRow>([
+        id,
+        email,
+        dedupId,
+        kind,
+        argsJson,
+        fromAgent,
+        createdAt,
+        expiresAt,
+        lastNotifiedAt,
+        notificationCount,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleConsentRowExt on InsertSingle<ConsentRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((consentRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<ConsentRow> onConflict(ConsentRowConflict target) =>
+      $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleConsentRowExt
+    on InsertOnConflictSingle<ConsentRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `consentRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<ConsentRow> update(
+    UpdateSet<ConsentRow> Function(
+      Expr<ConsentRow> consentRow,
+      Expr<ConsentRow> excluded,
+      UpdateSet<ConsentRow> Function({
+        Expr<String> id,
+        Expr<String> email,
+        Expr<String> dedupId,
+        Expr<String> kind,
+        Expr<JsonValue> argsJson,
+        Expr<String> fromAgent,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> expiresAt,
+        Expr<DateTime?> lastNotifiedAt,
+        Expr<int> notificationCount,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<ConsentRow>(
+    this,
+    (consentRow, excluded) => updateBuilder(
+      consentRow,
+      excluded,
+      ({
+        Expr<String>? id,
+        Expr<String>? email,
+        Expr<String>? dedupId,
+        Expr<String>? kind,
+        Expr<JsonValue>? argsJson,
+        Expr<String>? fromAgent,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? expiresAt,
+        Expr<DateTime?>? lastNotifiedAt,
+        Expr<int>? notificationCount,
+      }) => $ForGeneratedCode.buildUpdate<ConsentRow>([
+        id,
+        email,
+        dedupId,
+        kind,
+        argsJson,
+        fromAgent,
+        createdAt,
+        expiresAt,
+        lastNotifiedAt,
+        notificationCount,
+      ]),
+    ),
+  );
+}
+
+final class _$OutgoingEmailRow extends OutgoingEmailRow {
+  _$OutgoingEmailRow._(
+    this.id,
+    this.createdAt,
+    this.attempts,
+    this.lastAttemptedAt,
+    this.claimId,
+    this.pendingAt,
+    this.fromEmail,
+    this.recipientEmailsJson,
+    this.subject,
+    this.bodyText,
+    this.bodyHtml,
+  );
+
+  @override
+  final String id;
+
+  @override
+  final DateTime createdAt;
+
+  @override
+  final int attempts;
+
+  @override
+  final DateTime? lastAttemptedAt;
+
+  @override
+  final String? claimId;
+
+  @override
+  final DateTime pendingAt;
+
+  @override
+  final String fromEmail;
+
+  @override
+  final JsonValue recipientEmailsJson;
+
+  @override
+  final String subject;
+
+  @override
+  final String bodyText;
+
+  @override
+  final String bodyHtml;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'outgoing_emails',
+    columns: <String>[
+      'id',
+      'created_at',
+      'attempts',
+      'last_attempted_at',
+      'claim_id',
+      'pending_at',
+      'from_email',
+      'recipient_emails_json',
+      'subject',
+      'body_text',
+      'body_html',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.integer,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['id'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['pending_at'],
+      ),
+    ],
+    readRow: _$OutgoingEmailRow._$fromDatabase,
+  );
+
+  static OutgoingEmailRow? _$fromDatabase(RowReader row) {
+    final id = row.readString();
+    final createdAt = row.readDateTime();
+    final attempts = row.readInt();
+    final lastAttemptedAt = row.readDateTime();
+    final claimId = row.readString();
+    final pendingAt = row.readDateTime();
+    final fromEmail = row.readString();
+    final recipientEmailsJson = row.readJsonValue();
+    final subject = row.readString();
+    final bodyText = row.readString();
+    final bodyHtml = row.readString();
+    if (id == null &&
+        createdAt == null &&
+        attempts == null &&
+        lastAttemptedAt == null &&
+        claimId == null &&
+        pendingAt == null &&
+        fromEmail == null &&
+        recipientEmailsJson == null &&
+        subject == null &&
+        bodyText == null &&
+        bodyHtml == null) {
+      return null;
+    }
+    return _$OutgoingEmailRow._(
+      id!,
+      createdAt!,
+      attempts!,
+      lastAttemptedAt,
+      claimId,
+      pendingAt!,
+      fromEmail!,
+      recipientEmailsJson!,
+      subject!,
+      bodyText!,
+      bodyHtml!,
+    );
+  }
+
+  @override
+  String toString() =>
+      'OutgoingEmailRow(id: "$id", createdAt: "$createdAt", attempts: "$attempts", lastAttemptedAt: "$lastAttemptedAt", claimId: "$claimId", pendingAt: "$pendingAt", fromEmail: "$fromEmail", recipientEmailsJson: "$recipientEmailsJson", subject: "$subject", bodyText: "$bodyText", bodyHtml: "$bodyHtml")';
+}
+
+/// Extension methods for table defined in [OutgoingEmailRow].
+extension TableOutgoingEmailRowExt on Table<OutgoingEmailRow> {
+  /// Insert row into the `outgoingEmails` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<OutgoingEmailRow> insert({
+    required Expr<String> id,
+    required Expr<DateTime> createdAt,
+    required Expr<int> attempts,
+    Expr<DateTime?>? lastAttemptedAt,
+    Expr<String?>? claimId,
+    required Expr<DateTime> pendingAt,
+    required Expr<String> fromEmail,
+    required Expr<JsonValue> recipientEmailsJson,
+    required Expr<String> subject,
+    required Expr<String> bodyText,
+    required Expr<String> bodyHtml,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      id,
+      createdAt,
+      attempts,
+      lastAttemptedAt,
+      claimId,
+      pendingAt,
+      fromEmail,
+      recipientEmailsJson,
+      subject,
+      bodyText,
+      bodyHtml,
+    ],
+  );
+
+  /// Insert row into the `outgoingEmails` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `attempts`, `lastAttemptedAt`, `claimId`, `pendingAt`, `fromEmail`, `recipientEmailsJson`, `subject`, `bodyText`, `bodyHtml`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<OutgoingEmailRow> upsert({
+    required Expr<String> id,
+    required Expr<DateTime> createdAt,
+    required Expr<int> attempts,
+    Expr<DateTime?>? lastAttemptedAt,
+    Expr<String?>? claimId,
+    required Expr<DateTime> pendingAt,
+    required Expr<String> fromEmail,
+    required Expr<JsonValue> recipientEmailsJson,
+    required Expr<String> subject,
+    required Expr<String> bodyText,
+    required Expr<String> bodyHtml,
+  }) =>
+      insert(
+            id: id,
+            createdAt: createdAt,
+            attempts: attempts,
+            lastAttemptedAt: lastAttemptedAt,
+            claimId: claimId,
+            pendingAt: pendingAt,
+            fromEmail: fromEmail,
+            recipientEmailsJson: recipientEmailsJson,
+            subject: subject,
+            bodyText: bodyText,
+            bodyHtml: bodyHtml,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              attempts: excluded.attempts,
+              lastAttemptedAt: excluded.lastAttemptedAt,
+              claimId: excluded.claimId,
+              pendingAt: excluded.pendingAt,
+              fromEmail: excluded.fromEmail,
+              recipientEmailsJson: excluded.recipientEmailsJson,
+              subject: excluded.subject,
+              bodyText: excluded.bodyText,
+              bodyHtml: excluded.bodyHtml,
+            ),
+          );
+
+  /// Insert row into the `outgoingEmails` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<OutgoingEmailRow> insertValue({
+    required String id,
+    required DateTime createdAt,
+    required int attempts,
+    DateTime? lastAttemptedAt,
+    String? claimId,
+    required DateTime pendingAt,
+    required String fromEmail,
+    required JsonValue recipientEmailsJson,
+    required String subject,
+    required String bodyText,
+    required String bodyHtml,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      id.asExpr,
+      createdAt.asExpr,
+      attempts.asExpr,
+      lastAttemptedAt.asExpr,
+      claimId.asExpr,
+      pendingAt.asExpr,
+      fromEmail.asExpr,
+      recipientEmailsJson.asExpr,
+      subject.asExpr,
+      bodyText.asExpr,
+      bodyHtml.asExpr,
+    ],
+  );
+
+  /// Insert row into the `outgoingEmails` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `attempts`, `lastAttemptedAt`, `claimId`, `pendingAt`, `fromEmail`, `recipientEmailsJson`, `subject`, `bodyText`, `bodyHtml`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<OutgoingEmailRow> upsertValue({
+    required String id,
+    required DateTime createdAt,
+    required int attempts,
+    DateTime? lastAttemptedAt,
+    String? claimId,
+    required DateTime pendingAt,
+    required String fromEmail,
+    required JsonValue recipientEmailsJson,
+    required String subject,
+    required String bodyText,
+    required String bodyHtml,
+  }) =>
+      insertValue(
+            id: id,
+            createdAt: createdAt,
+            attempts: attempts,
+            lastAttemptedAt: lastAttemptedAt,
+            claimId: claimId,
+            pendingAt: pendingAt,
+            fromEmail: fromEmail,
+            recipientEmailsJson: recipientEmailsJson,
+            subject: subject,
+            bodyText: bodyText,
+            bodyHtml: bodyHtml,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              attempts: excluded.attempts,
+              lastAttemptedAt: excluded.lastAttemptedAt,
+              claimId: excluded.claimId,
+              pendingAt: excluded.pendingAt,
+              fromEmail: excluded.fromEmail,
+              recipientEmailsJson: excluded.recipientEmailsJson,
+              subject: excluded.subject,
+              bodyText: excluded.bodyText,
+              bodyHtml: excluded.bodyHtml,
+            ),
+          );
+
+  /// Bulk insert rows into the `outgoingEmails` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<OutgoingEmailRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) id,
+    required DateTime Function(T row) createdAt,
+    required int Function(T row) attempts,
+    DateTime? Function(T row)? lastAttemptedAt,
+    String? Function(T row)? claimId,
+    required DateTime Function(T row) pendingAt,
+    required String Function(T row) fromEmail,
+    required JsonValue Function(T row) recipientEmailsJson,
+    required String Function(T row) subject,
+    required String Function(T row) bodyText,
+    required String Function(T row) bodyHtml,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [
+      id,
+      createdAt,
+      attempts,
+      lastAttemptedAt,
+      claimId,
+      pendingAt,
+      fromEmail,
+      recipientEmailsJson,
+      subject,
+      bodyText,
+      bodyHtml,
+    ],
+  );
+
+  /// Delete a single row from the `outgoingEmails` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<OutgoingEmailRow> delete(String id) =>
+      $ForGeneratedCode.deleteSingle(byKey(id), _$OutgoingEmailRow._$table);
+}
+
+/// Extension methods for building queries against the `outgoingEmails` table.
+extension QueryOutgoingEmailRowExt on Query<(Expr<OutgoingEmailRow>,)> {
+  /// Lookup a single row in `outgoingEmails` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<OutgoingEmailRow>,)> byKey(String id) =>
+      where((outgoingEmailRow) => outgoingEmailRow.id.equalsValue(id)).first;
+
+  /// Update all rows in the `outgoingEmails` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<OutgoingEmailRow> update(
+    UpdateSet<OutgoingEmailRow> Function(
+      Expr<OutgoingEmailRow> outgoingEmailRow,
+      UpdateSet<OutgoingEmailRow> Function({
+        Expr<String> id,
+        Expr<DateTime> createdAt,
+        Expr<int> attempts,
+        Expr<DateTime?> lastAttemptedAt,
+        Expr<String?> claimId,
+        Expr<DateTime> pendingAt,
+        Expr<String> fromEmail,
+        Expr<JsonValue> recipientEmailsJson,
+        Expr<String> subject,
+        Expr<String> bodyText,
+        Expr<String> bodyHtml,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<OutgoingEmailRow>(
+    this,
+    _$OutgoingEmailRow._$table,
+    (outgoingEmailRow) => updateBuilder(
+      outgoingEmailRow,
+      ({
+        Expr<String>? id,
+        Expr<DateTime>? createdAt,
+        Expr<int>? attempts,
+        Expr<DateTime?>? lastAttemptedAt,
+        Expr<String?>? claimId,
+        Expr<DateTime>? pendingAt,
+        Expr<String>? fromEmail,
+        Expr<JsonValue>? recipientEmailsJson,
+        Expr<String>? subject,
+        Expr<String>? bodyText,
+        Expr<String>? bodyHtml,
+      }) => $ForGeneratedCode.buildUpdate<OutgoingEmailRow>([
+        id,
+        createdAt,
+        attempts,
+        lastAttemptedAt,
+        claimId,
+        pendingAt,
+        fromEmail,
+        recipientEmailsJson,
+        subject,
+        bodyText,
+        bodyHtml,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `outgoingEmails` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<OutgoingEmailRow> delete() =>
+      $ForGeneratedCode.delete(this, _$OutgoingEmailRow._$table);
+}
+
+/// Extension methods for building point queries against the `outgoingEmails` table.
+extension QuerySingleOutgoingEmailRowExt
+    on QuerySingle<(Expr<OutgoingEmailRow>,)> {
+  /// Update the row (if any) in the `outgoingEmails` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<OutgoingEmailRow> update(
+    UpdateSet<OutgoingEmailRow> Function(
+      Expr<OutgoingEmailRow> outgoingEmailRow,
+      UpdateSet<OutgoingEmailRow> Function({
+        Expr<String> id,
+        Expr<DateTime> createdAt,
+        Expr<int> attempts,
+        Expr<DateTime?> lastAttemptedAt,
+        Expr<String?> claimId,
+        Expr<DateTime> pendingAt,
+        Expr<String> fromEmail,
+        Expr<JsonValue> recipientEmailsJson,
+        Expr<String> subject,
+        Expr<String> bodyText,
+        Expr<String> bodyHtml,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<OutgoingEmailRow>(
+    this,
+    _$OutgoingEmailRow._$table,
+    (outgoingEmailRow) => updateBuilder(
+      outgoingEmailRow,
+      ({
+        Expr<String>? id,
+        Expr<DateTime>? createdAt,
+        Expr<int>? attempts,
+        Expr<DateTime?>? lastAttemptedAt,
+        Expr<String?>? claimId,
+        Expr<DateTime>? pendingAt,
+        Expr<String>? fromEmail,
+        Expr<JsonValue>? recipientEmailsJson,
+        Expr<String>? subject,
+        Expr<String>? bodyText,
+        Expr<String>? bodyHtml,
+      }) => $ForGeneratedCode.buildUpdate<OutgoingEmailRow>([
+        id,
+        createdAt,
+        attempts,
+        lastAttemptedAt,
+        claimId,
+        pendingAt,
+        fromEmail,
+        recipientEmailsJson,
+        subject,
+        bodyText,
+        bodyHtml,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `outgoingEmails` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<OutgoingEmailRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$OutgoingEmailRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `outgoingEmails` table.
+extension ExpressionOutgoingEmailRowExt on Expr<OutgoingEmailRow> {
+  Expr<String> get id =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<DateTime> get createdAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  /// The total number of attempts.
+  Expr<int> get attempts =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.integer);
+
+  /// The timestamp of the last attempt.
+  Expr<DateTime?> get lastAttemptedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// A random identifier to mark that the message is under processing.
+  Expr<String?> get claimId =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  /// The timestamp of the next attempt.
+  Expr<DateTime> get pendingAt =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
+
+  /// The email address of the sender.
+  Expr<String> get fromEmail =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+
+  /// The List of  recipient emails as a JSON array of strings.
+  Expr<JsonValue> get recipientEmailsJson =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.jsonValue);
+
+  Expr<String> get subject =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.text);
+
+  Expr<String> get bodyText =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.text);
+
+  Expr<String> get bodyHtml =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.text);
+}
+
+extension ExpressionNullableOutgoingEmailRowExt on Expr<OutgoingEmailRow?> {
+  Expr<String?> get id =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get createdAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  /// The total number of attempts.
+  Expr<int?> get attempts =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.integer);
+
+  /// The timestamp of the last attempt.
+  Expr<DateTime?> get lastAttemptedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// A random identifier to mark that the message is under processing.
+  Expr<String?> get claimId =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  /// The timestamp of the next attempt.
+  Expr<DateTime?> get pendingAt =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
+
+  /// The email address of the sender.
+  Expr<String?> get fromEmail =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+
+  /// The List of  recipient emails as a JSON array of strings.
+  Expr<JsonValue?> get recipientEmailsJson =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.jsonValue);
+
+  Expr<String?> get subject =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.text);
+
+  Expr<String?> get bodyText =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.text);
+
+  Expr<String?> get bodyHtml =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.text);
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => id.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+/// `Table<OutgoingEmailRow>` conflict targets for use with `.onConflict`.
+enum OutgoingEmailRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `id`.
+  primaryKey(['id']);
+
+  const OutgoingEmailRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertOutgoingEmailRowExt on Insert<OutgoingEmailRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((outgoingEmailRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<OutgoingEmailRow> onConflict(
+    OutgoingEmailRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictOutgoingEmailRowExt
+    on InsertOnConflict<OutgoingEmailRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `outgoingEmailRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<OutgoingEmailRow> update(
+    UpdateSet<OutgoingEmailRow> Function(
+      Expr<OutgoingEmailRow> outgoingEmailRow,
+      Expr<OutgoingEmailRow> excluded,
+      UpdateSet<OutgoingEmailRow> Function({
+        Expr<String> id,
+        Expr<DateTime> createdAt,
+        Expr<int> attempts,
+        Expr<DateTime?> lastAttemptedAt,
+        Expr<String?> claimId,
+        Expr<DateTime> pendingAt,
+        Expr<String> fromEmail,
+        Expr<JsonValue> recipientEmailsJson,
+        Expr<String> subject,
+        Expr<String> bodyText,
+        Expr<String> bodyHtml,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<OutgoingEmailRow>(
+    this,
+    (outgoingEmailRow, excluded) => updateBuilder(
+      outgoingEmailRow,
+      excluded,
+      ({
+        Expr<String>? id,
+        Expr<DateTime>? createdAt,
+        Expr<int>? attempts,
+        Expr<DateTime?>? lastAttemptedAt,
+        Expr<String?>? claimId,
+        Expr<DateTime>? pendingAt,
+        Expr<String>? fromEmail,
+        Expr<JsonValue>? recipientEmailsJson,
+        Expr<String>? subject,
+        Expr<String>? bodyText,
+        Expr<String>? bodyHtml,
+      }) => $ForGeneratedCode.buildUpdate<OutgoingEmailRow>([
+        id,
+        createdAt,
+        attempts,
+        lastAttemptedAt,
+        claimId,
+        pendingAt,
+        fromEmail,
+        recipientEmailsJson,
+        subject,
+        bodyText,
+        bodyHtml,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleOutgoingEmailRowExt on InsertSingle<OutgoingEmailRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((outgoingEmailRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<OutgoingEmailRow> onConflict(
+    OutgoingEmailRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleOutgoingEmailRowExt
+    on InsertOnConflictSingle<OutgoingEmailRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `outgoingEmailRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<OutgoingEmailRow> update(
+    UpdateSet<OutgoingEmailRow> Function(
+      Expr<OutgoingEmailRow> outgoingEmailRow,
+      Expr<OutgoingEmailRow> excluded,
+      UpdateSet<OutgoingEmailRow> Function({
+        Expr<String> id,
+        Expr<DateTime> createdAt,
+        Expr<int> attempts,
+        Expr<DateTime?> lastAttemptedAt,
+        Expr<String?> claimId,
+        Expr<DateTime> pendingAt,
+        Expr<String> fromEmail,
+        Expr<JsonValue> recipientEmailsJson,
+        Expr<String> subject,
+        Expr<String> bodyText,
+        Expr<String> bodyHtml,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<OutgoingEmailRow>(
+    this,
+    (outgoingEmailRow, excluded) => updateBuilder(
+      outgoingEmailRow,
+      excluded,
+      ({
+        Expr<String>? id,
+        Expr<DateTime>? createdAt,
+        Expr<int>? attempts,
+        Expr<DateTime?>? lastAttemptedAt,
+        Expr<String?>? claimId,
+        Expr<DateTime>? pendingAt,
+        Expr<String>? fromEmail,
+        Expr<JsonValue>? recipientEmailsJson,
+        Expr<String>? subject,
+        Expr<String>? bodyText,
+        Expr<String>? bodyHtml,
+      }) => $ForGeneratedCode.buildUpdate<OutgoingEmailRow>([
+        id,
+        createdAt,
+        attempts,
+        lastAttemptedAt,
+        claimId,
+        pendingAt,
+        fromEmail,
+        recipientEmailsJson,
+        subject,
+        bodyText,
+        bodyHtml,
       ]),
     ),
   );
