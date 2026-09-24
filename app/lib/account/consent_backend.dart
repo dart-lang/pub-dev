@@ -342,16 +342,11 @@ class ConsentBackend {
   Future<int> backfillSqlFromDatastore() async {
     var count = 0;
     await for (final consent in _db.query<Consent>().run()) {
-      final existing = await primaryDatabase.withRetry(
-        (db) => db.consents.byKey(consent.consentId).fetch(),
-      );
-      if (existing != null) {
-        continue;
-      }
       await mirrorToSql(consent);
       count++;
     }
     return count;
+  }
   }
 }
 
