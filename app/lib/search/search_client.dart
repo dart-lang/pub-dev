@@ -87,41 +87,49 @@ class SearchClient {
     }) async {
       final httpHostPort = prefix ?? activeConfiguration.searchServicePrefix;
       try {
-        return await withRetryHttpClient((client) async {
-          var data = query.toSearchRequestData();
-          if (userId != null && hasLikedByMeTag) {
-            final newQuery = data.query
-                ?.replaceAll(AccountTag.isLikedByMe, ' ')
-                .trim();
-            final newTags = data.tags!
-                .where((e) => e != AccountTag.isLikedByMe)
-                .toList();
-            data = data.replace(
-              query: newQuery,
-              tags: newTags,
-              packages: packages,
+        return await withRetryHttpClient(
+          (client) async {
+            var data = query.toSearchRequestData();
+            if (userId != null && hasLikedByMeTag) {
+              final newQuery = data.query
+                  ?.replaceAll(AccountTag.isLikedByMe, ' ')
+                  .trim();
+              final newTags = data.tags!
+                  .where((e) => e != AccountTag.isLikedByMe)
+                  .toList();
+              data = data.replace(
+                query: newQuery,
+                tags: newTags,
+                packages: packages,
+              );
+            }
+            // NOTE: Keeping the query parameter to help investigating logs.
+            final uri = Uri.parse(
+              '$httpHostPort/search',
+            ).replace(queryParameters: {'q': data.query});
+            final rs = await client.post(
+              uri,
+              headers: {
+                ...?cloudTraceHeaders(),
+                'content-type': 'application/json',
+              },
+              body: json.encode(data.toJson()),
             );
-          }
-          // NOTE: Keeping the query parameter to help investigating logs.
-          final uri = Uri.parse(
-            '$httpHostPort/search',
-          ).replace(queryParameters: {'q': data.query});
-          final rs = await client.post(
-            uri,
-            headers: {
-              ...?cloudTraceHeaders(),
-              'content-type': 'application/json',
-            },
-            body: json.encode(data.toJson()),
-          );
-          // Throwing hands transient statuses to the retry loop. Any other
-          // status is an answer, and is returned for the caller to interpret.
-          final status = UnexpectedStatusException(rs.statusCode, uri);
-          if (isRetryableException(status)) {
-            throw status;
-          }
-          return (statusCode: rs.statusCode, body: rs.body);
-        }, client: _httpClient);
+            // Throwing hands transient statuses (and 600 index-not-ready) to the
+            // retry loop. Any other status is an answer, and is returned for the
+            // caller to interpret.
+            final status = UnexpectedStatusException(rs.statusCode, uri);
+            if (isRetryableException(status) ||
+                rs.statusCode == searchIndexNotReadyCode) {
+              throw status;
+            }
+            return (statusCode: rs.statusCode, body: rs.body);
+          },
+          client: _httpClient,
+          retryIf: (e) =>
+              e is UnexpectedStatusException &&
+              e.statusCode == searchIndexNotReadyCode,
+        );
       } on TimeoutException {
         return null;
       } on UnexpectedStatusException catch (e) {
