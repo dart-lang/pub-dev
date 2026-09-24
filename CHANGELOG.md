@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded dependencies (incl. `typed_sql`)
  * Note: started to sync `AuditLogRecord` entities to/from SQL.
  * Note: `task` table's state is now nullable.
+ * Note: `neat_periodic_task` status data is now stored in SQL (mirrored best-effort into Datastore).
 
 ## `20260922t083500-all`
  * Bump runtimeVersion to `2026.09.18`.
