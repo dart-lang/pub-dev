@@ -66,6 +66,34 @@ void main() {
       ]);
     });
 
+    test(
+      'retries SmtpClientAuthenticationException after invalidating credentials',
+      () async {
+        final log = <String>[];
+        var attempts = 0;
+        final sender = _EmailSender(log, (message) {
+          attempts++;
+          if (attempts == 1) {
+            log.add('Throwing SmtpClientAuthenticationException.');
+            throw SmtpClientAuthenticationException('auth failed');
+          }
+          log.add('Sent successfully.');
+        });
+        await sender.sendMessage(newEmailMessage());
+        expect(log, [
+          'Connecting #0 for admin@pub.dev',
+          '#0 sending to user@pub.dev',
+          'Throwing SmtpClientAuthenticationException.',
+          'Invalidate credentials.',
+          '#0 closing connection.',
+          'Connecting #1 for admin@pub.dev',
+          '#1 sending to user@pub.dev',
+          'Sent successfully.',
+        ]);
+        expect(sender.shouldBackoff, isFalse);
+      },
+    );
+
     test('later async exception invalidates the connection', () async {
       final log = <String>[];
       final sender = _EmailSender(log, (message) async {
