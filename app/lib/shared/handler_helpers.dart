@@ -42,7 +42,7 @@ Future<void> runHandler(
 }) async {
   port ??= envConfig.port;
   handler = wrapHandler(logger, handler, sanitize: sanitize);
-  if (envConfig.isRunningInAppengine) {
+  if (envConfig.isRunningInCloud) {
     await runAppEngine(
       (HttpRequest request) {
         shelf_io.handleRequest(request, handler);

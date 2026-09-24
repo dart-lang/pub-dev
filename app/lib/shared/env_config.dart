@@ -67,11 +67,6 @@ class _EnvConfig {
   /// When specified, the server will connect to this URL for postgres database connections.
   late final pubPostgresUrl = Platform.environment['PUB_POSTGRES_URL'];
 
-  /// True, if running specifically inside AppEngine.
-  bool get isRunningInAppengine =>
-      Platform.environment.containsKey('GAE_SERVICE') &&
-      Platform.environment.containsKey('GAE_VERSION');
-
   /// True, if running inside AppEngine or Cloud Run.
   bool get isRunningInCloud => service != null && _version != null;
 

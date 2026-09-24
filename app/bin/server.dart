@@ -6,7 +6,6 @@ import 'package:args/command_runner.dart';
 
 import 'package:pub_dev/service/entrypoint/analyzer.dart';
 import 'package:pub_dev/service/entrypoint/frontend.dart';
-import 'package:pub_dev/service/entrypoint/job.dart';
 import 'package:pub_dev/service/entrypoint/search.dart';
 import 'package:pub_dev/shared/env_config.dart';
 
@@ -14,7 +13,6 @@ void main(List<String> args) async {
   final runner = CommandRunner('pub_dev', 'pub.dev services')
     ..addCommand(AnalyzerCommand())
     ..addCommand(DefaultCommand())
-    ..addCommand(JobCommand())
     ..addCommand(SearchCommand());
 
   if (args.isEmpty && envConfig.isRunningInCloud && envConfig.service != null) {
