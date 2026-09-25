@@ -274,8 +274,7 @@ NeatPeriodicTaskScheduler _15mins({
     name: name,
     interval: Duration(minutes: 15),
     timeout: Duration(minutes: 10),
-    status: DatastoreStatusProvider.create(
-      dbService,
+    status: NeatPeriodicTaskStatusProvider.create(
       name,
       isRuntimeVersioned: isRuntimeVersioned,
     ),
@@ -292,8 +291,7 @@ NeatPeriodicTaskScheduler _daily({
     name: name,
     interval: Duration(hours: 24),
     timeout: Duration(hours: 12),
-    status: DatastoreStatusProvider.create(
-      dbService,
+    status: NeatPeriodicTaskStatusProvider.create(
       name,
       isRuntimeVersioned: isRuntimeVersioned,
     ),
@@ -311,8 +309,7 @@ NeatPeriodicTaskScheduler _weekly({
     name: name,
     interval: Duration(days: 6), // shifts the day when the task is triggered
     timeout: timeout,
-    status: DatastoreStatusProvider.create(
-      dbService,
+    status: NeatPeriodicTaskStatusProvider.create(
       name,
       isRuntimeVersioned: isRuntimeVersioned,
     ),

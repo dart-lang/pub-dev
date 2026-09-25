@@ -31,8 +31,6 @@ import '../service/email/email_templates.dart'
     show isValidEmail, looksLikeEmail;
 import '../shared/env_config.dart';
 import '../shared/monitoring.dart';
-import '../shared/versions.dart' as versions show runtimeVersion;
-import '../tool/neat_task/datastore_status_provider.dart';
 import 'configuration.dart';
 import 'datastore.dart';
 import 'parallel_foreach.dart';
@@ -199,7 +197,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     yield* _checkAuditLogs();
     yield* _checkAuditLogsSql();
     yield* _checkModerationCases();
-    yield* _checkNeatTaskStatuses();
     yield* _reportPubspecVersionIssues();
 
     if (_unmappedFieldsToObject.isNotEmpty) {
@@ -1071,31 +1068,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
         yield 'ModerationCase "${mc.caseId}" references an appealed case that does not exists.';
       }
     }
-  }
-
-  Stream<String> _checkNeatTaskStatuses() async* {
-    _logger.info('Scanning NeatTaskStatuses...');
-
-    final rows = await primaryDatabase.withRetry(
-      (db) => db.neatTaskStatuses.fetch(),
-    );
-    final keysInSql = rows
-        .map((row) => (row.taskName, row.runtimeVersion))
-        .toSet();
-
-    yield* _queryWithPool<NeatTaskStatus>((status) async* {
-      final name = status.name;
-      final runtimeVersion = status.runtimeVersion;
-      if (name == null || runtimeVersion == null) {
-        return;
-      }
-      if (runtimeVersion != '-' && runtimeVersion != versions.runtimeVersion) {
-        return;
-      }
-      if (!keysInSql.contains((name, runtimeVersion))) {
-        yield 'Datastore NeatTaskStatus "$runtimeVersion/$name" does not have a matching SQL row.';
-      }
-    });
   }
 
   Stream<String> _reportPubspecVersionIssues() async* {
