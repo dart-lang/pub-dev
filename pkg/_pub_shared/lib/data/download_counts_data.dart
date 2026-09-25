@@ -74,3 +74,60 @@ class WeeklyVersionDownloadCounts {
       _$WeeklyVersionDownloadCountsFromJson(json);
   Map<String, dynamic> toJson() => _$WeeklyVersionDownloadCountsToJson(this);
 }
+
+/// A [VersionDownloadCount] is a tuple containing a version and a list of
+/// download counts for periods of same length.
+typedef VersionDownloadCount = ({String version, List<int> counts});
+
+/// The daily download counts for a package.
+@JsonSerializable(includeIfNull: false)
+final class DailyDownloadCounts {
+  /// The newest date with download counts data available.
+  final DateTime newestDate;
+
+  /// A list of integers representing the total number of daily downloads of any
+  /// version of the package.
+  ///
+  /// The first entry represents the total number of downloads on [newestDate]
+  /// followed by the downloads on [newestDate] - 1 day, [newestDate] - 2 days, and so on.
+  /// Days with no data are represented with `-1`.
+  final List<int> totalDailyDownloads;
+
+  /// A list of [VersionRangeCount] with major version ranges and daily
+  /// downloads for these ranges.
+  ///
+  /// Each count in `counts` is the number of downloads for the range on a given
+  /// day starting from [newestDate].
+  final List<VersionRangeCount>? majorRangeDailyDownloads;
+
+  /// A list of [VersionRangeCount] with minor version ranges and daily
+  /// downloads for these ranges.
+  ///
+  /// Each count in `counts` is the number of downloads for the range on a given
+  /// day starting from [newestDate].
+  final List<VersionRangeCount>? minorRangeDailyDownloads;
+
+  /// A list of [VersionRangeCount] with patch version ranges and daily
+  /// downloads for these ranges.
+  ///
+  /// Each count in `counts` is the number of downloads for the range on a given
+  /// day starting from [newestDate].
+  final List<VersionRangeCount>? patchRangeDailyDownloads;
+
+  /// A list of [VersionDownloadCount] with specific package versions and daily
+  /// downloads for these versions.
+  final List<VersionDownloadCount>? versionDailyDownloads;
+
+  DailyDownloadCounts({
+    required this.newestDate,
+    required this.totalDailyDownloads,
+    this.majorRangeDailyDownloads,
+    this.minorRangeDailyDownloads,
+    this.patchRangeDailyDownloads,
+    this.versionDailyDownloads,
+  });
+
+  factory DailyDownloadCounts.fromJson(Map<String, dynamic> json) =>
+      _$DailyDownloadCountsFromJson(json);
+  Map<String, dynamic> toJson() => _$DailyDownloadCountsToJson(this);
+}

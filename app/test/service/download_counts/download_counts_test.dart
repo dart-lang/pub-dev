@@ -9,6 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
+import 'package:pub_dev/service/download_counts/computations.dart';
 import 'package:pub_dev/service/download_counts/sync_download_counts.dart';
 import 'package:test/test.dart';
 
@@ -16,6 +17,32 @@ import '../../shared/test_services.dart';
 
 void main() {
   group('download counts', () {
+    testWithProfile(
+      'compute and get daily download counts',
+      fn: () async {
+        final pkg = 'test';
+        expect(await getDailyDownloadCounts(pkg), isNull);
+
+        final versionsCounts = {'1.0.1': 5, '2.0.0': 10};
+        final date = DateTime.parse('2026-08-10T00:00:00Z');
+        await downloadCountsBackend.updateDownloadCounts(
+          pkg,
+          versionsCounts,
+          date,
+        );
+
+        final dailyCounts = await getDailyDownloadCounts(pkg);
+        expect(dailyCounts, isNotNull);
+        expect(dailyCounts!.newestDate, date);
+        expect(dailyCounts.totalDailyDownloads.length, 731);
+        expect(dailyCounts.totalDailyDownloads[0], 15);
+        expect(dailyCounts.totalDailyDownloads[1], -1);
+        expect(dailyCounts.majorRangeDailyDownloads, isNotNull);
+        expect(dailyCounts.majorRangeDailyDownloads!.length, 2);
+        expect(dailyCounts.majorRangeDailyDownloads![0].counts.length, 731);
+      },
+    );
+
     testWithProfile(
       'Ingest download counts',
       fn: () async {

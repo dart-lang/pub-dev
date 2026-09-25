@@ -102,6 +102,65 @@ Future<WeeklyVersionDownloadCounts?> getWeeklyVersionDownloads(
   }));
 }
 
+/// Returns daily downloads starting from `newestDate` for [package] and up to
+/// 2 years (731 days) back.
+///
+/// Returns `null` if no download data is available for [package].
+Future<DailyDownloadCounts?> getDailyDownloadCounts(String package) async {
+  return (await cache.dailyDownloadCounts(package).get(() async {
+    return computeDailyDownloadCounts(package);
+  }));
+}
+
+/// Computes daily downloads starting from `newestDate` for [package] and [days]
+/// days back (defaults to 731 days, i.e. 2 years).
+///
+/// Returns `null` if no download data is available for [package].
+Future<DailyDownloadCounts?> computeDailyDownloadCounts(
+  String package, {
+  int days = maxAge,
+}) async {
+  final countData = await downloadCountsBackend.lookupDownloadCountData(
+    package,
+  );
+  if (countData == null || countData.newestDate == null) {
+    return null;
+  }
+
+  final majorRangeDailyCounts = countData.majorRangeCounts
+      .map(
+        (vrc) => (
+          counts: vrc.counts.take(days).toList(),
+          versionRange: vrc.versionRange,
+        ),
+      )
+      .toList();
+  final minorRangeDailyCounts = countData.minorRangeCounts
+      .map(
+        (vrc) => (
+          counts: vrc.counts.take(days).toList(),
+          versionRange: vrc.versionRange,
+        ),
+      )
+      .toList();
+  final patchRangeDailyCounts = countData.patchRangeCounts
+      .map(
+        (vrc) => (
+          counts: vrc.counts.take(days).toList(),
+          versionRange: vrc.versionRange,
+        ),
+      )
+      .toList();
+
+  return DailyDownloadCounts(
+    newestDate: countData.newestDate!,
+    totalDailyDownloads: countData.totalCounts.take(days).toList(),
+    majorRangeDailyDownloads: majorRangeDailyCounts,
+    minorRangeDailyDownloads: minorRangeDailyCounts,
+    patchRangeDailyDownloads: patchRangeDailyCounts,
+  );
+}
+
 /// Computes weekly downloads starting from `newestDate` for [package] and 52
 /// weeks back.
 ///
