@@ -33,7 +33,6 @@ import '../fake/backend/fake_auth_provider.dart';
 import '../fake/backend/fake_domain_verifier.dart';
 import '../fake/backend/fake_email_sender.dart';
 import '../fake/backend/fake_upload_signer_service.dart';
-import '../fake/server/fake_client_context.dart';
 import '../fake/server/fake_storage_server.dart';
 import '../frontend/handlers.dart';
 import '../package/backend.dart';
@@ -153,7 +152,6 @@ Future<R> withFakeServices<R>({
   storage ??= MemStorage();
   // TODO: update `package:gcloud` to have a typed fork.
   return await fork(() async {
-        register(#appengine.context, FakeClientContext());
         registerDbService(DatastoreDB(datastore!));
         registerStorageService(RetryEnforcerStorage(storage!));
         if (primaryDatabase != null) {

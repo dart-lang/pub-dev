@@ -25,6 +25,7 @@ import '../service/csp/default_csp.dart';
 
 import 'exceptions.dart';
 import 'handlers.dart';
+import 'utils.dart';
 
 // The .dev top-level domain is included on the HSTS preload list, making HTTPS
 // required on all connections to .dev websites and pages without needing
@@ -175,57 +176,62 @@ shelf.Handler _cspHeaderWrapper(shelf.Handler handler) {
 
 shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
   return (shelf.Request request) async {
-    final isLiveness = request.requestedUri.path == '/liveness_check';
-    final isReadiness = request.requestedUri.path == '/readiness_check';
-    final shouldLog = !(isLiveness || isReadiness);
-    if (shouldLog) {
-      logger.info('Handling request: ${request.requestedUri}');
-    }
-    try {
-      return await handler(request);
-    } on ResponseException catch (e) {
+    final traceId = extractCloudTraceId(
+      request.headers[cloudTraceContextHeader],
+    );
+    return await withTraceId(traceId, () async {
+      final isLiveness = request.requestedUri.path == '/liveness_check';
+      final isReadiness = request.requestedUri.path == '/readiness_check';
+      final shouldLog = !(isLiveness || isReadiness);
       if (shouldLog) {
-        logger.info('Caught response exception: $e');
+        logger.info('Handling request: ${request.requestedUri}');
       }
-      final content = d.fragment([
-        d.h1(text: 'Error: ${e.code}'),
-        d.codeSnippet(language: 'text', text: e.message),
-      ]);
-      return htmlResponse(
-        renderLayoutPage(
+      try {
+        return await handler(request);
+      } on ResponseException catch (e) {
+        if (shouldLog) {
+          logger.info('Caught response exception: $e');
+        }
+        final content = d.fragment([
+          d.h1(text: 'Error: ${e.code}'),
+          d.codeSnippet(language: 'text', text: e.message),
+        ]);
+        return htmlResponse(
+          renderLayoutPage(
+            PageType.package,
+            content,
+            title: 'Error ${e.code}',
+            noIndex: true,
+          ),
+          status: e.status,
+          headers: e.headers,
+        );
+      } catch (error, st) {
+        logger.severe('Request handler failed', error, Trace.from(st));
+
+        final title = 'Pub is not feeling well';
+        Map<String, String>? debugHeaders;
+        if (traceId != null) {
+          debugHeaders = {'package-site-request-id': traceId};
+        }
+
+        final content = renderLayoutPage(
           PageType.package,
-          content,
-          title: 'Error ${e.code}',
-          noIndex: true,
-        ),
-        status: e.status,
-        headers: e.headers,
-      );
-    } catch (error, st) {
-      logger.severe('Request handler failed', error, Trace.from(st));
-
-      final title = 'Pub is not feeling well';
-      Map<String, String>? debugHeaders;
-      if (context.traceId != null) {
-        debugHeaders = {'package-site-request-id': context.traceId!};
-      }
-
-      final content = renderLayoutPage(
-        PageType.package,
-        renderFatalError(
+          renderFatalError(
+            title: title,
+            requestedUri: request.requestedUri,
+            traceId: traceId,
+          ),
           title: title,
-          requestedUri: request.requestedUri,
-          traceId: context.traceId,
-        ),
-        title: title,
-        noIndex: true,
-      );
-      return htmlResponse(content, status: 500, headers: debugHeaders);
-    } finally {
-      if (shouldLog) {
-        logger.info('Request handler done.');
+          noIndex: true,
+        );
+        return htmlResponse(content, status: 500, headers: debugHeaders);
+      } finally {
+        if (shouldLog) {
+          logger.info('Request handler done.');
+        }
       }
-    }
+    });
   };
 }
 
@@ -260,19 +266,18 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   };
 }
 
-/// In production environment (as defined by appengine's [context] variable):
+/// When not running locally (as defined by `envConfig.isRunningLocally`):
 /// - redirects non-https requests to https
 /// - adds Strict-Transport-Security response header (HSTS)
 shelf.Handler _httpsWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    if (context.isProductionEnvironment &&
-        request.requestedUri.scheme != 'https') {
+    if (!envConfig.isRunningLocally && request.requestedUri.scheme != 'https') {
       final secureUri = request.requestedUri.replace(scheme: 'https');
       return shelf.Response.seeOther(secureUri);
     }
 
     shelf.Response rs = await handler(request);
-    if (context.isProductionEnvironment) {
+    if (!envConfig.isRunningLocally) {
       rs = rs.change(
         headers: {
           'strict-transport-security':
