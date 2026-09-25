@@ -9,7 +9,6 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
 import 'package:intl/intl.dart';
 // ignore: implementation_imports
@@ -17,16 +16,11 @@ import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
 
+import '../frontend/request_context.dart';
+
 export 'package:pana/pana.dart' show exampleFileCandidates;
 
 final Duration twoYears = const Duration(days: 2 * 365);
-
-/// The value `X-Cloud-Trace-Context`.
-///
-/// Standard trace header used by
-/// [StackDriver](https://cloud.google.com/trace/docs/support) and supported by
-/// Appengine.
-const _cloudTraceContextHeader = 'X-Cloud-Trace-Context';
 
 final _random = Random.secure();
 
@@ -191,20 +185,13 @@ String createUuid([List<int>? bytes]) {
   ].join('-');
 }
 
-/// Returns a header map when appengine context's is active and `traceId` is set.
+/// Returns a header map when [requestContext] is active and `traceId` is set.
 ///
 /// Returns `null` otherwise.
 Map<String, String>? cloudTraceHeaders() {
-  // [context] is defined as non-nullable in package:appengine, but in practice
-  // it may be missing if the current processing is outside of a regular request
-  // (e.g. triggered by a Timer).
-  // TODO: remove try-catch after [context] gets fixed in package:appengine.
-  try {
-    if (context.traceId == null) return null;
-    return {_cloudTraceContextHeader: context.traceId!};
-  } catch (_) {
-    return null;
-  }
+  final traceId = requestContext.traceId;
+  if (traceId == null) return null;
+  return {cloudTraceContextHeader: traceId};
 }
 
 /// Statistics for delete + filter operations.

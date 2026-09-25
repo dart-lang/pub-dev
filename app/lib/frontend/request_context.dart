@@ -18,13 +18,33 @@ import 'handlers/experimental.dart';
 /// The header key for the CSRF token.
 const csrfTokenHeaderName = 'x-pub-csrf-token';
 
+/// Standard trace header used by Cloud Trace (`X-Cloud-Trace-Context`).
+const cloudTraceContextHeader = 'X-Cloud-Trace-Context';
+
+/// Sanity check for traceId (must be 32-char hex).
+final _traceIdFormat = RegExp(r'^[0-9a-f]{32}$');
+
+/// Extracts the 32-character hex trace ID from the `X-Cloud-Trace-Context`
+/// request header, or returns `null` if absent or malformed.
+String? extractCloudTraceId(shelf.Request request) {
+  final header = request.headers[cloudTraceContextHeader];
+  if (header == null || header.isEmpty) return null;
+  final traceId = header.split('/').first;
+  return _traceIdFormat.hasMatch(traceId) ? traceId : null;
+}
+
 /// Sets the active [RequestContext].
 void registerRequestContext(RequestContext value) =>
     ss.register(#_request_context, value);
 
 /// The active [RequestContext].
-RequestContext get requestContext =>
-    ss.lookup(#_request_context) as RequestContext? ?? RequestContext();
+RequestContext get requestContext {
+  try {
+    return ss.lookup(#_request_context) as RequestContext? ?? RequestContext();
+  } on StateError {
+    return RequestContext();
+  }
+}
 
 /// Holds flags for request context.
 class RequestContext {
@@ -49,6 +69,9 @@ class RequestContext {
   /// The status of the client session cookie.
   final ClientSessionCookieStatus clientSessionCookieStatus;
 
+  /// The Cloud Trace ID extracted from the `X-Cloud-Trace-Context` header.
+  final String? traceId;
+
   RequestContext({
     this.indentJson = false,
     this.blockRobots = true,
@@ -57,6 +80,7 @@ class RequestContext {
     this.csrfToken,
     this.sessionData,
     ClientSessionCookieStatus? clientSessionCookieStatus,
+    this.traceId,
   }) : experimentalFlags = experimentalFlags ?? ExperimentalFlags.empty,
        clientSessionCookieStatus =
            clientSessionCookieStatus ?? ClientSessionCookieStatus.missing();
@@ -119,5 +143,6 @@ Future<RequestContext> buildRequestContext({
     csrfToken: csrfToken,
     sessionData: sessionData,
     clientSessionCookieStatus: clientSessionCookieStatus,
+    traceId: extractCloudTraceId(request),
   );
 }

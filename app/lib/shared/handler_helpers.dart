@@ -175,6 +175,10 @@ shelf.Handler _cspHeaderWrapper(shelf.Handler handler) {
 
 shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
   return (shelf.Request request) async {
+    final traceId = extractCloudTraceId(request);
+    if (traceId != null) {
+      registerRequestContext(RequestContext(traceId: traceId));
+    }
     final isLiveness = request.requestedUri.path == '/liveness_check';
     final isReadiness = request.requestedUri.path == '/readiness_check';
     final shouldLog = !(isLiveness || isReadiness);
@@ -206,8 +210,8 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
 
       final title = 'Pub is not feeling well';
       Map<String, String>? debugHeaders;
-      if (context.traceId != null) {
-        debugHeaders = {'package-site-request-id': context.traceId!};
+      if (traceId != null) {
+        debugHeaders = {'package-site-request-id': traceId};
       }
 
       final content = renderLayoutPage(
@@ -215,7 +219,7 @@ shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
         renderFatalError(
           title: title,
           requestedUri: request.requestedUri,
-          traceId: context.traceId,
+          traceId: traceId,
         ),
         title: title,
         noIndex: true,
@@ -260,19 +264,18 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   };
 }
 
-/// In production environment (as defined by appengine's [context] variable):
+/// When not running locally (as defined by [envConfig.isRunningLocally]):
 /// - redirects non-https requests to https
 /// - adds Strict-Transport-Security response header (HSTS)
 shelf.Handler _httpsWrapper(shelf.Handler handler) {
   return (shelf.Request request) async {
-    if (context.isProductionEnvironment &&
-        request.requestedUri.scheme != 'https') {
+    if (!envConfig.isRunningLocally && request.requestedUri.scheme != 'https') {
       final secureUri = request.requestedUri.replace(scheme: 'https');
       return shelf.Response.seeOther(secureUri);
     }
 
     shelf.Response rs = await handler(request);
-    if (context.isProductionEnvironment) {
+    if (!envConfig.isRunningLocally) {
       rs = rs.change(
         headers: {
           'strict-transport-security':

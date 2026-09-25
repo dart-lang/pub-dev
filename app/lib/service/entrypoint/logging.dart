@@ -1,22 +1,22 @@
 import 'dart:convert';
 
-import 'package:appengine/appengine.dart';
-// ignore: implementation_imports
-import 'package:appengine/src/logging_impl.dart' show LoggingImpl;
 import 'package:logging/logging.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-final Map<Level, LogLevel?> _loggingLevel2AppengineLoggingLevel = {
+import '../../frontend/request_context.dart';
+import '../../shared/env_config.dart';
+
+final Map<Level, String?> _loggingLevel2CloudLoggingSeverity = {
   Level.OFF: null,
-  Level.ALL: LogLevel.DEBUG,
-  Level.FINEST: LogLevel.DEBUG,
-  Level.FINER: LogLevel.DEBUG,
-  Level.FINE: LogLevel.DEBUG,
-  Level.CONFIG: LogLevel.INFO,
-  Level.INFO: LogLevel.INFO,
-  Level.WARNING: LogLevel.WARNING,
-  Level.SEVERE: LogLevel.ERROR,
-  Level.SHOUT: LogLevel.CRITICAL,
+  Level.ALL: 'DEBUG',
+  Level.FINEST: 'DEBUG',
+  Level.FINER: 'DEBUG',
+  Level.FINE: 'DEBUG',
+  Level.CONFIG: 'INFO',
+  Level.INFO: 'INFO',
+  Level.WARNING: 'WARNING',
+  Level.SEVERE: 'ERROR',
+  Level.SHOUT: 'CRITICAL',
 };
 
 var _setupAppEngineLogging = false;
@@ -27,15 +27,8 @@ void setupAppEngineLogging() {
   _setupAppEngineLogging = true;
   Logger.root.onRecord.listen((LogRecord record) {
     record.zone!.run(() {
-      Logging? logging;
-      try {
-        logging = loggingService;
-      } on StateError {
-        // pass
-      }
-
-      final level = _loggingLevel2AppengineLoggingLevel[record.level];
-      if (level == null) {
+      final severity = _loggingLevel2CloudLoggingSeverity[record.level];
+      if (severity == null) {
         return;
       }
       var message = record.message;
@@ -67,25 +60,19 @@ void setupAppEngineLogging() {
             message.substring(message.length - 16 * 1024);
       }
 
-      // Unless logging a request, we just log directly to stdout
-      if (logging == null || logging is! LoggingImpl) {
-        print(
-          jsonEncode({
-            'severity': level.name.toUpperCase(),
-            'message': message,
-            'logging.googleapis.com/labels': {'logger': record.loggerName},
-            'time': record.time.toUtc().toIso8601String(),
-          }),
-        );
-      } else {
-        // If inside a request, we'll log using appengine logging service, this
-        // ensures that our logs works with existing metrics. Eventually, we
-        // can consider migrating to structured logging on stdout.
-        logging.log(level, message, timestamp: record.time);
-        if (error != null && stackTrace != null) {
-          logging.reportError(level, error, stackTrace);
-        }
-      }
+      final traceId = requestContext.traceId;
+      final projectId = envConfig.googleCloudProject;
+      print(
+        jsonEncode({
+          'severity': severity,
+          'message': message,
+          'logging.googleapis.com/labels': {'logger': record.loggerName},
+          'time': record.time.toUtc().toIso8601String(),
+          if (traceId != null && projectId != null)
+            'logging.googleapis.com/trace':
+                'projects/$projectId/traces/$traceId',
+        }),
+      );
     });
   });
 }
