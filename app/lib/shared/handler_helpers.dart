@@ -266,7 +266,7 @@ shelf.Handler _userAuthWrapper(shelf.Handler handler) {
   };
 }
 
-/// When not running locally (as defined by [envConfig.isRunningLocally]):
+/// When not running locally (as defined by `envConfig.isRunningLocally`):
 /// - redirects non-https requests to https
 /// - adds Strict-Transport-Security response header (HSTS)
 shelf.Handler _httpsWrapper(shelf.Handler handler) {
