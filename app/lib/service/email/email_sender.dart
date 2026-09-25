@@ -83,11 +83,15 @@ abstract class EmailSenderBase implements EmailSender {
             e is TimeoutException ||
             e is IOException ||
             e is SmtpClientCommunicationException ||
-            e is SmtpNoGreetingException,
+            e is SmtpNoGreetingException ||
+            e is SmtpClientAuthenticationException,
         delayFactor: Duration(seconds: 2),
         maxAttempts: 2,
-        onRetry: (_) {
+        onRetry: (e) {
           _forceReconnectSenders.add(sender);
+          if (e is SmtpClientAuthenticationException) {
+            invalidateCredentials();
+          }
         },
       );
     } on SmtpMessageValidationException catch (e, st) {
@@ -230,8 +234,7 @@ class _GmailSmtpRelay extends EmailSenderBase {
   final String _serviceAccountEmail;
   final http.Client _authClient;
 
-  DateTime _accessTokenRefreshed = DateTime(0);
-  Future<String>? _accessToken;
+  final _accessTokens = <String, ({String token, DateTime expiresAt})>{};
 
   _GmailSmtpRelay(this._serviceAccountEmail, this._authClient);
 
@@ -247,25 +250,27 @@ class _GmailSmtpRelay extends EmailSenderBase {
 
   @override
   void invalidateCredentials() {
-    _accessToken = null;
+    _accessTokens.clear();
   }
 
   Future<SmtpServer> _getSmtpServer(String sender) async {
-    final maxAge = clock.now().subtract(Duration(minutes: 20));
-    if (_accessToken == null || _accessTokenRefreshed.isBefore(maxAge)) {
-      _accessToken = _createAccessToken(sender);
-      _accessTokenRefreshed = clock.now();
+    var cached = _accessTokens[sender];
+    if (cached == null || !clock.now().isBefore(cached.expiresAt)) {
+      cached = await _createAccessToken(sender);
+      _accessTokens[sender] = cached;
     }
 
     // For documentation see:
     // https://support.google.com/a/answer/176600?hl=en
-    return gmailRelaySaslXoauth2(sender, await _accessToken!);
+    return gmailRelaySaslXoauth2(sender, cached.token);
   }
 
   /// Create an access_token for [sender] using the
   /// [_serviceAccountEmail] configured for _domain-wide delegation_ following:
   /// https://developers.google.com/identity/protocols/oauth2/service-account
-  Future<String> _createAccessToken(String sender) async {
+  Future<({String token, DateTime expiresAt})> _createAccessToken(
+    String sender,
+  ) async {
     final iat = clock.now().toUtc().millisecondsSinceEpoch ~/ 1000 - 20;
     iam_credentials.SignJwtResponse jwtResponse;
     try {
@@ -314,7 +319,18 @@ class _GmailSmtpRelay extends EmailSenderBase {
           'while trying exchange JWT for access_token',
         );
       }
-      return json.decode(r.body)['access_token'] as String;
+      final body = json.decode(r.body) as Map<String, Object?>;
+      final accessToken = body['access_token'] as String;
+      final expiresIn = body['expires_in'] as int?;
+      var ttl = const Duration(minutes: 20);
+      if (expiresIn != null) {
+        final remaining =
+            Duration(seconds: expiresIn) - const Duration(minutes: 5);
+        if (remaining < ttl) {
+          ttl = remaining;
+        }
+      }
+      return (token: accessToken, expiresAt: clock.now().add(ttl));
     });
   }
 }
