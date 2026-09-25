@@ -16,11 +16,17 @@ import 'package:mime/src/default_extension_map.dart' as mime;
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart' as semver;
 
-import '../frontend/request_context.dart';
-
 export 'package:pana/pana.dart' show exampleFileCandidates;
 
 final Duration twoYears = const Duration(days: 2 * 365);
+
+/// Standard trace header used by Cloud Trace (`X-Cloud-Trace-Context`).
+const cloudTraceContextHeader = 'X-Cloud-Trace-Context';
+
+const _traceIdZoneKey = #_trace_id;
+
+/// Sanity check for traceId (must be 32-char hex).
+final _traceIdFormat = RegExp(r'^[0-9a-f]{32}$');
 
 final _random = Random.secure();
 
@@ -185,11 +191,28 @@ String createUuid([List<int>? bytes]) {
   ].join('-');
 }
 
-/// Returns a header map when [requestContext] is active and `traceId` is set.
+/// Extracts the 32-character hex trace ID from an `X-Cloud-Trace-Context`
+/// header value, or returns `null` if absent or malformed.
+String? extractCloudTraceId(String? header) {
+  if (header == null || header.isEmpty) return null;
+  final traceId = header.split('/').first;
+  return _traceIdFormat.hasMatch(traceId) ? traceId : null;
+}
+
+/// The active Cloud Trace ID in the current zone, if any.
+String? get currentTraceId => Zone.current[_traceIdZoneKey] as String?;
+
+/// Runs [fn] inside a zone with [traceId] attached if non-null.
+Future<T> withTraceId<T>(String? traceId, Future<T> Function() fn) {
+  if (traceId == null) return fn();
+  return runZoned(fn, zoneValues: {_traceIdZoneKey: traceId});
+}
+
+/// Returns a header map when [currentTraceId] is set.
 ///
 /// Returns `null` otherwise.
 Map<String, String>? cloudTraceHeaders() {
-  final traceId = requestContext.traceId;
+  final traceId = currentTraceId;
   if (traceId == null) return null;
   return {cloudTraceContextHeader: traceId};
 }

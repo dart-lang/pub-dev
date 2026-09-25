@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:logging/logging.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-import '../../frontend/request_context.dart';
 import '../../shared/env_config.dart';
+import '../../shared/utils.dart';
 
 final Map<Level, String?> _loggingLevel2CloudLoggingSeverity = {
   Level.OFF: null,
@@ -60,7 +60,7 @@ void setupAppEngineLogging() {
             message.substring(message.length - 16 * 1024);
       }
 
-      final traceId = requestContext.traceId;
+      final traceId = currentTraceId;
       final projectId = envConfig.googleCloudProject;
       print(
         jsonEncode({
