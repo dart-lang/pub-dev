@@ -320,14 +320,13 @@ class PackageBackend {
 
   /// Returns the list of `AssetKind` values that exist for [package] [version].
   ///
-  /// Returns an empty list if the [version] is not a semantic version or if
-  /// the info entity does not exist in the datastore.
+  /// Returns an empty list if the info entity does not exist in the datastore.
   Future<List<String>> getAssets(String package, String version) async {
     final assets = await cache
         .packageVersionAssetKinds(package, version)
         .obtain(() async {
           final info = await lookupPackageVersionInfo(package, version);
-          return info?.assets ?? <String>[];
+          return info?.assets;
         });
     return assets ?? <String>[];
   }
