@@ -231,16 +231,19 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
         task: syncSecurityAdvisories,
       ),
 
-    // Checks the Datastore integrity of the model objects.
-    _weekly(
-      name: 'check-datastore-integrity',
-      isRuntimeVersioned: true,
-      task: () async => await IntegrityChecker(
-        dbService,
-        concurrency: 4,
-      ).verifyAndLogIssues(),
-      timeout: Duration(days: 1),
-    ),
+    // Checks the Datastore integrity of the model objects. Each part of the
+    // check runs as a separate task, to keep the individual runs short.
+    for (final part in DatastoreIntegrityCheckPart.values)
+      _weekly(
+        name: part.taskName,
+        isRuntimeVersioned: true,
+        task: () async => await IntegrityChecker(
+          dbService,
+          part: part,
+          concurrency: 4,
+        ).verifyAndLogIssues(),
+        timeout: Duration(days: 1),
+      ),
 
     // Checks the tarball storage integrity of the archive files.
     _weekly(

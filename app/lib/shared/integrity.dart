@@ -61,7 +61,9 @@ const _allowedUnmappedFields = {
 
 @visibleForTesting
 Stream<String> findAllIntegrityProblems() async* {
-  yield* IntegrityChecker(dbService)._findProblems();
+  for (final part in DatastoreIntegrityCheckPart.values) {
+    yield* IntegrityChecker(dbService, part: part)._findProblems();
+  }
   yield* TarballIntegrityChecker(dbService)._findProblems();
 }
 
@@ -144,8 +146,35 @@ class _BaseIntegrityChecker {
   }
 }
 
-/// Checks the integrity of the datastore.
+/// An independent part of the Datastore integrity check.
+///
+/// Each part runs as a separate periodic task, which keeps the individual runs
+/// short and limits the state that a run accumulates. A part loads the
+/// entities that its checks depend on, but reports problems only for the
+/// entities that it checks.
+enum DatastoreIntegrityCheckPart {
+  /// Checks the [User], [OAuthUserID], [Publisher], [PublisherMember],
+  /// [ModerationCase] and [NeatTaskStatus] entities, and the user sessions in
+  /// SQL.
+  users('check-datastore-integrity-users'),
+
+  /// Checks the [Package], [PackageVersion], [PackageVersionInfo],
+  /// [PackageVersionAsset], [Like] and [ModeratedPackage] entities.
+  packages('check-datastore-integrity-packages'),
+
+  /// Checks the [AuditLogRecord] entities and their SQL mirror.
+  auditLogs('check-datastore-integrity-audit-logs');
+
+  /// The name of the periodic task that runs this part.
+  final String taskName;
+
+  const DatastoreIntegrityCheckPart(this.taskName);
+}
+
+/// Checks the integrity of the Datastore entities that belong to a
+/// [DatastoreIntegrityCheckPart].
 class IntegrityChecker extends _BaseIntegrityChecker {
+  final DatastoreIntegrityCheckPart _part;
   final _userToOauth = <String, String?>{};
   final _oauthToUser = <String, String>{};
   final _deletedUsers = <String>{};
@@ -162,8 +191,12 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   int _packageChecked = 0;
   int _versionChecked = 0;
 
-  IntegrityChecker(DatastoreDB db, {int? concurrency})
-    : super._(Logger('integrity.check'), db, concurrency ?? 1);
+  IntegrityChecker(
+    DatastoreDB db, {
+    required DatastoreIntegrityCheckPart part,
+    int? concurrency,
+  }) : _part = part,
+       super._(Logger('integrity.check'), db, concurrency ?? 1);
 
   /// Runs integrity checks, and reports the problems via a [Logger].
   Future<void> verifyAndLogIssues() async {
@@ -174,7 +207,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     }
     _logger.info(
       [
-        'Integrity check completed with $count issue(s).',
+        'Integrity check (${_part.name}) completed with $count issue(s).',
         if (count == 0) '[pub-integrity-no-problems-found]',
       ].join(' '),
     );
@@ -182,25 +215,11 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
   /// Runs integrity checks, and returns the list of problems.
   Stream<String> _findProblems() async* {
-    yield* _checkUsers();
-    yield* _checkOAuthUserIDs();
-    yield* _checkUserSessions();
-
-    final publisherAttributes = _PublisherAttributes();
-    yield* _checkPublishers(publisherAttributes);
-    yield* _checkPublisherMembers(publisherAttributes);
-    yield* _checkPublishersAfterMembers(publisherAttributes);
-    yield* _checkPackages(publisherAttributes: publisherAttributes);
-    publisherAttributes.clear(); // no longer used
-
-    yield* _checkVersions();
-    yield* _checkLikes();
-    yield* _checkModeratedPackages();
-    yield* _checkAuditLogs();
-    yield* _checkAuditLogsSql();
-    yield* _checkModerationCases();
-    yield* _checkNeatTaskStatuses();
-    yield* _reportPubspecVersionIssues();
+    yield* switch (_part) {
+      DatastoreIntegrityCheckPart.users => _findUserProblems(),
+      DatastoreIntegrityCheckPart.packages => _findPackageProblems(),
+      DatastoreIntegrityCheckPart.auditLogs => _findAuditLogProblems(),
+    };
 
     if (_unmappedFieldsToObject.isNotEmpty) {
       for (final entry in _unmappedFieldsToObject.entries) {
@@ -210,19 +229,105 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     }
   }
 
+  Stream<String> _findUserProblems() async* {
+    yield* _checkUsers();
+    yield* _checkOAuthUserIDs();
+    yield* _checkUserSessions();
+
+    final publisherAttributes = _PublisherAttributes();
+    yield* _checkPublishers(publisherAttributes);
+    yield* _checkPublisherMembers(publisherAttributes);
+    yield* _checkPublishersAfterMembers(publisherAttributes);
+
+    yield* _checkModerationCases();
+    yield* _checkNeatTaskStatuses();
+  }
+
+  Stream<String> _findPackageProblems() async* {
+    // Packages, versions and likes reference users and publishers.
+    await _loadUsers();
+    final publisherAttributes = _PublisherAttributes();
+    await _loadPublishers(publisherAttributes);
+
+    yield* _checkPackages(publisherAttributes: publisherAttributes);
+    publisherAttributes.clear(); // no longer used
+
+    yield* _checkVersions();
+    yield* _checkLikes();
+    yield* _checkModeratedPackages();
+    yield* _reportPubspecVersionIssues();
+  }
+
+  Stream<String> _findAuditLogProblems() async* {
+    // Audit log records reference users, packages and moderated packages.
+    await _loadUsers();
+    await _loadPackages();
+    await _loadModeratedPackages();
+
+    yield* _checkAuditLogs();
+    yield* _checkAuditLogsSql();
+  }
+
+  /// Loads the [User] entities without checking them.
+  Future<void> _loadUsers() async {
+    _logger.info('Loading Users...');
+    await for (final user in _db.query<User>().run()) {
+      _recordUser(user);
+    }
+  }
+
+  /// Records the state of [user] that the checks of the referencing entities
+  /// depend on.
+  void _recordUser(User user) {
+    _userToOauth[user.userId] = user.oauthUserId;
+    if (!_hasValidEmail(user)) {
+      _invalidUsers.add(user.userId);
+    }
+    if (user.isDeleted) {
+      _deletedUsers.add(user.userId);
+    }
+    if (user.isNotVisible) {
+      _blockedUsers.add(user.userId);
+    }
+  }
+
+  /// Loads the [Publisher] entities into [publisherAttributes] without
+  /// checking them.
+  Future<void> _loadPublishers(_PublisherAttributes publisherAttributes) async {
+    _logger.info('Loading Publishers...');
+    await for (final p in _db.query<Publisher>().run()) {
+      publisherAttributes.addPublisher(p);
+    }
+  }
+
+  /// Loads the names of the [Package] entities without checking them.
+  Future<void> _loadPackages() async {
+    _logger.info('Loading Packages...');
+    await for (final p in _db.query<Package>().run()) {
+      _packages.add(p.id!);
+    }
+  }
+
+  /// Loads the names of the [ModeratedPackage] entities without checking them.
+  Future<void> _loadModeratedPackages() async {
+    _logger.info('Loading ModeratedPackages...');
+    await for (final p in _db.query<ModeratedPackage>().run()) {
+      _moderatedPackages.add(p.name!);
+    }
+  }
+
   Stream<String> _checkUsers() async* {
     _logger.info('Scanning Users...');
     final gmailComEmails = <String>{};
     yield* _queryWithPool<User>((user) async* {
+      _recordUser(user);
       if (!looksLikeUserId(user.userId)) {
         yield 'User has invalid userId: "${user.userId}".';
       }
 
-      _userToOauth[user.userId] = user.oauthUserId;
       final email = user.email;
-      if (email == null || email.isEmpty || !looksLikeEmail(email)) {
+      if (!_hasValidEmail(user)) {
         yield 'User "${user.userId}" has invalid email: "${user.email}".';
-        _invalidUsers.add(user.userId);
       }
 
       // We can have email addresses that have multiple account (also User and
@@ -238,7 +343,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       }
 
       if (user.isDeleted) {
-        _deletedUsers.add(user.userId);
         if (user.oauthUserId != null) {
           yield 'User "${user.userId}" is deleted, but `oauthUserId` is still set.';
         }
@@ -251,10 +355,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
           user.created != null &&
           user.created!.isAfter(DateTime(2022, 1, 1))) {
         yield 'User "${user.userId}" is recently created, but has no `oauthUserId`.';
-      }
-
-      if (user.isNotVisible) {
-        _blockedUsers.add(user.userId);
       }
 
       yield* _checkModeratedFlags(
@@ -1151,6 +1251,12 @@ class _PublisherAttributes {
     _withoutContact.clear();
     _memberCount.clear();
   }
+}
+
+/// Whether [user] has a non-empty email address that looks valid.
+bool _hasValidEmail(User user) {
+  final email = user.email;
+  return email != null && email.isNotEmpty && looksLikeEmail(email);
 }
 
 /// Check that `isModerated` and `moderatedAt` are consistent.
