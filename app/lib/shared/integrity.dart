@@ -207,7 +207,8 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     }
     _logger.info(
       [
-        'Integrity check (${_part.name}) completed with $count issue(s).',
+        'Integrity check completed with $count issue(s) '
+            'in the ${_part.name} part.',
         if (count == 0) '[pub-integrity-no-problems-found]',
       ].join(' '),
     );
