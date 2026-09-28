@@ -181,11 +181,16 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   final _invalidUsers = <String>{};
   final _blockedUsers = <String>{};
   final _packages = <String>{};
+  final _packageAttributes = <String, _PackageAttributes>{};
   final _packageLikes = <String, int>{};
   final _moderatedPackages = <String>{};
   final _packagesWithIsModeratedFlag = <String>{};
   final _packageReplacedBys = <String, String>{};
   final _packagesWithVersion = <String>{};
+  final _versionKeys = <QualifiedVersionKey>{};
+  final _remainingVersionAssets = <QualifiedVersionKey, Set<String>>{};
+  final _datastoreAuditLogIds = <String>{};
+  final _datastoreAuditLogIdsMissingSqlMirror = <String>{};
   // package name -> versions
   final _badVersionInPubspec = <String, Set<String>>{};
   int _packageChecked = 0;
@@ -254,6 +259,11 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     publisherAttributes.clear(); // no longer used
 
     yield* _checkVersions();
+    yield* _checkVersionInfos();
+    yield* _checkVersionAssets();
+    _versionKeys.clear();
+    _remainingVersionAssets.clear();
+
     yield* _checkLikes();
     yield* _checkModeratedPackages();
     yield* _reportPubspecVersionIssues();
@@ -517,6 +527,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       yield 'Package "${p.id}" has a `name` property which is not the same as the id.';
     } else {
       _packages.add(p.name!);
+      _packageAttributes[p.name!] = _PackageAttributes.fromPackage(p);
     }
     if (p.replacedBy != null) {
       _packageReplacedBys[p.name!] = p.replacedBy!;
@@ -571,32 +582,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
         }
       }
     }
-    final versionKeys = <Key>{};
-    final qualifiedVersionKeys = <QualifiedVersionKey>{};
-    int versionCountUntilLastPublished = 0;
-    await for (final pv
-        in _db.query<PackageVersion>(ancestorKey: p.key).run()) {
-      versionKeys.add(pv.key);
-      qualifiedVersionKeys.add(pv.qualifiedVersionKey);
-      if (p.deletedVersions != null &&
-          p.deletedVersions!.contains(pv.version!)) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" exists, but is marked as deleted in Package "${p.name}".';
-      }
-      // Count only the versions that were created before the last published timestamp,
-      // to prevent false alarms that could happing if a new version is being published
-      // while the integrity check is running.
-      if (!pv.created!.isAfter(p.lastVersionPublished!)) {
-        // Moderated versions are not counted.
-        if (pv.isVisible) {
-          versionCountUntilLastPublished++;
-        }
-      }
-    }
-    if (p.versionCount != versionCountUntilLastPublished) {
-      yield 'Package "${p.name}" has `versionCount` (${p.versionCount}) that differs from the '
-          'number of versions until the last published date ($versionCountUntilLastPublished). '
-          'Total number of versions: ${versionKeys.length}.';
-    }
     if (p.lastVersionPublished == null) {
       yield 'Package "${p.name}" has a `lastVersionPublished` property which is null.';
     }
@@ -627,18 +612,12 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
     if (p.latestVersionKey == null) {
       yield 'Package "${p.name}" has a `latestVersionKey` property which is null.';
-    } else if (!versionKeys.contains(p.latestVersionKey)) {
-      'Package "${p.name}" has missing `latestVersionKey`: "${p.latestVersionKey!.id}".';
     }
     if (p.latestPrereleaseVersionKey == null) {
       yield 'Package "${p.name}" has a `latestPrereleaseVersionKey` property which is null.';
-    } else if (!versionKeys.contains(p.latestPrereleaseVersionKey)) {
-      yield 'Package "${p.name}" has missing `latestPrereleaseVersionKey`: "${p.latestPrereleaseVersionKey!.id}".';
     }
     if (p.latestPreviewVersionKey == null) {
       yield 'Package "${p.name}" has a `latestPreviewVersionKey` property which is null.';
-    } else if (!versionKeys.contains(p.latestPreviewVersionKey)) {
-      yield 'Package "${p.name}" has missing `latestPreviewVersionKey`: "${p.latestPreviewVersionKey!.id}".';
     }
     yield* _checkModeratedFlags(
       kind: 'Package',
@@ -656,109 +635,67 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       _packagesWithIsModeratedFlag.add(p.name!);
     }
 
-    // Checking if PackageVersionInfo is referenced by a PackageVersion entity.
-    final pviQuery = _db.query<PackageVersionInfo>()
-      ..filter('package =', p.name);
-    final pviKeys = <QualifiedVersionKey>{};
-    final referencedAssetIds = <String>[];
-
-    Stream<String> checkPackageVersionKey(
-      String entityType,
-      QualifiedVersionKey key,
-    ) async* {
-      if (!qualifiedVersionKeys.contains(key)) {
-        final pv = await packageBackend.lookupPackageVersion(
-          key.package!,
-          key.version!,
-        );
-        if (pv == null) {
-          yield '$entityType "$key" has no PackageVersion.';
-        } else {
-          qualifiedVersionKeys.add(key);
-        }
-      }
-    }
-
-    await for (final pvi in pviQuery.run()) {
-      _updateUnmappedFields(pvi);
-      final key = pvi.qualifiedVersionKey;
-      pviKeys.add(key);
-      yield* checkPackageVersionKey('PackageVersionInfo', key);
-      if (pvi.versionCreated == null) {
-        yield 'PackageVersionInfo "$key" has a `versionCreated` property which is null.';
-      }
-      if (pvi.updated == null) {
-        yield 'PackageVersionInfo "$key" has an `updated` property which is null.';
-      }
-      if (pvi.libraryCount == null) {
-        yield 'PackageVersionInfo "$key" has a `libraryCount` property which is null.';
-      }
-      for (final kind in pvi.assets) {
-        referencedAssetIds.add(key.assetId(kind));
-      }
-    }
-    for (final key in qualifiedVersionKeys) {
-      if (!pviKeys.contains(key)) {
-        yield 'PackageVersion "$key" has no PackageVersionInfo.';
-      }
-    }
-
-    // Checking if PackageVersionAsset is referenced by a PackageVersion entity.
-    final pvaQuery = _db.query<PackageVersionAsset>()
-      ..filter('package =', p.name);
-    final foundAssetIds = <String?>{};
-    await for (final pva in pvaQuery.run()) {
-      _updateUnmappedFields(pva);
-      final key = pva.qualifiedVersionKey;
-      if (pva.id !=
-          Uri(pathSegments: [pva.package!, pva.version!, pva.kind!]).path) {
-        yield 'PackageVersionAsset "${pva.id}" uses old id format.';
-        continue;
-      }
-      yield* checkPackageVersionKey('PackageVersionAsset', key);
-      foundAssetIds.add(pva.assetId);
-      // check if PackageVersionAsset is referenced in PackageVersionInfo
-      if (!referencedAssetIds.contains(pva.assetId)) {
-        // double check actual status to prevent misreports on cache race conditions
-        final info = await packageBackend.lookupPackageVersionInfo(
-          pva.package!,
-          pva.version!,
-        );
-        if (info == null || !info.assets.contains(pva.kind!)) {
-          yield 'PackageVersionAsset "${pva.id}" is not referenced from PackageVersionInfo.';
-        }
-      }
-      // check pubspec content
-      if (pva.kind == AssetKind.pubspec) {
-        try {
-          final pubspec = Pubspec.fromYaml(pva.textContent!);
-          if (pubspec.hasBadVersionFormat) {
-            _badVersionInPubspec
-                .putIfAbsent(p.name!, () => <String>{})
-                .add(pva.version!);
-          }
-        } catch (e) {
-          yield 'PackageVersionAsset "${pva.id}" "pubspec" has parse error: $e.';
-        }
-      }
-    }
-
-    // check if all of PackageVersionInfo.assets exist
-    for (final id in referencedAssetIds) {
-      if (!foundAssetIds.contains(id)) {
-        yield 'PackageVersionAsset "$id" is referenced from PackageVersionInfo but does not exist.';
-      }
-    }
-
     _packageChecked++;
-    if (_packageChecked % 200 == 0) {
+    if (_packageChecked % 5000 == 0) {
       _logger.info('  .. $_packageChecked done (${p.name})');
+    }
+  }
+
+  Stream<String> _checkPackageVersionKey(
+    String entityType,
+    QualifiedVersionKey key,
+  ) async* {
+    if (!_versionKeys.contains(key)) {
+      final pv = await packageBackend.lookupPackageVersion(
+        key.package!,
+        key.version!,
+      );
+      if (pv == null) {
+        yield '$entityType "$key" has no PackageVersion.';
+      } else {
+        _versionKeys.add(key);
+      }
     }
   }
 
   Stream<String> _checkVersions() async* {
     _logger.info('Scanning PackageVersions...');
     yield* _queryWithPool<PackageVersion>(_checkPackageVersion);
+
+    for (final pkgAttr in _packageAttributes.values) {
+      if (pkgAttr.versionCount != pkgAttr.versionCountUntilLastPublished) {
+        yield 'Package "${pkgAttr.name}" has `versionCount` (${pkgAttr.versionCount}) that differs from the '
+            'number of versions until the last published date (${pkgAttr.versionCountUntilLastPublished}). '
+            'Total number of versions: ${pkgAttr.totalVersionCount}.';
+      }
+      if (pkgAttr.latestVersionKey != null && !pkgAttr.hasLatestVersion) {
+        final pv = await _db.lookupOrNull<PackageVersion>(
+          pkgAttr.latestVersionKey!,
+        );
+        if (pv == null) {
+          yield 'Package "${pkgAttr.name}" has missing `latestVersionKey`: "${pkgAttr.latestVersionKey!.id}".';
+        }
+      }
+      if (pkgAttr.latestPrereleaseVersionKey != null &&
+          !pkgAttr.hasLatestPrereleaseVersion) {
+        final pv = await _db.lookupOrNull<PackageVersion>(
+          pkgAttr.latestPrereleaseVersionKey!,
+        );
+        if (pv == null) {
+          yield 'Package "${pkgAttr.name}" has missing `latestPrereleaseVersionKey`: "${pkgAttr.latestPrereleaseVersionKey!.id}".';
+        }
+      }
+      if (pkgAttr.latestPreviewVersionKey != null &&
+          !pkgAttr.hasLatestPreviewVersion) {
+        final pv = await _db.lookupOrNull<PackageVersion>(
+          pkgAttr.latestPreviewVersionKey!,
+        );
+        if (pv == null) {
+          yield 'Package "${pkgAttr.name}" has missing `latestPreviewVersionKey`: "${pkgAttr.latestPreviewVersionKey!.id}".';
+        }
+      }
+    }
+    _packageAttributes.clear();
 
     for (final package in _packages.where(
       (package) => !_packagesWithVersion.contains(package),
@@ -774,6 +711,34 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
   Stream<String> _checkPackageVersion(PackageVersion pv) async* {
     _packagesWithVersion.add(pv.package);
+    _versionKeys.add(pv.qualifiedVersionKey);
+    if (_packageAttributes[pv.package] case final pkgAttr?) {
+      pkgAttr.totalVersionCount++;
+      if (pkgAttr.deletedVersions != null &&
+          pkgAttr.deletedVersions!.contains(pv.version!)) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" exists, but is marked as deleted in Package "${pkgAttr.name}".';
+      }
+      // Count only the versions that were created before the last published timestamp,
+      // to prevent false alarms that could happen if a new version is being published
+      // while the integrity check is running.
+      if (pkgAttr.lastVersionPublished != null &&
+          pv.created != null &&
+          !pv.created!.isAfter(pkgAttr.lastVersionPublished!)) {
+        // Moderated versions are not counted.
+        if (pv.isVisible) {
+          pkgAttr.versionCountUntilLastPublished++;
+        }
+      }
+      if (pv.key == pkgAttr.latestVersionKey) {
+        pkgAttr.hasLatestVersion = true;
+      }
+      if (pv.key == pkgAttr.latestPrereleaseVersionKey) {
+        pkgAttr.hasLatestPrereleaseVersion = true;
+      }
+      if (pv.key == pkgAttr.latestPreviewVersionKey) {
+        pkgAttr.hasLatestPreviewVersion = true;
+      }
+    }
 
     if (pv.uploader == null) {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has no uploader.';
@@ -824,6 +789,96 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     _versionChecked++;
     if (_versionChecked % 5000 == 0) {
       _logger.info('  .. $_versionChecked done (${pv.qualifiedVersionKey})');
+    }
+  }
+
+  Stream<String> _checkVersionInfos() async* {
+    _logger.info('Scanning PackageVersionInfos...');
+    final versionsWithoutInfo = Set<QualifiedVersionKey>.of(_versionKeys);
+    yield* _queryWithPool<PackageVersionInfo>((pvi) async* {
+      final key = pvi.qualifiedVersionKey;
+      versionsWithoutInfo.remove(key);
+      if (pvi.assets.isNotEmpty) {
+        _remainingVersionAssets[key] = pvi.assets.toSet();
+      }
+      yield* _checkPackageVersionKey('PackageVersionInfo', key);
+      if (pvi.versionCreated == null) {
+        yield 'PackageVersionInfo "$key" has a `versionCreated` property which is null.';
+      }
+      if (pvi.updated == null) {
+        yield 'PackageVersionInfo "$key" has an `updated` property which is null.';
+      }
+      if (pvi.libraryCount == null) {
+        yield 'PackageVersionInfo "$key" has a `libraryCount` property which is null.';
+      }
+    });
+    for (final key in versionsWithoutInfo) {
+      final info = await packageBackend.lookupPackageVersionInfo(
+        key.package!,
+        key.version!,
+      );
+      if (info == null) {
+        yield 'PackageVersion "$key" has no PackageVersionInfo.';
+      } else if (info.assets.isNotEmpty) {
+        _remainingVersionAssets[key] ??= info.assets.toSet();
+      }
+    }
+  }
+
+  Stream<String> _checkVersionAssets() async* {
+    _logger.info('Scanning PackageVersionAssets...');
+    yield* _queryWithPool<PackageVersionAsset>((pva) async* {
+      final key = pva.qualifiedVersionKey;
+      if (pva.id !=
+          Uri(pathSegments: [pva.package!, pva.version!, pva.kind!]).path) {
+        yield 'PackageVersionAsset "${pva.id}" uses old id format.';
+        return;
+      }
+      final remainingAssets = _remainingVersionAssets[key];
+      final wasReferenced =
+          remainingAssets != null && remainingAssets.remove(pva.kind);
+      if (remainingAssets != null && remainingAssets.isEmpty) {
+        _remainingVersionAssets.remove(key);
+      }
+      yield* _checkPackageVersionKey('PackageVersionAsset', key);
+      // check if PackageVersionAsset is referenced in PackageVersionInfo
+      if (!wasReferenced) {
+        // double check actual status to prevent misreports on cache race conditions
+        final info = await packageBackend.lookupPackageVersionInfo(
+          pva.package!,
+          pva.version!,
+        );
+        if (info == null || !info.assets.contains(pva.kind!)) {
+          yield 'PackageVersionAsset "${pva.id}" is not referenced from PackageVersionInfo.';
+        }
+      }
+      // check pubspec content
+      if (pva.kind == AssetKind.pubspec) {
+        try {
+          final pubspec = Pubspec.fromYaml(pva.textContent!);
+          if (pubspec.hasBadVersionFormat) {
+            _badVersionInPubspec
+                .putIfAbsent(pva.package!, () => <String>{})
+                .add(pva.version!);
+          }
+        } catch (e) {
+          yield 'PackageVersionAsset "${pva.id}" "pubspec" has parse error: $e.';
+        }
+      }
+    });
+
+    // check if all of PackageVersionInfo.assets exist
+    for (final entry in _remainingVersionAssets.entries) {
+      final key = entry.key;
+      for (final kind in entry.value) {
+        final id = key.assetId(kind);
+        final existing = await _db.lookupOrNull<PackageVersionAsset>(
+          _db.emptyKey.append(PackageVersionAsset, id: id),
+        );
+        if (existing == null) {
+          yield 'PackageVersionAsset "$id" is referenced from PackageVersionInfo but does not exist.';
+        }
+      }
     }
   }
 
@@ -897,6 +952,14 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   }
 
   Stream<String> _checkAuditLogRecord(AuditLogRecord r) async* {
+    _datastoreAuditLogIds.add(r.id!);
+    // Only check once the record is old enough that mirroring should have completed,
+    // to avoid false positives on freshly written records.
+    if (r.created != null &&
+        _isOlderThanAuditLogMirrorGracePeriod(r.created!)) {
+      _datastoreAuditLogIdsMissingSqlMirror.add(r.id!);
+    }
+
     yield* _checkAgentValid(
       r.agent!,
       entityType: 'AuditLogRecord',
@@ -939,18 +1002,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
         yield 'AuditLogRecord "${r.id}" has missing package "$p" in package version "$pv".';
       }
     }
-
-    // Only check once the record is old enough that mirroring should have completed,
-    // to avoid false positives on freshly written records.
-    if (r.created != null &&
-        _isOlderThanAuditLogMirrorGracePeriod(r.created!)) {
-      final sqlRow = await primaryDatabase.withRetry(
-        (db) => db.auditLogRecords.byKey(r.id!).fetch(),
-      );
-      if (sqlRow == null) {
-        yield 'AuditLogRecord "${r.id}" has no corresponding SQL mirror.';
-      }
-    }
   }
 
   /// Checks the SQL mirror of [AuditLogRecord] (`auditLogRecords` +
@@ -962,20 +1013,51 @@ class IntegrityChecker extends _BaseIntegrityChecker {
         (db) => db.auditLogRecords
             .where((r) => r.id.greaterThanValue(lastId))
             .orderBy((r) => [(r.id, Order.ascending)])
-            .limit(100)
+            .limit(1000)
             .fetch(),
       );
       if (rows.isEmpty) {
         break;
       }
-      for (final row in rows) {
-        yield* _checkAuditLogSqlRow(row);
-      }
+      final firstId = rows.first.id;
       lastId = rows.last.id;
+      final associations = await primaryDatabase.withRetry(
+        (db) => db.auditLogAssociations
+            .where(
+              (a) =>
+                  a.recordId.greaterThanOrEqualValue(firstId) &
+                  a.recordId.lessThanOrEqualValue(lastId),
+            )
+            .fetch(),
+      );
+      final associationsByRecordId = associations.groupListsBy(
+        (a) => a.recordId,
+      );
+      for (final row in rows) {
+        _datastoreAuditLogIdsMissingSqlMirror.remove(row.id);
+        yield* _checkAuditLogSqlRow(
+          row,
+          associationsByRecordId[row.id] ?? const <AuditLogAssociation>[],
+        );
+      }
     }
+
+    for (final id in _datastoreAuditLogIdsMissingSqlMirror) {
+      final sqlRow = await primaryDatabase.withRetry(
+        (db) => db.auditLogRecords.byKey(id).fetch(),
+      );
+      if (sqlRow == null) {
+        yield 'AuditLogRecord "$id" has no corresponding SQL mirror.';
+      }
+    }
+    _datastoreAuditLogIds.clear();
+    _datastoreAuditLogIdsMissingSqlMirror.clear();
   }
 
-  Stream<String> _checkAuditLogSqlRow(AuditLogRecordRow row) async* {
+  Stream<String> _checkAuditLogSqlRow(
+    AuditLogRecordRow row,
+    List<AuditLogAssociation> associations,
+  ) async* {
     final label = 'SQL AuditLogRecord "${row.id}"';
     final isRetainedRecord = !row.expiresAt.isBefore(clock.now().toUtc());
 
@@ -986,11 +1068,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       isRetainedRecord: isRetainedRecord,
     );
 
-    final associations = await primaryDatabase.withRetry(
-      (db) => db.auditLogAssociations
-          .where((a) => a.recordId.equalsValue(row.id))
-          .fetch(),
-    );
     final users = associations
         .whereKind(AuditLogAssociationKind.user)
         .map((a) => a.value)
@@ -1039,7 +1116,8 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
     // Only check once the row is old enough that mirroring should have
     // completed, to avoid false positives on freshly written records.
-    if (_isOlderThanAuditLogMirrorGracePeriod(row.createdAt)) {
+    if (_isOlderThanAuditLogMirrorGracePeriod(row.createdAt) &&
+        !_datastoreAuditLogIds.contains(row.id)) {
       final key = _db.emptyKey.append(AuditLogRecord, id: row.id);
       final existing = await _db.lookupOrNull<AuditLogRecord>(key);
       if (existing == null) {
@@ -1214,6 +1292,33 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
 typedef StreamingIssuesFn = Stream<String> Function();
 typedef StreamingIssuesFnCallback = void Function(StreamingIssuesFn fn);
+
+final class _PackageAttributes {
+  final String name;
+  final int versionCount;
+  final DateTime? lastVersionPublished;
+  final Key? latestVersionKey;
+  final Key? latestPrereleaseVersionKey;
+  final Key? latestPreviewVersionKey;
+  final Set<String>? deletedVersions;
+
+  int totalVersionCount = 0;
+  int versionCountUntilLastPublished = 0;
+  bool hasLatestVersion = false;
+  bool hasLatestPrereleaseVersion = false;
+  bool hasLatestPreviewVersion = false;
+
+  _PackageAttributes.fromPackage(Package p)
+    : name = p.name!,
+      versionCount = p.versionCount,
+      lastVersionPublished = p.lastVersionPublished,
+      latestVersionKey = p.latestVersionKey,
+      latestPrereleaseVersionKey = p.latestPrereleaseVersionKey,
+      latestPreviewVersionKey = p.latestPreviewVersionKey,
+      deletedVersions = p.deletedVersions == null || p.deletedVersions!.isEmpty
+          ? null
+          : p.deletedVersions!.toSet();
+}
 
 class _PublisherAttributes {
   final publisherIds = <String>{};
