@@ -162,7 +162,7 @@ class CachePatterns {
     String version,
   ) => _cache
       .withPrefix('package-version-asset-kinds/')
-      .withTTL(Duration(hours: 12))
+      .withTTL(Duration(minutes: 10))
       .withCodec(utf8)
       .withCodec(json)
       .withCodec(
