@@ -236,7 +236,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     for (final part in DatastoreIntegrityCheckPart.values)
       _weekly(
         name: part.taskName,
-        isRuntimeVersioned: true,
+        isRuntimeVersioned: false,
         task: () async => await IntegrityChecker(
           dbService,
           part: part,
@@ -248,7 +248,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     // Checks the tarball storage integrity of the archive files.
     _weekly(
       name: 'check-tarball-integrity',
-      isRuntimeVersioned: true,
+      isRuntimeVersioned: false,
       task: () async => await TarballIntegrityChecker(
         dbService,
         concurrency: 4,
