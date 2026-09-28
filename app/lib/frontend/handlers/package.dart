@@ -512,7 +512,8 @@ Future<PackagePageData> loadPackagePageData(
   ]);
 
   final selectedVersion = await selectedVersionFuture;
-  if (selectedVersion == null) {
+  final assets = await assetsFuture;
+  if (selectedVersion == null || assets == null) {
     throw NotFoundException.resource(
       'package "$packageName" version "$versionName"',
     );
@@ -522,7 +523,7 @@ Future<PackagePageData> loadPackagePageData(
     package: package,
     latestReleases: await latestReleasesFuture,
     version: selectedVersion,
-    assets: await assetsFuture,
+    assets: assets,
     asset: await assetFuture,
     scoreCard: await scoreCardFuture,
     isAdmin: await isAdminFuture,
