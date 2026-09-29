@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+
+## `20260929t121300-all`
  * Bump runtimeVersion to `2026.09.27`.
  * Note: Stopped mirroring `neat_periodic_task` status entries to Datastore.
 
