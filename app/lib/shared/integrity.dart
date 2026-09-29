@@ -29,6 +29,7 @@ import '../publisher/backend.dart';
 import '../publisher/models.dart';
 import '../service/email/email_templates.dart'
     show isValidEmail, looksLikeEmail;
+import '../service/email/models.dart';
 import '../shared/env_config.dart';
 import '../shared/monitoring.dart';
 import '../shared/versions.dart' as versions show runtimeVersion;
@@ -42,13 +43,20 @@ import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
 
 final _random = math.Random.secure();
 
-/// Grace period before a missing cross-storage mirror (Datastore <-> SQL) of
-/// an [AuditLogRecord] is reported, to avoid false positives while the
-/// record is still being mirrored.
-const _auditLogMirrorGracePeriod = Duration(days: 2);
+/// Grace period before a missing Datastore -> SQL mirror of an entity
+/// ([Consent], [OutgoingEmail], [AuditLogRecord]) is reported, to avoid
+/// false positives while the entity is still being mirrored.
+///
+/// Note: this is only checked in the Datastore -> SQL direction. A SQL row
+/// without a matching Datastore entity is not reported as a problem, as SQL
+/// may be (or become) the primary store ahead of the Datastore entity being
+/// removed.
+const _sqlMirrorGracePeriod = Duration(days: 1);
 
-bool _isOlderThanAuditLogMirrorGracePeriod(DateTime dt) =>
-    dt.isBefore(clock.now().toUtc().subtract(_auditLogMirrorGracePeriod));
+extension _SqlMirrorGracePeriodExt on DateTime {
+  bool get isOlderThanSqlMirrorGracePeriod =>
+      isBefore(clock.now().toUtc().subtract(_sqlMirrorGracePeriod));
+}
 
 /// The unmapped/unused fields that we expect to be present on some entities.
 /// The presence of such fields won't be reported as integrity issue, only
@@ -198,6 +206,8 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     yield* _checkModeratedPackages();
     yield* _checkAuditLogs();
     yield* _checkAuditLogsSql();
+    yield* _checkConsents();
+    yield* _checkOutgoingEmails();
     yield* _checkModerationCases();
     yield* _checkNeatTaskStatuses();
     yield* _reportPubspecVersionIssues();
@@ -841,8 +851,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
     // Only check once the record is old enough that mirroring should have completed,
     // to avoid false positives on freshly written records.
-    if (r.created != null &&
-        _isOlderThanAuditLogMirrorGracePeriod(r.created!)) {
+    if (r.created != null && r.created!.isOlderThanSqlMirrorGracePeriod) {
       final sqlRow = await primaryDatabase.withRetry(
         (db) => db.auditLogRecords.byKey(r.id!).fetch(),
       );
@@ -935,16 +944,42 @@ class IntegrityChecker extends _BaseIntegrityChecker {
         yield '$label has missing package "$p" in package version "$pv".';
       }
     }
+  }
 
-    // Only check once the row is old enough that mirroring should have
-    // completed, to avoid false positives on freshly written records.
-    if (_isOlderThanAuditLogMirrorGracePeriod(row.createdAt)) {
-      final key = _db.emptyKey.append(AuditLogRecord, id: row.id);
-      final existing = await _db.lookupOrNull<AuditLogRecord>(key);
-      if (existing == null) {
-        yield '$label has no corresponding Datastore entity.';
+  /// Checks that [Consent] entities older than [_sqlMirrorGracePeriod] have
+  /// a matching SQL mirror row.
+  Stream<String> _checkConsents() async* {
+    _logger.info('Scanning Consents...');
+    yield* _queryWithPool<Consent>((consent) async* {
+      final created = consent.created;
+      if (created == null || !created.isOlderThanSqlMirrorGracePeriod) {
+        return;
       }
-    }
+      final sqlRow = await primaryDatabase.withRetry(
+        (db) => db.consents.byKey(consent.consentId).fetch(),
+      );
+      if (sqlRow == null) {
+        yield 'Consent "${consent.consentId}" has no corresponding SQL mirror.';
+      }
+    });
+  }
+
+  /// Checks that [OutgoingEmail] entities older than [_sqlMirrorGracePeriod]
+  /// have a matching SQL mirror row.
+  Stream<String> _checkOutgoingEmails() async* {
+    _logger.info('Scanning OutgoingEmails...');
+    yield* _queryWithPool<OutgoingEmail>((email) async* {
+      final created = email.created;
+      if (created == null || !created.isOlderThanSqlMirrorGracePeriod) {
+        return;
+      }
+      final sqlRow = await primaryDatabase.withRetry(
+        (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
+      );
+      if (sqlRow == null) {
+        yield 'OutgoingEmail "${email.uuid}" has no corresponding SQL mirror.';
+      }
+    });
   }
 
   Stream<String> _checkAgentValid(
