@@ -4,7 +4,6 @@
 
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/neat_task/datastore_status_provider.dart';
 import 'package:test/test.dart';
@@ -14,10 +13,6 @@ import '../../shared/test_services.dart';
 
 void main() {
   group('DatastoreStatusProvider', () {
-    Future<List<NeatTaskStatus>> listStatuses() async {
-      return await dbService.query<NeatTaskStatus>().run().toList();
-    }
-
     Future<NeatTaskStatusRow?> lookupSqlRow(
       String name, {
       required bool isRuntimeVersioned,
@@ -31,8 +26,7 @@ void main() {
     testWithProfile(
       'get empty status - global',
       fn: () async {
-        final provider = DatastoreStatusProvider.create(
-          dbService,
+        final provider = NeatPeriodicTaskStatusProvider.create(
           'task-id',
           isRuntimeVersioned: false,
         );
@@ -42,15 +36,14 @@ void main() {
         final row = await lookupSqlRow('task-id', isRuntimeVersioned: false);
         expect(row, isNotNull);
         expect(row!.status, isEmpty);
-        expect(await listStatuses(), isEmpty);
 
-        await deleteOldNeatTaskStatuses(dbService, maxAge: Duration(hours: 1));
+        await deleteOldNeatTaskStatuses(maxAge: Duration(hours: 1));
         expect(
           await lookupSqlRow('task-id', isRuntimeVersioned: false),
           isNotNull,
         );
 
-        await deleteOldNeatTaskStatuses(dbService, maxAge: Duration.zero);
+        await deleteOldNeatTaskStatuses(maxAge: Duration.zero);
         expect(
           await lookupSqlRow('task-id', isRuntimeVersioned: false),
           isNull,
@@ -61,8 +54,7 @@ void main() {
     testWithProfile(
       'get empty status - versioned',
       fn: () async {
-        final provider = DatastoreStatusProvider.create(
-          dbService,
+        final provider = NeatPeriodicTaskStatusProvider.create(
           'task-id',
           isRuntimeVersioned: true,
         );
@@ -71,15 +63,13 @@ void main() {
         final row = await lookupSqlRow('task-id', isRuntimeVersioned: true);
         expect(row, isNotNull);
         expect(row!.status, isEmpty);
-        expect(await listStatuses(), isEmpty);
       },
     );
 
     testWithProfile(
       'set status - global',
       fn: () async {
-        final provider = DatastoreStatusProvider.create(
-          dbService,
+        final provider = NeatPeriodicTaskStatusProvider.create(
           'task-id',
           isRuntimeVersioned: false,
         );
@@ -93,11 +83,7 @@ void main() {
         row = await lookupSqlRow('task-id', isRuntimeVersioned: false);
         expect(row!.status, [3, 4]);
 
-        final list = await listStatuses();
-        expect(row.etag, list.single.etag);
-
-        await deleteOldNeatTaskStatuses(dbService, maxAge: Duration.zero);
-        expect(await listStatuses(), isEmpty);
+        await deleteOldNeatTaskStatuses(maxAge: Duration.zero);
         expect(
           await lookupSqlRow('task-id', isRuntimeVersioned: false),
           isNull,
@@ -108,8 +94,7 @@ void main() {
     testWithProfile(
       'set status - versioned',
       fn: () async {
-        final provider = DatastoreStatusProvider.create(
-          dbService,
+        final provider = NeatPeriodicTaskStatusProvider.create(
           'task-id',
           isRuntimeVersioned: true,
         );
@@ -128,16 +113,14 @@ void main() {
     testWithProfile(
       'set status concurrently - global',
       fn: () async {
-        final p1 = DatastoreStatusProvider.create(
-          dbService,
+        final p1 = NeatPeriodicTaskStatusProvider.create(
           'task-id',
           isRuntimeVersioned: false,
         );
         expect(await p1.set([1, 2]), isTrue);
         expect(await p1.get(), [1, 2]);
 
-        final p2 = DatastoreStatusProvider.create(
-          dbService,
+        final p2 = NeatPeriodicTaskStatusProvider.create(
           'task-id',
           isRuntimeVersioned: false,
         );
@@ -158,16 +141,14 @@ void main() {
     testWithProfile(
       'set status concurrently - versioned',
       fn: () async {
-        final p1 = DatastoreStatusProvider.create(
-          dbService,
+        final p1 = NeatPeriodicTaskStatusProvider.create(
           'task-id',
           isRuntimeVersioned: true,
         );
         expect(await p1.set([1, 2]), isTrue);
         expect(await p1.get(), [1, 2]);
 
-        final p2 = DatastoreStatusProvider.create(
-          dbService,
+        final p2 = NeatPeriodicTaskStatusProvider.create(
           'task-id',
           isRuntimeVersioned: true,
         );
