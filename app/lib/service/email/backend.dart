@@ -21,6 +21,10 @@ import 'models.dart';
 final _logger = Logger('email.backend');
 final _random = Random.secure();
 
+/// The maximum number of pending rows to load in a single batch when
+/// scanning for outgoing emails to send.
+const _maxOutgoingEmailBatchSize = 1000;
+
 /// Sets the email backend service.
 void registerEmailBackend(EmailBackend backend) =>
     ss.register(#_emailBackend, backend);
@@ -46,86 +50,104 @@ class EmailBackend {
     );
   }
 
-  /// Queries all [OutgoingEmail] objects and tries to send out the email,
-  /// deleting the entry after the email was sent successfully. This method
-  /// should be called only from the background task.
+  /// Queries all pending [OutgoingEmail] rows in SQL and tries to send out
+  /// the email, deleting the row after the email was sent successfully. This
+  /// method should be called only from the background task.
   ///
-  /// The processing of the Datastore query will be stopped after [stopAfter]
+  /// The processing of the query results will be stopped after [stopAfter]
   /// duration has elapsed. This allows the periodic task to complete within
   /// the planned time window.
   ///
   /// Returns the number of successfully sent emails.
   Future<int> trySendAllOutgoingEmails({Duration? stopAfter}) async {
     final sw = Stopwatch()..start();
-    final query = _db.query<OutgoingEmail>()..order('-created');
+    final now = clock.now().toUtc();
+    final ids = await primaryDatabase.withRetry(
+      (db) => db.outgoingEmails
+          .where(
+            (e) =>
+                e.attempts.lessThanValue(outgoingEmailMaxAttempts) &
+                e.pendingAt.isBeforeValue(now),
+          )
+          .orderBy((e) => [(e.createdAt, Order.descending)])
+          .select((e) => (e.id,))
+          .limit(_maxOutgoingEmailBatchSize)
+          .fetch(),
+    );
     var successful = 0;
-    await for (final m in query.run()) {
+    for (final id in ids) {
       if (stopAfter != null && sw.elapsed > stopAfter) break;
-      if (m.isNotAlive) continue;
-      if (!m.mayAttemptNow) continue;
       if (emailSender.shouldBackoff) break;
-      final count = await _trySendOutgoingEmail(m.uuid);
-      successful += count;
+      successful += await _trySendOutgoingEmail(id);
     }
     return successful;
   }
 
-  /// Tries to send [email]. The [OutgoingEmail] entry will be deleted after
+  /// Tries to send [email]. The [OutgoingEmail] row will be deleted after
   /// the email was sent successfully.
   ///
-  /// This method should be called right after the entries
-  /// are saved in the Datastore.
+  /// This method should be called right after the SQL row has been created
+  /// (see [migrateToSql]).
   ///
   /// Returns the number of emails that were sent successfully.
   Future<int> trySendOutgoingEmail(OutgoingEmail email) async {
     return await _trySendOutgoingEmail(email.uuid);
   }
 
-  /// Tries to send email with the given [id]. The
-  /// [OutgoingEmail] entry will be deleted after the
-  /// email was sent successfully.
+  /// Tries to send email with the given [id], working only against the SQL
+  /// row (Datastore is no longer consulted at sending time). The row will
+  /// be deleted after the email was sent successfully.
   ///
   /// Returns the number of emails that were sent successfully.
   Future<int> _trySendOutgoingEmail(String id) async {
     if (emailSender.shouldBackoff) {
       return 0;
     }
-    final key = _db.emptyKey.append(OutgoingEmail, id: id);
     final now = clock.now().toUtc();
     final claimId = createUuid();
-    final entry = await withRetryTransaction(_db, (tx) async {
-      final o = await tx.lookupOrNull<OutgoingEmail>(key);
-      if (o == null || o.isNotAlive || o.claimId != null) {
-        return null;
-      }
-      o.attempts++;
-      o.lastAttempted = now;
-      // retry after a random delay in the next 2-6 hours, if and only if,
-      // o.claimId has been cleared. We never retry sending emails if we don't know
-      // if the email was sent or not (because we don't want to send it multiple times)
-      o.pendingAt = now.add(
-        Duration(hours: 2, minutes: _random.nextInt(4 * 60)),
-      );
-      o.claimId = claimId;
-      tx.insert(o);
-      return o;
-    });
-    if (entry == null) {
+    final claimed = await primaryDatabase.withRetry(
+      (db) => db.outgoingEmails
+          .where(
+            (e) =>
+                e.id.equalsValue(id) &
+                e.claimId.isNull() &
+                e.attempts.lessThanValue(outgoingEmailMaxAttempts),
+          )
+          .update(
+            (row, set) => set(
+              attempts: row.attempts + 1.asExpr,
+              lastAttemptedAt: now.asExpr,
+              // retry after a random delay in the next 2-6 hours, if and
+              // only if, claimId has been cleared. We never retry sending
+              // emails if we don't know if the email was sent or not
+              // (because we don't want to send it multiple times).
+              pendingAt: now
+                  .add(Duration(hours: 2, minutes: _random.nextInt(4 * 60)))
+                  .asExpr,
+              claimId: claimId.asExpr,
+            ),
+          )
+          .returnUpdated()
+          .executeAndFetch(),
+    );
+    if (claimed.isEmpty) {
       return 0;
     }
-    await _applySqlMirror(upsert: entry);
+    final entry = claimed.single;
 
-    final recipientEmails = entry.recipientEmails ?? const <String>[];
+    final recipientEmails =
+        ((entry.recipientEmailsJson.value as List?) ?? const <Object?>[])
+            .cast<String>();
     final sent = <String>[];
     for (final recipientEmail in recipientEmails) {
       try {
         await emailSender.sendMessage(
           EmailMessage(
-            localMessageId: entry.uuid,
-            EmailAddress(entry.fromEmail!),
+            localMessageId: entry.id,
+            EmailAddress(entry.fromEmail),
             [EmailAddress(recipientEmail)],
-            entry.subject!,
-            entry.bodyText!,
+            entry.subject,
+            entry.bodyText,
             bodyHtml: entry.bodyHtml,
           ),
         );
@@ -137,84 +159,41 @@ class EmailBackend {
       }
     }
 
-    String? deletedId;
-    final updated = await withRetryTransaction(_db, (tx) async {
-      final o = await tx.lookupOrNull<OutgoingEmail>(key);
-      if (o == null) {
-        _logger.shout(
-          'OutgoingEmail was removed while sending emails (claimId="$claimId").',
-        );
-        return null;
+    final remaining = recipientEmails
+        .where((email) => !sent.contains(email))
+        .toList();
+    final finalized = await primaryDatabase.withRetry((db) {
+      final claimedRow = db.outgoingEmails.where(
+        (e) => e.id.equalsValue(id) & e.claimId.equalsValue(claimId),
+      );
+      if (remaining.isEmpty) {
+        return claimedRow.delete().returnDeleted().executeAndFetch();
       }
-      if (o.claimId != claimId) {
-        _logger.shout(
-          'OutgoingEmail `claimId` changed while sending emails (claimId="$claimId").',
-        );
-        return null;
-      }
-      for (final email in sent) {
-        o.recipientEmails?.remove(email);
-      }
-      if (o.recipientEmails?.isEmpty ?? false) {
-        deletedId = id;
-        tx.delete(key);
-        return null;
-      } else {
-        o.claimId = null;
-        tx.insert(o);
-        return o;
-      }
+      return claimedRow
+          .update(
+            (_, set) => set(
+              claimId: toExpr(null),
+              recipientEmailsJson: JsonValue(remaining).asExpr,
+            ),
+          )
+          .returnUpdated()
+          .executeAndFetch();
     });
-    await _applySqlMirror(upsert: updated, deleteId: deletedId);
+    if (finalized.isEmpty) {
+      _logger.shout(
+        'OutgoingEmail row was removed or its claim changed while sending '
+        'emails (claimId="$claimId").',
+      );
+    }
     return sent.length;
   }
 
-  /// Applies the outcome of a Datastore transaction (either [upsert] or
-  /// [deleteId]) to the SQL mirror (best-effort).
-  ///
-  /// This is called with values returned from a Datastore transaction,
-  /// but runs outside of it, so a failure here can't affect (or abort)
-  /// the Datastore transaction logic that produced those values.
-  Future<void> _applySqlMirror({
-    OutgoingEmail? upsert,
-    String? deleteId,
-  }) async {
-    try {
-      if (deleteId != null) {
-        await primaryDatabase.withRetry(
-          (db) => db.outgoingEmails.byKey(deleteId).delete().execute(),
-        );
-      } else if (upsert != null) {
-        await mirrorToSql(upsert);
-      }
-    } catch (e, st) {
-      _logger.warning(
-        'Failed to update SQL mirror for OutgoingEmail '
-        '"${deleteId ?? upsert?.uuid}".',
-        e,
-        st,
-      );
-    }
-  }
-
-  /// Deletes entries that exceeded the maximum attempt count.
+  /// Deletes entries that exceeded the maximum attempt count or have an
+  /// expired claim.
   ///
   /// Returns the number of deleted entries.
   Future<int> deleteDeadOutgoingEmails() async {
-    final stats = await _db.deleteWithQuery<OutgoingEmail>(
-      _db.query<OutgoingEmail>(),
-      where: (m) => m.isNotAlive || m.hasExpiredClaim,
-      beforeDelete: (list) {
-        for (final m in list) {
-          _logger.warning(
-            'Removing dead outgoing email: ${m.id} to '
-            '${m.recipientEmails?.join(', ')}. (claimId="${m.claimId}")',
-          );
-        }
-      },
-    );
-
-    await primaryDatabase.withRetry(
+    final deleted = await primaryDatabase.withRetry(
       (db) => db.outgoingEmails
           .where(
             (e) =>
@@ -229,14 +208,26 @@ class EmailBackend {
                         )),
           )
           .delete()
-          .execute(),
+          .returnDeleted()
+          .executeAndFetch(),
     );
 
-    return stats.deleted;
+    for (final m in deleted) {
+      _logger.warning(
+        'Removing dead outgoing email: ${m.id} to '
+        '${(m.recipientEmailsJson.value as List?)?.join(', ')}. '
+        '(claimId="${m.claimId}")',
+      );
+    }
+
+    return deleted.length;
   }
 
-  /// Mirrors [email] into SQL (best-effort).
-  Future<void> mirrorToSql(OutgoingEmail email) async {
+  /// Migrates [email] into SQL, and deletes the Datastore entity.
+  ///
+  /// This should be called right after [email] has been (or would have been)
+  /// written to Datastore, so that SQL becomes the sole store for it.
+  Future<void> migrateToSql(OutgoingEmail email) async {
     await primaryDatabase.transactWithRetry(
       (db) => db.outgoingEmails
           .upsertValue(
@@ -254,20 +245,19 @@ class EmailBackend {
           )
           .execute(),
     );
+    await _db.commit(deletes: [email.key]);
   }
 
-  /// Copies [OutgoingEmail] entries from Datastore into SQL, for entries
-  /// that are not yet present in SQL.
-  Future<int> backfillSqlFromDatastore() async {
+  /// Migrates all [OutgoingEmail] entries found in Datastore into SQL,
+  /// deleting each Datastore entity after it has been migrated.
+  ///
+  /// This is a best-effort cleanup of stragglers that were not migrated
+  /// eagerly (e.g. because the process died between the SQL write and the
+  /// Datastore delete), and is expected to be called periodically.
+  Future<int> migrateFromDatastore() async {
     var count = 0;
     await for (final email in _db.query<OutgoingEmail>().run()) {
-      final existing = await primaryDatabase.withRetry(
-        (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
-      );
-      if (existing != null) {
-        continue;
-      }
-      await mirrorToSql(email);
+      await migrateToSql(email);
       count++;
     }
     return count;

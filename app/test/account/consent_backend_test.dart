@@ -611,11 +611,11 @@ void main() {
     );
 
     testWithProfile(
-      'the notification OutgoingEmail is also mirrored to SQL',
+      'the notification OutgoingEmail is migrated to SQL',
       fn: () async {
         // Force the immediate send attempt to fail, so the `OutgoingEmail`
-        // entry survives in Datastore (rather than being deleted right
-        // away), and we can confirm it was also mirrored to SQL.
+        // row survives (rather than being deleted right away), and we can
+        // confirm it was migrated into SQL.
         fakeEmailSender.failNextMessageCount = 1;
         await withFakeAuthRetryPubApiClient(
           email: 'admin@pub.dev',
@@ -628,15 +628,19 @@ void main() {
           },
         );
 
-        final email = await dbService.query<OutgoingEmail>().run().singleWhere(
-          (e) => e.recipientEmails?.contains(userAtPubDevEmail) ?? false,
+        final rows = await primaryDatabase.withRetry(
+          (db) => db.outgoingEmails.fetch(),
         );
+        final row = rows.singleWhere(
+          (r) =>
+              (r.recipientEmailsJson.value as List).contains(userAtPubDevEmail),
+        );
+        expect(row.recipientEmailsJson.value, [userAtPubDevEmail]);
 
-        final row = await primaryDatabase.withRetry(
-          (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
+        final inDatastore = await dbService.lookupOrNull<OutgoingEmail>(
+          dbService.emptyKey.append(OutgoingEmail, id: row.id),
         );
-        expect(row, isNotNull);
-        expect(row!.recipientEmailsJson.value, [userAtPubDevEmail]);
+        expect(inDatastore, isNull);
       },
     );
   });

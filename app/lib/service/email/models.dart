@@ -74,16 +74,4 @@ class OutgoingEmail extends db.Model {
     // adding an extra
     pendingAt = clock.now().toUtc().add(Duration(minutes: 1));
   }
-
-  /// Whether a new attempt can be made to deliver the email.
-  bool get mayAttemptNow => isAlive && clock.now().isAfter(pendingAt!);
-
-  /// Whether we consider the outgoing email alive and try sending.
-  bool get isAlive => attempts < outgoingEmailMaxAttempts;
-  bool get isNotAlive => !isAlive;
-
-  bool get hasExpiredClaim =>
-      claimId != null &&
-      clock.now().difference((lastAttempted ?? created)!) >
-          outgoingEmailClaimExpiration;
 }

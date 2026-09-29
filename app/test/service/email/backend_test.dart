@@ -39,6 +39,7 @@ void main() {
           ),
         );
         await dbService.commit(inserts: [entry]);
+        await emailBackend.migrateToSql(entry);
         await emailBackend.trySendOutgoingEmail(entry);
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;
@@ -77,6 +78,7 @@ void main() {
           ),
         );
         await dbService.commit(inserts: [entry]);
+        await emailBackend.migrateToSql(entry);
 
         for (var i = 0; i < 2; i++) {
           await withClock(
@@ -113,16 +115,19 @@ void main() {
         );
         expect(entry.recipientEmails?.toSet(), {'to1@pub.dev', 'to2@pub.dev'});
         await dbService.commit(inserts: [entry]);
+        await emailBackend.migrateToSql(entry);
 
-        OutgoingEmail? pending;
         fakeEmailSender.failNextMessageCount = 1;
         await withClock(
           Clock.fixed(clock.now().add(Duration(hours: 1))),
           () async {
             expect(await emailBackend.trySendAllOutgoingEmails(), 1);
             expect(await emailBackend.deleteDeadOutgoingEmails(), 0);
-            pending = await dbService.lookupValue<OutgoingEmail>(entry.key);
-            expect(pending!.recipientEmails, hasLength(1));
+            final pending = await primaryDatabase.withRetry(
+              (db) => db.outgoingEmails.byKey(entry.uuid).fetch(),
+            );
+            expect(pending, isNotNull);
+            expect(pending!.recipientEmailsJson.value as List, hasLength(1));
           },
         );
 
@@ -130,8 +135,12 @@ void main() {
         await withClock(
           Clock.fixed(clock.now().add(Duration(hours: 3))),
           () async {
-            pending!.claimId = 'claim-uuid';
-            await dbService.commit(inserts: [pending!]);
+            await primaryDatabase.withRetry(
+              (db) => db.outgoingEmails
+                  .byKey(entry.uuid)
+                  .update((_, set) => set(claimId: 'claim-uuid'.asExpr))
+                  .execute(),
+            );
             expect(await emailBackend.trySendAllOutgoingEmails(), 0);
             expect(await emailBackend.deleteDeadOutgoingEmails(), 0);
           },
@@ -149,12 +158,13 @@ void main() {
     );
   });
 
-  group('SQL mirror', () {
+  group('SQL migration', () {
     testWithProfile(
-      'trySendOutgoingEmail mirrors the claim, then deletes the row on success',
+      'trySendOutgoingEmail deletes the SQL row on success',
       fn: () async {
         final email = _testEmail();
         await dbService.commit(inserts: [email]);
+        await emailBackend.migrateToSql(email);
 
         final sent = await emailBackend.trySendOutgoingEmail(email);
         expect(sent, 1);
@@ -167,11 +177,12 @@ void main() {
     );
 
     testWithProfile(
-      'trySendOutgoingEmail mirrors the updated row after a failed attempt',
+      'trySendOutgoingEmail updates the SQL row after a failed attempt',
       fn: () async {
         fakeEmailSender.failNextMessageCount = 1;
         final email = _testEmail();
         await dbService.commit(inserts: [email]);
+        await emailBackend.migrateToSql(email);
 
         final sent = await emailBackend.trySendOutgoingEmail(email);
         expect(sent, 0);
@@ -191,7 +202,7 @@ void main() {
       fn: () async {
         final email = _testEmail()..attempts = outgoingEmailMaxAttempts;
         await dbService.commit(inserts: [email]);
-        await emailBackend.mirrorToSql(email);
+        await emailBackend.migrateToSql(email);
 
         expect(
           await primaryDatabase.withRetry(
@@ -220,7 +231,7 @@ void main() {
             outgoingEmailClaimExpiration + Duration(minutes: 1),
           );
         await dbService.commit(inserts: [email]);
-        await emailBackend.mirrorToSql(email);
+        await emailBackend.migrateToSql(email);
 
         await emailBackend.deleteDeadOutgoingEmails();
 
@@ -234,7 +245,7 @@ void main() {
     );
 
     testWithProfile(
-      'backfillSqlFromDatastore copies missing rows',
+      'migrateFromDatastore migrates rows and deletes the Datastore entity',
       fn: () async {
         final email = _testEmail();
         await dbService.commit(inserts: [email]);
@@ -246,7 +257,7 @@ void main() {
           isNull,
         );
 
-        final count = await emailBackend.backfillSqlFromDatastore();
+        final count = await emailBackend.migrateFromDatastore();
         expect(count, greaterThanOrEqualTo(1));
 
         expect(
@@ -255,6 +266,7 @@ void main() {
           ),
           isNotNull,
         );
+        expect(await dbService.lookupOrNull<OutgoingEmail>(email.key), isNull);
       },
     );
   });

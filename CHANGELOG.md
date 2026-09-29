@@ -11,6 +11,8 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## `20260929t123100-all`
  * Bump runtimeVersion to `2026.09.27`.
  * Note: Stopped mirroring `neat_periodic_task` status entries to Datastore.
+ * Note: `OutgoingEmail` processing now works only in SQL; entries are deleted
+   from Datastore as soon as they are migrated to SQL.
 
 ## `20260924t135800-all`
  * Bump runtimeVersion to `2026.09.22`.

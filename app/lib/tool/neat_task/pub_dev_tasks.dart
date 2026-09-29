@@ -81,6 +81,13 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
       task: emailBackend.deleteDeadOutgoingEmails,
     ),
 
+    // Migrates any Datastore entities left into SQL (for the select entity types under active migration).
+    _15mins(
+      name: 'migrate-to-sql',
+      isRuntimeVersioned: false,
+      task: () async => await emailBackend.migrateFromDatastore(),
+    ),
+
     // Backfills the fields that are new to the current release.
     _daily(
       name: 'backfill-new-fields',
