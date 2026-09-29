@@ -138,8 +138,7 @@ class NeatPeriodicTaskStatusProvider extends NeatStatusProvider {
 }
 
 /// Deletes old rows that were not updated for more than a month ago.
-Future<void> deleteOldNeatTaskStatuses(
-  db.DatastoreDB dbService, {
+Future<void> deleteOldNeatTaskStatuses({
   Duration maxAge = const Duration(days: 30),
 }) async {
   final now = clock.now().toUtc();

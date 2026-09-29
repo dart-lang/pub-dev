@@ -4,7 +4,6 @@
 
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/tool/neat_task/datastore_status_provider.dart';
 import 'package:test/test.dart';
@@ -14,10 +13,6 @@ import '../../shared/test_services.dart';
 
 void main() {
   group('DatastoreStatusProvider', () {
-    Future<List<NeatTaskStatus>> listStatuses() async {
-      return await dbService.query<NeatTaskStatus>().run().toList();
-    }
-
     Future<NeatTaskStatusRow?> lookupSqlRow(
       String name, {
       required bool isRuntimeVersioned,
@@ -41,15 +36,14 @@ void main() {
         final row = await lookupSqlRow('task-id', isRuntimeVersioned: false);
         expect(row, isNotNull);
         expect(row!.status, isEmpty);
-        expect(await listStatuses(), isEmpty);
 
-        await deleteOldNeatTaskStatuses(dbService, maxAge: Duration(hours: 1));
+        await deleteOldNeatTaskStatuses(maxAge: Duration(hours: 1));
         expect(
           await lookupSqlRow('task-id', isRuntimeVersioned: false),
           isNotNull,
         );
 
-        await deleteOldNeatTaskStatuses(dbService, maxAge: Duration.zero);
+        await deleteOldNeatTaskStatuses(maxAge: Duration.zero);
         expect(
           await lookupSqlRow('task-id', isRuntimeVersioned: false),
           isNull,
@@ -69,7 +63,6 @@ void main() {
         final row = await lookupSqlRow('task-id', isRuntimeVersioned: true);
         expect(row, isNotNull);
         expect(row!.status, isEmpty);
-        expect(await listStatuses(), isEmpty);
       },
     );
 
@@ -90,8 +83,7 @@ void main() {
         row = await lookupSqlRow('task-id', isRuntimeVersioned: false);
         expect(row!.status, [3, 4]);
 
-        await deleteOldNeatTaskStatuses(dbService, maxAge: Duration.zero);
-        expect(await listStatuses(), isEmpty);
+        await deleteOldNeatTaskStatuses(maxAge: Duration.zero);
         expect(
           await lookupSqlRow('task-id', isRuntimeVersioned: false),
           isNull,

@@ -150,7 +150,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     _weekly(
       name: 'delete-old-neat-task-statuses',
       isRuntimeVersioned: false,
-      task: () => deleteOldNeatTaskStatuses(dbService),
+      task: () => deleteOldNeatTaskStatuses(),
     ),
 
     // Deletes orphaned like entities that are missing a reference.
