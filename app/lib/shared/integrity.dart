@@ -862,21 +862,17 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   /// `auditLogAssociation`).
   Stream<String> _checkAuditLogsSql() async* {
     _logger.info('Scanning SQL AuditLogRecords...');
-    for (var lastId = ''; ;) {
-      final rows = await primaryDatabase.withRetry(
-        (db) => db.auditLogRecords
-            .where((r) => r.id.greaterThanValue(lastId))
-            .orderBy((r) => [(r.id, Order.ascending)])
-            .limit(100)
-            .fetch(),
-      );
-      if (rows.isEmpty) {
-        break;
-      }
-      for (final row in rows) {
-        yield* _checkAuditLogSqlRow(row);
-      }
-      lastId = rows.last.id;
+    await for (final row
+        in fetchAllPaginated<AuditLogRecordRow, String>(
+          initialCursor: '',
+          fetchPage: (db, after, batchSize) => db.auditLogRecords
+              .where((r) => r.id.greaterThanValue(after))
+              .orderBy((r) => [(r.id, Order.ascending)])
+              .limit(batchSize)
+              .fetch(),
+          cursorOf: (row) => row.id,
+        )) {
+      yield* _checkAuditLogSqlRow(row);
     }
   }
 
