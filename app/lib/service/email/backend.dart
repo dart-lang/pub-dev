@@ -67,7 +67,8 @@ class EmailBackend {
           .where(
             (e) =>
                 e.attempts.lessThanValue(outgoingEmailMaxAttempts) &
-                e.pendingAt.isBeforeValue(now),
+                e.pendingAt.isBeforeValue(now) &
+                e.claimId.isNull(),
           )
           .orderBy((e) => [(e.createdAt, Order.descending)])
           .select((e) => (e.id,))
