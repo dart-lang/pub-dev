@@ -282,7 +282,7 @@ class UserMerger {
       },
     );
 
-    await withRetryTransaction(_db, (tx) async {
+    final mergedUser = await withRetryTransaction(_db, (tx) async {
       final u = await _db.lookupValue<User>(toUserKey);
       if (toUser.created!.isAfter(fromUser.created!)) {
         u.created = fromUser.created;
@@ -298,7 +298,10 @@ class UserMerger {
       if (fromUserMapping?.userId == fromUserId) {
         tx.delete(fromUserMapping!.key);
       }
+      return u;
     });
+    await accountBackend.mirrorUserToSql(mergedUser);
+    await accountBackend.deleteUserMirrorFromSql(fromUserId);
 
     await purgeAccountCache(userId: fromUserId);
     await purgeAccountCache(userId: toUserId);
