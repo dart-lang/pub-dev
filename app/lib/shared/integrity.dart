@@ -1259,14 +1259,6 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
     PackageVersion pv,
     http.Client httpClient,
   ) async* {
-    final archiveDownloadUri = Uri.parse(
-      urls.pkgArchiveDownloadUrl(
-        pv.package,
-        pv.version!,
-        baseUri: activeConfiguration.primaryApiUri,
-      ),
-    );
-
     final isPackageVisible = await packageBackend.isPackageVisible(pv.package);
     final shouldBeInPublicBucket = isPackageVisible && pv.isVisible;
 
@@ -1305,17 +1297,22 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid sha256.';
     } else if (envConfig.isRunningLocally || _random.nextInt(1000) == 0) {
       // On prod do not check every archive all the time, but select a few of the archives randomly.
-      final bytes = (await httpClient.get(archiveDownloadUri)).bodyBytes;
-      final hash = sha256.convert(bytes).bytes;
-      if (!hash.byteToByteEquals(sha256Hash)) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash mismatch.';
+      final archiveDownloadUri = Uri.parse(
+        urls.pkgArchiveDownloadUrl(
+          pv.package,
+          pv.version!,
+          baseUri: activeConfiguration.primaryApiUri,
+        ),
+      );
+      final rs = await httpClient.get(archiveDownloadUri);
+      if (rs.statusCode != 200) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
+      } else {
+        final hash = sha256.convert(rs.bodyBytes).bytes;
+        if (!hash.byteToByteEquals(sha256Hash)) {
+          yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash mismatch.';
+        }
       }
-    }
-
-    // Also issue a HTTP request.
-    final rs = await httpClient.head(archiveDownloadUri);
-    if (rs.statusCode != 200) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
     }
   }
 
