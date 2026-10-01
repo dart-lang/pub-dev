@@ -9,7 +9,10 @@ import '../../shared/utils.dart';
 
 /// The maximum number of delivery attempts before an [OutgoingEmail] is
 /// considered dead.
-const outgoingEmailMaxAttempts = 2;
+///
+/// Attempts are spaced 2-6 hours apart, so this keeps retrying transient
+/// failures for up to about a day.
+const outgoingEmailMaxAttempts = 4;
 
 /// How long a claim is honored before an [OutgoingEmail] is considered dead,
 /// assuming the worker that claimed it died without clearing [OutgoingEmail.claimId].
