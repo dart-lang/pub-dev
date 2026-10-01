@@ -257,7 +257,10 @@ void main() {
           isNull,
         );
 
-        final count = await emailBackend.migrateFromDatastore();
+        final count = await withClock(
+          Clock.fixed(clock.now().add(Duration(minutes: 5))),
+          () => emailBackend.migrateFromDatastore(),
+        );
         expect(count, greaterThanOrEqualTo(1));
 
         expect(
