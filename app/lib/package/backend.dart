@@ -18,6 +18,8 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/package/api_export/exported_api.dart';
 import 'package:pub_dev/scorecard/backend.dart';
@@ -30,6 +32,7 @@ import 'package:pub_dev/task/backend.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspec_parse;
+import 'package:typed_sql/typed_sql.dart';
 
 import '../account/agent.dart';
 import '../account/backend.dart';
@@ -221,6 +224,37 @@ class PackageBackend {
           return list;
         })
         as List<String>;
+  }
+
+  /// Mirrors reserved package into SQL.
+  Future<void> mirrorReservedPackageToSql(ReservedPackage rp) async {
+    await primaryDatabase.withRetry(
+      (db) => db.reservedPackages
+          .upsertValue(
+            name: rp.name!,
+            createdAt: rp.created,
+            emailsJson: JsonValue(rp.emails),
+          )
+          .execute(),
+    );
+  }
+
+  /// Deletes the reserved package from SQL.
+  Future<void> deleteReservedPackageFromSql(String packageName) async {
+    await primaryDatabase.withRetry(
+      (db) => db.reservedPackages.delete(packageName).execute(),
+    );
+  }
+
+  /// Copies [ReservedPackage] entries from Datastore into SQL, for entries
+  /// that are not yet present in SQL.
+  Future<int> backfillReservedPackagesSqlFromDatastore() async {
+    var count = 0;
+    await for (final rp in db.query<ReservedPackage>().run()) {
+      await mirrorReservedPackageToSql(rp);
+      count++;
+    }
+    return count;
   }
 
   /// Looks up a package by name.
@@ -1415,6 +1449,7 @@ class PackageBackend {
     // inserting metadata to datastore (which happens atomically).
     AuditLogRecord? packageCreatedRecord;
     AuditLogRecord? packagePublishedRecord;
+    String? deletedReservedPackageName;
     final (pv, outgoingEmail) = await withRetryTransaction(db, (tx) async {
       _logger.info('Starting datastore transaction.');
 
@@ -1437,6 +1472,7 @@ class PackageBackend {
         );
         if (reservedPackage != null) {
           tx.delete(reservedPackage.key);
+          deletedReservedPackageName = reservedPackage.name;
         }
       }
 
@@ -1573,6 +1609,9 @@ class PackageBackend {
     }
     if (packagePublishedRecord != null) {
       await auditBackend.mirrorToSql(packagePublishedRecord!);
+    }
+    if (deletedReservedPackageName != null) {
+      await deleteReservedPackageFromSql(deletedReservedPackageName!);
     }
     await emailBackend.mirrorToSql(outgoingEmail);
     _logger.info('Upload successful. [package-uploaded]');

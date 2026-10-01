@@ -38,6 +38,7 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$OutgoingEmailRow._$table,
     _$GlobalLockStateRow._$table,
     _$NeatTaskStatusRow._$table,
+    _$ReservedPackageRow._$table,
     _$Task._$table,
     _$TaskDependency._$table,
     _$TaskVersion._$table,
@@ -67,6 +68,9 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<NeatTaskStatusRow> get neatTaskStatuses =>
       $ForGeneratedCode.declareTable(this, _$NeatTaskStatusRow._$table);
+
+  Table<ReservedPackageRow> get reservedPackages =>
+      $ForGeneratedCode.declareTable(this, _$ReservedPackageRow._$table);
 
   Table<Task> get tasks => $ForGeneratedCode.declareTable(this, _$Task._$table);
 
@@ -6655,6 +6659,566 @@ extension InsertOnConflictSingleNeatTaskStatusRowExt
         status,
         etag,
         updatedAt,
+      ]),
+    ),
+  );
+}
+
+final class _$ReservedPackageRow extends ReservedPackageRow {
+  _$ReservedPackageRow._(this.name, this.createdAt, this.emailsJson);
+
+  @override
+  final String name;
+
+  @override
+  final DateTime createdAt;
+
+  @override
+  final JsonValue emailsJson;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'reserved_packages',
+    columns: <String>['name', 'created_at', 'emails_json'],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['name'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [],
+    readRow: _$ReservedPackageRow._$fromDatabase,
+  );
+
+  static ReservedPackageRow? _$fromDatabase(RowReader row) {
+    final name = row.readString();
+    final createdAt = row.readDateTime();
+    final emailsJson = row.readJsonValue();
+    if (name == null && createdAt == null && emailsJson == null) {
+      return null;
+    }
+    return _$ReservedPackageRow._(name!, createdAt!, emailsJson!);
+  }
+
+  @override
+  String toString() =>
+      'ReservedPackageRow(name: "$name", createdAt: "$createdAt", emailsJson: "$emailsJson")';
+}
+
+/// Extension methods for table defined in [ReservedPackageRow].
+extension TableReservedPackageRowExt on Table<ReservedPackageRow> {
+  /// Insert row into the `reservedPackages` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<ReservedPackageRow> insert({
+    required Expr<String> name,
+    required Expr<DateTime> createdAt,
+    required Expr<JsonValue> emailsJson,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [name, createdAt, emailsJson],
+  );
+
+  /// Insert row into the `reservedPackages` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `emailsJson`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<ReservedPackageRow> upsert({
+    required Expr<String> name,
+    required Expr<DateTime> createdAt,
+    required Expr<JsonValue> emailsJson,
+  }) => insert(name: name, createdAt: createdAt, emailsJson: emailsJson)
+      .onConflict(.primaryKey)
+      .update(
+        (_, excluded, set) =>
+            set(createdAt: excluded.createdAt, emailsJson: excluded.emailsJson),
+      );
+
+  /// Insert row into the `reservedPackages` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<ReservedPackageRow> insertValue({
+    required String name,
+    required DateTime createdAt,
+    required JsonValue emailsJson,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [name.asExpr, createdAt.asExpr, emailsJson.asExpr],
+  );
+
+  /// Insert row into the `reservedPackages` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `emailsJson`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<ReservedPackageRow> upsertValue({
+    required String name,
+    required DateTime createdAt,
+    required JsonValue emailsJson,
+  }) => insertValue(name: name, createdAt: createdAt, emailsJson: emailsJson)
+      .onConflict(.primaryKey)
+      .update(
+        (_, excluded, set) =>
+            set(createdAt: excluded.createdAt, emailsJson: excluded.emailsJson),
+      );
+
+  /// Bulk insert rows into the `reservedPackages` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<ReservedPackageRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) name,
+    required DateTime Function(T row) createdAt,
+    required JsonValue Function(T row) emailsJson,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [name, createdAt, emailsJson],
+  );
+
+  /// Delete a single row from the `reservedPackages` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<ReservedPackageRow> delete(String name) =>
+      $ForGeneratedCode.deleteSingle(byKey(name), _$ReservedPackageRow._$table);
+}
+
+/// Extension methods for building queries against the `reservedPackages` table.
+extension QueryReservedPackageRowExt on Query<(Expr<ReservedPackageRow>,)> {
+  /// Lookup a single row in `reservedPackages` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<ReservedPackageRow>,)> byKey(String name) => where(
+    (reservedPackageRow) => reservedPackageRow.name.equalsValue(name),
+  ).first;
+
+  /// Update all rows in the `reservedPackages` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<ReservedPackageRow> update(
+    UpdateSet<ReservedPackageRow> Function(
+      Expr<ReservedPackageRow> reservedPackageRow,
+      UpdateSet<ReservedPackageRow> Function({
+        Expr<String> name,
+        Expr<DateTime> createdAt,
+        Expr<JsonValue> emailsJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<ReservedPackageRow>(
+    this,
+    _$ReservedPackageRow._$table,
+    (reservedPackageRow) => updateBuilder(
+      reservedPackageRow,
+      ({
+        Expr<String>? name,
+        Expr<DateTime>? createdAt,
+        Expr<JsonValue>? emailsJson,
+      }) => $ForGeneratedCode.buildUpdate<ReservedPackageRow>([
+        name,
+        createdAt,
+        emailsJson,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `reservedPackages` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<ReservedPackageRow> delete() =>
+      $ForGeneratedCode.delete(this, _$ReservedPackageRow._$table);
+}
+
+/// Extension methods for building point queries against the `reservedPackages` table.
+extension QuerySingleReservedPackageRowExt
+    on QuerySingle<(Expr<ReservedPackageRow>,)> {
+  /// Update the row (if any) in the `reservedPackages` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<ReservedPackageRow> update(
+    UpdateSet<ReservedPackageRow> Function(
+      Expr<ReservedPackageRow> reservedPackageRow,
+      UpdateSet<ReservedPackageRow> Function({
+        Expr<String> name,
+        Expr<DateTime> createdAt,
+        Expr<JsonValue> emailsJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<ReservedPackageRow>(
+    this,
+    _$ReservedPackageRow._$table,
+    (reservedPackageRow) => updateBuilder(
+      reservedPackageRow,
+      ({
+        Expr<String>? name,
+        Expr<DateTime>? createdAt,
+        Expr<JsonValue>? emailsJson,
+      }) => $ForGeneratedCode.buildUpdate<ReservedPackageRow>([
+        name,
+        createdAt,
+        emailsJson,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `reservedPackages` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<ReservedPackageRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$ReservedPackageRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `reservedPackages` table.
+extension ExpressionReservedPackageRowExt on Expr<ReservedPackageRow> {
+  Expr<String> get name =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<DateTime> get createdAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  /// List of email addresses that are allowed to claim this package name,
+  /// on top of the `@google.com` addresses.
+  Expr<JsonValue> get emailsJson =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.jsonValue);
+}
+
+extension ExpressionNullableReservedPackageRowExt on Expr<ReservedPackageRow?> {
+  Expr<String?> get name =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get createdAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  /// List of email addresses that are allowed to claim this package name,
+  /// on top of the `@google.com` addresses.
+  Expr<JsonValue?> get emailsJson =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.jsonValue);
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => name.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+/// `Table<ReservedPackageRow>` conflict targets for use with `.onConflict`.
+enum ReservedPackageRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `name`.
+  primaryKey(['name']);
+
+  const ReservedPackageRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertReservedPackageRowExt on Insert<ReservedPackageRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((reservedPackageRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<ReservedPackageRow> onConflict(
+    ReservedPackageRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictReservedPackageRowExt
+    on InsertOnConflict<ReservedPackageRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `reservedPackageRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<ReservedPackageRow> update(
+    UpdateSet<ReservedPackageRow> Function(
+      Expr<ReservedPackageRow> reservedPackageRow,
+      Expr<ReservedPackageRow> excluded,
+      UpdateSet<ReservedPackageRow> Function({
+        Expr<String> name,
+        Expr<DateTime> createdAt,
+        Expr<JsonValue> emailsJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<ReservedPackageRow>(
+    this,
+    (reservedPackageRow, excluded) => updateBuilder(
+      reservedPackageRow,
+      excluded,
+      ({
+        Expr<String>? name,
+        Expr<DateTime>? createdAt,
+        Expr<JsonValue>? emailsJson,
+      }) => $ForGeneratedCode.buildUpdate<ReservedPackageRow>([
+        name,
+        createdAt,
+        emailsJson,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleReservedPackageRowExt
+    on InsertSingle<ReservedPackageRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((reservedPackageRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<ReservedPackageRow> onConflict(
+    ReservedPackageRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleReservedPackageRowExt
+    on InsertOnConflictSingle<ReservedPackageRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `reservedPackageRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<ReservedPackageRow> update(
+    UpdateSet<ReservedPackageRow> Function(
+      Expr<ReservedPackageRow> reservedPackageRow,
+      Expr<ReservedPackageRow> excluded,
+      UpdateSet<ReservedPackageRow> Function({
+        Expr<String> name,
+        Expr<DateTime> createdAt,
+        Expr<JsonValue> emailsJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<ReservedPackageRow>(
+    this,
+    (reservedPackageRow, excluded) => updateBuilder(
+      reservedPackageRow,
+      excluded,
+      ({
+        Expr<String>? name,
+        Expr<DateTime>? createdAt,
+        Expr<JsonValue>? emailsJson,
+      }) => $ForGeneratedCode.buildUpdate<ReservedPackageRow>([
+        name,
+        createdAt,
+        emailsJson,
       ]),
     ),
   );

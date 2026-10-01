@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/email/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/task/global_lock_models.dart';
@@ -36,4 +37,8 @@ Future<void> backfillNewFields() async {
   // NOTE: Keep this around until User is migrated to use SQL.
   _logger.info('Backfilling users...');
   await accountBackend.backfillSqlFromDatastore();
+
+  // NOTE: Keep this around until ReservedPackage is migrated to use SQL.
+  _logger.info('Backfilling reserved packages...');
+  await packageBackend.backfillReservedPackagesSqlFromDatastore();
 }

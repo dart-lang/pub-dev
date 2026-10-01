@@ -17,6 +17,7 @@ part 'schema.consent.dart';
 part 'schema.email.dart';
 part 'schema.global_lock.dart';
 part 'schema.neat_task.dart';
+part 'schema.package.dart';
 part 'schema.task.dart';
 
 @SqlOverride.schema(naming: .snake_case)
@@ -48,6 +49,10 @@ abstract final class PrimarySchema extends Schema {
   // neat periodic task status table
 
   Table<NeatTaskStatusRow> get neatTaskStatuses;
+
+  // package tables
+
+  Table<ReservedPackageRow> get reservedPackages;
 
   // task tables
 

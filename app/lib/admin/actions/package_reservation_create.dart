@@ -53,6 +53,7 @@ able to claim it.
       return entry;
     });
 
+    await packageBackend.mirrorReservedPackageToSql(entry);
     await cache.reservedPackagePrefixes().purge();
 
     return {

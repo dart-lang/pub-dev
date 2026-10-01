@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Dart analysis SDK to `3.13.5`
  * Upgraded stable Flutter analysis SDK to `3.47.5`.
  * Note: started to mirror `User` entities to SQL table.
+ * Note: `ReservedPackage` is now mirrored best-effort into SQL.
 
 ## `20260929t123100-all`
  * Bump runtimeVersion to `2026.09.27`.

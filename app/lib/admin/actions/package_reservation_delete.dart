@@ -28,6 +28,7 @@ Deletes a ReservedPackage entity, allowing the package name use by any user.
     }
 
     await dbService.commit(deletes: [rp.key]);
+    await packageBackend.deleteReservedPackageFromSql(rp.name!);
     await cache.reservedPackagePrefixes().purge();
 
     return {
