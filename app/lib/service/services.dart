@@ -4,14 +4,18 @@
 
 import 'dart:async' show FutureOr, Zone;
 
-import 'package:appengine/appengine.dart';
+// ignore: implementation_imports
+import 'package:appengine/src/grpc_api_impl/datastore_impl.dart'
+    as grpc_datastore_impl;
 import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:fake_gcloud/retry_enforcer_storage.dart';
+import 'package:gcloud/datastore.dart' as datastore;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:grpc/grpc.dart' as grpc;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
@@ -68,72 +72,87 @@ final _pubDevServicesInitializedKey = '_pubDevServicesInitializedKey';
 
 /// Run [fn] with services;
 ///
-///  * AppEngine: storage and datastore,
+///  * Datastore,
 ///  * Redis cache, and,
 ///  * storage wrapped with retry.
 Future<void> withServices(FutureOr<void> Function() fn) async {
   if (Zone.current[_pubDevServicesInitializedKey] == true) {
     throw StateError('Already in withServices scope.');
   }
-  return withAppEngineServices(() async {
+  return await fork(() async {
     if (envConfig.isRunningInCloud) {
       setupAppEngineLogging();
     }
-    return await fork(() async {
-      // auth client for storage service
-      final authClient = await auth.clientViaApplicationDefaultCredentials(
-        scopes: [...Storage.SCOPES],
-      );
-      registerScopeExitCallback(() async => authClient.close());
+    final db = await _obtainDatastoreService(activeConfiguration.projectId);
+    registerDbService(db);
+    datastore.registerDatastoreService(db.datastore);
 
-      // Retrying is done per operation by the helpers in `storage.dart`, and
-      // per chunk of a resumable upload by package:googleapis. A retrying
-      // client here would multiply both.
-      registerStorageService(
-        Storage(authClient, activeConfiguration.projectId),
-      );
+    // auth client for storage service
+    final authClient = await auth.clientViaApplicationDefaultCredentials(
+      scopes: [...Storage.SCOPES],
+    );
+    registerScopeExitCallback(() async => authClient.close());
 
-      // register services with external dependencies
-      registerAuthProvider(DefaultAuthProvider());
-      registerScopeExitCallback(authProvider.close);
-      registerDomainVerifier(DomainVerifier());
-      registerEmailSender(
-        activeConfiguration.gmailRelayServiceAccount != null &&
-                activeConfiguration.isProduction
-            ? createGmailRelaySender(
-                activeConfiguration.gmailRelayServiceAccount!,
-                authClient,
-              )
-            : loggingEmailSender,
-      );
-      registerUploadSigner(await createUploadSigner(authClient));
-      registerSecretBackend(GcpSecretBackend(authClient));
+    // Retrying is done per operation by the helpers in `storage.dart`, and
+    // per chunk of a resumable upload by package:googleapis. A retrying
+    // client here would multiply both.
+    registerStorageService(Storage(authClient, activeConfiguration.projectId));
 
-      // Configure a CloudCompute pool for later use in TaskBackend
-      //
-      // This should not be wrapped with [httpRetryClient] because entire
-      // requests are retried by our GCE logic.
-      final gceClient = await auth.clientViaApplicationDefaultCredentials(
-        scopes: [googleCloudComputeScope],
-      );
-      registerCloudComputeClient(gceClient);
-      registerScopeExitCallback(gceClient.close);
-      registerTaskWorkerCloudCompute(
-        createGoogleCloudCompute(
-          project: activeConfiguration.taskWorkerProject!,
-          network: activeConfiguration.taskWorkerNetwork!,
-          poolLabel:
-              '${activeConfiguration.projectId}_${runtimeVersion.replaceAll('.', '-')}_worker',
-          taskWorkerServiceAccount:
-              activeConfiguration.taskWorkerServiceAccount!,
-          cosImage: activeConfiguration.cosImage!,
-          maxRunDuration: Duration(hours: activeConfiguration.maxTaskRunHours),
-        ),
-      );
+    // register services with external dependencies
+    registerAuthProvider(DefaultAuthProvider());
+    registerScopeExitCallback(authProvider.close);
+    registerDomainVerifier(DomainVerifier());
+    registerEmailSender(
+      activeConfiguration.gmailRelayServiceAccount != null &&
+              activeConfiguration.isProduction
+          ? createGmailRelaySender(
+              activeConfiguration.gmailRelayServiceAccount!,
+              authClient,
+            )
+          : loggingEmailSender,
+    );
+    registerUploadSigner(await createUploadSigner(authClient));
+    registerSecretBackend(GcpSecretBackend(authClient));
 
-      return await _withPubServices(fn);
-    });
+    // Configure a CloudCompute pool for later use in TaskBackend
+    //
+    // This should not be wrapped with [httpRetryClient] because entire
+    // requests are retried by our GCE logic.
+    final gceClient = await auth.clientViaApplicationDefaultCredentials(
+      scopes: [googleCloudComputeScope],
+    );
+    registerCloudComputeClient(gceClient);
+    registerScopeExitCallback(gceClient.close);
+    registerTaskWorkerCloudCompute(
+      createGoogleCloudCompute(
+        project: activeConfiguration.taskWorkerProject!,
+        network: activeConfiguration.taskWorkerNetwork!,
+        poolLabel:
+            '${activeConfiguration.projectId}_${runtimeVersion.replaceAll('.', '-')}_worker',
+        taskWorkerServiceAccount: activeConfiguration.taskWorkerServiceAccount!,
+        cosImage: activeConfiguration.cosImage!,
+        maxRunDuration: Duration(hours: activeConfiguration.maxTaskRunHours),
+      ),
+    );
+
+    return await _withPubServices(fn);
   });
+}
+
+Future<DatastoreDB> _obtainDatastoreService(String projectId) async {
+  final authenticator = await grpc.applicationDefaultCredentialsAuthenticator(
+    grpc_datastore_impl.OAuth2Scopes,
+  );
+  final clientChannel = grpc.ClientChannel('datastore.googleapis.com');
+  registerScopeExitCallback(clientChannel.shutdown);
+  final rawDatastore = datastore.Datastore.withRetry(
+    grpc_datastore_impl.GrpcDatastoreImpl(
+      clientChannel,
+      authenticator,
+      projectId,
+    ),
+  );
+  return DatastoreDB(rawDatastore);
 }
 
 /// Run [fn] with services.
