@@ -251,6 +251,12 @@ class PackageBackend {
   Future<int> backfillReservedPackagesSqlFromDatastore() async {
     var count = 0;
     await for (final rp in db.query<ReservedPackage>().run()) {
+      final existing = await primaryDatabase.withRetry(
+        (db) => db.reservedPackages.byKey(rp.name!).fetch(),
+      );
+      if (existing != null && existing.createdAt.isAtSameMomentAs(rp.created)) {
+        continue;
+      }
       await mirrorReservedPackageToSql(rp);
       count++;
     }
