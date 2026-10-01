@@ -174,6 +174,10 @@ shelf.Handler _cspHeaderWrapper(shelf.Handler handler) {
   };
 }
 
+/// Wraps [handler] to bind the request's Cloud Trace ID via [withTraceId],
+/// log request start and completion (excluding `/liveness_check` and
+/// `/readiness_check`), and render HTML error responses for
+/// [ResponseException]s and uncaught errors.
 shelf.Handler _logRequestWrapper(Logger logger, shelf.Handler handler) {
   return (shelf.Request request) async {
     final traceId = extractCloudTraceId(
