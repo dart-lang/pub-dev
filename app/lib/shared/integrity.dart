@@ -29,10 +29,9 @@ import '../publisher/backend.dart';
 import '../publisher/models.dart';
 import '../service/email/email_templates.dart'
     show isValidEmail, looksLikeEmail;
+import '../service/email/models.dart';
 import '../shared/env_config.dart';
 import '../shared/monitoring.dart';
-import '../shared/versions.dart' as versions show runtimeVersion;
-import '../tool/neat_task/datastore_status_provider.dart';
 import 'configuration.dart';
 import 'datastore.dart';
 import 'parallel_foreach.dart';
@@ -42,13 +41,20 @@ import 'utils.dart' show canonicalizeVersion, ByteArrayEqualsExt;
 
 final _random = math.Random.secure();
 
-/// Grace period before a missing cross-storage mirror (Datastore <-> SQL) of
-/// an [AuditLogRecord] is reported, to avoid false positives while the
-/// record is still being mirrored.
-const _auditLogMirrorGracePeriod = Duration(days: 2);
+/// Grace period before a missing Datastore -> SQL mirror of an entity
+/// ([Consent], [OutgoingEmail], [AuditLogRecord]) is reported, to avoid
+/// false positives while the entity is still being mirrored.
+///
+/// Note: this is only checked in the Datastore -> SQL direction. A SQL row
+/// without a matching Datastore entity is not reported as a problem, as SQL
+/// may be (or become) the primary store ahead of the Datastore entity being
+/// removed.
+const _sqlMirrorGracePeriod = Duration(days: 1);
 
-bool _isOlderThanAuditLogMirrorGracePeriod(DateTime dt) =>
-    dt.isBefore(clock.now().toUtc().subtract(_auditLogMirrorGracePeriod));
+extension _SqlMirrorGracePeriodExt on DateTime {
+  bool get isOlderThanSqlMirrorGracePeriod =>
+      isBefore(clock.now().toUtc().subtract(_sqlMirrorGracePeriod));
+}
 
 /// The unmapped/unused fields that we expect to be present on some entities.
 /// The presence of such fields won't be reported as integrity issue, only
@@ -198,8 +204,9 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     yield* _checkModeratedPackages();
     yield* _checkAuditLogs();
     yield* _checkAuditLogsSql();
+    yield* _checkConsents();
+    yield* _checkOutgoingEmails();
     yield* _checkModerationCases();
-    yield* _checkNeatTaskStatuses();
     yield* _reportPubspecVersionIssues();
 
     if (_unmappedFieldsToObject.isNotEmpty) {
@@ -841,8 +848,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
     // Only check once the record is old enough that mirroring should have completed,
     // to avoid false positives on freshly written records.
-    if (r.created != null &&
-        _isOlderThanAuditLogMirrorGracePeriod(r.created!)) {
+    if (r.created != null && r.created!.isOlderThanSqlMirrorGracePeriod) {
       final sqlRow = await primaryDatabase.withRetry(
         (db) => db.auditLogRecords.byKey(r.id!).fetch(),
       );
@@ -856,25 +862,53 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   /// `auditLogAssociation`).
   Stream<String> _checkAuditLogsSql() async* {
     _logger.info('Scanning SQL AuditLogRecords...');
-    for (var lastId = ''; ;) {
-      final rows = await primaryDatabase.withRetry(
-        (db) => db.auditLogRecords
-            .where((r) => r.id.greaterThanValue(lastId))
-            .orderBy((r) => [(r.id, Order.ascending)])
-            .limit(100)
-            .fetch(),
-      );
-      if (rows.isEmpty) {
-        break;
-      }
-      for (final row in rows) {
-        yield* _checkAuditLogSqlRow(row);
-      }
-      lastId = rows.last.id;
+    await for (final (row, associations)
+        in fetchAllPaginated<
+          (AuditLogRecordRow, List<AuditLogAssociation>),
+          String
+        >(
+          initialCursor: '',
+          batchSize: 1000,
+          fetchPage: (db, after, batchSize) async {
+            final rows = await db.auditLogRecords
+                .where((r) => r.id.greaterThanValue(after))
+                .orderBy((r) => [(r.id, Order.ascending)])
+                .limit(batchSize)
+                .fetch();
+            if (rows.isEmpty) {
+              return const [];
+            }
+            final firstId = rows.first.id;
+            final lastRowId = rows.last.id;
+            final allAssociations = await db.auditLogAssociations
+                .where(
+                  (a) =>
+                      a.recordId.greaterThanOrEqualValue(firstId) &
+                      a.recordId.lessThanOrEqualValue(lastRowId),
+                )
+                .fetch();
+            final associationsByRecordId = allAssociations.groupListsBy(
+              (a) => a.recordId,
+            );
+            return [
+              for (final row in rows)
+                (
+                  row,
+                  associationsByRecordId[row.id] ??
+                      const <AuditLogAssociation>[],
+                ),
+            ];
+          },
+          cursorOf: (entry) => entry.$1.id,
+        )) {
+      yield* _checkAuditLogSqlRow(row, associations: associations);
     }
   }
 
-  Stream<String> _checkAuditLogSqlRow(AuditLogRecordRow row) async* {
+  Stream<String> _checkAuditLogSqlRow(
+    AuditLogRecordRow row, {
+    required List<AuditLogAssociation> associations,
+  }) async* {
     final label = 'SQL AuditLogRecord "${row.id}"';
     final isRetainedRecord = !row.expiresAt.isBefore(clock.now().toUtc());
 
@@ -885,11 +919,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       isRetainedRecord: isRetainedRecord,
     );
 
-    final associations = await primaryDatabase.withRetry(
-      (db) => db.auditLogAssociations
-          .where((a) => a.recordId.equalsValue(row.id))
-          .fetch(),
-    );
     final users = associations
         .whereKind(AuditLogAssociationKind.user)
         .map((a) => a.value)
@@ -935,16 +964,42 @@ class IntegrityChecker extends _BaseIntegrityChecker {
         yield '$label has missing package "$p" in package version "$pv".';
       }
     }
+  }
 
-    // Only check once the row is old enough that mirroring should have
-    // completed, to avoid false positives on freshly written records.
-    if (_isOlderThanAuditLogMirrorGracePeriod(row.createdAt)) {
-      final key = _db.emptyKey.append(AuditLogRecord, id: row.id);
-      final existing = await _db.lookupOrNull<AuditLogRecord>(key);
-      if (existing == null) {
-        yield '$label has no corresponding Datastore entity.';
+  /// Checks that [Consent] entities older than [_sqlMirrorGracePeriod] have
+  /// a matching SQL mirror row.
+  Stream<String> _checkConsents() async* {
+    _logger.info('Scanning Consents...');
+    yield* _queryWithPool<Consent>((consent) async* {
+      final created = consent.created;
+      if (created == null || !created.isOlderThanSqlMirrorGracePeriod) {
+        return;
       }
-    }
+      final sqlRow = await primaryDatabase.withRetry(
+        (db) => db.consents.byKey(consent.consentId).fetch(),
+      );
+      if (sqlRow == null) {
+        yield 'Consent "${consent.consentId}" has no corresponding SQL mirror.';
+      }
+    });
+  }
+
+  /// Checks that [OutgoingEmail] entities older than [_sqlMirrorGracePeriod]
+  /// have a matching SQL mirror row.
+  Stream<String> _checkOutgoingEmails() async* {
+    _logger.info('Scanning OutgoingEmails...');
+    yield* _queryWithPool<OutgoingEmail>((email) async* {
+      final created = email.created;
+      if (created == null || !created.isOlderThanSqlMirrorGracePeriod) {
+        return;
+      }
+      final sqlRow = await primaryDatabase.withRetry(
+        (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
+      );
+      if (sqlRow == null) {
+        yield 'OutgoingEmail "${email.uuid}" has no corresponding SQL mirror.';
+      }
+    });
   }
 
   Stream<String> _checkAgentValid(
@@ -1071,31 +1126,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
         yield 'ModerationCase "${mc.caseId}" references an appealed case that does not exists.';
       }
     }
-  }
-
-  Stream<String> _checkNeatTaskStatuses() async* {
-    _logger.info('Scanning NeatTaskStatuses...');
-
-    final rows = await primaryDatabase.withRetry(
-      (db) => db.neatTaskStatuses.fetch(),
-    );
-    final keysInSql = rows
-        .map((row) => (row.taskName, row.runtimeVersion))
-        .toSet();
-
-    yield* _queryWithPool<NeatTaskStatus>((status) async* {
-      final name = status.name;
-      final runtimeVersion = status.runtimeVersion;
-      if (name == null || runtimeVersion == null) {
-        return;
-      }
-      if (runtimeVersion != '-' && runtimeVersion != versions.runtimeVersion) {
-        return;
-      }
-      if (!keysInSql.contains((name, runtimeVersion))) {
-        yield 'Datastore NeatTaskStatus "$runtimeVersion/$name" does not have a matching SQL row.';
-      }
-    });
   }
 
   Stream<String> _reportPubspecVersionIssues() async* {
@@ -1229,14 +1259,6 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
     PackageVersion pv,
     http.Client httpClient,
   ) async* {
-    final archiveDownloadUri = Uri.parse(
-      urls.pkgArchiveDownloadUrl(
-        pv.package,
-        pv.version!,
-        baseUri: activeConfiguration.primaryApiUri,
-      ),
-    );
-
     final isPackageVisible = await packageBackend.isPackageVisible(pv.package);
     final shouldBeInPublicBucket = isPackageVisible && pv.isVisible;
 
@@ -1275,17 +1297,22 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
       yield 'PackageVersion "${pv.qualifiedVersionKey}" has invalid sha256.';
     } else if (envConfig.isRunningLocally || _random.nextInt(1000) == 0) {
       // On prod do not check every archive all the time, but select a few of the archives randomly.
-      final bytes = (await httpClient.get(archiveDownloadUri)).bodyBytes;
-      final hash = sha256.convert(bytes).bytes;
-      if (!hash.byteToByteEquals(sha256Hash)) {
-        yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash mismatch.';
+      final archiveDownloadUri = Uri.parse(
+        urls.pkgArchiveDownloadUrl(
+          pv.package,
+          pv.version!,
+          baseUri: activeConfiguration.primaryApiUri,
+        ),
+      );
+      final rs = await httpClient.get(archiveDownloadUri);
+      if (rs.statusCode != 200) {
+        yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
+      } else {
+        final hash = sha256.convert(rs.bodyBytes).bytes;
+        if (!hash.byteToByteEquals(sha256Hash)) {
+          yield 'PackageVersion "${pv.qualifiedVersionKey}" has sha256 hash mismatch.';
+        }
       }
-    }
-
-    // Also issue a HTTP request.
-    final rs = await httpClient.head(archiveDownloadUri);
-    if (rs.statusCode != 200) {
-      yield 'PackageVersion "${pv.qualifiedVersionKey}" has no matching archive file (HTTP status ${rs.statusCode}).';
     }
   }
 

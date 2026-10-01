@@ -2,6 +2,14 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2026.09.29`.
+ * Upgraded stable Dart analysis SDK to `3.13.5`
+ * Upgraded stable Flutter analysis SDK to `3.47.5`.
+ * Note: started to mirror `User` entities to SQL table.
+
+## `20260929t123100-all`
+ * Bump runtimeVersion to `2026.09.27`.
+ * Note: Stopped mirroring `neat_periodic_task` status entries to Datastore.
 
 ## `20260924t135800-all`
  * Bump runtimeVersion to `2026.09.22`.

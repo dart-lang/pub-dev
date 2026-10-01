@@ -251,29 +251,6 @@ void main() {
     );
 
     testWithProfile(
-      'backfillDatastoreFromSql copies missing rows',
-      fn: () async {
-        final user = await accountBackend.lookupUserByEmail(adminAtPubDevEmail);
-        final record = _testRecord(userId: user.userId, packages: ['oxygen']);
-        // SQL-only write, Datastore entity is intentionally never committed.
-        await auditBackend.mirrorToSql(record);
-
-        final key = dbService.emptyKey.append(AuditLogRecord, id: record.id);
-        expect(await dbService.lookupOrNull<AuditLogRecord>(key), isNull);
-
-        final count = await auditBackend.backfillDatastoreFromSql();
-        expect(count, greaterThanOrEqualTo(1));
-
-        final restored = await dbService.lookupOrNull<AuditLogRecord>(key);
-        expect(restored, isNotNull);
-        expect(restored!.kind, record.kind);
-        expect(restored.agent, record.agent);
-        expect(restored.packages, record.packages);
-        expect(restored.users, record.users);
-      },
-    );
-
-    testWithProfile(
       'deleteExpiredSqlRecords removes only expired rows',
       fn: () async {
         final user = await accountBackend.lookupUserByEmail(adminAtPubDevEmail);

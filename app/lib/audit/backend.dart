@@ -199,69 +199,6 @@ class AuditBackend {
     return count;
   }
 
-  /// Copies audit log records from SQL into Datastore, for records that are
-  /// not yet present in Datastore.
-  Future<int> backfillDatastoreFromSql() async {
-    var count = 0;
-    Future<void> backfillRow(AuditLogRecordRow row) async {
-      final key = _db.emptyKey.append(AuditLogRecord, id: row.id);
-      final existing = await _db.lookupOrNull<AuditLogRecord>(key);
-      if (existing != null) {
-        return;
-      }
-      final associations = await primaryDatabase.withRetry(
-        (db) => db.auditLogAssociations
-            .where((a) => a.recordId.equalsValue(row.id))
-            .fetch(),
-      );
-      final record = AuditLogRecord()
-        ..id = row.id
-        ..created = row.createdAt
-        ..expires = row.expiresAt
-        ..kind = row.kind
-        ..agent = row.agent
-        ..summary = row.summary
-        ..data = row.dataJson?.value as Map<String, dynamic>?
-        ..users = associations
-            .whereKind(AuditLogAssociationKind.user)
-            .map((a) => a.value)
-            .toList()
-        ..packages = associations
-            .whereKind(AuditLogAssociationKind.package)
-            .map((a) => a.value)
-            .toList()
-        ..packageVersions = associations
-            .whereKind(AuditLogAssociationKind.packageVersion)
-            .map((a) => a.value)
-            .toList()
-        ..publishers = associations
-            .whereKind(AuditLogAssociationKind.publisher)
-            .map((a) => a.value)
-            .toList();
-      await _db.commit(inserts: [record]);
-      count++;
-    }
-
-    for (var lastId = ''; ;) {
-      final rows = await primaryDatabase.withRetry(
-        (db) => db.auditLogRecords
-            .where((r) => r.id.greaterThanValue(lastId))
-            .orderBy((r) => [(r.id, Order.ascending)])
-            .limit(100)
-            .fetch(),
-      );
-      if (rows.isEmpty) {
-        break;
-      }
-      for (final row in rows) {
-        await backfillRow(row);
-      }
-      lastId = rows.last.id;
-    }
-
-    return count;
-  }
-
   /// Deletes expired log records from SQL.
   ///
   /// Associated rows in `auditLogAssociation` are removed via

@@ -203,14 +203,19 @@ extension BucketExt on Bucket {
     FutureOr<void> Function(BucketEntry input) fn, {
     String? prefix,
     String? delimiter,
+    int pageSize = 1000,
   }) async {
-    var p = await pageWithRetry(prefix: prefix, delimiter: delimiter);
+    var p = await pageWithRetry(
+      prefix: prefix,
+      delimiter: delimiter,
+      pageSize: pageSize,
+    );
     for (;;) {
       for (final item in p.items) {
         await fn(item);
       }
       if (p.isLast) break;
-      p = await p.nextWithRetry();
+      p = await p.nextWithRetry(pageSize: pageSize);
     }
   }
 
@@ -218,9 +223,15 @@ extension BucketExt on Bucket {
   Future<List<BucketEntry>> listAllItemsWithRetry({
     String? prefix,
     String? delimiter,
+    int pageSize = 1000,
   }) async {
     final entries = <BucketEntry>[];
-    await listWithRetry(prefix: prefix, delimiter: delimiter, entries.add);
+    await listWithRetry(
+      prefix: prefix,
+      delimiter: delimiter,
+      pageSize: pageSize,
+      entries.add,
+    );
     return entries;
   }
 

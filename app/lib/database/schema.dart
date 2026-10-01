@@ -23,6 +23,8 @@ part 'schema.task.dart';
 abstract final class PrimarySchema extends Schema {
   // account tables
 
+  Table<UserRow> get users;
+
   Table<UserSession> get userSessions;
 
   // audit tables

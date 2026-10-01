@@ -150,7 +150,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     _weekly(
       name: 'delete-old-neat-task-statuses',
       isRuntimeVersioned: false,
-      task: () => deleteOldNeatTaskStatuses(dbService),
+      task: () => deleteOldNeatTaskStatuses(),
     ),
 
     // Deletes orphaned like entities that are missing a reference.
@@ -237,7 +237,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
       isRuntimeVersioned: true,
       task: () async => await IntegrityChecker(
         dbService,
-        concurrency: 4,
+        concurrency: 16,
       ).verifyAndLogIssues(),
       timeout: Duration(days: 1),
     ),
@@ -248,7 +248,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
       isRuntimeVersioned: true,
       task: () async => await TarballIntegrityChecker(
         dbService,
-        concurrency: 4,
+        concurrency: 16,
       ).verifyAndLogIssues(),
       timeout: Duration(days: 1),
     ),
@@ -274,8 +274,7 @@ NeatPeriodicTaskScheduler _15mins({
     name: name,
     interval: Duration(minutes: 15),
     timeout: Duration(minutes: 10),
-    status: DatastoreStatusProvider.create(
-      dbService,
+    status: NeatPeriodicTaskStatusProvider.create(
       name,
       isRuntimeVersioned: isRuntimeVersioned,
     ),
@@ -292,8 +291,7 @@ NeatPeriodicTaskScheduler _daily({
     name: name,
     interval: Duration(hours: 24),
     timeout: Duration(hours: 12),
-    status: DatastoreStatusProvider.create(
-      dbService,
+    status: NeatPeriodicTaskStatusProvider.create(
       name,
       isRuntimeVersioned: isRuntimeVersioned,
     ),
@@ -311,8 +309,7 @@ NeatPeriodicTaskScheduler _weekly({
     name: name,
     interval: Duration(days: 6), // shifts the day when the task is triggered
     timeout: timeout,
-    status: DatastoreStatusProvider.create(
-      dbService,
+    status: NeatPeriodicTaskStatusProvider.create(
       name,
       isRuntimeVersioned: isRuntimeVersioned,
     ),

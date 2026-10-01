@@ -270,7 +270,7 @@ class AdminBackend {
   }
 
   Future<void> _markUserDeleted(User user) async {
-    await withRetryTransaction(_db, (tx) async {
+    final u = await withRetryTransaction(_db, (tx) async {
       final u = await tx.lookupValue<User>(user.key);
       final deleteKeys = <Key>[];
       if (user.oauthUserId != null) {
@@ -289,7 +289,9 @@ class AdminBackend {
         ..created = null
         ..isDeleted = true;
       tx.queueMutations(inserts: [u], deletes: deleteKeys);
+      return u;
     });
+    await accountBackend.mirrorUserToSql(u);
   }
 
   /// Removes the package from the Datastore and updates other related
