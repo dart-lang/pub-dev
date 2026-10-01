@@ -862,20 +862,53 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   /// `auditLogAssociation`).
   Stream<String> _checkAuditLogsSql() async* {
     _logger.info('Scanning SQL AuditLogRecords...');
-    await for (final row in fetchAllPaginated<AuditLogRecordRow, String>(
-      initialCursor: '',
-      fetchPage: (db, after, batchSize) => db.auditLogRecords
-          .where((r) => r.id.greaterThanValue(after))
-          .orderBy((r) => [(r.id, Order.ascending)])
-          .limit(batchSize)
-          .fetch(),
-      cursorOf: (row) => row.id,
-    )) {
-      yield* _checkAuditLogSqlRow(row);
+    await for (final (row, associations)
+        in fetchAllPaginated<
+          (AuditLogRecordRow, List<AuditLogAssociation>),
+          String
+        >(
+          initialCursor: '',
+          batchSize: 1000,
+          fetchPage: (db, after, batchSize) async {
+            final rows = await db.auditLogRecords
+                .where((r) => r.id.greaterThanValue(after))
+                .orderBy((r) => [(r.id, Order.ascending)])
+                .limit(batchSize)
+                .fetch();
+            if (rows.isEmpty) {
+              return const [];
+            }
+            final firstId = rows.first.id;
+            final lastRowId = rows.last.id;
+            final allAssociations = await db.auditLogAssociations
+                .where(
+                  (a) =>
+                      a.recordId.greaterThanOrEqualValue(firstId) &
+                      a.recordId.lessThanOrEqualValue(lastRowId),
+                )
+                .fetch();
+            final associationsByRecordId = allAssociations.groupListsBy(
+              (a) => a.recordId,
+            );
+            return [
+              for (final row in rows)
+                (
+                  row,
+                  associationsByRecordId[row.id] ??
+                      const <AuditLogAssociation>[],
+                ),
+            ];
+          },
+          cursorOf: (entry) => entry.$1.id,
+        )) {
+      yield* _checkAuditLogSqlRow(row, associations: associations);
     }
   }
 
-  Stream<String> _checkAuditLogSqlRow(AuditLogRecordRow row) async* {
+  Stream<String> _checkAuditLogSqlRow(
+    AuditLogRecordRow row, {
+    required List<AuditLogAssociation> associations,
+  }) async* {
     final label = 'SQL AuditLogRecord "${row.id}"';
     final isRetainedRecord = !row.expiresAt.isBefore(clock.now().toUtc());
 
@@ -886,11 +919,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       isRetainedRecord: isRetainedRecord,
     );
 
-    final associations = await primaryDatabase.withRetry(
-      (db) => db.auditLogAssociations
-          .where((a) => a.recordId.equalsValue(row.id))
-          .fetch(),
-    );
     final users = associations
         .whereKind(AuditLogAssociationKind.user)
         .map((a) => a.value)
