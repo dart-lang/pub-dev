@@ -45,7 +45,12 @@ void main() {
     testWithProfile(
       'link to search page',
       fn: () async {
-        final rs = await issueGet('/not-oxygen');
+        final rs = await issueGet(
+          '/not-oxygen',
+          headers: {
+            'X-Cloud-Trace-Context': '0123456789abcdef0123456789abcdef/123;o=1',
+          },
+        );
         await expectHtmlResponse(
           rs,
           status: 404,

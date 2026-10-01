@@ -9,7 +9,6 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
 import 'package:intl/intl.dart';
 // ignore: implementation_imports
@@ -21,12 +20,13 @@ export 'package:pana/pana.dart' show exampleFileCandidates;
 
 final Duration twoYears = const Duration(days: 2 * 365);
 
-/// The value `X-Cloud-Trace-Context`.
-///
-/// Standard trace header used by
-/// [StackDriver](https://cloud.google.com/trace/docs/support) and supported by
-/// Appengine.
-const _cloudTraceContextHeader = 'X-Cloud-Trace-Context';
+/// Standard trace header used by Cloud Trace (`X-Cloud-Trace-Context`).
+const cloudTraceContextHeader = 'X-Cloud-Trace-Context';
+
+const _traceIdZoneKey = #_trace_id;
+
+/// Sanity check for traceId (must be 32-char hex).
+final _traceIdFormat = RegExp(r'^[0-9a-f]{32}$');
 
 final _random = Random.secure();
 
@@ -191,20 +191,30 @@ String createUuid([List<int>? bytes]) {
   ].join('-');
 }
 
-/// Returns a header map when appengine context's is active and `traceId` is set.
+/// Extracts the 32-character hex trace ID from an `X-Cloud-Trace-Context`
+/// header value, or returns `null` if absent or malformed.
+String? extractCloudTraceId(String? header) {
+  if (header == null || header.isEmpty) return null;
+  final traceId = header.split('/').first;
+  return _traceIdFormat.hasMatch(traceId) ? traceId : null;
+}
+
+/// The active Cloud Trace ID in the current zone, if any.
+String? get currentTraceId => Zone.current[_traceIdZoneKey] as String?;
+
+/// Runs [fn] inside a zone with [traceId] attached if non-null.
+Future<T> withTraceId<T>(String? traceId, Future<T> Function() fn) {
+  if (traceId == null) return fn();
+  return runZoned(fn, zoneValues: {_traceIdZoneKey: traceId});
+}
+
+/// Returns a header map when [currentTraceId] is set.
 ///
 /// Returns `null` otherwise.
 Map<String, String>? cloudTraceHeaders() {
-  // [context] is defined as non-nullable in package:appengine, but in practice
-  // it may be missing if the current processing is outside of a regular request
-  // (e.g. triggered by a Timer).
-  // TODO: remove try-catch after [context] gets fixed in package:appengine.
-  try {
-    if (context.traceId == null) return null;
-    return {_cloudTraceContextHeader: context.traceId!};
-  } catch (_) {
-    return null;
-  }
+  final traceId = currentTraceId;
+  if (traceId == null) return null;
+  return {cloudTraceContextHeader: traceId};
 }
 
 /// Statistics for delete + filter operations.
