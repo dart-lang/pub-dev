@@ -255,7 +255,7 @@ class ConsentBackend {
       );
     });
     await mirrorToSql(updated!);
-    await emailBackend.mirrorToSql(email);
+    await emailBackend.migrateToSql(email);
     await emailBackend.trySendOutgoingEmail(email);
     return status;
   }
