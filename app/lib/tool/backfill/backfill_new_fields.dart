@@ -23,7 +23,6 @@ Future<void> backfillNewFields() async {
   // NOTE: Keep these around until all of the audit log record is migrated to use SQL.
   _logger.info('Backfilling audit log records...');
   await auditBackend.backfillSqlFromDatastore();
-  await auditBackend.backfillDatastoreFromSql();
 
   // NOTE: Keep this around until Consent is migrated to use SQL.
   _logger.info('Backfilling consents...');
