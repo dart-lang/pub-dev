@@ -14,6 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
+import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
@@ -61,6 +62,10 @@ void main() {
       );
       await _deleteAll(bucket);
 
+      await downloadCountsBackend.updateDownloadCounts('foo', {
+        '1.0.0': 10,
+      }, DateTime.utc(2026, 8, 10));
+
       await _testExportedApiSynchronization(
         bucket,
         apiExporter.synchronizeExportedApi,
@@ -89,6 +94,10 @@ void main() {
         activeConfiguration.exportedApiBucketName!,
       );
       await _deleteAll(bucket);
+
+      await downloadCountsBackend.updateDownloadCounts('foo', {
+        '1.0.0': 10,
+      }, DateTime.utc(2026, 8, 10));
 
       await apiExporter.synchronizeExportedApi();
 
@@ -127,6 +136,16 @@ Future<void> _testExportedApiSynchronization(
       'versions': hasLength(1),
     });
     expect(
+      await bucket.readGzippedJson('latest/api/packages/foo/daily-downloads'),
+      {
+        'newestDate': '2026-08-10T00:00:00.000Z',
+        'totalDailyDownloads': hasLength(731),
+        'majorRangeDailyDownloads': isNotEmpty,
+        'minorRangeDailyDownloads': isNotEmpty,
+        'patchRangeDailyDownloads': isNotEmpty,
+      },
+    );
+    expect(
       await bucket.readGzippedJson('latest/api/package-name-completion-data'),
       {'packages': hasLength(1)},
     );
@@ -156,6 +175,18 @@ Future<void> _testExportedApiSynchronization(
         'likeCount': isNotNull,
         'downloadCount30Days': null,
         'tags': isNotEmpty,
+      },
+    );
+    expect(
+      await bucket.readGzippedJson(
+        '$runtimeVersion/api/packages/foo/daily-downloads',
+      ),
+      {
+        'newestDate': '2026-08-10T00:00:00.000Z',
+        'totalDailyDownloads': hasLength(731),
+        'majorRangeDailyDownloads': isNotEmpty,
+        'minorRangeDailyDownloads': isNotEmpty,
+        'patchRangeDailyDownloads': isNotEmpty,
       },
     );
     expect(await bucket.readGzippedJson('$runtimeVersion/api/packages/foo'), {
@@ -452,6 +483,10 @@ Future<void> _testExportedApiSynchronization(
     await synchronize();
 
     expect(await bucket.readGzippedJson('latest/api/packages/bar'), isNull);
+    expect(
+      await bucket.readGzippedJson('latest/api/packages/bar/daily-downloads'),
+      isNull,
+    );
     expect(
       await bucket.readGzippedJson('latest/api/packages/bar/options'),
       isNull,

@@ -11,6 +11,7 @@ import 'package:gcloud/storage.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/frontend/handlers/atom_feed.dart';
 import 'package:pub_dev/scorecard/backend.dart';
+import 'package:pub_dev/service/download_counts/computations.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/parallel_foreach.dart';
@@ -293,6 +294,15 @@ final class ApiExporter {
           await scoreCardBackend.getVersionScore(package),
           forceWrite: forceWrite,
         );
+    final dailyDownloads = await getDailyDownloadCounts(package);
+    if (dailyDownloads != null) {
+      await _api
+          .package(package)
+          .dailyDownloads
+          .write(dailyDownloads, forceWrite: forceWrite);
+    } else {
+      await _api.package(package).dailyDownloads.delete();
+    }
     await _api
         .package(package)
         .feedAtomFile

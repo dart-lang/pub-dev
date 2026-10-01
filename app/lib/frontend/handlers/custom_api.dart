@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:gcloud/storage.dart';
@@ -21,6 +22,7 @@ import '../../scorecard/backend.dart';
 import '../../search/backend.dart';
 import '../../search/search_client.dart';
 import '../../search/search_service.dart';
+import '../../service/download_counts/computations.dart';
 import '../../service/topics/count_topics.dart';
 import '../../shared/configuration.dart';
 import '../../shared/exceptions.dart';
@@ -240,6 +242,24 @@ Future<VersionScore> packageVersionScoreHandler(
   return (await cache.versionScore(package, version).get(() async {
     return await scoreCardBackend.getVersionScore(package, version: version);
   }))!;
+}
+
+/// Handles requests for:
+///
+/// - `/api/packages/<package>/daily-downloads`
+Future<DailyDownloadCounts> packageDailyDownloadsHandler(
+  shelf.Request request,
+  String package,
+) async {
+  checkPackageVersionParams(package);
+  if (!await packageBackend.isPackageVisible(package)) {
+    throw NotFoundException.resource(package);
+  }
+  final data = await getDailyDownloadCounts(package);
+  if (data == null) {
+    throw NotFoundException.resource('daily downloads for "$package"');
+  }
+  return data;
 }
 
 /// Handles requests for

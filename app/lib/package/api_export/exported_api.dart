@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/advisories_api.dart';
+import 'package:_pub_shared/data/download_counts_data.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:crypto/crypto.dart';
@@ -293,6 +294,10 @@ final class ExportedPackage {
   /// Interface for writing `/api/packages/<package>/score`.
   ExportedJsonFile<VersionScore> get score => _suffix<VersionScore>('/score');
 
+  /// Interface for writing `/api/packages/<package>/daily-downloads`.
+  ExportedJsonFile<DailyDownloadCounts> get dailyDownloads =>
+      _suffix<DailyDownloadCounts>('/daily-downloads');
+
   /// Interface for writing `/api/packages/<package>/feed.atom`
   ExportedAtomFeedFile get feedAtomFile => ExportedAtomFeedFile._(
     _owner,
@@ -431,6 +436,7 @@ final class ExportedPackage {
       _owner._pool.withResource(() async => await options.delete()),
       _owner._pool.withResource(() async => await publisher.delete()),
       _owner._pool.withResource(() async => await score.delete()),
+      _owner._pool.withResource(() async => await dailyDownloads.delete()),
       _owner._pool.withResource(() async => await feedAtomFile.delete()),
       ..._owner._prefixes.map((prefix) async {
         await _owner._listBucket(
