@@ -25,6 +25,10 @@ final _random = Random.secure();
 /// scanning for outgoing emails to send.
 const _maxOutgoingEmailBatchSize = 1000;
 
+/// The minimum age a Datastore [OutgoingEmail] entity must have before
+/// [EmailBackend.migrateFromDatastore] will pick it up for SQL migration.
+const _minBatchMigrationAge = Duration(minutes: 1);
+
 /// Sets the email backend service.
 void registerEmailBackend(EmailBackend backend) =>
     ss.register(#_emailBackend, backend);
@@ -54,6 +58,9 @@ class EmailBackend {
   /// the email, deleting the row after the email was sent successfully. This
   /// method should be called only from the background task.
   ///
+  /// This first calls [migrateFromDatastore] to migrate any Datastore entities
+  /// left behind into SQL.
+  ///
   /// The processing of the query results will be stopped after [stopAfter]
   /// duration has elapsed. This allows the periodic task to complete within
   /// the planned time window.
@@ -61,6 +68,7 @@ class EmailBackend {
   /// Returns the number of successfully sent emails.
   Future<int> trySendAllOutgoingEmails({Duration? stopAfter}) async {
     final sw = Stopwatch()..start();
+    await migrateFromDatastore();
     final now = clock.now().toUtc();
     final ids = await primaryDatabase.withRetry(
       (db) => db.outgoingEmails
@@ -249,15 +257,21 @@ class EmailBackend {
     await _db.commit(deletes: [email.key]);
   }
 
-  /// Migrates all [OutgoingEmail] entries found in Datastore into SQL,
-  /// deleting each Datastore entity after it has been migrated.
+  /// Migrates [OutgoingEmail] entries found in Datastore into SQL, deleting
+  /// each Datastore entity after it has been migrated.
+  ///
+  /// Only entities created more than [_minBatchMigrationAge] ago are considered,
+  /// so that this sweep never races with the eager calls made inline with
+  /// Datastore transactions.
   ///
   /// This is a best-effort cleanup of stragglers that were not migrated
   /// eagerly (e.g. because the process died between the SQL write and the
   /// Datastore delete), and is expected to be called periodically.
   Future<int> migrateFromDatastore() async {
+    final cutoff = clock.now().toUtc().subtract(_minBatchMigrationAge);
+    final query = _db.query<OutgoingEmail>()..filter('created <', cutoff);
     var count = 0;
-    await for (final email in _db.query<OutgoingEmail>().run()) {
+    await for (final email in query.run()) {
       await migrateToSql(email);
       count++;
     }
