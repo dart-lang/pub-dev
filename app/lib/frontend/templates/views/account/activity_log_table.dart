@@ -67,14 +67,14 @@ d.Node _activityLogTableNode(AuditLogRecordPage activities) {
   );
 }
 
-d.Node _recordNode(AuditLogRecord a) {
+d.Node _recordNode(AuditLogRecordSummary a) {
   return d.tr(
     children: [
-      d.td(classes: ['date'], child: d.xAgoTimestamp(a.created!)),
+      d.td(classes: ['date'], child: d.xAgoTimestamp(a.createdAt)),
       d.td(
         classes: ['summary'],
         children: [
-          d.div(classes: ['markdown-body'], child: d.markdown(a.summary!)),
+          d.div(classes: ['markdown-body'], child: d.markdown(a.summary)),
         ],
       ),
     ],

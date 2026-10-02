@@ -11,7 +11,6 @@ import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
-import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
@@ -77,12 +76,9 @@ void main() {
           final page = await auditBackend.listRecordsForPublisher(
             'verified.com',
           );
-          final r = page.records.firstWhere(
-            (r) => r.kind == AuditLogRecordKind.publisherCreated,
-          );
           expect(
-            r.summary,
-            '`admin@pub.dev` created publisher `verified.com`.',
+            page.records.map((e) => e.summary),
+            contains('`admin@pub.dev` created publisher `verified.com`.'),
           );
         },
       );
@@ -144,10 +140,10 @@ void main() {
           final page = await auditBackend.listRecordsForPublisher(
             'example.com',
           );
-          final r = page.records.firstWhere(
-            (r) => r.kind == AuditLogRecordKind.publisherUpdated,
+          expect(
+            page.records.map((e) => e.summary),
+            contains('`admin@pub.dev` updated publisher `example.com`.'),
           );
-          expect(r.summary, '`admin@pub.dev` updated publisher `example.com`.');
         },
       );
     });
@@ -976,12 +972,11 @@ void main() {
           final page = await auditBackend.listRecordsForPublisher(
             'example.com',
           );
-          final r = page.records.firstWhere(
-            (r) => r.kind == AuditLogRecordKind.publisherMemberRemoved,
-          );
           expect(
-            r.summary,
-            '`admin@pub.dev` removed `other@pub.dev` from publisher `example.com`.',
+            page.records.map((e) => e.summary),
+            contains(
+              '`admin@pub.dev` removed `other@pub.dev` from publisher `example.com`.',
+            ),
           );
         },
       );

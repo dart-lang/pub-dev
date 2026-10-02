@@ -95,7 +95,7 @@ Future<void> _verifyRateLimit({
   }
 
   final sw = Stopwatch()..start();
-  List<AuditLogRecord>? auditEntriesFromLastDay;
+  List<AuditLogRecordCacheEntry>? auditEntriesFromLastDay;
 
   Future<void> check({
     required String operation,
@@ -133,7 +133,7 @@ Future<void> _verifyRateLimit({
     final relevantEntries = auditEntriesFromLastDay!
         .where((e) => e.kind == rateLimit.operation)
         .where((e) => e.agent != KnownAgents.pubSupport)
-        .where((e) => e.created!.isAfter(windowStart))
+        .where((e) => e.created.isAfter(windowStart))
         .where((e) => package == null || _containsPackage(e.packages, package))
         .where(
           (e) =>
@@ -145,7 +145,7 @@ Future<void> _verifyRateLimit({
 
     if (relevantEntries.length >= maxCount) {
       final firstTimestamp = relevantEntries
-          .map((e) => e.created!)
+          .map((e) => e.created)
           .reduce((a, b) => a.isBefore(b) ? a : b);
       await entry.set(firstTimestamp.add(window), window);
       throw RateLimitException(

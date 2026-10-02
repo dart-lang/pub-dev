@@ -8,7 +8,6 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
-import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
@@ -121,17 +120,11 @@ void main() {
         final auditLogs = await auditBackend.listRecordsForPublisher(
           'example.com',
         );
-        final transferLogs = auditLogs.records
-            .where(
-              (r) =>
-                  r.packages != null &&
-                  r.packages!.contains('oxygen') &&
-                  r.kind == AuditLogRecordKind.packageTransferred,
-            )
-            .toList();
         expect(
-          transferLogs.single.summary,
-          'Package `oxygen` was transferred to publisher `example.com` by `admin@pub.dev`.',
+          auditLogs.records.map((e) => e.summary),
+          contains(
+            'Package `oxygen` was transferred to publisher `example.com` by `admin@pub.dev`.',
+          ),
         );
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;

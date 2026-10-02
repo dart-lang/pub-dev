@@ -36,13 +36,9 @@ The report is based on "UploadEvents".
     final buckets = <DateTime, Set<String>>{};
     final now = clock.now();
 
-    await for (final record in accountBackend.getUploadEvents(
+    await for (final (created, agent) in accountBackend.getUploadEvents(
       begin: DateTime(now.year, now.month - 12),
     )) {
-      final created = record.created;
-      final agent = record.agent;
-      if (created == null) continue;
-      if (agent == null) continue;
       final bucket = buckets.putIfAbsent(
         DateTime(created.year, created.month),
         () => {},
