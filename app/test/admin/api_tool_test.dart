@@ -11,7 +11,6 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
-import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -136,12 +135,11 @@ void main() {
           final page = await auditBackend.listRecordsForPublisher(
             'example.com',
           );
-          final r = page.records.firstWhere(
-            (e) => e.kind == AuditLogRecordKind.publisherMemberInvited,
-          );
           expect(
-            r.summary,
-            '`support@pub.dev` invited `newmember@pub.dev` to be a member for publisher `example.com`.',
+            page.records.map((e) => e.summary),
+            contains(
+              '`support@pub.dev` invited `newmember@pub.dev` to be a member for publisher `example.com`.',
+            ),
           );
 
           late String consentId;
@@ -176,12 +174,11 @@ void main() {
           final page2 = await auditBackend.listRecordsForPublisher(
             'example.com',
           );
-          final r2 = page2.records.firstWhere(
-            (e) => e.kind == AuditLogRecordKind.publisherMemberInviteAccepted,
-          );
           expect(
-            r2.summary,
-            '`newmember@pub.dev` accepted member invite for publisher `example.com`.',
+            page2.records.map((e) => e.summary),
+            contains(
+              '`newmember@pub.dev` accepted member invite for publisher `example.com`.',
+            ),
           );
 
           final members = await publisherBackend.listPublisherMembers(
@@ -232,12 +229,11 @@ void main() {
         );
 
         final page = await auditBackend.listRecordsForPackage('oxygen');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.uploaderInvited,
-        );
         expect(
-          r.summary,
-          '`support@pub.dev` invited `newmember@pub.dev` to be an uploader for package `oxygen`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`support@pub.dev` invited `newmember@pub.dev` to be an uploader for package `oxygen`.',
+          ),
         );
 
         late String consentId;
@@ -267,12 +263,11 @@ void main() {
         expect(rs.granted, true);
 
         final page2 = await auditBackend.listRecordsForPackage('oxygen');
-        final r2 = page2.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.uploaderInviteAccepted,
-        );
         expect(
-          r2.summary,
-          '`newmember@pub.dev` accepted uploader invite for package `oxygen`.',
+          page2.records.map((e) => e.summary),
+          contains(
+            '`newmember@pub.dev` accepted uploader invite for package `oxygen`.',
+          ),
         );
 
         final uploaders = (await packageBackend.lookupPackage(

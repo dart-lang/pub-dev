@@ -11,7 +11,6 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
-import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
@@ -62,12 +61,11 @@ void main() {
       });
 
       final page = await auditBackend.listRecordsForPackage('oxygen');
-      final r = page.records.firstWhere(
-        (e) => e.kind == AuditLogRecordKind.uploaderInvited,
-      );
       expect(
-        r.summary,
-        '`$adminEmail` invited `user@pub.dev` to be an uploader for package `oxygen`.',
+        page.records.map((e) => e.summary),
+        contains(
+          '`$adminEmail` invited `user@pub.dev` to be an uploader for package `oxygen`.',
+        ),
       );
 
       return consentId;
@@ -99,12 +97,11 @@ void main() {
         expect(rs.granted, true);
 
         final page = await auditBackend.listRecordsForPackage('oxygen');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.uploaderInviteAccepted,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` accepted uploader invite for package `oxygen`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` accepted uploader invite for package `oxygen`.',
+          ),
         );
       },
     );
@@ -123,12 +120,11 @@ void main() {
         expect(rs.granted, false);
 
         final page = await auditBackend.listRecordsForPackage('oxygen');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.uploaderInviteRejected,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` rejected uploader invite for package `oxygen`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` rejected uploader invite for package `oxygen`.',
+          ),
         );
       },
     );
@@ -140,12 +136,11 @@ void main() {
         await _expireConsent(consentId);
 
         final page = await auditBackend.listRecordsForPackage('oxygen');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.uploaderInviteExpired,
-        );
         expect(
-          r.summary,
-          'Uploader invite for package `oxygen` expired, `user@pub.dev` did not respond.',
+          page.records.map((e) => e.summary),
+          contains(
+            'Uploader invite for package `oxygen` expired, `user@pub.dev` did not respond.',
+          ),
         );
       },
     );
@@ -223,12 +218,11 @@ void main() {
       });
 
       final page = await auditBackend.listRecordsForPublisher('example.com');
-      final r = page.records.firstWhere(
-        (e) => e.kind == AuditLogRecordKind.publisherContactInvited,
-      );
       expect(
-        r.summary,
-        '`$adminEmail` invited `info@example.com` to be contact email for publisher `example.com`.',
+        page.records.map((e) => e.summary),
+        contains(
+          '`$adminEmail` invited `info@example.com` to be contact email for publisher `example.com`.',
+        ),
       );
       return consentId;
     }
@@ -260,12 +254,11 @@ void main() {
         expect(rs.granted, true);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherContactInviteAccepted,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` accepted `info@example.com` to be contact email for publisher `example.com`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` accepted `info@example.com` to be contact email for publisher `example.com`.',
+          ),
         );
       },
     );
@@ -285,12 +278,11 @@ void main() {
         expect(rs.granted, false);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherContactInviteRejected,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` rejected contact invite of `info@example.com` for publisher `example.com`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` rejected contact invite of `info@example.com` for publisher `example.com`.',
+          ),
         );
       },
     );
@@ -302,12 +294,11 @@ void main() {
         await _expireConsent(consentId);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherContactInviteExpired,
-        );
         expect(
-          r.summary,
-          'Contact invite for publisher `example.com` expired, `info@example.com` did not respond.',
+          page.records.map((e) => e.summary),
+          contains(
+            'Contact invite for publisher `example.com` expired, `info@example.com` did not respond.',
+          ),
         );
       },
     );
@@ -379,12 +370,11 @@ void main() {
       });
 
       final page = await auditBackend.listRecordsForPublisher('example.com');
-      final r = page.records.firstWhere(
-        (e) => e.kind == AuditLogRecordKind.publisherMemberInvited,
-      );
       expect(
-        r.summary,
-        '`$adminEmail` invited `user@pub.dev` to be a member for publisher `example.com`.',
+        page.records.map((e) => e.summary),
+        contains(
+          '`$adminEmail` invited `user@pub.dev` to be a member for publisher `example.com`.',
+        ),
       );
 
       return consentId;
@@ -417,12 +407,11 @@ void main() {
         expect(rs.granted, true);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherMemberInviteAccepted,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` accepted member invite for publisher `example.com`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` accepted member invite for publisher `example.com`.',
+          ),
         );
       },
     );
@@ -442,12 +431,11 @@ void main() {
         expect(rs.granted, false);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherMemberInviteRejected,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` rejected member invite for publisher `example.com`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` rejected member invite for publisher `example.com`.',
+          ),
         );
       },
     );
@@ -459,12 +447,11 @@ void main() {
         await _expireConsent(consentId);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherMemberInviteExpired,
-        );
         expect(
-          r.summary,
-          'Member invite for publisher `example.com` expired, `user@pub.dev` did not respond.',
+          page.records.map((e) => e.summary),
+          contains(
+            'Member invite for publisher `example.com` expired, `user@pub.dev` did not respond.',
+          ),
         );
       },
     );

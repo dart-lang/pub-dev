@@ -22,14 +22,54 @@ final _shortTermExpireThreshold = auditLogRecordExpiresInFarFuture.subtract(
 );
 final _defaultExpires = Duration(days: 61);
 
+/// A single audit-log record reduced to the fields needed to render it in an
+/// activity-log table.
+class AuditLogRecordView {
+  final String recordId;
+  final DateTime createdAt;
+  final DateTime expiresAt;
+  final String summary;
+
+  AuditLogRecordView({
+    required this.recordId,
+    required this.createdAt,
+    required this.expiresAt,
+    required this.summary,
+  });
+
+  /// Whether this record expires in the near future, as opposed to package
+  /// publication events that are kept (practically) indefinitely.
+  bool get isKeptShortTerm => expiresAt.isBefore(_shortTermExpireThreshold);
+}
+
 /// A single page of log records.
 class AuditLogRecordPage {
-  final List<AuditLogRecord> records;
+  final List<AuditLogRecordView> records;
   final String? nextTimestamp;
 
   AuditLogRecordPage(this.records, this.nextTimestamp);
 
   bool get hasNextPage => nextTimestamp != null;
+}
+
+/// A cached, denormalized view of an [AuditLogRecord], carrying only the
+/// fields consumed by rate limiting checks.
+class AuditLogRecordCacheEntry {
+  final String id;
+  final DateTime created;
+  final String kind;
+  final String agent;
+  final List<String> users;
+  final List<String> packages;
+
+  AuditLogRecordCacheEntry({
+    required this.id,
+    required this.created,
+    required this.kind,
+    required this.agent,
+    required this.users,
+    required this.packages,
+  });
 }
 
 @db.Kind(name: 'AuditLogRecord', idType: db.IdType.String)

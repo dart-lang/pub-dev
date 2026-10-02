@@ -2078,6 +2078,11 @@ final class _$AuditLogRecordRow extends AuditLogRecordRow {
       $ForGeneratedCode.indexDefinition(
         name: null,
         sqlName: null,
+        columns: ['created_at'],
+      ),
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
         columns: ['expires_at'],
       ),
     ],
@@ -2863,9 +2868,14 @@ final class _$AuditLogAssociation extends AuditLogAssociation {
     ],
     indexes: [
       $ForGeneratedCode.indexDefinition(
-        name: 'kindValue',
-        sqlName: 'kind_value',
-        columns: ['kind', 'value'],
+        name: null,
+        sqlName: null,
+        columns: ['record_created_at'],
+      ),
+      $ForGeneratedCode.indexDefinition(
+        name: 'kindValueCreated',
+        sqlName: 'kind_value_created',
+        columns: ['kind', 'value', 'record_created_at'],
       ),
     ],
     readRow: _$AuditLogAssociation._$fromDatabase,

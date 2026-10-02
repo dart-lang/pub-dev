@@ -557,20 +557,25 @@ void main() {
           final mockPresent = clock.now();
           activities.records.insert(
             0,
-            AuditLogRecord()
-              ..created = mockPresent
-              ..expires = mockPresent.add(Duration(days: 61))
-              ..summary = 'recent action',
+            AuditLogRecordView(
+              recordId: 'mock-recent',
+              createdAt: mockPresent,
+              expiresAt: mockPresent.add(Duration(days: 61)),
+              summary: 'recent action',
+            ),
           );
 
           final mockPast = data.package.created!.subtract(Duration(days: 75));
           activities.records.add(
-            AuditLogRecord()
-              ..created = mockPast
-              ..expires = auditLogRecordExpiresInFarFuture
-              ..summary = 'old action',
+            AuditLogRecordView(
+              recordId: 'mock-old',
+              createdAt: mockPast,
+              expiresAt: auditLogRecordExpiresInFarFuture,
+              summary: 'old action',
+            ),
           );
 
+          _sortActivitiesForGolden(activities);
           final html = renderPkgActivityLogPage(data, activities);
           expectGoldenFile(
             html,
@@ -834,6 +839,7 @@ void main() {
           'example.com',
         );
         expect(activities.records, isNotEmpty);
+        _sortActivitiesForGolden(activities);
         final html = renderPublisherActivityLogPage(
           publisher: publisher,
           activities: activities,
@@ -949,6 +955,7 @@ void main() {
             user.userId,
           );
           expect(activities.records, isNotEmpty);
+          _sortActivitiesForGolden(activities);
           final html = renderAccountMyActivityPage(
             user: user,
             userSessionData: requestContext.sessionData!,
@@ -1223,11 +1230,26 @@ void main() {
   });
 }
 
+/// Resolves the ordering of records that share a `createdAt` (e.g. the
+/// `package-created` / `package-published` pair emitted by a single publish)
+/// so the golden output is stable.
+///
+/// The backend orders by `(createdAt desc, recordId asc)`, which is stable in
+/// production where `recordId` is a persisted UUID, but the test profile
+/// regenerates those UUIDs on every run, so tied records would otherwise be
+/// rendered in a random order.
+void _sortActivitiesForGolden(AuditLogRecordPage page) {
+  page.records.sort((a, b) {
+    final byCreated = b.createdAt.compareTo(a.createdAt);
+    return byCreated != 0 ? byCreated : a.summary.compareTo(b.summary);
+  });
+}
+
 Map<String, DateTime> _activityLogTimestamps(AuditLogRecordPage page) {
   final map = <String, DateTime>{};
   for (final record in page.records) {
     final index = map.length;
-    map['activity-$index'] = record.created!;
+    map['activity-$index'] = record.createdAt;
   }
   return map;
 }

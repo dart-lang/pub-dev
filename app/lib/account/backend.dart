@@ -767,18 +767,29 @@ class AccountBackend {
     return count;
   }
 
-  /// Retrieves a list of all uploader events that happened between [begin] and
-  /// [end].
-  Stream<AuditLogRecord> getUploadEvents({DateTime? begin, DateTime? end}) {
-    final query = _db.query<AuditLogRecord>();
-    query.filter('kind =', AuditLogRecordKind.packagePublished);
-    if (begin != null) {
-      query.filter('created >=', begin);
-    }
-    if (end != null) {
-      query.filter('created <', end);
-    }
-    return query.run();
+  /// Retrieves the (created, agent) pairs of all uploader events that
+  /// happened between [begin] and [end].
+  Future<List<(DateTime created, String agent)>> getUploadEvents({
+    DateTime? begin,
+    DateTime? end,
+  }) {
+    return primaryDatabase.withRetry(
+      (db) => db.auditLogRecords
+          .where((r) {
+            var condition = r.kind.equalsValue(
+              AuditLogRecordKind.packagePublished,
+            );
+            if (begin != null) {
+              condition = condition & (r.createdAt >= begin.asExpr);
+            }
+            if (end != null) {
+              condition = condition & (r.createdAt < end.asExpr);
+            }
+            return condition;
+          })
+          .select((r) => (r.createdAt, r.agent))
+          .fetch(),
+    );
   }
 
   /// Scans for all sessions the user has, and invalidates them all.
