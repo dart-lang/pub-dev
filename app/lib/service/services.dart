@@ -4,18 +4,13 @@
 
 import 'dart:async' show FutureOr, Zone;
 
-// ignore: implementation_imports
-import 'package:appengine/src/grpc_api_impl/datastore_impl.dart'
-    as grpc_datastore_impl;
 import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:fake_gcloud/mem_storage.dart';
 import 'package:fake_gcloud/retry_enforcer_storage.dart';
-import 'package:gcloud/datastore.dart' as datastore;
 import 'package:gcloud/service_scope.dart';
 import 'package:gcloud/storage.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
-import 'package:grpc/grpc.dart' as grpc;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
@@ -83,9 +78,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
     if (envConfig.isRunningInCloud) {
       setupAppEngineLogging();
     }
-    final db = await _obtainDatastoreService(activeConfiguration.projectId);
-    registerDbService(db);
-    datastore.registerDatastoreService(db.datastore);
+    await setupDbService();
 
     // auth client for storage service
     final authClient = await auth.clientViaApplicationDefaultCredentials(
@@ -137,22 +130,6 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
 
     return await _withPubServices(fn);
   });
-}
-
-Future<DatastoreDB> _obtainDatastoreService(String projectId) async {
-  final authenticator = await grpc.applicationDefaultCredentialsAuthenticator(
-    grpc_datastore_impl.OAuth2Scopes,
-  );
-  final clientChannel = grpc.ClientChannel('datastore.googleapis.com');
-  registerScopeExitCallback(clientChannel.shutdown);
-  final rawDatastore = datastore.Datastore.withRetry(
-    grpc_datastore_impl.GrpcDatastoreImpl(
-      clientChannel,
-      authenticator,
-      projectId,
-    ),
-  );
-  return DatastoreDB(rawDatastore);
 }
 
 /// Run [fn] with services.

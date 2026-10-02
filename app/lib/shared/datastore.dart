@@ -4,11 +4,17 @@
 
 import 'dart:async';
 
+// ignore: implementation_imports
+import 'package:appengine/src/grpc_api_impl/datastore_impl.dart'
+    as grpc_datastore_impl;
 import 'package:gcloud/datastore.dart' as ds;
 import 'package:gcloud/db.dart';
+import 'package:gcloud/service_scope.dart';
+import 'package:grpc/grpc.dart' as grpc;
 import 'package:logging/logging.dart';
 import 'package:retry/retry.dart';
 
+import 'configuration.dart';
 import 'exceptions.dart';
 import 'utils.dart';
 
@@ -17,6 +23,27 @@ export 'package:gcloud/datastore.dart'
 export 'package:gcloud/db.dart';
 
 final Logger _logger = Logger('pub.datastore_helper');
+
+/// Initializes and registers the Cloud Datastore [DatastoreDB] and
+/// [ds.Datastore] services in the current service scope.
+Future<void> setupDbService() async {
+  final projectId = activeConfiguration.projectId;
+  final authenticator = await grpc.applicationDefaultCredentialsAuthenticator(
+    grpc_datastore_impl.OAuth2Scopes,
+  );
+  final clientChannel = grpc.ClientChannel('datastore.googleapis.com');
+  registerScopeExitCallback(clientChannel.shutdown);
+  final rawDatastore = ds.Datastore.withRetry(
+    grpc_datastore_impl.GrpcDatastoreImpl(
+      clientChannel,
+      authenticator,
+      projectId,
+    ),
+  );
+  final db = DatastoreDB(rawDatastore);
+  registerDbService(db);
+  ds.registerDatastoreService(db.datastore);
+}
 
 /// Wrap [Transaction] to avoid exposing [Transaction.commit] and
 /// [Transaction.rollback].
