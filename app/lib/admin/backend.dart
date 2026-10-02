@@ -376,6 +376,7 @@ class AdminBackend {
 
     _logger.info('Removing Package from Datastore...');
     var deletedPackages = 0;
+    ModeratedPackage? insertedModeratedPkg;
     await withRetryTransaction(_db, (tx) async {
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
@@ -407,20 +408,23 @@ class AdminBackend {
 
         versions.addAll(package.deletedVersions ?? const <String>[]);
 
-        tx.insert(
-          ModeratedPackage()
-            ..parentKey = _db.emptyKey
-            ..id = packageName
-            ..name = packageName
-            ..moderated = moderated ?? clock.now().toUtc()
-            ..versions = versions.toList()
-            ..publisherId = package.publisherId
-            ..uploaders = package.uploaders,
-        );
+        insertedModeratedPkg = ModeratedPackage()
+          ..parentKey = _db.emptyKey
+          ..id = packageName
+          ..name = packageName
+          ..moderated = moderated ?? clock.now().toUtc()
+          ..versions = versions.toList()
+          ..publisherId = package.publisherId
+          ..uploaders = package.uploaders;
+        tx.insert(insertedModeratedPkg!);
 
         _logger.info('Adding package to moderated packages ...');
       }
     });
+
+    if (insertedModeratedPkg != null) {
+      await packageBackend.mirrorPackageTombstoneToSql(insertedModeratedPkg!);
+    }
 
     _logger.info('Removing package from PackageVersion ...');
     await _db.deleteWithQuery(
