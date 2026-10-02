@@ -244,7 +244,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
       isRuntimeVersioned: true,
       task: () async => await IntegrityChecker(
         dbService,
-        concurrency: 16,
+        concurrency: 4,
       ).verifyAndLogIssues(),
       timeout: Duration(days: 1),
     ),
@@ -255,7 +255,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
       isRuntimeVersioned: true,
       task: () async => await TarballIntegrityChecker(
         dbService,
-        concurrency: 16,
+        concurrency: 4,
       ).verifyAndLogIssues(),
       timeout: Duration(days: 1),
     ),

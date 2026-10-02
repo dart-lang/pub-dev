@@ -121,9 +121,7 @@ class _BaseIntegrityChecker {
                 e,
                 st,
               );
-              controller.addError(e, st);
-            } catch (e, st) {
-              controller.addError(e, st);
+              rethrow;
             }
           })
           .catchError(controller.addError)
