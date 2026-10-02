@@ -13,7 +13,6 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
-import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
@@ -871,12 +870,11 @@ void main() {
             await client.adminAddPackageUploader('oxygen', 'someuser@pub.dev');
 
             final records1 = await auditBackend.listRecordsForPackage('oxygen');
-            final inviteAuditRecord = records1.records.firstWhere(
-              (e) => e.kind == AuditLogRecordKind.uploaderInvited,
-            );
             expect(
-              inviteAuditRecord.summary,
-              '`support@pub.dev` invited `someuser@pub.dev` to be an uploader for package `oxygen`.',
+              records1.records.map((e) => e.summary),
+              contains(
+                '`support@pub.dev` invited `someuser@pub.dev` to be an uploader for package `oxygen`.',
+              ),
             );
 
             final consentRow = await dbService.query<Consent>().run().single;
@@ -890,12 +888,11 @@ void main() {
             );
 
             final records2 = await auditBackend.listRecordsForPackage('oxygen');
-            final acceptedAuditRecord = records2.records.firstWhere(
-              (e) => e.kind == AuditLogRecordKind.uploaderInviteAccepted,
-            );
             expect(
-              acceptedAuditRecord.summary,
-              '`someuser@pub.dev` accepted uploader invite for package `oxygen`.',
+              records2.records.map((e) => e.summary),
+              contains(
+                '`someuser@pub.dev` accepted uploader invite for package `oxygen`.',
+              ),
             );
 
             final uploaders = await client.adminGetPackageUploaders('oxygen');

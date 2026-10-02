@@ -167,8 +167,15 @@ void main() {
             'new_package',
             '1.2.3',
           );
-          final publishedAudit = audits.records.firstWhere(
-            (e) => e.kind == AuditLogRecordKind.packagePublished,
+          final publishedRecordId = audits.records
+              .firstWhere(
+                (e) =>
+                    e.summary ==
+                    'Package `new_package` version `1.2.3` was published by `user@pub.dev`.',
+              )
+              .recordId;
+          final publishedAudit = await auditBackend.lookupRecordById(
+            publishedRecordId,
           );
           expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
           expect(publishedAudit.created, isNotNull);
@@ -263,7 +270,9 @@ void main() {
             'neon',
             '7.0.0',
           );
-          final publishedAudit = audits.records.first;
+          final publishedAudit = await auditBackend.lookupRecordById(
+            audits.records.first.recordId,
+          );
           expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
           expect(
             publishedAudit.summary,
@@ -944,7 +953,9 @@ void main() {
             '_dummy_pkg',
             '2.2.0',
           );
-          final publishedAudit = audits.records.first;
+          final publishedAudit = await auditBackend.lookupRecordById(
+            audits.records.first.recordId,
+          );
           expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
           expect(publishedAudit.created, isNotNull);
           expect(publishedAudit.expires!.year, greaterThan(9998));
