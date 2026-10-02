@@ -52,6 +52,8 @@ abstract final class PrimarySchema extends Schema {
 
   // package tables
 
+  Table<PackageTombstone> get packageTombstones;
+
   Table<ReservedPackageRow> get reservedPackages;
 
   // task tables

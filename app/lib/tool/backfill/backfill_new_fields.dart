@@ -36,4 +36,8 @@ Future<void> backfillNewFields() async {
   // NOTE: Keep this around until ReservedPackage is migrated to use SQL.
   _logger.info('Backfilling reserved packages...');
   await packageBackend.backfillReservedPackagesSqlFromDatastore();
+
+  // NOTE: Keep this around until ModeratedPackage is migrated to use SQL.
+  _logger.info('Backfilling moderated packages...');
+  await packageBackend.backfillPackageTombstonesSqlFromDatastore();
 }

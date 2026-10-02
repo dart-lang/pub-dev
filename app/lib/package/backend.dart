@@ -226,6 +226,39 @@ class PackageBackend {
         as List<String>;
   }
 
+  /// Mirrors moderated package into SQL as a [PackageTombstone].
+  Future<void> mirrorPackageTombstoneToSql(ModeratedPackage mp) async {
+    await primaryDatabase.withRetry(
+      (db) => db.packageTombstones
+          .upsertValue(
+            name: mp.name!,
+            moderatedAt: mp.moderated,
+            publisherId: mp.publisherId,
+            uploadersJson: JsonValue(mp.uploaders ?? const <String>[]),
+            versionsJson: JsonValue(mp.versions ?? const <String>[]),
+          )
+          .execute(),
+    );
+  }
+
+  /// Deletes the [PackageTombstone] from SQL.
+  Future<void> deletePackageTombstoneFromSql(String packageName) async {
+    await primaryDatabase.withRetry(
+      (db) => db.packageTombstones.delete(packageName).execute(),
+    );
+  }
+
+  /// Copies [ModeratedPackage] entries from Datastore into SQL as
+  /// [PackageTombstone] rows, for entries that are not yet present in SQL.
+  Future<int> backfillPackageTombstonesSqlFromDatastore() async {
+    var count = 0;
+    await for (final mp in db.query<ModeratedPackage>().run()) {
+      await mirrorPackageTombstoneToSql(mp);
+      count++;
+    }
+    return count;
+  }
+
   /// Mirrors reserved package into SQL.
   Future<void> mirrorReservedPackageToSql(ReservedPackage rp) async {
     await primaryDatabase.withRetry(
