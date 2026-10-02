@@ -81,6 +81,13 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
       task: emailBackend.deleteDeadOutgoingEmails,
     ),
 
+    // Migrates any Datastore entities left into SQL (for the select entity types under active migration).
+    _15mins(
+      name: 'migrate-to-sql',
+      isRuntimeVersioned: false,
+      task: () async => await emailBackend.migrateFromDatastore(),
+    ),
+
     // Backfills the fields that are new to the current release.
     _daily(
       name: 'backfill-new-fields',
@@ -150,7 +157,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     _weekly(
       name: 'delete-old-neat-task-statuses',
       isRuntimeVersioned: false,
-      task: () => deleteOldNeatTaskStatuses(dbService),
+      task: () => deleteOldNeatTaskStatuses(),
     ),
 
     // Deletes orphaned like entities that are missing a reference.
@@ -274,8 +281,7 @@ NeatPeriodicTaskScheduler _15mins({
     name: name,
     interval: Duration(minutes: 15),
     timeout: Duration(minutes: 10),
-    status: DatastoreStatusProvider.create(
-      dbService,
+    status: NeatPeriodicTaskStatusProvider.create(
       name,
       isRuntimeVersioned: isRuntimeVersioned,
     ),
@@ -292,8 +298,7 @@ NeatPeriodicTaskScheduler _daily({
     name: name,
     interval: Duration(hours: 24),
     timeout: Duration(hours: 12),
-    status: DatastoreStatusProvider.create(
-      dbService,
+    status: NeatPeriodicTaskStatusProvider.create(
       name,
       isRuntimeVersioned: isRuntimeVersioned,
     ),
@@ -311,8 +316,7 @@ NeatPeriodicTaskScheduler _weekly({
     name: name,
     interval: Duration(days: 6), // shifts the day when the task is triggered
     timeout: timeout,
-    status: DatastoreStatusProvider.create(
-      dbService,
+    status: NeatPeriodicTaskStatusProvider.create(
       name,
       isRuntimeVersioned: isRuntimeVersioned,
     ),

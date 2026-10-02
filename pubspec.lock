@@ -181,10 +181,10 @@ packages:
     dependency: transitive
     description:
       name: cli_pkg
-      sha256: "8a75add8e512f7bcd1a8ce2b320ca72374ce674005fa9c55bf04c65400b8290a"
+      sha256: "1b3915a8924e8a495ec24b8ee076c182211d0bd563699a2c8ed9af33bf296af8"
       url: "https://pub.dev"
     source: hosted
-    version: "2.16.0"
+    version: "2.15.2"
   cli_repl:
     dependency: transitive
     description:
@@ -917,10 +917,10 @@ packages:
     dependency: transitive
     description:
       name: typed_sql
-      sha256: "9f6cbb8313c35f645da9d593bef78c6e5e225452a5c0e53252840fccf70a4779"
+      sha256: "89a64360d43b69840bb0c5ed9e5d6004d83053129061c19cc24b913bf908a1b7"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.13"
+    version: "0.1.14"
   ulid:
     dependency: transitive
     description:
@@ -1010,4 +1010,4 @@ packages:
     source: hosted
     version: "2.2.4"
 sdks:
-  dart: ">=3.13.0 <4.0.0"
+  dart: ">=3.11.0 <4.0.0"

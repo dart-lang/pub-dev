@@ -60,4 +60,24 @@ void main() {
       }
     }
   });
+
+  // Test that all table names are plural, a naming convention enforced by this semi-ugly test.
+  // If we decide to abandon this convention, then delete this test.
+  test('tables are plural', () {
+    final content = File('lib/database/schema.dart').readAsStringSync();
+    final tableRegExp = RegExp(
+      r'Table<[a-zA-Z0-9_]+>\sget\s([a-zA-Z0-9]+);',
+      multiLine: true,
+    );
+    final matches = tableRegExp.allMatches(content).toList();
+    expect(matches, hasLength(greaterThan(6)));
+    for (final match in matches) {
+      final name = match.group(1)!;
+      expect(
+        name.endsWith('s'),
+        isTrue,
+        reason: 'table name "$name" should be plural.',
+      );
+    }
+  });
 }

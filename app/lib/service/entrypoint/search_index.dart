@@ -38,7 +38,7 @@ Future<void> main(List<String> args, var message) async {
   final snapshot = argv['snapshot'] as String?;
 
   final ServicesWrapperFn servicesWrapperFn;
-  if (envConfig.isRunningInAppengine) {
+  if (envConfig.isRunningInCloud) {
     servicesWrapperFn = withServices;
     setupAppEngineLogging();
   } else {

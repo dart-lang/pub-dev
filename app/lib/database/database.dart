@@ -68,14 +68,14 @@ class PrimaryDatabase {
       registerPrimaryDatabase(database);
       ss.registerScopeExitCallback(database.close);
     } on PgException catch (e, st) {
-      if (envConfig.isRunningInAppengine) {
+      if (envConfig.isRunningInCloud) {
         // ignore setup issues for now
         _logger.warning('Could not connect to Postgresql database.', e, st);
       } else {
         rethrow;
       }
     } on DatabaseException catch (e, st) {
-      if (envConfig.isRunningInAppengine) {
+      if (envConfig.isRunningInCloud) {
         // ignore setup issues for now
         _logger.warning('Could not initialize typed_sql.', e, st);
       } else {
@@ -100,13 +100,13 @@ class PrimaryDatabase {
     if (url == null) {
       (url, customDb) = await _startOrUseLocalPostgresInDocker();
     }
-    if (customDb == null && !envConfig.isRunningInAppengine) {
+    if (customDb == null && !envConfig.isRunningInCloud) {
       customDb = await _createCustomDatabase(url);
     }
 
     final originalUrl = url;
     if (customDb != null) {
-      if (envConfig.isRunningInAppengine) {
+      if (envConfig.isRunningInCloud) {
         throw StateError('Should not use custom database inside AppEngine.');
       }
 
@@ -283,6 +283,43 @@ class PrimaryDatabase {
   }
 }
 
+/// Streams all rows of a table (or complex query) using keyset ("seek") pagination,
+/// limiting the lock time the database connection (and the table access) is being
+/// used, and also limiting the amount of entries read in a single batch.
+///
+/// Repeatedly calls [fetchPage] with the running cursor value (starting at
+/// [initialCursor]) inside [PrimaryDatabaseExt.withRetry], strictly greater
+/// than the given cursor, ordered ascending by that same column.
+/// [cursorOf] extracts the cursor value from a row to advance to the next page.
+/// Iteration stops the first time [fetchPage] returns an empty list.
+///
+/// Unlike `OFFSET`-based pagination, this stays correct if rows are
+/// inserted/updated/deleted elsewhere in the table while iterating, and it
+/// never holds more than one page in memory.
+Stream<R> fetchAllPaginated<R, C>({
+  required C initialCursor,
+  required Future<List<R>> Function(
+    Database<PrimarySchema> db,
+    C after,
+    int batchSize,
+  )
+  fetchPage,
+  required C Function(R row) cursorOf,
+  int batchSize = 100,
+}) async* {
+  var cursor = initialCursor;
+  for (;;) {
+    final rows = await primaryDatabase.withRetry(
+      (db) => fetchPage(db, cursor, batchSize),
+    );
+    if (rows.isEmpty) {
+      return;
+    }
+    yield* Stream.fromIterable(rows);
+    cursor = cursorOf(rows.last);
+  }
+}
+
 /// Expand the connection URL to override default parameters, unless specified in the provided URL.
 String _expandConnectionUrl(String url) {
   final uri = Uri.parse(url.trim());
@@ -302,7 +339,7 @@ String _expandConnectionUrl(String url) {
 
 Future<(String, String?)> _startOrUseLocalPostgresInDocker() async {
   // sanity check
-  if (envConfig.isRunningInAppengine) {
+  if (envConfig.isRunningInCloud) {
     throw StateError('Missing connection URL in Appengine environment.');
   }
 

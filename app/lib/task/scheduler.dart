@@ -263,10 +263,10 @@ Future<SchedulePackageResult?> schedulePackageInstance({
         }
 
         final oldState = TaskState(
-          versions: {...s.state.versions},
-          abortedTokens: s.state.abortedTokens,
+          versions: {...s.state!.versions},
+          abortedTokens: s.state!.abortedTokens,
         );
-        final versions = s.state.versions;
+        final versions = s.state!.versions;
         versions.addEntries(
           versions.entries
               .where((e) => e.value.instance == instanceName)
@@ -275,7 +275,7 @@ Future<SchedulePackageResult?> schedulePackageInstance({
 
         final newState = TaskState(
           versions: versions,
-          abortedTokens: s.state.abortedTokens,
+          abortedTokens: s.state!.abortedTokens,
         );
         await db.tasks
             .byKey(runtimeVersion, package)
@@ -315,7 +315,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
 
     final now = clock.now();
     final pendingVersions = derivePendingVersions(
-      versions: task.state.versions,
+      versions: task.state!.versions,
       lastDependencyChanged: task.lastDependencyChanged,
       at: now,
     ).toList();
@@ -326,9 +326,9 @@ Future<Payload?> updatePackageStateWithPendingVersions(
 
     // Update PackageState
     final newVersions = {
-      ...task.state.versions,
+      ...task.state!.versions,
       for (final v in pendingVersions.map((v) => v.toString()))
-        v: task.state.versions[v]!.scheduleNew(
+        v: task.state!.versions[v]!.scheduleNew(
           scheduled: now,
           zone: zone,
           instanceName: instanceName,
@@ -337,7 +337,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     };
     final newState = TaskState(
       versions: newVersions,
-      abortedTokens: task.state.abortedTokens,
+      abortedTokens: task.state!.abortedTokens,
     );
     await db.tasks
         .byKey(runtimeVersion, package)

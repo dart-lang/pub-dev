@@ -151,6 +151,36 @@ extension TableSchemaMigrationExt on Table<SchemaMigration> {
     values: [schemaName, scriptName, scriptSha256, executedAt],
   );
 
+  /// Insert row into the `schemaMigrations` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `scriptSha256`, `executedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<SchemaMigration> upsert({
+    required Expr<String> schemaName,
+    required Expr<String> scriptName,
+    required Expr<String> scriptSha256,
+    required Expr<DateTime> executedAt,
+  }) =>
+      insert(
+            schemaName: schemaName,
+            scriptName: scriptName,
+            scriptSha256: scriptSha256,
+            executedAt: executedAt,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              scriptSha256: excluded.scriptSha256,
+              executedAt: excluded.executedAt,
+            ),
+          );
+
   /// Insert row into the `schemaMigrations` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
@@ -169,6 +199,36 @@ extension TableSchemaMigrationExt on Table<SchemaMigration> {
       executedAt.asExpr,
     ],
   );
+
+  /// Insert row into the `schemaMigrations` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `scriptSha256`, `executedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<SchemaMigration> upsertValue({
+    required String schemaName,
+    required String scriptName,
+    required String scriptSha256,
+    required DateTime executedAt,
+  }) =>
+      insertValue(
+            schemaName: schemaName,
+            scriptName: scriptName,
+            scriptSha256: scriptSha256,
+            executedAt: executedAt,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              scriptSha256: excluded.scriptSha256,
+              executedAt: excluded.executedAt,
+            ),
+          );
 
   /// Bulk insert rows into the `schemaMigrations` table.
   ///

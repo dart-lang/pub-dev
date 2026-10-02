@@ -21,6 +21,7 @@ import '../account/consent_backend.dart';
 import '../account/like_backend.dart';
 import '../account/models.dart';
 import '../admin/models.dart';
+import '../audit/backend.dart';
 import '../audit/models.dart';
 import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, triggerPackagePostUpdates;
@@ -269,7 +270,7 @@ class AdminBackend {
   }
 
   Future<void> _markUserDeleted(User user) async {
-    await withRetryTransaction(_db, (tx) async {
+    final u = await withRetryTransaction(_db, (tx) async {
       final u = await tx.lookupValue<User>(user.key);
       final deleteKeys = <Key>[];
       if (user.oauthUserId != null) {
@@ -288,7 +289,9 @@ class AdminBackend {
         ..created = null
         ..isDeleted = true;
       tx.queueMutations(inserts: [u], deletes: deleteKeys);
+      return u;
     });
+    await accountBackend.mirrorUserToSql(u);
   }
 
   /// Removes the package from the Datastore and updates other related
@@ -369,6 +372,7 @@ class AdminBackend {
     final deletedAuditLogRecords = await _db.deleteWithQuery(
       _db.query<AuditLogRecord>()..filter('packages =', packageName),
     );
+    await auditBackend.deleteSqlRecordsForPackage(packageName);
 
     _logger.info('Removing Package from Datastore...');
     var deletedPackages = 0;
@@ -462,6 +466,7 @@ class AdminBackend {
         'of package $packageName $version to be $isRetracted.',
       );
 
+      AuditLogRecord? auditLogRecord;
       await withRetryTransaction(_db, (tx) async {
         final p = await tx.lookupOrNull<Package>(
           _db.emptyKey.append(Package, id: packageName),
@@ -477,7 +482,7 @@ class AdminBackend {
         }
 
         if (pv.isRetracted != isRetracted) {
-          await packageBackend.doUpdateRetractedStatus(
+          auditLogRecord = await packageBackend.doUpdateRetractedStatus(
             caller,
             tx,
             p,
@@ -486,6 +491,9 @@ class AdminBackend {
           );
         }
       });
+      if (auditLogRecord != null) {
+        await auditBackend.mirrorToSql(auditLogRecord!);
+      }
       triggerPackagePostUpdates(packageName);
     }
   }
@@ -722,6 +730,7 @@ class AdminBackend {
       'No users found for email: `$uploaderEmail`.',
     );
 
+    final auditRecords = <AuditLogRecord>[];
     await withRetryTransaction(_db, (tx) async {
       final p = await tx.lookupValue<Package>(package.key);
       InvalidInputException.check(
@@ -733,31 +742,34 @@ class AdminBackend {
         final r = p.uploaders!.remove(uploaderUser.userId);
         if (r) {
           removed = true;
-          tx.insert(
-            await AuditLogRecord.uploaderRemoved(
-              agent: authenticatedAgent,
-              package: packageName,
-              uploaderUser: uploaderUser,
-            ),
+          final record = await AuditLogRecord.uploaderRemoved(
+            agent: authenticatedAgent,
+            package: packageName,
+            uploaderUser: uploaderUser,
           );
+          auditRecords.add(record);
+          tx.insert(record);
         }
       }
       if (removed) {
         if (p.uploaders!.isEmpty) {
           p.isDiscontinued = true;
-          tx.insert(
-            await AuditLogRecord.packageOptionsUpdated(
-              agent: authenticatedAgent,
-              package: packageName,
-              publisherId: p.publisherId,
-              options: ['discontinued'],
-            ),
+          final record = await AuditLogRecord.packageOptionsUpdated(
+            agent: authenticatedAgent,
+            package: packageName,
+            publisherId: p.publisherId,
+            options: ['discontinued'],
           );
+          auditRecords.add(record);
+          tx.insert(record);
         }
         p.updated = clock.now().toUtc();
         tx.insert(p);
       }
     });
+    for (final record in auditRecords) {
+      await auditBackend.mirrorToSql(record);
+    }
     return await handleGetPackageUploaders(packageName);
   }
 

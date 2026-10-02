@@ -299,7 +299,7 @@ class AccountBackend {
   }
 
   Future<User> _updateUserEmail(User user, String email) async {
-    return await withRetryTransaction(_db, (tx) async {
+    final u = await withRetryTransaction(_db, (tx) async {
       final u = await tx.lookupValue<User>(user.key);
       if (u.email != email) {
         u.email = email;
@@ -307,6 +307,8 @@ class AccountBackend {
       }
       return u;
     });
+    await mirrorUserToSql(u);
+    return u;
   }
 
   /// Returns an [User] entity for the authenticated service account.
@@ -348,7 +350,9 @@ class AccountBackend {
       return user;
     }
 
-    return await withRetryTransaction<User>(_db, (tx) async {
+    final createdOrLinkedUser = await withRetryTransaction<User>(_db, (
+      tx,
+    ) async {
       final oauthUserIdKey = emptyKey.append(OAuthUserID, id: auth.oauthUserId);
 
       // Check that the user doesn't exist in this transaction.
@@ -421,6 +425,8 @@ class AccountBackend {
 
       return user;
     });
+    await mirrorUserToSql(createdOrLinkedUser);
+    return createdOrLinkedUser;
   }
 
   /// Updates an existing or creates a new client session for pre-authorization
@@ -636,7 +642,7 @@ class AccountBackend {
   }) async {
     return await primaryDatabase.transactWithRetry((db) async {
       return await db.userSessions
-          .insertValue(
+          .upsertValue(
             sessionId: sessionId,
             userId: userId,
             email: email,
@@ -649,22 +655,6 @@ class AccountBackend {
             openidNonce: openidNonce,
             accessToken: accessToken,
             grantedScopes: grantedScopes,
-          )
-          .onConflict(.primaryKey)
-          .update(
-            (_, _, set) => set(
-              userId: userId.asExpr,
-              email: email.asExpr,
-              name: name.asExpr,
-              imageUrl: imageUrl.asExpr,
-              created: created.asExpr,
-              expires: expires.asExpr,
-              authenticatedAt: authenticatedAt.asExpr,
-              csrfToken: csrfToken.asExpr,
-              openidNonce: openidNonce.asExpr,
-              accessToken: accessToken.asExpr,
-              grantedScopes: grantedScopes.asExpr,
-            ),
           )
           .returnUpserted()
           .executeAndFetch();
@@ -708,7 +698,7 @@ class AccountBackend {
     required String? moderatedReason,
     required String? note,
   }) async {
-    await withRetryTransaction(_db, (tx) async {
+    final user = await withRetryTransaction(_db, (tx) async {
       final user = await tx.lookupOrNull<User>(
         _db.emptyKey.append(User, id: userId),
       );
@@ -729,9 +719,52 @@ class AccountBackend {
         );
         tx.insert(mc);
       }
+      return user;
     });
+    await mirrorUserToSql(user);
     await _expireSessionsForUserId(userId);
     await purgeAccountCache(userId: userId);
+  }
+
+  /// Upserts [user] into the SQL `users` mirror table (best-effort).
+  Future<void> mirrorUserToSql(User user) async {
+    await primaryDatabase.transactWithRetry(
+      (db) => db.users
+          .upsertValue(
+            userId: user.userId,
+            oauthUserId: user.oauthUserId,
+            email: user.email,
+            createdAt: user.created,
+            isDeleted: user.isDeleted,
+            isModerated: user.isModerated,
+            moderatedAt: user.moderatedAt,
+            moderatedReason: user.moderatedReason,
+          )
+          .execute(),
+    );
+  }
+
+  /// Deletes the SQL mirror row of [userId] (best-effort), mirroring a hard
+  /// deletion of the Datastore `User` entity (e.g. as part of a user merge).
+  Future<void> deleteUserMirrorFromSql(String userId) async {
+    await primaryDatabase.withRetry((db) => db.users.delete(userId).execute());
+  }
+
+  /// Copies [User] entities from Datastore into SQL, for entities that are
+  /// not yet present in SQL.
+  Future<int> backfillSqlFromDatastore() async {
+    var count = 0;
+    await for (final user in _db.query<User>().run()) {
+      final existing = await primaryDatabase.withRetry(
+        (db) => db.users.byKey(user.userId).fetch(),
+      );
+      if (existing != null) {
+        continue;
+      }
+      await mirrorUserToSql(user);
+      count++;
+    }
+    return count;
   }
 
   /// Retrieves a list of all uploader events that happened between [begin] and

@@ -5,6 +5,7 @@
 import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
 
+import '../../audit/backend.dart';
 import '../../audit/models.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
@@ -47,19 +48,19 @@ If the publisher has no members, the package will end up without uploaders.
     final currentPublisherMembers = (await publisherBackend
         .listPublisherMembers(currentPublisherId));
 
+    final auditLogRecord = await AuditLogRecord.packageRemovedFromPublisher(
+      package: packageName,
+      fromPublisherId: currentPublisherId,
+    );
     await withRetryTransaction(dbService, (tx) async {
       final pkg = await tx.lookupValue<Package>(package.key);
       pkg.publisherId = null;
       pkg.uploaders = currentPublisherMembers.map((e) => e.userId).toList();
       pkg.updated = clock.now().toUtc();
       tx.insert(pkg);
-      tx.insert(
-        await AuditLogRecord.packageRemovedFromPublisher(
-          package: packageName,
-          fromPublisherId: currentPublisherId,
-        ),
-      );
+      tx.insert(auditLogRecord);
     });
+    await auditBackend.mirrorToSql(auditLogRecord);
     triggerPackagePostUpdates(
       packageName,
       skipReanalysis: true,

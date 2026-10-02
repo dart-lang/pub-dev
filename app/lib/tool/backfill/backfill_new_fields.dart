@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:logging/logging.dart';
-import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/consent_backend.dart';
+import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/task/global_lock_models.dart';
 
@@ -17,44 +18,22 @@ final _logger = Logger('backfill_new_fields');
 /// CHANGELOG.md must be updated with the new fields, and the next
 /// release could remove the backfill from here.
 Future<void> backfillNewFields() async {
-  _logger.info('Cleanup the Package.publishingConfig migration.');
-  await for (final p in dbService.query<Package>().run()) {
-    if (p.automatedPublishing != null) {
-      // Note: the following code must not happen, but just in case, we abort the cleanup.
-      if (p.publishingConfig == null) {
-        _logger.shout(
-          'Package "${p.name}" has `automatedPublishing` but no `publishingConfig`.',
-        );
-        return;
-      }
-      // Note: Cheap sanity check, but may be the same object with different JSON output.
-      //       Just in case, we abort the cleanup if it differs.
-      bool jsonDiffers(Object? a, Object? b) =>
-          json.encode(a) != json.encode(b);
-      final isDifferent =
-          jsonDiffers(
-            p.automatedPublishing?.gcpConfig?.toJson(),
-            p.publishingConfig?.gcpConfig?.toJson(),
-          ) ||
-          jsonDiffers(
-            p.automatedPublishing?.githubConfig?.toJson(),
-            p.publishingConfig?.githubConfig?.toJson(),
-          );
-
-      if (isDifferent) {
-        _logger.shout(
-          'Package "${p.name}" has `automatedPublishing` and `publishingConfig` with different JSON serialization.',
-        );
-        continue;
-      }
-
-      await withRetryTransaction(dbService, (tx) async {
-        final pkg = await tx.lookupValue<Package>(p.key);
-        pkg.automatedPublishing = null;
-        tx.insert(pkg);
-      });
-    }
-  }
   _logger.info('Delete old GlobalLockState entities in Datastore');
   await dbService.deleteWithQuery(dbService.query<GlobalLockState>());
+
+  // NOTE: Keep these around until all of the audit log record is migrated to use SQL.
+  _logger.info('Backfilling audit log records...');
+  await auditBackend.backfillSqlFromDatastore();
+
+  // NOTE: Keep this around until Consent is migrated to use SQL.
+  _logger.info('Backfilling consents...');
+  await consentBackend.backfillSqlFromDatastore();
+
+  // NOTE: Keep this around until User is migrated to use SQL.
+  _logger.info('Backfilling users...');
+  await accountBackend.backfillSqlFromDatastore();
+
+  // NOTE: Keep this around until ReservedPackage is migrated to use SQL.
+  _logger.info('Backfilling reserved packages...');
+  await packageBackend.backfillReservedPackagesSqlFromDatastore();
 }

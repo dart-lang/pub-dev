@@ -139,11 +139,17 @@ extension BucketExt on Bucket {
   }
 
   /// Reads file content as bytes.
+  ///
+  /// The read is abandoned with a [TimeoutException] when [timeout] elapses
+  /// without a chunk arriving, or when the read as a whole takes longer than
+  /// [timeout]. Each abandoned attempt is retried like any other transient
+  /// storage failure.
   Future<Uint8List> readAsBytes(
     String objectName, {
     int? offset,
     int? length,
     int? maxSize,
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     if (offset != null && offset < 0) {
       throw ArgumentError.value(offset, 'offset must be positive, if given');
@@ -158,10 +164,17 @@ extension BucketExt on Bucket {
       throw MaximumSizeExceeded(maxSize);
     }
     return _retry(() async {
-      final timeout = Duration(seconds: 30);
       final deadline = clock.now().add(timeout);
       final builder = BytesBuilder(copy: false);
-      final stream = read(objectName, offset: offset, length: length);
+      // The deadline below is only evaluated when a chunk arrives, so on its
+      // own it does not bound a read that stalls and delivers nothing. The
+      // idle timeout does, and cancels the subscription by way of the error.
+      final stream = read(objectName, offset: offset, length: length).timeout(
+        timeout,
+        onTimeout: (sink) => sink.addError(
+          TimeoutException('Reading $objectName stalled.', timeout),
+        ),
+      );
       await for (final chunk in stream) {
         builder.add(chunk);
         if (maxSize != null && builder.length > maxSize) {
@@ -190,14 +203,19 @@ extension BucketExt on Bucket {
     FutureOr<void> Function(BucketEntry input) fn, {
     String? prefix,
     String? delimiter,
+    int pageSize = 1000,
   }) async {
-    var p = await pageWithRetry(prefix: prefix, delimiter: delimiter);
+    var p = await pageWithRetry(
+      prefix: prefix,
+      delimiter: delimiter,
+      pageSize: pageSize,
+    );
     for (;;) {
       for (final item in p.items) {
         await fn(item);
       }
       if (p.isLast) break;
-      p = await p.nextWithRetry();
+      p = await p.nextWithRetry(pageSize: pageSize);
     }
   }
 
@@ -205,9 +223,15 @@ extension BucketExt on Bucket {
   Future<List<BucketEntry>> listAllItemsWithRetry({
     String? prefix,
     String? delimiter,
+    int pageSize = 1000,
   }) async {
     final entries = <BucketEntry>[];
-    await listWithRetry(prefix: prefix, delimiter: delimiter, entries.add);
+    await listWithRetry(
+      prefix: prefix,
+      delimiter: delimiter,
+      pageSize: pageSize,
+      entries.add,
+    );
     return entries;
   }
 

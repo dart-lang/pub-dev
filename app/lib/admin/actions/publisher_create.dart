@@ -6,6 +6,7 @@ import 'package:clock/clock.dart';
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -43,6 +44,11 @@ This should generally only be done with PM approval as it skips actual domain ve
 
     // Create the publisher
     final now = clock.now().toUtc();
+    final auditLogRecord = await AuditLogRecord.publisherCreated(
+      user: user,
+      publisherId: publisherId,
+    );
+    var created = false;
     await withRetryTransaction(dbService, (tx) async {
       final key = dbService.emptyKey.append(Publisher, id: publisherId);
       final p = await tx.lookupOrNull<Publisher>(key);
@@ -64,6 +70,7 @@ This should generally only be done with PM approval as it skips actual domain ve
       }
 
       // Create publisher
+      created = true;
       tx.queueMutations(
         inserts: [
           Publisher.init(
@@ -78,13 +85,13 @@ This should generally only be done with PM approval as it skips actual domain ve
             ..created = now
             ..updated = now
             ..role = PublisherMemberRole.admin,
-          await AuditLogRecord.publisherCreated(
-            user: user,
-            publisherId: publisherId,
-          ),
+          auditLogRecord,
         ],
       );
     });
+    if (created) {
+      await auditBackend.mirrorToSql(auditLogRecord);
+    }
     return {
       'message': 'Publisher created.',
       'publisherId': publisherId,

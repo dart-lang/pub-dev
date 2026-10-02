@@ -1,16 +1,28 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:clock/clock.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/service/email/backend.dart';
 import 'package:pub_dev/service/email/email_templates.dart';
 import 'package:pub_dev/service/email/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../../shared/test_services.dart';
+
+OutgoingEmail _testEmail() => emailBackend.prepareEntity(
+  createInviteEmail(
+    invitedEmail: 'recipient@pub.dev',
+    subject: 'subject',
+    inviteText: 'invite text',
+    consentUrl: 'https://pub.dev/consent',
+  ),
+);
 
 void main() {
   group('EmailBackend', () {
@@ -27,6 +39,7 @@ void main() {
           ),
         );
         await dbService.commit(inserts: [entry]);
+        await emailBackend.migrateToSql(entry);
         await emailBackend.trySendOutgoingEmail(entry);
         expect(fakeEmailSender.sentMessages, hasLength(1));
         final email = fakeEmailSender.sentMessages.single;
@@ -65,6 +78,7 @@ void main() {
           ),
         );
         await dbService.commit(inserts: [entry]);
+        await emailBackend.migrateToSql(entry);
 
         for (var i = 0; i < 2; i++) {
           await withClock(
@@ -101,16 +115,19 @@ void main() {
         );
         expect(entry.recipientEmails?.toSet(), {'to1@pub.dev', 'to2@pub.dev'});
         await dbService.commit(inserts: [entry]);
+        await emailBackend.migrateToSql(entry);
 
-        OutgoingEmail? pending;
         fakeEmailSender.failNextMessageCount = 1;
         await withClock(
           Clock.fixed(clock.now().add(Duration(hours: 1))),
           () async {
             expect(await emailBackend.trySendAllOutgoingEmails(), 1);
             expect(await emailBackend.deleteDeadOutgoingEmails(), 0);
-            pending = await dbService.lookupValue<OutgoingEmail>(entry.key);
-            expect(pending!.recipientEmails, hasLength(1));
+            final pending = await primaryDatabase.withRetry(
+              (db) => db.outgoingEmails.byKey(entry.uuid).fetch(),
+            );
+            expect(pending, isNotNull);
+            expect(pending!.recipientEmailsJson.value as List, hasLength(1));
           },
         );
 
@@ -118,8 +135,12 @@ void main() {
         await withClock(
           Clock.fixed(clock.now().add(Duration(hours: 3))),
           () async {
-            pending!.claimId = 'claim-uuid';
-            await dbService.commit(inserts: [pending!]);
+            await primaryDatabase.withRetry(
+              (db) => db.outgoingEmails
+                  .byKey(entry.uuid)
+                  .update((_, set) => set(claimId: 'claim-uuid'.asExpr))
+                  .execute(),
+            );
             expect(await emailBackend.trySendAllOutgoingEmails(), 0);
             expect(await emailBackend.deleteDeadOutgoingEmails(), 0);
           },
@@ -133,6 +154,122 @@ void main() {
             expect(await emailBackend.deleteDeadOutgoingEmails(), 1);
           },
         );
+      },
+    );
+  });
+
+  group('SQL migration', () {
+    testWithProfile(
+      'trySendOutgoingEmail deletes the SQL row on success',
+      fn: () async {
+        final email = _testEmail();
+        await dbService.commit(inserts: [email]);
+        await emailBackend.migrateToSql(email);
+
+        final sent = await emailBackend.trySendOutgoingEmail(email);
+        expect(sent, 1);
+
+        final row = await primaryDatabase.withRetry(
+          (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
+        );
+        expect(row, isNull);
+      },
+    );
+
+    testWithProfile(
+      'trySendOutgoingEmail updates the SQL row after a failed attempt',
+      fn: () async {
+        fakeEmailSender.failNextMessageCount = 1;
+        final email = _testEmail();
+        await dbService.commit(inserts: [email]);
+        await emailBackend.migrateToSql(email);
+
+        final sent = await emailBackend.trySendOutgoingEmail(email);
+        expect(sent, 0);
+
+        final row = await primaryDatabase.withRetry(
+          (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
+        );
+        expect(row, isNotNull);
+        expect(row!.attempts, 1);
+        expect(row.claimId, isNull);
+        expect(row.fromEmail, email.fromEmail);
+      },
+    );
+
+    testWithProfile(
+      'deleteDeadOutgoingEmails removes dead rows in bulk',
+      fn: () async {
+        final email = _testEmail()..attempts = outgoingEmailMaxAttempts;
+        await dbService.commit(inserts: [email]);
+        await emailBackend.migrateToSql(email);
+
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
+          ),
+          isNotNull,
+        );
+
+        await emailBackend.deleteDeadOutgoingEmails();
+
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
+          ),
+          isNull,
+        );
+      },
+    );
+
+    testWithProfile(
+      'deleteDeadOutgoingEmails removes rows with an expired claim',
+      fn: () async {
+        final email = _testEmail()
+          ..claimId = 'claim'
+          ..lastAttempted = clock.now().toUtc().subtract(
+            outgoingEmailClaimExpiration + Duration(minutes: 1),
+          );
+        await dbService.commit(inserts: [email]);
+        await emailBackend.migrateToSql(email);
+
+        await emailBackend.deleteDeadOutgoingEmails();
+
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
+          ),
+          isNull,
+        );
+      },
+    );
+
+    testWithProfile(
+      'migrateFromDatastore migrates rows and deletes the Datastore entity',
+      fn: () async {
+        final email = _testEmail();
+        await dbService.commit(inserts: [email]);
+
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
+          ),
+          isNull,
+        );
+
+        final count = await withClock(
+          Clock.fixed(clock.now().add(Duration(minutes: 5))),
+          () => emailBackend.migrateFromDatastore(),
+        );
+        expect(count, greaterThanOrEqualTo(1));
+
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.outgoingEmails.byKey(email.uuid).fetch(),
+          ),
+          isNotNull,
+        );
+        expect(await dbService.lookupOrNull<OutgoingEmail>(email.key), isNull);
       },
     );
   });

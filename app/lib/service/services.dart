@@ -4,7 +4,6 @@
 
 import 'dart:async' show FutureOr, Zone;
 
-import 'package:_pub_shared/utils/http.dart';
 import 'package:appengine/appengine.dart';
 import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
@@ -34,7 +33,6 @@ import '../fake/backend/fake_auth_provider.dart';
 import '../fake/backend/fake_domain_verifier.dart';
 import '../fake/backend/fake_email_sender.dart';
 import '../fake/backend/fake_upload_signer_service.dart';
-import '../fake/server/fake_client_context.dart';
 import '../fake/server/fake_storage_server.dart';
 import '../frontend/handlers.dart';
 import '../package/backend.dart';
@@ -78,20 +76,21 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
     throw StateError('Already in withServices scope.');
   }
   return withAppEngineServices(() async {
-    if (envConfig.isRunningInAppengine) {
+    if (envConfig.isRunningInCloud) {
       setupAppEngineLogging();
     }
     return await fork(() async {
-      // retrying auth client for storage service
+      // auth client for storage service
       final authClient = await auth.clientViaApplicationDefaultCredentials(
         scopes: [...Storage.SCOPES],
       );
-      final retryingAuthClient = httpRetryClient(innerClient: authClient);
-      registerScopeExitCallback(() async => retryingAuthClient.close());
+      registerScopeExitCallback(() async => authClient.close());
 
-      // override storageService with retrying http client
+      // Retrying is done per operation by the helpers in `storage.dart`, and
+      // per chunk of a resumable upload by package:googleapis. A retrying
+      // client here would multiply both.
       registerStorageService(
-        Storage(retryingAuthClient, activeConfiguration.projectId),
+        Storage(authClient, activeConfiguration.projectId),
       );
 
       // register services with external dependencies
@@ -153,7 +152,6 @@ Future<R> withFakeServices<R>({
   storage ??= MemStorage();
   // TODO: update `package:gcloud` to have a typed fork.
   return await fork(() async {
-        register(#appengine.context, FakeClientContext());
         registerDbService(DatastoreDB(datastore!));
         registerStorageService(RetryEnforcerStorage(storage!));
         if (primaryDatabase != null) {

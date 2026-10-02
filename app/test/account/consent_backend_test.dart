@@ -6,17 +6,22 @@ import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:gcloud/db.dart';
+import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
+import 'package:pub_dev/service/email/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
@@ -517,7 +522,136 @@ void main() {
       },
     );
   });
+
+  group('SQL mirror', () {
+    testWithProfile(
+      'mirrorToSql writes row',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.mirrorToSql(consent);
+
+        final row = await primaryDatabase.withRetry(
+          (db) => db.consents.byKey(consent.consentId).fetch(),
+        );
+        expect(row, isNotNull);
+        expect(row!.email, consent.email);
+        expect(row.dedupId, consent.dedupId);
+        expect(row.kind, ConsentKind.packageUploader);
+        expect(row.argsJson.value, ['oxygen']);
+        expect(row.fromAgent, KnownAgents.pubSupport);
+        expect(row.notificationCount, 0);
+        expect(row.lastNotifiedAt, isNull);
+      },
+    );
+
+    testWithProfile(
+      'mirrorToSql is idempotent',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.mirrorToSql(consent);
+        await consentBackend.mirrorToSql(consent);
+
+        final rows = await primaryDatabase.withRetry(
+          (db) => db.consents
+              .where((c) => c.id.equalsValue(consent.consentId))
+              .fetch(),
+        );
+        expect(rows, hasLength(1));
+      },
+    );
+
+    testWithProfile(
+      'deleting the consent removes the mirrored row',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.mirrorToSql(consent);
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.consents.byKey(consent.consentId).fetch(),
+          ),
+          isNotNull,
+        );
+
+        await _expireConsent(consent.consentId);
+
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.consents.byKey(consent.consentId).fetch(),
+          ),
+          isNull,
+        );
+      },
+    );
+
+    testWithProfile(
+      'backfillSqlFromDatastore copies missing rows',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.consents.byKey(consent.consentId).fetch(),
+          ),
+          isNull,
+        );
+
+        final count = await consentBackend.backfillSqlFromDatastore();
+        expect(count, greaterThanOrEqualTo(1));
+
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.consents.byKey(consent.consentId).fetch(),
+          ),
+          isNotNull,
+        );
+      },
+    );
+
+    testWithProfile(
+      'the notification OutgoingEmail is migrated to SQL',
+      fn: () async {
+        // Force the immediate send attempt to fail, so the `OutgoingEmail`
+        // row survives (rather than being deleted right away), and we can
+        // confirm it was migrated into SQL.
+        fakeEmailSender.failNextMessageCount = 1;
+        await withFakeAuthRetryPubApiClient(
+          email: 'admin@pub.dev',
+          pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
+          (client) async {
+            await client.invitePackageUploader(
+              'oxygen',
+              InviteUploaderRequest(email: userAtPubDevEmail),
+            );
+          },
+        );
+
+        final rows = await primaryDatabase.withRetry(
+          (db) => db.outgoingEmails.fetch(),
+        );
+        final row = rows.singleWhere(
+          (r) =>
+              (r.recipientEmailsJson.value as List).contains(userAtPubDevEmail),
+        );
+        expect(row.recipientEmailsJson.value, [userAtPubDevEmail]);
+
+        final inDatastore = await dbService.lookupOrNull<OutgoingEmail>(
+          dbService.emptyKey.append(OutgoingEmail, id: row.id),
+        );
+        expect(inDatastore, isNull);
+      },
+    );
+  });
 }
+
+Consent _testConsent() => Consent.init(
+  fromAgent: KnownAgents.pubSupport,
+  email: 'uploader@pub.dev',
+  kind: ConsentKind.packageUploader,
+  args: ['oxygen'],
+);
 
 Future<void> _expireConsent(String? consentId) async {
   final consent = await dbService.lookupValue<Consent>(

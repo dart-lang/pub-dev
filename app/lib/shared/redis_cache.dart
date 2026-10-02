@@ -156,6 +156,22 @@ class CachePatterns {
       .withTTL(Duration(hours: 1))
       .withCodec(utf8)['$package-$version'];
 
+  /// Cache for the list of `AssetKind` values that exist for a package version.
+  Entry<List<String>> packageVersionAssetKinds(
+    String package,
+    String version,
+  ) => _cache
+      .withPrefix('package-version-asset-kinds/')
+      .withTTL(Duration(minutes: 10))
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(
+        wrapAsCodec(
+          encode: (List<String> v) => v,
+          decode: (d) => (d as List).cast<String>(),
+        ),
+      )['$package-$version'];
+
   Entry<List<int>> packageData(String package) => _cache
       .withPrefix('api-package-data-by-uri/')
       .withTTL(Duration(minutes: 10))['$package'];
@@ -539,7 +555,7 @@ void _registerCache(CachePatterns cache) => ss.register(#_cache, cache);
 /// - otherwise, a local in-memory cache.
 Future<void> setupCache() async {
   // Use in-memory cache, if not running on AppEngine
-  if (envConfig.isRunningInAppengine) {
+  if (envConfig.isRunningInCloud) {
     await _registerRedisCache();
   } else {
     _log.warning('using in-memory cache instead of redis');
