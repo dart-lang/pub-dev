@@ -11,42 +11,46 @@ import 'package:pub_integration/src/test_browser.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('Search with SDK and regular results', () {
-    late final TestContextProvider fakeTestScenario;
+  group(
+    'Search with SDK and regular results',
+    () {
+      late final TestContextProvider fakeTestScenario;
 
-    setUpAll(() async {
-      fakeTestScenario = await TestContextProvider.start();
-    });
-
-    tearDownAll(() async {
-      await fakeTestScenario.close();
-    });
-
-    test('bulk tests', () async {
-      // init server data
-      await http.post(
-        Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
-        body: json.encode({
-          'testProfile': {
-            'defaultUser': 'admin@pub.dev',
-            'generatedPackages': [
-              {'name': 'json_pkg', 'description': 'Some JSON utility'},
-            ],
-          },
-        }),
-      );
-
-      final anon = await fakeTestScenario.createAnonymousTestUser();
-
-      await anon.withBrowserPage((page) async {
-        await page.gotoOrigin('/packages?q=json');
-        final info = await listingPageInfo(page);
-        expect(info.packageNames, [
-          'dart:convert', // SDK package
-          'flutter_driver', // SDK package
-          'json_pkg', // regular package
-        ]);
+      setUpAll(() async {
+        fakeTestScenario = await TestContextProvider.start();
       });
-    });
-  });
+
+      tearDownAll(() async {
+        await fakeTestScenario.close();
+      });
+
+      test('bulk tests', () async {
+        // init server data
+        await http.post(
+          Uri.parse('${fakeTestScenario.pubHostedUrl}/fake-test-profile'),
+          body: json.encode({
+            'testProfile': {
+              'defaultUser': 'admin@pub.dev',
+              'generatedPackages': [
+                {'name': 'json_pkg', 'description': 'Some JSON utility'},
+              ],
+            },
+          }),
+        );
+
+        final anon = await fakeTestScenario.createAnonymousTestUser();
+
+        await anon.withBrowserPage((page) async {
+          await page.gotoOrigin('/packages?q=json');
+          final info = await listingPageInfo(page);
+          expect(info.packageNames, [
+            'dart:convert', // SDK package
+            'flutter_driver', // SDK package
+            'json_pkg', // regular package
+          ]);
+        });
+      });
+    },
+    timeout: Timeout.factor(testTimeoutFactor),
+  );
 }
