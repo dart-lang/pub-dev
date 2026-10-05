@@ -31,7 +31,7 @@ trap 'rm -rf "$WORK_DIR"' EXIT
 # Download crane
 OS=$(uname -s)
 ARCH=$(uname -m)
-curl -sL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_${OS}_${ARCH}.tar.gz" | tar -xzf - -C "$WORK_DIR" crane
+curl --retry 8 -f -sL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_${OS}_${ARCH}.tar.gz" | tar -xzf - -C "$WORK_DIR" crane
 
 # Download and extract rootfs
 mkdir -p "$TARGET_DIRECTORY"
