@@ -253,6 +253,13 @@ class PackageBackend {
   Future<int> backfillPackageTombstonesSqlFromDatastore() async {
     var count = 0;
     await for (final mp in db.query<ModeratedPackage>().run()) {
+      final existing = await primaryDatabase.withRetry(
+        (db) => db.packageTombstones.byKey(mp.name!).fetch(),
+      );
+      if (existing != null &&
+          existing.moderatedAt.isAtSameMomentAs(mp.moderated)) {
+        continue;
+      }
       await mirrorPackageTombstoneToSql(mp);
       count++;
     }

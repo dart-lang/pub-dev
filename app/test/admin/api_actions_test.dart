@@ -89,7 +89,7 @@ void main() {
         ]
         ..uploaders = [];
       await dbService.commit(inserts: [moderatedPkg]);
-      await packageBackend.mirrorPackageTombstoneToSql(moderatedPkg);
+      await packageBackend.backfillPackageTombstonesSqlFromDatastore();
 
       // verify that new upload is blocked
       final pubspecContent = generatePubspecYaml('oxygen', '9.0.0');
