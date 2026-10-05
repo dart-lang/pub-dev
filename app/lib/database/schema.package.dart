@@ -4,6 +4,23 @@
 
 part of 'schema.dart';
 
+/// Entity representing a package that has been removed (moderated).
+@PrimaryKey(['name'])
+abstract final class PackageTombstone extends Row {
+  String get name;
+
+  DateTime get moderatedAt;
+
+  /// The previous publisher id (null, if the package did not have a publisher).
+  String? get publisherId;
+
+  /// List of `User.userId` of previous uploaders.
+  JsonValue get uploadersJson;
+
+  /// List of previous versions.
+  JsonValue get versionsJson;
+}
+
 /// Entity representing a reserved package: the name is available only for a
 /// subset of the users (`@google.com` + a list of emails).
 ///

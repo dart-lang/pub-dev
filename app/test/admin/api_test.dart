@@ -14,6 +14,8 @@ import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
@@ -26,6 +28,7 @@ import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
@@ -357,6 +360,15 @@ void main() {
           expect(moderatedPkg.uploaders, package.uploaders);
           expect(moderatedPkg.publisherId, package.publisherId);
           expect(moderatedPkg.versions, ['1.0.0', '1.2.0', '2.0.0-dev']);
+
+          final row = await primaryDatabase.withRetry(
+            (db) => db.packageTombstones.byKey('oxygen').fetch(),
+          );
+          expect(row, isNotNull);
+          expect(row!.name, 'oxygen');
+          expect(row.publisherId, package.publisherId);
+          expect(row.uploadersJson.value, package.uploaders);
+          expect(row.versionsJson.value, ['1.0.0', '1.2.0', '2.0.0-dev']);
         },
       );
     });

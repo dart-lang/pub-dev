@@ -376,7 +376,7 @@ class AdminBackend {
 
     _logger.info('Removing Package from Datastore...');
     var deletedPackages = 0;
-    await withRetryTransaction(_db, (tx) async {
+    final insertedModeratedPkg = await withRetryTransaction(_db, (tx) async {
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
         _logger.info(
@@ -384,7 +384,7 @@ class AdminBackend {
         );
         // Returning early makes sure we are not creating ghost `ModeratedPackage`
         // entities because of a typo.
-        return;
+        return null;
       }
       tx.delete(packageKey);
       deletedPackages = 1;
@@ -395,32 +395,37 @@ class AdminBackend {
       final moderatedPkg = await _db.lookupOrNull<ModeratedPackage>(
         moderatedPkgKey,
       );
-      if (moderatedPkg == null) {
-        // Refresh versions to make sure we are not missing a freshly uploaded one.
-        versions.addAll(
-          await tx
-              .query<PackageVersion>(packageKey)
-              .run()
-              .map((pv) => pv.version!)
-              .toList(),
-        );
-
-        versions.addAll(package.deletedVersions ?? const <String>[]);
-
-        tx.insert(
-          ModeratedPackage()
-            ..parentKey = _db.emptyKey
-            ..id = packageName
-            ..name = packageName
-            ..moderated = moderated ?? clock.now().toUtc()
-            ..versions = versions.toList()
-            ..publisherId = package.publisherId
-            ..uploaders = package.uploaders,
-        );
-
-        _logger.info('Adding package to moderated packages ...');
+      if (moderatedPkg != null) {
+        return null;
       }
+      // Refresh versions to make sure we are not missing a freshly uploaded one.
+      versions.addAll(
+        await tx
+            .query<PackageVersion>(packageKey)
+            .run()
+            .map((pv) => pv.version!)
+            .toList(),
+      );
+
+      versions.addAll(package.deletedVersions ?? const <String>[]);
+
+      final insertedModeratedPkg = ModeratedPackage()
+        ..parentKey = _db.emptyKey
+        ..id = packageName
+        ..name = packageName
+        ..moderated = moderated ?? clock.now().toUtc()
+        ..versions = versions.toList()
+        ..publisherId = package.publisherId
+        ..uploaders = package.uploaders;
+      tx.insert(insertedModeratedPkg);
+
+      _logger.info('Adding package to moderated packages ...');
+      return insertedModeratedPkg;
     });
+
+    if (insertedModeratedPkg != null) {
+      await packageBackend.mirrorPackageTombstoneToSql(insertedModeratedPkg);
+    }
 
     _logger.info('Removing package from PackageVersion ...');
     await _db.deleteWithQuery(
