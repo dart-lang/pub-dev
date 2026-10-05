@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -37,33 +38,42 @@ class AuditBackend {
 
   AuditBackend(this._db);
 
-  Future<AuditLogRecordPage> _query(
-    String propertyName,
+  Future<AuditLogRecordPage> _querySql(
+    String associationKind,
     String value,
     DateTime? before,
   ) async {
-    assert(
-      propertyName == 'users' ||
-          propertyName == 'packages' ||
-          propertyName == 'packageVersions' ||
-          propertyName == 'publishers',
-    );
-    final query = _db.query<AuditLogRecord>()
-      ..filter('$propertyName =', value)
-      ..filter(
-        'created <=',
-        before ?? clock.now().toUtc().add(Duration(minutes: 5)),
-      )
-      ..order('-created')
-      ..limit(_maxAuditLogBatchSize);
+    final cursor = before ?? clock.now().toUtc().add(Duration(minutes: 5));
     // TODO: consider using repeated queries to filter already expired records,
     //       while also making sure that at least one record is on this and on
     //       the next page.
-    final records = await query.run().toList();
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.auditLogAssociations
+          .where(
+            (a) =>
+                a.kind.equalsValue(associationKind) &
+                a.value.equalsValue(value) &
+                (a.recordCreatedAt <= cursor.asExpr),
+          )
+          .orderBy((a) => [(a.recordCreatedAt, Order.descending)])
+          .select((a) => (a.record,))
+          .limit(_maxAuditLogBatchSize)
+          .fetch(),
+    );
+    final records = rows.nonNulls
+        .map(
+          (row) => AuditLogRecordView(
+            recordId: row.id,
+            createdAt: row.createdAt,
+            expiresAt: row.expiresAt,
+            summary: row.summary,
+          ),
+        )
+        .toList();
     if (records.length == _maxAuditLogBatchSize) {
-      final nextDisplayed = records.last.created!;
+      final nextDisplayed = records.last.createdAt;
       final remainingRecords = records.take(_maxAuditLogBatchSize - 1).toList();
-      final lastDisplayed = remainingRecords.last.created!;
+      final lastDisplayed = remainingRecords.last.createdAt;
       return AuditLogRecordPage(
         remainingRecords,
         nextTimestamp(lastDisplayed, nextDisplayed),
@@ -78,7 +88,7 @@ class AuditBackend {
     String userId, {
     DateTime? before,
   }) async {
-    return await _query('users', userId, before);
+    return await _querySql(AuditLogAssociationKind.user, userId, before);
   }
 
   /// Lists audit log records for [package] in reverse chronological order.
@@ -86,7 +96,7 @@ class AuditBackend {
     String package, {
     DateTime? before,
   }) async {
-    return await _query('packages', package, before);
+    return await _querySql(AuditLogAssociationKind.package, package, before);
   }
 
   /// Lists audit log records for [package] and [version] in reverse
@@ -96,7 +106,11 @@ class AuditBackend {
     String version, {
     DateTime? before,
   }) async {
-    return await _query('packageVersions', '$package/$version', before);
+    return await _querySql(
+      AuditLogAssociationKind.packageVersion,
+      '$package/$version',
+      before,
+    );
   }
 
   /// Lists audit log records for [publisherId] in reverse chronological order.
@@ -104,7 +118,19 @@ class AuditBackend {
     String publisherId, {
     DateTime? before,
   }) async {
-    return await _query('publishers', publisherId, before);
+    return await _querySql(
+      AuditLogAssociationKind.publisher,
+      publisherId,
+      before,
+    );
+  }
+
+  /// Looks up the full [AuditLogRecord] for the given [recordId].
+  @visibleForTesting
+  Future<AuditLogRecord> lookupRecordById(String recordId) async {
+    return await _db.lookupValue<AuditLogRecord>(
+      _db.emptyKey.append(AuditLogRecord, id: recordId),
+    );
   }
 
   /// Deletes expired log records.
@@ -290,7 +316,7 @@ class AuditBackend {
   /// up to the last query.
   ///
   /// NOTE: there is no guarantee that the entries are in creation order
-  Future<List<AuditLogRecord>> getEntriesFromLastDay() async {
+  Future<List<AuditLogRecordCacheEntry>> getEntriesFromLastDay() async {
     if (_cacheRecordsUpdateFuture != null) {
       await _cacheRecordsUpdateFuture;
     } else {
@@ -313,7 +339,7 @@ class AuditBackend {
 
   Future<void> _updateEntriesFromLastDay({
     required Duration cachedAge,
-    required Iterable<AuditLogRecord> oldRecords,
+    required Iterable<AuditLogRecordCacheEntry> oldRecords,
   }) async {
     // calculate window to query
     final now = clock.now();
@@ -323,16 +349,50 @@ class AuditBackend {
       window = Duration(minutes: 2);
     }
 
-    final query = _db.query<AuditLogRecord>()
-      ..filter('created >', now.subtract(window));
-    final current = await query.run().toList();
+    final cutoff = now.subtract(window).toUtc();
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.auditLogRecords
+          .where((r) => r.createdAt > cutoff.asExpr)
+          .select((r) => (r.id, r.createdAt, r.kind, r.agent))
+          .fetch(),
+    );
+    final assocRows = await primaryDatabase.withRetry(
+      (db) => db.auditLogAssociations
+          .where(
+            (a) =>
+                (a.kind.equalsValue(AuditLogAssociationKind.user) |
+                    a.kind.equalsValue(AuditLogAssociationKind.package)) &
+                (a.recordCreatedAt > cutoff.asExpr),
+          )
+          .select((a) => (a.recordId, a.kind, a.value))
+          .fetch(),
+    );
+    final assocByRecordId = assocRows.groupListsBy((a) => a.$1);
+    final current = rows.map((row) {
+      final (id, createdAt, kind, agent) = row;
+      final assocs = assocByRecordId[id] ?? const <(String, String, String)>[];
+      return AuditLogRecordCacheEntry(
+        id: id,
+        created: createdAt,
+        kind: kind,
+        agent: agent,
+        users: assocs
+            .where((a) => a.$2 == AuditLogAssociationKind.user)
+            .map((a) => a.$3)
+            .toList(),
+        packages: assocs
+            .where((a) => a.$2 == AuditLogAssociationKind.package)
+            .map((a) => a.$3)
+            .toList(),
+      );
+    }).toList();
 
     // merge records from cache and current query
-    final currentIds = current.map((e) => e.id!).toSet();
+    final currentIds = current.map((e) => e.id).toSet();
     final records = [
       ...oldRecords
-          .where((r) => !currentIds.contains(r.id!))
-          .where((r) => now.difference(r.created!) < day),
+          .where((r) => !currentIds.contains(r.id))
+          .where((r) => now.difference(r.created) < day),
       ...current,
     ];
 
@@ -342,7 +402,7 @@ class AuditBackend {
 
 class _CachedRecords {
   final DateTime updated;
-  final List<AuditLogRecord> records;
+  final List<AuditLogRecordCacheEntry> records;
 
   _CachedRecords(this.updated, this.records);
 }

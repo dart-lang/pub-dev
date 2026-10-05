@@ -308,4 +308,62 @@ void main() {
       },
     );
   });
+
+  group('listRecordsForUserId ordering and cursor', () {
+    testWithProfile(
+      'returns records in reverse-chronological order',
+      fn: () async {
+        final user = await accountBackend.lookupUserByEmail(adminAtPubDevEmail);
+
+        final r1 = _testRecord(userId: user.userId, packages: []);
+        await dbService.commit(inserts: [r1]);
+        await auditBackend.mirrorToSql(r1);
+
+        clockControl.elapse(minutes: 1);
+        final r2 = _testRecord(userId: user.userId, packages: []);
+        await dbService.commit(inserts: [r2]);
+        await auditBackend.mirrorToSql(r2);
+
+        clockControl.elapse(minutes: 1);
+        final r3 = _testRecord(userId: user.userId, packages: []);
+        await dbService.commit(inserts: [r3]);
+        await auditBackend.mirrorToSql(r3);
+
+        final page = await auditBackend.listRecordsForUserId(user.userId);
+        final ids = page.records.map((r) => r.recordId).toList();
+        expect(ids.indexOf(r3.id!), lessThan(ids.indexOf(r2.id!)));
+        expect(ids.indexOf(r2.id!), lessThan(ids.indexOf(r1.id!)));
+      },
+    );
+
+    testWithProfile(
+      '`before` cursor excludes records created after it',
+      fn: () async {
+        final user = await accountBackend.lookupUserByEmail(adminAtPubDevEmail);
+
+        final r1 = _testRecord(userId: user.userId, packages: []);
+        await dbService.commit(inserts: [r1]);
+        await auditBackend.mirrorToSql(r1);
+
+        clockControl.elapse(minutes: 1);
+        final r2 = _testRecord(userId: user.userId, packages: []);
+        await dbService.commit(inserts: [r2]);
+        await auditBackend.mirrorToSql(r2);
+
+        clockControl.elapse(minutes: 1);
+        final r3 = _testRecord(userId: user.userId, packages: []);
+        await dbService.commit(inserts: [r3]);
+        await auditBackend.mirrorToSql(r3);
+
+        final page = await auditBackend.listRecordsForUserId(
+          user.userId,
+          before: r2.created,
+        );
+        final ids = page.records.map((r) => r.recordId).toList();
+        expect(ids, isNot(contains(r3.id)));
+        expect(ids, containsAll([r1.id, r2.id]));
+        expect(ids.indexOf(r2.id!), lessThan(ids.indexOf(r1.id!)));
+      },
+    );
+  });
 }

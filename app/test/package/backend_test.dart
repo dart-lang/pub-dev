@@ -11,7 +11,6 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
-import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -434,12 +433,11 @@ void main() {
 
           // check audit log record
           final page = await auditBackend.listRecordsForPackage('oxygen');
-          final r = page.records.firstWhere(
-            (r) => r.kind == AuditLogRecordKind.uploaderRemoved,
-          );
           expect(
-            r.summary,
-            '`admin@pub.dev` removed `user@pub.dev` from the uploaders of package `oxygen`.',
+            page.records.map((e) => e.summary),
+            contains(
+              '`admin@pub.dev` removed `user@pub.dev` from the uploaders of package `oxygen`.',
+            ),
           );
         },
       );
@@ -680,12 +678,11 @@ void main() {
 
             // check audit log record
             final page = await auditBackend.listRecordsForPackage('oxygen');
-            final r = page.records.firstWhere(
-              (r) => r.kind == AuditLogRecordKind.packageOptionsUpdated,
-            );
             expect(
-              r.summary,
-              '`admin@pub.dev` updated `replacedBy` of package `oxygen`.',
+              page.records.map((e) => e.summary),
+              contains(
+                '`admin@pub.dev` updated `replacedBy` of package `oxygen`.',
+              ),
             );
 
             await packageBackend.updateOptions(

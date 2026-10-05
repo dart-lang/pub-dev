@@ -4,16 +4,21 @@
 
 part of 'schema.dart';
 
-/// Mirrors `AuditLogRecord` into SQL.
+/// Each row is an immutable, append-only record of a single action taken on
+/// pub.dev (e.g. a package being published, an uploader being added or
+/// removed, a publisher being created, a member invite being accepted). It
+/// captures what happened ([kind], [summary], [dataJson]), who did it
+/// ([agent]), and when ([createdAt]), and is retained until [expiresAt] (most
+/// events are kept for a couple of months; package publication events are
+/// kept indefinitely).
 ///
-/// Datastore remains the source of truth and the only read path for now.
-/// This table is populated on write (and by backfill), in preparation for a
-/// future migration to SQL-first reads.
+/// TODO: rename to `AuditLogRecord` after SQL migration.
 @PrimaryKey(['id'])
 abstract final class AuditLogRecordRow extends Row {
   /// Matches `AuditLogRecord.id`.
   String get id;
 
+  @Index.field()
   DateTime get createdAt;
 
   @Index.field()
@@ -41,11 +46,12 @@ abstract final class AuditLogRecordRow extends Row {
   onDelete: .cascade,
   onUpdate: .cascade,
 )
-@Index(name: 'kindValue', fields: ['kind', 'value'])
+@Index(name: 'kindValueCreated', fields: ['kind', 'value', 'recordCreatedAt'])
 abstract final class AuditLogAssociation extends Row {
   String get recordId;
 
   /// Same as the parent's createAt column.
+  @Index.field()
   DateTime get recordCreatedAt;
 
   /// One of [AuditLogAssociationKind]'s values - matching the corresponding
