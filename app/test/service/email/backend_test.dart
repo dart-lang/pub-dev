@@ -68,7 +68,7 @@ void main() {
     testWithProfile(
       'only failed attempts',
       fn: () async {
-        fakeEmailSender.failNextMessageCount = 2;
+        fakeEmailSender.failNextMessageCount = outgoingEmailMaxAttempts;
         final entry = emailBackend.prepareEntity(
           EmailMessage(
             EmailAddress('from@pub.dev'),
@@ -80,7 +80,7 @@ void main() {
         await dbService.commit(inserts: [entry]);
         await emailBackend.migrateToSql(entry);
 
-        for (var i = 0; i < 2; i++) {
+        for (var i = 0; i < outgoingEmailMaxAttempts; i++) {
           await withClock(
             Clock.fixed(clock.now().add(Duration(hours: i * 8))),
             () async {
