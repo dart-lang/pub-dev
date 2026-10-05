@@ -131,5 +131,5 @@ void main() {
         }
       });
     });
-  }, timeout: Timeout.factor(testTimeoutFactor));
+  });
 }

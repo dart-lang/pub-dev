@@ -34,10 +34,14 @@ class FakePubServerProcess {
 
   static Future<FakePubServerProcess> start({String? appDir}) async {
     appDir ??= p.join(Directory.current.path, '../../app');
-    await _runPubGet(appDir);
-    final [port, storagePort, searchPort, analyzerPort, vmPort] =
-        await _getFreePorts(5);
+    final port = await _getFreePort();
+    final storagePort = await _getFreePort();
+    final searchPort = await _getFreePort();
+    final analyzerPort = await _getFreePort();
+    final vmPort = await _getFreePort();
     final coverageConfig = await _CoverageConfig.detect(vmPort);
+
+    await _runPubGet(appDir);
     final tmpDir = await Directory.systemTemp.createTemp('fake-pub-server');
     final fakeEmailSenderOutputDir = p.join(
       tmpDir.path,
@@ -84,7 +88,7 @@ class FakePubServerProcess {
         await lockFile.delete();
       } else {
         // waiting for 15 seconds to get it deleted
-        for (var i = 15; i > 0; i--) {
+        for (var i = 15; i > 0; i++) {
           await Future.delayed(Duration(seconds: 1));
           if (!await lockFile.exists()) break;
         }
@@ -312,11 +316,9 @@ void _writeLogs(Stream<List<int>> stream, String prefix) {
       );
 }
 
-Future<List<int>> _getFreePorts(int count) async {
-  final servers = [
-    for (var i = 0; i < count; i++) await HttpServer.bind('localhost', 0),
-  ];
-  final ports = [for (final s in servers) s.port];
-  await Future.wait([for (final s in servers) s.close()]);
-  return ports;
+Future<int> _getFreePort() async {
+  final server = await HttpServer.bind('localhost', 0);
+  final port = server.port;
+  await server.close();
+  return port;
 }
