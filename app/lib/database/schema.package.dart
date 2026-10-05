@@ -35,3 +35,15 @@ abstract final class ReservedPackageRow extends Row {
   /// on top of the `@google.com` addresses.
   JsonValue get emailsJson;
 }
+
+/// The per-package rolling download counts (`CountData`).
+@PrimaryKey(['package'])
+abstract final class DownloadCount extends Row {
+  String get package;
+
+  /// Newest date with processed download count data.
+  DateTime get updatedAt;
+
+  /// JSON-encoded `CountData` (total + major/minor/patch range counts).
+  JsonValue get countDataJson;
+}

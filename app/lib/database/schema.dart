@@ -57,6 +57,8 @@ abstract final class PrimarySchema extends Schema {
 
   Table<ReservedPackageRow> get reservedPackages;
 
+  Table<DownloadCount> get downloadCounts;
+
   // security advisory tables
 
   Table<SecurityAdvisoryRow> get securityAdvisories;

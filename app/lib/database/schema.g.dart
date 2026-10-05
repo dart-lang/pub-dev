@@ -40,6 +40,7 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$NeatTaskStatusRow._$table,
     _$PackageTombstone._$table,
     _$ReservedPackageRow._$table,
+    _$DownloadCount._$table,
     _$SecurityAdvisoryRow._$table,
     _$SecurityAdvisoryPackage._$table,
     _$Task._$table,
@@ -77,6 +78,9 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<ReservedPackageRow> get reservedPackages =>
       $ForGeneratedCode.declareTable(this, _$ReservedPackageRow._$table);
+
+  Table<DownloadCount> get downloadCounts =>
+      $ForGeneratedCode.declareTable(this, _$DownloadCount._$table);
 
   Table<SecurityAdvisoryRow> get securityAdvisories =>
       $ForGeneratedCode.declareTable(this, _$SecurityAdvisoryRow._$table);
@@ -7920,6 +7924,576 @@ extension InsertOnConflictSingleReservedPackageRowExt
         name,
         createdAt,
         emailsJson,
+      ]),
+    ),
+  );
+}
+
+final class _$DownloadCount extends DownloadCount {
+  _$DownloadCount._(this.package, this.updatedAt, this.countDataJson);
+
+  @override
+  final String package;
+
+  @override
+  final DateTime updatedAt;
+
+  @override
+  final JsonValue countDataJson;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'download_counts',
+    columns: <String>['package', 'updated_at', 'count_data_json'],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['package'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [],
+    readRow: _$DownloadCount._$fromDatabase,
+  );
+
+  static DownloadCount? _$fromDatabase(RowReader row) {
+    final package = row.readString();
+    final updatedAt = row.readDateTime();
+    final countDataJson = row.readJsonValue();
+    if (package == null && updatedAt == null && countDataJson == null) {
+      return null;
+    }
+    return _$DownloadCount._(package!, updatedAt!, countDataJson!);
+  }
+
+  @override
+  String toString() =>
+      'DownloadCount(package: "$package", updatedAt: "$updatedAt", countDataJson: "$countDataJson")';
+}
+
+/// Extension methods for table defined in [DownloadCount].
+extension TableDownloadCountExt on Table<DownloadCount> {
+  /// Insert row into the `downloadCounts` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<DownloadCount> insert({
+    required Expr<String> package,
+    required Expr<DateTime> updatedAt,
+    required Expr<JsonValue> countDataJson,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [package, updatedAt, countDataJson],
+  );
+
+  /// Insert row into the `downloadCounts` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `updatedAt`, `countDataJson`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<DownloadCount> upsert({
+    required Expr<String> package,
+    required Expr<DateTime> updatedAt,
+    required Expr<JsonValue> countDataJson,
+  }) =>
+      insert(
+            package: package,
+            updatedAt: updatedAt,
+            countDataJson: countDataJson,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              updatedAt: excluded.updatedAt,
+              countDataJson: excluded.countDataJson,
+            ),
+          );
+
+  /// Insert row into the `downloadCounts` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<DownloadCount> insertValue({
+    required String package,
+    required DateTime updatedAt,
+    required JsonValue countDataJson,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [package.asExpr, updatedAt.asExpr, countDataJson.asExpr],
+  );
+
+  /// Insert row into the `downloadCounts` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `updatedAt`, `countDataJson`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<DownloadCount> upsertValue({
+    required String package,
+    required DateTime updatedAt,
+    required JsonValue countDataJson,
+  }) =>
+      insertValue(
+            package: package,
+            updatedAt: updatedAt,
+            countDataJson: countDataJson,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              updatedAt: excluded.updatedAt,
+              countDataJson: excluded.countDataJson,
+            ),
+          );
+
+  /// Bulk insert rows into the `downloadCounts` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<DownloadCount> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) package,
+    required DateTime Function(T row) updatedAt,
+    required JsonValue Function(T row) countDataJson,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [package, updatedAt, countDataJson],
+  );
+
+  /// Delete a single row from the `downloadCounts` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<DownloadCount> delete(String package) =>
+      $ForGeneratedCode.deleteSingle(byKey(package), _$DownloadCount._$table);
+}
+
+/// Extension methods for building queries against the `downloadCounts` table.
+extension QueryDownloadCountExt on Query<(Expr<DownloadCount>,)> {
+  /// Lookup a single row in `downloadCounts` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<DownloadCount>,)> byKey(String package) => where(
+    (downloadCount) => downloadCount.package.equalsValue(package),
+  ).first;
+
+  /// Update all rows in the `downloadCounts` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<DownloadCount> update(
+    UpdateSet<DownloadCount> Function(
+      Expr<DownloadCount> downloadCount,
+      UpdateSet<DownloadCount> Function({
+        Expr<String> package,
+        Expr<DateTime> updatedAt,
+        Expr<JsonValue> countDataJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<DownloadCount>(
+    this,
+    _$DownloadCount._$table,
+    (downloadCount) => updateBuilder(
+      downloadCount,
+      ({
+        Expr<String>? package,
+        Expr<DateTime>? updatedAt,
+        Expr<JsonValue>? countDataJson,
+      }) => $ForGeneratedCode.buildUpdate<DownloadCount>([
+        package,
+        updatedAt,
+        countDataJson,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `downloadCounts` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<DownloadCount> delete() =>
+      $ForGeneratedCode.delete(this, _$DownloadCount._$table);
+}
+
+/// Extension methods for building point queries against the `downloadCounts` table.
+extension QuerySingleDownloadCountExt on QuerySingle<(Expr<DownloadCount>,)> {
+  /// Update the row (if any) in the `downloadCounts` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<DownloadCount> update(
+    UpdateSet<DownloadCount> Function(
+      Expr<DownloadCount> downloadCount,
+      UpdateSet<DownloadCount> Function({
+        Expr<String> package,
+        Expr<DateTime> updatedAt,
+        Expr<JsonValue> countDataJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<DownloadCount>(
+    this,
+    _$DownloadCount._$table,
+    (downloadCount) => updateBuilder(
+      downloadCount,
+      ({
+        Expr<String>? package,
+        Expr<DateTime>? updatedAt,
+        Expr<JsonValue>? countDataJson,
+      }) => $ForGeneratedCode.buildUpdate<DownloadCount>([
+        package,
+        updatedAt,
+        countDataJson,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `downloadCounts` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<DownloadCount> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$DownloadCount._$table);
+}
+
+/// Extension methods for expressions on a row in the `downloadCounts` table.
+extension ExpressionDownloadCountExt on Expr<DownloadCount> {
+  Expr<String> get package =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// Newest date with processed download count data.
+  Expr<DateTime> get updatedAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  /// JSON-encoded `CountData` (total + major/minor/patch range counts).
+  Expr<JsonValue> get countDataJson =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.jsonValue);
+}
+
+extension ExpressionNullableDownloadCountExt on Expr<DownloadCount?> {
+  Expr<String?> get package =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// Newest date with processed download count data.
+  Expr<DateTime?> get updatedAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  /// JSON-encoded `CountData` (total + major/minor/patch range counts).
+  Expr<JsonValue?> get countDataJson =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.jsonValue);
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => package.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+/// `Table<DownloadCount>` conflict targets for use with `.onConflict`.
+enum DownloadCountConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `package`.
+  primaryKey(['package']);
+
+  const DownloadCountConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertDownloadCountExt on Insert<DownloadCount> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((downloadCount, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<DownloadCount> onConflict(DownloadCountConflict target) =>
+      $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictDownloadCountExt on InsertOnConflict<DownloadCount> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `downloadCount` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<DownloadCount> update(
+    UpdateSet<DownloadCount> Function(
+      Expr<DownloadCount> downloadCount,
+      Expr<DownloadCount> excluded,
+      UpdateSet<DownloadCount> Function({
+        Expr<String> package,
+        Expr<DateTime> updatedAt,
+        Expr<JsonValue> countDataJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<DownloadCount>(
+    this,
+    (downloadCount, excluded) => updateBuilder(
+      downloadCount,
+      excluded,
+      ({
+        Expr<String>? package,
+        Expr<DateTime>? updatedAt,
+        Expr<JsonValue>? countDataJson,
+      }) => $ForGeneratedCode.buildUpdate<DownloadCount>([
+        package,
+        updatedAt,
+        countDataJson,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleDownloadCountExt on InsertSingle<DownloadCount> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((downloadCount, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<DownloadCount> onConflict(
+    DownloadCountConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleDownloadCountExt
+    on InsertOnConflictSingle<DownloadCount> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `downloadCount` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<DownloadCount> update(
+    UpdateSet<DownloadCount> Function(
+      Expr<DownloadCount> downloadCount,
+      Expr<DownloadCount> excluded,
+      UpdateSet<DownloadCount> Function({
+        Expr<String> package,
+        Expr<DateTime> updatedAt,
+        Expr<JsonValue> countDataJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<DownloadCount>(
+    this,
+    (downloadCount, excluded) => updateBuilder(
+      downloadCount,
+      excluded,
+      ({
+        Expr<String>? package,
+        Expr<DateTime>? updatedAt,
+        Expr<JsonValue>? countDataJson,
+      }) => $ForGeneratedCode.buildUpdate<DownloadCount>([
+        package,
+        updatedAt,
+        countDataJson,
       ]),
     ),
   );
