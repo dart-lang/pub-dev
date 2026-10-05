@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:mailer/mailer.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/service/email/email_sender.dart';
@@ -123,26 +124,116 @@ void main() {
         'Completed sending.',
       ]);
     });
+
+    test(
+      'connect failure is reported and does not block later sends',
+      () async {
+        final log = <String>[];
+        final sender = _EmailSender(
+          log,
+          (message) => log.add('Sent successfully.'),
+          connectFn: (id) {
+            if (id == 0) {
+              throw Exception('failed to get access token');
+            }
+          },
+        );
+        await expectLater(
+          sender.sendMessage(newEmailMessage()).timeout(Duration(seconds: 5)),
+          throwsA(
+            isA<Exception>().having(
+              (e) => '$e',
+              'message',
+              contains('access token'),
+            ),
+          ),
+        );
+        await sender
+            .sendMessage(newEmailMessage())
+            .timeout(Duration(seconds: 5));
+        expect(log, [
+          'Connecting #0 for admin@pub.dev',
+          'Connecting #1 for admin@pub.dev',
+          '#1 sending to user@pub.dev',
+          'Sent successfully.',
+        ]);
+      },
+    );
+
+    test(
+      'connect throwing SmtpClientAuthenticationException is retried',
+      () async {
+        final log = <String>[];
+        final sender = _EmailSender(
+          log,
+          (message) => log.add('Sent successfully.'),
+          connectFn: (id) {
+            if (id == 0) {
+              throw SmtpClientAuthenticationException('token exchange failed');
+            }
+          },
+        );
+        await sender
+            .sendMessage(newEmailMessage())
+            .timeout(Duration(seconds: 10));
+        expect(log, [
+          'Connecting #0 for admin@pub.dev',
+          'Invalidate credentials.',
+          'Connecting #1 for admin@pub.dev',
+          '#1 sending to user@pub.dev',
+          'Sent successfully.',
+        ]);
+      },
+    );
+
+    test('hanging send times out and the connection is replaced', () {
+      fakeAsync((async) {
+        final log = <String>[];
+        var sendCount = 0;
+        final sender = _EmailSender(log, (message) async {
+          sendCount++;
+          if (sendCount == 1) {
+            log.add('Hanging.');
+            await Completer<void>().future;
+          }
+          log.add('Sent successfully.');
+        });
+        var completed = false;
+        sender.sendMessage(newEmailMessage()).then((_) => completed = true);
+        async.elapse(Duration(minutes: 10));
+        expect(completed, isTrue);
+        expect(log, [
+          'Connecting #0 for admin@pub.dev',
+          '#0 sending to user@pub.dev',
+          'Hanging.',
+          '#0 closing connection.',
+          'Connecting #1 for admin@pub.dev',
+          '#1 sending to user@pub.dev',
+          'Sent successfully.',
+        ]);
+      });
+    });
   });
 }
 
 typedef _EmailSenderFn = FutureOr<void> Function(EmailMessage message);
+typedef _ConnectFn = FutureOr<void> Function(int connectionId);
 
 class _EmailSender extends EmailSenderBase {
   final List<String> _log;
   final _EmailSenderFn _emailSenderFn;
+  final _ConnectFn? _connectFn;
   int _connectionCount = 0;
 
-  _EmailSender(this._log, this._emailSenderFn);
+  _EmailSender(this._log, this._emailSenderFn, {_ConnectFn? connectFn})
+    : _connectFn = connectFn;
 
   @override
   Future<EmailSenderConnection> connect(String senderEmail) async {
-    try {
-      _log.add('Connecting #$_connectionCount for $senderEmail');
-      return _EmailSenderConnection(_connectionCount, this);
-    } finally {
-      _connectionCount++;
-    }
+    final id = _connectionCount++;
+    _log.add('Connecting #$id for $senderEmail');
+    await _connectFn?.call(id);
+    return _EmailSenderConnection(id, this);
   }
 
   @override
