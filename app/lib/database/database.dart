@@ -86,13 +86,14 @@ class PrimaryDatabase {
 
   /// Creates and initializes a [PrimaryDatabase] instance.
   ///
-  /// When [url] is not provided, it will start a new local postgresql instance, or
-  /// if it detects an existing one, connects to it.
+  /// When [url] is not provided, it falls back to `PUB_POSTGRES_URL` if set, or
+  /// starts a new local postgresql instance (or connects to an existing one).
   ///
   /// When NOT running in the AppEngine environment (e.g. testing or local fake),
   /// the initilization will create a new database, which will be dropped when the
   /// [close] method is called.
   static Future<PrimaryDatabase> createAndInit({String? url}) async {
+    url ??= envConfig.pubPostgresUrl;
     // The scope-specific custom database. We are creating a custom database for
     // each test run, in order to provide full isolation, however, this must not
     // be used in Appengine.
