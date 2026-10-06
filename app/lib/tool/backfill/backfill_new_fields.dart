@@ -7,6 +7,7 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/task/global_lock_models.dart';
 
@@ -18,6 +19,16 @@ final _logger = Logger('backfill_new_fields');
 /// CHANGELOG.md must be updated with the new fields, and the next
 /// release could remove the backfill from here.
 Future<void> backfillNewFields() async {
+  _logger.info('Removing unmapped Package.automatedPublishing field...');
+  await for (final p in dbService.query<Package>().run()) {
+    if (!p.additionalProperties.containsKey('automatedPublishing')) continue;
+    await withRetryTransaction(dbService, (tx) async {
+      final pkg = await tx.lookupValue<Package>(p.key);
+      pkg.additionalProperties.remove('automatedPublishing');
+      tx.insert(pkg);
+    });
+  }
+
   _logger.info('Delete old GlobalLockState entities in Datastore');
   await dbService.deleteWithQuery(dbService.query<GlobalLockState>());
 
