@@ -198,9 +198,10 @@ class PackageBackend {
   /// Looks up a reserved package by name.
   ///
   /// Returns `null` if the package doesn't exist.
-  Future<ReservedPackage?> lookupReservedPackage(String packageName) async {
-    final packageKey = db.emptyKey.append(ReservedPackage, id: packageName);
-    return await db.lookupOrNull<ReservedPackage>(packageKey);
+  Future<ReservedPackageRow?> lookupReservedPackage(String packageName) async {
+    return await primaryDatabase.withRetry(
+      (db) => db.reservedPackages.byKey(packageName).fetch(),
+    );
   }
 
   /// Lists the currently reserved package names. A reserved package prefix is a regular name
@@ -210,10 +211,12 @@ class PackageBackend {
   Future<List<String>> listReservedPackagePrefixes() async {
     return await cache.reservedPackagePrefixes().get(() async {
           final list = <String>[];
-          await for (final p in db.query<ReservedPackage>().run()) {
-            final name = p.name;
-            if (name != null && name.endsWith('_')) {
-              list.add(name);
+          final rows = await primaryDatabase.withRetry(
+            (db) => db.reservedPackages.fetch(),
+          );
+          for (final row in rows) {
+            if (row.name.endsWith('_')) {
+              list.add(row.name);
             }
           }
           list.sort((a, b) {
@@ -295,7 +298,9 @@ class PackageBackend {
       final existing = await primaryDatabase.withRetry(
         (db) => db.reservedPackages.byKey(rp.name!).fetch(),
       );
-      if (existing != null && existing.createdAt.isAtSameMomentAs(rp.created)) {
+      if (existing != null &&
+          existing.createdAt.isAtSameMomentAs(rp.created) &&
+          const ListEquality<String>().equals(existing.emails, rp.emails)) {
         continue;
       }
       await mirrorReservedPackageToSql(rp);
