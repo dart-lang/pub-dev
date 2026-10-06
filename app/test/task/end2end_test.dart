@@ -275,7 +275,7 @@ final _goldenReplacements = <Pattern, String>{
 };
 
 final _timestampPattern = RegExp(
-  r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z',
+  r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3,6}Z',
 );
 final _escapedTimestampPattern = RegExp(
   _timestampPattern.pattern.replaceAll(':', r'\\u003a'),
