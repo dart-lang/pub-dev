@@ -12,11 +12,14 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/entrypoint/analyzer.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
+import 'package:typed_sql/typed_sql.dart';
 import '../../package/models.dart' show Package;
 
 final _logger = Logger('security_advisories.backend');
@@ -182,7 +185,126 @@ class SecurityAdvisoryBackend {
         ).future,
       ),
     );
+    if (result != null) {
+      await _mirrorToSql(result);
+    }
     return result;
+  }
+
+  /// Mirrors [advisory] into SQL (best-effort).
+  Future<void> _mirrorToSql(SecurityAdvisory advisory) async {
+    await primaryDatabase.transactWithRetry((db) async {
+      final id = advisory.id!;
+      await db.securityAdvisories
+          .upsertValue(
+            advisoryId: id,
+            publishedAt: advisory.published!,
+            modifiedAt: advisory.modified!,
+            syncedAt: advisory.syncTime!,
+            osvJson: JsonValue(advisory.osv!.toJson()),
+          )
+          .execute();
+
+      final wantedPackages = (advisory.affectedPackages ?? const <String>[])
+          .toSet();
+      final existingPackages =
+          (await db.securityAdvisoryPackages
+                  .where((p) => p.advisoryId.equalsValue(id))
+                  .select((p) => (p.package,))
+                  .fetch())
+              .toSet();
+
+      final packagesToAdd = wantedPackages.difference(existingPackages);
+      if (packagesToAdd.isNotEmpty) {
+        await db.securityAdvisoryPackages
+            .insertValuesMapped(
+              packagesToAdd,
+              advisoryId: (_) => id,
+              package: (p) => p,
+            )
+            .execute();
+      }
+
+      final packagesToRemove = existingPackages.difference(wantedPackages);
+      if (packagesToRemove.isNotEmpty) {
+        await db.securityAdvisoryPackages
+            .where(
+              (p) =>
+                  p.advisoryId.equalsValue(id) &
+                  packagesToRemove
+                      .map((pkg) => p.package.equalsValue(pkg))
+                      .reduce((a, b) => a | b),
+            )
+            .delete()
+            .execute();
+      }
+
+      final wantedAliases = advisory.aliases.toSet();
+      final existingAliases =
+          (await db.securityAdvisoryAliases
+                  .where((a) => a.advisoryId.equalsValue(id))
+                  .select((a) => (a.alias,))
+                  .fetch())
+              .toSet();
+
+      final aliasesToAdd = wantedAliases.difference(existingAliases);
+      if (aliasesToAdd.isNotEmpty) {
+        await db.securityAdvisoryAliases
+            .insertValuesMapped(
+              aliasesToAdd,
+              advisoryId: (_) => id,
+              alias: (a) => a,
+            )
+            .execute();
+      }
+
+      final aliasesToRemove = existingAliases.difference(wantedAliases);
+      if (aliasesToRemove.isNotEmpty) {
+        await db.securityAdvisoryAliases
+            .where(
+              (a) =>
+                  a.advisoryId.equalsValue(id) &
+                  aliasesToRemove
+                      .map((alias) => a.alias.equalsValue(alias))
+                      .reduce((a, b) => a | b),
+            )
+            .delete()
+            .execute();
+      }
+    });
+  }
+
+  /// Deletes the SQL-mirrored security advisory with [id] (best-effort).
+  Future<void> _deleteFromSql(String id) async {
+    try {
+      await primaryDatabase.withRetry(
+        (db) => db.securityAdvisories.delete(id).execute(),
+      );
+    } catch (e, st) {
+      _logger.warning(
+        'Failed to delete SecurityAdvisory "$id" from SQL.',
+        e,
+        st,
+      );
+    }
+  }
+
+  /// Copies [SecurityAdvisory] entries from Datastore into SQL, for entries
+  /// that are not yet present in SQL (or are stale).
+  Future<int> backfillSqlFromDatastore() async {
+    var count = 0;
+    await for (final advisory in _db.query<SecurityAdvisory>().run()) {
+      final existing = await primaryDatabase.withRetry(
+        (db) => db.securityAdvisories.byKey(advisory.id!).fetch(),
+      );
+      if (existing != null &&
+          existing.syncedAt.isAtSameMomentAs(advisory.syncTime!)) {
+        continue;
+      }
+      await _mirrorToSql(advisory);
+      count++;
+    }
+    return count;
   }
 
   String _computeDisplayUrl(List<String> idAndAliases) {
@@ -242,6 +364,7 @@ class SecurityAdvisoryBackend {
         ).future,
       ),
     );
+    await _deleteFromSql(advisory.id!);
     return result;
   }
 

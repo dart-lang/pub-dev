@@ -9,11 +9,14 @@ import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
@@ -640,4 +643,176 @@ void main() {
       );
     },
   );
+
+  group('SQL mirror', () {
+    OSV testOsv(String id, {List<String> affectedPackages = const ['oxygen']}) {
+      final time = DateTime(2022).toIso8601String();
+      return OSV(
+        schemaVersion: '1.2.3',
+        id: id,
+        modified: time,
+        published: time,
+        affected: [
+          for (final p in affectedPackages)
+            Affected(
+              package: Package(ecosystem: 'pub', name: p),
+              versions: ['1.0.0'],
+            ),
+        ],
+      );
+    }
+
+    testWithProfile(
+      'ingestSecurityAdvisory mirrors row and affected packages',
+      fn: () async {
+        await securityAdvisoryBackend.ingestSecurityAdvisory(
+          testOsv('123', affectedPackages: ['oxygen', 'neon']),
+          clock.now(),
+        );
+
+        final row = await primaryDatabase.withRetry(
+          (db) => db.securityAdvisories.byKey('123').fetch(),
+        );
+        expect(row, isNotNull);
+        expect((row!.osvJson.value as Map)['id'], '123');
+
+        final packages = await primaryDatabase.withRetry(
+          (db) => db.securityAdvisoryPackages
+              .where((p) => p.advisoryId.equalsValue('123'))
+              .fetch(),
+        );
+        expect(packages.map((p) => p.package).toSet(), {'oxygen', 'neon'});
+
+        final aliases = await primaryDatabase.withRetry(
+          (db) => db.securityAdvisoryAliases
+              .where((a) => a.advisoryId.equalsValue('123'))
+              .fetch(),
+        );
+        expect(aliases.map((a) => a.alias).toSet(), {'123'});
+      },
+    );
+
+    testWithProfile(
+      'ingestSecurityAdvisory mirror is idempotent',
+      fn: () async {
+        await securityAdvisoryBackend.ingestSecurityAdvisory(
+          testOsv('123'),
+          clock.now(),
+        );
+        await securityAdvisoryBackend.ingestSecurityAdvisory(
+          testOsv('123'),
+          clock.now(),
+        );
+
+        final rows = await primaryDatabase.withRetry(
+          (db) => db.securityAdvisories
+              .where((r) => r.advisoryId.equalsValue('123'))
+              .fetch(),
+        );
+        expect(rows, hasLength(1));
+
+        final packages = await primaryDatabase.withRetry(
+          (db) => db.securityAdvisoryPackages
+              .where((p) => p.advisoryId.equalsValue('123'))
+              .fetch(),
+        );
+        expect(packages, hasLength(1));
+      },
+    );
+
+    testWithProfile(
+      'ingestSecurityAdvisory re-ingest only adds/removes the changed packages',
+      fn: () async {
+        await securityAdvisoryBackend.ingestSecurityAdvisory(
+          testOsv('123', affectedPackages: ['oxygen', 'neon']),
+          clock.now(),
+        );
+
+        final updated = OSV(
+          schemaVersion: '1.2.3',
+          id: '123',
+          modified: DateTime(2023).toIso8601String(),
+          published: DateTime(2023).toIso8601String(),
+          affected: [
+            for (final p in ['oxygen', 'flutter_titanium'])
+              Affected(
+                package: Package(ecosystem: 'pub', name: p),
+                versions: ['1.0.0'],
+              ),
+          ],
+        );
+        await securityAdvisoryBackend.ingestSecurityAdvisory(
+          updated,
+          clock.now(),
+        );
+
+        final packages = await primaryDatabase.withRetry(
+          (db) => db.securityAdvisoryPackages
+              .where((p) => p.advisoryId.equalsValue('123'))
+              .fetch(),
+        );
+        expect(packages.map((p) => p.package).toSet(), {
+          'oxygen',
+          'flutter_titanium',
+        });
+      },
+    );
+
+    testWithProfile(
+      'deleteAdvisory removes row and cascades to affected packages',
+      fn: () async {
+        await securityAdvisoryBackend.ingestSecurityAdvisory(
+          testOsv('123'),
+          clock.now(),
+        );
+        final advisory = await securityAdvisoryBackend.lookupById('123');
+        await securityAdvisoryBackend.deleteAdvisory(advisory!, clock.now());
+
+        final row = await primaryDatabase.withRetry(
+          (db) => db.securityAdvisories.byKey('123').fetch(),
+        );
+        expect(row, isNull);
+
+        final packages = await primaryDatabase.withRetry(
+          (db) => db.securityAdvisoryPackages
+              .where((p) => p.advisoryId.equalsValue('123'))
+              .fetch(),
+        );
+        expect(packages, isEmpty);
+
+        final aliases = await primaryDatabase.withRetry(
+          (db) => db.securityAdvisoryAliases
+              .where((a) => a.advisoryId.equalsValue('123'))
+              .fetch(),
+        );
+        expect(aliases, isEmpty);
+      },
+    );
+
+    testWithProfile(
+      'backfillSqlFromDatastore copies missing rows',
+      fn: () async {
+        await securityAdvisoryBackend.ingestSecurityAdvisory(
+          testOsv('123'),
+          clock.now(),
+        );
+        await primaryDatabase.withRetry(
+          (db) => db.securityAdvisories.delete('123').execute(),
+        );
+
+        var row = await primaryDatabase.withRetry(
+          (db) => db.securityAdvisories.byKey('123').fetch(),
+        );
+        expect(row, isNull);
+
+        final count = await securityAdvisoryBackend.backfillSqlFromDatastore();
+        expect(count, greaterThanOrEqualTo(1));
+
+        row = await primaryDatabase.withRetry(
+          (db) => db.securityAdvisories.byKey('123').fetch(),
+        );
+        expect(row, isNotNull);
+      },
+    );
+  });
 }

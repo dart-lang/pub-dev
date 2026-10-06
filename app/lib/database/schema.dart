@@ -18,6 +18,7 @@ part 'schema.email.dart';
 part 'schema.global_lock.dart';
 part 'schema.neat_task.dart';
 part 'schema.package.dart';
+part 'schema.security_advisory.dart';
 part 'schema.task.dart';
 
 @SqlOverride.schema(naming: .snake_case)
@@ -55,6 +56,14 @@ abstract final class PrimarySchema extends Schema {
   Table<PackageTombstone> get packageTombstones;
 
   Table<ReservedPackageRow> get reservedPackages;
+
+  // security advisory tables
+
+  Table<SecurityAdvisoryRow> get securityAdvisories;
+
+  Table<SecurityAdvisoryPackage> get securityAdvisoryPackages;
+
+  Table<SecurityAdvisoryAlias> get securityAdvisoryAliases;
 
   // task tables
 
