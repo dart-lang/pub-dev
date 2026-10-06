@@ -84,8 +84,7 @@ extension PubPageExt on Page {
   Future<void> createPublisher({required String publisherId}) async {
     await gotoOrigin('/create-publisher?domain=$publisherId');
     await waitAndClick('#-admin-create-publisher');
-    await waitAndClickOnDialogOk();
-    await _waitForModelHidden();
+    await _waitConfirmDialogThenConfirmOp();
   }
 
   Future<void> setPackagePublisher({
@@ -95,8 +94,7 @@ extension PubPageExt on Page {
     await gotoOrigin('/packages/$package/admin');
     await select('#-admin-set-publisher-input', [publisherId]);
     await waitAndClick('#-admin-set-publisher-button');
-    await waitAndClickOnDialogOk();
-    await _waitForModelHidden();
+    await _waitConfirmDialogThenConfirmOp();
   }
 
   Future<Map<String, String>> listPublisherMembers({
@@ -171,15 +169,17 @@ extension PubPageExt on Page {
   Future<void> acceptConsent({required String consentId}) async {
     await gotoOrigin('/consent?id=$consentId');
     await waitAndClick('#-admin-consent-accept-button');
-    await waitAndClickOnDialogOk();
-    await _waitForModelHidden();
+    await _waitConfirmDialogThenConfirmOp();
   }
 
   Future<void> _waitConfirmDialogThenConfirmOp() async {
     // Click ok in the dialog to confirm
-    await waitAndClickOnDialogOk(waitForOneResponse: true);
+    await waitAndClick(
+      '.-pub-dom-dialog-cancel-button + .-pub-dom-dialog-ok-button',
+      waitForOneResponse: true,
+    );
     // Click ok on the popup saying it was done
-    await waitAndClickOnDialogOk();
+    await waitAndClick('.-pub-dom-dialog-ok-button:only-child');
     await _waitForModelHidden();
   }
 
