@@ -67,7 +67,7 @@ Future<DeleteCounts> removeOrphanedLikes({
       _logger.info(
         'Removing like for package `${like.package}` because userId `${like.userId}` is missing.',
       );
-      await dbService.commit(deletes: [like.key]);
+      await withRetryTransaction(dbService, (tx) async => tx.delete(like.key));
       deleted++;
       return;
     }
@@ -76,7 +76,7 @@ Future<DeleteCounts> removeOrphanedLikes({
       _logger.info(
         'Removing like for userId `${like.userId}` because package `${like.package}` is missing.',
       );
-      await dbService.commit(deletes: [like.key]);
+      await withRetryTransaction(dbService, (tx) async => tx.delete(like.key));
       deleted++;
       return;
     }

@@ -110,7 +110,11 @@ extension DatastoreDBExt on DatastoreDB {
             beforeDelete(deletes);
           }
           if (!dryRun) {
-            await commit(deletes: deletes.map((m) => m.key).toList());
+            final keys = deletes.map((m) => m.key).toList();
+            await withRetryTransaction(
+              this,
+              (tx) async => tx.queueMutations(deletes: keys),
+            );
           }
           deleted += deletes.length;
           deletes.clear();
@@ -122,7 +126,11 @@ extension DatastoreDBExt on DatastoreDB {
         beforeDelete(deletes);
       }
       if (!dryRun) {
-        await commit(deletes: deletes.map((m) => m.key).toList());
+        final keys = deletes.map((m) => m.key).toList();
+        await withRetryTransaction(
+          this,
+          (tx) async => tx.queueMutations(deletes: keys),
+        );
       }
       deleted += deletes.length;
       deletes.clear();

@@ -161,7 +161,10 @@ class ConsentBackend {
         kind: kind,
         args: args,
       );
-      await _db.commit(inserts: [consent, auditLogRecord]);
+      await withRetryTransaction(
+        _db,
+        (tx) async => tx.insertAll([consent, auditLogRecord]),
+      );
       await auditBackend.mirrorToSql(auditLogRecord);
       await mirrorToSql(consent);
       await dedupCacheEntry.set(consent.consentId);

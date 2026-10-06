@@ -868,7 +868,7 @@ class AdminBackend {
       }
       // delete the entity
       _logger.info('Deleting ModerationCase: ${mc.caseId}');
-      await _db.commit(deletes: [mc.key]);
+      await withRetryTransaction(_db, (tx) async => tx.delete(mc.key));
       _logger.info('Deleted ModerationCase: ${mc.caseId}');
     }
   }
@@ -945,7 +945,7 @@ class AdminBackend {
       );
 
       // removes publisher entity
-      await _db.commit(deletes: [publisher.key]);
+      await withRetryTransaction(_db, (tx) async => tx.delete(publisher.key));
 
       _logger.info('Deleted moderated publisher: ${publisher.publisherId}');
     }
