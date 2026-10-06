@@ -197,75 +197,59 @@ class SecurityAdvisoryBackend {
 
   /// Mirrors [advisory] into SQL (best-effort).
   Future<void> _mirrorToSql(SecurityAdvisory advisory) async {
-    try {
-      await primaryDatabase.transactWithRetry((db) async {
-        final id = advisory.id!;
-        await db.securityAdvisories
-            .upsertValue(
-              advisoryId: id,
-              publishedAt: advisory.published!,
-              modifiedAt: advisory.modified!,
-              syncedAt: advisory.syncTime!,
-              osvJson: JsonValue(advisory.osv!.toJson()),
+    await primaryDatabase.transactWithRetry((db) async {
+      final id = advisory.id!;
+      await db.securityAdvisories
+          .upsertValue(
+            advisoryId: id,
+            publishedAt: advisory.published!,
+            modifiedAt: advisory.modified!,
+            syncedAt: advisory.syncTime!,
+            osvJson: JsonValue(advisory.osv!.toJson()),
+          )
+          .execute();
+
+      final wantedPackages = (advisory.affectedPackages ?? const <String>[])
+          .toSet();
+      final existingPackages =
+          (await db.securityAdvisoryPackages
+                  .where((p) => p.advisoryId.equalsValue(id))
+                  .select((p) => (p.package,))
+                  .fetch())
+              .toSet();
+
+      final packagesToAdd = wantedPackages.difference(existingPackages);
+      if (packagesToAdd.isNotEmpty) {
+        await db.securityAdvisoryPackages
+            .insertValuesMapped(
+              packagesToAdd,
+              advisoryId: (_) => id,
+              package: (p) => p,
             )
             .execute();
+      }
 
-        final wantedPackages = (advisory.affectedPackages ?? const <String>[])
-            .toSet();
-        final existingPackages =
-            (await db.securityAdvisoryPackages
-                    .where((p) => p.advisoryId.equalsValue(id))
-                    .select((p) => (p.package,))
-                    .fetch())
-                .toSet();
-
-        final packagesToAdd = wantedPackages.difference(existingPackages);
-        if (packagesToAdd.isNotEmpty) {
-          await db.securityAdvisoryPackages
-              .insertValuesMapped(
-                packagesToAdd,
-                advisoryId: (_) => id,
-                package: (p) => p,
-              )
-              .execute();
-        }
-
-        final packagesToRemove = existingPackages.difference(wantedPackages);
-        if (packagesToRemove.isNotEmpty) {
-          await db.securityAdvisoryPackages
-              .where(
-                (p) =>
-                    p.advisoryId.equalsValue(id) &
-                    packagesToRemove
-                        .map((pkg) => p.package.equalsValue(pkg))
-                        .reduce((a, b) => a | b),
-              )
-              .delete()
-              .execute();
-        }
-      });
-    } catch (e, st) {
-      _logger.warning(
-        'Failed to mirror SecurityAdvisory "${advisory.id}" to SQL.',
-        e,
-        st,
-      );
-    }
+      final packagesToRemove = existingPackages.difference(wantedPackages);
+      if (packagesToRemove.isNotEmpty) {
+        await db.securityAdvisoryPackages
+            .where(
+              (p) =>
+                  p.advisoryId.equalsValue(id) &
+                  packagesToRemove
+                      .map((pkg) => p.package.equalsValue(pkg))
+                      .reduce((a, b) => a | b),
+            )
+            .delete()
+            .execute();
+      }
+    });
   }
 
   /// Deletes the SQL-mirrored security advisory with [id] (best-effort).
   Future<void> _deleteFromSql(String id) async {
-    try {
-      await primaryDatabase.withRetry(
-        (db) => db.securityAdvisories.delete(id).execute(),
-      );
-    } catch (e, st) {
-      _logger.warning(
-        'Failed to delete SecurityAdvisory "$id" from SQL.',
-        e,
-        st,
-      );
-    }
+    await primaryDatabase.withRetry(
+      (db) => db.securityAdvisories.delete(id).execute(),
+    );
   }
 
   /// Copies [SecurityAdvisory] entries from Datastore into SQL, for entries
