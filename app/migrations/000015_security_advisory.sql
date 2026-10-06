@@ -8,17 +8,6 @@ CREATE TABLE "security_advisories" (
   PRIMARY KEY ("advisory_id")
 );
 
--- Create "security_advisory_aliases" table
-CREATE TABLE "security_advisory_aliases" (
-  "advisory_id" text NOT NULL,
-  "alias" text NOT NULL,
-  PRIMARY KEY ("advisory_id", "alias"),
-  CONSTRAINT "security_advisory_aliases_fk_advisory" FOREIGN KEY ("advisory_id") REFERENCES "security_advisories" ("advisory_id") ON UPDATE CASCADE ON DELETE CASCADE
-);
-
--- Create index "security_advisory_aliases_idx_alias" to table: "security_advisory_aliases"
-CREATE INDEX "security_advisory_aliases_idx_alias" ON "security_advisory_aliases" ("alias");
-
 -- Create "security_advisory_packages" table
 CREATE TABLE "security_advisory_packages" (
   "advisory_id" text NOT NULL,

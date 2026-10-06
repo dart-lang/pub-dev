@@ -682,13 +682,6 @@ void main() {
               .fetch(),
         );
         expect(packages.map((p) => p.package).toSet(), {'oxygen', 'neon'});
-
-        final aliases = await primaryDatabase.withRetry(
-          (db) => db.securityAdvisoryAliases
-              .where((a) => a.advisoryId.equalsValue('123'))
-              .fetch(),
-        );
-        expect(aliases.map((a) => a.alias).toSet(), {'123'});
       },
     );
 
@@ -779,13 +772,6 @@ void main() {
               .fetch(),
         );
         expect(packages, isEmpty);
-
-        final aliases = await primaryDatabase.withRetry(
-          (db) => db.securityAdvisoryAliases
-              .where((a) => a.advisoryId.equalsValue('123'))
-              .fetch(),
-        );
-        expect(aliases, isEmpty);
       },
     );
 

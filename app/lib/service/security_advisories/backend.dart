@@ -109,6 +109,7 @@ class SecurityAdvisoryBackend {
     DateTime syncTime,
   ) async {
     final updatedPackages = <String>{};
+    var wasWritten = false;
     final result = await withRetryTransaction(_db, (tx) async {
       DateTime modified;
       try {
@@ -148,6 +149,7 @@ class SecurityAdvisoryBackend {
             : modified
         ..syncTime = syncTime;
 
+      wasWritten = true;
       if (newAdvisory.affectedPackages!.length > 50) {
         // This is very unlikely to happen, since a security advisory typically
         // affects one or a few packages. We log this to keep an eye out. If
@@ -176,6 +178,11 @@ class SecurityAdvisoryBackend {
 
       return newAdvisory;
     });
+    if (wasWritten && result != null) {
+      // Mirror to SQL before triggering package post-updates, so that
+      // any cache repopulation triggered below doesn't read stale SQL data.
+      await _mirrorToSql(result);
+    }
     await Future.wait(
       updatedPackages.map(
         (packageName) => triggerPackagePostUpdates(
@@ -185,93 +192,65 @@ class SecurityAdvisoryBackend {
         ).future,
       ),
     );
-    if (result != null) {
-      await _mirrorToSql(result);
-    }
     return result;
   }
 
   /// Mirrors [advisory] into SQL (best-effort).
   Future<void> _mirrorToSql(SecurityAdvisory advisory) async {
-    await primaryDatabase.transactWithRetry((db) async {
-      final id = advisory.id!;
-      await db.securityAdvisories
-          .upsertValue(
-            advisoryId: id,
-            publishedAt: advisory.published!,
-            modifiedAt: advisory.modified!,
-            syncedAt: advisory.syncTime!,
-            osvJson: JsonValue(advisory.osv!.toJson()),
-          )
-          .execute();
-
-      final wantedPackages = (advisory.affectedPackages ?? const <String>[])
-          .toSet();
-      final existingPackages =
-          (await db.securityAdvisoryPackages
-                  .where((p) => p.advisoryId.equalsValue(id))
-                  .select((p) => (p.package,))
-                  .fetch())
-              .toSet();
-
-      final packagesToAdd = wantedPackages.difference(existingPackages);
-      if (packagesToAdd.isNotEmpty) {
-        await db.securityAdvisoryPackages
-            .insertValuesMapped(
-              packagesToAdd,
-              advisoryId: (_) => id,
-              package: (p) => p,
+    try {
+      await primaryDatabase.transactWithRetry((db) async {
+        final id = advisory.id!;
+        await db.securityAdvisories
+            .upsertValue(
+              advisoryId: id,
+              publishedAt: advisory.published!,
+              modifiedAt: advisory.modified!,
+              syncedAt: advisory.syncTime!,
+              osvJson: JsonValue(advisory.osv!.toJson()),
             )
             .execute();
-      }
 
-      final packagesToRemove = existingPackages.difference(wantedPackages);
-      if (packagesToRemove.isNotEmpty) {
-        await db.securityAdvisoryPackages
-            .where(
-              (p) =>
-                  p.advisoryId.equalsValue(id) &
-                  packagesToRemove
-                      .map((pkg) => p.package.equalsValue(pkg))
-                      .reduce((a, b) => a | b),
-            )
-            .delete()
-            .execute();
-      }
+        final wantedPackages = (advisory.affectedPackages ?? const <String>[])
+            .toSet();
+        final existingPackages =
+            (await db.securityAdvisoryPackages
+                    .where((p) => p.advisoryId.equalsValue(id))
+                    .select((p) => (p.package,))
+                    .fetch())
+                .toSet();
 
-      final wantedAliases = advisory.aliases.toSet();
-      final existingAliases =
-          (await db.securityAdvisoryAliases
-                  .where((a) => a.advisoryId.equalsValue(id))
-                  .select((a) => (a.alias,))
-                  .fetch())
-              .toSet();
+        final packagesToAdd = wantedPackages.difference(existingPackages);
+        if (packagesToAdd.isNotEmpty) {
+          await db.securityAdvisoryPackages
+              .insertValuesMapped(
+                packagesToAdd,
+                advisoryId: (_) => id,
+                package: (p) => p,
+              )
+              .execute();
+        }
 
-      final aliasesToAdd = wantedAliases.difference(existingAliases);
-      if (aliasesToAdd.isNotEmpty) {
-        await db.securityAdvisoryAliases
-            .insertValuesMapped(
-              aliasesToAdd,
-              advisoryId: (_) => id,
-              alias: (a) => a,
-            )
-            .execute();
-      }
-
-      final aliasesToRemove = existingAliases.difference(wantedAliases);
-      if (aliasesToRemove.isNotEmpty) {
-        await db.securityAdvisoryAliases
-            .where(
-              (a) =>
-                  a.advisoryId.equalsValue(id) &
-                  aliasesToRemove
-                      .map((alias) => a.alias.equalsValue(alias))
-                      .reduce((a, b) => a | b),
-            )
-            .delete()
-            .execute();
-      }
-    });
+        final packagesToRemove = existingPackages.difference(wantedPackages);
+        if (packagesToRemove.isNotEmpty) {
+          await db.securityAdvisoryPackages
+              .where(
+                (p) =>
+                    p.advisoryId.equalsValue(id) &
+                    packagesToRemove
+                        .map((pkg) => p.package.equalsValue(pkg))
+                        .reduce((a, b) => a | b),
+              )
+              .delete()
+              .execute();
+        }
+      });
+    } catch (e, st) {
+      _logger.warning(
+        'Failed to mirror SecurityAdvisory "${advisory.id}" to SQL.',
+        e,
+        st,
+      );
+    }
   }
 
   /// Deletes the SQL-mirrored security advisory with [id] (best-effort).
@@ -355,6 +334,10 @@ class SecurityAdvisoryBackend {
         tx.queueMutations(inserts: packages, deletes: [key]);
       }
     });
+    // Mirror the delete to SQL before triggering package post-updates, so
+    // that any cache repopulation triggered below doesn't read stale SQL
+    // data.
+    await _deleteFromSql(advisory.id!);
     await Future.wait(
       updatedPackages.map(
         (packageName) => triggerPackagePostUpdates(
@@ -364,7 +347,6 @@ class SecurityAdvisoryBackend {
         ).future,
       ),
     );
-    await _deleteFromSql(advisory.id!);
     return result;
   }
 

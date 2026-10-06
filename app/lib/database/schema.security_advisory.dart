@@ -40,22 +40,3 @@ abstract final class SecurityAdvisoryPackage extends Row {
   @Index.field()
   String get package;
 }
-
-/// One row per alias (e.g. a CVE or GHSA id) of an advisory, allowing
-/// indexed lookup of an advisory by any of its known aliases.
-@PrimaryKey(['advisoryId', 'alias'])
-@ForeignKey(
-  ['advisoryId'],
-  table: 'securityAdvisories',
-  fields: ['advisoryId'],
-  name: 'advisory',
-  as: 'aliases',
-  onDelete: .cascade,
-  onUpdate: .cascade,
-)
-abstract final class SecurityAdvisoryAlias extends Row {
-  String get advisoryId;
-
-  @Index.field()
-  String get alias;
-}

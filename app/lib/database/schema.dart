@@ -63,8 +63,6 @@ abstract final class PrimarySchema extends Schema {
 
   Table<SecurityAdvisoryPackage> get securityAdvisoryPackages;
 
-  Table<SecurityAdvisoryAlias> get securityAdvisoryAliases;
-
   // task tables
 
   Table<Task> get tasks;
