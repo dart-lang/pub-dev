@@ -131,6 +131,9 @@ int _estimateSize(Model m) {
 Future<void> _commit(List<Key> keys, bool dryRun) async {
   if (keys.isEmpty) return;
   if (!dryRun) {
-    await dbService.commit(deletes: keys);
+    await withRetryTransaction(
+      dbService,
+      (tx) async => tx.queueMutations(deletes: keys),
+    );
   }
 }

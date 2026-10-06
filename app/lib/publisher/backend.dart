@@ -583,7 +583,11 @@ class PublisherBackend {
         activeUser: user,
         memberToRemove: memberUser!,
       );
-      await _db.commit(inserts: [auditLogRecord], deletes: [pm.key]);
+      await withRetryTransaction(
+        _db,
+        (tx) async =>
+            tx.queueMutations(inserts: [auditLogRecord], deletes: [pm.key]),
+      );
       await auditBackend.mirrorToSql(auditLogRecord);
     }
     await purgePublisherCache(publisherId);

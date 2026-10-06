@@ -254,7 +254,7 @@ class EmailBackend {
           )
           .execute(),
     );
-    await _db.commit(deletes: [email.key]);
+    await withRetryTransaction(_db, (tx) async => tx.delete(email.key));
   }
 
   /// Migrates [OutgoingEmail] entries found in Datastore into SQL, deleting
