@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bump runtimeVersion to `2026.10.05`.
  * Upgraded stable Flutter analysis SDK to `3.47.6`.
  * Note: `ModeratedPackage` is now mirrored best-effort into SQL as `PackageTombstone`.
+ * Note: `SecurityAdvisory` is now mirrored best-effort into SQL.
 
 ## `20261002t120500-all`
  * Bump runtimeVersion to `2026.10.02`.

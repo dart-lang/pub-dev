@@ -40,6 +40,8 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$NeatTaskStatusRow._$table,
     _$PackageTombstone._$table,
     _$ReservedPackageRow._$table,
+    _$SecurityAdvisoryRow._$table,
+    _$SecurityAdvisoryPackage._$table,
     _$Task._$table,
     _$TaskDependency._$table,
     _$TaskVersion._$table,
@@ -75,6 +77,12 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<ReservedPackageRow> get reservedPackages =>
       $ForGeneratedCode.declareTable(this, _$ReservedPackageRow._$table);
+
+  Table<SecurityAdvisoryRow> get securityAdvisories =>
+      $ForGeneratedCode.declareTable(this, _$SecurityAdvisoryRow._$table);
+
+  Table<SecurityAdvisoryPackage> get securityAdvisoryPackages =>
+      $ForGeneratedCode.declareTable(this, _$SecurityAdvisoryPackage._$table);
 
   Table<Task> get tasks => $ForGeneratedCode.declareTable(this, _$Task._$table);
 
@@ -7913,6 +7921,1350 @@ extension InsertOnConflictSingleReservedPackageRowExt
         createdAt,
         emailsJson,
       ]),
+    ),
+  );
+}
+
+final class _$SecurityAdvisoryRow extends SecurityAdvisoryRow {
+  _$SecurityAdvisoryRow._(
+    this.advisoryId,
+    this.publishedAt,
+    this.modifiedAt,
+    this.syncedAt,
+    this.osvJson,
+  );
+
+  @override
+  final String advisoryId;
+
+  @override
+  final DateTime publishedAt;
+
+  @override
+  final DateTime modifiedAt;
+
+  @override
+  final DateTime syncedAt;
+
+  @override
+  final JsonValue osvJson;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'security_advisories',
+    columns: <String>[
+      'advisory_id',
+      'published_at',
+      'modified_at',
+      'synced_at',
+      'osv_json',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['advisory_id'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [],
+    readRow: _$SecurityAdvisoryRow._$fromDatabase,
+  );
+
+  static SecurityAdvisoryRow? _$fromDatabase(RowReader row) {
+    final advisoryId = row.readString();
+    final publishedAt = row.readDateTime();
+    final modifiedAt = row.readDateTime();
+    final syncedAt = row.readDateTime();
+    final osvJson = row.readJsonValue();
+    if (advisoryId == null &&
+        publishedAt == null &&
+        modifiedAt == null &&
+        syncedAt == null &&
+        osvJson == null) {
+      return null;
+    }
+    return _$SecurityAdvisoryRow._(
+      advisoryId!,
+      publishedAt!,
+      modifiedAt!,
+      syncedAt!,
+      osvJson!,
+    );
+  }
+
+  @override
+  String toString() =>
+      'SecurityAdvisoryRow(advisoryId: "$advisoryId", publishedAt: "$publishedAt", modifiedAt: "$modifiedAt", syncedAt: "$syncedAt", osvJson: "$osvJson")';
+}
+
+/// Extension methods for table defined in [SecurityAdvisoryRow].
+extension TableSecurityAdvisoryRowExt on Table<SecurityAdvisoryRow> {
+  /// Insert row into the `securityAdvisories` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<SecurityAdvisoryRow> insert({
+    required Expr<String> advisoryId,
+    required Expr<DateTime> publishedAt,
+    required Expr<DateTime> modifiedAt,
+    required Expr<DateTime> syncedAt,
+    required Expr<JsonValue> osvJson,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [advisoryId, publishedAt, modifiedAt, syncedAt, osvJson],
+  );
+
+  /// Insert row into the `securityAdvisories` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `publishedAt`, `modifiedAt`, `syncedAt`, `osvJson`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<SecurityAdvisoryRow> upsert({
+    required Expr<String> advisoryId,
+    required Expr<DateTime> publishedAt,
+    required Expr<DateTime> modifiedAt,
+    required Expr<DateTime> syncedAt,
+    required Expr<JsonValue> osvJson,
+  }) =>
+      insert(
+            advisoryId: advisoryId,
+            publishedAt: publishedAt,
+            modifiedAt: modifiedAt,
+            syncedAt: syncedAt,
+            osvJson: osvJson,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              publishedAt: excluded.publishedAt,
+              modifiedAt: excluded.modifiedAt,
+              syncedAt: excluded.syncedAt,
+              osvJson: excluded.osvJson,
+            ),
+          );
+
+  /// Insert row into the `securityAdvisories` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<SecurityAdvisoryRow> insertValue({
+    required String advisoryId,
+    required DateTime publishedAt,
+    required DateTime modifiedAt,
+    required DateTime syncedAt,
+    required JsonValue osvJson,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      advisoryId.asExpr,
+      publishedAt.asExpr,
+      modifiedAt.asExpr,
+      syncedAt.asExpr,
+      osvJson.asExpr,
+    ],
+  );
+
+  /// Insert row into the `securityAdvisories` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `publishedAt`, `modifiedAt`, `syncedAt`, `osvJson`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<SecurityAdvisoryRow> upsertValue({
+    required String advisoryId,
+    required DateTime publishedAt,
+    required DateTime modifiedAt,
+    required DateTime syncedAt,
+    required JsonValue osvJson,
+  }) =>
+      insertValue(
+            advisoryId: advisoryId,
+            publishedAt: publishedAt,
+            modifiedAt: modifiedAt,
+            syncedAt: syncedAt,
+            osvJson: osvJson,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              publishedAt: excluded.publishedAt,
+              modifiedAt: excluded.modifiedAt,
+              syncedAt: excluded.syncedAt,
+              osvJson: excluded.osvJson,
+            ),
+          );
+
+  /// Bulk insert rows into the `securityAdvisories` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<SecurityAdvisoryRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) advisoryId,
+    required DateTime Function(T row) publishedAt,
+    required DateTime Function(T row) modifiedAt,
+    required DateTime Function(T row) syncedAt,
+    required JsonValue Function(T row) osvJson,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [advisoryId, publishedAt, modifiedAt, syncedAt, osvJson],
+  );
+
+  /// Delete a single row from the `securityAdvisories` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<SecurityAdvisoryRow> delete(String advisoryId) =>
+      $ForGeneratedCode.deleteSingle(
+        byKey(advisoryId),
+        _$SecurityAdvisoryRow._$table,
+      );
+}
+
+/// Extension methods for building queries against the `securityAdvisories` table.
+extension QuerySecurityAdvisoryRowExt on Query<(Expr<SecurityAdvisoryRow>,)> {
+  /// Lookup a single row in `securityAdvisories` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<SecurityAdvisoryRow>,)> byKey(String advisoryId) => where(
+    (securityAdvisoryRow) =>
+        securityAdvisoryRow.advisoryId.equalsValue(advisoryId),
+  ).first;
+
+  /// Update all rows in the `securityAdvisories` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<SecurityAdvisoryRow> update(
+    UpdateSet<SecurityAdvisoryRow> Function(
+      Expr<SecurityAdvisoryRow> securityAdvisoryRow,
+      UpdateSet<SecurityAdvisoryRow> Function({
+        Expr<String> advisoryId,
+        Expr<DateTime> publishedAt,
+        Expr<DateTime> modifiedAt,
+        Expr<DateTime> syncedAt,
+        Expr<JsonValue> osvJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<SecurityAdvisoryRow>(
+    this,
+    _$SecurityAdvisoryRow._$table,
+    (securityAdvisoryRow) => updateBuilder(
+      securityAdvisoryRow,
+      ({
+        Expr<String>? advisoryId,
+        Expr<DateTime>? publishedAt,
+        Expr<DateTime>? modifiedAt,
+        Expr<DateTime>? syncedAt,
+        Expr<JsonValue>? osvJson,
+      }) => $ForGeneratedCode.buildUpdate<SecurityAdvisoryRow>([
+        advisoryId,
+        publishedAt,
+        modifiedAt,
+        syncedAt,
+        osvJson,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `securityAdvisories` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<SecurityAdvisoryRow> delete() =>
+      $ForGeneratedCode.delete(this, _$SecurityAdvisoryRow._$table);
+}
+
+/// Extension methods for building point queries against the `securityAdvisories` table.
+extension QuerySingleSecurityAdvisoryRowExt
+    on QuerySingle<(Expr<SecurityAdvisoryRow>,)> {
+  /// Update the row (if any) in the `securityAdvisories` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<SecurityAdvisoryRow> update(
+    UpdateSet<SecurityAdvisoryRow> Function(
+      Expr<SecurityAdvisoryRow> securityAdvisoryRow,
+      UpdateSet<SecurityAdvisoryRow> Function({
+        Expr<String> advisoryId,
+        Expr<DateTime> publishedAt,
+        Expr<DateTime> modifiedAt,
+        Expr<DateTime> syncedAt,
+        Expr<JsonValue> osvJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<SecurityAdvisoryRow>(
+    this,
+    _$SecurityAdvisoryRow._$table,
+    (securityAdvisoryRow) => updateBuilder(
+      securityAdvisoryRow,
+      ({
+        Expr<String>? advisoryId,
+        Expr<DateTime>? publishedAt,
+        Expr<DateTime>? modifiedAt,
+        Expr<DateTime>? syncedAt,
+        Expr<JsonValue>? osvJson,
+      }) => $ForGeneratedCode.buildUpdate<SecurityAdvisoryRow>([
+        advisoryId,
+        publishedAt,
+        modifiedAt,
+        syncedAt,
+        osvJson,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `securityAdvisories` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<SecurityAdvisoryRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$SecurityAdvisoryRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `securityAdvisories` table.
+extension ExpressionSecurityAdvisoryRowExt on Expr<SecurityAdvisoryRow> {
+  /// The OSV advisory id.
+  Expr<String> get advisoryId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<DateTime> get publishedAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime> get modifiedAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// The time this advisory was last synced (ingested) from the upstream
+  /// OSV source. Used to drive cache invalidation for packages affected
+  /// by this advisory.
+  Expr<DateTime> get syncedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// The full OSV advisory record, as JSON.
+  Expr<JsonValue> get osvJson =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.jsonValue);
+
+  /// Get [SubQuery] of rows from the `securityAdvisoryPackages` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [SecurityAdvisoryPackage] rows,
+  /// where [SecurityAdvisoryPackage.advisoryId]
+  /// references [SecurityAdvisoryRow.advisoryId]
+  /// in this row.
+  SubQuery<(Expr<SecurityAdvisoryPackage>,)> get affectedPackages =>
+      $ForGeneratedCode
+          .subqueryTable(_$SecurityAdvisoryPackage._$table)
+          .where((r) => r.advisoryId.equalsUnlessNull(advisoryId));
+}
+
+extension ExpressionNullableSecurityAdvisoryRowExt
+    on Expr<SecurityAdvisoryRow?> {
+  /// The OSV advisory id.
+  Expr<String?> get advisoryId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get publishedAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime?> get modifiedAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// The time this advisory was last synced (ingested) from the upstream
+  /// OSV source. Used to drive cache invalidation for packages affected
+  /// by this advisory.
+  Expr<DateTime?> get syncedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// The full OSV advisory record, as JSON.
+  Expr<JsonValue?> get osvJson =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.jsonValue);
+
+  /// Get [SubQuery] of rows from the `securityAdvisoryPackages` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [SecurityAdvisoryPackage] rows,
+  /// where [SecurityAdvisoryPackage.advisoryId]
+  /// references [SecurityAdvisoryRow.advisoryId]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<SecurityAdvisoryPackage>,)> get affectedPackages =>
+      $ForGeneratedCode
+          .subqueryTable(_$SecurityAdvisoryPackage._$table)
+          .where((r) => r.advisoryId.equalsUnlessNull(advisoryId));
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => advisoryId.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinSecurityAdvisoryRowSecurityAdvisoryPackageExt
+    on
+        InnerJoin<
+          (Expr<SecurityAdvisoryRow>,),
+          (Expr<SecurityAdvisoryPackage>,)
+        > {
+  /// Join using the `advisory` _foreign key_.
+  ///
+  /// This will match rows where [SecurityAdvisoryRow.advisoryId] = [SecurityAdvisoryPackage.advisoryId].
+  Query<(Expr<SecurityAdvisoryRow>, Expr<SecurityAdvisoryPackage>)>
+  usingAdvisory() => on((a, b) => a.advisoryId.equalsUnlessNull(b.advisoryId));
+}
+
+extension LeftJoinSecurityAdvisoryRowSecurityAdvisoryPackageExt
+    on
+        LeftJoin<
+          (Expr<SecurityAdvisoryRow>,),
+          (Expr<SecurityAdvisoryPackage>,)
+        > {
+  /// Join using the `advisory` _foreign key_.
+  ///
+  /// This will match rows where [SecurityAdvisoryRow.advisoryId] = [SecurityAdvisoryPackage.advisoryId].
+  Query<(Expr<SecurityAdvisoryRow>, Expr<SecurityAdvisoryPackage?>)>
+  usingAdvisory() => on((a, b) => a.advisoryId.equalsUnlessNull(b.advisoryId));
+}
+
+extension RightJoinSecurityAdvisoryRowSecurityAdvisoryPackageExt
+    on
+        RightJoin<
+          (Expr<SecurityAdvisoryRow>,),
+          (Expr<SecurityAdvisoryPackage>,)
+        > {
+  /// Join using the `advisory` _foreign key_.
+  ///
+  /// This will match rows where [SecurityAdvisoryRow.advisoryId] = [SecurityAdvisoryPackage.advisoryId].
+  Query<(Expr<SecurityAdvisoryRow?>, Expr<SecurityAdvisoryPackage>)>
+  usingAdvisory() => on((a, b) => a.advisoryId.equalsUnlessNull(b.advisoryId));
+}
+
+/// `Table<SecurityAdvisoryRow>` conflict targets for use with `.onConflict`.
+enum SecurityAdvisoryRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `advisoryId`.
+  primaryKey(['advisory_id']);
+
+  const SecurityAdvisoryRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertSecurityAdvisoryRowExt on Insert<SecurityAdvisoryRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((securityAdvisoryRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<SecurityAdvisoryRow> onConflict(
+    SecurityAdvisoryRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictSecurityAdvisoryRowExt
+    on InsertOnConflict<SecurityAdvisoryRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `securityAdvisoryRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<SecurityAdvisoryRow> update(
+    UpdateSet<SecurityAdvisoryRow> Function(
+      Expr<SecurityAdvisoryRow> securityAdvisoryRow,
+      Expr<SecurityAdvisoryRow> excluded,
+      UpdateSet<SecurityAdvisoryRow> Function({
+        Expr<String> advisoryId,
+        Expr<DateTime> publishedAt,
+        Expr<DateTime> modifiedAt,
+        Expr<DateTime> syncedAt,
+        Expr<JsonValue> osvJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<SecurityAdvisoryRow>(
+    this,
+    (securityAdvisoryRow, excluded) => updateBuilder(
+      securityAdvisoryRow,
+      excluded,
+      ({
+        Expr<String>? advisoryId,
+        Expr<DateTime>? publishedAt,
+        Expr<DateTime>? modifiedAt,
+        Expr<DateTime>? syncedAt,
+        Expr<JsonValue>? osvJson,
+      }) => $ForGeneratedCode.buildUpdate<SecurityAdvisoryRow>([
+        advisoryId,
+        publishedAt,
+        modifiedAt,
+        syncedAt,
+        osvJson,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleSecurityAdvisoryRowExt
+    on InsertSingle<SecurityAdvisoryRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((securityAdvisoryRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<SecurityAdvisoryRow> onConflict(
+    SecurityAdvisoryRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleSecurityAdvisoryRowExt
+    on InsertOnConflictSingle<SecurityAdvisoryRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `securityAdvisoryRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<SecurityAdvisoryRow> update(
+    UpdateSet<SecurityAdvisoryRow> Function(
+      Expr<SecurityAdvisoryRow> securityAdvisoryRow,
+      Expr<SecurityAdvisoryRow> excluded,
+      UpdateSet<SecurityAdvisoryRow> Function({
+        Expr<String> advisoryId,
+        Expr<DateTime> publishedAt,
+        Expr<DateTime> modifiedAt,
+        Expr<DateTime> syncedAt,
+        Expr<JsonValue> osvJson,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<SecurityAdvisoryRow>(
+    this,
+    (securityAdvisoryRow, excluded) => updateBuilder(
+      securityAdvisoryRow,
+      excluded,
+      ({
+        Expr<String>? advisoryId,
+        Expr<DateTime>? publishedAt,
+        Expr<DateTime>? modifiedAt,
+        Expr<DateTime>? syncedAt,
+        Expr<JsonValue>? osvJson,
+      }) => $ForGeneratedCode.buildUpdate<SecurityAdvisoryRow>([
+        advisoryId,
+        publishedAt,
+        modifiedAt,
+        syncedAt,
+        osvJson,
+      ]),
+    ),
+  );
+}
+
+final class _$SecurityAdvisoryPackage extends SecurityAdvisoryPackage {
+  _$SecurityAdvisoryPackage._(this.advisoryId, this.package);
+
+  @override
+  final String advisoryId;
+
+  @override
+  final String package;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'security_advisory_packages',
+    columns: <String>['advisory_id', 'package'],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['advisory_id', 'package'],
+    unique: <List<String>>[],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'advisory',
+        columns: ['advisory_id'],
+        referencedTable: 'security_advisories',
+        referencedColumns: ['advisory_id'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+    ],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['package'],
+      ),
+    ],
+    readRow: _$SecurityAdvisoryPackage._$fromDatabase,
+  );
+
+  static SecurityAdvisoryPackage? _$fromDatabase(RowReader row) {
+    final advisoryId = row.readString();
+    final package = row.readString();
+    if (advisoryId == null && package == null) {
+      return null;
+    }
+    return _$SecurityAdvisoryPackage._(advisoryId!, package!);
+  }
+
+  @override
+  String toString() =>
+      'SecurityAdvisoryPackage(advisoryId: "$advisoryId", package: "$package")';
+}
+
+/// Extension methods for table defined in [SecurityAdvisoryPackage].
+extension TableSecurityAdvisoryPackageExt on Table<SecurityAdvisoryPackage> {
+  /// Insert row into the `securityAdvisoryPackages` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<SecurityAdvisoryPackage> insert({
+    required Expr<String> advisoryId,
+    required Expr<String> package,
+  }) =>
+      $ForGeneratedCode.insertInto(table: this, values: [advisoryId, package]);
+
+  /// Insert row into the `securityAdvisoryPackages` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// nothing, as all fields are part of the _primary key_,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<SecurityAdvisoryPackage> upsert({
+    required Expr<String> advisoryId,
+    required Expr<String> package,
+  }) => insert(
+    advisoryId: advisoryId,
+    package: package,
+  ).onConflict(.primaryKey).update((_, excluded, set) => set());
+
+  /// Insert row into the `securityAdvisoryPackages` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<SecurityAdvisoryPackage> insertValue({
+    required String advisoryId,
+    required String package,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [advisoryId.asExpr, package.asExpr],
+  );
+
+  /// Insert row into the `securityAdvisoryPackages` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// nothing, as all fields are part of the _primary key_,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<SecurityAdvisoryPackage> upsertValue({
+    required String advisoryId,
+    required String package,
+  }) => insertValue(
+    advisoryId: advisoryId,
+    package: package,
+  ).onConflict(.primaryKey).update((_, excluded, set) => set());
+
+  /// Bulk insert rows into the `securityAdvisoryPackages` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<SecurityAdvisoryPackage> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) advisoryId,
+    required String Function(T row) package,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [advisoryId, package],
+  );
+
+  /// Delete a single row from the `securityAdvisoryPackages` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<SecurityAdvisoryPackage> delete(
+    String advisoryId,
+    String package,
+  ) => $ForGeneratedCode.deleteSingle(
+    byKey(advisoryId, package),
+    _$SecurityAdvisoryPackage._$table,
+  );
+}
+
+/// Extension methods for building queries against the `securityAdvisoryPackages` table.
+extension QuerySecurityAdvisoryPackageExt
+    on Query<(Expr<SecurityAdvisoryPackage>,)> {
+  /// Lookup a single row in `securityAdvisoryPackages` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<SecurityAdvisoryPackage>,)> byKey(
+    String advisoryId,
+    String package,
+  ) => where(
+    (securityAdvisoryPackage) =>
+        securityAdvisoryPackage.advisoryId.equalsValue(advisoryId) &
+        securityAdvisoryPackage.package.equalsValue(package),
+  ).first;
+
+  /// Update all rows in the `securityAdvisoryPackages` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<SecurityAdvisoryPackage> update(
+    UpdateSet<SecurityAdvisoryPackage> Function(
+      Expr<SecurityAdvisoryPackage> securityAdvisoryPackage,
+      UpdateSet<SecurityAdvisoryPackage> Function({
+        Expr<String> advisoryId,
+        Expr<String> package,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<SecurityAdvisoryPackage>(
+    this,
+    _$SecurityAdvisoryPackage._$table,
+    (securityAdvisoryPackage) => updateBuilder(
+      securityAdvisoryPackage,
+      ({Expr<String>? advisoryId, Expr<String>? package}) => $ForGeneratedCode
+          .buildUpdate<SecurityAdvisoryPackage>([advisoryId, package]),
+    ),
+  );
+
+  /// Delete all rows in the `securityAdvisoryPackages` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<SecurityAdvisoryPackage> delete() =>
+      $ForGeneratedCode.delete(this, _$SecurityAdvisoryPackage._$table);
+}
+
+/// Extension methods for building point queries against the `securityAdvisoryPackages` table.
+extension QuerySingleSecurityAdvisoryPackageExt
+    on QuerySingle<(Expr<SecurityAdvisoryPackage>,)> {
+  /// Update the row (if any) in the `securityAdvisoryPackages` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<SecurityAdvisoryPackage> update(
+    UpdateSet<SecurityAdvisoryPackage> Function(
+      Expr<SecurityAdvisoryPackage> securityAdvisoryPackage,
+      UpdateSet<SecurityAdvisoryPackage> Function({
+        Expr<String> advisoryId,
+        Expr<String> package,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<SecurityAdvisoryPackage>(
+    this,
+    _$SecurityAdvisoryPackage._$table,
+    (securityAdvisoryPackage) => updateBuilder(
+      securityAdvisoryPackage,
+      ({Expr<String>? advisoryId, Expr<String>? package}) => $ForGeneratedCode
+          .buildUpdate<SecurityAdvisoryPackage>([advisoryId, package]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `securityAdvisoryPackages` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<SecurityAdvisoryPackage> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$SecurityAdvisoryPackage._$table);
+}
+
+/// Extension methods for expressions on a row in the `securityAdvisoryPackages` table.
+extension ExpressionSecurityAdvisoryPackageExt
+    on Expr<SecurityAdvisoryPackage> {
+  Expr<String> get advisoryId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String> get package =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `securityAdvisories` referenced in
+  /// [advisoryId].
+  ///
+  /// The gets the row from table `securityAdvisories` where
+  /// [SecurityAdvisoryRow.advisoryId]
+  /// is equal to [advisoryId].
+  Expr<SecurityAdvisoryRow> get advisory => $ForGeneratedCode
+      .subqueryTable(_$SecurityAdvisoryRow._$table)
+      .where((r) => r.advisoryId.equalsUnlessNull(advisoryId))
+      .first
+      .asNotNull();
+}
+
+extension ExpressionNullableSecurityAdvisoryPackageExt
+    on Expr<SecurityAdvisoryPackage?> {
+  Expr<String?> get advisoryId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String?> get package =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `securityAdvisories` referenced in
+  /// [advisoryId].
+  ///
+  /// The gets the row from table `securityAdvisories` where
+  /// [SecurityAdvisoryRow.advisoryId]
+  /// is equal to [advisoryId], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<SecurityAdvisoryRow?> get advisory => $ForGeneratedCode
+      .subqueryTable(_$SecurityAdvisoryRow._$table)
+      .where((r) => r.advisoryId.equalsUnlessNull(advisoryId))
+      .first;
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => advisoryId.isNotNull() & package.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinSecurityAdvisoryPackageSecurityAdvisoryRowExt
+    on
+        InnerJoin<
+          (Expr<SecurityAdvisoryPackage>,),
+          (Expr<SecurityAdvisoryRow>,)
+        > {
+  /// Join using the `advisory` _foreign key_.
+  ///
+  /// This will match rows where [SecurityAdvisoryPackage.advisoryId] = [SecurityAdvisoryRow.advisoryId].
+  Query<(Expr<SecurityAdvisoryPackage>, Expr<SecurityAdvisoryRow>)>
+  usingAdvisory() => on((a, b) => b.advisoryId.equalsUnlessNull(a.advisoryId));
+}
+
+extension LeftJoinSecurityAdvisoryPackageSecurityAdvisoryRowExt
+    on
+        LeftJoin<
+          (Expr<SecurityAdvisoryPackage>,),
+          (Expr<SecurityAdvisoryRow>,)
+        > {
+  /// Join using the `advisory` _foreign key_.
+  ///
+  /// This will match rows where [SecurityAdvisoryPackage.advisoryId] = [SecurityAdvisoryRow.advisoryId].
+  Query<(Expr<SecurityAdvisoryPackage>, Expr<SecurityAdvisoryRow?>)>
+  usingAdvisory() => on((a, b) => b.advisoryId.equalsUnlessNull(a.advisoryId));
+}
+
+extension RightJoinSecurityAdvisoryPackageSecurityAdvisoryRowExt
+    on
+        RightJoin<
+          (Expr<SecurityAdvisoryPackage>,),
+          (Expr<SecurityAdvisoryRow>,)
+        > {
+  /// Join using the `advisory` _foreign key_.
+  ///
+  /// This will match rows where [SecurityAdvisoryPackage.advisoryId] = [SecurityAdvisoryRow.advisoryId].
+  Query<(Expr<SecurityAdvisoryPackage?>, Expr<SecurityAdvisoryRow>)>
+  usingAdvisory() => on((a, b) => b.advisoryId.equalsUnlessNull(a.advisoryId));
+}
+
+/// `Table<SecurityAdvisoryPackage>` conflict targets for use with `.onConflict`.
+enum SecurityAdvisoryPackageConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `advisoryId`, `package`.
+  primaryKey(['advisory_id', 'package']);
+
+  const SecurityAdvisoryPackageConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertSecurityAdvisoryPackageExt on Insert<SecurityAdvisoryPackage> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((securityAdvisoryPackage, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<SecurityAdvisoryPackage> onConflict(
+    SecurityAdvisoryPackageConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictSecurityAdvisoryPackageExt
+    on InsertOnConflict<SecurityAdvisoryPackage> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `securityAdvisoryPackage` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<SecurityAdvisoryPackage> update(
+    UpdateSet<SecurityAdvisoryPackage> Function(
+      Expr<SecurityAdvisoryPackage> securityAdvisoryPackage,
+      Expr<SecurityAdvisoryPackage> excluded,
+      UpdateSet<SecurityAdvisoryPackage> Function({
+        Expr<String> advisoryId,
+        Expr<String> package,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<SecurityAdvisoryPackage>(
+    this,
+    (securityAdvisoryPackage, excluded) => updateBuilder(
+      securityAdvisoryPackage,
+      excluded,
+      ({Expr<String>? advisoryId, Expr<String>? package}) => $ForGeneratedCode
+          .buildUpdate<SecurityAdvisoryPackage>([advisoryId, package]),
+    ),
+  );
+}
+
+extension InsertSingleSecurityAdvisoryPackageExt
+    on InsertSingle<SecurityAdvisoryPackage> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((securityAdvisoryPackage, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<SecurityAdvisoryPackage> onConflict(
+    SecurityAdvisoryPackageConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleSecurityAdvisoryPackageExt
+    on InsertOnConflictSingle<SecurityAdvisoryPackage> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `securityAdvisoryPackage` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<SecurityAdvisoryPackage> update(
+    UpdateSet<SecurityAdvisoryPackage> Function(
+      Expr<SecurityAdvisoryPackage> securityAdvisoryPackage,
+      Expr<SecurityAdvisoryPackage> excluded,
+      UpdateSet<SecurityAdvisoryPackage> Function({
+        Expr<String> advisoryId,
+        Expr<String> package,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<SecurityAdvisoryPackage>(
+    this,
+    (securityAdvisoryPackage, excluded) => updateBuilder(
+      securityAdvisoryPackage,
+      excluded,
+      ({Expr<String>? advisoryId, Expr<String>? package}) => $ForGeneratedCode
+          .buildUpdate<SecurityAdvisoryPackage>([advisoryId, package]),
     ),
   );
 }
