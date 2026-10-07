@@ -163,10 +163,19 @@ List<String> derivePendingVersions({
   return list.map((s) => s.toString()).toList();
 }
 
-extension TaskStateExt on Task {
-  /// Returns true if the current [Task] instance is new, no version analysis
-  /// has not completed yet (with neither success nor failure).
-  bool get hasNeverFinished => finished == initialTimestamp;
+extension TaskVersionRowExt on TaskVersion {
+  /// The [PackageVersionStateInfo] view of this row.
+  PackageVersionStateInfo get asPackageVersionStateInfo =>
+      PackageVersionStateInfo(
+        scheduled: scheduledAt,
+        attempts: attempts,
+        zone: workerZone,
+        instance: workerInstance,
+        secretToken: workerToken,
+        docs: hasDocs,
+        pana: hasPana,
+        finished: isFinished,
+      );
 }
 
 /// State of a given `version` within a [Task].

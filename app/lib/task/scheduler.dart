@@ -257,31 +257,25 @@ Future<SchedulePackageResult?> schedulePackageInstance({
       // If this doesn't work, we'll eventually retry. Hence, correctness
       // does not hinge on this transaction being successful.
       await database.transactWithRetry((db) async {
-        final s = await db.taskLookupOrNull(package);
+        final s = await db.lookupTaskMetadata(package);
         if (s == null) {
           return; // Presumably, the package was deleted.
         }
 
-        final oldState = TaskState(
-          versions: {...s.state!.versions},
-          abortedTokens: s.state!.abortedTokens,
-        );
-        final versions = s.state!.versions;
+        final oldVersions = await db.lookupVersions(package);
+        final oldAbortedTokens = await db.listAbortedTokens(package);
+
+        final versions = {...oldVersions};
         versions.addEntries(
           versions.entries
               .where((e) => e.value.instance == instanceName)
               .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
         );
 
-        final newState = TaskState(
-          versions: versions,
-          abortedTokens: s.state!.abortedTokens,
-        );
         await db.tasks
             .byKey(runtimeVersion, package)
             .update(
               (_, set) => set(
-                state: newState.asExpr,
                 pendingAt: derivePendingAt(
                   versions: versions,
                   lastDependencyChanged: s.lastDependencyChanged,
@@ -289,7 +283,13 @@ Future<SchedulePackageResult?> schedulePackageInstance({
               ),
             )
             .execute();
-        await db.upsertTaskState(package, newState, oldState: oldState);
+        await db.updateTaskVersions(
+          package,
+          versions: versions,
+          abortedTokens: oldAbortedTokens,
+          oldVersions: oldVersions,
+          oldAbortedTokens: oldAbortedTokens,
+        );
       });
     }
   }
@@ -307,15 +307,18 @@ Future<Payload?> updatePackageStateWithPendingVersions(
   String instanceName,
 ) async {
   return database.transactWithRetry((db) async {
-    final task = await db.taskLookupOrNull(package);
+    final task = await db.lookupTaskMetadata(package);
     if (task == null) {
       // presumably the package was deleted.
       return null;
     }
 
+    final oldVersions = await db.lookupVersions(package);
+    final oldAbortedTokens = await db.listAbortedTokens(package);
+
     final now = clock.now();
     final pendingVersions = derivePendingVersions(
-      versions: task.state!.versions,
+      versions: oldVersions,
       lastDependencyChanged: task.lastDependencyChanged,
       at: now,
     ).toList();
@@ -326,24 +329,19 @@ Future<Payload?> updatePackageStateWithPendingVersions(
 
     // Update PackageState
     final newVersions = {
-      ...task.state!.versions,
+      ...oldVersions,
       for (final v in pendingVersions.map((v) => v.toString()))
-        v: task.state!.versions[v]!.scheduleNew(
+        v: oldVersions[v]!.scheduleNew(
           scheduled: now,
           zone: zone,
           instanceName: instanceName,
           secretToken: createUuid(),
         ),
     };
-    final newState = TaskState(
-      versions: newVersions,
-      abortedTokens: task.state!.abortedTokens,
-    );
     await db.tasks
         .byKey(runtimeVersion, package)
         .update(
           (_, set) => set(
-            state: newState.asExpr,
             pendingAt: derivePendingAt(
               versions: newVersions,
               lastDependencyChanged: task.lastDependencyChanged,
@@ -351,11 +349,17 @@ Future<Payload?> updatePackageStateWithPendingVersions(
           ),
         )
         .execute();
-    await db.upsertTaskState(package, newState, oldState: task.state);
+    await db.updateTaskVersions(
+      package,
+      versions: newVersions,
+      abortedTokens: oldAbortedTokens,
+      oldVersions: oldVersions,
+      oldAbortedTokens: oldAbortedTokens,
+    );
 
     // Create payload
     final payload = Payload(
-      package: task.package,
+      package: package,
       pubHostedUrl: activeConfiguration.defaultServiceBaseUrl,
       versions: pendingVersions.map(
         (v) => VersionTokenPair(
