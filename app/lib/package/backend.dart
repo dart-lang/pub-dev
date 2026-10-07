@@ -1244,20 +1244,21 @@ class PackageBackend {
             );
           }
 
-          final SigstoreBundle bundle;
-          try {
-            bundle = SigstoreBundle.fromJson(attestationContent);
-          } catch (e) {
-            throw PackageRejectedException('Invalid package attestation: $e');
-          }
+          final existingPackage = await lookupPackage(pubspec.name);
+          final githubConfig = existingPackage?.publishingConfig?.githubConfig;
+          final configuredGitHubRepository =
+              (githubConfig != null && githubConfig.isEnabled)
+              ? githubConfig.repository
+              : null;
 
           final archiveBytes = await file.readAsBytes();
           final verificationResult = _sigstoreVerifier.verify(
             packageName: pubspec.name,
             packageVersion: Version.parse(versionString),
             archiveBytes: archiveBytes,
-            bundle: bundle,
+            bundleJson: attestationContent,
             pubspecRepository: pubspec.repository?.toString(),
+            configuredGitHubRepository: configuredGitHubRepository,
           );
           if (!verificationResult.isValid) {
             throw PackageRejectedException(
