@@ -13,7 +13,7 @@ import 'package:ulid/ulid.dart' show Ulid;
 
 final _log = Logger('pub.global_lock');
 
-/// The claimId and expiration of a [GlobalLockStateRow] row, as read from SQL.
+/// The claimId and expiration of a [GlobalLockState] row, as read from SQL.
 typedef _LockState = ({String claimId, DateTime lockedUntil});
 
 class GlobalLock {

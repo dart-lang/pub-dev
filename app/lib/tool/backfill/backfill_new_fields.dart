@@ -10,7 +10,6 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
-import 'package:pub_dev/task/global_lock_models.dart';
 
 final _logger = Logger('backfill_new_fields');
 
@@ -29,9 +28,6 @@ Future<void> backfillNewFields() async {
       tx.insert(pkg);
     });
   }
-
-  _logger.info('Delete old GlobalLockState entities in Datastore');
-  await dbService.deleteWithQuery(dbService.query<GlobalLockState>());
 
   // NOTE: Keep these around until all of the audit log record is migrated to use SQL.
   _logger.info('Backfilling audit log records...');

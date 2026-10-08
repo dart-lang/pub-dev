@@ -5,10 +5,8 @@
 part of 'schema.dart';
 
 /// Stores the state of a `GlobalLock`, keyed by the lock's id.
-///
-/// TODO: Rename to `GlobalLockState` after it has been fully migrated.
 @PrimaryKey(['lockId'])
-abstract final class GlobalLockStateRow extends Row {
+abstract final class GlobalLockState extends Row {
   /// The id of the lock.
   String get lockId;
 

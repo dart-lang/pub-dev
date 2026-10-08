@@ -45,7 +45,7 @@ abstract final class PrimarySchema extends Schema {
 
   // global lock table
 
-  Table<GlobalLockStateRow> get globalLockStates;
+  Table<GlobalLockState> get globalLockStates;
 
   // neat periodic task status table
 
