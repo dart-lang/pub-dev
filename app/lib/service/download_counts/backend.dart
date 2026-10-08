@@ -4,9 +4,12 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:googleapis/storage/v1.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/service/download_counts/computations.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/service/download_counts/models.dart';
@@ -16,6 +19,7 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/storage.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 /// Sets the download counts backend service.
 void registerDownloadCountsBackend(DownloadCountsBackend backend) =>
@@ -190,6 +194,20 @@ class DownloadCountsBackend {
       return newDownloadCounts;
     });
     await cache.downloadCounts(pkg).purge();
+    await _mirrorToSql(pkg, downloadCounts.countData);
     return downloadCounts;
+  }
+
+  /// Mirrors [countData] for [pkg] into SQL.
+  Future<void> _mirrorToSql(String pkg, CountData countData) async {
+    await primaryDatabase.withRetry(
+      (db) => db.downloadCounts
+          .upsertValue(
+            package: pkg,
+            updatedAt: clock.now().toUtc(),
+            countDataJson: JsonValue(countData.toJson()),
+          )
+          .execute(),
+    );
   }
 }
