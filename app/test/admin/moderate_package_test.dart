@@ -501,12 +501,54 @@ void main() {
           return rows.map((a) => a.version).toSet();
         }
 
-        await packageBackend.backfillPackageVersionAssetsSqlFromDatastore();
+        // the upload has already mirrored the assets, remove them to exercise
+        // the backfill
+        expect(await sqlAssetVersions(), containsAll(['1.0.0', '1.2.0']));
+        await packageBackend.deletePackageVersionAssetsFromSql('oxygen');
+        expect(await sqlAssetVersions(), isEmpty);
+
+        expect(
+          await packageBackend.backfillPackageVersionAssetsSqlFromDatastore(),
+          greaterThan(0),
+        );
+        expect(await sqlAssetVersions(), containsAll(['1.0.0', '1.2.0']));
         expect(
           await packageBackend.backfillPackageVersionAssetsSqlFromDatastore(),
           0,
         );
-        expect(await sqlAssetVersions(), containsAll(['1.0.0', '1.2.0']));
+
+        // stale rows are refreshed
+        await primaryDatabase.withRetry(
+          (db) => db.packageVersionAssets
+              .where((a) => a.package.equalsValue('oxygen'))
+              .update(
+                (a, set) => set(updatedAt: toExpr(DateTime.utc(2000, 1, 1))),
+              )
+              .execute(),
+        );
+        expect(
+          await packageBackend.backfillPackageVersionAssetsSqlFromDatastore(),
+          greaterThan(0),
+        );
+
+        // rows without a Datastore entity are removed
+        await primaryDatabase.withRetry(
+          (db) => db.packageVersionAssets
+              .insertValue(
+                package: 'oxygen',
+                version: '9.9.9',
+                kind: 'readme',
+                updatedAt: DateTime.utc(2000, 1, 1),
+                path: 'README.md',
+                textContent: 'orphan',
+              )
+              .execute(),
+        );
+        expect(
+          await packageBackend.backfillPackageVersionAssetsSqlFromDatastore(),
+          1,
+        );
+        expect(await sqlAssetVersions(), isNot(contains('9.9.9')));
 
         // delete old version
         await accountBackend.withBearerToken(siteAdminToken, () async {

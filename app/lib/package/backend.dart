@@ -323,7 +323,6 @@ class PackageBackend {
           package: a.package!,
           version: a.version!,
           kind: a.kind!,
-          versionCreatedAt: a.versionCreated!,
           updatedAt: a.updated!,
           path: a.path ?? '',
           textContent: a.textContent ?? '',
@@ -350,20 +349,52 @@ class PackageBackend {
   }
 
   /// Copies [PackageVersionAsset] entries from Datastore into SQL, for entries
-  /// that are not yet present in SQL (or are stale).
+  /// that are not yet present in SQL (or are stale), and removes SQL rows that
+  /// have no matching Datastore entry.
+  ///
+  /// The work is done package-by-package: the existing SQL state is read with a
+  /// single query (without the `text_content` column), and only the missing or
+  /// stale entries are upserted.
   Future<int> backfillPackageVersionAssetsSqlFromDatastore() async {
     var count = 0;
-    await for (final a in db.query<PackageVersionAsset>().run()) {
-      final existing = await primaryDatabase.withRetry(
+    await for (final packageName in allPackageNames()) {
+      final existing = <(String, String), DateTime>{};
+      final rows = await primaryDatabase.withRetry(
         (db) => db.packageVersionAssets
-            .byKey(a.package!, a.version!, a.kind!)
+            .where((a) => a.package.equalsValue(packageName))
+            .select((a) => (a.version, a.kind, a.updatedAt))
             .fetch(),
       );
-      if (existing != null && existing.updatedAt.isAtSameMomentAs(a.updated!)) {
-        continue;
+      for (final (version, kind, updatedAt) in rows) {
+        existing[(version, kind)] = updatedAt;
       }
-      await primaryDatabase.withRetry((db) => _upsertAsset(db, a));
-      count++;
+
+      final stale = <PackageVersionAsset>[];
+      final query = db.query<PackageVersionAsset>()
+        ..filter('package =', packageName);
+      await for (final a in query.run()) {
+        final sqlUpdatedAt = existing.remove((a.version!, a.kind!));
+        if (sqlUpdatedAt == null ||
+            !sqlUpdatedAt.isAtSameMomentAs(a.updated!)) {
+          stale.add(a);
+        }
+      }
+
+      if (stale.isNotEmpty) {
+        await upsertPackageVersionAssetsToSql(stale);
+        count += stale.length;
+      }
+      if (existing.isNotEmpty) {
+        // The remaining entries have no matching Datastore entity.
+        await primaryDatabase.transactWithRetry((db) async {
+          for (final (version, kind) in existing.keys) {
+            await db.packageVersionAssets
+                .delete(packageName, version, kind)
+                .execute();
+          }
+        });
+        count += existing.length;
+      }
     }
     return count;
   }

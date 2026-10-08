@@ -6699,7 +6699,6 @@ final class _$PackageVersionAssetRow extends PackageVersionAssetRow {
     this.package,
     this.version,
     this.kind,
-    this.versionCreatedAt,
     this.updatedAt,
     this.path,
     this.textContent,
@@ -6713,9 +6712,6 @@ final class _$PackageVersionAssetRow extends PackageVersionAssetRow {
 
   @override
   final String kind;
-
-  @override
-  final DateTime versionCreatedAt;
 
   @override
   final DateTime updatedAt;
@@ -6732,7 +6728,6 @@ final class _$PackageVersionAssetRow extends PackageVersionAssetRow {
       'package',
       'version',
       'kind',
-      'version_created_at',
       'updated_at',
       'path',
       'text_content',
@@ -6754,13 +6749,6 @@ final class _$PackageVersionAssetRow extends PackageVersionAssetRow {
       ),
       $ForGeneratedCode.columnDefinition(
         type: $ForGeneratedCode.text,
-        isNotNull: true,
-        defaultValue: null,
-        autoIncrement: false,
-        overrides: [],
-      ),
-      $ForGeneratedCode.columnDefinition(
-        type: $ForGeneratedCode.dateTime,
         isNotNull: true,
         defaultValue: null,
         autoIncrement: false,
@@ -6799,14 +6787,12 @@ final class _$PackageVersionAssetRow extends PackageVersionAssetRow {
     final package = row.readString();
     final version = row.readString();
     final kind = row.readString();
-    final versionCreatedAt = row.readDateTime();
     final updatedAt = row.readDateTime();
     final path = row.readString();
     final textContent = row.readString();
     if (package == null &&
         version == null &&
         kind == null &&
-        versionCreatedAt == null &&
         updatedAt == null &&
         path == null &&
         textContent == null) {
@@ -6816,7 +6802,6 @@ final class _$PackageVersionAssetRow extends PackageVersionAssetRow {
       package!,
       version!,
       kind!,
-      versionCreatedAt!,
       updatedAt!,
       path!,
       textContent!,
@@ -6825,7 +6810,7 @@ final class _$PackageVersionAssetRow extends PackageVersionAssetRow {
 
   @override
   String toString() =>
-      'PackageVersionAssetRow(package: "$package", version: "$version", kind: "$kind", versionCreatedAt: "$versionCreatedAt", updatedAt: "$updatedAt", path: "$path", textContent: "$textContent")';
+      'PackageVersionAssetRow(package: "$package", version: "$version", kind: "$kind", updatedAt: "$updatedAt", path: "$path", textContent: "$textContent")';
 }
 
 /// Extension methods for table defined in [PackageVersionAssetRow].
@@ -6838,21 +6823,12 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
     required Expr<String> package,
     required Expr<String> version,
     required Expr<String> kind,
-    required Expr<DateTime> versionCreatedAt,
     required Expr<DateTime> updatedAt,
     required Expr<String> path,
     required Expr<String> textContent,
   }) => $ForGeneratedCode.insertInto(
     table: this,
-    values: [
-      package,
-      version,
-      kind,
-      versionCreatedAt,
-      updatedAt,
-      path,
-      textContent,
-    ],
+    values: [package, version, kind, updatedAt, path, textContent],
   );
 
   /// Insert row into the `packageVersionAssets` table, or update the
@@ -6860,7 +6836,7 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
   ///
   /// This is a shorthand for calling `.insert(...)` followed by
   /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
-  /// the fields `versionCreatedAt`, `updatedAt`, `path`, `textContent`,
+  /// the fields `updatedAt`, `path`, `textContent`,
   /// with the values given, leaving the _primary key_ untouched.
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
@@ -6869,7 +6845,6 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
     required Expr<String> package,
     required Expr<String> version,
     required Expr<String> kind,
-    required Expr<DateTime> versionCreatedAt,
     required Expr<DateTime> updatedAt,
     required Expr<String> path,
     required Expr<String> textContent,
@@ -6878,7 +6853,6 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
             package: package,
             version: version,
             kind: kind,
-            versionCreatedAt: versionCreatedAt,
             updatedAt: updatedAt,
             path: path,
             textContent: textContent,
@@ -6886,7 +6860,6 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
           .onConflict(.primaryKey)
           .update(
             (_, excluded, set) => set(
-              versionCreatedAt: excluded.versionCreatedAt,
               updatedAt: excluded.updatedAt,
               path: excluded.path,
               textContent: excluded.textContent,
@@ -6901,7 +6874,6 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
     required String package,
     required String version,
     required String kind,
-    required DateTime versionCreatedAt,
     required DateTime updatedAt,
     required String path,
     required String textContent,
@@ -6911,7 +6883,6 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
       package.asExpr,
       version.asExpr,
       kind.asExpr,
-      versionCreatedAt.asExpr,
       updatedAt.asExpr,
       path.asExpr,
       textContent.asExpr,
@@ -6923,7 +6894,7 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
   ///
   /// This is a shorthand for calling `.insertValue(...)` followed by
   /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
-  /// the fields `versionCreatedAt`, `updatedAt`, `path`, `textContent`,
+  /// the fields `updatedAt`, `path`, `textContent`,
   /// with the values given, leaving the _primary key_ untouched.
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
@@ -6932,7 +6903,6 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
     required String package,
     required String version,
     required String kind,
-    required DateTime versionCreatedAt,
     required DateTime updatedAt,
     required String path,
     required String textContent,
@@ -6941,7 +6911,6 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
             package: package,
             version: version,
             kind: kind,
-            versionCreatedAt: versionCreatedAt,
             updatedAt: updatedAt,
             path: path,
             textContent: textContent,
@@ -6949,7 +6918,6 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
           .onConflict(.primaryKey)
           .update(
             (_, excluded, set) => set(
-              versionCreatedAt: excluded.versionCreatedAt,
               updatedAt: excluded.updatedAt,
               path: excluded.path,
               textContent: excluded.textContent,
@@ -6978,22 +6946,13 @@ extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
     required String Function(T row) package,
     required String Function(T row) version,
     required String Function(T row) kind,
-    required DateTime Function(T row) versionCreatedAt,
     required DateTime Function(T row) updatedAt,
     required String Function(T row) path,
     required String Function(T row) textContent,
   }) => $ForGeneratedCode.insertValuesMapped(
     table: this,
     rows: rows,
-    mappings: [
-      package,
-      version,
-      kind,
-      versionCreatedAt,
-      updatedAt,
-      path,
-      textContent,
-    ],
+    mappings: [package, version, kind, updatedAt, path, textContent],
   );
 
   /// Delete a single row from the `packageVersionAssets` table, specified by
@@ -7067,7 +7026,6 @@ extension QueryPackageVersionAssetRowExt
         Expr<String> package,
         Expr<String> version,
         Expr<String> kind,
-        Expr<DateTime> versionCreatedAt,
         Expr<DateTime> updatedAt,
         Expr<String> path,
         Expr<String> textContent,
@@ -7084,7 +7042,6 @@ extension QueryPackageVersionAssetRowExt
         Expr<String>? package,
         Expr<String>? version,
         Expr<String>? kind,
-        Expr<DateTime>? versionCreatedAt,
         Expr<DateTime>? updatedAt,
         Expr<String>? path,
         Expr<String>? textContent,
@@ -7092,7 +7049,6 @@ extension QueryPackageVersionAssetRowExt
         package,
         version,
         kind,
-        versionCreatedAt,
         updatedAt,
         path,
         textContent,
@@ -7147,7 +7103,6 @@ extension QuerySinglePackageVersionAssetRowExt
         Expr<String> package,
         Expr<String> version,
         Expr<String> kind,
-        Expr<DateTime> versionCreatedAt,
         Expr<DateTime> updatedAt,
         Expr<String> path,
         Expr<String> textContent,
@@ -7164,7 +7119,6 @@ extension QuerySinglePackageVersionAssetRowExt
         Expr<String>? package,
         Expr<String>? version,
         Expr<String>? kind,
-        Expr<DateTime>? versionCreatedAt,
         Expr<DateTime>? updatedAt,
         Expr<String>? path,
         Expr<String>? textContent,
@@ -7172,7 +7126,6 @@ extension QuerySinglePackageVersionAssetRowExt
         package,
         version,
         kind,
-        versionCreatedAt,
         updatedAt,
         path,
         textContent,
@@ -7201,18 +7154,14 @@ extension ExpressionPackageVersionAssetRowExt on Expr<PackageVersionAssetRow> {
   Expr<String> get kind =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
-  /// The time the package version was published.
-  Expr<DateTime> get versionCreatedAt =>
+  Expr<DateTime> get updatedAt =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
-  Expr<DateTime> get updatedAt =>
-      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
-
   Expr<String> get path =>
-      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
 
   Expr<String> get textContent =>
-      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
 }
 
 extension ExpressionNullablePackageVersionAssetRowExt
@@ -7227,18 +7176,14 @@ extension ExpressionNullablePackageVersionAssetRowExt
   Expr<String?> get kind =>
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
 
-  /// The time the package version was published.
-  Expr<DateTime?> get versionCreatedAt =>
+  Expr<DateTime?> get updatedAt =>
       $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
-  Expr<DateTime?> get updatedAt =>
-      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
-
   Expr<String?> get path =>
-      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
 
   Expr<String?> get textContent =>
-      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
 
   /// Check if the row is not `NULL`.
   ///
@@ -7344,7 +7289,6 @@ extension InsertOnConflictPackageVersionAssetRowExt
         Expr<String> package,
         Expr<String> version,
         Expr<String> kind,
-        Expr<DateTime> versionCreatedAt,
         Expr<DateTime> updatedAt,
         Expr<String> path,
         Expr<String> textContent,
@@ -7361,7 +7305,6 @@ extension InsertOnConflictPackageVersionAssetRowExt
         Expr<String>? package,
         Expr<String>? version,
         Expr<String>? kind,
-        Expr<DateTime>? versionCreatedAt,
         Expr<DateTime>? updatedAt,
         Expr<String>? path,
         Expr<String>? textContent,
@@ -7369,7 +7312,6 @@ extension InsertOnConflictPackageVersionAssetRowExt
         package,
         version,
         kind,
-        versionCreatedAt,
         updatedAt,
         path,
         textContent,
@@ -7452,7 +7394,6 @@ extension InsertOnConflictSinglePackageVersionAssetRowExt
         Expr<String> package,
         Expr<String> version,
         Expr<String> kind,
-        Expr<DateTime> versionCreatedAt,
         Expr<DateTime> updatedAt,
         Expr<String> path,
         Expr<String> textContent,
@@ -7469,7 +7410,6 @@ extension InsertOnConflictSinglePackageVersionAssetRowExt
         Expr<String>? package,
         Expr<String>? version,
         Expr<String>? kind,
-        Expr<DateTime>? versionCreatedAt,
         Expr<DateTime>? updatedAt,
         Expr<String>? path,
         Expr<String>? textContent,
@@ -7477,7 +7417,6 @@ extension InsertOnConflictSinglePackageVersionAssetRowExt
         package,
         version,
         kind,
-        versionCreatedAt,
         updatedAt,
         path,
         textContent,

@@ -231,7 +231,6 @@ void main() {
           );
           expect(sqlReadme.path, 'README.md');
           expect(sqlReadme.textContent, foobarReadmeContent);
-          expect(sqlReadme.versionCreatedAt, pv.created);
 
           final canonicalInfo = await storageService
               .bucket(activeConfiguration.canonicalPackagesBucketName!)

@@ -18,9 +18,6 @@ abstract final class PackageVersionAssetRow extends Row {
   /// One of the `AssetKind` values.
   String get kind;
 
-  /// The time the package version was published.
-  DateTime get versionCreatedAt;
-
   DateTime get updatedAt;
 
   String get path;
