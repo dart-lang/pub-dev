@@ -12,6 +12,8 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
@@ -25,6 +27,7 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 import 'package:yaml/yaml.dart';
 
 import '../shared/handlers_test_utils.dart';
@@ -210,6 +213,25 @@ void main() {
           );
           expect(changelog.path, 'CHANGELOG.md');
           expect(changelog.textContent, foobarChangelogContent);
+
+          final sqlAssets = await primaryDatabase.withRetry(
+            (db) => db.packageVersionAssets
+                .where(
+                  (a) =>
+                      a.package.equalsValue('new_package') &
+                      a.version.equalsValue('1.2.3'),
+                )
+                .fetch(),
+          );
+          expect(sqlAssets.map((a) => a.kind).toSet(), {
+            for (final a in assets) a.kind,
+          });
+          final sqlReadme = sqlAssets.firstWhere(
+            (a) => a.kind == AssetKind.readme,
+          );
+          expect(sqlReadme.path, 'README.md');
+          expect(sqlReadme.textContent, foobarReadmeContent);
+          expect(sqlReadme.versionCreatedAt, pv.created);
 
           final canonicalInfo = await storageService
               .bucket(activeConfiguration.canonicalPackagesBucketName!)

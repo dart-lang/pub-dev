@@ -303,6 +303,71 @@ class PackageBackend {
     return count;
   }
 
+  /// Upserts the [assets] into SQL.
+  Future<void> upsertPackageVersionAssetsToSql(
+    Iterable<PackageVersionAsset> assets,
+  ) async {
+    await primaryDatabase.transactWithRetry((db) async {
+      for (final a in assets) {
+        await _upsertAsset(db, a);
+      }
+    });
+  }
+
+  Future<void> _upsertAsset(
+    Database<PrimarySchema> db,
+    PackageVersionAsset a,
+  ) async {
+    await db.packageVersionAssets
+        .upsertValue(
+          package: a.package!,
+          version: a.version!,
+          kind: a.kind!,
+          versionCreatedAt: a.versionCreated!,
+          updatedAt: a.updated!,
+          path: a.path ?? '',
+          textContent: a.textContent ?? '',
+        )
+        .execute();
+  }
+
+  /// Deletes the assets of [package] from SQL, limited to [version] if given.
+  Future<void> deletePackageVersionAssetsFromSql(
+    String package, {
+    String? version,
+  }) async {
+    await primaryDatabase.withRetry(
+      (db) => db.packageVersionAssets
+          .where(
+            (a) => version == null
+                ? a.package.equalsValue(package)
+                : a.package.equalsValue(package) &
+                      a.version.equalsValue(version),
+          )
+          .delete()
+          .execute(),
+    );
+  }
+
+  /// Copies [PackageVersionAsset] entries from Datastore into SQL, for entries
+  /// that are not yet present in SQL (or are stale).
+  Future<int> backfillPackageVersionAssetsSqlFromDatastore() async {
+    var count = 0;
+    await for (final a in db.query<PackageVersionAsset>().run()) {
+      final existing = await primaryDatabase.withRetry(
+        (db) => db.packageVersionAssets
+            .byKey(a.package!, a.version!, a.kind!)
+            .fetch(),
+      );
+      if (existing != null && existing.updatedAt.isAtSameMomentAs(a.updated!)) {
+        continue;
+      }
+      await primaryDatabase.withRetry((db) => _upsertAsset(db, a));
+      count++;
+    }
+    return count;
+  }
+
   /// Looks up a package by name.
   Future<List<Package>> lookupPackages(Iterable<String> packageNames) async {
     return (await db.lookup(
@@ -1659,6 +1724,7 @@ class PackageBackend {
     if (deletedReservedPackageName != null) {
       await deleteReservedPackageFromSql(deletedReservedPackageName!);
     }
+    await upsertPackageVersionAssetsToSql(entities.assets);
     await emailBackend.migrateToSql(outgoingEmail);
     _logger.info('Upload successful. [package-uploaded]');
     _logger.info('Upload transaction completed in ${sw.elapsed}.');

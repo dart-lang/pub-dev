@@ -362,6 +362,7 @@ class AdminBackend {
     final deletedPackageVersionAssets = await _db.deleteWithQuery(
       _db.query<PackageVersionAsset>()..filter('package =', packageName),
     );
+    await packageBackend.deletePackageVersionAssetsFromSql(packageName);
 
     _logger.info('Removing package from Like ...');
     final deletedLikes = await _db.deleteWithQuery(
@@ -534,6 +535,10 @@ class AdminBackend {
     final deletedPackageVersionAssets = await _db.deleteWithQuery(
       _db.query<PackageVersionAsset>()..filter('package =', packageName),
       where: (PackageVersionAsset asset) => asset.version == version,
+    );
+    await packageBackend.deletePackageVersionAssetsFromSql(
+      packageName,
+      version: version,
     );
 
     await withRetryTransaction(_db, (tx) async {

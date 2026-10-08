@@ -56,4 +56,8 @@ Future<void> backfillNewFields() async {
   // NOTE: Keep this around until SecurityAdvisory is migrated to use SQL.
   _logger.info('Backfilling security advisories...');
   await securityAdvisoryBackend.backfillSqlFromDatastore();
+
+  // NOTE: Keep this around until PackageVersionAsset is migrated to use SQL.
+  _logger.info('Backfilling package version assets...');
+  await packageBackend.backfillPackageVersionAssetsSqlFromDatastore();
 }
