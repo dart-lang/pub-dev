@@ -30,9 +30,6 @@ Future<void> backfillNewFields() async {
     });
   }
 
-  _logger.info('Delete old GlobalLockState entities in Datastore');
-  await dbService.deleteWithQuery(dbService.query<GlobalLockState>());
-
   // NOTE: Keep these around until all of the audit log record is migrated to use SQL.
   _logger.info('Backfilling audit log records...');
   await auditBackend.backfillSqlFromDatastore();
