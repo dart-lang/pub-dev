@@ -7,10 +7,14 @@ import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
+import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_dev/service/download_counts/sync_download_counts.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../../shared/test_services.dart';
 
@@ -48,6 +52,19 @@ void main() {
         expect(countData, isNotNull);
         expect(countData!.majorRangeCounts.length, 5);
         expect(countData.totalCounts[0], 14);
+
+        final row = await primaryDatabase.withRetry(
+          (db) => db.downloadCounts.byKey(pkg).fetch(),
+        );
+        expect(row, isNotNull);
+        expect(row!.package, pkg);
+        expect(row.updatedAt, countData.newestDate);
+        expect(
+          CountData.fromJson(
+            row.countDataJson.value as Map<String, dynamic>,
+          ).totalCounts[0],
+          14,
+        );
       },
     );
 
