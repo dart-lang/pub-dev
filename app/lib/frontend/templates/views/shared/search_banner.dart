@@ -116,6 +116,7 @@ String completionDataJson({
         CompletionRule(
           match: {'is:', '-is:'},
           options: [
+            'android-kotlin-gradle-plugin',
             'dart3-compatible',
             'flutter-favorite',
             'legacy',
