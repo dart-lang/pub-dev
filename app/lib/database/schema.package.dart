@@ -41,7 +41,7 @@ abstract final class ReservedPackageRow extends Row {
 abstract final class DownloadCount extends Row {
   String get package;
 
-  /// Newest date with processed download count data.
+  /// The timestamp when the row was last updated.
   DateTime get updatedAt;
 
   /// JSON-encoded `CountData` (total + major/minor/patch range counts).

@@ -8260,7 +8260,7 @@ extension ExpressionDownloadCountExt on Expr<DownloadCount> {
   Expr<String> get package =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
-  /// Newest date with processed download count data.
+  /// The timestamp when the row was last updated.
   Expr<DateTime> get updatedAt =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
 
@@ -8273,7 +8273,7 @@ extension ExpressionNullableDownloadCountExt on Expr<DownloadCount?> {
   Expr<String?> get package =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
-  /// Newest date with processed download count data.
+  /// The timestamp when the row was last updated.
   Expr<DateTime?> get updatedAt =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
 

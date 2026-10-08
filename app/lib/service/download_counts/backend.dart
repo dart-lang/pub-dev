@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:gcloud/storage.dart';
 import 'package:googleapis/storage/v1.dart';
@@ -203,7 +204,7 @@ class DownloadCountsBackend {
       (db) => db.downloadCounts
           .upsertValue(
             package: pkg,
-            updatedAt: countData.newestDate!,
+            updatedAt: clock.now().toUtc(),
             countDataJson: JsonValue(countData.toJson()),
           )
           .execute(),

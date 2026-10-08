@@ -38,6 +38,7 @@ void main() {
           '6.1.0': 2,
         };
         final date = DateTime.parse('1986-02-16T00:00:00Z');
+        final before = clock.now().toUtc().subtract(Duration(seconds: 1));
         final updatedDownloadCounts = await downloadCountsBackend
             .updateDownloadCounts(pkg, versionsCounts, date);
         expect(updatedDownloadCounts, isNotNull);
@@ -58,7 +59,7 @@ void main() {
         );
         expect(row, isNotNull);
         expect(row!.package, pkg);
-        expect(row.updatedAt, countData.newestDate);
+        expect(row.updatedAt.isAfter(before), isTrue);
         expect(
           CountData.fromJson(
             row.countDataJson.value as Map<String, dynamic>,
