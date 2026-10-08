@@ -3,15 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/service/download_counts/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 final downloadCountsDelete = AdminAction(
   name: 'download-counts-delete',
   options: {},
   summary: 'Deletes all "DownloadCount" entities.',
   description: '''
-This action will delete all "DownloadCount" entities.
+This action will delete all "DownloadCount" entities (and their SQL rows).
 The entities can be restored using the "backfill-download-counts" admin action.
 ''',
   invoke: (options) async {
@@ -19,10 +22,15 @@ The entities can be restored using the "backfill-download-counts" admin action.
       dbService.query<DownloadCounts>(),
     );
 
+    await primaryDatabase.withRetry(
+      (db) => db.downloadCounts.where((_) => toExpr(true)).delete().execute(),
+    );
+
     return {
       'message':
           'Found ${result.found} "DownloadCount" entities and '
-          'deleted ${result.deleted} entities',
+          'deleted ${result.deleted} entities '
+          '(and cleared the SQL table)',
     };
   },
 );
