@@ -36,7 +36,7 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$AuditLogAssociation._$table,
     _$ConsentRow._$table,
     _$OutgoingEmailRow._$table,
-    _$GlobalLockStateRow._$table,
+    _$GlobalLockState._$table,
     _$NeatTaskStatusRow._$table,
     _$PackageVersionAssetRow._$table,
     _$PackageTombstone._$table,
@@ -68,8 +68,8 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
   Table<OutgoingEmailRow> get outgoingEmails =>
       $ForGeneratedCode.declareTable(this, _$OutgoingEmailRow._$table);
 
-  Table<GlobalLockStateRow> get globalLockStates =>
-      $ForGeneratedCode.declareTable(this, _$GlobalLockStateRow._$table);
+  Table<GlobalLockState> get globalLockStates =>
+      $ForGeneratedCode.declareTable(this, _$GlobalLockState._$table);
 
   Table<NeatTaskStatusRow> get neatTaskStatuses =>
       $ForGeneratedCode.declareTable(this, _$NeatTaskStatusRow._$table);
@@ -5429,8 +5429,8 @@ extension InsertOnConflictSingleOutgoingEmailRowExt
   );
 }
 
-final class _$GlobalLockStateRow extends GlobalLockStateRow {
-  _$GlobalLockStateRow._(this.lockId, this.claimId, this.lockedUntil);
+final class _$GlobalLockState extends GlobalLockState {
+  _$GlobalLockState._(this.lockId, this.claimId, this.lockedUntil);
 
   @override
   final String lockId;
@@ -5471,31 +5471,31 @@ final class _$GlobalLockStateRow extends GlobalLockStateRow {
     unique: <List<String>>[],
     foreignKeys: [],
     indexes: [],
-    readRow: _$GlobalLockStateRow._$fromDatabase,
+    readRow: _$GlobalLockState._$fromDatabase,
   );
 
-  static GlobalLockStateRow? _$fromDatabase(RowReader row) {
+  static GlobalLockState? _$fromDatabase(RowReader row) {
     final lockId = row.readString();
     final claimId = row.readString();
     final lockedUntil = row.readDateTime();
     if (lockId == null && claimId == null && lockedUntil == null) {
       return null;
     }
-    return _$GlobalLockStateRow._(lockId!, claimId!, lockedUntil!);
+    return _$GlobalLockState._(lockId!, claimId!, lockedUntil!);
   }
 
   @override
   String toString() =>
-      'GlobalLockStateRow(lockId: "$lockId", claimId: "$claimId", lockedUntil: "$lockedUntil")';
+      'GlobalLockState(lockId: "$lockId", claimId: "$claimId", lockedUntil: "$lockedUntil")';
 }
 
-/// Extension methods for table defined in [GlobalLockStateRow].
-extension TableGlobalLockStateRowExt on Table<GlobalLockStateRow> {
+/// Extension methods for table defined in [GlobalLockState].
+extension TableGlobalLockStateExt on Table<GlobalLockState> {
   /// Insert row into the `globalLockStates` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
-  InsertSingle<GlobalLockStateRow> insert({
+  InsertSingle<GlobalLockState> insert({
     required Expr<String> lockId,
     required Expr<String> claimId,
     required Expr<DateTime> lockedUntil,
@@ -5514,7 +5514,7 @@ extension TableGlobalLockStateRowExt on Table<GlobalLockStateRow> {
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
   /// called for the row to be inserted or updated.
-  UpsertSingle<GlobalLockStateRow> upsert({
+  UpsertSingle<GlobalLockState> upsert({
     required Expr<String> lockId,
     required Expr<String> claimId,
     required Expr<DateTime> lockedUntil,
@@ -5529,7 +5529,7 @@ extension TableGlobalLockStateRowExt on Table<GlobalLockStateRow> {
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
-  InsertSingle<GlobalLockStateRow> insertValue({
+  InsertSingle<GlobalLockState> insertValue({
     required String lockId,
     required String claimId,
     required DateTime lockedUntil,
@@ -5548,7 +5548,7 @@ extension TableGlobalLockStateRowExt on Table<GlobalLockStateRow> {
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
   /// called for the row to be inserted or updated.
-  UpsertSingle<GlobalLockStateRow> upsertValue({
+  UpsertSingle<GlobalLockState> upsertValue({
     required String lockId,
     required String claimId,
     required DateTime lockedUntil,
@@ -5576,7 +5576,7 @@ extension TableGlobalLockStateRowExt on Table<GlobalLockStateRow> {
   ///
   /// Returns a [Insert] statement on which `.execute` must be
   /// called for the rows to be inserted.
-  Insert<GlobalLockStateRow> insertValuesMapped<T>(
+  Insert<GlobalLockState> insertValuesMapped<T>(
     Iterable<T> rows, {
     required String Function(T row) lockId,
     required String Function(T row) claimId,
@@ -5596,18 +5596,18 @@ extension TableGlobalLockStateRowExt on Table<GlobalLockStateRow> {
   /// To delete multiple rows, using `.where()` to filter which rows
   /// should be deleted. If you wish to delete all rows, use
   /// `.where((_) => toExpr(true)).delete()`.
-  DeleteSingle<GlobalLockStateRow> delete(String lockId) => $ForGeneratedCode
-      .deleteSingle(byKey(lockId), _$GlobalLockStateRow._$table);
+  DeleteSingle<GlobalLockState> delete(String lockId) =>
+      $ForGeneratedCode.deleteSingle(byKey(lockId), _$GlobalLockState._$table);
 }
 
 /// Extension methods for building queries against the `globalLockStates` table.
-extension QueryGlobalLockStateRowExt on Query<(Expr<GlobalLockStateRow>,)> {
+extension QueryGlobalLockStateExt on Query<(Expr<GlobalLockState>,)> {
   /// Lookup a single row in `globalLockStates` table using the _primary key_.
   ///
   /// Returns a [QuerySingle] object, which returns at-most one row,
   /// when `.fetch()` is called.
-  QuerySingle<(Expr<GlobalLockStateRow>,)> byKey(String lockId) => where(
-    (globalLockStateRow) => globalLockStateRow.lockId.equalsValue(lockId),
+  QuerySingle<(Expr<GlobalLockState>,)> byKey(String lockId) => where(
+    (globalLockState) => globalLockState.lockId.equalsValue(lockId),
   ).first;
 
   /// Update all rows in the `globalLockStates` table matching this [Query].
@@ -5637,10 +5637,10 @@ extension QueryGlobalLockStateRowExt on Query<(Expr<GlobalLockStateRow>,)> {
   /// > the expressions for updating the rows. You should **never** invoke
   /// > the `set` function more than once, and the result should always
   /// > be returned immediately.
-  Update<GlobalLockStateRow> update(
-    UpdateSet<GlobalLockStateRow> Function(
-      Expr<GlobalLockStateRow> globalLockStateRow,
-      UpdateSet<GlobalLockStateRow> Function({
+  Update<GlobalLockState> update(
+    UpdateSet<GlobalLockState> Function(
+      Expr<GlobalLockState> globalLockState,
+      UpdateSet<GlobalLockState> Function({
         Expr<String> lockId,
         Expr<String> claimId,
         Expr<DateTime> lockedUntil,
@@ -5648,16 +5648,16 @@ extension QueryGlobalLockStateRowExt on Query<(Expr<GlobalLockStateRow>,)> {
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.update<GlobalLockStateRow>(
+  ) => $ForGeneratedCode.update<GlobalLockState>(
     this,
-    _$GlobalLockStateRow._$table,
-    (globalLockStateRow) => updateBuilder(
-      globalLockStateRow,
+    _$GlobalLockState._$table,
+    (globalLockState) => updateBuilder(
+      globalLockState,
       ({
         Expr<String>? lockId,
         Expr<String>? claimId,
         Expr<DateTime>? lockedUntil,
-      }) => $ForGeneratedCode.buildUpdate<GlobalLockStateRow>([
+      }) => $ForGeneratedCode.buildUpdate<GlobalLockState>([
         lockId,
         claimId,
         lockedUntil,
@@ -5669,13 +5669,13 @@ extension QueryGlobalLockStateRowExt on Query<(Expr<GlobalLockStateRow>,)> {
   ///
   /// Returns a [Delete] statement on which `.execute()` must be called
   /// for the rows to be deleted.
-  Delete<GlobalLockStateRow> delete() =>
-      $ForGeneratedCode.delete(this, _$GlobalLockStateRow._$table);
+  Delete<GlobalLockState> delete() =>
+      $ForGeneratedCode.delete(this, _$GlobalLockState._$table);
 }
 
 /// Extension methods for building point queries against the `globalLockStates` table.
-extension QuerySingleGlobalLockStateRowExt
-    on QuerySingle<(Expr<GlobalLockStateRow>,)> {
+extension QuerySingleGlobalLockStateExt
+    on QuerySingle<(Expr<GlobalLockState>,)> {
   /// Update the row (if any) in the `globalLockStates` table matching this
   /// [QuerySingle].
   ///
@@ -5705,10 +5705,10 @@ extension QuerySingleGlobalLockStateRowExt
   /// > the expressions for updating the rows. You should **never** invoke
   /// > the `set` function more than once, and the result should always
   /// > be returned immediately.
-  UpdateSingle<GlobalLockStateRow> update(
-    UpdateSet<GlobalLockStateRow> Function(
-      Expr<GlobalLockStateRow> globalLockStateRow,
-      UpdateSet<GlobalLockStateRow> Function({
+  UpdateSingle<GlobalLockState> update(
+    UpdateSet<GlobalLockState> Function(
+      Expr<GlobalLockState> globalLockState,
+      UpdateSet<GlobalLockState> Function({
         Expr<String> lockId,
         Expr<String> claimId,
         Expr<DateTime> lockedUntil,
@@ -5716,16 +5716,16 @@ extension QuerySingleGlobalLockStateRowExt
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateSingle<GlobalLockStateRow>(
+  ) => $ForGeneratedCode.updateSingle<GlobalLockState>(
     this,
-    _$GlobalLockStateRow._$table,
-    (globalLockStateRow) => updateBuilder(
-      globalLockStateRow,
+    _$GlobalLockState._$table,
+    (globalLockState) => updateBuilder(
+      globalLockState,
       ({
         Expr<String>? lockId,
         Expr<String>? claimId,
         Expr<DateTime>? lockedUntil,
-      }) => $ForGeneratedCode.buildUpdate<GlobalLockStateRow>([
+      }) => $ForGeneratedCode.buildUpdate<GlobalLockState>([
         lockId,
         claimId,
         lockedUntil,
@@ -5738,12 +5738,12 @@ extension QuerySingleGlobalLockStateRowExt
   /// Returns a [DeleteSingle] statement on which `.execute()` must be called
   /// for the row to be deleted. The resulting statement will **not**
   /// fail, if there are no rows matching this query exists.
-  DeleteSingle<GlobalLockStateRow> delete() =>
-      $ForGeneratedCode.deleteSingle(this, _$GlobalLockStateRow._$table);
+  DeleteSingle<GlobalLockState> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$GlobalLockState._$table);
 }
 
 /// Extension methods for expressions on a row in the `globalLockStates` table.
-extension ExpressionGlobalLockStateRowExt on Expr<GlobalLockStateRow> {
+extension ExpressionGlobalLockStateExt on Expr<GlobalLockState> {
   /// The id of the lock.
   Expr<String> get lockId =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
@@ -5759,7 +5759,7 @@ extension ExpressionGlobalLockStateRowExt on Expr<GlobalLockStateRow> {
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
 }
 
-extension ExpressionNullableGlobalLockStateRowExt on Expr<GlobalLockStateRow?> {
+extension ExpressionNullableGlobalLockStateExt on Expr<GlobalLockState?> {
   /// The id of the lock.
   Expr<String?> get lockId =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
@@ -5791,20 +5791,20 @@ extension ExpressionNullableGlobalLockStateRowExt on Expr<GlobalLockStateRow?> {
   Expr<bool> isNull() => isNotNull().not();
 }
 
-/// `Table<GlobalLockStateRow>` conflict targets for use with `.onConflict`.
-enum GlobalLockStateRowConflict {
+/// `Table<GlobalLockState>` conflict targets for use with `.onConflict`.
+enum GlobalLockStateConflict {
   /// Conflict with an existing row that has a matching primary key.
   ///
   /// Thus, the other row has matching values for:
   /// `lockId`.
   primaryKey(['lock_id']);
 
-  const GlobalLockStateRowConflict(this._fields);
+  const GlobalLockStateConflict(this._fields);
 
   final List<String> _fields;
 }
 
-extension InsertGlobalLockStateRowExt on Insert<GlobalLockStateRow> {
+extension InsertGlobalLockStateExt on Insert<GlobalLockState> {
   /// Build an `INSERT` statement with an `ON CONFLICT` clause.
   ///
   /// The [target] argument specifies the _conflict target_ to be
@@ -5814,7 +5814,7 @@ extension InsertGlobalLockStateRowExt on Insert<GlobalLockStateRow> {
   /// If a row to be inserted violates the _conflict target_ constraint,
   /// then the conflict action is triggered:
   /// * `.doNothing()` to skip insertion of the new row, and,
-  /// * `.update((globalLockStateRow, excluded, set) => set(...))` to
+  /// * `.update((globalLockState, excluded, set) => set(...))` to
   ///   update the conflicting row.
   ///
   /// If a row to be inserted violates a constraint other than the one
@@ -5822,20 +5822,20 @@ extension InsertGlobalLockStateRowExt on Insert<GlobalLockStateRow> {
   /// will fail.
   ///
   /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
-  InsertOnConflict<GlobalLockStateRow> onConflict(
-    GlobalLockStateRowConflict target,
+  InsertOnConflict<GlobalLockState> onConflict(
+    GlobalLockStateConflict target,
   ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
 }
 
-extension InsertOnConflictGlobalLockStateRowExt
-    on InsertOnConflict<GlobalLockStateRow> {
+extension InsertOnConflictGlobalLockStateExt
+    on InsertOnConflict<GlobalLockState> {
   /// Build an `INSERT` statement an [upsert-clause][1].
   ///
   /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
   /// constraint previously specified as _conflict target_, the existing
   /// row is updated using the expressions defined with the
   /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
-  ///   * `globalLockStateRow` an [Expr] representing the existing row in
+  ///   * `globalLockState` an [Expr] representing the existing row in
   ///     the database,
   ///   * `excluded` an [Expr] representing the row to be inserted in the
   ///     database, and,
@@ -5869,11 +5869,11 @@ extension InsertOnConflictGlobalLockStateRowExt
   /// > be returned immediately.
   ///
   /// [1]: https://www.sqlite.org/lang_upsert.html
-  Upsert<GlobalLockStateRow> update(
-    UpdateSet<GlobalLockStateRow> Function(
-      Expr<GlobalLockStateRow> globalLockStateRow,
-      Expr<GlobalLockStateRow> excluded,
-      UpdateSet<GlobalLockStateRow> Function({
+  Upsert<GlobalLockState> update(
+    UpdateSet<GlobalLockState> Function(
+      Expr<GlobalLockState> globalLockState,
+      Expr<GlobalLockState> excluded,
+      UpdateSet<GlobalLockState> Function({
         Expr<String> lockId,
         Expr<String> claimId,
         Expr<DateTime> lockedUntil,
@@ -5881,16 +5881,16 @@ extension InsertOnConflictGlobalLockStateRowExt
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateOnConflict<GlobalLockStateRow>(
+  ) => $ForGeneratedCode.updateOnConflict<GlobalLockState>(
     this,
-    (globalLockStateRow, excluded) => updateBuilder(
-      globalLockStateRow,
+    (globalLockState, excluded) => updateBuilder(
+      globalLockState,
       excluded,
       ({
         Expr<String>? lockId,
         Expr<String>? claimId,
         Expr<DateTime>? lockedUntil,
-      }) => $ForGeneratedCode.buildUpdate<GlobalLockStateRow>([
+      }) => $ForGeneratedCode.buildUpdate<GlobalLockState>([
         lockId,
         claimId,
         lockedUntil,
@@ -5899,8 +5899,7 @@ extension InsertOnConflictGlobalLockStateRowExt
   );
 }
 
-extension InsertSingleGlobalLockStateRowExt
-    on InsertSingle<GlobalLockStateRow> {
+extension InsertSingleGlobalLockStateExt on InsertSingle<GlobalLockState> {
   /// Build an `INSERT` statement with an `ON CONFLICT` clause.
   ///
   /// The [target] argument specifies the _conflict target_ to be
@@ -5910,7 +5909,7 @@ extension InsertSingleGlobalLockStateRowExt
   /// If a row to be inserted violates the _conflict target_ constraint,
   /// then the conflict action is triggered:
   /// * `.doNothing()` to skip insertion of the new row, and,
-  /// * `.update((globalLockStateRow, excluded, set) => set(...))` to
+  /// * `.update((globalLockState, excluded, set) => set(...))` to
   ///   update the conflicting row.
   ///
   /// If a row to be inserted violates a constraint other than the one
@@ -5918,20 +5917,20 @@ extension InsertSingleGlobalLockStateRowExt
   /// will fail.
   ///
   /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
-  InsertOnConflictSingle<GlobalLockStateRow> onConflict(
-    GlobalLockStateRowConflict target,
+  InsertOnConflictSingle<GlobalLockState> onConflict(
+    GlobalLockStateConflict target,
   ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
 }
 
-extension InsertOnConflictSingleGlobalLockStateRowExt
-    on InsertOnConflictSingle<GlobalLockStateRow> {
+extension InsertOnConflictSingleGlobalLockStateExt
+    on InsertOnConflictSingle<GlobalLockState> {
   /// Build an `INSERT` statement an [upsert-clause][1].
   ///
   /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
   /// constraint previously specified as _conflict target_, the existing
   /// row is updated using the expressions defined with the
   /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
-  ///   * `globalLockStateRow` an [Expr] representing the existing row in
+  ///   * `globalLockState` an [Expr] representing the existing row in
   ///     the database,
   ///   * `excluded` an [Expr] representing the row to be inserted in the
   ///     database, and,
@@ -5965,11 +5964,11 @@ extension InsertOnConflictSingleGlobalLockStateRowExt
   /// > be returned immediately.
   ///
   /// [1]: https://www.sqlite.org/lang_upsert.html
-  UpsertSingle<GlobalLockStateRow> update(
-    UpdateSet<GlobalLockStateRow> Function(
-      Expr<GlobalLockStateRow> globalLockStateRow,
-      Expr<GlobalLockStateRow> excluded,
-      UpdateSet<GlobalLockStateRow> Function({
+  UpsertSingle<GlobalLockState> update(
+    UpdateSet<GlobalLockState> Function(
+      Expr<GlobalLockState> globalLockState,
+      Expr<GlobalLockState> excluded,
+      UpdateSet<GlobalLockState> Function({
         Expr<String> lockId,
         Expr<String> claimId,
         Expr<DateTime> lockedUntil,
@@ -5977,16 +5976,16 @@ extension InsertOnConflictSingleGlobalLockStateRowExt
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateOnConflictSingle<GlobalLockStateRow>(
+  ) => $ForGeneratedCode.updateOnConflictSingle<GlobalLockState>(
     this,
-    (globalLockStateRow, excluded) => updateBuilder(
-      globalLockStateRow,
+    (globalLockState, excluded) => updateBuilder(
+      globalLockState,
       excluded,
       ({
         Expr<String>? lockId,
         Expr<String>? claimId,
         Expr<DateTime>? lockedUntil,
-      }) => $ForGeneratedCode.buildUpdate<GlobalLockStateRow>([
+      }) => $ForGeneratedCode.buildUpdate<GlobalLockState>([
         lockId,
         claimId,
         lockedUntil,
