@@ -4,6 +4,27 @@
 
 part of 'schema.dart';
 
+/// An extracted asset (pubspec, readme, changelog, example, license) of a
+/// package version archive.
+///
+/// TODO: rename to `PackageVersionAsset` after the Datastore migration is
+/// completed.
+@PrimaryKey(['package', 'version', 'kind'])
+abstract final class PackageVersionAssetRow extends Row {
+  String get package;
+
+  String get version;
+
+  /// One of the `AssetKind` values.
+  String get kind;
+
+  DateTime get updatedAt;
+
+  String get path;
+
+  String get textContent;
+}
+
 /// Entity representing a package that has been removed (moderated).
 @PrimaryKey(['name'])
 abstract final class PackageTombstone extends Row {

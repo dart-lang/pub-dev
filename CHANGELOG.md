@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bump runtimeVersion to `2026.10.08`.
  * Upgraded dependencies (incl. `postgres`)
  * Note: `DownloadCount` is now mirrored to SQL.
+ * Note: `PackageVersionAsset` is now mirrored to SQL.
 
 ## `20261006t104700-all`
  * Bump runtimeVersion to `2026.10.05`.

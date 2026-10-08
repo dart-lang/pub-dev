@@ -38,6 +38,7 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$OutgoingEmailRow._$table,
     _$GlobalLockStateRow._$table,
     _$NeatTaskStatusRow._$table,
+    _$PackageVersionAssetRow._$table,
     _$PackageTombstone._$table,
     _$ReservedPackageRow._$table,
     _$DownloadCount._$table,
@@ -72,6 +73,9 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<NeatTaskStatusRow> get neatTaskStatuses =>
       $ForGeneratedCode.declareTable(this, _$NeatTaskStatusRow._$table);
+
+  Table<PackageVersionAssetRow> get packageVersionAssets =>
+      $ForGeneratedCode.declareTable(this, _$PackageVersionAssetRow._$table);
 
   Table<PackageTombstone> get packageTombstones =>
       $ForGeneratedCode.declareTable(this, _$PackageTombstone._$table);
@@ -6685,6 +6689,737 @@ extension InsertOnConflictSingleNeatTaskStatusRowExt
         status,
         etag,
         updatedAt,
+      ]),
+    ),
+  );
+}
+
+final class _$PackageVersionAssetRow extends PackageVersionAssetRow {
+  _$PackageVersionAssetRow._(
+    this.package,
+    this.version,
+    this.kind,
+    this.updatedAt,
+    this.path,
+    this.textContent,
+  );
+
+  @override
+  final String package;
+
+  @override
+  final String version;
+
+  @override
+  final String kind;
+
+  @override
+  final DateTime updatedAt;
+
+  @override
+  final String path;
+
+  @override
+  final String textContent;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'package_version_assets',
+    columns: <String>[
+      'package',
+      'version',
+      'kind',
+      'updated_at',
+      'path',
+      'text_content',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['package', 'version', 'kind'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [],
+    readRow: _$PackageVersionAssetRow._$fromDatabase,
+  );
+
+  static PackageVersionAssetRow? _$fromDatabase(RowReader row) {
+    final package = row.readString();
+    final version = row.readString();
+    final kind = row.readString();
+    final updatedAt = row.readDateTime();
+    final path = row.readString();
+    final textContent = row.readString();
+    if (package == null &&
+        version == null &&
+        kind == null &&
+        updatedAt == null &&
+        path == null &&
+        textContent == null) {
+      return null;
+    }
+    return _$PackageVersionAssetRow._(
+      package!,
+      version!,
+      kind!,
+      updatedAt!,
+      path!,
+      textContent!,
+    );
+  }
+
+  @override
+  String toString() =>
+      'PackageVersionAssetRow(package: "$package", version: "$version", kind: "$kind", updatedAt: "$updatedAt", path: "$path", textContent: "$textContent")';
+}
+
+/// Extension methods for table defined in [PackageVersionAssetRow].
+extension TablePackageVersionAssetRowExt on Table<PackageVersionAssetRow> {
+  /// Insert row into the `packageVersionAssets` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PackageVersionAssetRow> insert({
+    required Expr<String> package,
+    required Expr<String> version,
+    required Expr<String> kind,
+    required Expr<DateTime> updatedAt,
+    required Expr<String> path,
+    required Expr<String> textContent,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [package, version, kind, updatedAt, path, textContent],
+  );
+
+  /// Insert row into the `packageVersionAssets` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `updatedAt`, `path`, `textContent`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PackageVersionAssetRow> upsert({
+    required Expr<String> package,
+    required Expr<String> version,
+    required Expr<String> kind,
+    required Expr<DateTime> updatedAt,
+    required Expr<String> path,
+    required Expr<String> textContent,
+  }) =>
+      insert(
+            package: package,
+            version: version,
+            kind: kind,
+            updatedAt: updatedAt,
+            path: path,
+            textContent: textContent,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              updatedAt: excluded.updatedAt,
+              path: excluded.path,
+              textContent: excluded.textContent,
+            ),
+          );
+
+  /// Insert row into the `packageVersionAssets` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PackageVersionAssetRow> insertValue({
+    required String package,
+    required String version,
+    required String kind,
+    required DateTime updatedAt,
+    required String path,
+    required String textContent,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      package.asExpr,
+      version.asExpr,
+      kind.asExpr,
+      updatedAt.asExpr,
+      path.asExpr,
+      textContent.asExpr,
+    ],
+  );
+
+  /// Insert row into the `packageVersionAssets` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `updatedAt`, `path`, `textContent`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PackageVersionAssetRow> upsertValue({
+    required String package,
+    required String version,
+    required String kind,
+    required DateTime updatedAt,
+    required String path,
+    required String textContent,
+  }) =>
+      insertValue(
+            package: package,
+            version: version,
+            kind: kind,
+            updatedAt: updatedAt,
+            path: path,
+            textContent: textContent,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              updatedAt: excluded.updatedAt,
+              path: excluded.path,
+              textContent: excluded.textContent,
+            ),
+          );
+
+  /// Bulk insert rows into the `packageVersionAssets` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<PackageVersionAssetRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) package,
+    required String Function(T row) version,
+    required String Function(T row) kind,
+    required DateTime Function(T row) updatedAt,
+    required String Function(T row) path,
+    required String Function(T row) textContent,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [package, version, kind, updatedAt, path, textContent],
+  );
+
+  /// Delete a single row from the `packageVersionAssets` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<PackageVersionAssetRow> delete(
+    String package,
+    String version,
+    String kind,
+  ) => $ForGeneratedCode.deleteSingle(
+    byKey(package, version, kind),
+    _$PackageVersionAssetRow._$table,
+  );
+}
+
+/// Extension methods for building queries against the `packageVersionAssets` table.
+extension QueryPackageVersionAssetRowExt
+    on Query<(Expr<PackageVersionAssetRow>,)> {
+  /// Lookup a single row in `packageVersionAssets` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<PackageVersionAssetRow>,)> byKey(
+    String package,
+    String version,
+    String kind,
+  ) => where(
+    (packageVersionAssetRow) =>
+        packageVersionAssetRow.package.equalsValue(package) &
+        packageVersionAssetRow.version.equalsValue(version) &
+        packageVersionAssetRow.kind.equalsValue(kind),
+  ).first;
+
+  /// Update all rows in the `packageVersionAssets` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<PackageVersionAssetRow> update(
+    UpdateSet<PackageVersionAssetRow> Function(
+      Expr<PackageVersionAssetRow> packageVersionAssetRow,
+      UpdateSet<PackageVersionAssetRow> Function({
+        Expr<String> package,
+        Expr<String> version,
+        Expr<String> kind,
+        Expr<DateTime> updatedAt,
+        Expr<String> path,
+        Expr<String> textContent,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<PackageVersionAssetRow>(
+    this,
+    _$PackageVersionAssetRow._$table,
+    (packageVersionAssetRow) => updateBuilder(
+      packageVersionAssetRow,
+      ({
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<String>? kind,
+        Expr<DateTime>? updatedAt,
+        Expr<String>? path,
+        Expr<String>? textContent,
+      }) => $ForGeneratedCode.buildUpdate<PackageVersionAssetRow>([
+        package,
+        version,
+        kind,
+        updatedAt,
+        path,
+        textContent,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `packageVersionAssets` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<PackageVersionAssetRow> delete() =>
+      $ForGeneratedCode.delete(this, _$PackageVersionAssetRow._$table);
+}
+
+/// Extension methods for building point queries against the `packageVersionAssets` table.
+extension QuerySinglePackageVersionAssetRowExt
+    on QuerySingle<(Expr<PackageVersionAssetRow>,)> {
+  /// Update the row (if any) in the `packageVersionAssets` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<PackageVersionAssetRow> update(
+    UpdateSet<PackageVersionAssetRow> Function(
+      Expr<PackageVersionAssetRow> packageVersionAssetRow,
+      UpdateSet<PackageVersionAssetRow> Function({
+        Expr<String> package,
+        Expr<String> version,
+        Expr<String> kind,
+        Expr<DateTime> updatedAt,
+        Expr<String> path,
+        Expr<String> textContent,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<PackageVersionAssetRow>(
+    this,
+    _$PackageVersionAssetRow._$table,
+    (packageVersionAssetRow) => updateBuilder(
+      packageVersionAssetRow,
+      ({
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<String>? kind,
+        Expr<DateTime>? updatedAt,
+        Expr<String>? path,
+        Expr<String>? textContent,
+      }) => $ForGeneratedCode.buildUpdate<PackageVersionAssetRow>([
+        package,
+        version,
+        kind,
+        updatedAt,
+        path,
+        textContent,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `packageVersionAssets` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<PackageVersionAssetRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$PackageVersionAssetRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `packageVersionAssets` table.
+extension ExpressionPackageVersionAssetRowExt on Expr<PackageVersionAssetRow> {
+  Expr<String> get package =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String> get version =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// One of the `AssetKind` values.
+  Expr<String> get kind =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  Expr<DateTime> get updatedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  Expr<String> get path =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  Expr<String> get textContent =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+}
+
+extension ExpressionNullablePackageVersionAssetRowExt
+    on Expr<PackageVersionAssetRow?> {
+  Expr<String?> get package =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String?> get version =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// One of the `AssetKind` values.
+  Expr<String?> get kind =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get updatedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  Expr<String?> get path =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  Expr<String?> get textContent =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() =>
+      package.isNotNull() & version.isNotNull() & kind.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+/// `Table<PackageVersionAssetRow>` conflict targets for use with `.onConflict`.
+enum PackageVersionAssetRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `package`, `version`, `kind`.
+  primaryKey(['package', 'version', 'kind']);
+
+  const PackageVersionAssetRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertPackageVersionAssetRowExt on Insert<PackageVersionAssetRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((packageVersionAssetRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<PackageVersionAssetRow> onConflict(
+    PackageVersionAssetRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictPackageVersionAssetRowExt
+    on InsertOnConflict<PackageVersionAssetRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `packageVersionAssetRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<PackageVersionAssetRow> update(
+    UpdateSet<PackageVersionAssetRow> Function(
+      Expr<PackageVersionAssetRow> packageVersionAssetRow,
+      Expr<PackageVersionAssetRow> excluded,
+      UpdateSet<PackageVersionAssetRow> Function({
+        Expr<String> package,
+        Expr<String> version,
+        Expr<String> kind,
+        Expr<DateTime> updatedAt,
+        Expr<String> path,
+        Expr<String> textContent,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<PackageVersionAssetRow>(
+    this,
+    (packageVersionAssetRow, excluded) => updateBuilder(
+      packageVersionAssetRow,
+      excluded,
+      ({
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<String>? kind,
+        Expr<DateTime>? updatedAt,
+        Expr<String>? path,
+        Expr<String>? textContent,
+      }) => $ForGeneratedCode.buildUpdate<PackageVersionAssetRow>([
+        package,
+        version,
+        kind,
+        updatedAt,
+        path,
+        textContent,
+      ]),
+    ),
+  );
+}
+
+extension InsertSinglePackageVersionAssetRowExt
+    on InsertSingle<PackageVersionAssetRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((packageVersionAssetRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<PackageVersionAssetRow> onConflict(
+    PackageVersionAssetRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSinglePackageVersionAssetRowExt
+    on InsertOnConflictSingle<PackageVersionAssetRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `packageVersionAssetRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<PackageVersionAssetRow> update(
+    UpdateSet<PackageVersionAssetRow> Function(
+      Expr<PackageVersionAssetRow> packageVersionAssetRow,
+      Expr<PackageVersionAssetRow> excluded,
+      UpdateSet<PackageVersionAssetRow> Function({
+        Expr<String> package,
+        Expr<String> version,
+        Expr<String> kind,
+        Expr<DateTime> updatedAt,
+        Expr<String> path,
+        Expr<String> textContent,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<PackageVersionAssetRow>(
+    this,
+    (packageVersionAssetRow, excluded) => updateBuilder(
+      packageVersionAssetRow,
+      excluded,
+      ({
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<String>? kind,
+        Expr<DateTime>? updatedAt,
+        Expr<String>? path,
+        Expr<String>? textContent,
+      }) => $ForGeneratedCode.buildUpdate<PackageVersionAssetRow>([
+        package,
+        version,
+        kind,
+        updatedAt,
+        path,
+        textContent,
       ]),
     ),
   );

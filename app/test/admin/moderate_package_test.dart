@@ -13,6 +13,8 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -23,6 +25,7 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/versions.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../admin/models_test.dart';
 import '../frontend/handlers/_utils.dart';
@@ -489,11 +492,71 @@ void main() {
         ),
       ],
       fn: () async {
+        Future<Set<String>> sqlAssetVersions() async {
+          final rows = await primaryDatabase.withRetry(
+            (db) => db.packageVersionAssets
+                .where((a) => a.package.equalsValue('oxygen'))
+                .fetch(),
+          );
+          return rows.map((a) => a.version).toSet();
+        }
+
+        // the upload has already mirrored the assets, remove them to exercise
+        // the backfill
+        expect(await sqlAssetVersions(), containsAll(['1.0.0', '1.2.0']));
+        await packageBackend.deletePackageVersionAssetsFromSql('oxygen');
+        expect(await sqlAssetVersions(), isEmpty);
+
+        expect(
+          await packageBackend.backfillPackageVersionAssetsSqlFromDatastore(),
+          greaterThan(0),
+        );
+        expect(await sqlAssetVersions(), containsAll(['1.0.0', '1.2.0']));
+        expect(
+          await packageBackend.backfillPackageVersionAssetsSqlFromDatastore(),
+          0,
+        );
+
+        // stale rows are refreshed
+        await primaryDatabase.withRetry(
+          (db) => db.packageVersionAssets
+              .where((a) => a.package.equalsValue('oxygen'))
+              .update(
+                (a, set) => set(updatedAt: toExpr(DateTime.utc(2000, 1, 1))),
+              )
+              .execute(),
+        );
+        expect(
+          await packageBackend.backfillPackageVersionAssetsSqlFromDatastore(),
+          greaterThan(0),
+        );
+
+        // rows without a Datastore entity are removed
+        await primaryDatabase.withRetry(
+          (db) => db.packageVersionAssets
+              .insertValue(
+                package: 'oxygen',
+                version: '9.9.9',
+                kind: 'readme',
+                updatedAt: DateTime.utc(2000, 1, 1),
+                path: 'README.md',
+                textContent: 'orphan',
+              )
+              .execute(),
+        );
+        expect(
+          await packageBackend.backfillPackageVersionAssetsSqlFromDatastore(),
+          1,
+        );
+        expect(await sqlAssetVersions(), isNot(contains('9.9.9')));
+
         // delete old version
         await accountBackend.withBearerToken(siteAdminToken, () async {
           await adminBackend.removePackageVersion('oxygen', '1.0.0');
         });
         await asyncQueue.ongoingProcessing;
+        expect(await sqlAssetVersions(), isNot(contains('1.0.0')));
+        expect(await sqlAssetVersions(), contains('1.2.0'));
 
         // canonical file is present
         expect(
@@ -510,6 +573,7 @@ void main() {
 
         // no package, version or canonical file
         expect(await packageBackend.lookupPackage('oxygen'), isNull);
+        expect(await sqlAssetVersions(), isEmpty);
         expect(
           await packageBackend.lookupPackageVersion('oxygen', '1.2.0'),
           isNull,

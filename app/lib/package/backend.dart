@@ -303,6 +303,102 @@ class PackageBackend {
     return count;
   }
 
+  /// Upserts the [assets] into SQL.
+  Future<void> upsertPackageVersionAssetsToSql(
+    Iterable<PackageVersionAsset> assets,
+  ) async {
+    await primaryDatabase.transactWithRetry((db) async {
+      for (final a in assets) {
+        await _upsertAsset(db, a);
+      }
+    });
+  }
+
+  Future<void> _upsertAsset(
+    Database<PrimarySchema> db,
+    PackageVersionAsset a,
+  ) async {
+    await db.packageVersionAssets
+        .upsertValue(
+          package: a.package!,
+          version: a.version!,
+          kind: a.kind!,
+          updatedAt: a.updated!,
+          path: a.path ?? '',
+          textContent: a.textContent ?? '',
+        )
+        .execute();
+  }
+
+  /// Deletes the assets of [package] from SQL, limited to [version] if given.
+  Future<void> deletePackageVersionAssetsFromSql(
+    String package, {
+    String? version,
+  }) async {
+    await primaryDatabase.withRetry(
+      (db) => db.packageVersionAssets
+          .where(
+            (a) => version == null
+                ? a.package.equalsValue(package)
+                : a.package.equalsValue(package) &
+                      a.version.equalsValue(version),
+          )
+          .delete()
+          .execute(),
+    );
+  }
+
+  /// Copies [PackageVersionAsset] entries from Datastore into SQL, for entries
+  /// that are not yet present in SQL (or are stale), and removes SQL rows that
+  /// have no matching Datastore entry.
+  ///
+  /// The work is done package-by-package: the existing SQL state is read with a
+  /// single query (without the `text_content` column), and only the missing or
+  /// stale entries are upserted.
+  Future<int> backfillPackageVersionAssetsSqlFromDatastore() async {
+    var count = 0;
+    await for (final packageName in allPackageNames()) {
+      final existing = <(String, String), DateTime>{};
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.packageVersionAssets
+            .where((a) => a.package.equalsValue(packageName))
+            .select((a) => (a.version, a.kind, a.updatedAt))
+            .fetch(),
+      );
+      for (final (version, kind, updatedAt) in rows) {
+        existing[(version, kind)] = updatedAt;
+      }
+
+      final stale = <PackageVersionAsset>[];
+      final query = db.query<PackageVersionAsset>()
+        ..filter('package =', packageName);
+      await for (final a in query.run()) {
+        final sqlUpdatedAt = existing.remove((a.version!, a.kind!));
+        if (sqlUpdatedAt == null ||
+            !sqlUpdatedAt.isAtSameMomentAs(a.updated!)) {
+          stale.add(a);
+        }
+      }
+
+      if (stale.isNotEmpty) {
+        await upsertPackageVersionAssetsToSql(stale);
+        count += stale.length;
+      }
+      if (existing.isNotEmpty) {
+        // The remaining entries have no matching Datastore entity.
+        await primaryDatabase.transactWithRetry((db) async {
+          for (final (version, kind) in existing.keys) {
+            await db.packageVersionAssets
+                .delete(packageName, version, kind)
+                .execute();
+          }
+        });
+        count += existing.length;
+      }
+    }
+    return count;
+  }
+
   /// Looks up a package by name.
   Future<List<Package>> lookupPackages(Iterable<String> packageNames) async {
     return (await db.lookup(
@@ -1659,6 +1755,7 @@ class PackageBackend {
     if (deletedReservedPackageName != null) {
       await deleteReservedPackageFromSql(deletedReservedPackageName!);
     }
+    await upsertPackageVersionAssetsToSql(entities.assets);
     await emailBackend.migrateToSql(outgoingEmail);
     _logger.info('Upload successful. [package-uploaded]');
     _logger.info('Upload transaction completed in ${sw.elapsed}.');
