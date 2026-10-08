@@ -301,10 +301,10 @@ packages:
     dependency: transitive
     description:
       name: frontend_server_client
-      sha256: f64a0333a82f30b0cca061bc3d143813a486dc086b574bfb233b7c1372427694
+      sha256: "404dbf9bce29beafbe9dcb19219447b6f7d49900cd42b8d3b7af102b24508e25"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.0"
+    version: "4.1.0"
   gcloud:
     dependency: transitive
     description:
@@ -661,10 +661,10 @@ packages:
     dependency: transitive
     description:
       name: postgres
-      sha256: dee84c58a69ea165c8a8daf7d755049f5868d4407062dde9305f914d2a33d0d3
+      sha256: f2571f6f4256e94d87334d7189fcf28407500c34cd0ebcb74cff21fab5f4e988
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.18"
+    version: "3.5.20"
   protobuf:
     dependency: transitive
     description:
