@@ -15,7 +15,11 @@ void main() {
         'is:swiftpm-plugin',
         'platform:linux',
       ];
-      final excluded = ['license:x', 'is:other'];
+      final excluded = [
+        'license:x',
+        'is:other',
+        'is:android-kotlin-gradle-plugin',
+      ];
 
       for (final tag in included) {
         expect(isFutureVersionTag(tag), true, reason: tag);

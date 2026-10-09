@@ -444,7 +444,10 @@ class SearchForm {
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.hasScreenshot) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isPlugin) ||
       parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isWasmReady) ||
-      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isSwiftpmPlugin);
+      parsedQuery.tagsPredicate.hasTag(PackageVersionTags.isSwiftpmPlugin) ||
+      parsedQuery.tagsPredicate.hasTag(
+        PackageVersionTags.isAndroidKotlinGradlePlugin,
+      );
 
   /// Whether any of the non-query settings are non-default
   /// (e.g. clicking on any platforms, SDKs, or advanced filters).

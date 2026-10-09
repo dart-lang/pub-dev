@@ -94,6 +94,11 @@ abstract class PackageVersionTags {
   /// Package version has a SwiftPM plugin.
   static const String isSwiftpmPlugin = 'is:swiftpm-plugin';
 
+  /// Package version is an Android plugin that builds Kotlin with the Kotlin
+  /// Gradle Plugin.
+  static const String isAndroidKotlinGradlePlugin =
+      'is:android-kotlin-gradle-plugin';
+
   /// Package version has an entry indicating it implements a federated plugin.
   static const String hasImplementsFederatedPlugin =
       'has:implements-federated-plugin';
