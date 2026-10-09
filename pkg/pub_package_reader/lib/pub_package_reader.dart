@@ -141,8 +141,15 @@ Future<PackageSummary> summarizePackageArchive(
     return PackageSummary(issues: issues);
   }
 
+  final String rawPubspecContent;
+  try {
+    rawPubspecContent = await tar.readContentAsString(pubspecPath);
+  } on FormatException {
+    issues.add(ArchiveIssue('`$pubspecPath` is not valid UTF-8.'));
+    return PackageSummary(issues: issues);
+  }
   final pubspecContent = overridePubspecYamlIfNeeded(
-    pubspecYaml: await tar.readContentAsString(pubspecPath),
+    pubspecYaml: rawPubspecContent,
     published: published ?? clock.now().toUtc(),
   );
   // Large pubspec content should be rejected, as either a storage limit will be
@@ -242,16 +249,15 @@ Future<PackageSummary> summarizePackageArchive(
     String content;
     try {
       content = utf8.decode(bytes);
-      if (bytes.contains(0)) {
-        issues.add(
-          ArchiveIssue('`$contentPath` contains NUL (0x00) characters.'),
-        );
-      }
     } on FormatException {
-      if (bytes.length <= maxContentLength) {
-        issues.add(ArchiveIssue('`$contentPath` is not valid UTF-8.'));
-      }
-      content = utf8.decode(bytes, allowMalformed: true);
+      issues.add(ArchiveIssue('`$contentPath` is not valid UTF-8.'));
+      return null;
+    }
+    if (bytes.contains(0)) {
+      issues.add(
+        ArchiveIssue('`$contentPath` contains NUL (0x00) characters.'),
+      );
+      return null;
     }
     if (content.length > maxContentLength) {
       content = content.substring(0, maxContentLength) + '[...]\n\n';
@@ -260,6 +266,9 @@ Future<PackageSummary> summarizePackageArchive(
   }
 
   final readmeContent = tryParseContentBytes(readmePath);
+  if (readmePath == null || readmeContent != null) {
+    issues.addAll(requireReadme(readmePath, readmeContent));
+  }
   if (readmeContent == null) {
     readmePath = null;
   }
@@ -272,11 +281,12 @@ Future<PackageSummary> summarizePackageArchive(
     examplePath = null;
   }
   final licenseContent = tryParseContentBytes(licensePath);
-  issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
+  if (licensePath == null || licenseContent != null) {
+    issues.addAll(requireNonEmptyLicense(licensePath, licenseContent));
+  }
   if (licenseContent == null) {
     licensePath = null;
   }
-  issues.addAll(requireReadme(readmePath, readmeContent));
 
   final libraries = tar.fileNames
       .where((file) => file.startsWith('lib/'))
