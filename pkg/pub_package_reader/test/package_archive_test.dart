@@ -706,6 +706,9 @@ dev_dependencies:
         [1,2,3,4,5]: 'value of a composite key'
       ''';
       expect(checkValidJson(pubspec), isNotEmpty);
+      expect(checkValidJson(''), isNotEmpty);
+      expect(checkValidJson('123'), isNotEmpty);
+      expect(checkValidJson('[]'), isNotEmpty);
     });
   });
 
@@ -857,8 +860,6 @@ dev_dependencies:
       expect(checkTopics(''), isEmpty);
       expect(checkTopics('123'), isEmpty);
       expect(checkTopics('[]'), isEmpty);
-      expect(checkValidJson('123'), isEmpty);
-      expect(checkValidJson('[]'), isEmpty);
     });
 
     test('not a list', () {
