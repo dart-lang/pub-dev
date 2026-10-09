@@ -340,9 +340,27 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('filter by one dependency', () async {
       final PackageSearchResult result = await index.search(
-        ServiceSearchQuery.parse(query: 'dependency:test'),
+        ServiceSearchQuery.parse(query: 'dependency:async'),
       );
       expect(json.decode(json.encode(result)), {
+        'timestamp': isNotNull,
+        'totalCount': 1,
+        'sdkLibraryHits': [],
+        'packageHits': [
+          {'package': 'http', 'score': closeTo(0.92, 0.01)},
+        ],
+      });
+
+      // dev dependencies are not matched by `dependency:`, only by `dependency*:`
+      final devResult = await index.search(
+        ServiceSearchQuery.parse(query: 'dependency:test'),
+      );
+      expect(devResult.totalCount, 0);
+
+      final allDevResult = await index.search(
+        ServiceSearchQuery.parse(query: 'dependency*:test'),
+      );
+      expect(json.decode(json.encode(allDevResult)), {
         'timestamp': isNotNull,
         'totalCount': 2,
         'sdkLibraryHits': [],
@@ -354,12 +372,12 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
       // do not highlight package if otherwise exact match is in the query
       final rs2 = await index.search(
-        ServiceSearchQuery.parse(query: 'http dependency:test'),
+        ServiceSearchQuery.parse(query: 'http dependency*:test'),
       );
       expect(rs2.totalCount, 1);
     });
 
-    test('filter by foo as direct/dev dependency', () async {
+    test('filter by foo as direct dependency', () async {
       final PackageSearchResult result = await index.search(
         ServiceSearchQuery.parse(query: 'dependency:foo'),
       );
@@ -396,7 +414,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('filter by text and dependency', () async {
       final PackageSearchResult result = await index.search(
-        ServiceSearchQuery.parse(query: 'composable dependency:test'),
+        ServiceSearchQuery.parse(query: 'composable dependency:async'),
       );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
@@ -410,7 +428,7 @@ server.dart adds a small, prescriptive server (PicoServer) that can be configure
 
     test('filter by two dependencies', () async {
       final PackageSearchResult result = await index.search(
-        ServiceSearchQuery.parse(query: 'dependency:async dependency:test'),
+        ServiceSearchQuery.parse(query: 'dependency:async dependency*:test'),
       );
       expect(json.decode(json.encode(result)), {
         'timestamp': isNotNull,
