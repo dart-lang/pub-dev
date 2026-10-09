@@ -99,5 +99,25 @@ dependency_overrides:
         contains('Error parsing pubspec.yaml'),
       );
     });
+
+    test('NUL character in README.md not allowed', () async {
+      final summary = await summarizePackageArchive(
+        await makeTar({
+          'pubspec.yaml': '''
+name: mypkg
+version: 1.0.0
+description: mypkg is awesome
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+''',
+          'LICENSE': 'All rights reserved...',
+          'README.md': 'mypkg is \u0000 awesome',
+        }),
+      );
+
+      expect(summary.issues.map((e) => e.message), [
+        '`README.md` contains NUL (0x00) characters.',
+      ]);
+    });
   });
 }
