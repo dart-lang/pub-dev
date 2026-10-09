@@ -13,6 +13,7 @@
 @use '../../../third_party/dartdoc/resources/styles.css';
 
 @use 'src/_staging_ribbon.scss';
+@use 'src/_variables.scss';
 
 // Included after dartdoc/resources in order to make sure we will be able to migrate to it.
 @use 'src/base_dash';
@@ -59,3 +60,30 @@
 .tt-wrapper .typeahead {
   background-image: url('../dartdoc/resources/search.svg');
 }
+
+.-pub-dartdoc-discontinued-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 10px 0 16px 0;
+  border: 1px solid var(--pub_tag_simplebadge_warning-background-color);
+  border-left-width: 4px;
+  border-radius: 4px;
+  background-color: var(--pub-inset-bgColor);
+  color: var(--pub-neutral-textColor);
+  font-size: 14px;
+
+  .-pub-dartdoc-discontinued-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 2px;
+    background: var(--pub_tag_simplebadge_warning-background-color);
+    color: var(--pub_tag_simplebadge_warning-text-color);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+}
+
