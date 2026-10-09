@@ -1978,6 +1978,7 @@ class PackageBackend {
         await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
           p.publishingConfig!.githubConfig!.isEnabled = false;
+          p.updated = clock.now().toUtc();
           tx.insert(p);
         });
         throw AuthorizationException.githubActionIssue(
@@ -2022,6 +2023,7 @@ class PackageBackend {
         await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
           p.publishingConfig!.gcpConfig!.isEnabled = false;
+          p.updated = clock.now().toUtc();
           tx.insert(p);
         });
         throw AuthorizationException.githubActionIssue(

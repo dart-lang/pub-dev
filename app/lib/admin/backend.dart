@@ -196,6 +196,7 @@ class AdminBackend {
       if (p.uploaders!.isEmpty) {
         p.isDiscontinued = true;
       }
+      p.updated = clock.now().toUtc();
       tx.insert(p);
     });
   }
@@ -231,6 +232,7 @@ class AdminBackend {
           () => withRetryTransaction(_db, (tx) async {
             final p = await tx.lookupValue<Package>(package.key);
             p.isDiscontinued = true;
+            p.updated = clock.now().toUtc();
             tx.insert(p);
           }),
         );
@@ -347,6 +349,7 @@ class AdminBackend {
         }
         if (p.replacedBy == packageName) {
           p.replacedBy = null;
+          p.updated = clock.now().toUtc();
           tx.insert(p);
         }
         replacedByFixes++;

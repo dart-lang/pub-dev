@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/backend.dart';
@@ -171,6 +172,7 @@ class UserMerger {
           if (p.containsUploader(fromUserId)) {
             p.removeUploader(fromUserId);
             p.addUploader(toUserId);
+            p.updated = clock.now().toUtc();
             tx.insert(p);
           }
         });
