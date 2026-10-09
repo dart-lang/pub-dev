@@ -295,9 +295,16 @@ class ConsentBackend {
     }
     final action = _actions[c.kind]!;
     if (!action.permitConfirmationWithOtherEmail && c.email != null) {
+      // NOTE: the message must not reveal the invited email address, as it
+      //       may be shown to a user that is not the intended recipient.
       InvalidInputException.check(
         c.email?.toLowerCase() == user.email?.toLowerCase(),
-        'This invitation is not for the user account currently logged in.',
+        'This invitation is not for the user account currently logged in '
+        '(`${user.email}`).\n'
+        'Invitations must be sent to the primary email address of a Google '
+        'Account (email aliases are not supported).\n'
+        'Sign in with the account the invitation was sent to, or ask the '
+        'inviter to send a new invitation to `${user.email}`.',
       );
     }
     return c;
