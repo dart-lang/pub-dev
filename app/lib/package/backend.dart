@@ -324,6 +324,8 @@ class PackageBackend {
           version: a.version!,
           kind: a.kind!,
           updatedAt: a.updated!,
+          // Historical Datastore entities may contain NUL bytes, which PostgreSQL
+          // text columns reject.
           path: (a.path ?? '').replaceAll('\u0000', ''),
           textContent: (a.textContent ?? '').replaceAll('\u0000', ''),
         )
@@ -2656,7 +2658,6 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
 
   String? capContent(String? text) {
     if (text == null) return text;
-    text = text.replaceAll('\u0000', '');
     if (text.length < maxAssetContentLength) return text;
     return text.substring(0, maxAssetContentLength);
   }
