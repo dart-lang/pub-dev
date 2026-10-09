@@ -781,7 +781,7 @@ class PackageBackend {
       tx.insert(auditLogRecord!);
     });
     if (auditLogRecord != null) {
-      await auditBackend.mirrorToSql(auditLogRecord!);
+      await auditBackend.migrateToSql(auditLogRecord!);
     }
     triggerPackagePostUpdates(package, skipArchiveExport: true);
   }
@@ -832,7 +832,7 @@ class PackageBackend {
       }
     });
     if (auditLogRecord != null) {
-      await auditBackend.mirrorToSql(auditLogRecord!);
+      await auditBackend.migrateToSql(auditLogRecord!);
     }
     await purgeScorecardData(
       package,
@@ -974,7 +974,7 @@ class PackageBackend {
       );
     });
     if (auditLogRecord != null) {
-      await auditBackend.mirrorToSql(auditLogRecord!);
+      await auditBackend.migrateToSql(auditLogRecord!);
     }
     return result;
   }
@@ -1143,7 +1143,7 @@ class PackageBackend {
       return _asPackagePublisherInfo(package);
     });
     if (auditLogRecord != null) {
-      await auditBackend.mirrorToSql(auditLogRecord!);
+      await auditBackend.migrateToSql(auditLogRecord!);
     }
     await purgePublisherCache(newPublisherId);
 
@@ -1749,10 +1749,10 @@ class PackageBackend {
       return (newVersion, outgoingEmail);
     });
     if (packageCreatedRecord != null) {
-      await auditBackend.mirrorToSql(packageCreatedRecord!);
+      await auditBackend.migrateToSql(packageCreatedRecord!);
     }
     if (packagePublishedRecord != null) {
-      await auditBackend.mirrorToSql(packagePublishedRecord!);
+      await auditBackend.migrateToSql(packagePublishedRecord!);
     }
     if (deletedReservedPackageName != null) {
       await deleteReservedPackageFromSql(deletedReservedPackageName!);
@@ -2141,7 +2141,7 @@ class PackageBackend {
       return uploader.userId;
     });
     if (auditLogRecord != null) {
-      await auditBackend.mirrorToSql(auditLogRecord!);
+      await auditBackend.migrateToSql(auditLogRecord!);
     }
     await purgeAccountCache(userId: uploaderUserId);
     triggerPackagePostUpdates(
@@ -2230,7 +2230,7 @@ class PackageBackend {
       return uploader.userId;
     });
     if (auditLogRecord != null) {
-      await auditBackend.mirrorToSql(auditLogRecord!);
+      await auditBackend.migrateToSql(auditLogRecord!);
     }
     await purgeAccountCache(userId: uploaderUserId);
     triggerPackagePostUpdates(

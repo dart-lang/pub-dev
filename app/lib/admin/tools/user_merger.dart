@@ -243,46 +243,19 @@ class UserMerger {
       },
     );
 
-    // AuditLogRecord: agent
+    // AuditLogRecord: migrate the remaining Datastore entities to SQL first,
+    // the user id replacement happens in SQL.
     await _processConcurrently(
       _db.query<AuditLogRecord>()..filter('agent =', fromUserId),
-      (AuditLogRecord alr) async {
-        final r = await withRetryTransaction(_db, (tx) async {
-          final r = await _db.lookupValue<AuditLogRecord>(alr.key);
-          r.agent = toUserId;
-          r.data = r.data?.map(
-            (key, value) => MapEntry<String, dynamic>(
-              key,
-              value == fromUserId ? toUserId : value,
-            ),
-          );
-          tx.insert(r);
-          return r;
-        });
-        await auditBackend.mirrorToSql(r);
-      },
+      (AuditLogRecord alr) async => await auditBackend.migrateToSql(alr),
     );
-
-    // AuditLogRecord: users
     await _processConcurrently(
       _db.query<AuditLogRecord>()..filter('users =', fromUserId),
-      (AuditLogRecord alr) async {
-        final r = await withRetryTransaction(_db, (tx) async {
-          final r = await _db.lookupValue<AuditLogRecord>(alr.key);
-          r.users!.remove(fromUserId);
-          r.users!.add(toUserId);
-          r.data = r.data?.map(
-            (key, value) => MapEntry<String, dynamic>(
-              key,
-              value == fromUserId ? toUserId : value,
-            ),
-          );
-          tx.insert(r);
-          return r;
-        });
-        await auditBackend.mirrorToSql(r);
-      },
+      (AuditLogRecord alr) async => await auditBackend.migrateToSql(alr),
     );
+
+    // AuditLogRecord: replace the user id in SQL
+    await auditBackend.replaceUserIdInSqlRecords(fromUserId, toUserId);
 
     final mergedUser = await withRetryTransaction(_db, (tx) async {
       final u = await _db.lookupValue<User>(toUserKey);

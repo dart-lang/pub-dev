@@ -846,14 +846,14 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       }
     }
 
-    // Only check once the record is old enough that mirroring should have completed,
+    // Only check once the record is old enough that the migration should have completed,
     // to avoid false positives on freshly written records.
     if (r.created != null && r.created!.isOlderThanSqlMirrorGracePeriod) {
       final sqlRow = await primaryDatabase.withRetry(
         (db) => db.auditLogRecords.byKey(r.id!).fetch(),
       );
       if (sqlRow == null) {
-        yield 'AuditLogRecord "${r.id}" has no corresponding SQL mirror.';
+        yield 'AuditLogRecord "${r.id}" has not been migrated to SQL.';
       }
     }
   }

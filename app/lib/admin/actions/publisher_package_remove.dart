@@ -60,7 +60,7 @@ If the publisher has no members, the package will end up without uploaders.
       tx.insert(pkg);
       tx.insert(auditLogRecord);
     });
-    await auditBackend.mirrorToSql(auditLogRecord);
+    await auditBackend.migrateToSql(auditLogRecord);
     triggerPackagePostUpdates(
       packageName,
       skipReanalysis: true,

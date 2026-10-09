@@ -165,7 +165,7 @@ class ConsentBackend {
         _db,
         (tx) async => tx.insertAll([consent, auditLogRecord]),
       );
-      await auditBackend.mirrorToSql(auditLogRecord);
+      await auditBackend.migrateToSql(auditLogRecord);
       await mirrorToSql(consent);
       await dedupCacheEntry.set(consent.consentId);
       return await _sendNotification(activeAgent.displayId, consent);
@@ -433,7 +433,7 @@ class _PackageUploaderAction extends ConsentAction {
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);
     });
-    await auditBackend.mirrorToSql(record);
+    await auditBackend.migrateToSql(record);
   }
 
   @override
@@ -447,7 +447,7 @@ class _PackageUploaderAction extends ConsentAction {
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);
     });
-    await auditBackend.mirrorToSql(record);
+    await auditBackend.migrateToSql(record);
   }
 
   @override
@@ -506,7 +506,7 @@ class _PublisherContactAction extends ConsentAction {
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);
     });
-    await auditBackend.mirrorToSql(record);
+    await auditBackend.migrateToSql(record);
   }
 
   @override
@@ -520,7 +520,7 @@ class _PublisherContactAction extends ConsentAction {
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);
     });
-    await auditBackend.mirrorToSql(record);
+    await auditBackend.migrateToSql(record);
   }
 
   @override
@@ -591,7 +591,7 @@ class _PublisherMemberAction extends ConsentAction {
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);
     });
-    await auditBackend.mirrorToSql(record);
+    await auditBackend.migrateToSql(record);
   }
 
   @override
@@ -605,7 +605,7 @@ class _PublisherMemberAction extends ConsentAction {
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);
     });
-    await auditBackend.mirrorToSql(record);
+    await auditBackend.migrateToSql(record);
   }
 
   @override

@@ -30,6 +30,7 @@ import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 import 'package:yaml/yaml.dart';
 
+import '../audit/audit_test_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -177,12 +178,10 @@ void main() {
                     'Package `new_package` version `1.2.3` was published by `user@pub.dev`.',
               )
               .recordId;
-          final publishedAudit = await auditBackend.lookupRecordById(
-            publishedRecordId,
-          );
+          final publishedAudit = await lookupAuditRecordById(publishedRecordId);
           expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
           expect(publishedAudit.created, isNotNull);
-          expect(publishedAudit.expires!.year, greaterThan(9998));
+          expect(publishedAudit.expires.year, greaterThan(9998));
           expect(publishedAudit.agent, user.userId);
           expect(publishedAudit.users, [user.userId]);
           expect(publishedAudit.packages, ['new_package']);
@@ -291,7 +290,7 @@ void main() {
             'neon',
             '7.0.0',
           );
-          final publishedAudit = await auditBackend.lookupRecordById(
+          final publishedAudit = await lookupAuditRecordById(
             audits.records.first.recordId,
           );
           expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
@@ -974,12 +973,12 @@ void main() {
             '_dummy_pkg',
             '2.2.0',
           );
-          final publishedAudit = await auditBackend.lookupRecordById(
+          final publishedAudit = await lookupAuditRecordById(
             audits.records.first.recordId,
           );
           expect(publishedAudit.kind, AuditLogRecordKind.packagePublished);
           expect(publishedAudit.created, isNotNull);
-          expect(publishedAudit.expires!.year, greaterThan(9998));
+          expect(publishedAudit.expires.year, greaterThan(9998));
           expect(
             publishedAudit.agent,
             'service:github-actions:owner-id-234/repo-id-1',

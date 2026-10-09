@@ -5,7 +5,6 @@
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
-import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
@@ -16,10 +15,16 @@ import '../shared/exceptions.dart';
 
 import 'models.dart';
 
-final _log = Logger('pub.audit.backend');
-
 /// The maximum number of entities to be loaded from Datastore in one batch.
 const _maxAuditLogBatchSize = 1000;
+
+/// The maximum time a single [AuditBackend.migrateFromDatastore] run may take
+/// (the periodic task has a 10-minute timeout).
+const _maxBatchMigrationDuration = Duration(minutes: 8);
+
+/// The minimum age a Datastore [AuditLogRecord] entity must have before
+/// [AuditBackend.migrateFromDatastore] will pick it up for SQL migration.
+const _minBatchMigrationAge = Duration(minutes: 1);
 
 final _shortBeforeFormat = RegExp(r'^([0-9]{4})-([0-9]{2})-([0-9]{2})$');
 
@@ -125,12 +130,86 @@ class AuditBackend {
     );
   }
 
-  /// Looks up the full [AuditLogRecord] for the given [recordId].
-  @visibleForTesting
-  Future<AuditLogRecord> lookupRecordById(String recordId) async {
-    return await _db.lookupValue<AuditLogRecord>(
-      _db.emptyKey.append(AuditLogRecord, id: recordId),
+  Map<String, dynamic>? _dataOf(JsonValue? value) =>
+      value == null ? null : (value.value as Map).cast<String, dynamic>();
+
+  /// Replaces [fromUserId] with [toUserId] as agent, user association and
+  /// data value in the audit log records stored in SQL.
+  Future<void> replaceUserIdInSqlRecords(
+    String fromUserId,
+    String toUserId,
+  ) async {
+    final agentIds = await primaryDatabase.withRetry(
+      (db) => db.auditLogRecords
+          .where((r) => r.agent.equalsValue(fromUserId))
+          .select((r) => (r.id,))
+          .fetch(),
     );
+    final userIds = await primaryDatabase.withRetry(
+      (db) => db.auditLogAssociations
+          .where(
+            (a) =>
+                a.kind.equalsValue(AuditLogAssociationKind.user) &
+                a.value.equalsValue(fromUserId),
+          )
+          .select((a) => (a.recordId,))
+          .fetch(),
+    );
+    for (final id in {...agentIds, ...userIds}) {
+      await primaryDatabase.transactWithRetry((db) async {
+        final row = await db.auditLogRecords.byKey(id).fetch();
+        if (row == null) return; // deleted in the meantime
+        final oldData = _dataOf(row.dataJson);
+        final dataChanged =
+            oldData != null && oldData.values.contains(fromUserId);
+        final agentChanged = row.agent == fromUserId;
+        if (dataChanged) {
+          final newData = oldData.map(
+            (key, value) => MapEntry<String, dynamic>(
+              key,
+              value == fromUserId ? toUserId : value,
+            ),
+          );
+          await db.auditLogRecords
+              .byKey(id)
+              .update(
+                (_, set) => set(
+                  agent: (agentChanged ? toUserId : row.agent).asExpr,
+                  dataJson: JsonValue(newData).asExpr,
+                ),
+              )
+              .execute();
+        } else if (agentChanged) {
+          await db.auditLogRecords
+              .byKey(id)
+              .update((_, set) => set(agent: toUserId.asExpr))
+              .execute();
+        }
+        final hadUser = await db.auditLogAssociations
+            .where(
+              (a) =>
+                  a.recordId.equalsValue(id) &
+                  a.kind.equalsValue(AuditLogAssociationKind.user) &
+                  a.value.equalsValue(fromUserId),
+            )
+            .delete()
+            .returnDeleted()
+            .executeAndFetch();
+        if (hadUser.isNotEmpty) {
+          await db.auditLogAssociations
+              .insertValuesMapped(
+                [toUserId],
+                recordId: (_) => id,
+                recordCreatedAt: (_) => row.createdAt,
+                kind: (_) => AuditLogAssociationKind.user,
+                value: (u) => u,
+              )
+              .onConflict(.primaryKey)
+              .doNothing()
+              .execute();
+        }
+      });
+    }
   }
 
   /// Deletes expired log records.
@@ -142,23 +221,18 @@ class AuditBackend {
     await deleteExpiredSqlRecords();
   }
 
-  /// Mirrors [record] into SQL (best-effort).
+  /// Migrates [record] into SQL, and deletes the Datastore entity.
   ///
-  /// For entity operations that use this method, the Datastore
-  /// remains the source of truth, while migrated operations will
-  /// use the SQL Database as the source of truth.
-  Future<void> mirrorToSql(AuditLogRecord record) async {
-    try {
-      await primaryDatabase.transactWithRetry(
-        (db) => _upsertSqlRecord(db, record),
-      );
-    } catch (e, st) {
-      _log.warning(
-        'Failed to mirror AuditLogRecord "${record.id}" to SQL.',
-        e,
-        st,
-      );
-    }
+  /// This should be called right after [record] has been (or would have been)
+  /// written to Datastore, so that SQL becomes the sole store for it.
+  ///
+  /// If this fails, the Datastore entity is left behind and will be picked up
+  /// by [migrateFromDatastore].
+  Future<void> migrateToSql(AuditLogRecord record) async {
+    await primaryDatabase.transactWithRetry(
+      (db) => _upsertSqlRecord(db, record),
+    );
+    await withRetryTransaction(_db, (tx) async => tx.delete(record.key));
   }
 
   Future<void> _upsertSqlRecord(
@@ -208,19 +282,30 @@ class AuditBackend {
     }
   }
 
-  /// Copies audit log records from Datastore into SQL, for records that are
-  /// not yet present in SQL.
-  Future<int> backfillSqlFromDatastore() async {
+  /// Migrates [AuditLogRecord] entries found in Datastore into SQL, deleting
+  /// each Datastore entity after it has been migrated.
+  ///
+  /// Only entities created more than [_minBatchMigrationAge] ago are considered,
+  /// so that this sweep never races with the eager calls made inline with
+  /// Datastore transactions.
+  ///
+  /// This is a best-effort cleanup of stragglers that were not migrated
+  /// eagerly (e.g. because the process died between the Datastore commit and
+  /// the SQL write), and is expected to be called periodically.
+  ///
+  /// A single run stops after [_maxBatchMigrationDuration], the remaining
+  /// entities will be picked up by the next run.
+  Future<int> migrateFromDatastore() async {
+    final sw = Stopwatch()..start();
+    final cutoff = clock.now().toUtc().subtract(_minBatchMigrationAge);
+    final query = _db.query<AuditLogRecord>()..filter('created <', cutoff);
     var count = 0;
-    await for (final record in _db.query<AuditLogRecord>().run()) {
-      final existing = await primaryDatabase.withRetry(
-        (db) => db.auditLogRecords.byKey(record.id!).fetch(),
-      );
-      if (existing != null) {
-        continue;
-      }
-      await mirrorToSql(record);
+    await for (final record in query.run()) {
+      await migrateToSql(record);
       count++;
+      if (sw.elapsed > _maxBatchMigrationDuration) {
+        break;
+      }
     }
     return count;
   }
@@ -238,31 +323,21 @@ class AuditBackend {
     );
   }
 
-  /// Deletes SQL-mirrored audit log records that reference [package]
-  /// (best-effort), mirroring the Datastore deletion performed as part of a
-  /// package's hard-delete (see `AdminBackend.removePackage`).
+  /// Deletes SQL audit log records that reference [package], as part of a package's hard-delete.
   Future<void> deleteSqlRecordsForPackage(String package) async {
-    try {
-      await primaryDatabase.transactWithRetry((db) async {
-        final recordIds = await db.auditLogAssociations
-            .where(
-              (a) =>
-                  a.kind.equalsValue(AuditLogAssociationKind.package) &
-                  a.value.equalsValue(package),
-            )
-            .select((a) => (a.recordId,))
-            .fetch();
-        for (final id in recordIds.toSet()) {
-          await db.auditLogRecords.delete(id).execute();
-        }
-      });
-    } catch (e, st) {
-      _log.warning(
-        'Failed to delete SQL AuditLogRecords for package "$package".',
-        e,
-        st,
-      );
-    }
+    await primaryDatabase.transactWithRetry((db) async {
+      final recordIds = await db.auditLogAssociations
+          .where(
+            (a) =>
+                a.kind.equalsValue(AuditLogAssociationKind.package) &
+                a.value.equalsValue(package),
+          )
+          .select((a) => (a.recordId,))
+          .fetch();
+      for (final id in recordIds.toSet()) {
+        await db.auditLogRecords.delete(id).execute();
+      }
+    });
   }
 
   @visibleForTesting

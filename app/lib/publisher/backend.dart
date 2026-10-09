@@ -252,7 +252,7 @@ class PublisherBackend {
       );
     });
     if (created) {
-      await auditBackend.mirrorToSql(auditLogRecord);
+      await auditBackend.migrateToSql(auditLogRecord);
     }
     await purgeAccountCache(userId: user.userId);
     await cache.allPublishersPage().purge();
@@ -375,7 +375,7 @@ class PublisherBackend {
       tx.insert(auditLogRecord);
       return p;
     });
-    await auditBackend.mirrorToSql(auditLogRecord);
+    await auditBackend.migrateToSql(auditLogRecord);
 
     await purgePublisherCache(publisherId);
     return _asPublisherInfo(p);
@@ -411,7 +411,7 @@ class PublisherBackend {
       tx.insert(p);
       tx.insert(auditLogRecord);
     });
-    await auditBackend.mirrorToSql(auditLogRecord);
+    await auditBackend.migrateToSql(auditLogRecord);
   }
 
   /// Invites a user to become a publisher admin.
@@ -588,7 +588,7 @@ class PublisherBackend {
         (tx) async =>
             tx.queueMutations(inserts: [auditLogRecord], deletes: [pm.key]),
       );
-      await auditBackend.mirrorToSql(auditLogRecord);
+      await auditBackend.migrateToSql(auditLogRecord);
     }
     await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);
@@ -633,7 +633,7 @@ class PublisherBackend {
       );
     });
     if (added) {
-      await auditBackend.mirrorToSql(auditLogRecord);
+      await auditBackend.migrateToSql(auditLogRecord);
     }
     await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);

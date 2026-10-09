@@ -5,7 +5,6 @@
 import 'package:logging/logging.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
-import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
@@ -28,10 +27,6 @@ Future<void> backfillNewFields() async {
       tx.insert(pkg);
     });
   }
-
-  // NOTE: Keep these around until all of the audit log record is migrated to use SQL.
-  _logger.info('Backfilling audit log records...');
-  await auditBackend.backfillSqlFromDatastore();
 
   // NOTE: Keep this around until Consent is migrated to use SQL.
   _logger.info('Backfilling consents...');
