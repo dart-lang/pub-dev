@@ -230,10 +230,10 @@ class ParsedQueryText {
   final String? text;
   final String? packagePrefix;
 
-  /// Dependency match for direct or dev dependency.
+  /// Dependency match for direct dependency.
   final List<String> refDependencies;
 
-  /// Dependency match for all dependencies, including transitive ones.
+  /// Dependency match for all dependencies, including dev and transitive ones.
   final List<String> allDependencies;
 
   /// Detected tags in the user-provided query.

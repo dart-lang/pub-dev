@@ -199,7 +199,7 @@ class InMemoryPackageIndex {
         }
         for (final dependency in query.parsedQuery.refDependencies) {
           final type = doc.dependencies[dependency];
-          if (type == null || type == DependencyTypes.transitive) return true;
+          if (type != DependencyTypes.direct) return true;
         }
         return false;
       });
