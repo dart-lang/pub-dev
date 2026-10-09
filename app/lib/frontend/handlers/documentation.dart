@@ -18,7 +18,6 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../package/overrides.dart';
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart';
-import '../../shared/utils.dart';
 
 /// Handles requests for:
 ///
@@ -33,24 +32,21 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (docFilePath == null) {
     return notFoundHandler(request);
   }
-  checkPackageVersionParams(docFilePath.package, docFilePath.version);
-  if (isSdkPackage(docFilePath.package)) {
-    return redirectResponse(sdkPackageUrls[docFilePath.package]!);
+  final package = docFilePath.package;
+  final version = docFilePath.version;
+  checkPackageVersionParams(package, version);
+  if (isSdkPackage(package)) {
+    return redirectResponse(sdkPackageUrls[package]!);
   }
-  if (!await packageBackend.isPackageVisible(docFilePath.package)) {
+  if (!await packageBackend.isPackageVisible(package)) {
     return notFoundHandler(request);
   }
-  if (docFilePath.version == null) {
-    return redirectResponse(pkgDocUrl(docFilePath.package, isLatest: true));
+  if (version == null) {
+    return redirectResponse(pkgDocUrl(package, isLatest: true));
   }
-  final package = docFilePath.package;
-  final version = docFilePath.version!;
   final canonicalVersion = version == 'latest'
       ? 'latest'
-      : canonicalizeVersion(version);
-  if (canonicalVersion == null) {
-    return notFoundHandler(request);
-  }
+      : Version.parse(version).canonicalizedVersion;
   final detectedPath = docFilePath.path;
   if (detectedPath == null) {
     return redirectResponse(pkgDocUrl(package, version: canonicalVersion));
