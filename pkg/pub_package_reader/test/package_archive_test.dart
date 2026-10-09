@@ -816,6 +816,12 @@ dev_dependencies:
   });
 
   group('funding', () {
+    test('non-map yaml', () {
+      expect(checkFunding(''), isEmpty);
+      expect(checkFunding('123'), isEmpty);
+      expect(checkFunding('[]'), isEmpty);
+    });
+
     test('bad top-level value', () {
       expect(checkFunding('funding: null'), isNotEmpty);
       expect(checkFunding('funding: 1'), isNotEmpty);
@@ -847,6 +853,14 @@ dev_dependencies:
   });
 
   group('topics', () {
+    test('non-map yaml', () {
+      expect(checkTopics(''), isEmpty);
+      expect(checkTopics('123'), isEmpty);
+      expect(checkTopics('[]'), isEmpty);
+      expect(checkValidJson('123'), isEmpty);
+      expect(checkValidJson('[]'), isEmpty);
+    });
+
     test('not a list', () {
       final pubspec = '''
       name: package

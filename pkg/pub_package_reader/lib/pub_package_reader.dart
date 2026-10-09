@@ -661,7 +661,10 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
 /// Check whether the pubspecContent can be converted to JSON
 Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
   try {
-    final map = loadYaml(pubspecContent) as Map?;
+    final map = loadYaml(pubspecContent);
+    if (map is! Map) {
+      return;
+    }
     json.decode(json.encode(map)) as Map<String, dynamic>?;
   } on JsonUnsupportedObjectError catch (_) {
     yield ArchiveIssue(
@@ -828,8 +831,8 @@ Iterable<ArchiveIssue> checkScreenshots(
 }
 
 Iterable<ArchiveIssue> checkFunding(String pubspecContent) sync* {
-  final map = loadYaml(pubspecContent) as Map;
-  if (!map.containsKey('funding')) {
+  final map = loadYaml(pubspecContent);
+  if (map is! Map || !map.containsKey('funding')) {
     return;
   }
   final funding = map['funding'];
@@ -862,8 +865,8 @@ Iterable<ArchiveIssue> checkFunding(String pubspecContent) sync* {
 }
 
 Iterable<ArchiveIssue> checkTopics(String pubspecContent) sync* {
-  final map = loadYaml(pubspecContent) as Map;
-  if (!map.containsKey('topics')) {
+  final map = loadYaml(pubspecContent);
+  if (map is! Map || !map.containsKey('topics')) {
     return;
   }
   final topics = map['topics'];

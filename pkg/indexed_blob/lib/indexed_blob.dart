@@ -834,6 +834,11 @@ class HashIndexHeader {
     final entryCount = data.getUint32(7);
     final subindexCount = data.getUint32(11);
     final blobIdLength = data.getUint16(15);
+    if (blobIdLength > 4096) {
+      throw FormatException(
+        'Invalid blobIdLength: $blobIdLength (must be ≤ 4096).',
+      );
+    }
     if (bytes.length < 17 + blobIdLength) {
       throw FormatException(
         'Index data too short to contain the blobId '
@@ -855,6 +860,15 @@ class HashIndexHeader {
         contentLengthBytes != 8) {
       throw FormatException(
         'Invalid contentLengthBytes: $contentLengthBytes (must be 2, 4, or 8).',
+      );
+    }
+    final recordLength = hashPrefixBytes + offsetBytes + contentLengthBytes;
+    final minLength =
+        17 + blobIdLength + (entryCount + subindexCount) * recordLength;
+    if (bytes.length < minLength) {
+      throw FormatException(
+        'Index data too short to contain all records '
+        '(${bytes.length} bytes, need $minLength).',
       );
     }
     final blobIdBytes = bytes.sublist(17, 17 + blobIdLength);

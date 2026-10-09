@@ -47,6 +47,13 @@ void main() {
       expect(JsonWebToken.tryParse(''), isNull);
       expect(JsonWebToken.tryParse('.....'), isNull);
       expect(JsonWebToken.tryParse('ab.c1.23'), isNull);
+      // Base64Url segments decoding to non-Map JSON values (int, List, null)
+      expect(JsonWebToken.tryParse('MTIz.MTIz.MTIz'), isNull);
+      expect(() => JsonWebToken.parse('MTIz.MTIz.MTIz'), throwsFormatException);
+      expect(
+        () => JsonWebToken.parse('eyJhbGciOiJSUzI1NiJ9.MTIz.MTIz'),
+        throwsFormatException,
+      );
     });
 
     test('parse successful', () {

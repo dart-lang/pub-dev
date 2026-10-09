@@ -264,4 +264,22 @@ void main() {
     expect(await restored.lookup('missing.txt'), isNull);
     expect(await restored.listFiles().toList(), isEmpty);
   });
+
+  test('truncated index throws FormatException', () async {
+    // 17-byte header claiming entryCount = 1 with 0 record bytes.
+    final truncated = Uint8List.fromList([
+      0x49, 0x42, // 'IB'
+      0x00, 0x01, // version 1
+      0x04, 0x04, 0x04, // hashPrefixBytes, offsetBytes, contentLengthBytes
+      0x00, 0x00, 0x00, 0x01, // entryCount = 1
+      0x00, 0x00, 0x00, 0x00, // subindexCount = 0
+      0x00, 0x00, // blobIdLength = 0
+    ]);
+    final reader = BlobIndexReader.fromBytes(
+      truncated,
+      (_, __) async => Uint8List(0),
+    );
+    await expectLater(reader.lookup('a.txt'), throwsFormatException);
+    await expectLater(reader.listFiles().toList(), throwsFormatException);
+  });
 }

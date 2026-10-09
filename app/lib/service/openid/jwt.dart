@@ -145,7 +145,11 @@ class JsonWebToken {
 }
 
 Map<String, dynamic> _decodePart(String part) {
-  return _jsonUtf8Base64.decode(base64.normalize(part)) as Map<String, dynamic>;
+  final decoded = _jsonUtf8Base64.decode(base64.normalize(part));
+  if (decoded is! Map<String, dynamic>) {
+    throw FormatException('Unexpected JWT segment structure.');
+  }
+  return decoded;
 }
 
 DateTime? _parseIntAsSecondsOrNull(Map<String, dynamic> map, String key) {

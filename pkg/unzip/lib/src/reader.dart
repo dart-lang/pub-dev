@@ -200,7 +200,7 @@ final class ZipReader {
 
     final int baseOffset = dirEndOffset - dirSize - off;
 
-    if (records > 100000) {
+    if (records > 100000 || records < 0) {
       throw ZipFormatException('Too many directory records');
     }
 
@@ -291,8 +291,8 @@ final class ZipReader {
     final int diskNbr = bd.getUint32(16, Endian.little);
     final int dirDiskNbr = bd.getUint32(20, Endian.little);
     final int dirRecordsThisDisk = bd.getUint64(24, Endian.little);
-    if (dirRecordsThisDisk == -1) {
-      throw ArgumentError('Too many directory records on this disk');
+    if (dirRecordsThisDisk < 0) {
+      throw ZipFormatException('Too many directory records on this disk');
     }
     final int directoryRecords = bd.getUint64(32, Endian.little);
     final int directorySize = bd.getUint64(40, Endian.little);
