@@ -64,9 +64,9 @@ Fails if that package has no existing Package entity.
           ...deletedVersions,
         }.toList();
         p.updated = clock.now().toUtc();
+        tx.insert(p);
       }
 
-      tx.insert(p!);
       tx.delete(mpKey);
     });
     await packageBackend.deletePackageTombstoneFromSql(packageName);

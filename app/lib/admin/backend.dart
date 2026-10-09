@@ -556,7 +556,6 @@ class AdminBackend {
       final versionNames = versions.map((v) => v.version).toList();
       if (versionNames.contains(version)) {
         tx.delete(packageKey.append(PackageVersion, id: version));
-        package.updated = clock.now().toUtc();
         deletedPackageVersions = 1;
       } else {
         _logger.info('Package $packageName does not have a version $version.');
@@ -578,6 +577,7 @@ class AdminBackend {
         package.deletedVersions!.add(version);
       }
 
+      package.updated = clock.now().toUtc();
       tx.insert(package);
     });
 
