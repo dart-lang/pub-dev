@@ -18,6 +18,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../package/overrides.dart';
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart';
+import '../../shared/utils.dart';
 
 /// Handles requests for:
 ///
@@ -42,10 +43,21 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (docFilePath.version == null) {
     return redirectResponse(pkgDocUrl(docFilePath.package, isLatest: true));
   }
+  final package = docFilePath.package;
+  final version = docFilePath.version!;
+  final canonicalVersion = version == 'latest'
+      ? 'latest'
+      : canonicalizeVersion(version);
+  if (canonicalVersion == null) {
+    return notFoundHandler(request);
+  }
   final detectedPath = docFilePath.path;
   if (detectedPath == null) {
+    return redirectResponse(pkgDocUrl(package, version: canonicalVersion));
+  }
+  if (version != canonicalVersion) {
     return redirectResponse(
-      pkgDocUrl(docFilePath.package, version: docFilePath.version),
+      pkgDocUrl(package, version: canonicalVersion, relativePath: detectedPath),
     );
   }
   // 8.3.0 dartdoc links to directories without an ending slash.
@@ -56,24 +68,18 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
       !request.requestedUri.path.endsWith('/index.html')) {
     // removes last segment `index.html` and adds `/` at the end of the url.
     return redirectResponse(
-      pkgDocUrl(
-        docFilePath.package,
-        version: docFilePath.version,
-        relativePath: detectedPath,
-      ),
+      pkgDocUrl(package, version: canonicalVersion, relativePath: detectedPath),
     );
   }
 
-  final package = docFilePath.package;
-  final version = docFilePath.version!;
-  final resolved = await _resolveDocUrlVersion(package, version);
+  final resolved = await _resolveDocUrlVersion(package, canonicalVersion);
   if (resolved.isEmpty) {
     return notFoundHandler(
       request,
       body: resolved.message ?? default404NotFound,
     );
   }
-  if (version != resolved.urlSegment) {
+  if (canonicalVersion != resolved.urlSegment) {
     return redirectResponse(
       pkgDocUrl(
         package,
