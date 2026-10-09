@@ -196,6 +196,7 @@ class AdminBackend {
       if (p.uploaders!.isEmpty) {
         p.isDiscontinued = true;
       }
+      p.updated = clock.now().toUtc();
       tx.insert(p);
     });
   }
@@ -231,6 +232,7 @@ class AdminBackend {
           () => withRetryTransaction(_db, (tx) async {
             final p = await tx.lookupValue<Package>(package.key);
             p.isDiscontinued = true;
+            p.updated = clock.now().toUtc();
             tx.insert(p);
           }),
         );
@@ -347,6 +349,7 @@ class AdminBackend {
         }
         if (p.replacedBy == packageName) {
           p.replacedBy = null;
+          p.updated = clock.now().toUtc();
           tx.insert(p);
         }
         replacedByFixes++;
@@ -553,7 +556,6 @@ class AdminBackend {
       final versionNames = versions.map((v) => v.version).toList();
       if (versionNames.contains(version)) {
         tx.delete(packageKey.append(PackageVersion, id: version));
-        package.updated = clock.now().toUtc();
         deletedPackageVersions = 1;
       } else {
         _logger.info('Package $packageName does not have a version $version.');
@@ -575,6 +577,7 @@ class AdminBackend {
         package.deletedVersions!.add(version);
       }
 
+      package.updated = clock.now().toUtc();
       tx.insert(package);
     });
 

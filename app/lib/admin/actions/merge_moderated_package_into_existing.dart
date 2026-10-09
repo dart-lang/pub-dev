@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
@@ -62,9 +63,10 @@ Fails if that package has no existing Package entity.
           ...?p.deletedVersions,
           ...deletedVersions,
         }.toList();
+        p.updated = clock.now().toUtc();
+        tx.insert(p);
       }
 
-      tx.insert(p!);
       tx.delete(mpKey);
     });
     await packageBackend.deletePackageTombstoneFromSql(packageName);
