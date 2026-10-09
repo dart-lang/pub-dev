@@ -421,17 +421,12 @@ class TaskBackend {
               ).asExpr,
             )
             .execute();
-        await db.updateTaskVersions(
-          packageName,
-          versions: versionsMap,
-          abortedTokens: [],
-        );
+        await db.updateTaskVersions(packageName, versions: versionsMap);
         return true; // no more work for this package, state is synced
       }
 
       // List versions that not tracked, but should be
       final oldVersions = await db.lookupVersions(packageName);
-      final oldAbortedTokens = await db.listAbortedTokens(packageName);
 
       final untrackedVersions = [...versions.whereNot(oldVersions.containsKey)];
 
@@ -457,6 +452,7 @@ class TaskBackend {
         return false;
       }
 
+      final oldAbortedTokens = await db.listAbortedTokens(packageName);
       final newAbortedTokens = [
         ...oldVersions.entries
             .where((e) => deselectedVersions.contains(e.key))
@@ -493,8 +489,11 @@ class TaskBackend {
       await db.updateTaskVersions(
         packageName,
         versions: newVersions,
-        abortedTokens: newAbortedTokens,
         oldVersions: oldVersions,
+      );
+      await db.updateTaskAbortedTokens(
+        packageName,
+        abortedTokens: newAbortedTokens,
         oldAbortedTokens: oldAbortedTokens,
       );
       return true;
@@ -782,9 +781,7 @@ class TaskBackend {
       await db.updateTaskVersions(
         package,
         versions: newVersions,
-        abortedTokens: oldAbortedTokens,
         oldVersions: oldVersions,
-        oldAbortedTokens: oldAbortedTokens,
       );
     });
 
@@ -1138,10 +1135,6 @@ class TaskBackend {
       // Reset every version to pending with a single bulk UPDATE instead of
       // reading all rows and writing them back one-by-one.
       await db.bumpPriority(packageName);
-      await db.tasks
-          .byKey(runtimeVersion, packageName)
-          .update((_, set) => set(pendingAt: initialTimestamp.asExpr))
-          .execute();
       await db.updateTaskAbortedTokens(
         packageName,
         abortedTokens: newAbortedTokens,
@@ -1504,7 +1497,7 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
   }
 
   /// Marks every version of [package] as pending, clearing worker assignment
-  /// but keeping reported results.
+  /// but keeping reported results, and makes the package immediately pending.
   Future<void> bumpPriority(String package) async {
     await taskVersions
         .where(
@@ -1521,6 +1514,10 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
             workerToken: toExpr(null),
           ),
         )
+        .execute();
+    await tasks
+        .byKey(runtimeVersion, package)
+        .update((_, set) => set(pendingAt: initialTimestamp.asExpr))
         .execute();
   }
 
@@ -1540,7 +1537,7 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
     return row?.asPackageVersionStateInfo;
   }
 
-  /// Returns the aborted tokens of [package].
+  /// Returns the aborted tokens of [package], the latest expiring first.
   Future<List<AbortedTokenInfo>> listAbortedTokens(
     String package, {
     String? runtimeVersion,
@@ -1551,6 +1548,7 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
           (t) =>
               t.runtimeVersion.equalsValue(rv) & t.package.equalsValue(package),
         )
+        .orderBy((t) => [(t.expiresAt, Order.descending)])
         .fetch();
     return [
       for (final row in rows)
@@ -1608,28 +1606,15 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
     }
   }
 
-  Future<void> taskBumpPriority(String packageName) async {
-    await tasks
-        .where(
-          (task) =>
-              task.runtimeVersion.equalsValue(runtimeVersion) &
-              task.package.equalsValue(packageName),
-        )
-        .update((_, set) => set(pendingAt: initialTimestamp.asExpr))
-        .execute();
-  }
-
-  /// Stores [versions] and [abortedTokens] of [package].
+  /// Stores [versions] of [package].
   ///
-  /// Using [oldVersions] and [oldAbortedTokens] (the currently stored values),
-  /// it skips unchanged rows and deletes the ones no longer present. Omit them
-  /// for a package without prior state.
+  /// Using [oldVersions] (the currently stored values), it skips unchanged rows
+  /// and deletes the ones no longer present. Omit it for a package without
+  /// prior state.
   Future<void> updateTaskVersions(
     String package, {
     required Map<String, PackageVersionStateInfo> versions,
-    required List<AbortedTokenInfo> abortedTokens,
     Map<String, PackageVersionStateInfo> oldVersions = const {},
-    List<AbortedTokenInfo> oldAbortedTokens = const [],
   }) async {
     for (final entry in versions.entries) {
       final v = entry.value;
@@ -1664,12 +1649,6 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
           .delete()
           .execute();
     }
-
-    await updateTaskAbortedTokens(
-      package,
-      abortedTokens: abortedTokens,
-      oldAbortedTokens: oldAbortedTokens,
-    );
   }
 
   /// Stores [abortedTokens] of [package], skipping those unchanged from

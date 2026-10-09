@@ -859,8 +859,11 @@ void main() {
               attempts: 3,
             ),
           },
-          abortedTokens: [tokenA, tokenB],
           oldVersions: initial,
+        );
+        await db.updateTaskAbortedTokens(
+          'neon',
+          abortedTokens: [tokenA, tokenB],
           oldAbortedTokens: [tokenA, tokenB],
         );
       });
@@ -877,6 +880,8 @@ void main() {
       final tokenAAfter = afterSkip.$2.singleWhere((t) => t.token == 'token-a');
       expect(tokenAAfter.expires.isAfter(expires), isTrue);
       expect(afterSkip.$2.map((t) => t.token).toSet(), {'token-a', 'token-b'});
+      // tokens are listed with the latest expiring first
+      expect(afterSkip.$2.map((t) => t.token), ['token-a', 'token-b']);
 
       // Remove a version and a token: both must be deleted.
       final current = afterSkip.$1;
@@ -884,8 +889,11 @@ void main() {
         await db.updateTaskVersions(
           'neon',
           versions: {'1.0.0': current['1.0.0']!},
-          abortedTokens: [tokenB],
           oldVersions: current,
+        );
+        await db.updateTaskAbortedTokens(
+          'neon',
+          abortedTokens: [tokenB],
           oldAbortedTokens: afterSkip.$2,
         );
       });

@@ -263,7 +263,6 @@ Future<SchedulePackageResult?> schedulePackageInstance({
         }
 
         final oldVersions = await db.lookupVersions(package);
-        final oldAbortedTokens = await db.listAbortedTokens(package);
 
         final versions = {...oldVersions};
         versions.addEntries(
@@ -286,9 +285,7 @@ Future<SchedulePackageResult?> schedulePackageInstance({
         await db.updateTaskVersions(
           package,
           versions: versions,
-          abortedTokens: oldAbortedTokens,
           oldVersions: oldVersions,
-          oldAbortedTokens: oldAbortedTokens,
         );
       });
     }
@@ -314,7 +311,6 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     }
 
     final oldVersions = await db.lookupVersions(package);
-    final oldAbortedTokens = await db.listAbortedTokens(package);
 
     final now = clock.now();
     final pendingVersions = derivePendingVersions(
@@ -352,9 +348,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
     await db.updateTaskVersions(
       package,
       versions: newVersions,
-      abortedTokens: oldAbortedTokens,
       oldVersions: oldVersions,
-      oldAbortedTokens: oldAbortedTokens,
     );
 
     // Create payload
