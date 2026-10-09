@@ -651,14 +651,30 @@ class _ConnectionRefreshingCacheProvider<T> implements CacheProvider<T> {
   }
 
   @override
-  Future<void> purge(String key) => _delegate
-      .purge(key)
-      .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
+  Future<void> purge(String key) async {
+    try {
+      await _delegate
+          .purge(key)
+          .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
+    } on IntermittentCacheException catch (e) {
+      _log.info('Redis access failed.', e);
+    } catch (e, st) {
+      _log.warning('Redis access failed.', e, st);
+    }
+  }
 
   @override
-  Future<void> set(String key, T value, [Duration? ttl]) => _delegate
-      .set(key, value, ttl)
-      .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
+  Future<void> set(String key, T value, [Duration? ttl]) async {
+    try {
+      await _delegate
+          .set(key, value, ttl)
+          .timeout(_defaultCacheWriteTimeout, onTimeout: () => null);
+    } on IntermittentCacheException catch (e) {
+      _log.info('Redis access failed.', e);
+    } catch (e, st) {
+      _log.warning('Redis access failed.', e, st);
+    }
+  }
 }
 
 extension EntryPurgeExt<T> on Entry<T> {
