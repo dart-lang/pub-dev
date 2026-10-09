@@ -324,8 +324,8 @@ class PackageBackend {
           version: a.version!,
           kind: a.kind!,
           updatedAt: a.updated!,
-          path: a.path ?? '',
-          textContent: a.textContent ?? '',
+          path: (a.path ?? '').replaceAll('\u0000', ''),
+          textContent: (a.textContent ?? '').replaceAll('\u0000', ''),
         )
         .execute();
   }
@@ -2656,6 +2656,7 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
 
   String? capContent(String? text) {
     if (text == null) return text;
+    text = text.replaceAll('\u0000', '');
     if (text.length < maxAssetContentLength) return text;
     return text.substring(0, maxAssetContentLength);
   }
