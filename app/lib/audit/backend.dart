@@ -163,26 +163,26 @@ class AuditBackend {
         final dataChanged =
             oldData != null && oldData.values.contains(fromUserId);
         final agentChanged = row.agent == fromUserId;
-        if (agentChanged || dataChanged) {
-          final newAgent = agentChanged ? toUserId : row.agent;
-          final newData = dataChanged
-              ? oldData.map(
-                  (key, value) => MapEntry<String, dynamic>(
-                    key,
-                    value == fromUserId ? toUserId : value,
-                  ),
-                )
-              : oldData;
+        if (dataChanged) {
+          final newData = oldData.map(
+            (key, value) => MapEntry<String, dynamic>(
+              key,
+              value == fromUserId ? toUserId : value,
+            ),
+          );
           await db.auditLogRecords
               .byKey(id)
               .update(
                 (_, set) => set(
-                  agent: newAgent.asExpr,
-                  dataJson: newData == null
-                      ? row.dataJson.asExpr
-                      : JsonValue(newData).asExpr,
+                  agent: (agentChanged ? toUserId : row.agent).asExpr,
+                  dataJson: JsonValue(newData).asExpr,
                 ),
               )
+              .execute();
+        } else if (agentChanged) {
+          await db.auditLogRecords
+              .byKey(id)
+              .update((_, set) => set(agent: toUserId.asExpr))
               .execute();
         }
         final hadUser = await db.auditLogAssociations
