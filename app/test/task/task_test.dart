@@ -14,12 +14,15 @@ import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:indexed_blob/indexed_blob.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
+import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:pub_dev/task/models.dart';
 import 'package:pub_dev/tool/test_profile/importer.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_services.dart';
@@ -726,15 +729,15 @@ void main() {
         await taskBackend.runOneLoopCycle();
 
         // verify token is now aborted
-        final ps = await primaryDatabase.withRetry(
-          (schema) => schema.taskLookupOrNull('neon'),
+        final versionState = await primaryDatabase.withRetry(
+          (schema) => schema.lookupVersionState('neon', v.version),
         );
-        expect(ps!.state!.versions[v.version]?.secretToken, isNull);
-        expect(ps.state!.abortedTokens, isNotEmpty);
-        expect(
-          ps.state!.abortedTokens.where((x) => x.token == v.token),
-          isNotEmpty,
+        expect(versionState?.secretToken, isNull);
+        final abortedTokens = await primaryDatabase.withRetry(
+          (schema) => schema.listAbortedTokens('neon'),
         );
+        expect(abortedTokens, isNotEmpty);
+        expect(abortedTokens.where((x) => x.token == v.token), isNotEmpty);
 
         // Use token to get the upload information
         final api = createPubApiClient(authToken: v.token);
@@ -771,13 +774,10 @@ void main() {
             ],
           ),
         );
-        final ps = await primaryDatabase.withRetry(
-          (schema) => schema.taskLookupOrNull('neon'),
+        final abortedTokens = await primaryDatabase.withRetry(
+          (schema) => schema.listAbortedTokens('neon'),
         );
-        expect(
-          ps!.state!.abortedTokens.where((x) => x.token == v.token),
-          isEmpty,
-        );
+        expect(abortedTokens.where((x) => x.token == v.token), isEmpty);
 
         // Report the task as finished
         final api = createPubApiClient(authToken: v.token);
@@ -788,6 +788,124 @@ void main() {
           message: 'The provided token is invalid or expired.',
         );
       }
+    },
+  );
+
+  testWithProfile(
+    'update skips unchanged rows and deletes removed entries',
+    testProfile: TestProfile(
+      defaultUser: 'admin@pub.dev',
+      generatedPackages: [
+        GeneratedTestPackage(
+          name: 'neon',
+          versions: [
+            GeneratedTestVersion(version: '1.0.0'),
+            GeneratedTestVersion(version: '1.1.0'),
+          ],
+        ),
+      ],
+      users: [TestUser(email: 'admin@pub.dev', likes: [])],
+    ),
+    fn: () async {
+      await taskBackend.backfillTrackingState();
+
+      final expires = clock.now().add(const Duration(hours: 1));
+      final tokenA = AbortedTokenInfo(token: 'token-a', expires: expires);
+      final tokenB = AbortedTokenInfo(token: 'token-b', expires: expires);
+
+      final initial = await primaryDatabase.withRetry(
+        (db) => db.lookupVersions('neon'),
+      );
+      expect(initial.keys, containsAll(['1.0.0', '1.1.0']));
+
+      await primaryDatabase.transactWithRetry((db) async {
+        await db.updateTaskAbortedTokens(
+          'neon',
+          abortedTokens: [tokenA, tokenB],
+        );
+      });
+
+      // modify rows directly:
+      await primaryDatabase.transactWithRetry((db) async {
+        for (final v in ['1.0.0', '1.1.0']) {
+          await db.taskVersions
+              .byKey(runtimeVersion, 'neon', v)
+              .update((_, set) => set(attempts: toExpr(7)))
+              .execute();
+        }
+        await db.taskAbortedTokens
+            .where(
+              (t) =>
+                  t.runtimeVersion.equalsValue(runtimeVersion) &
+                  t.package.equalsValue('neon') &
+                  t.workerToken.equalsValue('token-a'),
+            )
+            .update(
+              (_, set) =>
+                  set(expiresAt: toExpr(expires.add(const Duration(days: 1)))),
+            )
+            .execute();
+      });
+
+      await primaryDatabase.transactWithRetry((db) async {
+        await db.updateTaskVersions(
+          'neon',
+          versions: {
+            // unchanged compared to oldVersions -> must be skipped
+            '1.0.0': initial['1.0.0']!,
+            // changed compared to oldVersions -> must be written
+            '1.1.0': PackageVersionStateInfo(
+              scheduled: initialTimestamp,
+              attempts: 3,
+            ),
+          },
+          oldVersions: initial,
+        );
+        await db.updateTaskAbortedTokens(
+          'neon',
+          abortedTokens: [tokenA, tokenB],
+          oldAbortedTokens: [tokenA, tokenB],
+        );
+      });
+
+      final afterSkip = await primaryDatabase.withRetry(
+        (db) async => (
+          await db.lookupVersions('neon'),
+          await db.listAbortedTokens('neon'),
+        ),
+      );
+      expect(afterSkip.$1['1.0.0']!.attempts, 7); // skipped
+      expect(afterSkip.$1['1.1.0']!.attempts, 3); // written
+      // unchanged tokens are skipped, so the expiry is preserved
+      final tokenAAfter = afterSkip.$2.singleWhere((t) => t.token == 'token-a');
+      expect(tokenAAfter.expires.isAfter(expires), isTrue);
+      expect(afterSkip.$2.map((t) => t.token).toSet(), {'token-a', 'token-b'});
+      // tokens are listed with the latest expiring first
+      expect(afterSkip.$2.map((t) => t.token), ['token-a', 'token-b']);
+
+      // Remove a version and a token: both must be deleted.
+      final current = afterSkip.$1;
+      await primaryDatabase.transactWithRetry((db) async {
+        await db.updateTaskVersions(
+          'neon',
+          versions: {'1.0.0': current['1.0.0']!},
+          oldVersions: current,
+        );
+        await db.updateTaskAbortedTokens(
+          'neon',
+          abortedTokens: [tokenB],
+          oldAbortedTokens: afterSkip.$2,
+        );
+      });
+
+      final afterDelete = await primaryDatabase.withRetry(
+        (db) async => (
+          await db.lookupVersions('neon'),
+          await db.listAbortedTokens('neon'),
+        ),
+      );
+      expect(afterDelete.$1.keys, ['1.0.0']);
+      expect(afterDelete.$2.map((t) => t.token), ['token-b']);
     },
   );
 }
