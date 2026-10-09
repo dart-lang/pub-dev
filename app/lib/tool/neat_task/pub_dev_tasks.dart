@@ -85,7 +85,10 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
     _15mins(
       name: 'migrate-to-sql',
       isRuntimeVersioned: false,
-      task: () async => await emailBackend.migrateFromDatastore(),
+      task: () async {
+        await emailBackend.migrateFromDatastore();
+        await auditBackend.migrateFromDatastore();
+      },
     ),
 
     // Backfills the fields that are new to the current release.

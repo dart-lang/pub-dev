@@ -501,7 +501,7 @@ class AdminBackend {
         }
       });
       if (auditLogRecord != null) {
-        await auditBackend.mirrorToSql(auditLogRecord!);
+        await auditBackend.migrateToSql(auditLogRecord!);
       }
       triggerPackagePostUpdates(packageName);
     }
@@ -781,7 +781,7 @@ class AdminBackend {
       }
     });
     for (final record in auditRecords) {
-      await auditBackend.mirrorToSql(record);
+      await auditBackend.migrateToSql(record);
     }
     return await handleGetPackageUploaders(packageName);
   }

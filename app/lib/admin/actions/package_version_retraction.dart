@@ -92,7 +92,7 @@ value of `set-retracted`, which should either be `true` or `false`.
       };
     });
     if (auditLogRecord != null) {
-      await auditBackend.mirrorToSql(auditLogRecord!);
+      await auditBackend.migrateToSql(auditLogRecord!);
     }
     triggerPackagePostUpdates(packageName);
 

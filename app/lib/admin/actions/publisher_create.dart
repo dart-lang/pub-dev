@@ -90,7 +90,7 @@ This should generally only be done with PM approval as it skips actual domain ve
       );
     });
     if (created) {
-      await auditBackend.mirrorToSql(auditLogRecord);
+      await auditBackend.migrateToSql(auditLogRecord);
     }
     return {
       'message': 'Publisher created.',

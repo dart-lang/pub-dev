@@ -172,14 +172,14 @@ void main() {
     });
   });
 
-  group('SQL mirror', () {
+  group('SQL migration', () {
     testWithProfile(
-      'mirrorToSql writes row and associations',
+      'migrateToSql writes row and associations',
       fn: () async {
         final user = await accountBackend.lookupUserByEmail(adminAtPubDevEmail);
         final record = _testRecord(userId: user.userId, packages: ['oxygen']);
         await dbService.commit(inserts: [record]);
-        await auditBackend.mirrorToSql(record);
+        await auditBackend.migrateToSql(record);
 
         final row = await primaryDatabase.withRetry(
           (db) => db.auditLogRecords.byKey(record.id!).fetch(),
@@ -204,13 +204,13 @@ void main() {
     );
 
     testWithProfile(
-      'mirrorToSql is idempotent',
+      'migrateToSql is idempotent',
       fn: () async {
         final user = await accountBackend.lookupUserByEmail(adminAtPubDevEmail);
         final record = _testRecord(userId: user.userId, packages: ['oxygen']);
         await dbService.commit(inserts: [record]);
-        await auditBackend.mirrorToSql(record);
-        await auditBackend.mirrorToSql(record);
+        await auditBackend.migrateToSql(record);
+        await auditBackend.migrateToSql(record);
 
         final rows = await primaryDatabase.withRetry(
           (db) => db.auditLogRecords
@@ -229,10 +229,11 @@ void main() {
     );
 
     testWithProfile(
-      'backfillSqlFromDatastore copies missing rows',
+      'migrateFromDatastore moves old entities to SQL',
       fn: () async {
         final user = await accountBackend.lookupUserByEmail(adminAtPubDevEmail);
         final record = _testRecord(userId: user.userId, packages: ['oxygen']);
+        record.created = clock.now().toUtc().subtract(Duration(minutes: 5));
         await dbService.commit(inserts: [record]);
 
         var row = await primaryDatabase.withRetry(
@@ -240,8 +241,9 @@ void main() {
         );
         expect(row, isNull);
 
-        final count = await auditBackend.backfillSqlFromDatastore();
+        final count = await auditBackend.migrateFromDatastore();
         expect(count, greaterThanOrEqualTo(1));
+        expect(await dbService.lookup<AuditLogRecord>([record.key]), [null]);
 
         row = await primaryDatabase.withRetry(
           (db) => db.auditLogRecords.byKey(record.id!).fetch(),
@@ -261,8 +263,8 @@ void main() {
         );
         final live = _testRecord(userId: user.userId, packages: ['oxygen']);
         await dbService.commit(inserts: [expired, live]);
-        await auditBackend.mirrorToSql(expired);
-        await auditBackend.mirrorToSql(live);
+        await auditBackend.migrateToSql(expired);
+        await auditBackend.migrateToSql(live);
 
         await auditBackend.deleteExpiredSqlRecords();
 
@@ -283,7 +285,7 @@ void main() {
         expect(liveRow, isNotNull);
 
         // Clean up the (now SQL-orphaned) expired Datastore entity so it
-        // doesn't linger as an otherwise-valid, unmirrored record.
+        // doesn't linger as an otherwise-valid, unmigrated record.
         await dbService.commit(deletes: [expired.key]);
       },
     );
@@ -294,7 +296,7 @@ void main() {
         final user = await accountBackend.lookupUserByEmail(adminAtPubDevEmail);
         final record = _testRecord(userId: user.userId, packages: ['oxygen']);
         await dbService.commit(inserts: [record]);
-        await auditBackend.mirrorToSql(record);
+        await auditBackend.migrateToSql(record);
 
         await auditBackend.deleteSqlRecordsForPackage('oxygen');
 
@@ -317,17 +319,17 @@ void main() {
 
         final r1 = _testRecord(userId: user.userId, packages: []);
         await dbService.commit(inserts: [r1]);
-        await auditBackend.mirrorToSql(r1);
+        await auditBackend.migrateToSql(r1);
 
         clockControl.elapse(minutes: 1);
         final r2 = _testRecord(userId: user.userId, packages: []);
         await dbService.commit(inserts: [r2]);
-        await auditBackend.mirrorToSql(r2);
+        await auditBackend.migrateToSql(r2);
 
         clockControl.elapse(minutes: 1);
         final r3 = _testRecord(userId: user.userId, packages: []);
         await dbService.commit(inserts: [r3]);
-        await auditBackend.mirrorToSql(r3);
+        await auditBackend.migrateToSql(r3);
 
         final page = await auditBackend.listRecordsForUserId(user.userId);
         final ids = page.records.map((r) => r.recordId).toList();
@@ -343,17 +345,17 @@ void main() {
 
         final r1 = _testRecord(userId: user.userId, packages: []);
         await dbService.commit(inserts: [r1]);
-        await auditBackend.mirrorToSql(r1);
+        await auditBackend.migrateToSql(r1);
 
         clockControl.elapse(minutes: 1);
         final r2 = _testRecord(userId: user.userId, packages: []);
         await dbService.commit(inserts: [r2]);
-        await auditBackend.mirrorToSql(r2);
+        await auditBackend.migrateToSql(r2);
 
         clockControl.elapse(minutes: 1);
         final r3 = _testRecord(userId: user.userId, packages: []);
         await dbService.commit(inserts: [r3]);
-        await auditBackend.mirrorToSql(r3);
+        await auditBackend.migrateToSql(r3);
 
         final page = await auditBackend.listRecordsForUserId(
           user.userId,

@@ -259,7 +259,7 @@ class UserMerger {
           tx.insert(r);
           return r;
         });
-        await auditBackend.mirrorToSql(r);
+        await auditBackend.migrateToSql(r);
       },
     );
 
@@ -280,9 +280,12 @@ class UserMerger {
           tx.insert(r);
           return r;
         });
-        await auditBackend.mirrorToSql(r);
+        await auditBackend.migrateToSql(r);
       },
     );
+
+    // AuditLogRecord: records already migrated to SQL
+    await auditBackend.replaceUserIdInSqlRecords(fromUserId, toUserId);
 
     final mergedUser = await withRetryTransaction(_db, (tx) async {
       final u = await _db.lookupValue<User>(toUserKey);
