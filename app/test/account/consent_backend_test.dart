@@ -130,6 +130,40 @@ void main() {
     );
 
     testWithProfile(
+      'Uploader invite accessed with a different account',
+      fn: () async {
+        final consentId = await inviteUploader();
+        final client = await createFakeAuthPubApiClient(email: 'other@pub.dev');
+        await expectApiException(
+          client.consentInfo(consentId!),
+          status: 400,
+          code: 'InvalidInput',
+          message:
+              'This invitation is not for the user account currently logged in (`other@pub.dev`).',
+        );
+        await expectApiException(
+          client.resolveConsent(
+            consentId,
+            account_api.ConsentResult(granted: true),
+          ),
+          status: 400,
+          code: 'InvalidInput',
+          message: 'email aliases are not supported',
+        );
+
+        // The invite is still available for the intended account.
+        final userClient = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        final rs = await userClient.resolveConsent(
+          consentId,
+          account_api.ConsentResult(granted: true),
+        );
+        expect(rs.granted, true);
+      },
+    );
+
+    testWithProfile(
       'Uploader invite expired',
       fn: () async {
         final consentId = await inviteUploader();
@@ -437,6 +471,40 @@ void main() {
             '`user@pub.dev` rejected member invite for publisher `example.com`.',
           ),
         );
+      },
+    );
+
+    testWithProfile(
+      'Publisher member invite accessed with a different account',
+      fn: () async {
+        final consentId = await inviteMember();
+        final client = await createFakeAuthPubApiClient(email: 'other@pub.dev');
+        await expectApiException(
+          client.consentInfo(consentId!),
+          status: 400,
+          code: 'InvalidInput',
+          message:
+              'This invitation is not for the user account currently logged in (`other@pub.dev`).',
+        );
+        await expectApiException(
+          client.resolveConsent(
+            consentId,
+            account_api.ConsentResult(granted: true),
+          ),
+          status: 400,
+          code: 'InvalidInput',
+          message: 'email aliases are not supported',
+        );
+
+        // The invite is still available for the intended account.
+        final userClient = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        final rs = await userClient.resolveConsent(
+          consentId,
+          account_api.ConsentResult(granted: true),
+        );
+        expect(rs.granted, true);
       },
     );
 
