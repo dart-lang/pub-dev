@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_pub_shared/data/package_api.dart';
+import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
@@ -27,6 +30,10 @@ void main() {
             GeneratedTestVersion(version: '2.0.1'), // will get analyzed
             GeneratedTestVersion(version: '2.1.0'), // will get analyzed
           ],
+        ),
+        GeneratedTestPackage(
+          name: 'neon',
+          versions: [GeneratedTestVersion(version: '1.0.0')],
         ),
       ],
       users: [TestUser(email: 'admin@pub.dev', likes: [])],
@@ -140,6 +147,27 @@ void main() {
         await expectRedirectResponse(
           await issueGet('/documentation/oxygen/latest/'),
           '/documentation/oxygen/2.1.0/',
+        );
+      },
+      testProfile: _testProfile,
+      processJobsWithFakeRunners: true,
+    );
+
+    testWithProfile(
+      'discontinued package banner on dartdoc page',
+      fn: () async {
+        await withFakeAuthRequestContext('admin@pub.dev', () async {
+          await packageBackend.updateOptions(
+            'oxygen',
+            PkgOptions(isDiscontinued: true, replacedBy: 'neon'),
+          );
+        });
+        await expectHtmlResponse(
+          await issueGet('/documentation/oxygen/latest/'),
+          present: [
+            '<div class="-pub-dartdoc-discontinued-banner">',
+            'Package <b>oxygen</b> has been discontinued and replaced by <a href="/packages/neon">neon</a>.',
+          ],
         );
       },
       testProfile: _testProfile,
