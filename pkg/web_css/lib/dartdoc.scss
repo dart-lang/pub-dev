@@ -65,21 +65,23 @@
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  margin-bottom: 16px;
-  border: 1px solid var(--pub_tag_simplebadge_warning-background-color);
+  margin: 10px 0 16px 0;
+  border: 1px solid var(--alert-error-fgColor);
   border-left-width: 4px;
   border-radius: 4px;
-  background-color: var(--pub-inset-bgColor);
-  color: var(--pub-neutral-textColor);
+  background-color: var(--main-inset-bgColor);
+  color: var(--main-text-color);
   font-size: 14px;
 
   .-pub-dartdoc-discontinued-badge {
     display: inline-block;
     padding: 2px 6px;
-    background: var(--pub_tag_simplebadge_warning-background-color);
-    color: var(--pub_tag_simplebadge_warning-text-color);
+    border-radius: 2px;
+    background: #c43131;
+    color: #fff;
     font-size: 12px;
     font-weight: 600;
+    line-height: 1.4;
     text-transform: uppercase;
   }
 }
