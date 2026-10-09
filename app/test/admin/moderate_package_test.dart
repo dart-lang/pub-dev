@@ -18,6 +18,7 @@ import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
@@ -517,19 +518,27 @@ void main() {
           0,
         );
 
-        // stale rows are refreshed
-        await primaryDatabase.withRetry(
-          (db) => db.packageVersionAssets
-              .where((a) => a.package.equalsValue('oxygen'))
-              .update(
-                (a, set) => set(updatedAt: toExpr(DateTime.utc(2000, 1, 1))),
-              )
-              .execute(),
+        // stale rows are refreshed (and NUL bytes are stripped for Postgres)
+        final oxygenReadmeKey = dbService.emptyKey.append(
+          PackageVersionAsset,
+          id: 'oxygen/1.2.0/readme',
         );
+        final oxygenReadme = await dbService.lookupValue<PackageVersionAsset>(
+          oxygenReadmeKey,
+        );
+        oxygenReadme.textContent = 'before\u0000after';
+        oxygenReadme.updated = clock.now().toUtc();
+        await dbService.commit(inserts: [oxygenReadme]);
         expect(
           await packageBackend.backfillPackageVersionAssetsSqlFromDatastore(),
-          greaterThan(0),
+          1,
         );
+        final refreshedReadme = await primaryDatabase.withRetry(
+          (db) => db.packageVersionAssets
+              .byKey('oxygen', '1.2.0', 'readme')
+              .fetch(),
+        );
+        expect(refreshedReadme?.textContent, 'beforeafter');
 
         // rows without a Datastore entity are removed
         await primaryDatabase.withRetry(

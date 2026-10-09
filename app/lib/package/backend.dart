@@ -324,8 +324,10 @@ class PackageBackend {
           version: a.version!,
           kind: a.kind!,
           updatedAt: a.updated!,
-          path: a.path ?? '',
-          textContent: a.textContent ?? '',
+          // Historical Datastore entities may contain NUL bytes, which PostgreSQL
+          // text columns reject.
+          path: (a.path ?? '').replaceAll('\u0000', ''),
+          textContent: (a.textContent ?? '').replaceAll('\u0000', ''),
         )
         .execute();
   }
