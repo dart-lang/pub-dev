@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:pub_package_reader/pub_package_reader.dart';
+import 'package:tar/tar.dart';
 import 'package:test/test.dart';
 
 import '_tar_writer.dart';
@@ -23,10 +24,13 @@ void main() {
     });
 
     // Make a tar archive  with files
-    Future<String> makeTar(Map<String, String> files) async {
+    Future<String> makeTar(
+      Map<String, String> files, {
+      List<TarEntry>? rawEntries,
+    }) async {
       count++;
       final tarFile = File.fromUri(tempDir.uri.resolve('pkg-$count.tar.gz'));
-      await writeTarGzFile(tarFile, textFiles: files);
+      await writeTarGzFile(tarFile, textFiles: files, rawEntries: rawEntries);
       return tarFile.path;
     }
 
@@ -117,6 +121,37 @@ environment:
 
       expect(summary.issues.map((e) => e.message), [
         '`README.md` contains NUL (0x00) characters.',
+      ]);
+    });
+
+    test('Invalid UTF-8 in README.md not allowed', () async {
+      final summary = await summarizePackageArchive(
+        await makeTar(
+          {
+            'pubspec.yaml': '''
+name: mypkg
+version: 1.0.0
+description: mypkg is awesome
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+''',
+            'LICENSE': 'All rights reserved...',
+          },
+          rawEntries: [
+            TarEntry.data(TarHeader(name: 'README.md', mode: 420), [
+              0xff,
+              0xfe,
+              0x68,
+              0x00,
+              0x69,
+              0x00,
+            ]),
+          ],
+        ),
+      );
+
+      expect(summary.issues.map((e) => e.message), [
+        '`README.md` is not valid UTF-8.',
       ]);
     });
   });

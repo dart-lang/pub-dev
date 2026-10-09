@@ -239,12 +239,20 @@ Future<PackageSummary> summarizePackageArchive(
         ),
       );
     }
-    if (bytes.contains(0)) {
-      issues.add(
-        ArchiveIssue('`$contentPath` contains NUL (0x00) characters.'),
-      );
+    String content;
+    try {
+      content = utf8.decode(bytes);
+      if (bytes.contains(0)) {
+        issues.add(
+          ArchiveIssue('`$contentPath` contains NUL (0x00) characters.'),
+        );
+      }
+    } on FormatException {
+      if (bytes.length <= maxContentLength) {
+        issues.add(ArchiveIssue('`$contentPath` is not valid UTF-8.'));
+      }
+      content = utf8.decode(bytes, allowMalformed: true);
     }
-    String content = utf8.decode(bytes, allowMalformed: true);
     if (content.length > maxContentLength) {
       content = content.substring(0, maxContentLength) + '[...]\n\n';
     }
