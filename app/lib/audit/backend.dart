@@ -18,6 +18,10 @@ import 'models.dart';
 /// The maximum number of entities to be loaded from Datastore in one batch.
 const _maxAuditLogBatchSize = 1000;
 
+/// The maximum time a single [AuditBackend.migrateFromDatastore] run may take
+/// (the periodic task has a 10-minute timeout).
+const _maxBatchMigrationDuration = Duration(minutes: 8);
+
 /// The minimum age a Datastore [AuditLogRecord] entity must have before
 /// [AuditBackend.migrateFromDatastore] will pick it up for SQL migration.
 const _minBatchMigrationAge = Duration(minutes: 1);
@@ -155,22 +159,30 @@ class AuditBackend {
       await primaryDatabase.transactWithRetry((db) async {
         final row = await db.auditLogRecords.byKey(id).fetch();
         if (row == null) return; // deleted in the meantime
-        final data = _dataOf(row.dataJson)?.map(
-          (key, value) => MapEntry<String, dynamic>(
-            key,
-            value == fromUserId ? toUserId : value,
-          ),
-        );
-        if (row.agent == fromUserId) {
+        final oldData = _dataOf(row.dataJson);
+        final dataChanged =
+            oldData != null && oldData.values.contains(fromUserId);
+        final agentChanged = row.agent == fromUserId;
+        if (agentChanged || dataChanged) {
+          final newAgent = agentChanged ? toUserId : row.agent;
+          final newData = dataChanged
+              ? oldData.map(
+                  (key, value) => MapEntry<String, dynamic>(
+                    key,
+                    value == fromUserId ? toUserId : value,
+                  ),
+                )
+              : oldData;
           await db.auditLogRecords
               .byKey(id)
-              .update((_, set) => set(agent: toUserId.asExpr))
-              .execute();
-        }
-        if (data != null) {
-          await db.auditLogRecords
-              .byKey(id)
-              .update((_, set) => set(dataJson: JsonValue(data).asExpr))
+              .update(
+                (_, set) => set(
+                  agent: newAgent.asExpr,
+                  dataJson: newData == null
+                      ? row.dataJson.asExpr
+                      : JsonValue(newData).asExpr,
+                ),
+              )
               .execute();
         }
         final hadUser = await db.auditLogAssociations
@@ -280,13 +292,20 @@ class AuditBackend {
   /// This is a best-effort cleanup of stragglers that were not migrated
   /// eagerly (e.g. because the process died between the Datastore commit and
   /// the SQL write), and is expected to be called periodically.
+  ///
+  /// A single run stops after [_maxBatchMigrationDuration], the remaining
+  /// entities will be picked up by the next run.
   Future<int> migrateFromDatastore() async {
+    final sw = Stopwatch()..start();
     final cutoff = clock.now().toUtc().subtract(_minBatchMigrationAge);
     final query = _db.query<AuditLogRecord>()..filter('created <', cutoff);
     var count = 0;
     await for (final record in query.run()) {
       await migrateToSql(record);
       count++;
+      if (sw.elapsed > _maxBatchMigrationDuration) {
+        break;
+      }
     }
     return count;
   }

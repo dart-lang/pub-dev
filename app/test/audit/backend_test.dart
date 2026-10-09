@@ -234,7 +234,8 @@ void main() {
         final user = await accountBackend.lookupUserByEmail(adminAtPubDevEmail);
         final record = _testRecord(userId: user.userId, packages: ['oxygen']);
         record.created = clock.now().toUtc().subtract(Duration(minutes: 5));
-        await dbService.commit(inserts: [record]);
+        final recent = _testRecord(userId: user.userId, packages: ['oxygen']);
+        await dbService.commit(inserts: [record, recent]);
 
         var row = await primaryDatabase.withRetry(
           (db) => db.auditLogRecords.byKey(record.id!).fetch(),
@@ -242,8 +243,18 @@ void main() {
         expect(row, isNull);
 
         final count = await auditBackend.migrateFromDatastore();
-        expect(count, greaterThanOrEqualTo(1));
+        expect(count, 1);
         expect(await dbService.lookup<AuditLogRecord>([record.key]), [null]);
+
+        // recent entity is left untouched
+        expect(await dbService.lookup<AuditLogRecord>([recent.key]), [
+          isNotNull,
+        ]);
+        final recentRow = await primaryDatabase.withRetry(
+          (db) => db.auditLogRecords.byKey(recent.id!).fetch(),
+        );
+        expect(recentRow, isNull);
+        await dbService.commit(deletes: [recent.key]);
 
         row = await primaryDatabase.withRetry(
           (db) => db.auditLogRecords.byKey(record.id!).fetch(),
@@ -284,9 +295,7 @@ void main() {
         );
         expect(liveRow, isNotNull);
 
-        // Clean up the (now SQL-orphaned) expired Datastore entity so it
-        // doesn't linger as an otherwise-valid, unmigrated record.
-        await dbService.commit(deletes: [expired.key]);
+        expect(await dbService.lookup<AuditLogRecord>([expired.key]), [null]);
       },
     );
 
@@ -305,8 +314,7 @@ void main() {
         );
         expect(row, isNull);
 
-        // Clean up the (now SQL-orphaned) Datastore entity.
-        await dbService.commit(deletes: [record.key]);
+        expect(await dbService.lookup<AuditLogRecord>([record.key]), [null]);
       },
     );
   });
