@@ -2068,13 +2068,6 @@ class PackageBackend {
         throw OperationForbiddenException.lastUploaderRemoveError();
       }
 
-      // At the moment we don't validate whether the other email addresses
-      // are able to authenticate. To prevent accidentally losing the control
-      // of a package, we don't allow self-removal.
-      if (user.email == uploader.email || user.userId == uploader.userId) {
-        throw OperationForbiddenException.selfRemovalNotAllowed();
-      }
-
       // Remove the uploader from the list.
       package.removeUploader(uploader.userId);
       package.updated = clock.now().toUtc();

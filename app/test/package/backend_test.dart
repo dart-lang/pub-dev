@@ -387,7 +387,7 @@ void main() {
       );
 
       testWithProfile(
-        'cannot remove self',
+        'can remove self when other uploaders exist',
         fn: () async {
           // adding extra uploader for the scope of this test
           final pkg = (await packageBackend.lookupPackage('oxygen'))!;
@@ -396,18 +396,10 @@ void main() {
           await dbService.commit(inserts: [pkg]);
 
           await withFakeAuthRequestContext(adminAtPubDevEmail, () async {
-            final rs = packageBackend.removeUploader('oxygen', 'admin@pub.dev');
-            await expectLater(
-              rs,
-              throwsA(
-                isException.having(
-                  (e) => '$e',
-                  'toString',
-                  'OperationForbidden(403): Self-removal is not allowed. Use another account to remove this email address.',
-                ),
-              ),
-            );
+            await packageBackend.removeUploader('oxygen', 'admin@pub.dev');
           });
+          final updated = (await packageBackend.lookupPackage('oxygen'))!;
+          expect(updated.uploaders, [user.userId]);
         },
       );
 
