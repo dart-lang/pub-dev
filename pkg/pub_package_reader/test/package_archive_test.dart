@@ -706,6 +706,9 @@ dev_dependencies:
         [1,2,3,4,5]: 'value of a composite key'
       ''';
       expect(checkValidJson(pubspec), isNotEmpty);
+      expect(checkValidJson(''), isNotEmpty);
+      expect(checkValidJson('123'), isNotEmpty);
+      expect(checkValidJson('[]'), isNotEmpty);
     });
   });
 
@@ -816,6 +819,12 @@ dev_dependencies:
   });
 
   group('funding', () {
+    test('non-map yaml', () {
+      expect(checkFunding(''), isEmpty);
+      expect(checkFunding('123'), isEmpty);
+      expect(checkFunding('[]'), isEmpty);
+    });
+
     test('bad top-level value', () {
       expect(checkFunding('funding: null'), isNotEmpty);
       expect(checkFunding('funding: 1'), isNotEmpty);
@@ -847,6 +856,12 @@ dev_dependencies:
   });
 
   group('topics', () {
+    test('non-map yaml', () {
+      expect(checkTopics(''), isEmpty);
+      expect(checkTopics('123'), isEmpty);
+      expect(checkTopics('[]'), isEmpty);
+    });
+
     test('not a list', () {
       final pubspec = '''
       name: package

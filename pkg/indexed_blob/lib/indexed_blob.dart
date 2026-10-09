@@ -783,6 +783,8 @@ class HashIndexHeader {
   final int offsetBytes;
   final int contentLengthBytes;
 
+  static const _maxBlobIdLength = 4096;
+
   final int entryCount;
   final int subindexCount;
 
@@ -796,8 +798,10 @@ class HashIndexHeader {
     required this.subindexCount,
   }) : blobIdBytes = Uint8List.fromList(blobIdBytes) {
     assert(hashPrefixBytes >= 4);
-    if (blobIdBytes.length > 4096) {
-      throw ArgumentError('blobId must not exceed 4096 UTF-8 bytes.');
+    if (blobIdBytes.length > _maxBlobIdLength) {
+      throw ArgumentError(
+        'blobId must not exceed $_maxBlobIdLength UTF-8 bytes.',
+      );
     }
   }
 
@@ -834,6 +838,11 @@ class HashIndexHeader {
     final entryCount = data.getUint32(7);
     final subindexCount = data.getUint32(11);
     final blobIdLength = data.getUint16(15);
+    if (blobIdLength > _maxBlobIdLength) {
+      throw FormatException(
+        'Invalid blobIdLength: $blobIdLength (must be ≤ $_maxBlobIdLength).',
+      );
+    }
     if (bytes.length < 17 + blobIdLength) {
       throw FormatException(
         'Index data too short to contain the blobId '
@@ -858,7 +867,7 @@ class HashIndexHeader {
       );
     }
     final blobIdBytes = bytes.sublist(17, 17 + blobIdLength);
-    return HashIndexHeader(
+    final header = HashIndexHeader(
       version: version,
       blobIdBytes: blobIdBytes,
       hashPrefixBytes: hashPrefixBytes,
@@ -867,6 +876,15 @@ class HashIndexHeader {
       entryCount: entryCount,
       subindexCount: subindexCount,
     );
+    // Verify the buffer covers the header, entry block, and subindex block.
+    final minLength = header.getSubindexOffset(header.subindexCount);
+    if (bytes.length < minLength) {
+      throw FormatException(
+        'Index data too short to contain all records '
+        '(${bytes.length} bytes, need $minLength).',
+      );
+    }
+    return header;
   }
 
   Uint8List asBytes() {

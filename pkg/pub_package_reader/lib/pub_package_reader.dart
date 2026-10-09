@@ -661,7 +661,13 @@ Iterable<ArchiveIssue> forbidGitDependencies(Pubspec pubspec) sync* {
 /// Check whether the pubspecContent can be converted to JSON
 Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
   try {
-    final map = loadYaml(pubspecContent) as Map?;
+    final map = loadYaml(pubspecContent);
+    if (map is! Map) {
+      yield ArchiveIssue(
+        'pubspec.yaml contains values that can\'t be converted to JSON.',
+      );
+      return;
+    }
     json.decode(json.encode(map)) as Map<String, dynamic>?;
   } on JsonUnsupportedObjectError catch (_) {
     yield ArchiveIssue(
@@ -828,101 +834,95 @@ Iterable<ArchiveIssue> checkScreenshots(
 }
 
 Iterable<ArchiveIssue> checkFunding(String pubspecContent) sync* {
-  final map = loadYaml(pubspecContent) as Map;
-  if (!map.containsKey('funding')) {
-    return;
-  }
-  final funding = map['funding'];
-  if (funding == null || funding is! List || funding.isEmpty) {
-    yield ArchiveIssue(
-      '`pubspec.yaml` has invalid `funding`: only a list of URLs are allowed.',
-    );
-    return;
-  }
-  for (final item in funding) {
-    if (item is! String || item.trim().isEmpty) {
+  if (loadYaml(pubspecContent) case {'funding': final funding}) {
+    if (funding is! List || funding.isEmpty) {
       yield ArchiveIssue(
-        'Invalid `funding` value (`$item`): only URLs are allowed.',
+        '`pubspec.yaml` has invalid `funding`: only a list of URLs are allowed.',
       );
-      continue;
+      return;
     }
-    final uri = Uri.tryParse(item.trim());
-    if (uri == null || uri.scheme != 'https') {
-      yield ArchiveIssue(
-        'Invalid `funding` value (`$item`): only `https` URLs are allowed.',
-      );
-      continue;
-    }
-    if (item.length > 255) {
-      yield ArchiveIssue(
-        'Invalid `funding` value (`$item`): maximum URL length is 255 characters.',
-      );
+    for (final item in funding) {
+      if (item is! String || item.trim().isEmpty) {
+        yield ArchiveIssue(
+          'Invalid `funding` value (`$item`): only URLs are allowed.',
+        );
+        continue;
+      }
+      final uri = Uri.tryParse(item.trim());
+      if (uri == null || uri.scheme != 'https') {
+        yield ArchiveIssue(
+          'Invalid `funding` value (`$item`): only `https` URLs are allowed.',
+        );
+        continue;
+      }
+      if (item.length > 255) {
+        yield ArchiveIssue(
+          'Invalid `funding` value (`$item`): maximum URL length is 255 characters.',
+        );
+      }
     }
   }
 }
 
 Iterable<ArchiveIssue> checkTopics(String pubspecContent) sync* {
-  final map = loadYaml(pubspecContent) as Map;
-  if (!map.containsKey('topics')) {
-    return;
-  }
-  final topics = map['topics'];
-  if (topics == null || topics is! List || topics.isEmpty) {
-    yield ArchiveIssue(
-      '`pubspec.yaml` has invalid `topics`: only a list of topic names are allowed.',
-    );
-    return;
-  }
-  if (topics.length > 5) {
-    yield ArchiveIssue(
-      '`pubspec.yaml` has invalid `topics`: at most 5 topics are allowed.',
-    );
-    return;
-  }
-
-  for (var item in topics) {
-    if (item is! String) {
+  if (loadYaml(pubspecContent) case {'topics': final topics}) {
+    if (topics is! List || topics.isEmpty) {
       yield ArchiveIssue(
-        'Invalid `topics` value (`$item`): only strings are allowed.',
+        '`pubspec.yaml` has invalid `topics`: only a list of topic names are allowed.',
       );
-      continue;
+      return;
     }
-    item = item.trim();
-    if (item.length < 2) {
+    if (topics.length > 5) {
       yield ArchiveIssue(
-        'Invalid `topics` value (`$item`): name is too short (less than 2 characters).',
+        '`pubspec.yaml` has invalid `topics`: at most 5 topics are allowed.',
       );
-      continue;
+      return;
     }
 
-    if (item.length > 32) {
-      yield ArchiveIssue(
-        'Invalid `topics` value (`$item`): name is too long (over 32 characters).',
-      );
-      continue;
-    }
+    for (var item in topics) {
+      if (item is! String) {
+        yield ArchiveIssue(
+          'Invalid `topics` value (`$item`): only strings are allowed.',
+        );
+        continue;
+      }
+      item = item.trim();
+      if (item.length < 2) {
+        yield ArchiveIssue(
+          'Invalid `topics` value (`$item`): name is too short (less than 2 characters).',
+        );
+        continue;
+      }
 
-    if (topics.where((x) => x == item).length > 1) {
-      yield ArchiveIssue(
-        'Invalid `topics` value (`$item`): name must only be present once.',
-      );
-      continue;
-    }
+      if (item.length > 32) {
+        yield ArchiveIssue(
+          'Invalid `topics` value (`$item`): name is too long (over 32 characters).',
+        );
+        continue;
+      }
 
-    final RegExp regExp = RegExp(
-      r'^' // Start at beginning.
-      r'[a-z]' // Start with alphabetic character.
-      r'([a-z0-9]|\-(?=[^\-]))*' // Can contain alphanumeric or dash but no double dash.
-      r'[a-z0-9]' // Must end with alphanumeric character.
-      r'$', // End of string.
-    );
-    if (!regExp.hasMatch(item)) {
-      yield ArchiveIssue(
-        'Invalid `topics` value (`$item`): must consist of lowercase '
-        'alphanumerical characters or dash (but no double dash), starting '
-        'with a-z and ending with a-z or 0-9.',
+      if (topics.where((x) => x == item).length > 1) {
+        yield ArchiveIssue(
+          'Invalid `topics` value (`$item`): name must only be present once.',
+        );
+        continue;
+      }
+
+      final RegExp regExp = RegExp(
+        r'^' // Start at beginning.
+        r'[a-z]' // Start with alphabetic character.
+        r'([a-z0-9]|\-(?=[^\-]))*' // Can contain alphanumeric or dash but no double dash.
+        r'[a-z0-9]' // Must end with alphanumeric character.
+        r'$', // End of string.
       );
-      continue;
+      if (!regExp.hasMatch(item)) {
+        yield ArchiveIssue(
+          'Invalid `topics` value (`$item`): must consist of lowercase '
+          'alphanumerical characters or dash (but no double dash), starting '
+          'with a-z and ending with a-z or 0-9.',
+        );
+        continue;
+      }
     }
   }
 }
