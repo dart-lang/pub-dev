@@ -149,7 +149,10 @@ class _PkgAdminWidget {
             .querySelectorAll('.-pub-remove-uploader-button')
             .toElementList<HTMLElement>()) {
       btn.onClick.listen(
-        (_) => _removeUploader(btn.getAttribute('data-email')!),
+        (_) => _removeUploader(
+          btn.getAttribute('data-email')!,
+          isSelf: btn.getAttribute('data-self') == 'true',
+        ),
       );
     }
   }
@@ -259,19 +262,28 @@ class _PkgAdminWidget {
     return true;
   }
 
-  Future<void> _removeUploader(String email) async {
+  Future<void> _removeUploader(String email, {required bool isSelf}) async {
+    final package = pageData.pkgData!.package;
     await api_client.rpc<void>(
-      confirmQuestion:
-          'Are you sure you want to remove uploader `$email` from this package?',
+      confirmQuestion: isSelf
+          ? 'Are you sure you want to remove yourself (`$email`) from `$package`? '
+                'You will immediately lose publishing and administrative access unless another uploader invites you back.'
+          : 'Are you sure you want to remove uploader `$email` from this package?',
       fn: () async {
         await api_client.client.removeUploaderFromUI(
-          pageData.pkgData!.package,
+          package,
           RemoveUploaderRequest(email: email),
         );
       },
       successMessage:
           'Uploader `$email` removed from this package. The page will reload.',
-      onSuccess: (_) => window.location.reload(),
+      onSuccess: (_) {
+        if (isSelf) {
+          window.location.assign('/packages/$package');
+        } else {
+          window.location.reload();
+        }
+      },
     );
   }
 

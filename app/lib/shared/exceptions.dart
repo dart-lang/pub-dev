@@ -368,15 +368,6 @@ class OperationForbiddenException extends ResponseException {
             'on ${nextNotification.toIso8601String()}.',
       );
 
-  /// The user tried to remove themselves from the list of uploaders and we
-  /// don't allow that.
-  OperationForbiddenException.selfRemovalNotAllowed()
-    : super._(
-        403,
-        'OperationForbidden',
-        'Self-removal is not allowed. Use another account to remove this email address.',
-      );
-
   /// The user tried to remove the last uploader of the package, and we don't
   /// allow that.
   OperationForbiddenException.lastUploaderRemoveError()

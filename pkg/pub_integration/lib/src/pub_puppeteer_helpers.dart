@@ -136,12 +136,12 @@ extension PubPageExt on Page {
     required String package,
   }) async {
     await gotoOrigin('/packages/$package/admin');
-    final table = await $('#-pkg-admin-uploaders-table');
-    final buttons = await table.$$('.-pub-remove-uploader-button');
+    final cells = await $$(
+      '#-pkg-admin-uploaders-table tbody tr td:first-child',
+    );
     final emails = <String>[];
-    for (final button in buttons) {
-      final email = await button.attributeValue('data-email');
-      emails.add(email!);
+    for (final cell in cells) {
+      emails.add((await cell.textContent()).trim());
     }
     return emails;
   }

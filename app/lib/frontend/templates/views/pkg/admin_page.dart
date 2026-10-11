@@ -9,6 +9,7 @@ import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
+import '../../../request_context.dart';
 import '../shared/toc.dart';
 
 /// Creates the package admin page content.
@@ -122,16 +123,21 @@ d.Node packageAdminPageNode({
                 headerClasses: ['email-header'],
                 renderCell: (u) => d.text(u.email!),
               ),
-              material.DataTableColumn<User>(
-                headerContent: d.text(''),
-                headerClasses: ['icons-header'],
-                renderCell: (u) => d.a(
-                  classes: ['-pub-remove-uploader-button'],
-                  title: 'Remove uploader',
-                  attributes: {'data-email': u.email!},
-                  text: '×',
+              if (uploaderUsers.length > 1)
+                material.DataTableColumn<User>(
+                  headerContent: d.text(''),
+                  headerClasses: ['icons-header'],
+                  renderCell: (u) => d.a(
+                    classes: ['-pub-remove-uploader-button'],
+                    title: 'Remove uploader',
+                    attributes: {
+                      'data-email': u.email!,
+                      if (u.userId == requestContext.authenticatedUserId)
+                        'data-self': 'true',
+                    },
+                    text: '×',
+                  ),
                 ),
-              ),
             ],
             entries: uploaderUsers,
           ),
