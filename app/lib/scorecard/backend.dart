@@ -250,7 +250,11 @@ Future<void> purgeScorecardData(
   await Future.wait([
     cache.scoreCardData(package, version).purge(),
     cache.uiPackagePage(package, version).purge(),
+    cache.uiPackageScore(package, version).purge(),
+    cache.versionScore(package, version).purge(),
     if (isLatest) cache.uiPackagePage(package, null).purge(),
+    if (isLatest) cache.uiPackageScore(package, null).purge(),
+    if (isLatest) cache.versionScore(package, null).purge(),
     if (isLatest) cache.packageView(package).purge(),
   ]);
 }
