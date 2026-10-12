@@ -633,7 +633,7 @@
       align-items: center;
       justify-content: center;
       border-radius: 50%;
-      background: #e8f5e9;
+      background: var(--pub-security-status-icon-bgColor);
 
       svg {
         display: block;
