@@ -376,8 +376,11 @@ Future<shelf.Response> _handlePackagePage({
   }
 
   // If the asset does not exists (e.g. package without a changelog or example), redirect to the readme page.
+  // The security page is rendered for every version, with or without an
+  // attestation.
   if (assetKind != null &&
       assetKind != AssetKind.readme &&
+      assetKind != AssetKind.attestation &&
       data.asset == null) {
     return redirectResponse(urls.pkgPageUrl(packageName, version: versionName));
   }

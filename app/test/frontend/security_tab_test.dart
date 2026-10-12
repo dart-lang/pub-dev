@@ -40,14 +40,11 @@ repository: https://github.com/example/test_pkg
 
   final package = Package.fromVersion(version);
 
-  final versionInfo = PackageVersionInfo()
-    ..initFromKey(QualifiedVersionKey(package: 'test_pkg', version: '1.0.0'))
-    ..versionCreated = DateTime.utc(2026, 1, 1)
-    ..assets = [
-      AssetKind.pubspec,
-      AssetKind.readme,
-      if (attestationJson != null) AssetKind.attestation,
-    ];
+  final assets = [
+    AssetKind.pubspec,
+    AssetKind.readme,
+    if (attestationJson != null) AssetKind.attestation,
+  ];
 
   final asset = attestationJson != null
       ? (PackageVersionAsset.init(
@@ -63,7 +60,7 @@ repository: https://github.com/example/test_pkg
   return PackagePageData(
     package: package,
     version: version,
-    versionInfo: versionInfo,
+    assets: assets,
     asset: asset,
     scoreCard: ScoreCardData(),
     isAdmin: false,
@@ -193,9 +190,7 @@ void main() {
       );
       expect(
         html,
-        contains(
-          'title="https://search.sigstore.dev/?logIndex=79571823"',
-        ),
+        contains('title="https://search.sigstore.dev/?logIndex=79571823"'),
       );
       expect(
         html,
