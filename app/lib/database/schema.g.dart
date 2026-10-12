@@ -6769,7 +6769,8 @@ final class _$PackageRow extends PackageRow {
     this.latestPreviewVersion,
     this.latestPreviewPublishedAt,
     this.publisherId,
-    this.versionCount,
+    this.versionsCount,
+    this.likesCount,
     this.isDiscontinued,
     this.replacedBy,
     this.isUnlisted,
@@ -6817,7 +6818,10 @@ final class _$PackageRow extends PackageRow {
   final String? publisherId;
 
   @override
-  final int versionCount;
+  final int versionsCount;
+
+  @override
+  final int likesCount;
 
   @override
   final bool isDiscontinued;
@@ -6866,7 +6870,8 @@ final class _$PackageRow extends PackageRow {
       'latest_preview_version',
       'latest_preview_published_at',
       'publisher_id',
-      'version_count',
+      'versions_count',
+      'likes_count',
       'is_discontinued',
       'replaced_by',
       'is_unlisted',
@@ -6953,6 +6958,13 @@ final class _$PackageRow extends PackageRow {
       $ForGeneratedCode.columnDefinition(
         type: $ForGeneratedCode.text,
         isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.integer,
+        isNotNull: true,
         defaultValue: null,
         autoIncrement: false,
         overrides: [],
@@ -7061,7 +7073,8 @@ final class _$PackageRow extends PackageRow {
     final latestPreviewVersion = row.readString();
     final latestPreviewPublishedAt = row.readDateTime();
     final publisherId = row.readString();
-    final versionCount = row.readInt();
+    final versionsCount = row.readInt();
+    final likesCount = row.readInt();
     final isDiscontinued = row.readBool();
     final replacedBy = row.readString();
     final isUnlisted = row.readBool();
@@ -7084,7 +7097,8 @@ final class _$PackageRow extends PackageRow {
         latestPreviewVersion == null &&
         latestPreviewPublishedAt == null &&
         publisherId == null &&
-        versionCount == null &&
+        versionsCount == null &&
+        likesCount == null &&
         isDiscontinued == null &&
         replacedBy == null &&
         isUnlisted == null &&
@@ -7110,7 +7124,8 @@ final class _$PackageRow extends PackageRow {
       latestPreviewVersion,
       latestPreviewPublishedAt,
       publisherId,
-      versionCount!,
+      versionsCount!,
+      likesCount!,
       isDiscontinued!,
       replacedBy,
       isUnlisted!,
@@ -7127,7 +7142,7 @@ final class _$PackageRow extends PackageRow {
 
   @override
   String toString() =>
-      'PackageRow(name: "$name", createdAt: "$createdAt", updatedAt: "$updatedAt", lastVersionPublishedAt: "$lastVersionPublishedAt", latestVersion: "$latestVersion", latestPublishedAt: "$latestPublishedAt", latestPrereleaseVersion: "$latestPrereleaseVersion", latestPrereleasePublishedAt: "$latestPrereleasePublishedAt", latestPreviewVersion: "$latestPreviewVersion", latestPreviewPublishedAt: "$latestPreviewPublishedAt", publisherId: "$publisherId", versionCount: "$versionCount", isDiscontinued: "$isDiscontinued", replacedBy: "$replacedBy", isUnlisted: "$isUnlisted", isModerated: "$isModerated", moderatedAt: "$moderatedAt", isAdminDeleted: "$isAdminDeleted", adminDeletedAt: "$adminDeletedAt", assignedTagsJson: "$assignedTagsJson", deletedVersionsJson: "$deletedVersionsJson", publishingConfigJson: "$publishingConfigJson", latestAdvisoryAt: "$latestAdvisoryAt")';
+      'PackageRow(name: "$name", createdAt: "$createdAt", updatedAt: "$updatedAt", lastVersionPublishedAt: "$lastVersionPublishedAt", latestVersion: "$latestVersion", latestPublishedAt: "$latestPublishedAt", latestPrereleaseVersion: "$latestPrereleaseVersion", latestPrereleasePublishedAt: "$latestPrereleasePublishedAt", latestPreviewVersion: "$latestPreviewVersion", latestPreviewPublishedAt: "$latestPreviewPublishedAt", publisherId: "$publisherId", versionsCount: "$versionsCount", likesCount: "$likesCount", isDiscontinued: "$isDiscontinued", replacedBy: "$replacedBy", isUnlisted: "$isUnlisted", isModerated: "$isModerated", moderatedAt: "$moderatedAt", isAdminDeleted: "$isAdminDeleted", adminDeletedAt: "$adminDeletedAt", assignedTagsJson: "$assignedTagsJson", deletedVersionsJson: "$deletedVersionsJson", publishingConfigJson: "$publishingConfigJson", latestAdvisoryAt: "$latestAdvisoryAt")';
 }
 
 /// Extension methods for table defined in [PackageRow].
@@ -7148,7 +7163,8 @@ extension TablePackageRowExt on Table<PackageRow> {
     Expr<String?>? latestPreviewVersion,
     Expr<DateTime?>? latestPreviewPublishedAt,
     Expr<String?>? publisherId,
-    required Expr<int> versionCount,
+    required Expr<int> versionsCount,
+    required Expr<int> likesCount,
     required Expr<bool> isDiscontinued,
     Expr<String?>? replacedBy,
     required Expr<bool> isUnlisted,
@@ -7174,7 +7190,8 @@ extension TablePackageRowExt on Table<PackageRow> {
       latestPreviewVersion,
       latestPreviewPublishedAt,
       publisherId,
-      versionCount,
+      versionsCount,
+      likesCount,
       isDiscontinued,
       replacedBy,
       isUnlisted,
@@ -7194,7 +7211,7 @@ extension TablePackageRowExt on Table<PackageRow> {
   ///
   /// This is a shorthand for calling `.insert(...)` followed by
   /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
-  /// the fields `createdAt`, `updatedAt`, `lastVersionPublishedAt`, `latestVersion`, `latestPublishedAt`, `latestPrereleaseVersion`, `latestPrereleasePublishedAt`, `latestPreviewVersion`, `latestPreviewPublishedAt`, `publisherId`, `versionCount`, `isDiscontinued`, `replacedBy`, `isUnlisted`, `isModerated`, `moderatedAt`, `isAdminDeleted`, `adminDeletedAt`, `assignedTagsJson`, `deletedVersionsJson`, `publishingConfigJson`, `latestAdvisoryAt`,
+  /// the fields `createdAt`, `updatedAt`, `lastVersionPublishedAt`, `latestVersion`, `latestPublishedAt`, `latestPrereleaseVersion`, `latestPrereleasePublishedAt`, `latestPreviewVersion`, `latestPreviewPublishedAt`, `publisherId`, `versionsCount`, `likesCount`, `isDiscontinued`, `replacedBy`, `isUnlisted`, `isModerated`, `moderatedAt`, `isAdminDeleted`, `adminDeletedAt`, `assignedTagsJson`, `deletedVersionsJson`, `publishingConfigJson`, `latestAdvisoryAt`,
   /// with the values given, leaving the _primary key_ untouched.
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
@@ -7211,7 +7228,8 @@ extension TablePackageRowExt on Table<PackageRow> {
     Expr<String?>? latestPreviewVersion,
     Expr<DateTime?>? latestPreviewPublishedAt,
     Expr<String?>? publisherId,
-    required Expr<int> versionCount,
+    required Expr<int> versionsCount,
+    required Expr<int> likesCount,
     required Expr<bool> isDiscontinued,
     Expr<String?>? replacedBy,
     required Expr<bool> isUnlisted,
@@ -7236,7 +7254,8 @@ extension TablePackageRowExt on Table<PackageRow> {
             latestPreviewVersion: latestPreviewVersion,
             latestPreviewPublishedAt: latestPreviewPublishedAt,
             publisherId: publisherId,
-            versionCount: versionCount,
+            versionsCount: versionsCount,
+            likesCount: likesCount,
             isDiscontinued: isDiscontinued,
             replacedBy: replacedBy,
             isUnlisted: isUnlisted,
@@ -7262,7 +7281,8 @@ extension TablePackageRowExt on Table<PackageRow> {
               latestPreviewVersion: excluded.latestPreviewVersion,
               latestPreviewPublishedAt: excluded.latestPreviewPublishedAt,
               publisherId: excluded.publisherId,
-              versionCount: excluded.versionCount,
+              versionsCount: excluded.versionsCount,
+              likesCount: excluded.likesCount,
               isDiscontinued: excluded.isDiscontinued,
               replacedBy: excluded.replacedBy,
               isUnlisted: excluded.isUnlisted,
@@ -7293,7 +7313,8 @@ extension TablePackageRowExt on Table<PackageRow> {
     String? latestPreviewVersion,
     DateTime? latestPreviewPublishedAt,
     String? publisherId,
-    required int versionCount,
+    required int versionsCount,
+    required int likesCount,
     required bool isDiscontinued,
     String? replacedBy,
     required bool isUnlisted,
@@ -7319,7 +7340,8 @@ extension TablePackageRowExt on Table<PackageRow> {
       latestPreviewVersion.asExpr,
       latestPreviewPublishedAt.asExpr,
       publisherId.asExpr,
-      versionCount.asExpr,
+      versionsCount.asExpr,
+      likesCount.asExpr,
       isDiscontinued.asExpr,
       replacedBy.asExpr,
       isUnlisted.asExpr,
@@ -7339,7 +7361,7 @@ extension TablePackageRowExt on Table<PackageRow> {
   ///
   /// This is a shorthand for calling `.insertValue(...)` followed by
   /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
-  /// the fields `createdAt`, `updatedAt`, `lastVersionPublishedAt`, `latestVersion`, `latestPublishedAt`, `latestPrereleaseVersion`, `latestPrereleasePublishedAt`, `latestPreviewVersion`, `latestPreviewPublishedAt`, `publisherId`, `versionCount`, `isDiscontinued`, `replacedBy`, `isUnlisted`, `isModerated`, `moderatedAt`, `isAdminDeleted`, `adminDeletedAt`, `assignedTagsJson`, `deletedVersionsJson`, `publishingConfigJson`, `latestAdvisoryAt`,
+  /// the fields `createdAt`, `updatedAt`, `lastVersionPublishedAt`, `latestVersion`, `latestPublishedAt`, `latestPrereleaseVersion`, `latestPrereleasePublishedAt`, `latestPreviewVersion`, `latestPreviewPublishedAt`, `publisherId`, `versionsCount`, `likesCount`, `isDiscontinued`, `replacedBy`, `isUnlisted`, `isModerated`, `moderatedAt`, `isAdminDeleted`, `adminDeletedAt`, `assignedTagsJson`, `deletedVersionsJson`, `publishingConfigJson`, `latestAdvisoryAt`,
   /// with the values given, leaving the _primary key_ untouched.
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
@@ -7356,7 +7378,8 @@ extension TablePackageRowExt on Table<PackageRow> {
     String? latestPreviewVersion,
     DateTime? latestPreviewPublishedAt,
     String? publisherId,
-    required int versionCount,
+    required int versionsCount,
+    required int likesCount,
     required bool isDiscontinued,
     String? replacedBy,
     required bool isUnlisted,
@@ -7381,7 +7404,8 @@ extension TablePackageRowExt on Table<PackageRow> {
             latestPreviewVersion: latestPreviewVersion,
             latestPreviewPublishedAt: latestPreviewPublishedAt,
             publisherId: publisherId,
-            versionCount: versionCount,
+            versionsCount: versionsCount,
+            likesCount: likesCount,
             isDiscontinued: isDiscontinued,
             replacedBy: replacedBy,
             isUnlisted: isUnlisted,
@@ -7407,7 +7431,8 @@ extension TablePackageRowExt on Table<PackageRow> {
               latestPreviewVersion: excluded.latestPreviewVersion,
               latestPreviewPublishedAt: excluded.latestPreviewPublishedAt,
               publisherId: excluded.publisherId,
-              versionCount: excluded.versionCount,
+              versionsCount: excluded.versionsCount,
+              likesCount: excluded.likesCount,
               isDiscontinued: excluded.isDiscontinued,
               replacedBy: excluded.replacedBy,
               isUnlisted: excluded.isUnlisted,
@@ -7452,7 +7477,8 @@ extension TablePackageRowExt on Table<PackageRow> {
     String? Function(T row)? latestPreviewVersion,
     DateTime? Function(T row)? latestPreviewPublishedAt,
     String? Function(T row)? publisherId,
-    required int Function(T row) versionCount,
+    required int Function(T row) versionsCount,
+    required int Function(T row) likesCount,
     required bool Function(T row) isDiscontinued,
     String? Function(T row)? replacedBy,
     required bool Function(T row) isUnlisted,
@@ -7479,7 +7505,8 @@ extension TablePackageRowExt on Table<PackageRow> {
       latestPreviewVersion,
       latestPreviewPublishedAt,
       publisherId,
-      versionCount,
+      versionsCount,
+      likesCount,
       isDiscontinued,
       replacedBy,
       isUnlisted,
@@ -7558,7 +7585,8 @@ extension QueryPackageRowExt on Query<(Expr<PackageRow>,)> {
         Expr<String?> latestPreviewVersion,
         Expr<DateTime?> latestPreviewPublishedAt,
         Expr<String?> publisherId,
-        Expr<int> versionCount,
+        Expr<int> versionsCount,
+        Expr<int> likesCount,
         Expr<bool> isDiscontinued,
         Expr<String?> replacedBy,
         Expr<bool> isUnlisted,
@@ -7591,7 +7619,8 @@ extension QueryPackageRowExt on Query<(Expr<PackageRow>,)> {
         Expr<String?>? latestPreviewVersion,
         Expr<DateTime?>? latestPreviewPublishedAt,
         Expr<String?>? publisherId,
-        Expr<int>? versionCount,
+        Expr<int>? versionsCount,
+        Expr<int>? likesCount,
         Expr<bool>? isDiscontinued,
         Expr<String?>? replacedBy,
         Expr<bool>? isUnlisted,
@@ -7615,7 +7644,8 @@ extension QueryPackageRowExt on Query<(Expr<PackageRow>,)> {
         latestPreviewVersion,
         latestPreviewPublishedAt,
         publisherId,
-        versionCount,
+        versionsCount,
+        likesCount,
         isDiscontinued,
         replacedBy,
         isUnlisted,
@@ -7685,7 +7715,8 @@ extension QuerySinglePackageRowExt on QuerySingle<(Expr<PackageRow>,)> {
         Expr<String?> latestPreviewVersion,
         Expr<DateTime?> latestPreviewPublishedAt,
         Expr<String?> publisherId,
-        Expr<int> versionCount,
+        Expr<int> versionsCount,
+        Expr<int> likesCount,
         Expr<bool> isDiscontinued,
         Expr<String?> replacedBy,
         Expr<bool> isUnlisted,
@@ -7718,7 +7749,8 @@ extension QuerySinglePackageRowExt on QuerySingle<(Expr<PackageRow>,)> {
         Expr<String?>? latestPreviewVersion,
         Expr<DateTime?>? latestPreviewPublishedAt,
         Expr<String?>? publisherId,
-        Expr<int>? versionCount,
+        Expr<int>? versionsCount,
+        Expr<int>? likesCount,
         Expr<bool>? isDiscontinued,
         Expr<String?>? replacedBy,
         Expr<bool>? isUnlisted,
@@ -7742,7 +7774,8 @@ extension QuerySinglePackageRowExt on QuerySingle<(Expr<PackageRow>,)> {
         latestPreviewVersion,
         latestPreviewPublishedAt,
         publisherId,
-        versionCount,
+        versionsCount,
+        likesCount,
         isDiscontinued,
         replacedBy,
         isUnlisted,
@@ -7809,45 +7842,49 @@ extension ExpressionPackageRowExt on Expr<PackageRow> {
       $ForGeneratedCode.field(this, 10, $ForGeneratedCode.text);
 
   /// The number of visible versions.
-  Expr<int> get versionCount =>
+  Expr<int> get versionsCount =>
       $ForGeneratedCode.field(this, 11, $ForGeneratedCode.integer);
 
+  /// The number of users who like the package.
+  Expr<int> get likesCount =>
+      $ForGeneratedCode.field(this, 12, $ForGeneratedCode.integer);
+
   Expr<bool> get isDiscontinued =>
-      $ForGeneratedCode.field(this, 12, $ForGeneratedCode.boolean);
+      $ForGeneratedCode.field(this, 13, $ForGeneratedCode.boolean);
 
   Expr<String?> get replacedBy =>
-      $ForGeneratedCode.field(this, 13, $ForGeneratedCode.text);
+      $ForGeneratedCode.field(this, 14, $ForGeneratedCode.text);
 
   Expr<bool> get isUnlisted =>
-      $ForGeneratedCode.field(this, 14, $ForGeneratedCode.boolean);
-
-  Expr<bool> get isModerated =>
       $ForGeneratedCode.field(this, 15, $ForGeneratedCode.boolean);
 
+  Expr<bool> get isModerated =>
+      $ForGeneratedCode.field(this, 16, $ForGeneratedCode.boolean);
+
   Expr<DateTime?> get moderatedAt =>
-      $ForGeneratedCode.field(this, 16, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 17, $ForGeneratedCode.dateTime);
 
   Expr<bool> get isAdminDeleted =>
-      $ForGeneratedCode.field(this, 17, $ForGeneratedCode.boolean);
+      $ForGeneratedCode.field(this, 18, $ForGeneratedCode.boolean);
 
   Expr<DateTime?> get adminDeletedAt =>
-      $ForGeneratedCode.field(this, 18, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 19, $ForGeneratedCode.dateTime);
 
   /// Tags assigned by the owners or by the administrators.
   Expr<JsonValue> get assignedTagsJson =>
-      $ForGeneratedCode.field(this, 19, $ForGeneratedCode.jsonValue);
+      $ForGeneratedCode.field(this, 20, $ForGeneratedCode.jsonValue);
 
   /// Versions that were removed and must not be re-uploaded.
   Expr<JsonValue> get deletedVersionsJson =>
-      $ForGeneratedCode.field(this, 20, $ForGeneratedCode.jsonValue);
+      $ForGeneratedCode.field(this, 21, $ForGeneratedCode.jsonValue);
 
   /// The configuration for automated and manual publishing.
   Expr<JsonValue?> get publishingConfigJson =>
-      $ForGeneratedCode.field(this, 21, $ForGeneratedCode.jsonValue);
+      $ForGeneratedCode.field(this, 22, $ForGeneratedCode.jsonValue);
 
   /// The last time a security advisory affecting the package was synced.
   Expr<DateTime?> get latestAdvisoryAt =>
-      $ForGeneratedCode.field(this, 22, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 23, $ForGeneratedCode.dateTime);
 
   /// Get [SubQuery] of rows from the `packageUploaders` table which
   /// reference this row.
@@ -7902,45 +7939,49 @@ extension ExpressionNullablePackageRowExt on Expr<PackageRow?> {
       $ForGeneratedCode.field(this, 10, $ForGeneratedCode.text);
 
   /// The number of visible versions.
-  Expr<int?> get versionCount =>
+  Expr<int?> get versionsCount =>
       $ForGeneratedCode.field(this, 11, $ForGeneratedCode.integer);
 
+  /// The number of users who like the package.
+  Expr<int?> get likesCount =>
+      $ForGeneratedCode.field(this, 12, $ForGeneratedCode.integer);
+
   Expr<bool?> get isDiscontinued =>
-      $ForGeneratedCode.field(this, 12, $ForGeneratedCode.boolean);
+      $ForGeneratedCode.field(this, 13, $ForGeneratedCode.boolean);
 
   Expr<String?> get replacedBy =>
-      $ForGeneratedCode.field(this, 13, $ForGeneratedCode.text);
+      $ForGeneratedCode.field(this, 14, $ForGeneratedCode.text);
 
   Expr<bool?> get isUnlisted =>
-      $ForGeneratedCode.field(this, 14, $ForGeneratedCode.boolean);
-
-  Expr<bool?> get isModerated =>
       $ForGeneratedCode.field(this, 15, $ForGeneratedCode.boolean);
 
+  Expr<bool?> get isModerated =>
+      $ForGeneratedCode.field(this, 16, $ForGeneratedCode.boolean);
+
   Expr<DateTime?> get moderatedAt =>
-      $ForGeneratedCode.field(this, 16, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 17, $ForGeneratedCode.dateTime);
 
   Expr<bool?> get isAdminDeleted =>
-      $ForGeneratedCode.field(this, 17, $ForGeneratedCode.boolean);
+      $ForGeneratedCode.field(this, 18, $ForGeneratedCode.boolean);
 
   Expr<DateTime?> get adminDeletedAt =>
-      $ForGeneratedCode.field(this, 18, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 19, $ForGeneratedCode.dateTime);
 
   /// Tags assigned by the owners or by the administrators.
   Expr<JsonValue?> get assignedTagsJson =>
-      $ForGeneratedCode.field(this, 19, $ForGeneratedCode.jsonValue);
+      $ForGeneratedCode.field(this, 20, $ForGeneratedCode.jsonValue);
 
   /// Versions that were removed and must not be re-uploaded.
   Expr<JsonValue?> get deletedVersionsJson =>
-      $ForGeneratedCode.field(this, 20, $ForGeneratedCode.jsonValue);
+      $ForGeneratedCode.field(this, 21, $ForGeneratedCode.jsonValue);
 
   /// The configuration for automated and manual publishing.
   Expr<JsonValue?> get publishingConfigJson =>
-      $ForGeneratedCode.field(this, 21, $ForGeneratedCode.jsonValue);
+      $ForGeneratedCode.field(this, 22, $ForGeneratedCode.jsonValue);
 
   /// The last time a security advisory affecting the package was synced.
   Expr<DateTime?> get latestAdvisoryAt =>
-      $ForGeneratedCode.field(this, 22, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 23, $ForGeneratedCode.dateTime);
 
   /// Get [SubQuery] of rows from the `packageUploaders` table which
   /// reference this row.
@@ -8091,7 +8132,8 @@ extension InsertOnConflictPackageRowExt on InsertOnConflict<PackageRow> {
         Expr<String?> latestPreviewVersion,
         Expr<DateTime?> latestPreviewPublishedAt,
         Expr<String?> publisherId,
-        Expr<int> versionCount,
+        Expr<int> versionsCount,
+        Expr<int> likesCount,
         Expr<bool> isDiscontinued,
         Expr<String?> replacedBy,
         Expr<bool> isUnlisted,
@@ -8124,7 +8166,8 @@ extension InsertOnConflictPackageRowExt on InsertOnConflict<PackageRow> {
         Expr<String?>? latestPreviewVersion,
         Expr<DateTime?>? latestPreviewPublishedAt,
         Expr<String?>? publisherId,
-        Expr<int>? versionCount,
+        Expr<int>? versionsCount,
+        Expr<int>? likesCount,
         Expr<bool>? isDiscontinued,
         Expr<String?>? replacedBy,
         Expr<bool>? isUnlisted,
@@ -8148,7 +8191,8 @@ extension InsertOnConflictPackageRowExt on InsertOnConflict<PackageRow> {
         latestPreviewVersion,
         latestPreviewPublishedAt,
         publisherId,
-        versionCount,
+        versionsCount,
+        likesCount,
         isDiscontinued,
         replacedBy,
         isUnlisted,
@@ -8245,7 +8289,8 @@ extension InsertOnConflictSinglePackageRowExt
         Expr<String?> latestPreviewVersion,
         Expr<DateTime?> latestPreviewPublishedAt,
         Expr<String?> publisherId,
-        Expr<int> versionCount,
+        Expr<int> versionsCount,
+        Expr<int> likesCount,
         Expr<bool> isDiscontinued,
         Expr<String?> replacedBy,
         Expr<bool> isUnlisted,
@@ -8278,7 +8323,8 @@ extension InsertOnConflictSinglePackageRowExt
         Expr<String?>? latestPreviewVersion,
         Expr<DateTime?>? latestPreviewPublishedAt,
         Expr<String?>? publisherId,
-        Expr<int>? versionCount,
+        Expr<int>? versionsCount,
+        Expr<int>? likesCount,
         Expr<bool>? isDiscontinued,
         Expr<String?>? replacedBy,
         Expr<bool>? isUnlisted,
@@ -8302,7 +8348,8 @@ extension InsertOnConflictSinglePackageRowExt
         latestPreviewVersion,
         latestPreviewPublishedAt,
         publisherId,
-        versionCount,
+        versionsCount,
+        likesCount,
         isDiscontinued,
         replacedBy,
         isUnlisted,

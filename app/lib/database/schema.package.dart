@@ -38,7 +38,10 @@ abstract final class PackageRow extends Row {
   String? get publisherId;
 
   /// The number of visible versions.
-  int get versionCount;
+  int get versionsCount;
+
+  /// The number of users who like the package.
+  int get likesCount;
 
   bool get isDiscontinued;
 
