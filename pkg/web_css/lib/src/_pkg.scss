@@ -577,7 +577,7 @@
         //
         // The scaling breaks down on smaller screens, keeping it for
         // desktop only.
-        font-size: 1.0vw;
+        font-size: min(1.0vw, 85%);
       }
     }
   }
