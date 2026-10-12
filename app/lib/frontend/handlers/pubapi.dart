@@ -9,6 +9,7 @@ import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:_pub_shared/data/task_api.dart';
 import 'package:api_builder/api_builder.dart';
+import 'package:chunked_stream/chunked_stream.dart' show MaximumSizeExceeded;
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/frontend/handlers/atom_feed.dart';
 import 'package:shelf/shelf.dart';
@@ -17,11 +18,11 @@ import 'package:shelf_router/shelf_router.dart';
 import '../../account/consent_backend.dart';
 import '../../admin/backend.dart';
 import '../../package/backend.dart' hide InviteStatus;
-import '../../package/models.dart' show AssetKind;
 import '../../publisher/backend.dart';
 import '../../shared/exceptions.dart';
 import '../../shared/handlers.dart';
 import '../../shared/urls.dart' as urls;
+import '../../shared/utils.dart' show canonicalizeVersion, ByteFolderExt;
 import '../../task/backend.dart' show taskBackend;
 import 'account.dart';
 import 'cache_control.dart';
@@ -82,6 +83,12 @@ class PubApi {
   }
 
   /// Fetches the Sigstore attestation bundle for a specific (package, version) pair.
+  /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#fetching-attestations
+  ///
+  /// The attestation is also exported to the exported API bucket (see
+  /// `ExportedPackage.attestation`), from where it is meant to be served
+  /// directly, like the version listing and the archives. This handler
+  /// serves the canonical copy for hosts that do not route the path there.
   @EndPoint.get('/api/packages/<package>/versions/<version>/attestation')
   Future<Response> getPackageVersionAttestation(
     Request request,
@@ -89,18 +96,30 @@ class PubApi {
     String version,
   ) async {
     checkPackageVersionParams(package, version);
-    final asset = await packageBackend.lookupPackageVersionAsset(
+    final canonicalVersion = canonicalizeVersion(version);
+    InvalidInputException.checkSemanticVersion(canonicalVersion);
+    // Moderated or deleted packages and versions must not expose their
+    // attestation either.
+    final pv = await packageBackend.lookupPackageVersion(
       package,
-      version,
-      AssetKind.attestation,
+      canonicalVersion!,
     );
-    if (asset == null || asset.textContent == null) {
+    if (pv == null ||
+        pv.isNotVisible ||
+        !await packageBackend.isPackageVisible(package)) {
+      throw NotFoundException.resource('version "$package $version"');
+    }
+    final bytes = await packageBackend.readCanonicalBucketAttestation(
+      package,
+      canonicalVersion,
+    );
+    if (bytes == null) {
       throw NotFoundException.resource('attestation for $package $version');
     }
     return Response.ok(
-      asset.textContent,
+      bytes,
       headers: {
-        'content-type': 'application/json; charset="utf-8"',
+        'content-type': attestationContentType,
         ...CacheControl.clientApi.headers,
       },
     );
@@ -171,8 +190,8 @@ class PubApi {
 
   /// Upload an attestation for a package archive that is being uploaded.
   ///
-  /// The attestation is uploaded before the package archive, and is verified
-  /// and stored when the upload is finished.
+  /// The attestation is uploaded before the package archive, and is stored
+  /// next to the archive when the upload is finished.
   /// https://github.com/dart-lang/pub/blob/master/doc/repository-spec-v2.md#publishing-with-an-attestation
   ///
   ///     POST /api/packages/versions/newUploadAttestation/<uploadId>
@@ -188,7 +207,18 @@ class PubApi {
     Request request,
     String uploadId,
   ) async {
-    final bytes = await request.read().expand((i) => i).toList();
+    final List<int> bytes;
+    try {
+      // Stop reading as soon as the body is too large, instead of buffering
+      // the whole request before checking its size.
+      bytes = await request.read().foldBytes(
+        maxSize: maxAttestationContentLength,
+      );
+    } on MaximumSizeExceeded {
+      throw PackageRejectedException.attestationTooLarge(
+        maxAttestationContentLength,
+      );
+    }
     if (bytes.isEmpty) {
       throw PackageRejectedException(
         'Invalid attestation bundle format: the request body is empty.',
