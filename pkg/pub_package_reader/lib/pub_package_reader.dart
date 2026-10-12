@@ -668,7 +668,7 @@ Iterable<ArchiveIssue> checkValidJson(String pubspecContent) sync* {
       );
       return;
     }
-    json.decode(json.encode(map)) as Map<String, dynamic>?;
+    json.decode(json.encode(map)) as Map<String, dynamic>;
   } on JsonUnsupportedObjectError catch (_) {
     yield ArchiveIssue(
       'pubspec.yaml contains values that can\'t be converted to JSON.',

@@ -208,8 +208,10 @@ final class IndexedBlobBuilder {
     _finished = true;
 
     final blobIdBytes = utf8.encode(blobId);
-    if (blobIdBytes.length > 4096) {
-      throw ArgumentError('`blobId` must not exceed 4096 UTF-8 bytes.');
+    if (blobIdBytes.length > HashIndexHeader._maxBlobIdLength) {
+      throw ArgumentError(
+        '`blobId` must not exceed ${HashIndexHeader._maxBlobIdLength} UTF-8 bytes.',
+      );
     }
 
     if (_entries.isEmpty) {
@@ -539,9 +541,20 @@ final class BlobIndexReader {
         entryOffset + blockLength,
       );
       if (blockBytes == null) continue;
+      if (blockBytes.length < _pathLengthPrefixSize) {
+        throw FormatException(
+          'Truncated entry block for entry $i (${blockBytes.length} bytes).',
+        );
+      }
       final pathLength = ByteData.sublistView(
         blockBytes,
       ).getUint(_pathLengthPrefixSize, 0);
+      if (blockBytes.length < _pathLengthPrefixSize + pathLength) {
+        throw FormatException(
+          'Truncated entry path for entry $i '
+          '(${blockBytes.length} bytes, need ${_pathLengthPrefixSize + pathLength}).',
+        );
+      }
       final pathBytes = Uint8List.sublistView(blockBytes, 2, 2 + pathLength);
       final computedHash = _hash(_hashIndex._blobIdBytes, pathBytes);
       if (!_hashIndex._verifyEntryHash(i, computedHash)) {
@@ -797,7 +810,7 @@ class HashIndexHeader {
     required this.entryCount,
     required this.subindexCount,
   }) : blobIdBytes = Uint8List.fromList(blobIdBytes) {
-    assert(hashPrefixBytes >= 4);
+    assert(hashPrefixBytes >= 4 && hashPrefixBytes <= 32);
     if (blobIdBytes.length > _maxBlobIdLength) {
       throw ArgumentError(
         'blobId must not exceed $_maxBlobIdLength UTF-8 bytes.',
@@ -849,9 +862,9 @@ class HashIndexHeader {
         '(${bytes.length} bytes, need ${17 + blobIdLength}).',
       );
     }
-    if (hashPrefixBytes < 4) {
+    if (hashPrefixBytes < 4 || hashPrefixBytes > 32) {
       throw FormatException(
-        'Invalid hashPrefixBytes: $hashPrefixBytes (must be ≥ 4).',
+        'Invalid hashPrefixBytes: $hashPrefixBytes (must be between 4 and 32).',
       );
     }
     if (offsetBytes != 2 && offsetBytes != 4 && offsetBytes != 8) {

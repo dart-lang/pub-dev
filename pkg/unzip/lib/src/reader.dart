@@ -291,6 +291,7 @@ final class ZipReader {
     final int diskNbr = bd.getUint32(16, Endian.little);
     final int dirDiskNbr = bd.getUint32(20, Endian.little);
     final int dirRecordsThisDisk = bd.getUint64(24, Endian.little);
+    // ByteData.getUint64 returns a negative signed 64-bit int when bit 63 is set.
     if (dirRecordsThisDisk < 0) {
       throw ZipFormatException('Too many directory records on this disk');
     }
@@ -343,6 +344,9 @@ final class ZipFile {
   }
 
   Stream<Uint8List> _openRaw() async* {
+    if (_localHeaderOffset < 0) {
+      throw ZipFormatException('Negative local header offset');
+    }
     // Read local header.
     final Uint8List buf = Uint8List(ZipConstants.fileHeaderLen);
     await _reader.readAt(_localHeaderOffset, buf, ZipConstants.fileHeaderLen);

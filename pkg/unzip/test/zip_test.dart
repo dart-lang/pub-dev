@@ -1444,6 +1444,42 @@ void main() {
       throwsA(isA<ZipFormatException>()),
     );
   });
+
+  test('TestNegativeLocalHeaderOffsetThrowsZipFormatException', () async {
+    final data = Uint8List.fromList([
+      // Central Directory File Header (46 bytes at offset 0)
+      0x50, 0x4b, 0x01, 0x02, // Signature (0x02014b50)
+      0x14, 0x00, // Creator version
+      0x14, 0x00, // Reader version
+      0x00, 0x00, // Flags
+      0x00, 0x00, // Method (Store = 0)
+      0x00, 0x00, 0x00, 0x00, // Time/Date
+      0x00, 0x00, 0x00, 0x00, // CRC32
+      0x00, 0x00, 0x00, 0x00, // Compressed size (0)
+      0x00, 0x00, 0x00, 0x00, // Uncompressed size (0)
+      0x00, 0x00, // Filename length (0)
+      0x00, 0x00, // Extra length (0)
+      0x00, 0x00, // Comment length (0)
+      0x00, 0x00, // Disk number start (0)
+      0x00, 0x00, // Internal file attributes
+      0x00, 0x00, 0x00, 0x00, // External file attributes
+      0x00, 0x00, 0x00, 0x00, // Relative offset of local header (0)
+      // End of Central Directory Record (22 bytes at offset 46)
+      0x50, 0x4b, 0x05, 0x06, // Signature (0x06054b50)
+      0x00, 0x00, // Disk number
+      0x00, 0x00, // Dir disk number
+      0x01, 0x00, // Records this disk (1)
+      0x01, 0x00, // Records total (1)
+      0x2e, 0x00, 0x00, 0x00, // Dir size (46)
+      0x01, 0x00, 0x00, 0x00, // Dir offset (1 -> baseOffset = 46 - 46 - 1 = -1)
+      0x00, 0x00, // Comment length (0)
+    ]);
+    final zipReader = await ZipReader.fromBytes(data);
+    await expectLater(
+      zipReader.files.single.read().drain<void>(),
+      throwsA(isA<ZipFormatException>()),
+    );
+  });
 }
 
 class ZipTest {
