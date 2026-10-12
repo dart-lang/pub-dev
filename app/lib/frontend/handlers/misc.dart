@@ -285,33 +285,30 @@ shelf.Response formattedNotFoundHandler(shelf.Request request) {
   String? searchQuery;
 
   // Extract unidentified text from the request URI.
-  final shouldSuggest =
-      request.requestedUri.queryParameters.isEmpty &&
-      request.requestedUri.pathSegments.length == 1;
-  var unidentifiedText = shouldSuggest
-      ? request.requestedUri.pathSegments.single.trim()
-      : '';
+  final segments = request.requestedUri.pathSegments;
+  var unidentifiedText = switch (request.requestedUri.queryParameters.isEmpty
+      ? segments
+      : const <String>[]) {
+    [final single] => single.trim(),
+    ['packages', final pkg, ...] => pkg.trim(),
+    _ => '',
+  };
 
   // may render additional content
   if (unidentifiedText.isNotEmpty) {
-    final isPackage = nameTracker.hasPackage(unidentifiedText);
-    if (isPackage) {
-      package = unidentifiedText;
+    package = nameTracker.lookupSimilarPackage(unidentifiedText);
+    // somewhat normalize content
+    unidentifiedText = unidentifiedText
+        .replaceAll('`', '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    // clip long content
+    if (unidentifiedText.length > 100) {
+      unidentifiedText = unidentifiedText.substring(0, 100);
+    }
+    // require a few characters for search
+    if (package != null || unidentifiedText.length > 2) {
       searchQuery = unidentifiedText;
-    } else {
-      // somewhat normalize content
-      unidentifiedText = unidentifiedText
-          .replaceAll('`', '')
-          .replaceAll(RegExp(r'\s+'), ' ')
-          .trim();
-      // clip long content
-      if (unidentifiedText.length > 100) {
-        unidentifiedText = unidentifiedText.substring(0, 100);
-      }
-      // require a few characters for search
-      if (unidentifiedText.length > 2) {
-        searchQuery = unidentifiedText;
-      }
     }
   }
 

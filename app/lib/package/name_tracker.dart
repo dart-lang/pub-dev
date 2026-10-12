@@ -155,6 +155,11 @@ class NameTracker {
   /// Whether the name tracker has a record of the package.
   bool hasPackage(String name) => _data._hasPackage(name);
 
+  /// Returns [name] if it is a visible package, or a conflicting visible
+  /// package name (e.g. `string_scanner` for `stringscanner`), or `null`.
+  String? lookupSimilarPackage(String name) =>
+      _data._lookupSimilarPackage(name);
+
   /// Scans the Datastore and populates the tracker.
   @visibleForTesting
   Future<void> reloadFromDatastore() async {
@@ -335,6 +340,18 @@ class _Data {
     for (final generated in _generateConflictingNames(name)) {
       final original = _conflictingNames[generated];
       if (original != null) return original.first;
+    }
+    return null;
+  }
+
+  String? _lookupSimilarPackage(String name) {
+    if (_packages[name]?.isVisible ?? false) return name;
+    for (final generated in _generateConflictingNames(name.toLowerCase())) {
+      if (_conflictingNames[generated] case final candidates?) {
+        for (final candidate in candidates) {
+          if (_packages[candidate]?.isVisible ?? false) return candidate;
+        }
+      }
     }
     return null;
   }
