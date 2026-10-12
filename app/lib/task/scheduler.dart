@@ -228,8 +228,8 @@ Future<SchedulePackageResult?> schedulePackageInstance({
     );
     onZoneFailure?.call(e.zone, minutes: 30);
   } on QuotaExhaustedException catch (e, st) {
-    // Quota exhausted, this can happen, but it shouldn't.
-    _log.severe(
+    // Quota exhausted, this can happen when multiple instances schedule concurrently.
+    _log.warning(
       'Quota exhausted trying to create $instanceName, banning all zones for 10 minutes',
       e,
       st,
