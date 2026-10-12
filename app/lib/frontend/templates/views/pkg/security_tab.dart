@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
@@ -39,240 +37,55 @@ class AttestationDetails {
     this.archiveSha256,
   });
 
-  static AttestationDetails? parse({
-    required PackagePageData data,
-    String? rawBundleJson,
-  }) {
-    final slsaLevel = data.version.slsaLevel ?? 2;
-    if (rawBundleJson == null || rawBundleJson.trim().isEmpty) {
-      if (data.version.slsaLevel != null) {
-        return AttestationDetails(
-          slsaLevel: slsaLevel,
-          repository: data.packageLinks.repositoryUrl,
-        );
+  /// The details of the attestation of the version in [data], from the
+  /// provenance facts pub.dev verified and persisted at upload - the bundle
+  /// itself is not parsed here.
+  ///
+  /// Returns `null` if the version was published without an attestation.
+  static AttestationDetails? fromPageData(PackagePageData data) {
+    final version = data.version;
+    final provenance = version.provenance;
+    final slsaLevel = version.slsaLevel;
+    if (provenance == null) {
+      if (slsaLevel == null) {
+        return null;
       }
-      return null;
-    }
-
-    try {
-      final bundle = jsonDecode(rawBundleJson) as Map<String, dynamic>;
-
-      String? rekorLogIndex;
-      String? rekorUrl;
-      DateTime? rekorTimestamp;
-      String? archiveSha256;
-      String? repository;
-      String? commit;
-      String? ref;
-      String? workflow;
-      String? runUrl;
-      String? signerIdentity;
-      String? oidcIssuer;
-
-      // 1. Transparency log (Rekor) entries
-      final vm = bundle['verificationMaterial'] as Map<String, dynamic>?;
-      if (vm != null) {
-        final tlogEntries = vm['tlogEntries'] as List<dynamic>?;
-        if (tlogEntries != null && tlogEntries.isNotEmpty) {
-          final first = tlogEntries.first as Map<String, dynamic>;
-          final indexVal = first['logIndex'];
-          if (indexVal != null) {
-            rekorLogIndex = indexVal.toString();
-            rekorUrl = 'https://search.sigstore.dev/?logIndex=$rekorLogIndex';
-          }
-          final timeVal = first['integratedTime'];
-          if (timeVal != null) {
-            final seconds = int.tryParse(timeVal.toString());
-            if (seconds != null) {
-              rekorTimestamp = DateTime.fromMillisecondsSinceEpoch(
-                seconds * 1000,
-                isUtc: true,
-              );
-            }
-          }
-          if (first['canonicalizedBody'] != null) {
-            try {
-              final bodyBytes = base64Decode(
-                first['canonicalizedBody'] as String,
-              );
-              final bodyJson =
-                  jsonDecode(utf8.decode(bodyBytes)) as Map<String, dynamic>;
-              final spec = bodyJson['spec'] as Map<String, dynamic>?;
-              final hashVal = spec?['data']?['hash']?['value'] as String?;
-              if (hashVal != null && hashVal.isNotEmpty) {
-                archiveSha256 = hashVal;
-              }
-            } catch (_) {}
-          }
-        }
-
-        // 2. Certificate parsing (ASN.1 DER strings)
-        final cert = vm['certificate'] as Map<String, dynamic>?;
-        if (cert != null && cert['rawBytes'] is String) {
-          try {
-            final certBytes = base64Decode(cert['rawBytes'] as String);
-            final strings = _extractAsn1Strings(certBytes);
-            for (final s in strings) {
-              if (s.contains('github.com/') &&
-                  s.contains('/.github/workflows/')) {
-                signerIdentity ??= s;
-                final atIdx = s.lastIndexOf('@');
-                final baseUri = atIdx != -1 ? s.substring(0, atIdx) : s;
-                if (atIdx != -1 && ref == null) {
-                  final refPart = s.substring(atIdx + 1);
-                  if (refPart.startsWith('refs/')) {
-                    ref = refPart;
-                  }
-                }
-                final wfIdx = baseUri.indexOf('/.github/workflows/');
-                if (wfIdx != -1) {
-                  repository ??= baseUri.substring(0, wfIdx);
-                  workflow ??= baseUri.substring(wfIdx + 1);
-                }
-              } else if (commit == null &&
-                  s.length == 40 &&
-                  RegExp(r'^[0-9a-fA-F]{40}$').hasMatch(s)) {
-                commit = s;
-              } else if (runUrl == null &&
-                  s.contains('github.com/') &&
-                  s.contains('/actions/runs/')) {
-                runUrl = s;
-              } else if (oidcIssuer == null &&
-                  s.contains('token.actions.githubusercontent.com')) {
-                oidcIssuer = s;
-              } else if (ref == null && s.startsWith('refs/')) {
-                ref = s;
-              }
-            }
-          } catch (_) {}
-        }
-      }
-
-      // 3. Message signature digest
-      final msgSig = bundle['messageSignature'] as Map<String, dynamic>?;
-      if (msgSig != null && archiveSha256 == null) {
-        final digest = msgSig['messageDigest']?['digest'] as String?;
-        if (digest != null) {
-          try {
-            final bytes = base64Decode(digest);
-            archiveSha256 = bytes
-                .map((b) => b.toRadixString(16).padLeft(2, '0'))
-                .join();
-          } catch (_) {}
-        }
-      }
-
-      // 4. DSSE envelope (in-toto statement)
-      final dsse = bundle['dsseEnvelope'] as Map<String, dynamic>?;
-      if (dsse != null) {
-        final payloadStr = dsse['payload'] as String?;
-        if (payloadStr != null) {
-          try {
-            final payloadBytes = base64Decode(payloadStr);
-            final statement =
-                jsonDecode(utf8.decode(payloadBytes)) as Map<String, dynamic>;
-            final subjects = statement['subject'] as List<dynamic>?;
-            if (archiveSha256 == null &&
-                subjects != null &&
-                subjects.isNotEmpty) {
-              final firstSub = subjects.first as Map<String, dynamic>;
-              archiveSha256 = firstSub['digest']?['sha256'] as String?;
-            }
-            final predicate = statement['predicate'] as Map<String, dynamic>?;
-            final buildDef =
-                predicate?['buildDefinition'] as Map<String, dynamic>?;
-            final extParams =
-                buildDef?['externalParameters'] as Map<String, dynamic>?;
-            final wfObj = extParams?['workflow'] as Map<String, dynamic>?;
-            if (wfObj != null) {
-              repository ??= wfObj['repository'] as String?;
-              workflow ??= wfObj['path'] as String?;
-              ref ??= wfObj['ref'] as String?;
-            }
-            final runDetails =
-                predicate?['runDetails'] as Map<String, dynamic>?;
-            runUrl ??= runDetails?['metadata']?['invocationId'] as String?;
-          } catch (_) {}
-        }
-      }
-
-      // Fallbacks
-      repository ??= data.packageLinks.repositoryUrl;
-      oidcIssuer ??= 'https://token.actions.githubusercontent.com';
-
-      return AttestationDetails(
-        slsaLevel: slsaLevel,
-        repository: repository,
-        commit: commit,
-        ref: ref,
-        workflow: workflow,
-        runUrl: runUrl,
-        signerIdentity: signerIdentity,
-        oidcIssuer: oidcIssuer,
-        rekorLogIndex: rekorLogIndex,
-        rekorUrl: rekorUrl,
-        rekorTimestamp: rekorTimestamp,
-        archiveSha256: archiveSha256,
-      );
-    } catch (_) {
+      // Attested, but the facts are not available (e.g. a version from
+      // before they were persisted): show what we know.
       return AttestationDetails(
         slsaLevel: slsaLevel,
         repository: data.packageLinks.repositoryUrl,
+        archiveSha256: _hex(version.sha256),
       );
     }
+    final logIndex = provenance.transparencyLogIndex;
+    return AttestationDetails(
+      slsaLevel: slsaLevel ?? 2,
+      repository: provenance.repositoryUrl,
+      commit: provenance.commitSha,
+      ref: provenance.ref,
+      workflow: provenance.workflowPath,
+      runUrl: provenance.runUrl,
+      signerIdentity: provenance.signer,
+      oidcIssuer: provenance.issuer,
+      rekorLogIndex: logIndex?.toString(),
+      rekorUrl: logIndex == null
+          ? null
+          : 'https://search.sigstore.dev/?logIndex=$logIndex',
+      rekorTimestamp: provenance.transparencyLogIntegratedTime,
+      archiveSha256: _hex(version.sha256),
+    );
   }
 
-  static List<String> _extractAsn1Strings(List<int> bytes) {
-    final strings = <String>[];
-    var i = 0;
-    while (i < bytes.length - 2) {
-      final tag = bytes[i];
-      if (tag == 0x0c || tag == 0x13 || tag == 0x16 || tag == 0x86) {
-        final lenByte = bytes[i + 1];
-        int len;
-        int offset;
-        if ((lenByte & 0x80) == 0) {
-          len = lenByte;
-          offset = i + 2;
-        } else {
-          final numBytes = lenByte & 0x7f;
-          if (numBytes > 0 &&
-              numBytes <= 4 &&
-              i + 2 + numBytes <= bytes.length) {
-            len = 0;
-            for (var j = 0; j < numBytes; j++) {
-              len = (len << 8) | bytes[i + 2 + j];
-            }
-            offset = i + 2 + numBytes;
-          } else {
-            i++;
-            continue;
-          }
-        }
-        if (len > 0 && offset + len <= bytes.length) {
-          try {
-            final str = utf8.decode(bytes.sublist(offset, offset + len));
-            if (str.codeUnits.every((c) => c >= 32 && c < 127) &&
-                str.length >= 3) {
-              strings.add(str);
-            }
-          } catch (_) {}
-        }
-      }
-      i++;
-    }
-    return strings;
+  static String? _hex(List<int>? bytes) {
+    if (bytes == null || bytes.isEmpty) return null;
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
 }
 
 /// Renders the Security tab content conforming to OpenSSF Level AAA style guide.
 d.Node securityTabNode(PackagePageData data) {
-  final attestation = AttestationDetails.parse(
-    data: data,
-    rawBundleJson: data.asset?.kind == AssetKind.attestation
-        ? data.asset?.textContent
-        : null,
-  );
+  final attestation = AttestationDetails.fromPageData(data);
 
   if (attestation != null) {
     return _renderAttestedSecurityTab(data, attestation);

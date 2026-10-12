@@ -250,7 +250,9 @@ Future<shelf.Response> packageSecurityHandler(
     request: request,
     packageName: packageName,
     versionName: versionName,
-    assetKind: AssetKind.attestation,
+    // The page is rendered from the provenance facts persisted with the
+    // version, it does not need an asset.
+    assetKind: null,
     requiresAdmin: false,
     canonicalUrlFn: (p, v) => urls.pkgSecurityUrl(p, version: v),
     renderFn: (data) => renderPkgSecurityPage(data),
@@ -376,11 +378,8 @@ Future<shelf.Response> _handlePackagePage({
   }
 
   // If the asset does not exists (e.g. package without a changelog or example), redirect to the readme page.
-  // The security page is rendered for every version, with or without an
-  // attestation.
   if (assetKind != null &&
       assetKind != AssetKind.readme &&
-      assetKind != AssetKind.attestation &&
       data.asset == null) {
     return redirectResponse(urls.pkgPageUrl(packageName, version: versionName));
   }
