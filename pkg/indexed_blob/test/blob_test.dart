@@ -264,4 +264,75 @@ void main() {
     expect(await restored.lookup('missing.txt'), isNull);
     expect(await restored.listFiles().toList(), isEmpty);
   });
+
+  test('truncated index throws FormatException', () async {
+    // 17-byte header claiming entryCount = 1 with 0 record bytes.
+    final truncated = Uint8List.fromList([
+      0x49, 0x42, // 'IB'
+      0x00, 0x01, // version 1
+      0x04, 0x04, 0x04, // hashPrefixBytes, offsetBytes, contentLengthBytes
+      0x00, 0x00, 0x00, 0x01, // entryCount = 1
+      0x00, 0x00, 0x00, 0x00, // subindexCount = 0
+      0x00, 0x00, // blobIdLength = 0
+    ]);
+    final reader = BlobIndexReader.fromBytes(
+      truncated,
+      (_, __) async => Uint8List(0),
+    );
+    await expectLater(reader.lookup('a.txt'), throwsFormatException);
+    await expectLater(reader.listFiles().toList(), throwsFormatException);
+  });
+
+  test('hashPrefixBytes > 32 throws FormatException', () {
+    final headerWith33HashBytes = Uint8List.fromList([
+      0x49, 0x42, // 'IB'
+      0x00, 0x01, // version 1
+      33, 0x04, 0x04, // hashPrefixBytes = 33 (> 32), offsetBytes, contentLength
+      0x00, 0x00, 0x00, 0x00, // entryCount = 0
+      0x00, 0x00, 0x00, 0x00, // subindexCount = 0
+      0x00, 0x00, // blobIdLength = 0
+    ]);
+    expect(
+      () => HashIndexHeader.parse(headerWith33HashBytes),
+      throwsFormatException,
+    );
+  });
+
+  test('listFiles with truncated blob entry block throws FormatException', () async {
+    // Valid 1-entry index (17-byte header + 12-byte entry record).
+    final indexWithOneEntry = Uint8List.fromList([
+      0x49, 0x42, // 'IB'
+      0x00, 0x01, // version 1
+      0x04,
+      0x04,
+      0x04, // hashPrefixBytes=4, offsetBytes=4, contentLengthBytes=4
+      0x00, 0x00, 0x00, 0x01, // entryCount = 1
+      0x00, 0x00, 0x00, 0x00, // subindexCount = 0
+      0x00, 0x00, // blobIdLength = 0
+      // 12-byte entry record: 4-byte hash prefix, 4-byte offset (0), 4-byte length (10)
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x0a,
+    ]);
+
+    // Case 1: _readBlob returns < 2 bytes (cannot read 2-byte path length prefix).
+    final emptySliceReader = BlobIndexReader.fromBytes(
+      indexWithOneEntry,
+      (_, __) async => Uint8List(0),
+    );
+    await expectLater(
+      emptySliceReader.listFiles().toList(),
+      throwsFormatException,
+    );
+
+    // Case 2: _readBlob returns 2-byte prefix claiming pathLength = 10, but 0 path bytes.
+    final truncatedPathReader = BlobIndexReader.fromBytes(
+      indexWithOneEntry,
+      (_, __) async => Uint8List.fromList([0x00, 0x0a]),
+    );
+    await expectLater(
+      truncatedPathReader.listFiles().toList(),
+      throwsFormatException,
+    );
+  });
 }
