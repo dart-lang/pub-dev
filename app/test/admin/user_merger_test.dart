@@ -18,6 +18,7 @@ import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
 
+import '../database/package_sql_utils.dart';
 import '../shared/test_services.dart';
 
 void main() {
@@ -59,6 +60,7 @@ void main() {
         pkg.latestVersion!,
       ))!;
       expect(pv.uploader, user.userId);
+      await expectPackageInSqlMatchesDatastore('oxygen');
     },
   );
 

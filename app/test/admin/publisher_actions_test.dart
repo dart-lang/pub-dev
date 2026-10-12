@@ -8,6 +8,7 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:test/test.dart';
 
+import '../database/package_sql_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
@@ -105,6 +106,7 @@ void main() {
         expect(packagePublisherInfo.publisherId, isNull);
         final emails = await accountBackend.getEmailsOfUserIds(neon.uploaders!);
         expect(emails, {'admin@pub.dev'});
+        await expectPackageInSqlMatchesDatastore('neon');
       },
     );
   });

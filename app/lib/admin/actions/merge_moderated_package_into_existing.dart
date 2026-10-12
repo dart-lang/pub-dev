@@ -35,7 +35,7 @@ Fails if that package has no existing Package entity.
         args['package'] ??
         (throw InvalidInputException('Missing --package argument.'));
 
-    await withRetryTransaction(dbService, (tx) async {
+    final updated = await withRetryTransaction(dbService, (tx) async {
       // check ModeratedPackage existence
       final mpKey = dbService.emptyKey.append(
         ModeratedPackage,
@@ -68,7 +68,9 @@ Fails if that package has no existing Package entity.
       }
 
       tx.delete(mpKey);
+      return p!;
     });
+    await packageBackend.mirrorPackageToSql(updated);
     await packageBackend.deletePackageTombstoneFromSql(packageName);
     await triggerPackagePostUpdates(packageName).future;
 

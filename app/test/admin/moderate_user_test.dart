@@ -19,6 +19,7 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
 
+import '../database/package_sql_utils.dart';
 import '../frontend/handlers/_utils.dart';
 import '../package/backend_test_utils.dart';
 import '../shared/handlers_test_utils.dart';
@@ -332,6 +333,7 @@ void main() {
         );
         final p1 = await packageBackend.lookupPackage('foo');
         expect(p1!.isDiscontinued, true);
+        await expectPackageInSqlMatchesDatastore('foo');
 
         await _moderate('user@pub.dev', state: false);
         final p2 = await packageBackend.lookupPackage('foo');
@@ -368,6 +370,7 @@ void main() {
         final p1 = await packageBackend.lookupPackage('foo');
         expect(p1!.publisherId, isNotEmpty);
         expect(p1.isDiscontinued, true);
+        await expectPackageInSqlMatchesDatastore('foo');
 
         await _moderate('user@pub.dev', state: false);
         final p2 = await packageBackend.lookupPackage('foo');
@@ -401,6 +404,7 @@ void main() {
         final pkg = await packageBackend.lookupPackage('oxygen');
         expect(pkg!.uploaders, isEmpty);
         expect(pkg.isDiscontinued, true);
+        await expectPackageInSqlMatchesDatastore('oxygen');
 
         // publisher has no members
         final publisher = await publisherBackend.lookupPublisher('example.com');

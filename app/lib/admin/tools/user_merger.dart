@@ -12,6 +12,7 @@ import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -167,15 +168,20 @@ class UserMerger {
     await _processConcurrently(
       _db.query<Package>()..filter('uploaders =', fromUserId),
       (Package m) async {
-        await withRetryTransaction(_db, (tx) async {
+        final updated = await withRetryTransaction(_db, (tx) async {
           final p = await tx.lookupValue<Package>(m.key);
           if (p.containsUploader(fromUserId)) {
             p.removeUploader(fromUserId);
             p.addUploader(toUserId);
             p.updated = clock.now().toUtc();
             tx.insert(p);
+            return p;
           }
+          return null;
         });
+        if (updated != null) {
+          await packageBackend.mirrorPackageToSql(updated);
+        }
       },
     );
 
@@ -183,13 +189,22 @@ class UserMerger {
     await _processConcurrently(
       _db.query<PackageVersion>()..filter('uploader =', fromUserId),
       (PackageVersion m) async {
-        await withRetryTransaction(_db, (tx) async {
+        final updated = await withRetryTransaction(_db, (tx) async {
           final pv = await tx.lookupValue<PackageVersion>(m.key);
           if (pv.uploader == fromUserId) {
             pv.uploader = toUserId;
-            tx.insert(pv);
+            // bump Package.updated, so the SQL backfill detects the change
+            final p = await tx.lookupValue<Package>(m.packageKey!);
+            p.updated = clock.now().toUtc();
+            tx.queueMutations(inserts: [p, pv]);
+            return (p, pv);
           }
+          return null;
         });
+        if (updated != null) {
+          final (p, pv) = updated;
+          await packageBackend.mirrorPackageToSql(p, versions: [pv]);
+        }
       },
     );
 

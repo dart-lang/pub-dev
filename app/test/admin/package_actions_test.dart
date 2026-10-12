@@ -8,6 +8,7 @@ import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
 import 'package:test/test.dart';
 
+import '../database/package_sql_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -53,6 +54,7 @@ void main() {
             'replacedBy': 'neon',
           },
         });
+        await expectPackageInSqlMatchesDatastore('oxygen');
       },
     );
 
@@ -94,6 +96,7 @@ void main() {
           'before': {'publisherId': null},
           'after': {'publisherId': 'example.com'},
         });
+        await expectPackageInSqlMatchesDatastore('oxygen');
       },
     );
 

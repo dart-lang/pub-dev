@@ -53,6 +53,12 @@ abstract final class PrimarySchema extends Schema {
 
   // package tables
 
+  Table<PackageRow> get packages;
+
+  Table<PackageUploader> get packageUploaders;
+
+  Table<PackageVersionRow> get packageVersions;
+
   Table<PackageVersionAssetRow> get packageVersionAssets;
 
   Table<PackageTombstone> get packageTombstones;

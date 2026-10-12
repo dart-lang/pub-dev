@@ -18,6 +18,7 @@ import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:test/test.dart';
 
+import '../database/package_sql_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -430,6 +431,7 @@ void main() {
           // verify after change
           final pkg3 = (await packageBackend.lookupPackage('oxygen'))!;
           expect(pkg3.uploaders, isNot(contains(user.userId)));
+          await expectPackageInSqlMatchesDatastore('oxygen');
 
           // check audit log record
           final page = await auditBackend.listRecordsForPackage('oxygen');

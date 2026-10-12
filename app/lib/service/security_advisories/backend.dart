@@ -108,7 +108,7 @@ class SecurityAdvisoryBackend {
     OSV osv,
     DateTime syncTime,
   ) async {
-    final updatedPackages = <String>{};
+    final updatedPackages = <String, Package>{};
     var wasWritten = false;
     final result = await withRetryTransaction(_db, (tx) async {
       DateTime modified;
@@ -168,7 +168,7 @@ class SecurityAdvisoryBackend {
         for (final pkg in packages) {
           pkg.latestAdvisory = syncTime;
           pkg.updated = clock.now().toUtc();
-          updatedPackages.add(pkg.name!);
+          updatedPackages[pkg.name!] = pkg;
         }
         tx.queueMutations(
           // This is an upsert
@@ -183,8 +183,11 @@ class SecurityAdvisoryBackend {
       // any cache repopulation triggered below doesn't read stale SQL data.
       await _mirrorToSql(result);
     }
+    for (final pkg in updatedPackages.values) {
+      await packageBackend.mirrorPackageToSql(pkg);
+    }
     await Future.wait(
-      updatedPackages.map(
+      updatedPackages.keys.map(
         (packageName) => triggerPackagePostUpdates(
           packageName,
           skipReanalysis: true,
@@ -290,7 +293,7 @@ class SecurityAdvisoryBackend {
     SecurityAdvisory advisory,
     DateTime syncTime,
   ) async {
-    final updatedPackages = <String>{};
+    final updatedPackages = <String, Package>{};
     final result = await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(SecurityAdvisory, id: advisory.id);
 
@@ -313,7 +316,7 @@ class SecurityAdvisoryBackend {
         for (final pkg in packages) {
           pkg.latestAdvisory = syncTime;
           pkg.updated = clock.now().toUtc();
-          updatedPackages.add(pkg.name!);
+          updatedPackages[pkg.name!] = pkg;
         }
         tx.queueMutations(inserts: packages, deletes: [key]);
       }
@@ -322,8 +325,11 @@ class SecurityAdvisoryBackend {
     // that any cache repopulation triggered below doesn't read stale SQL
     // data.
     await _deleteFromSql(advisory.id!);
+    for (final pkg in updatedPackages.values) {
+      await packageBackend.mirrorPackageToSql(pkg);
+    }
     await Future.wait(
-      updatedPackages.map(
+      updatedPackages.keys.map(
         (packageName) => triggerPackagePostUpdates(
           packageName,
           skipReanalysis: true,

@@ -90,16 +90,20 @@ The active web sessions of the user will be expired.
         await for (final p in packageBackend.streamPackagesWhereUserIsUploader(
           user.userId,
         )) {
-          await withRetryTransaction(dbService, (tx) async {
+          final updated = await withRetryTransaction(dbService, (tx) async {
             final key = dbService.emptyKey.append(Package, id: p);
             final pkg = await tx.lookupOrNull<Package>(key);
             if (pkg == null || pkg.isDiscontinued || pkg.uploaderCount != 1) {
-              return;
+              return null;
             }
             pkg.isDiscontinued = true;
             pkg.updated = clock.now().toUtc();
             tx.insert(pkg);
+            return pkg;
           });
+          if (updated != null) {
+            await packageBackend.mirrorPackageToSql(updated);
+          }
         }
 
         final publishers = await publisherBackend.listPublishersForUser(
@@ -130,15 +134,19 @@ The active web sessions of the user will be expired.
             ..filter('publisherId =', e.publisherId);
           await for (final p in query.run()) {
             if (p.isDiscontinued) continue;
-            await withRetryTransaction(dbService, (tx) async {
+            final updated = await withRetryTransaction(dbService, (tx) async {
               final pkg = await tx.lookupOrNull<Package>(p.key);
               if (pkg == null || pkg.isDiscontinued) {
-                return;
+                return null;
               }
               pkg.isDiscontinued = true;
               pkg.updated = clock.now().toUtc();
               tx.insert(pkg);
+              return pkg;
             });
+            if (updated != null) {
+              await packageBackend.mirrorPackageToSql(updated);
+            }
           }
         }
       }

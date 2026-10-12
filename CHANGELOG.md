@@ -3,6 +3,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
  * Note: `AuditLogRecord` entities are migrated from Datastore to SQL.
+ * Note: `Package` and `PackageVersion` are now mirrored to SQL.
 
 ## `20261008t124100-all`
  * Bump runtimeVersion to `2026.10.08`.

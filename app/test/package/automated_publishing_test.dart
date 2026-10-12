@@ -8,6 +8,7 @@ import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:test/test.dart';
 
+import '../database/package_sql_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -84,6 +85,7 @@ void main() {
           rs.github!.toJson(),
         );
         expect(p.publishingConfig!.gcpConfig, isNull);
+        await expectPackageInSqlMatchesDatastore('oxygen');
         final audits = await auditBackend.listRecordsForPackage('oxygen');
         // check audit log record exists
         expect(
@@ -119,6 +121,7 @@ void main() {
         final p = await packageBackend.lookupPackage('oxygen');
         expect(p!.publishingConfig!.gcpConfig!.toJson(), rs.gcp!.toJson());
         expect(p.publishingConfig!.githubConfig, isNull);
+        await expectPackageInSqlMatchesDatastore('oxygen');
         final audits = await auditBackend.listRecordsForPackage('oxygen');
         // check audit log record exists
         expect(

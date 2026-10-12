@@ -52,15 +52,17 @@ If the publisher has no members, the package will end up without uploaders.
       package: packageName,
       fromPublisherId: currentPublisherId,
     );
-    await withRetryTransaction(dbService, (tx) async {
+    final updated = await withRetryTransaction(dbService, (tx) async {
       final pkg = await tx.lookupValue<Package>(package.key);
       pkg.publisherId = null;
       pkg.uploaders = currentPublisherMembers.map((e) => e.userId).toList();
       pkg.updated = clock.now().toUtc();
       tx.insert(pkg);
       tx.insert(auditLogRecord);
+      return pkg;
     });
     await auditBackend.migrateToSql(auditLogRecord);
+    await packageBackend.mirrorPackageToSql(updated);
     triggerPackagePostUpdates(
       packageName,
       skipReanalysis: true,

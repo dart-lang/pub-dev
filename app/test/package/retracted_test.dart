@@ -12,6 +12,7 @@ import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
+import '../database/package_sql_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -193,6 +194,7 @@ void main() {
         expect(u1.isRetracted, isTrue);
         final u1Info = await client.packageVersionInfo('oxygen', '1.2.0');
         expect(u1Info.retracted, isTrue);
+        await expectPackageInSqlMatchesDatastore('oxygen');
         final v1 = await client.packageVersionInfo('oxygen', '1.0.0');
         expect(v1.retracted, isNull);
         await expectVersions(
@@ -226,6 +228,7 @@ void main() {
         expect(u3.toJson(), orig.toJson());
         final u3Info = await client.packageVersionInfo('oxygen', '1.2.0');
         expect(u3Info.retracted, isNull);
+        await expectPackageInSqlMatchesDatastore('oxygen');
         await expectVersions(
           retractable: ['1.0.0', '1.2.0', '2.0.0-dev'],
           recentlyRetracted: [],

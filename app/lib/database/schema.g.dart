@@ -38,6 +38,9 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$OutgoingEmailRow._$table,
     _$GlobalLockState._$table,
     _$NeatTaskStatusRow._$table,
+    _$PackageRow._$table,
+    _$PackageUploader._$table,
+    _$PackageVersionRow._$table,
     _$PackageVersionAssetRow._$table,
     _$PackageTombstone._$table,
     _$ReservedPackageRow._$table,
@@ -73,6 +76,15 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<NeatTaskStatusRow> get neatTaskStatuses =>
       $ForGeneratedCode.declareTable(this, _$NeatTaskStatusRow._$table);
+
+  Table<PackageRow> get packages =>
+      $ForGeneratedCode.declareTable(this, _$PackageRow._$table);
+
+  Table<PackageUploader> get packageUploaders =>
+      $ForGeneratedCode.declareTable(this, _$PackageUploader._$table);
+
+  Table<PackageVersionRow> get packageVersions =>
+      $ForGeneratedCode.declareTable(this, _$PackageVersionRow._$table);
 
   Table<PackageVersionAssetRow> get packageVersionAssets =>
       $ForGeneratedCode.declareTable(this, _$PackageVersionAssetRow._$table);
@@ -684,6 +696,17 @@ extension ExpressionUserRowExt on Expr<UserRow> {
 
   Expr<String?> get moderatedReason =>
       $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
+
+  /// Get [SubQuery] of rows from the `packageUploaders` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageUploader] rows,
+  /// where [PackageUploader.userId]
+  /// references [UserRow.userId]
+  /// in this row.
+  SubQuery<(Expr<PackageUploader>,)> get uploadedPackages => $ForGeneratedCode
+      .subqueryTable(_$PackageUploader._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId));
 }
 
 extension ExpressionNullableUserRowExt on Expr<UserRow?> {
@@ -716,6 +739,19 @@ extension ExpressionNullableUserRowExt on Expr<UserRow?> {
   Expr<String?> get moderatedReason =>
       $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
 
+  /// Get [SubQuery] of rows from the `packageUploaders` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageUploader] rows,
+  /// where [PackageUploader.userId]
+  /// references [UserRow.userId]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<PackageUploader>,)> get uploadedPackages => $ForGeneratedCode
+      .subqueryTable(_$PackageUploader._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId));
+
   /// Check if the row is not `NULL`.
   ///
   /// This will check if _primary key_ fields in this row are `NULL`.
@@ -731,6 +767,33 @@ extension ExpressionNullableUserRowExt on Expr<UserRow?> {
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
   Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinUserRowPackageUploaderExt
+    on InnerJoin<(Expr<UserRow>,), (Expr<PackageUploader>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [PackageUploader.userId].
+  Query<(Expr<UserRow>, Expr<PackageUploader>)> usingUserRow() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
+}
+
+extension LeftJoinUserRowPackageUploaderExt
+    on LeftJoin<(Expr<UserRow>,), (Expr<PackageUploader>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [PackageUploader.userId].
+  Query<(Expr<UserRow>, Expr<PackageUploader?>)> usingUserRow() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
+}
+
+extension RightJoinUserRowPackageUploaderExt
+    on RightJoin<(Expr<UserRow>,), (Expr<PackageUploader>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [PackageUploader.userId].
+  Query<(Expr<UserRow?>, Expr<PackageUploader>)> usingUserRow() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
 }
 
 /// `Table<UserRow>` conflict targets for use with `.onConflict`.
@@ -6688,6 +6751,3304 @@ extension InsertOnConflictSingleNeatTaskStatusRowExt
         status,
         etag,
         updatedAt,
+      ]),
+    ),
+  );
+}
+
+final class _$PackageRow extends PackageRow {
+  _$PackageRow._(
+    this.name,
+    this.createdAt,
+    this.updatedAt,
+    this.lastVersionPublishedAt,
+    this.latestVersion,
+    this.latestPublishedAt,
+    this.latestPrereleaseVersion,
+    this.latestPrereleasePublishedAt,
+    this.latestPreviewVersion,
+    this.latestPreviewPublishedAt,
+    this.publisherId,
+    this.versionCount,
+    this.isDiscontinued,
+    this.replacedBy,
+    this.isUnlisted,
+    this.isModerated,
+    this.moderatedAt,
+    this.isAdminDeleted,
+    this.adminDeletedAt,
+    this.assignedTagsJson,
+    this.deletedVersionsJson,
+    this.publishingConfigJson,
+    this.latestAdvisoryAt,
+  );
+
+  @override
+  final String name;
+
+  @override
+  final DateTime createdAt;
+
+  @override
+  final DateTime updatedAt;
+
+  @override
+  final DateTime lastVersionPublishedAt;
+
+  @override
+  final String latestVersion;
+
+  @override
+  final DateTime? latestPublishedAt;
+
+  @override
+  final String? latestPrereleaseVersion;
+
+  @override
+  final DateTime? latestPrereleasePublishedAt;
+
+  @override
+  final String? latestPreviewVersion;
+
+  @override
+  final DateTime? latestPreviewPublishedAt;
+
+  @override
+  final String? publisherId;
+
+  @override
+  final int versionCount;
+
+  @override
+  final bool isDiscontinued;
+
+  @override
+  final String? replacedBy;
+
+  @override
+  final bool isUnlisted;
+
+  @override
+  final bool isModerated;
+
+  @override
+  final DateTime? moderatedAt;
+
+  @override
+  final bool isAdminDeleted;
+
+  @override
+  final DateTime? adminDeletedAt;
+
+  @override
+  final JsonValue assignedTagsJson;
+
+  @override
+  final JsonValue deletedVersionsJson;
+
+  @override
+  final JsonValue? publishingConfigJson;
+
+  @override
+  final DateTime? latestAdvisoryAt;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'packages',
+    columns: <String>[
+      'name',
+      'created_at',
+      'updated_at',
+      'last_version_published_at',
+      'latest_version',
+      'latest_published_at',
+      'latest_prerelease_version',
+      'latest_prerelease_published_at',
+      'latest_preview_version',
+      'latest_preview_published_at',
+      'publisher_id',
+      'version_count',
+      'is_discontinued',
+      'replaced_by',
+      'is_unlisted',
+      'is_moderated',
+      'moderated_at',
+      'is_admin_deleted',
+      'admin_deleted_at',
+      'assigned_tags_json',
+      'deleted_versions_json',
+      'publishing_config_json',
+      'latest_advisory_at',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.integer,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['name'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [],
+    readRow: _$PackageRow._$fromDatabase,
+  );
+
+  static PackageRow? _$fromDatabase(RowReader row) {
+    final name = row.readString();
+    final createdAt = row.readDateTime();
+    final updatedAt = row.readDateTime();
+    final lastVersionPublishedAt = row.readDateTime();
+    final latestVersion = row.readString();
+    final latestPublishedAt = row.readDateTime();
+    final latestPrereleaseVersion = row.readString();
+    final latestPrereleasePublishedAt = row.readDateTime();
+    final latestPreviewVersion = row.readString();
+    final latestPreviewPublishedAt = row.readDateTime();
+    final publisherId = row.readString();
+    final versionCount = row.readInt();
+    final isDiscontinued = row.readBool();
+    final replacedBy = row.readString();
+    final isUnlisted = row.readBool();
+    final isModerated = row.readBool();
+    final moderatedAt = row.readDateTime();
+    final isAdminDeleted = row.readBool();
+    final adminDeletedAt = row.readDateTime();
+    final assignedTagsJson = row.readJsonValue();
+    final deletedVersionsJson = row.readJsonValue();
+    final publishingConfigJson = row.readJsonValue();
+    final latestAdvisoryAt = row.readDateTime();
+    if (name == null &&
+        createdAt == null &&
+        updatedAt == null &&
+        lastVersionPublishedAt == null &&
+        latestVersion == null &&
+        latestPublishedAt == null &&
+        latestPrereleaseVersion == null &&
+        latestPrereleasePublishedAt == null &&
+        latestPreviewVersion == null &&
+        latestPreviewPublishedAt == null &&
+        publisherId == null &&
+        versionCount == null &&
+        isDiscontinued == null &&
+        replacedBy == null &&
+        isUnlisted == null &&
+        isModerated == null &&
+        moderatedAt == null &&
+        isAdminDeleted == null &&
+        adminDeletedAt == null &&
+        assignedTagsJson == null &&
+        deletedVersionsJson == null &&
+        publishingConfigJson == null &&
+        latestAdvisoryAt == null) {
+      return null;
+    }
+    return _$PackageRow._(
+      name!,
+      createdAt!,
+      updatedAt!,
+      lastVersionPublishedAt!,
+      latestVersion!,
+      latestPublishedAt,
+      latestPrereleaseVersion,
+      latestPrereleasePublishedAt,
+      latestPreviewVersion,
+      latestPreviewPublishedAt,
+      publisherId,
+      versionCount!,
+      isDiscontinued!,
+      replacedBy,
+      isUnlisted!,
+      isModerated!,
+      moderatedAt,
+      isAdminDeleted!,
+      adminDeletedAt,
+      assignedTagsJson!,
+      deletedVersionsJson!,
+      publishingConfigJson,
+      latestAdvisoryAt,
+    );
+  }
+
+  @override
+  String toString() =>
+      'PackageRow(name: "$name", createdAt: "$createdAt", updatedAt: "$updatedAt", lastVersionPublishedAt: "$lastVersionPublishedAt", latestVersion: "$latestVersion", latestPublishedAt: "$latestPublishedAt", latestPrereleaseVersion: "$latestPrereleaseVersion", latestPrereleasePublishedAt: "$latestPrereleasePublishedAt", latestPreviewVersion: "$latestPreviewVersion", latestPreviewPublishedAt: "$latestPreviewPublishedAt", publisherId: "$publisherId", versionCount: "$versionCount", isDiscontinued: "$isDiscontinued", replacedBy: "$replacedBy", isUnlisted: "$isUnlisted", isModerated: "$isModerated", moderatedAt: "$moderatedAt", isAdminDeleted: "$isAdminDeleted", adminDeletedAt: "$adminDeletedAt", assignedTagsJson: "$assignedTagsJson", deletedVersionsJson: "$deletedVersionsJson", publishingConfigJson: "$publishingConfigJson", latestAdvisoryAt: "$latestAdvisoryAt")';
+}
+
+/// Extension methods for table defined in [PackageRow].
+extension TablePackageRowExt on Table<PackageRow> {
+  /// Insert row into the `packages` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PackageRow> insert({
+    required Expr<String> name,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> updatedAt,
+    required Expr<DateTime> lastVersionPublishedAt,
+    required Expr<String> latestVersion,
+    Expr<DateTime?>? latestPublishedAt,
+    Expr<String?>? latestPrereleaseVersion,
+    Expr<DateTime?>? latestPrereleasePublishedAt,
+    Expr<String?>? latestPreviewVersion,
+    Expr<DateTime?>? latestPreviewPublishedAt,
+    Expr<String?>? publisherId,
+    required Expr<int> versionCount,
+    required Expr<bool> isDiscontinued,
+    Expr<String?>? replacedBy,
+    required Expr<bool> isUnlisted,
+    required Expr<bool> isModerated,
+    Expr<DateTime?>? moderatedAt,
+    required Expr<bool> isAdminDeleted,
+    Expr<DateTime?>? adminDeletedAt,
+    required Expr<JsonValue> assignedTagsJson,
+    required Expr<JsonValue> deletedVersionsJson,
+    Expr<JsonValue?>? publishingConfigJson,
+    Expr<DateTime?>? latestAdvisoryAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      name,
+      createdAt,
+      updatedAt,
+      lastVersionPublishedAt,
+      latestVersion,
+      latestPublishedAt,
+      latestPrereleaseVersion,
+      latestPrereleasePublishedAt,
+      latestPreviewVersion,
+      latestPreviewPublishedAt,
+      publisherId,
+      versionCount,
+      isDiscontinued,
+      replacedBy,
+      isUnlisted,
+      isModerated,
+      moderatedAt,
+      isAdminDeleted,
+      adminDeletedAt,
+      assignedTagsJson,
+      deletedVersionsJson,
+      publishingConfigJson,
+      latestAdvisoryAt,
+    ],
+  );
+
+  /// Insert row into the `packages` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `updatedAt`, `lastVersionPublishedAt`, `latestVersion`, `latestPublishedAt`, `latestPrereleaseVersion`, `latestPrereleasePublishedAt`, `latestPreviewVersion`, `latestPreviewPublishedAt`, `publisherId`, `versionCount`, `isDiscontinued`, `replacedBy`, `isUnlisted`, `isModerated`, `moderatedAt`, `isAdminDeleted`, `adminDeletedAt`, `assignedTagsJson`, `deletedVersionsJson`, `publishingConfigJson`, `latestAdvisoryAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PackageRow> upsert({
+    required Expr<String> name,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> updatedAt,
+    required Expr<DateTime> lastVersionPublishedAt,
+    required Expr<String> latestVersion,
+    Expr<DateTime?>? latestPublishedAt,
+    Expr<String?>? latestPrereleaseVersion,
+    Expr<DateTime?>? latestPrereleasePublishedAt,
+    Expr<String?>? latestPreviewVersion,
+    Expr<DateTime?>? latestPreviewPublishedAt,
+    Expr<String?>? publisherId,
+    required Expr<int> versionCount,
+    required Expr<bool> isDiscontinued,
+    Expr<String?>? replacedBy,
+    required Expr<bool> isUnlisted,
+    required Expr<bool> isModerated,
+    Expr<DateTime?>? moderatedAt,
+    required Expr<bool> isAdminDeleted,
+    Expr<DateTime?>? adminDeletedAt,
+    required Expr<JsonValue> assignedTagsJson,
+    required Expr<JsonValue> deletedVersionsJson,
+    Expr<JsonValue?>? publishingConfigJson,
+    Expr<DateTime?>? latestAdvisoryAt,
+  }) =>
+      insert(
+            name: name,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            lastVersionPublishedAt: lastVersionPublishedAt,
+            latestVersion: latestVersion,
+            latestPublishedAt: latestPublishedAt,
+            latestPrereleaseVersion: latestPrereleaseVersion,
+            latestPrereleasePublishedAt: latestPrereleasePublishedAt,
+            latestPreviewVersion: latestPreviewVersion,
+            latestPreviewPublishedAt: latestPreviewPublishedAt,
+            publisherId: publisherId,
+            versionCount: versionCount,
+            isDiscontinued: isDiscontinued,
+            replacedBy: replacedBy,
+            isUnlisted: isUnlisted,
+            isModerated: isModerated,
+            moderatedAt: moderatedAt,
+            isAdminDeleted: isAdminDeleted,
+            adminDeletedAt: adminDeletedAt,
+            assignedTagsJson: assignedTagsJson,
+            deletedVersionsJson: deletedVersionsJson,
+            publishingConfigJson: publishingConfigJson,
+            latestAdvisoryAt: latestAdvisoryAt,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              updatedAt: excluded.updatedAt,
+              lastVersionPublishedAt: excluded.lastVersionPublishedAt,
+              latestVersion: excluded.latestVersion,
+              latestPublishedAt: excluded.latestPublishedAt,
+              latestPrereleaseVersion: excluded.latestPrereleaseVersion,
+              latestPrereleasePublishedAt: excluded.latestPrereleasePublishedAt,
+              latestPreviewVersion: excluded.latestPreviewVersion,
+              latestPreviewPublishedAt: excluded.latestPreviewPublishedAt,
+              publisherId: excluded.publisherId,
+              versionCount: excluded.versionCount,
+              isDiscontinued: excluded.isDiscontinued,
+              replacedBy: excluded.replacedBy,
+              isUnlisted: excluded.isUnlisted,
+              isModerated: excluded.isModerated,
+              moderatedAt: excluded.moderatedAt,
+              isAdminDeleted: excluded.isAdminDeleted,
+              adminDeletedAt: excluded.adminDeletedAt,
+              assignedTagsJson: excluded.assignedTagsJson,
+              deletedVersionsJson: excluded.deletedVersionsJson,
+              publishingConfigJson: excluded.publishingConfigJson,
+              latestAdvisoryAt: excluded.latestAdvisoryAt,
+            ),
+          );
+
+  /// Insert row into the `packages` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PackageRow> insertValue({
+    required String name,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime lastVersionPublishedAt,
+    required String latestVersion,
+    DateTime? latestPublishedAt,
+    String? latestPrereleaseVersion,
+    DateTime? latestPrereleasePublishedAt,
+    String? latestPreviewVersion,
+    DateTime? latestPreviewPublishedAt,
+    String? publisherId,
+    required int versionCount,
+    required bool isDiscontinued,
+    String? replacedBy,
+    required bool isUnlisted,
+    required bool isModerated,
+    DateTime? moderatedAt,
+    required bool isAdminDeleted,
+    DateTime? adminDeletedAt,
+    required JsonValue assignedTagsJson,
+    required JsonValue deletedVersionsJson,
+    JsonValue? publishingConfigJson,
+    DateTime? latestAdvisoryAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      name.asExpr,
+      createdAt.asExpr,
+      updatedAt.asExpr,
+      lastVersionPublishedAt.asExpr,
+      latestVersion.asExpr,
+      latestPublishedAt.asExpr,
+      latestPrereleaseVersion.asExpr,
+      latestPrereleasePublishedAt.asExpr,
+      latestPreviewVersion.asExpr,
+      latestPreviewPublishedAt.asExpr,
+      publisherId.asExpr,
+      versionCount.asExpr,
+      isDiscontinued.asExpr,
+      replacedBy.asExpr,
+      isUnlisted.asExpr,
+      isModerated.asExpr,
+      moderatedAt.asExpr,
+      isAdminDeleted.asExpr,
+      adminDeletedAt.asExpr,
+      assignedTagsJson.asExpr,
+      deletedVersionsJson.asExpr,
+      publishingConfigJson.asExpr,
+      latestAdvisoryAt.asExpr,
+    ],
+  );
+
+  /// Insert row into the `packages` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `updatedAt`, `lastVersionPublishedAt`, `latestVersion`, `latestPublishedAt`, `latestPrereleaseVersion`, `latestPrereleasePublishedAt`, `latestPreviewVersion`, `latestPreviewPublishedAt`, `publisherId`, `versionCount`, `isDiscontinued`, `replacedBy`, `isUnlisted`, `isModerated`, `moderatedAt`, `isAdminDeleted`, `adminDeletedAt`, `assignedTagsJson`, `deletedVersionsJson`, `publishingConfigJson`, `latestAdvisoryAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PackageRow> upsertValue({
+    required String name,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime lastVersionPublishedAt,
+    required String latestVersion,
+    DateTime? latestPublishedAt,
+    String? latestPrereleaseVersion,
+    DateTime? latestPrereleasePublishedAt,
+    String? latestPreviewVersion,
+    DateTime? latestPreviewPublishedAt,
+    String? publisherId,
+    required int versionCount,
+    required bool isDiscontinued,
+    String? replacedBy,
+    required bool isUnlisted,
+    required bool isModerated,
+    DateTime? moderatedAt,
+    required bool isAdminDeleted,
+    DateTime? adminDeletedAt,
+    required JsonValue assignedTagsJson,
+    required JsonValue deletedVersionsJson,
+    JsonValue? publishingConfigJson,
+    DateTime? latestAdvisoryAt,
+  }) =>
+      insertValue(
+            name: name,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            lastVersionPublishedAt: lastVersionPublishedAt,
+            latestVersion: latestVersion,
+            latestPublishedAt: latestPublishedAt,
+            latestPrereleaseVersion: latestPrereleaseVersion,
+            latestPrereleasePublishedAt: latestPrereleasePublishedAt,
+            latestPreviewVersion: latestPreviewVersion,
+            latestPreviewPublishedAt: latestPreviewPublishedAt,
+            publisherId: publisherId,
+            versionCount: versionCount,
+            isDiscontinued: isDiscontinued,
+            replacedBy: replacedBy,
+            isUnlisted: isUnlisted,
+            isModerated: isModerated,
+            moderatedAt: moderatedAt,
+            isAdminDeleted: isAdminDeleted,
+            adminDeletedAt: adminDeletedAt,
+            assignedTagsJson: assignedTagsJson,
+            deletedVersionsJson: deletedVersionsJson,
+            publishingConfigJson: publishingConfigJson,
+            latestAdvisoryAt: latestAdvisoryAt,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              updatedAt: excluded.updatedAt,
+              lastVersionPublishedAt: excluded.lastVersionPublishedAt,
+              latestVersion: excluded.latestVersion,
+              latestPublishedAt: excluded.latestPublishedAt,
+              latestPrereleaseVersion: excluded.latestPrereleaseVersion,
+              latestPrereleasePublishedAt: excluded.latestPrereleasePublishedAt,
+              latestPreviewVersion: excluded.latestPreviewVersion,
+              latestPreviewPublishedAt: excluded.latestPreviewPublishedAt,
+              publisherId: excluded.publisherId,
+              versionCount: excluded.versionCount,
+              isDiscontinued: excluded.isDiscontinued,
+              replacedBy: excluded.replacedBy,
+              isUnlisted: excluded.isUnlisted,
+              isModerated: excluded.isModerated,
+              moderatedAt: excluded.moderatedAt,
+              isAdminDeleted: excluded.isAdminDeleted,
+              adminDeletedAt: excluded.adminDeletedAt,
+              assignedTagsJson: excluded.assignedTagsJson,
+              deletedVersionsJson: excluded.deletedVersionsJson,
+              publishingConfigJson: excluded.publishingConfigJson,
+              latestAdvisoryAt: excluded.latestAdvisoryAt,
+            ),
+          );
+
+  /// Bulk insert rows into the `packages` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<PackageRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) name,
+    required DateTime Function(T row) createdAt,
+    required DateTime Function(T row) updatedAt,
+    required DateTime Function(T row) lastVersionPublishedAt,
+    required String Function(T row) latestVersion,
+    DateTime? Function(T row)? latestPublishedAt,
+    String? Function(T row)? latestPrereleaseVersion,
+    DateTime? Function(T row)? latestPrereleasePublishedAt,
+    String? Function(T row)? latestPreviewVersion,
+    DateTime? Function(T row)? latestPreviewPublishedAt,
+    String? Function(T row)? publisherId,
+    required int Function(T row) versionCount,
+    required bool Function(T row) isDiscontinued,
+    String? Function(T row)? replacedBy,
+    required bool Function(T row) isUnlisted,
+    required bool Function(T row) isModerated,
+    DateTime? Function(T row)? moderatedAt,
+    required bool Function(T row) isAdminDeleted,
+    DateTime? Function(T row)? adminDeletedAt,
+    required JsonValue Function(T row) assignedTagsJson,
+    required JsonValue Function(T row) deletedVersionsJson,
+    JsonValue? Function(T row)? publishingConfigJson,
+    DateTime? Function(T row)? latestAdvisoryAt,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [
+      name,
+      createdAt,
+      updatedAt,
+      lastVersionPublishedAt,
+      latestVersion,
+      latestPublishedAt,
+      latestPrereleaseVersion,
+      latestPrereleasePublishedAt,
+      latestPreviewVersion,
+      latestPreviewPublishedAt,
+      publisherId,
+      versionCount,
+      isDiscontinued,
+      replacedBy,
+      isUnlisted,
+      isModerated,
+      moderatedAt,
+      isAdminDeleted,
+      adminDeletedAt,
+      assignedTagsJson,
+      deletedVersionsJson,
+      publishingConfigJson,
+      latestAdvisoryAt,
+    ],
+  );
+
+  /// Delete a single row from the `packages` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<PackageRow> delete(String name) =>
+      $ForGeneratedCode.deleteSingle(byKey(name), _$PackageRow._$table);
+}
+
+/// Extension methods for building queries against the `packages` table.
+extension QueryPackageRowExt on Query<(Expr<PackageRow>,)> {
+  /// Lookup a single row in `packages` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<PackageRow>,)> byKey(String name) =>
+      where((packageRow) => packageRow.name.equalsValue(name)).first;
+
+  /// Update all rows in the `packages` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<PackageRow> update(
+    UpdateSet<PackageRow> Function(
+      Expr<PackageRow> packageRow,
+      UpdateSet<PackageRow> Function({
+        Expr<String> name,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<DateTime> lastVersionPublishedAt,
+        Expr<String> latestVersion,
+        Expr<DateTime?> latestPublishedAt,
+        Expr<String?> latestPrereleaseVersion,
+        Expr<DateTime?> latestPrereleasePublishedAt,
+        Expr<String?> latestPreviewVersion,
+        Expr<DateTime?> latestPreviewPublishedAt,
+        Expr<String?> publisherId,
+        Expr<int> versionCount,
+        Expr<bool> isDiscontinued,
+        Expr<String?> replacedBy,
+        Expr<bool> isUnlisted,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+        Expr<bool> isAdminDeleted,
+        Expr<DateTime?> adminDeletedAt,
+        Expr<JsonValue> assignedTagsJson,
+        Expr<JsonValue> deletedVersionsJson,
+        Expr<JsonValue?> publishingConfigJson,
+        Expr<DateTime?> latestAdvisoryAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<PackageRow>(
+    this,
+    _$PackageRow._$table,
+    (packageRow) => updateBuilder(
+      packageRow,
+      ({
+        Expr<String>? name,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<DateTime>? lastVersionPublishedAt,
+        Expr<String>? latestVersion,
+        Expr<DateTime?>? latestPublishedAt,
+        Expr<String?>? latestPrereleaseVersion,
+        Expr<DateTime?>? latestPrereleasePublishedAt,
+        Expr<String?>? latestPreviewVersion,
+        Expr<DateTime?>? latestPreviewPublishedAt,
+        Expr<String?>? publisherId,
+        Expr<int>? versionCount,
+        Expr<bool>? isDiscontinued,
+        Expr<String?>? replacedBy,
+        Expr<bool>? isUnlisted,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+        Expr<bool>? isAdminDeleted,
+        Expr<DateTime?>? adminDeletedAt,
+        Expr<JsonValue>? assignedTagsJson,
+        Expr<JsonValue>? deletedVersionsJson,
+        Expr<JsonValue?>? publishingConfigJson,
+        Expr<DateTime?>? latestAdvisoryAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageRow>([
+        name,
+        createdAt,
+        updatedAt,
+        lastVersionPublishedAt,
+        latestVersion,
+        latestPublishedAt,
+        latestPrereleaseVersion,
+        latestPrereleasePublishedAt,
+        latestPreviewVersion,
+        latestPreviewPublishedAt,
+        publisherId,
+        versionCount,
+        isDiscontinued,
+        replacedBy,
+        isUnlisted,
+        isModerated,
+        moderatedAt,
+        isAdminDeleted,
+        adminDeletedAt,
+        assignedTagsJson,
+        deletedVersionsJson,
+        publishingConfigJson,
+        latestAdvisoryAt,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `packages` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<PackageRow> delete() =>
+      $ForGeneratedCode.delete(this, _$PackageRow._$table);
+}
+
+/// Extension methods for building point queries against the `packages` table.
+extension QuerySinglePackageRowExt on QuerySingle<(Expr<PackageRow>,)> {
+  /// Update the row (if any) in the `packages` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<PackageRow> update(
+    UpdateSet<PackageRow> Function(
+      Expr<PackageRow> packageRow,
+      UpdateSet<PackageRow> Function({
+        Expr<String> name,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<DateTime> lastVersionPublishedAt,
+        Expr<String> latestVersion,
+        Expr<DateTime?> latestPublishedAt,
+        Expr<String?> latestPrereleaseVersion,
+        Expr<DateTime?> latestPrereleasePublishedAt,
+        Expr<String?> latestPreviewVersion,
+        Expr<DateTime?> latestPreviewPublishedAt,
+        Expr<String?> publisherId,
+        Expr<int> versionCount,
+        Expr<bool> isDiscontinued,
+        Expr<String?> replacedBy,
+        Expr<bool> isUnlisted,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+        Expr<bool> isAdminDeleted,
+        Expr<DateTime?> adminDeletedAt,
+        Expr<JsonValue> assignedTagsJson,
+        Expr<JsonValue> deletedVersionsJson,
+        Expr<JsonValue?> publishingConfigJson,
+        Expr<DateTime?> latestAdvisoryAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<PackageRow>(
+    this,
+    _$PackageRow._$table,
+    (packageRow) => updateBuilder(
+      packageRow,
+      ({
+        Expr<String>? name,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<DateTime>? lastVersionPublishedAt,
+        Expr<String>? latestVersion,
+        Expr<DateTime?>? latestPublishedAt,
+        Expr<String?>? latestPrereleaseVersion,
+        Expr<DateTime?>? latestPrereleasePublishedAt,
+        Expr<String?>? latestPreviewVersion,
+        Expr<DateTime?>? latestPreviewPublishedAt,
+        Expr<String?>? publisherId,
+        Expr<int>? versionCount,
+        Expr<bool>? isDiscontinued,
+        Expr<String?>? replacedBy,
+        Expr<bool>? isUnlisted,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+        Expr<bool>? isAdminDeleted,
+        Expr<DateTime?>? adminDeletedAt,
+        Expr<JsonValue>? assignedTagsJson,
+        Expr<JsonValue>? deletedVersionsJson,
+        Expr<JsonValue?>? publishingConfigJson,
+        Expr<DateTime?>? latestAdvisoryAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageRow>([
+        name,
+        createdAt,
+        updatedAt,
+        lastVersionPublishedAt,
+        latestVersion,
+        latestPublishedAt,
+        latestPrereleaseVersion,
+        latestPrereleasePublishedAt,
+        latestPreviewVersion,
+        latestPreviewPublishedAt,
+        publisherId,
+        versionCount,
+        isDiscontinued,
+        replacedBy,
+        isUnlisted,
+        isModerated,
+        moderatedAt,
+        isAdminDeleted,
+        adminDeletedAt,
+        assignedTagsJson,
+        deletedVersionsJson,
+        publishingConfigJson,
+        latestAdvisoryAt,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `packages` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<PackageRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$PackageRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `packages` table.
+extension ExpressionPackageRowExt on Expr<PackageRow> {
+  Expr<String> get name =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<DateTime> get createdAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  /// The last modification of the row, updated on every change.
+  Expr<DateTime> get updatedAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// The publish time of the most recent version (including retracted ones).
+  Expr<DateTime> get lastVersionPublishedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// The latest stable version (pre-release versions are deprioritized).
+  Expr<String> get latestVersion =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get latestPublishedAt =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
+
+  /// The latest version by semantic version order, including pre-releases.
+  Expr<String?> get latestPrereleaseVersion =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get latestPrereleasePublishedAt =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.dateTime);
+
+  /// The latest version that targets a not yet released SDK.
+  Expr<String?> get latestPreviewVersion =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get latestPreviewPublishedAt =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.dateTime);
+
+  /// The owner publisher (null, if the package does not have a publisher).
+  Expr<String?> get publisherId =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.text);
+
+  /// The number of visible versions.
+  Expr<int> get versionCount =>
+      $ForGeneratedCode.field(this, 11, $ForGeneratedCode.integer);
+
+  Expr<bool> get isDiscontinued =>
+      $ForGeneratedCode.field(this, 12, $ForGeneratedCode.boolean);
+
+  Expr<String?> get replacedBy =>
+      $ForGeneratedCode.field(this, 13, $ForGeneratedCode.text);
+
+  Expr<bool> get isUnlisted =>
+      $ForGeneratedCode.field(this, 14, $ForGeneratedCode.boolean);
+
+  Expr<bool> get isModerated =>
+      $ForGeneratedCode.field(this, 15, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get moderatedAt =>
+      $ForGeneratedCode.field(this, 16, $ForGeneratedCode.dateTime);
+
+  Expr<bool> get isAdminDeleted =>
+      $ForGeneratedCode.field(this, 17, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get adminDeletedAt =>
+      $ForGeneratedCode.field(this, 18, $ForGeneratedCode.dateTime);
+
+  /// Tags assigned by the owners or by the administrators.
+  Expr<JsonValue> get assignedTagsJson =>
+      $ForGeneratedCode.field(this, 19, $ForGeneratedCode.jsonValue);
+
+  /// Versions that were removed and must not be re-uploaded.
+  Expr<JsonValue> get deletedVersionsJson =>
+      $ForGeneratedCode.field(this, 20, $ForGeneratedCode.jsonValue);
+
+  /// The configuration for automated and manual publishing.
+  Expr<JsonValue?> get publishingConfigJson =>
+      $ForGeneratedCode.field(this, 21, $ForGeneratedCode.jsonValue);
+
+  /// The last time a security advisory affecting the package was synced.
+  Expr<DateTime?> get latestAdvisoryAt =>
+      $ForGeneratedCode.field(this, 22, $ForGeneratedCode.dateTime);
+
+  /// Get [SubQuery] of rows from the `packageUploaders` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageUploader] rows,
+  /// where [PackageUploader.package]
+  /// references [PackageRow.name]
+  /// in this row.
+  SubQuery<(Expr<PackageUploader>,)> get uploaders => $ForGeneratedCode
+      .subqueryTable(_$PackageUploader._$table)
+      .where((r) => r.package.equalsUnlessNull(name));
+}
+
+extension ExpressionNullablePackageRowExt on Expr<PackageRow?> {
+  Expr<String?> get name =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get createdAt =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.dateTime);
+
+  /// The last modification of the row, updated on every change.
+  Expr<DateTime?> get updatedAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// The publish time of the most recent version (including retracted ones).
+  Expr<DateTime?> get lastVersionPublishedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// The latest stable version (pre-release versions are deprioritized).
+  Expr<String?> get latestVersion =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get latestPublishedAt =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
+
+  /// The latest version by semantic version order, including pre-releases.
+  Expr<String?> get latestPrereleaseVersion =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get latestPrereleasePublishedAt =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.dateTime);
+
+  /// The latest version that targets a not yet released SDK.
+  Expr<String?> get latestPreviewVersion =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get latestPreviewPublishedAt =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.dateTime);
+
+  /// The owner publisher (null, if the package does not have a publisher).
+  Expr<String?> get publisherId =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.text);
+
+  /// The number of visible versions.
+  Expr<int?> get versionCount =>
+      $ForGeneratedCode.field(this, 11, $ForGeneratedCode.integer);
+
+  Expr<bool?> get isDiscontinued =>
+      $ForGeneratedCode.field(this, 12, $ForGeneratedCode.boolean);
+
+  Expr<String?> get replacedBy =>
+      $ForGeneratedCode.field(this, 13, $ForGeneratedCode.text);
+
+  Expr<bool?> get isUnlisted =>
+      $ForGeneratedCode.field(this, 14, $ForGeneratedCode.boolean);
+
+  Expr<bool?> get isModerated =>
+      $ForGeneratedCode.field(this, 15, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get moderatedAt =>
+      $ForGeneratedCode.field(this, 16, $ForGeneratedCode.dateTime);
+
+  Expr<bool?> get isAdminDeleted =>
+      $ForGeneratedCode.field(this, 17, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get adminDeletedAt =>
+      $ForGeneratedCode.field(this, 18, $ForGeneratedCode.dateTime);
+
+  /// Tags assigned by the owners or by the administrators.
+  Expr<JsonValue?> get assignedTagsJson =>
+      $ForGeneratedCode.field(this, 19, $ForGeneratedCode.jsonValue);
+
+  /// Versions that were removed and must not be re-uploaded.
+  Expr<JsonValue?> get deletedVersionsJson =>
+      $ForGeneratedCode.field(this, 20, $ForGeneratedCode.jsonValue);
+
+  /// The configuration for automated and manual publishing.
+  Expr<JsonValue?> get publishingConfigJson =>
+      $ForGeneratedCode.field(this, 21, $ForGeneratedCode.jsonValue);
+
+  /// The last time a security advisory affecting the package was synced.
+  Expr<DateTime?> get latestAdvisoryAt =>
+      $ForGeneratedCode.field(this, 22, $ForGeneratedCode.dateTime);
+
+  /// Get [SubQuery] of rows from the `packageUploaders` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageUploader] rows,
+  /// where [PackageUploader.package]
+  /// references [PackageRow.name]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<PackageUploader>,)> get uploaders => $ForGeneratedCode
+      .subqueryTable(_$PackageUploader._$table)
+      .where((r) => r.package.equalsUnlessNull(name));
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => name.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinPackageRowPackageUploaderExt
+    on InnerJoin<(Expr<PackageRow>,), (Expr<PackageUploader>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageRow.name] = [PackageUploader.package].
+  Query<(Expr<PackageRow>, Expr<PackageUploader>)> usingPackageRow() =>
+      on((a, b) => a.name.equalsUnlessNull(b.package));
+}
+
+extension LeftJoinPackageRowPackageUploaderExt
+    on LeftJoin<(Expr<PackageRow>,), (Expr<PackageUploader>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageRow.name] = [PackageUploader.package].
+  Query<(Expr<PackageRow>, Expr<PackageUploader?>)> usingPackageRow() =>
+      on((a, b) => a.name.equalsUnlessNull(b.package));
+}
+
+extension RightJoinPackageRowPackageUploaderExt
+    on RightJoin<(Expr<PackageRow>,), (Expr<PackageUploader>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageRow.name] = [PackageUploader.package].
+  Query<(Expr<PackageRow?>, Expr<PackageUploader>)> usingPackageRow() =>
+      on((a, b) => a.name.equalsUnlessNull(b.package));
+}
+
+/// `Table<PackageRow>` conflict targets for use with `.onConflict`.
+enum PackageRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `name`.
+  primaryKey(['name']);
+
+  const PackageRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertPackageRowExt on Insert<PackageRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((packageRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<PackageRow> onConflict(PackageRowConflict target) =>
+      $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictPackageRowExt on InsertOnConflict<PackageRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `packageRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<PackageRow> update(
+    UpdateSet<PackageRow> Function(
+      Expr<PackageRow> packageRow,
+      Expr<PackageRow> excluded,
+      UpdateSet<PackageRow> Function({
+        Expr<String> name,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<DateTime> lastVersionPublishedAt,
+        Expr<String> latestVersion,
+        Expr<DateTime?> latestPublishedAt,
+        Expr<String?> latestPrereleaseVersion,
+        Expr<DateTime?> latestPrereleasePublishedAt,
+        Expr<String?> latestPreviewVersion,
+        Expr<DateTime?> latestPreviewPublishedAt,
+        Expr<String?> publisherId,
+        Expr<int> versionCount,
+        Expr<bool> isDiscontinued,
+        Expr<String?> replacedBy,
+        Expr<bool> isUnlisted,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+        Expr<bool> isAdminDeleted,
+        Expr<DateTime?> adminDeletedAt,
+        Expr<JsonValue> assignedTagsJson,
+        Expr<JsonValue> deletedVersionsJson,
+        Expr<JsonValue?> publishingConfigJson,
+        Expr<DateTime?> latestAdvisoryAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<PackageRow>(
+    this,
+    (packageRow, excluded) => updateBuilder(
+      packageRow,
+      excluded,
+      ({
+        Expr<String>? name,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<DateTime>? lastVersionPublishedAt,
+        Expr<String>? latestVersion,
+        Expr<DateTime?>? latestPublishedAt,
+        Expr<String?>? latestPrereleaseVersion,
+        Expr<DateTime?>? latestPrereleasePublishedAt,
+        Expr<String?>? latestPreviewVersion,
+        Expr<DateTime?>? latestPreviewPublishedAt,
+        Expr<String?>? publisherId,
+        Expr<int>? versionCount,
+        Expr<bool>? isDiscontinued,
+        Expr<String?>? replacedBy,
+        Expr<bool>? isUnlisted,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+        Expr<bool>? isAdminDeleted,
+        Expr<DateTime?>? adminDeletedAt,
+        Expr<JsonValue>? assignedTagsJson,
+        Expr<JsonValue>? deletedVersionsJson,
+        Expr<JsonValue?>? publishingConfigJson,
+        Expr<DateTime?>? latestAdvisoryAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageRow>([
+        name,
+        createdAt,
+        updatedAt,
+        lastVersionPublishedAt,
+        latestVersion,
+        latestPublishedAt,
+        latestPrereleaseVersion,
+        latestPrereleasePublishedAt,
+        latestPreviewVersion,
+        latestPreviewPublishedAt,
+        publisherId,
+        versionCount,
+        isDiscontinued,
+        replacedBy,
+        isUnlisted,
+        isModerated,
+        moderatedAt,
+        isAdminDeleted,
+        adminDeletedAt,
+        assignedTagsJson,
+        deletedVersionsJson,
+        publishingConfigJson,
+        latestAdvisoryAt,
+      ]),
+    ),
+  );
+}
+
+extension InsertSinglePackageRowExt on InsertSingle<PackageRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((packageRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<PackageRow> onConflict(PackageRowConflict target) =>
+      $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSinglePackageRowExt
+    on InsertOnConflictSingle<PackageRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `packageRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<PackageRow> update(
+    UpdateSet<PackageRow> Function(
+      Expr<PackageRow> packageRow,
+      Expr<PackageRow> excluded,
+      UpdateSet<PackageRow> Function({
+        Expr<String> name,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<DateTime> lastVersionPublishedAt,
+        Expr<String> latestVersion,
+        Expr<DateTime?> latestPublishedAt,
+        Expr<String?> latestPrereleaseVersion,
+        Expr<DateTime?> latestPrereleasePublishedAt,
+        Expr<String?> latestPreviewVersion,
+        Expr<DateTime?> latestPreviewPublishedAt,
+        Expr<String?> publisherId,
+        Expr<int> versionCount,
+        Expr<bool> isDiscontinued,
+        Expr<String?> replacedBy,
+        Expr<bool> isUnlisted,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+        Expr<bool> isAdminDeleted,
+        Expr<DateTime?> adminDeletedAt,
+        Expr<JsonValue> assignedTagsJson,
+        Expr<JsonValue> deletedVersionsJson,
+        Expr<JsonValue?> publishingConfigJson,
+        Expr<DateTime?> latestAdvisoryAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<PackageRow>(
+    this,
+    (packageRow, excluded) => updateBuilder(
+      packageRow,
+      excluded,
+      ({
+        Expr<String>? name,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<DateTime>? lastVersionPublishedAt,
+        Expr<String>? latestVersion,
+        Expr<DateTime?>? latestPublishedAt,
+        Expr<String?>? latestPrereleaseVersion,
+        Expr<DateTime?>? latestPrereleasePublishedAt,
+        Expr<String?>? latestPreviewVersion,
+        Expr<DateTime?>? latestPreviewPublishedAt,
+        Expr<String?>? publisherId,
+        Expr<int>? versionCount,
+        Expr<bool>? isDiscontinued,
+        Expr<String?>? replacedBy,
+        Expr<bool>? isUnlisted,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+        Expr<bool>? isAdminDeleted,
+        Expr<DateTime?>? adminDeletedAt,
+        Expr<JsonValue>? assignedTagsJson,
+        Expr<JsonValue>? deletedVersionsJson,
+        Expr<JsonValue?>? publishingConfigJson,
+        Expr<DateTime?>? latestAdvisoryAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageRow>([
+        name,
+        createdAt,
+        updatedAt,
+        lastVersionPublishedAt,
+        latestVersion,
+        latestPublishedAt,
+        latestPrereleaseVersion,
+        latestPrereleasePublishedAt,
+        latestPreviewVersion,
+        latestPreviewPublishedAt,
+        publisherId,
+        versionCount,
+        isDiscontinued,
+        replacedBy,
+        isUnlisted,
+        isModerated,
+        moderatedAt,
+        isAdminDeleted,
+        adminDeletedAt,
+        assignedTagsJson,
+        deletedVersionsJson,
+        publishingConfigJson,
+        latestAdvisoryAt,
+      ]),
+    ),
+  );
+}
+
+final class _$PackageUploader extends PackageUploader {
+  _$PackageUploader._(this.package, this.userId);
+
+  @override
+  final String package;
+
+  @override
+  final String userId;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'package_uploaders',
+    columns: <String>['package', 'user_id'],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['package', 'user_id'],
+    unique: <List<String>>[],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'packageRow',
+        columns: ['package'],
+        referencedTable: 'packages',
+        referencedColumns: ['name'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'userRow',
+        columns: ['user_id'],
+        referencedTable: 'users',
+        referencedColumns: ['user_id'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+    ],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: 'userPackage',
+        sqlName: 'user_package',
+        columns: ['user_id', 'package'],
+      ),
+    ],
+    readRow: _$PackageUploader._$fromDatabase,
+  );
+
+  static PackageUploader? _$fromDatabase(RowReader row) {
+    final package = row.readString();
+    final userId = row.readString();
+    if (package == null && userId == null) {
+      return null;
+    }
+    return _$PackageUploader._(package!, userId!);
+  }
+
+  @override
+  String toString() =>
+      'PackageUploader(package: "$package", userId: "$userId")';
+}
+
+/// Extension methods for table defined in [PackageUploader].
+extension TablePackageUploaderExt on Table<PackageUploader> {
+  /// Insert row into the `packageUploaders` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PackageUploader> insert({
+    required Expr<String> package,
+    required Expr<String> userId,
+  }) => $ForGeneratedCode.insertInto(table: this, values: [package, userId]);
+
+  /// Insert row into the `packageUploaders` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// nothing, as all fields are part of the _primary key_,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PackageUploader> upsert({
+    required Expr<String> package,
+    required Expr<String> userId,
+  }) => insert(
+    package: package,
+    userId: userId,
+  ).onConflict(.primaryKey).update((_, excluded, set) => set());
+
+  /// Insert row into the `packageUploaders` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PackageUploader> insertValue({
+    required String package,
+    required String userId,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [package.asExpr, userId.asExpr],
+  );
+
+  /// Insert row into the `packageUploaders` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// nothing, as all fields are part of the _primary key_,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PackageUploader> upsertValue({
+    required String package,
+    required String userId,
+  }) => insertValue(
+    package: package,
+    userId: userId,
+  ).onConflict(.primaryKey).update((_, excluded, set) => set());
+
+  /// Bulk insert rows into the `packageUploaders` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<PackageUploader> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) package,
+    required String Function(T row) userId,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [package, userId],
+  );
+
+  /// Delete a single row from the `packageUploaders` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<PackageUploader> delete(String package, String userId) =>
+      $ForGeneratedCode.deleteSingle(
+        byKey(package, userId),
+        _$PackageUploader._$table,
+      );
+}
+
+/// Extension methods for building queries against the `packageUploaders` table.
+extension QueryPackageUploaderExt on Query<(Expr<PackageUploader>,)> {
+  /// Lookup a single row in `packageUploaders` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<PackageUploader>,)> byKey(String package, String userId) =>
+      where(
+        (packageUploader) =>
+            packageUploader.package.equalsValue(package) &
+            packageUploader.userId.equalsValue(userId),
+      ).first;
+
+  /// Update all rows in the `packageUploaders` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<PackageUploader> update(
+    UpdateSet<PackageUploader> Function(
+      Expr<PackageUploader> packageUploader,
+      UpdateSet<PackageUploader> Function({
+        Expr<String> package,
+        Expr<String> userId,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<PackageUploader>(
+    this,
+    _$PackageUploader._$table,
+    (packageUploader) => updateBuilder(
+      packageUploader,
+      ({Expr<String>? package, Expr<String>? userId}) =>
+          $ForGeneratedCode.buildUpdate<PackageUploader>([package, userId]),
+    ),
+  );
+
+  /// Delete all rows in the `packageUploaders` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<PackageUploader> delete() =>
+      $ForGeneratedCode.delete(this, _$PackageUploader._$table);
+}
+
+/// Extension methods for building point queries against the `packageUploaders` table.
+extension QuerySinglePackageUploaderExt
+    on QuerySingle<(Expr<PackageUploader>,)> {
+  /// Update the row (if any) in the `packageUploaders` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<PackageUploader> update(
+    UpdateSet<PackageUploader> Function(
+      Expr<PackageUploader> packageUploader,
+      UpdateSet<PackageUploader> Function({
+        Expr<String> package,
+        Expr<String> userId,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<PackageUploader>(
+    this,
+    _$PackageUploader._$table,
+    (packageUploader) => updateBuilder(
+      packageUploader,
+      ({Expr<String>? package, Expr<String>? userId}) =>
+          $ForGeneratedCode.buildUpdate<PackageUploader>([package, userId]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `packageUploaders` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<PackageUploader> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$PackageUploader._$table);
+}
+
+/// Extension methods for expressions on a row in the `packageUploaders` table.
+extension ExpressionPackageUploaderExt on Expr<PackageUploader> {
+  Expr<String> get package =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String> get userId =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `packages` referenced in
+  /// [package].
+  ///
+  /// The gets the row from table `packages` where
+  /// [PackageRow.name]
+  /// is equal to [package].
+  Expr<PackageRow> get packageRow => $ForGeneratedCode
+      .subqueryTable(_$PackageRow._$table)
+      .where((r) => r.name.equalsUnlessNull(package))
+      .first
+      .asNotNull();
+
+  /// Do a subquery lookup of the row from table
+  /// `users` referenced in
+  /// [userId].
+  ///
+  /// The gets the row from table `users` where
+  /// [UserRow.userId]
+  /// is equal to [userId].
+  Expr<UserRow> get userRow => $ForGeneratedCode
+      .subqueryTable(_$UserRow._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId))
+      .first
+      .asNotNull();
+}
+
+extension ExpressionNullablePackageUploaderExt on Expr<PackageUploader?> {
+  Expr<String?> get package =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String?> get userId =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `packages` referenced in
+  /// [package].
+  ///
+  /// The gets the row from table `packages` where
+  /// [PackageRow.name]
+  /// is equal to [package], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<PackageRow?> get packageRow => $ForGeneratedCode
+      .subqueryTable(_$PackageRow._$table)
+      .where((r) => r.name.equalsUnlessNull(package))
+      .first;
+
+  /// Do a subquery lookup of the row from table
+  /// `users` referenced in
+  /// [userId].
+  ///
+  /// The gets the row from table `users` where
+  /// [UserRow.userId]
+  /// is equal to [userId], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<UserRow?> get userRow => $ForGeneratedCode
+      .subqueryTable(_$UserRow._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId))
+      .first;
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => package.isNotNull() & userId.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinPackageUploaderPackageRowExt
+    on InnerJoin<(Expr<PackageUploader>,), (Expr<PackageRow>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageUploader.package] = [PackageRow.name].
+  Query<(Expr<PackageUploader>, Expr<PackageRow>)> usingPackageRow() =>
+      on((a, b) => b.name.equalsUnlessNull(a.package));
+}
+
+extension LeftJoinPackageUploaderPackageRowExt
+    on LeftJoin<(Expr<PackageUploader>,), (Expr<PackageRow>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageUploader.package] = [PackageRow.name].
+  Query<(Expr<PackageUploader>, Expr<PackageRow?>)> usingPackageRow() =>
+      on((a, b) => b.name.equalsUnlessNull(a.package));
+}
+
+extension RightJoinPackageUploaderPackageRowExt
+    on RightJoin<(Expr<PackageUploader>,), (Expr<PackageRow>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageUploader.package] = [PackageRow.name].
+  Query<(Expr<PackageUploader?>, Expr<PackageRow>)> usingPackageRow() =>
+      on((a, b) => b.name.equalsUnlessNull(a.package));
+}
+
+extension InnerJoinPackageUploaderUserRowExt
+    on InnerJoin<(Expr<PackageUploader>,), (Expr<UserRow>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageUploader.userId] = [UserRow.userId].
+  Query<(Expr<PackageUploader>, Expr<UserRow>)> usingUserRow() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
+}
+
+extension LeftJoinPackageUploaderUserRowExt
+    on LeftJoin<(Expr<PackageUploader>,), (Expr<UserRow>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageUploader.userId] = [UserRow.userId].
+  Query<(Expr<PackageUploader>, Expr<UserRow?>)> usingUserRow() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
+}
+
+extension RightJoinPackageUploaderUserRowExt
+    on RightJoin<(Expr<PackageUploader>,), (Expr<UserRow>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageUploader.userId] = [UserRow.userId].
+  Query<(Expr<PackageUploader?>, Expr<UserRow>)> usingUserRow() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
+}
+
+/// `Table<PackageUploader>` conflict targets for use with `.onConflict`.
+enum PackageUploaderConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `package`, `userId`.
+  primaryKey(['package', 'user_id']);
+
+  const PackageUploaderConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertPackageUploaderExt on Insert<PackageUploader> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((packageUploader, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<PackageUploader> onConflict(
+    PackageUploaderConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictPackageUploaderExt
+    on InsertOnConflict<PackageUploader> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `packageUploader` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<PackageUploader> update(
+    UpdateSet<PackageUploader> Function(
+      Expr<PackageUploader> packageUploader,
+      Expr<PackageUploader> excluded,
+      UpdateSet<PackageUploader> Function({
+        Expr<String> package,
+        Expr<String> userId,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<PackageUploader>(
+    this,
+    (packageUploader, excluded) => updateBuilder(
+      packageUploader,
+      excluded,
+      ({Expr<String>? package, Expr<String>? userId}) =>
+          $ForGeneratedCode.buildUpdate<PackageUploader>([package, userId]),
+    ),
+  );
+}
+
+extension InsertSinglePackageUploaderExt on InsertSingle<PackageUploader> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((packageUploader, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<PackageUploader> onConflict(
+    PackageUploaderConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSinglePackageUploaderExt
+    on InsertOnConflictSingle<PackageUploader> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `packageUploader` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<PackageUploader> update(
+    UpdateSet<PackageUploader> Function(
+      Expr<PackageUploader> packageUploader,
+      Expr<PackageUploader> excluded,
+      UpdateSet<PackageUploader> Function({
+        Expr<String> package,
+        Expr<String> userId,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<PackageUploader>(
+    this,
+    (packageUploader, excluded) => updateBuilder(
+      packageUploader,
+      excluded,
+      ({Expr<String>? package, Expr<String>? userId}) =>
+          $ForGeneratedCode.buildUpdate<PackageUploader>([package, userId]),
+    ),
+  );
+}
+
+final class _$PackageVersionRow extends PackageVersionRow {
+  _$PackageVersionRow._(
+    this.package,
+    this.version,
+    this.createdAt,
+    this.sha256,
+    this.pubspecJson,
+    this.librariesJson,
+    this.uploader,
+    this.publisherId,
+    this.isRetracted,
+    this.retractedAt,
+    this.isModerated,
+    this.moderatedAt,
+    this.isAdminDeleted,
+    this.adminDeletedAt,
+  );
+
+  @override
+  final String package;
+
+  @override
+  final String version;
+
+  @override
+  final DateTime createdAt;
+
+  @override
+  final Uint8List? sha256;
+
+  @override
+  final JsonValue pubspecJson;
+
+  @override
+  final JsonValue librariesJson;
+
+  @override
+  final String uploader;
+
+  @override
+  final String? publisherId;
+
+  @override
+  final bool isRetracted;
+
+  @override
+  final DateTime? retractedAt;
+
+  @override
+  final bool isModerated;
+
+  @override
+  final DateTime? moderatedAt;
+
+  @override
+  final bool isAdminDeleted;
+
+  @override
+  final DateTime? adminDeletedAt;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'package_versions',
+    columns: <String>[
+      'package',
+      'version',
+      'created_at',
+      'sha256',
+      'pubspec_json',
+      'libraries_json',
+      'uploader',
+      'publisher_id',
+      'is_retracted',
+      'retracted_at',
+      'is_moderated',
+      'moderated_at',
+      'is_admin_deleted',
+      'admin_deleted_at',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.blob,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.jsonValue,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['package', 'version'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [],
+    readRow: _$PackageVersionRow._$fromDatabase,
+  );
+
+  static PackageVersionRow? _$fromDatabase(RowReader row) {
+    final package = row.readString();
+    final version = row.readString();
+    final createdAt = row.readDateTime();
+    final sha256 = row.readUint8List();
+    final pubspecJson = row.readJsonValue();
+    final librariesJson = row.readJsonValue();
+    final uploader = row.readString();
+    final publisherId = row.readString();
+    final isRetracted = row.readBool();
+    final retractedAt = row.readDateTime();
+    final isModerated = row.readBool();
+    final moderatedAt = row.readDateTime();
+    final isAdminDeleted = row.readBool();
+    final adminDeletedAt = row.readDateTime();
+    if (package == null &&
+        version == null &&
+        createdAt == null &&
+        sha256 == null &&
+        pubspecJson == null &&
+        librariesJson == null &&
+        uploader == null &&
+        publisherId == null &&
+        isRetracted == null &&
+        retractedAt == null &&
+        isModerated == null &&
+        moderatedAt == null &&
+        isAdminDeleted == null &&
+        adminDeletedAt == null) {
+      return null;
+    }
+    return _$PackageVersionRow._(
+      package!,
+      version!,
+      createdAt!,
+      sha256,
+      pubspecJson!,
+      librariesJson!,
+      uploader!,
+      publisherId,
+      isRetracted!,
+      retractedAt,
+      isModerated!,
+      moderatedAt,
+      isAdminDeleted!,
+      adminDeletedAt,
+    );
+  }
+
+  @override
+  String toString() =>
+      'PackageVersionRow(package: "$package", version: "$version", createdAt: "$createdAt", sha256: "$sha256", pubspecJson: "$pubspecJson", librariesJson: "$librariesJson", uploader: "$uploader", publisherId: "$publisherId", isRetracted: "$isRetracted", retractedAt: "$retractedAt", isModerated: "$isModerated", moderatedAt: "$moderatedAt", isAdminDeleted: "$isAdminDeleted", adminDeletedAt: "$adminDeletedAt")';
+}
+
+/// Extension methods for table defined in [PackageVersionRow].
+extension TablePackageVersionRowExt on Table<PackageVersionRow> {
+  /// Insert row into the `packageVersions` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PackageVersionRow> insert({
+    required Expr<String> package,
+    required Expr<String> version,
+    required Expr<DateTime> createdAt,
+    Expr<Uint8List?>? sha256,
+    required Expr<JsonValue> pubspecJson,
+    required Expr<JsonValue> librariesJson,
+    required Expr<String> uploader,
+    Expr<String?>? publisherId,
+    required Expr<bool> isRetracted,
+    Expr<DateTime?>? retractedAt,
+    required Expr<bool> isModerated,
+    Expr<DateTime?>? moderatedAt,
+    required Expr<bool> isAdminDeleted,
+    Expr<DateTime?>? adminDeletedAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      package,
+      version,
+      createdAt,
+      sha256,
+      pubspecJson,
+      librariesJson,
+      uploader,
+      publisherId,
+      isRetracted,
+      retractedAt,
+      isModerated,
+      moderatedAt,
+      isAdminDeleted,
+      adminDeletedAt,
+    ],
+  );
+
+  /// Insert row into the `packageVersions` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `sha256`, `pubspecJson`, `librariesJson`, `uploader`, `publisherId`, `isRetracted`, `retractedAt`, `isModerated`, `moderatedAt`, `isAdminDeleted`, `adminDeletedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PackageVersionRow> upsert({
+    required Expr<String> package,
+    required Expr<String> version,
+    required Expr<DateTime> createdAt,
+    Expr<Uint8List?>? sha256,
+    required Expr<JsonValue> pubspecJson,
+    required Expr<JsonValue> librariesJson,
+    required Expr<String> uploader,
+    Expr<String?>? publisherId,
+    required Expr<bool> isRetracted,
+    Expr<DateTime?>? retractedAt,
+    required Expr<bool> isModerated,
+    Expr<DateTime?>? moderatedAt,
+    required Expr<bool> isAdminDeleted,
+    Expr<DateTime?>? adminDeletedAt,
+  }) =>
+      insert(
+            package: package,
+            version: version,
+            createdAt: createdAt,
+            sha256: sha256,
+            pubspecJson: pubspecJson,
+            librariesJson: librariesJson,
+            uploader: uploader,
+            publisherId: publisherId,
+            isRetracted: isRetracted,
+            retractedAt: retractedAt,
+            isModerated: isModerated,
+            moderatedAt: moderatedAt,
+            isAdminDeleted: isAdminDeleted,
+            adminDeletedAt: adminDeletedAt,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              sha256: excluded.sha256,
+              pubspecJson: excluded.pubspecJson,
+              librariesJson: excluded.librariesJson,
+              uploader: excluded.uploader,
+              publisherId: excluded.publisherId,
+              isRetracted: excluded.isRetracted,
+              retractedAt: excluded.retractedAt,
+              isModerated: excluded.isModerated,
+              moderatedAt: excluded.moderatedAt,
+              isAdminDeleted: excluded.isAdminDeleted,
+              adminDeletedAt: excluded.adminDeletedAt,
+            ),
+          );
+
+  /// Insert row into the `packageVersions` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PackageVersionRow> insertValue({
+    required String package,
+    required String version,
+    required DateTime createdAt,
+    Uint8List? sha256,
+    required JsonValue pubspecJson,
+    required JsonValue librariesJson,
+    required String uploader,
+    String? publisherId,
+    required bool isRetracted,
+    DateTime? retractedAt,
+    required bool isModerated,
+    DateTime? moderatedAt,
+    required bool isAdminDeleted,
+    DateTime? adminDeletedAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      package.asExpr,
+      version.asExpr,
+      createdAt.asExpr,
+      sha256.asExpr,
+      pubspecJson.asExpr,
+      librariesJson.asExpr,
+      uploader.asExpr,
+      publisherId.asExpr,
+      isRetracted.asExpr,
+      retractedAt.asExpr,
+      isModerated.asExpr,
+      moderatedAt.asExpr,
+      isAdminDeleted.asExpr,
+      adminDeletedAt.asExpr,
+    ],
+  );
+
+  /// Insert row into the `packageVersions` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `sha256`, `pubspecJson`, `librariesJson`, `uploader`, `publisherId`, `isRetracted`, `retractedAt`, `isModerated`, `moderatedAt`, `isAdminDeleted`, `adminDeletedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PackageVersionRow> upsertValue({
+    required String package,
+    required String version,
+    required DateTime createdAt,
+    Uint8List? sha256,
+    required JsonValue pubspecJson,
+    required JsonValue librariesJson,
+    required String uploader,
+    String? publisherId,
+    required bool isRetracted,
+    DateTime? retractedAt,
+    required bool isModerated,
+    DateTime? moderatedAt,
+    required bool isAdminDeleted,
+    DateTime? adminDeletedAt,
+  }) =>
+      insertValue(
+            package: package,
+            version: version,
+            createdAt: createdAt,
+            sha256: sha256,
+            pubspecJson: pubspecJson,
+            librariesJson: librariesJson,
+            uploader: uploader,
+            publisherId: publisherId,
+            isRetracted: isRetracted,
+            retractedAt: retractedAt,
+            isModerated: isModerated,
+            moderatedAt: moderatedAt,
+            isAdminDeleted: isAdminDeleted,
+            adminDeletedAt: adminDeletedAt,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              sha256: excluded.sha256,
+              pubspecJson: excluded.pubspecJson,
+              librariesJson: excluded.librariesJson,
+              uploader: excluded.uploader,
+              publisherId: excluded.publisherId,
+              isRetracted: excluded.isRetracted,
+              retractedAt: excluded.retractedAt,
+              isModerated: excluded.isModerated,
+              moderatedAt: excluded.moderatedAt,
+              isAdminDeleted: excluded.isAdminDeleted,
+              adminDeletedAt: excluded.adminDeletedAt,
+            ),
+          );
+
+  /// Bulk insert rows into the `packageVersions` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<PackageVersionRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) package,
+    required String Function(T row) version,
+    required DateTime Function(T row) createdAt,
+    Uint8List? Function(T row)? sha256,
+    required JsonValue Function(T row) pubspecJson,
+    required JsonValue Function(T row) librariesJson,
+    required String Function(T row) uploader,
+    String? Function(T row)? publisherId,
+    required bool Function(T row) isRetracted,
+    DateTime? Function(T row)? retractedAt,
+    required bool Function(T row) isModerated,
+    DateTime? Function(T row)? moderatedAt,
+    required bool Function(T row) isAdminDeleted,
+    DateTime? Function(T row)? adminDeletedAt,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [
+      package,
+      version,
+      createdAt,
+      sha256,
+      pubspecJson,
+      librariesJson,
+      uploader,
+      publisherId,
+      isRetracted,
+      retractedAt,
+      isModerated,
+      moderatedAt,
+      isAdminDeleted,
+      adminDeletedAt,
+    ],
+  );
+
+  /// Delete a single row from the `packageVersions` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<PackageVersionRow> delete(String package, String version) =>
+      $ForGeneratedCode.deleteSingle(
+        byKey(package, version),
+        _$PackageVersionRow._$table,
+      );
+}
+
+/// Extension methods for building queries against the `packageVersions` table.
+extension QueryPackageVersionRowExt on Query<(Expr<PackageVersionRow>,)> {
+  /// Lookup a single row in `packageVersions` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<PackageVersionRow>,)> byKey(
+    String package,
+    String version,
+  ) => where(
+    (packageVersionRow) =>
+        packageVersionRow.package.equalsValue(package) &
+        packageVersionRow.version.equalsValue(version),
+  ).first;
+
+  /// Update all rows in the `packageVersions` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<PackageVersionRow> update(
+    UpdateSet<PackageVersionRow> Function(
+      Expr<PackageVersionRow> packageVersionRow,
+      UpdateSet<PackageVersionRow> Function({
+        Expr<String> package,
+        Expr<String> version,
+        Expr<DateTime> createdAt,
+        Expr<Uint8List?> sha256,
+        Expr<JsonValue> pubspecJson,
+        Expr<JsonValue> librariesJson,
+        Expr<String> uploader,
+        Expr<String?> publisherId,
+        Expr<bool> isRetracted,
+        Expr<DateTime?> retractedAt,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+        Expr<bool> isAdminDeleted,
+        Expr<DateTime?> adminDeletedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<PackageVersionRow>(
+    this,
+    _$PackageVersionRow._$table,
+    (packageVersionRow) => updateBuilder(
+      packageVersionRow,
+      ({
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<DateTime>? createdAt,
+        Expr<Uint8List?>? sha256,
+        Expr<JsonValue>? pubspecJson,
+        Expr<JsonValue>? librariesJson,
+        Expr<String>? uploader,
+        Expr<String?>? publisherId,
+        Expr<bool>? isRetracted,
+        Expr<DateTime?>? retractedAt,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+        Expr<bool>? isAdminDeleted,
+        Expr<DateTime?>? adminDeletedAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageVersionRow>([
+        package,
+        version,
+        createdAt,
+        sha256,
+        pubspecJson,
+        librariesJson,
+        uploader,
+        publisherId,
+        isRetracted,
+        retractedAt,
+        isModerated,
+        moderatedAt,
+        isAdminDeleted,
+        adminDeletedAt,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `packageVersions` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<PackageVersionRow> delete() =>
+      $ForGeneratedCode.delete(this, _$PackageVersionRow._$table);
+}
+
+/// Extension methods for building point queries against the `packageVersions` table.
+extension QuerySinglePackageVersionRowExt
+    on QuerySingle<(Expr<PackageVersionRow>,)> {
+  /// Update the row (if any) in the `packageVersions` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<PackageVersionRow> update(
+    UpdateSet<PackageVersionRow> Function(
+      Expr<PackageVersionRow> packageVersionRow,
+      UpdateSet<PackageVersionRow> Function({
+        Expr<String> package,
+        Expr<String> version,
+        Expr<DateTime> createdAt,
+        Expr<Uint8List?> sha256,
+        Expr<JsonValue> pubspecJson,
+        Expr<JsonValue> librariesJson,
+        Expr<String> uploader,
+        Expr<String?> publisherId,
+        Expr<bool> isRetracted,
+        Expr<DateTime?> retractedAt,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+        Expr<bool> isAdminDeleted,
+        Expr<DateTime?> adminDeletedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<PackageVersionRow>(
+    this,
+    _$PackageVersionRow._$table,
+    (packageVersionRow) => updateBuilder(
+      packageVersionRow,
+      ({
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<DateTime>? createdAt,
+        Expr<Uint8List?>? sha256,
+        Expr<JsonValue>? pubspecJson,
+        Expr<JsonValue>? librariesJson,
+        Expr<String>? uploader,
+        Expr<String?>? publisherId,
+        Expr<bool>? isRetracted,
+        Expr<DateTime?>? retractedAt,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+        Expr<bool>? isAdminDeleted,
+        Expr<DateTime?>? adminDeletedAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageVersionRow>([
+        package,
+        version,
+        createdAt,
+        sha256,
+        pubspecJson,
+        librariesJson,
+        uploader,
+        publisherId,
+        isRetracted,
+        retractedAt,
+        isModerated,
+        moderatedAt,
+        isAdminDeleted,
+        adminDeletedAt,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `packageVersions` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<PackageVersionRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$PackageVersionRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `packageVersions` table.
+extension ExpressionPackageVersionRowExt on Expr<PackageVersionRow> {
+  Expr<String> get package =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String> get version =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<DateTime> get createdAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// The SHA-256 hash of the canonical archive file.
+  Expr<Uint8List?> get sha256 =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.blob);
+
+  Expr<JsonValue> get pubspecJson =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.jsonValue);
+
+  /// The public libraries of the version.
+  Expr<JsonValue> get librariesJson =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.jsonValue);
+
+  /// The `User.userId` of the uploader, or a `service:` prefixed agent id.
+  Expr<String> get uploader =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+
+  /// The publisher id at the time of the upload.
+  Expr<String?> get publisherId =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
+
+  Expr<bool> get isRetracted =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get retractedAt =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.dateTime);
+
+  Expr<bool> get isModerated =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get moderatedAt =>
+      $ForGeneratedCode.field(this, 11, $ForGeneratedCode.dateTime);
+
+  Expr<bool> get isAdminDeleted =>
+      $ForGeneratedCode.field(this, 12, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get adminDeletedAt =>
+      $ForGeneratedCode.field(this, 13, $ForGeneratedCode.dateTime);
+}
+
+extension ExpressionNullablePackageVersionRowExt on Expr<PackageVersionRow?> {
+  Expr<String?> get package =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String?> get version =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get createdAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// The SHA-256 hash of the canonical archive file.
+  Expr<Uint8List?> get sha256 =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.blob);
+
+  Expr<JsonValue?> get pubspecJson =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.jsonValue);
+
+  /// The public libraries of the version.
+  Expr<JsonValue?> get librariesJson =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.jsonValue);
+
+  /// The `User.userId` of the uploader, or a `service:` prefixed agent id.
+  Expr<String?> get uploader =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+
+  /// The publisher id at the time of the upload.
+  Expr<String?> get publisherId =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
+
+  Expr<bool?> get isRetracted =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get retractedAt =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.dateTime);
+
+  Expr<bool?> get isModerated =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get moderatedAt =>
+      $ForGeneratedCode.field(this, 11, $ForGeneratedCode.dateTime);
+
+  Expr<bool?> get isAdminDeleted =>
+      $ForGeneratedCode.field(this, 12, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get adminDeletedAt =>
+      $ForGeneratedCode.field(this, 13, $ForGeneratedCode.dateTime);
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => package.isNotNull() & version.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+/// `Table<PackageVersionRow>` conflict targets for use with `.onConflict`.
+enum PackageVersionRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `package`, `version`.
+  primaryKey(['package', 'version']);
+
+  const PackageVersionRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertPackageVersionRowExt on Insert<PackageVersionRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((packageVersionRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<PackageVersionRow> onConflict(
+    PackageVersionRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictPackageVersionRowExt
+    on InsertOnConflict<PackageVersionRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `packageVersionRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<PackageVersionRow> update(
+    UpdateSet<PackageVersionRow> Function(
+      Expr<PackageVersionRow> packageVersionRow,
+      Expr<PackageVersionRow> excluded,
+      UpdateSet<PackageVersionRow> Function({
+        Expr<String> package,
+        Expr<String> version,
+        Expr<DateTime> createdAt,
+        Expr<Uint8List?> sha256,
+        Expr<JsonValue> pubspecJson,
+        Expr<JsonValue> librariesJson,
+        Expr<String> uploader,
+        Expr<String?> publisherId,
+        Expr<bool> isRetracted,
+        Expr<DateTime?> retractedAt,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+        Expr<bool> isAdminDeleted,
+        Expr<DateTime?> adminDeletedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<PackageVersionRow>(
+    this,
+    (packageVersionRow, excluded) => updateBuilder(
+      packageVersionRow,
+      excluded,
+      ({
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<DateTime>? createdAt,
+        Expr<Uint8List?>? sha256,
+        Expr<JsonValue>? pubspecJson,
+        Expr<JsonValue>? librariesJson,
+        Expr<String>? uploader,
+        Expr<String?>? publisherId,
+        Expr<bool>? isRetracted,
+        Expr<DateTime?>? retractedAt,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+        Expr<bool>? isAdminDeleted,
+        Expr<DateTime?>? adminDeletedAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageVersionRow>([
+        package,
+        version,
+        createdAt,
+        sha256,
+        pubspecJson,
+        librariesJson,
+        uploader,
+        publisherId,
+        isRetracted,
+        retractedAt,
+        isModerated,
+        moderatedAt,
+        isAdminDeleted,
+        adminDeletedAt,
+      ]),
+    ),
+  );
+}
+
+extension InsertSinglePackageVersionRowExt on InsertSingle<PackageVersionRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((packageVersionRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<PackageVersionRow> onConflict(
+    PackageVersionRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSinglePackageVersionRowExt
+    on InsertOnConflictSingle<PackageVersionRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `packageVersionRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<PackageVersionRow> update(
+    UpdateSet<PackageVersionRow> Function(
+      Expr<PackageVersionRow> packageVersionRow,
+      Expr<PackageVersionRow> excluded,
+      UpdateSet<PackageVersionRow> Function({
+        Expr<String> package,
+        Expr<String> version,
+        Expr<DateTime> createdAt,
+        Expr<Uint8List?> sha256,
+        Expr<JsonValue> pubspecJson,
+        Expr<JsonValue> librariesJson,
+        Expr<String> uploader,
+        Expr<String?> publisherId,
+        Expr<bool> isRetracted,
+        Expr<DateTime?> retractedAt,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+        Expr<bool> isAdminDeleted,
+        Expr<DateTime?> adminDeletedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<PackageVersionRow>(
+    this,
+    (packageVersionRow, excluded) => updateBuilder(
+      packageVersionRow,
+      excluded,
+      ({
+        Expr<String>? package,
+        Expr<String>? version,
+        Expr<DateTime>? createdAt,
+        Expr<Uint8List?>? sha256,
+        Expr<JsonValue>? pubspecJson,
+        Expr<JsonValue>? librariesJson,
+        Expr<String>? uploader,
+        Expr<String?>? publisherId,
+        Expr<bool>? isRetracted,
+        Expr<DateTime?>? retractedAt,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+        Expr<bool>? isAdminDeleted,
+        Expr<DateTime?>? adminDeletedAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageVersionRow>([
+        package,
+        version,
+        createdAt,
+        sha256,
+        pubspecJson,
+        librariesJson,
+        uploader,
+        publisherId,
+        isRetracted,
+        retractedAt,
+        isModerated,
+        moderatedAt,
+        isAdminDeleted,
+        adminDeletedAt,
       ]),
     ),
   );

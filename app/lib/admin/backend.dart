@@ -190,7 +190,7 @@ class AdminBackend {
   }
 
   Future<void> _removeUploaderFromPackage(Key pkgKey, String userId) async {
-    await withRetryTransaction(_db, (tx) async {
+    final updated = await withRetryTransaction(_db, (tx) async {
       final p = await tx.lookupValue<Package>(pkgKey);
       p.removeUploader(userId);
       if (p.uploaders!.isEmpty) {
@@ -198,7 +198,9 @@ class AdminBackend {
       }
       p.updated = clock.now().toUtc();
       tx.insert(p);
+      return p;
     });
+    await packageBackend.mirrorPackageToSql(updated);
   }
 
   Future<void> _removeMember(User user, PublisherMember member) async {
@@ -228,14 +230,16 @@ class AdminBackend {
       final futures = <Future>[];
       await for (final package in query.run()) {
         if (package.isDiscontinued) continue;
-        final f = pool.withResource(
-          () => withRetryTransaction(_db, (tx) async {
+        final f = pool.withResource(() async {
+          final updated = await withRetryTransaction(_db, (tx) async {
             final p = await tx.lookupValue<Package>(package.key);
             p.isDiscontinued = true;
             p.updated = clock.now().toUtc();
             tx.insert(p);
-          }),
-        );
+            return p;
+          });
+          await packageBackend.mirrorPackageToSql(updated);
+        });
         futures.add(f);
       }
       await Future.wait(futures);
@@ -342,6 +346,7 @@ class AdminBackend {
       ..filter('replacedBy =', packageName);
     var replacedByFixes = 0;
     await for (final pkg in replacedByQuery.run()) {
+      Package? updated;
       await withRetryTransaction(_db, (tx) async {
         final p = await tx.lookupOrNull<Package>(pkg.key);
         if (p == null) {
@@ -351,9 +356,13 @@ class AdminBackend {
           p.replacedBy = null;
           p.updated = clock.now().toUtc();
           tx.insert(p);
+          updated = p;
         }
         replacedByFixes++;
       });
+      if (updated != null) {
+        await packageBackend.mirrorPackageToSql(updated!);
+      }
     }
 
     _logger.info('Removing package from PackageVersionInfo ...');
@@ -435,6 +444,7 @@ class AdminBackend {
     await _db.deleteWithQuery(
       _db.query<PackageVersion>(ancestorKey: packageKey),
     );
+    await packageBackend.deletePackageFromSql(packageName);
 
     triggerPackagePostUpdates(packageName);
 
@@ -476,6 +486,8 @@ class AdminBackend {
       );
 
       AuditLogRecord? auditLogRecord;
+      Package? updatedPackage;
+      PackageVersion? updatedVersion;
       await withRetryTransaction(_db, (tx) async {
         final p = await tx.lookupOrNull<Package>(
           _db.emptyKey.append(Package, id: packageName),
@@ -498,10 +510,18 @@ class AdminBackend {
             pv,
             isRetracted,
           );
+          updatedPackage = p;
+          updatedVersion = pv;
         }
       });
       if (auditLogRecord != null) {
         await auditBackend.migrateToSql(auditLogRecord!);
+      }
+      if (updatedPackage != null) {
+        await packageBackend.mirrorPackageToSql(
+          updatedPackage!,
+          versions: [updatedVersion!],
+        );
       }
       triggerPackagePostUpdates(packageName);
     }
@@ -544,7 +564,7 @@ class AdminBackend {
       version: version,
     );
 
-    await withRetryTransaction(_db, (tx) async {
+    final updatedPackage = await withRetryTransaction(_db, (tx) async {
       final packageKey = _db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
@@ -579,7 +599,12 @@ class AdminBackend {
 
       package.updated = clock.now().toUtc();
       tx.insert(package);
+      return package;
     });
+    await packageBackend.mirrorPackageToSql(
+      updatedPackage,
+      deletedVersions: [version],
+    );
 
     await purgeScorecardData(packageName, version, isLatest: true);
     triggerPackagePostUpdates(packageName);
@@ -628,7 +653,8 @@ class AdminBackend {
       'assignedTagsAdded cannot contain tags also removed assignedTagsRemoved',
     );
 
-    return await withRetryTransaction(_db, (tx) async {
+    Package? updatedPackage;
+    final result = await withRetryTransaction(_db, (tx) async {
       final package = await tx.lookupOrNull<Package>(
         _db.emptyKey.append(Package, id: packageName),
       );
@@ -644,10 +670,15 @@ class AdminBackend {
           ..addAll(body.assignedTagsAdded);
         package.updated = clock.now().toUtc();
         tx.insert(package);
+        updatedPackage = package;
       }
 
       return api.AssignedTags(assignedTags: package.assignedTags!);
     });
+    if (updatedPackage != null) {
+      await packageBackend.mirrorPackageToSql(updatedPackage!);
+    }
+    return result;
   }
 
   /// Handles `GET '/api/admin/packages/<package>/uploaders'`.
@@ -744,6 +775,7 @@ class AdminBackend {
     );
 
     final auditRecords = <AuditLogRecord>[];
+    Package? updatedPackage;
     await withRetryTransaction(_db, (tx) async {
       final p = await tx.lookupValue<Package>(package.key);
       InvalidInputException.check(
@@ -778,10 +810,14 @@ class AdminBackend {
         }
         p.updated = clock.now().toUtc();
         tx.insert(p);
+        updatedPackage = p;
       }
     });
     for (final record in auditRecords) {
       await auditBackend.migrateToSql(record);
+    }
+    if (updatedPackage != null) {
+      await packageBackend.mirrorPackageToSql(updatedPackage!);
     }
     return await handleGetPackageUploaders(packageName);
   }
@@ -935,16 +971,20 @@ class AdminBackend {
       final pkgQuery = _db.query<Package>()
         ..filter('publisherId =', publisher.publisherId);
       await for (final pkg in pkgQuery.run()) {
-        await withRetryTransaction(_db, (tx) async {
+        final updated = await withRetryTransaction(_db, (tx) async {
           final p = await tx.lookupOrNull<Package>(pkg.key);
-          if (p == null) return;
-          if (p.publisherId != publisher.publisherId) return;
+          if (p == null) return null;
+          if (p.publisherId != publisher.publisherId) return null;
 
           p.publisherId = null;
           p.updated = clock.now().toUtc();
           p.isDiscontinued = true;
           tx.insert(p);
+          return p;
         });
+        if (updated != null) {
+          await packageBackend.mirrorPackageToSql(updated);
+        }
       }
 
       // removes publisher members
