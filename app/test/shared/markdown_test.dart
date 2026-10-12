@@ -30,6 +30,17 @@ void main() {
         '<li>❌ c</li>\n'
         '</ul>\n',
       );
+      expect(
+        markdownToHtml('- [ ] a\n\n- [x] b\n'),
+        '<ul>\n'
+        '<li>\n'
+        '<p>❌ a</p>\n'
+        '</li>\n'
+        '<li>\n'
+        '<p>✅ b</p>\n'
+        '</li>\n'
+        '</ul>\n',
+      );
     });
 
     scopedTest('named anchor', () {

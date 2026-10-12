@@ -369,7 +369,11 @@ class _TaskListRewriteTreeVisitor extends html_parsing.TreeVisitor {
     if (!(element.attributes['class']?.contains('task-list-item') ?? false)) {
       return;
     }
-    final children = element.nodes;
+    var children = element.nodes;
+    if (element.children.firstOrNull case final firstElement?
+        when firstElement.localName == 'p') {
+      children = firstElement.nodes;
+    }
     if (children.isEmpty) {
       return;
     }
