@@ -53,6 +53,7 @@ import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
 import '../shared/storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
+import 'attestation_verifier.dart';
 import 'model_properties.dart';
 import 'models.dart';
 import 'name_tracker.dart';
@@ -1507,6 +1508,38 @@ class PackageBackend {
             attestationObjectName,
             maxSize: maxAttestationContentLength,
           ),
+        );
+        _logger.info('Verifying package attestation ($uploadGuid).');
+        final existingPackage = await lookupPackage(pubspec.name);
+        final githubConfig = existingPackage?.publishingConfig?.githubConfig;
+        final configuredGitHubRepository =
+            (githubConfig != null && githubConfig.isEnabled)
+            ? githubConfig.repository
+            : null;
+
+        // The signature is verified over the digest computed above from the
+        // very file that is being published; the archive is not read again.
+        //
+        // Only failures attributable to the uploaded bundle are reported as a
+        // failed result, anything else (e.g. the verifier not being available)
+        // propagates and fails the request with a logged internal error.
+        final verificationResult = attestationVerifier.verify(
+          packageName: pubspec.name,
+          packageVersion: Version.parse(versionString),
+          archiveSha256: sha256Hash,
+          bundleJson: attestationContent,
+          pubspecRepository: pubspec.repository?.toString(),
+          configuredGitHubRepository: configuredGitHubRepository,
+        );
+        if (!verificationResult.isValid) {
+          throw PackageRejectedException(
+            'Invalid package attestation: '
+            '${verificationResult.errors.join(', ')}',
+          );
+        }
+        _logger.info(
+          'Attestation verified successfully for ${pubspec.name} $versionString '
+          'from repository ${verificationResult.repository}.',
         );
       }
 

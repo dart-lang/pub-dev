@@ -41,8 +41,26 @@ RUN dart /project/tool/pub_get_offline.dart /project/app
 
 RUN /project/tool/download-sdk-index-jsons.sh
 
-# Generate JIT snapshot. We run it with --help to make it exit.
-RUN dart compile jit-snapshot -o server.jit bin/server.dart --help
+# Generate the JIT snapshot, with the native assets mapping of package:sigstore
+# embedded (see tool/build-server-snapshot.sh). The library is built in the
+# rust-build stage below and copied to the given path in the final image.
+RUN /project/tool/build-server-snapshot.sh /project/app/server.jit /project/app/libsigstore_ffi.so
+
+# Collect what the rust-build and final stages need from this one:
+#  - the Rust source of package:sigstore's native library, as resolved by pub,
+#  - libgcc_s, which the Rust library depends on and which is not part of the
+#    minimal /runtime of the Dart image.
+RUN set -eux; \
+  SIGSTORE_DIRS="$(ls -d /project/.pub-cache/hosted/pub.dev/sigstore-*/)"; \
+  [ "$(echo "$SIGSTORE_DIRS" | wc -l)" -eq 1 ]; \
+  cp -r "${SIGSTORE_DIRS}rust" /project/sigstore-rust; \
+  case "$(dpkg --print-architecture)" in \
+    amd64) TRIPLET="x86_64-linux-gnu" ;; \
+    arm64) TRIPLET="aarch64-linux-gnu" ;; \
+    *) echo "Unsupported architecture"; exit 1 ;; \
+  esac; \
+  mkdir -p "/project/runtime-extra/lib/$TRIPLET"; \
+  cp --dereference "/lib/$TRIPLET/libgcc_s.so.1" "/project/runtime-extra/lib/$TRIPLET/libgcc_s.so.1"
 
 # Create /tmp directory for the runtime.
 RUN mkdir -p /project/tmp && chmod 1777 /project/tmp
@@ -51,9 +69,21 @@ RUN mkdir -p /project/tmp && chmod 1777 /project/tmp
 RUN dart compile kernel -o search_index.dill lib/service/entrypoint/search_index.dart
 RUN dart compile kernel -o sdk_isolate_index.dill lib/service/entrypoint/sdk_isolate_index.dart
 
+# Stage: Build the native library of package:sigstore from the Rust source
+# bundled with the package (no prebuilt binaries are downloaded).
+FROM mirror.gcr.io/library/rust:1.99-bookworm AS rust-build
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends cmake && \
+  rm -rf /var/lib/apt/lists/*
+COPY --from=build /project/sigstore-rust /project/sigstore-rust
+WORKDIR /project/sigstore-rust
+RUN cargo rustc --release --locked --crate-type=cdylib && \
+  test -f target/release/libsigstore_ffi.so
+
 # Build minimal serving image.
 FROM scratch
 COPY --from=build /runtime/ /
+COPY --from=build /project/runtime-extra/ /
 COPY --from=build /project/tmp /tmp
 COPY --from=build /usr/lib/dart /usr/lib/dart
 COPY --from=build /project/app/server.jit /project/app/
@@ -66,6 +96,8 @@ COPY --from=build /project/app/lib/frontend/templates /project/app/lib/frontend/
 COPY --from=build /project/app/.dart_tool/pub-search-data /project/app/.dart_tool/pub-search-data
 COPY --from=build /project/.dart_tool/package_config.json /project/.dart_tool/package_config.json
 COPY --from=go-build /project/pkg/signature_verifier/signature_verifier /project/app/signature_verifier
+# Must match the path given to tool/build-server-snapshot.sh above.
+COPY --from=rust-build /project/sigstore-rust/target/release/libsigstore_ffi.so /project/app/libsigstore_ffi.so
 # Put the kernel snapshots at the same place as the source files for Isolate.spawnUri to work transparently.
 COPY --from=build /project/app/search_index.dill /project/app/search_index.dill
 COPY --from=build /project/app/sdk_isolate_index.dill /project/app/sdk_isolate_index.dill
