@@ -384,6 +384,16 @@
                       <label class="pub-checkbox-label" for="-pkg-admin-manual-publishing-enabled">Enable manual publishing</label>
                     </div>
                   </div>
+                  <a name="attestation-publishing"></a>
+                  <h3>Provenance attestation</h3>
+                  <p>Require a verified Sigstore provenance attestation for all future versions of this package.</p>
+                  <p>When enabled, package uploads without a valid attestation bundle will be rejected.</p>
+                  <div class="-pub-form-checkbox-row">
+                    <div class="pub-checkbox">
+                      <input id="-pkg-admin-automated-attestation-required" class="pub-checkbox-input" type="checkbox"/>
+                      <label class="pub-checkbox-label" for="-pkg-admin-automated-attestation-required">Require Sigstore provenance attestation</label>
+                    </div>
+                  </div>
                   <a name="automated-publishing"></a>
                   <h3>Automated publishing</h3>
                   <p>
