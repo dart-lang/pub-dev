@@ -1498,10 +1498,11 @@ class PackageBackend {
         throw PackageRejectedException.dependencyDoesNotExists(name);
       }
 
-      // Read the attestation, if one was uploaded for this upload.
+      // Read and verify the attestation, if one was uploaded for this upload.
       // Note: the content has been validated to be a JSON object when it was
       //       uploaded, see [uploadAttestation].
       String? attestationContent;
+      VersionProvenance? provenance;
       if (await _incomingBucket.tryInfo(attestationObjectName) != null) {
         attestationContent = utf8.decode(
           await _incomingBucket.readAsBytes(
@@ -1537,6 +1538,9 @@ class PackageBackend {
             '${verificationResult.errors.join(', ')}',
           );
         }
+        // The verified facts are persisted with the version, so that neither
+        // the package page nor later policy checks need to parse the bundle.
+        provenance = verificationResult.toVersionProvenance();
         _logger.info(
           'Attestation verified successfully for ${pubspec.name} $versionString '
           'from repository ${verificationResult.repository}.',
@@ -1549,6 +1553,7 @@ class PackageBackend {
         agent,
         archive,
         sha256Hash: sha256Hash,
+        provenance: provenance,
       );
       final (version, uploadMessages) = await _performTarballUpload(
         entities: entities,
@@ -2846,11 +2851,15 @@ class DerivedPackageVersionEntities {
 }
 
 /// Creates entities from [archive] summary.
+///
+/// [provenance] is the verified build provenance of the archive, if it was
+/// published with an attestation.
 Future<_UploadEntities> _createUploadEntities(
   DatastoreDB db,
   AuthenticatedAgent agent,
   PackageSummary archive, {
   required List<int> sha256Hash,
+  required VersionProvenance? provenance,
 }) async {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
@@ -2865,7 +2874,8 @@ Future<_UploadEntities> _createUploadEntities(
     ..pubspec = pubspec
     ..libraries = archive.libraries
     ..uploader = agent.agentId
-    ..sha256 = sha256Hash;
+    ..sha256 = sha256Hash
+    ..provenance = provenance;
 
   final derived = derivePackageVersionEntities(
     archive: archive,

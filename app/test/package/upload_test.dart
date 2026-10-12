@@ -1783,6 +1783,26 @@ void main() {
         );
         expect(info!.assets, isNot(contains('attestation')));
 
+        // The verified provenance facts are persisted with the version.
+        final pv = await packageBackend.lookupPackageVersion(
+          'attested_pkg',
+          '1.0.0',
+        );
+        expect(pv!.provenance?.toJson(), {
+          'repository': 'mosuem/attested_pkg',
+          'workflowPath': '.github/workflows/publish.yml',
+          'ref': 'refs/tags/v1.0.0',
+          'commitSha': 'c0ffee7891abbe3dab159e9d0187fc1042d5e0cd',
+          'signer':
+              'https://github.com/dart-lang/setup-dart/.github/workflows/publish.yml@refs/tags/v2',
+          'issuer': 'https://token.actions.githubusercontent.com',
+        });
+        final unattested = await packageBackend.lookupPackageVersion(
+          'attested_pkg',
+          '0.9.0',
+        );
+        expect(unattested!.provenance, isNull);
+
         // The attestation is exported, to be served from the bucket.
         final exported = await packageBackend.getExportedAttestationInfo(
           'attested_pkg',
@@ -2036,6 +2056,30 @@ void main() {
       expect(
         validResult.provenance?.commitSha,
         '63216a3022ed606538399634cd1c525f8bd4657f',
+      );
+
+      // The facts that get persisted with the version.
+      final persisted = validResult.toVersionProvenance();
+      expect(persisted.toJson(), {
+        'repository': 'mosuem/helpful',
+        'repositoryId': '1339313025',
+        'repositoryOwnerId': '27859082',
+        'workflowPath': '.github/workflows/publish.yaml',
+        'ref': 'refs/heads/main',
+        'commitSha': '63216a3022ed606538399634cd1c525f8bd4657f',
+        'runUrl':
+            'https://github.com/mosuem/helpful/actions/runs/33514943555/attempts/1',
+        'signer':
+            'https://github.com/dart-lang/setup-dart/.github/workflows/publish.yml@refs/heads/publish-package-attestations',
+        'issuer': 'https://token.actions.githubusercontent.com',
+        'transparencyLogIndex': 2676401329,
+        'transparencyLogIntegratedTime': '2026-09-01T13:42:37.000Z',
+      });
+      expect(persisted.repositoryUrl, 'https://github.com/mosuem/helpful');
+      // ... and they survive the JSON round-trip of the Datastore property.
+      expect(
+        VersionProvenance.fromJson(persisted.toJson()).toJson(),
+        persisted.toJson(),
       );
 
       final wrongPubspecRepo = verifier.verify(

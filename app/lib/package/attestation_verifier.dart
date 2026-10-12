@@ -11,6 +11,8 @@ import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:sigstore/sigstore.dart';
 
+import 'models.dart' show VersionProvenance;
+
 export 'package:sigstore/sigstore.dart';
 
 /// The OIDC issuer of tokens minted by GitHub Actions.
@@ -194,6 +196,19 @@ class BuildProvenance {
   /// The commit the build ran at, if recorded.
   final String? commitSha;
 
+  /// The immutable id of [sourceRepository], if recorded.
+  ///
+  /// GitHub fills this in from the run context (`internalParameters.github`),
+  /// it cannot be set by the caller of the workflow.
+  final String? repositoryId;
+
+  /// The immutable id of the owner of [sourceRepository], if recorded.
+  final String? repositoryOwnerId;
+
+  /// The URL of the workflow run (`runDetails.metadata.invocationId`), if
+  /// recorded.
+  final String? runUrl;
+
   /// The builder as self-reported in the statement.
   ///
   /// Note that the authoritative statement about who signed is the certificate
@@ -209,6 +224,9 @@ class BuildProvenance {
     required this.commitSha,
     required this.builder,
     required this.subjects,
+    this.repositoryId,
+    this.repositoryOwnerId,
+    this.runUrl,
   });
 
   /// Extracts the build provenance from the DSSE envelope of the Sigstore
@@ -334,11 +352,30 @@ class BuildProvenance {
     }
 
     GitHubWorkflowIdentity? builder;
+    String? runUrl;
     final runDetails = predicate['runDetails'];
     if (runDetails is Map) {
       final builderField = runDetails['builder'];
       final id = builderField is Map ? builderField['id'] : null;
       if (id is String) builder = GitHubWorkflowIdentity.tryParse(id);
+      final metadata = runDetails['metadata'];
+      final invocationId = metadata is Map ? metadata['invocationId'] : null;
+      if (invocationId is String && invocationId.isNotEmpty) {
+        runUrl = invocationId;
+      }
+    }
+
+    String? repositoryId;
+    String? repositoryOwnerId;
+    final internalParameters = buildDefinition['internalParameters'];
+    final github = internalParameters is Map
+        ? internalParameters['github']
+        : null;
+    if (github is Map) {
+      final id = github['repository_id'];
+      if (id is String && id.isNotEmpty) repositoryId = id;
+      final ownerId = github['repository_owner_id'];
+      if (ownerId is String && ownerId.isNotEmpty) repositoryOwnerId = ownerId;
     }
 
     final ref = workflow['ref'];
@@ -350,6 +387,50 @@ class BuildProvenance {
       commitSha: commitSha,
       builder: builder,
       subjects: subjects,
+      repositoryId: repositoryId,
+      repositoryOwnerId: repositoryOwnerId,
+      runUrl: runUrl,
+    );
+  }
+}
+
+/// The entry of a Sigstore bundle in the transparency log (Rekor).
+class TransparencyLogEntry {
+  final int logIndex;
+  final DateTime integratedTime;
+
+  TransparencyLogEntry({required this.logIndex, required this.integratedTime});
+
+  /// Extracts the first transparency log entry from the Sigstore bundle in
+  /// [bundleJson], or returns `null` if the bundle has none (or is not a
+  /// bundle at all).
+  ///
+  /// Only use the result if `package:sigstore` has verified the very same
+  /// [bundleJson]: the inclusion proof of the entry is checked there.
+  static TransparencyLogEntry? tryParseBundle(String bundleJson) {
+    final Object? decoded;
+    try {
+      decoded = json.decode(bundleJson);
+    } on FormatException {
+      return null;
+    }
+    if (decoded is! Map) return null;
+    final material = decoded['verificationMaterial'];
+    final entries = material is Map ? material['tlogEntries'] : null;
+    if (entries is! List || entries.isEmpty) return null;
+    final entry = entries.first;
+    if (entry is! Map) return null;
+    // Both are int64 values, encoded as strings in the JSON form of the
+    // bundle protobuf.
+    final logIndex = int.tryParse('${entry['logIndex']}');
+    final integratedTime = int.tryParse('${entry['integratedTime']}');
+    if (logIndex == null || integratedTime == null) return null;
+    return TransparencyLogEntry(
+      logIndex: logIndex,
+      integratedTime: DateTime.fromMillisecondsSinceEpoch(
+        integratedTime * 1000,
+        isUtc: true,
+      ),
     );
   }
 }
@@ -368,6 +449,7 @@ class AttestationVerificationResult {
   final BuildProvenance? provenance;
   final String? signerIdentity;
   final String? oidcIssuer;
+  final TransparencyLogEntry? transparencyLogEntry;
   final List<String> errors;
 
   AttestationVerificationResult({
@@ -376,6 +458,7 @@ class AttestationVerificationResult {
     this.provenance,
     this.signerIdentity,
     this.oidcIssuer,
+    this.transparencyLogEntry,
     this.errors = const [],
   });
 
@@ -385,7 +468,31 @@ class AttestationVerificationResult {
     required this.errors,
   }) : isValid = false,
        repository = null,
-       provenance = null;
+       provenance = null,
+       transparencyLogEntry = null;
+
+  /// The verified facts to persist with the package version.
+  ///
+  /// Throws a [StateError] if the verification was not successful.
+  VersionProvenance toVersionProvenance() {
+    if (!isValid) {
+      throw StateError('The attestation did not verify: $errors');
+    }
+    final provenance = this.provenance!;
+    return VersionProvenance(
+      repository: provenance.sourceRepository.slug,
+      repositoryId: provenance.repositoryId,
+      repositoryOwnerId: provenance.repositoryOwnerId,
+      workflowPath: provenance.workflowPath,
+      ref: provenance.sourceRef,
+      commitSha: provenance.commitSha,
+      runUrl: provenance.runUrl,
+      signer: signerIdentity!,
+      issuer: oidcIssuer!,
+      transparencyLogIndex: transparencyLogEntry?.logIndex,
+      transparencyLogIntegratedTime: transparencyLogEntry?.integratedTime,
+    );
+  }
 }
 
 /// The identity of the signer of an attestation, as verified by Sigstore.
@@ -543,6 +650,7 @@ class AttestationVerifier {
       provenance: provenance,
       signerIdentity: identity,
       oidcIssuer: issuer,
+      transparencyLogEntry: TransparencyLogEntry.tryParseBundle(bundleJson),
     );
   }
 
