@@ -421,7 +421,16 @@ class PackageBackend {
     });
   }
 
+  /// Upserts the [p] row and syncs its uploaders.
+  ///
+  /// The write is skipped when the SQL row has a newer `updated` timestamp:
+  /// concurrent mirror calls may carry stale snapshots, and they must not
+  /// overwrite the newer state.
   Future<void> _upsertPackage(Database<PrimarySchema> db, Package p) async {
+    final current = await db.packages.byKey(p.name!).fetch();
+    if (current != null && current.updatedAt.isAfter(p.updated!)) {
+      return;
+    }
     await db.packages
         .upsertValue(
           name: p.name!,

@@ -8,15 +8,19 @@ library;
 import 'dart:async';
 
 import 'package:_pub_shared/data/package_api.dart';
+import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 
 import '../database/package_sql_utils.dart';
 import '../shared/handlers_test_utils.dart';
@@ -781,4 +785,22 @@ void main() {
       }
     });
   });
+
+  testWithProfile(
+    'stale package snapshot does not overwrite newer SQL state',
+    fn: () async {
+      final stale = (await packageBackend.lookupPackage('oxygen'))!;
+      final newer = (await packageBackend.lookupPackage('oxygen'))!
+        ..updated = clock.now().toUtc().add(const Duration(minutes: 1))
+        ..isDiscontinued = true;
+      await packageBackend.mirrorPackageToSql(newer);
+      await packageBackend.mirrorPackageToSql(stale);
+
+      final row = await primaryDatabase.withRetry(
+        (db) => db.packages.byKey('oxygen').fetch(),
+      );
+      expect(row!.isDiscontinued, true);
+      expect(row.updatedAt.isAtSameMomentAs(newer.updated!), true);
+    },
+  );
 }
