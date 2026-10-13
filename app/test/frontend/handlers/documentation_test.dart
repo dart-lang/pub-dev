@@ -186,6 +186,20 @@ void main() {
           await issueGet('/documentation/oxygen/latest/abc/def'),
           '/documentation/oxygen/latest/abc/def/',
         );
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/01.0.0'),
+          '/documentation/oxygen/1.0.0/',
+        );
+        await expectRedirectResponse(
+          await issueGet('/documentation/oxygen/01.0.0/'),
+          '/documentation/oxygen/1.0.0/',
+        );
+        await expectRedirectResponse(
+          await issueGet(
+            '/documentation/oxygen/01.0.0/oxygen/oxygen-library.html',
+          ),
+          '/documentation/oxygen/1.0.0/oxygen/oxygen-library.html',
+        );
       },
     );
 
