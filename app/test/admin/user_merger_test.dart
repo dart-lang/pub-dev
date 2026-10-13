@@ -65,6 +65,20 @@ void main() {
   );
 
   testWithProfile(
+    'packages and versions when the target user is missing from SQL',
+    fn: () async {
+      final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+      await accountBackend.deleteUserMirrorFromSql(user.userId);
+
+      await _corruptAndFix();
+
+      final pkg = (await packageBackend.lookupPackage('oxygen'))!;
+      expect(pkg.uploaders, [user.userId]);
+      await expectPackageInSqlMatchesDatastore('oxygen');
+    },
+  );
+
+  testWithProfile(
     'session',
     fn: () async {
       final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');

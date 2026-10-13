@@ -164,6 +164,9 @@ class UserMerger {
             _db.emptyKey.append(OAuthUserID, id: toUser.oauthUserId),
           );
 
+    // Making sure that the user exists in SQL.
+    await accountBackend.mirrorUserToSql(toUser);
+
     // Package
     await _processConcurrently(
       _db.query<Package>()..filter('uploaders =', fromUserId),
