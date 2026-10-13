@@ -11,6 +11,7 @@ import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/admin/actions/migrate_dry_run.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
@@ -180,6 +181,16 @@ Future<void> _postTestVerification({required Pattern? integrityProblem}) async {
   // re-run integrity checks on the updated state
   final laterProblems = await findAllIntegrityProblems().toList();
   expect(laterProblems, problems);
+
+  // the predefined DDL scripts must stay feasible on the resulting data
+  for (final name in migrateDryRunScripts.keys) {
+    final error = await primaryDatabase.migrateDryRun(
+      migrateDryRunScripts[name]!,
+    );
+    if (error != null) {
+      throw Exception('DDL dry-run script `$name` failed: $error');
+    }
+  }
 }
 
 /// Registers test with [name] and runs it in pkg/fake_gcloud's scope, populated
