@@ -190,6 +190,16 @@ class PrimaryDatabase {
     return rs.map((r) => r[0] as String).toList();
   }
 
+  Future<Set<String>> _listJsonColumns(String table) async {
+    final rs = await _pg.execute(
+      'SELECT column_name FROM information_schema.columns '
+      "WHERE table_schema = 'public' AND table_name = \$1 "
+      "AND data_type IN ('json', 'jsonb');",
+      parameters: [table],
+    );
+    return rs.map((r) => r[0] as String).toSet();
+  }
+
   /// Exports all rows from the database as JSON lines.
   ///
   /// Each line is a JSON object with `table` and `row` keys.
@@ -215,21 +225,32 @@ class PrimaryDatabase {
     for (final table in tables) {
       await _pg.execute('ALTER TABLE "$table" DISABLE TRIGGER ALL;');
     }
+    final jsonColumns = <String, Set<String>>{};
     try {
       for (final line in lines) {
         if (line.isEmpty) continue;
         final map = json.decode(line) as Map<String, dynamic>;
         final table = map['table'] as String;
         final row = json.decode(map['row'] as String) as Map<String, dynamic>;
+        final jsonCols = jsonColumns[table] ??= await _listJsonColumns(table);
         final cols = row.keys.map((c) => '"$c"').join(', ');
-        final placeholders = List.generate(
-          row.length,
-          (i) => '\$${i + 1}',
-        ).join(', ');
+        final placeholders = row.keys.indexed
+            .map(
+              (e) => jsonCols.contains(e.$2)
+                  ? '\$${e.$1 + 1}::text::jsonb'
+                  : '\$${e.$1 + 1}',
+            )
+            .join(', ');
         await _pg.execute(
           'INSERT INTO "$table" ($cols) VALUES ($placeholders) '
           'ON CONFLICT DO NOTHING;',
-          parameters: row.values.toList(),
+          parameters: row.entries
+              .map(
+                (e) => jsonCols.contains(e.key) && e.value != null
+                    ? json.encode(e.value)
+                    : e.value,
+              )
+              .toList(),
         );
       }
     } finally {

@@ -18,6 +18,7 @@ import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
 
+import '../../database/package_sql_utils.dart';
 import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
@@ -508,6 +509,8 @@ void main() {
 
       expect(oxygenPkg!.latestAdvisory, syncTime);
       expect(neonPkg!.latestAdvisory, isNull);
+      await expectPackageInSqlMatchesDatastore('oxygen');
+      await expectPackageInSqlMatchesDatastore('neon');
 
       final client = await createFakeAuthPubApiClient(
         email: adminAtPubDevEmail,
@@ -760,6 +763,7 @@ void main() {
         );
         final advisory = await securityAdvisoryBackend.lookupById('123');
         await securityAdvisoryBackend.deleteAdvisory(advisory!, clock.now());
+        await expectPackageInSqlMatchesDatastore('oxygen');
 
         final row = await primaryDatabase.withRetry(
           (db) => db.securityAdvisories.byKey('123').fetch(),

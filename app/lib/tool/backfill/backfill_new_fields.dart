@@ -51,4 +51,8 @@ Future<void> backfillNewFields() async {
   // NOTE: Keep this around until PackageVersionAsset is migrated to use SQL.
   _logger.info('Backfilling package version assets...');
   await packageBackend.backfillPackageVersionAssetsSqlFromDatastore();
+
+  // NOTE: Keep this around until Package and PackageVersion are migrated to use SQL.
+  _logger.info('Backfilling packages and package versions...');
+  await packageBackend.backfillPackagesSqlFromDatastore();
 }

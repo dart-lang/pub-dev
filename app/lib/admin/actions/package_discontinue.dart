@@ -55,6 +55,7 @@ Sets the `Package.isDiscontinued` and `Package.replacedBy` properties.
       tx.insert(pkg);
       return pkg;
     });
+    await packageBackend.mirrorPackageToSql(info);
 
     return {
       'package': {

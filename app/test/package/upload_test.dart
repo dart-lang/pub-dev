@@ -31,6 +31,7 @@ import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 import 'package:yaml/yaml.dart';
 
 import '../audit/audit_test_utils.dart';
+import '../database/package_sql_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -231,6 +232,8 @@ void main() {
           expect(sqlReadme.path, 'README.md');
           expect(sqlReadme.textContent, foobarReadmeContent);
 
+          await expectPackageInSqlMatchesDatastore('new_package');
+
           final canonicalInfo = await storageService
               .bucket(activeConfiguration.canonicalPackagesBucketName!)
               .info('packages/new_package-1.2.3.tar.gz');
@@ -275,6 +278,7 @@ void main() {
           expect(pv.libraries, ['test_library.dart']);
           expect(pv.uploader, user.userId);
           expect(pv.publisherId, 'example.com');
+          await expectPackageInSqlMatchesDatastore('neon');
 
           await asyncQueue.ongoingProcessing;
           expect(fakeEmailSender.sentMessages, hasLength(1));
@@ -475,6 +479,7 @@ void main() {
             'isEnabled': false,
             'serviceAccountEmail': 'admin@x.gserviceaccount.com',
           });
+          await expectPackageInSqlMatchesDatastore('oxygen');
         },
       );
 
@@ -820,6 +825,7 @@ void main() {
               'isPushEventEnabled': true,
               'isWorkflowDispatchEventEnabled': false,
             });
+            await expectPackageInSqlMatchesDatastore('oxygen');
           }
         },
       );
@@ -1547,6 +1553,7 @@ void main() {
 
           final p2 = await packageBackend.lookupPackage('oxygen');
           expect(p2!.versionCount, 4);
+          await expectPackageInSqlMatchesDatastore('oxygen');
 
           await asyncQueue.ongoingProcessing;
           expect(fakeEmailSender.sentMessages, hasLength(1));

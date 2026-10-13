@@ -38,12 +38,14 @@ final packagePublisherSet = AdminAction(
     }
     final currentPublisherId = package.publisherId;
     if (currentPublisherId != publisherId) {
-      await withRetryTransaction(dbService, (tx) async {
+      final updated = await withRetryTransaction(dbService, (tx) async {
         final pkg = await tx.lookupValue<Package>(package.key);
         pkg.publisherId = publisherId;
         pkg.updated = clock.now().toUtc();
         tx.insert(pkg);
+        return pkg;
       });
+      await packageBackend.mirrorPackageToSql(updated);
       await purgePublisherCache(publisherId);
       triggerPackagePostUpdates(
         packageName,

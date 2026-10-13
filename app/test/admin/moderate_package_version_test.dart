@@ -25,6 +25,7 @@ import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:test/test.dart';
 
+import '../database/package_sql_utils.dart';
 import '../frontend/handlers/_utils.dart';
 import '../package/backend_test_utils.dart';
 import '../shared/handlers_test_utils.dart';
@@ -104,6 +105,7 @@ void main() {
           '1.0.0',
         );
         expect(pv2!.isModerated, isTrue);
+        await expectPackageInSqlMatchesDatastore('oxygen');
 
         // cannot redact this version
         await expectApiException(
@@ -131,6 +133,7 @@ void main() {
         expect(optionsUpdates.isRetracted, true);
         final p2 = await packageBackend.lookupPackage('oxygen');
         expect(p2!.latestVersion, '2.0.0-dev');
+        await expectPackageInSqlMatchesDatastore('oxygen');
 
         final mc2 = await adminBackend.lookupModerationCase(mc.caseId);
         expect(mc2!.getActionLog().entries, hasLength(1));

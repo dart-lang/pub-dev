@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Bump runtimeVersion to `2026.10.13`.
  * Upgraded stable Flutter analysis SDK to `3.47.7`.
  * Note: `AuditLogRecord` entities are migrated from Datastore to SQL.
+ * Note: `Package` and `PackageVersion` are now mirrored to SQL.
 
 ## `20261008t124100-all`
  * Bump runtimeVersion to `2026.10.08`.

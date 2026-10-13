@@ -66,6 +66,8 @@ value of `set-retracted`, which should either be `true` or `false`.
 
     final versionKey = pkg.key.append(PackageVersion, id: version);
     AuditLogRecord? auditLogRecord;
+    Package? updatedPackage;
+    PackageVersion? updatedVersion;
     final after = await withRetryTransaction(dbService, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
       final pv = await tx.lookupOrNull<PackageVersion>(versionKey);
@@ -84,6 +86,8 @@ value of `set-retracted`, which should either be `true` or `false`.
           pv,
           isRetracted,
         );
+        updatedPackage = p;
+        updatedVersion = pv;
       }
       return {
         'package': pv.package,
@@ -93,6 +97,12 @@ value of `set-retracted`, which should either be `true` or `false`.
     });
     if (auditLogRecord != null) {
       await auditBackend.migrateToSql(auditLogRecord!);
+    }
+    if (updatedPackage != null) {
+      await packageBackend.mirrorPackageToSql(
+        updatedPackage!,
+        versions: [updatedVersion!],
+      );
     }
     triggerPackagePostUpdates(packageName);
 

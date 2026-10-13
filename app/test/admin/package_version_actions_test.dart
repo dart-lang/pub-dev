@@ -6,6 +6,7 @@ import 'package:_pub_shared/data/admin_api.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:test/test.dart';
 
+import '../database/package_sql_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
@@ -65,6 +66,7 @@ void main() {
 
         final newLatest = await packageBackend.getLatestVersion('oxygen');
         expect(newLatest != latest, isTrue);
+        await expectPackageInSqlMatchesDatastore('oxygen');
       },
     );
   });

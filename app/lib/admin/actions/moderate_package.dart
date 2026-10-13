@@ -108,10 +108,11 @@ Future<Map<String, dynamic>> adminMarkPackageVisibility(
       tx.insert(pkg);
       return pkg;
     });
+    await packageBackend.mirrorPackageToSql(p2!);
 
     await triggerPackagePostUpdates(package, exportForceDelete: true).future;
 
-    await purgeScorecardData(package, p2!.latestVersion!, isLatest: true);
+    await purgeScorecardData(package, p2.latestVersion!, isLatest: true);
   }
 
   return {

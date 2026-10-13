@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart' as api;
@@ -401,6 +402,232 @@ class PackageBackend {
     return count;
   }
 
+  /// Upserts the [package] and the touched [versions] into SQL.
+  ///
+  /// The [deletedVersions] are removed in the same transaction.
+  Future<void> mirrorPackageToSql(
+    Package package, {
+    Iterable<PackageVersion> versions = const [],
+    Iterable<String> deletedVersions = const [],
+  }) async {
+    await primaryDatabase.transactWithRetry((db) async {
+      await _upsertPackage(db, package);
+      for (final version in deletedVersions) {
+        await db.packageVersions.delete(package.name!, version).execute();
+      }
+      for (final v in versions) {
+        await _upsertPackageVersion(db, v);
+      }
+    });
+  }
+
+  /// Upserts the [p] row and syncs its uploaders.
+  ///
+  /// The existing row is overwritten only if it is not newer than [p]:
+  /// concurrent mirror calls may carry stale snapshots, and they must not
+  /// overwrite the newer state. The comparison is part of the upsert statement,
+  /// so it is atomic with the write.
+  Future<void> _upsertPackage(Database<PrimarySchema> db, Package p) async {
+    await db.packages
+        .insertValue(
+          name: p.name!,
+          createdAt: p.created!,
+          updatedAt: p.updated!,
+          lastVersionPublishedAt: p.lastVersionPublished!,
+          latestVersion: p.latestVersion!,
+          latestPublishedAt: p.latestPublished,
+          latestPrereleaseVersion: p.latestPrereleaseVersion,
+          latestPrereleasePublishedAt: p.latestPrereleasePublished,
+          latestPreviewVersion: p.latestPreviewVersion,
+          latestPreviewPublishedAt: p.latestPreviewPublished,
+          publisherId: p.publisherId,
+          versionsCount: p.versionCount,
+          likesCount: p.likes,
+          isDiscontinued: p.isDiscontinued,
+          replacedBy: p.replacedBy,
+          isUnlisted: p.isUnlisted,
+          isModerated: p.isModerated,
+          moderatedAt: p.moderatedAt,
+          isAdminDeleted: p.isAdminDeleted,
+          adminDeletedAt: p.adminDeletedAt,
+          assignedTagsJson: JsonValue(p.assignedTags ?? const <String>[]),
+          deletedVersionsJson: JsonValue(p.deletedVersions ?? const <String>[]),
+          publishingConfigJson: p.publishingConfig == null
+              ? null
+              : JsonValue(p.publishingConfig!.toJson()),
+          latestAdvisoryAt: p.latestAdvisory,
+        )
+        .onConflict(.primaryKey)
+        .update(
+          (row, excluded, set) => set(
+            createdAt: excluded.createdAt,
+            updatedAt: excluded.updatedAt,
+            lastVersionPublishedAt: excluded.lastVersionPublishedAt,
+            latestVersion: excluded.latestVersion,
+            latestPublishedAt: excluded.latestPublishedAt,
+            latestPrereleaseVersion: excluded.latestPrereleaseVersion,
+            latestPrereleasePublishedAt: excluded.latestPrereleasePublishedAt,
+            latestPreviewVersion: excluded.latestPreviewVersion,
+            latestPreviewPublishedAt: excluded.latestPreviewPublishedAt,
+            publisherId: excluded.publisherId,
+            versionsCount: excluded.versionsCount,
+            likesCount: excluded.likesCount,
+            isDiscontinued: excluded.isDiscontinued,
+            replacedBy: excluded.replacedBy,
+            isUnlisted: excluded.isUnlisted,
+            isModerated: excluded.isModerated,
+            moderatedAt: excluded.moderatedAt,
+            isAdminDeleted: excluded.isAdminDeleted,
+            adminDeletedAt: excluded.adminDeletedAt,
+            assignedTagsJson: excluded.assignedTagsJson,
+            deletedVersionsJson: excluded.deletedVersionsJson,
+            publishingConfigJson: excluded.publishingConfigJson,
+            latestAdvisoryAt: excluded.latestAdvisoryAt,
+          ),
+        )
+        .where(
+          (row, excluded) => row.updatedAt.isAfter(excluded.updatedAt).not(),
+        )
+        .execute();
+    // The row is either written by this call (and locked by this transaction),
+    // or it was newer: in the latter case the uploaders must not be touched.
+    final current = await db.packages.byKey(p.name!).fetch();
+    if (current == null || current.updatedAt.isAfter(p.updated!)) {
+      return;
+    }
+    await _syncPackageUploaders(db, p.name!, p.uploaders ?? const []);
+  }
+
+  /// Makes the uploader rows of [package] match [uploaders].
+  ///
+  /// Must run after the package row is written, because of the foreign key.
+  Future<void> _syncPackageUploaders(
+    Database<PrimarySchema> db,
+    String package,
+    List<String> uploaders,
+  ) async {
+    final wanted = uploaders.toSet();
+    final existing =
+        (await db.packageUploaders
+                .where((u) => u.package.equalsValue(package))
+                .select((u) => (u.userId,))
+                .fetch())
+            .toSet();
+
+    final toAdd = wanted.difference(existing);
+    if (toAdd.isNotEmpty) {
+      await db.packageUploaders
+          .insertValuesMapped(
+            toAdd,
+            package: (_) => package,
+            userId: (userId) => userId,
+          )
+          .execute();
+    }
+
+    final toRemove = existing.difference(wanted);
+    if (toRemove.isNotEmpty) {
+      await db.packageUploaders
+          .where(
+            (u) =>
+                u.package.equalsValue(package) &
+                toRemove
+                    .map((userId) => u.userId.equalsValue(userId))
+                    .reduce((a, b) => a | b),
+          )
+          .delete()
+          .execute();
+    }
+  }
+
+  Future<void> _upsertPackageVersion(
+    Database<PrimarySchema> db,
+    PackageVersion v,
+  ) async {
+    await db.packageVersions
+        .upsertValue(
+          package: v.package,
+          version: v.version!,
+          createdAt: v.created!,
+          sha256: v.sha256 == null ? null : Uint8List.fromList(v.sha256!),
+          // Pubspecs may contain NUL characters (e.g. YAML `"\0"` escapes),
+          // which PostgreSQL jsonb values reject.
+          pubspecJson: JsonValue(_stripNul(jsonDecode(v.pubspec!.jsonString))),
+          librariesJson: JsonValue(_stripNul(v.libraries ?? const <String>[])),
+          uploader: v.uploader!,
+          publisherId: v.publisherId,
+          isRetracted: v.isRetracted,
+          retractedAt: v.retracted,
+          isModerated: v.isModerated,
+          moderatedAt: v.moderatedAt,
+          isAdminDeleted: v.isAdminDeleted,
+          adminDeletedAt: v.adminDeletedAt,
+        )
+        .execute();
+  }
+
+  /// Deletes the [package] and all of its versions from SQL.
+  ///
+  /// The version and uploader rows are removed by the foreign key cascade.
+  Future<void> deletePackageFromSql(String package) async {
+    await primaryDatabase.withRetry(
+      (db) => db.packages.delete(package).execute(),
+    );
+  }
+
+  /// Copies [Package] and [PackageVersion] entries from Datastore into SQL,
+  /// for packages that are missing or have a different `updated` timestamp
+  /// or likes count,
+  /// and removes SQL rows that have no matching Datastore entry.
+  Future<int> backfillPackagesSqlFromDatastore() async {
+    var count = 0;
+    final sqlState = <String, (DateTime, int)>{};
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.packages
+          .select((p) => (p.name, p.updatedAt, p.likesCount))
+          .fetch(),
+    );
+    for (final (name, updatedAt, likesCount) in rows) {
+      sqlState[name] = (updatedAt, likesCount);
+    }
+
+    await for (final p in allPackages()) {
+      final name = p.name!;
+      final sql = sqlState.remove(name);
+      if (sql != null &&
+          sql.$1.isAtSameMomentAs(p.updated!) &&
+          sql.$2 == p.likes) {
+        continue;
+      }
+      final versions = await versionsOfPackage(name);
+      await primaryDatabase.transactWithRetry((db) async {
+        await _upsertPackage(db, p);
+        final versionNames = <String>{};
+        for (final v in versions) {
+          await _upsertPackageVersion(db, v);
+          versionNames.add(v.version!);
+        }
+        final existing = await db.packageVersions
+            .where((v) => v.package.equalsValue(name))
+            .select((v) => (v.version,))
+            .fetch();
+        for (final version in existing) {
+          if (!versionNames.contains(version)) {
+            await db.packageVersions.delete(name, version).execute();
+          }
+        }
+      });
+      count++;
+    }
+
+    // The remaining entries have no matching Datastore entity.
+    for (final name in sqlState.keys) {
+      await deletePackageFromSql(name);
+      count++;
+    }
+    return count;
+  }
+
   /// Looks up a package by name.
   Future<List<Package>> lookupPackages(Iterable<String> packageNames) async {
     return (await db.lookup(
@@ -639,6 +866,7 @@ class PackageBackend {
         .run()
         .toList();
 
+    Package? updatedPackage;
     final updated = await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupOrNull<Package>(pkgKey);
       if (p == null) {
@@ -658,8 +886,12 @@ class PackageBackend {
 
       _logger.info('Updating version fields for package `$package`.');
       tx.insert(p);
+      updatedPackage = p;
       return true;
     });
+    if (updatedPackage != null) {
+      await mirrorPackageToSql(updatedPackage!);
+    }
     if (updated) {
       triggerPackagePostUpdates(
         package,
@@ -739,6 +971,7 @@ class PackageBackend {
 
     final pkg = await _requirePackageAdmin(package, user.userId);
     AuditLogRecord? auditLogRecord;
+    Package? updatedPackage;
     await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
 
@@ -772,6 +1005,7 @@ class PackageBackend {
         'isUnlisted: ${p.isUnlisted}',
       );
       tx.insert(p);
+      updatedPackage = p;
       auditLogRecord = await AuditLogRecord.packageOptionsUpdated(
         agent: authenticatedUser,
         package: p.name!,
@@ -782,6 +1016,9 @@ class PackageBackend {
     });
     if (auditLogRecord != null) {
       await auditBackend.migrateToSql(auditLogRecord!);
+    }
+    if (updatedPackage != null) {
+      await mirrorPackageToSql(updatedPackage!);
     }
     triggerPackagePostUpdates(package, skipArchiveExport: true);
   }
@@ -799,6 +1036,8 @@ class PackageBackend {
     final pkg = await _requirePackageAdmin(package, user.userId);
     final versionKey = pkg.key.append(PackageVersion, id: version);
     AuditLogRecord? auditLogRecord;
+    Package? updatedPackage;
+    PackageVersion? updatedVersion;
     await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
       final pv = await tx.lookupOrNull<PackageVersion>(versionKey);
@@ -829,10 +1068,15 @@ class PackageBackend {
           pv,
           options.isRetracted!,
         );
+        updatedPackage = p;
+        updatedVersion = pv;
       }
     });
     if (auditLogRecord != null) {
       await auditBackend.migrateToSql(auditLogRecord!);
+    }
+    if (updatedPackage != null) {
+      await mirrorPackageToSql(updatedPackage!, versions: [updatedVersion!]);
     }
     await purgeScorecardData(
       package,
@@ -852,6 +1096,7 @@ class PackageBackend {
     final user = authenticatedUser.user;
     final pkg = await _requirePackageAdmin(package, user.userId);
     AuditLogRecord? auditLogRecord;
+    Package? updatedPackage;
     final result = await withRetryTransaction(db, (tx) async {
       final p = await tx.lookupValue<Package>(pkg.key);
       final githubConfig = body.github;
@@ -967,6 +1212,7 @@ class PackageBackend {
         user: user,
       );
       tx.insert(auditLogRecord!);
+      updatedPackage = p;
       return api.PkgPublishingConfig(
         github: p.publishingConfig!.githubConfig,
         gcp: p.publishingConfig!.gcpConfig,
@@ -975,6 +1221,9 @@ class PackageBackend {
     });
     if (auditLogRecord != null) {
       await auditBackend.migrateToSql(auditLogRecord!);
+    }
+    if (updatedPackage != null) {
+      await mirrorPackageToSql(updatedPackage!);
     }
     return result;
   }
@@ -1108,6 +1357,7 @@ class PackageBackend {
     OutgoingEmail? email;
     String? currentPublisherId;
     AuditLogRecord? auditLogRecord;
+    Package? updatedPackage;
     final rs = await withRetryTransaction(db, (tx) async {
       final package = await tx.lookupValue<Package>(key);
       if (package.publisherId == newPublisherId) {
@@ -1120,6 +1370,7 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
+      updatedPackage = package;
       auditLogRecord = await AuditLogRecord.packageTransferred(
         user: user,
         package: package.name!,
@@ -1144,6 +1395,9 @@ class PackageBackend {
     });
     if (auditLogRecord != null) {
       await auditBackend.migrateToSql(auditLogRecord!);
+    }
+    if (updatedPackage != null) {
+      await mirrorPackageToSql(updatedPackage!);
     }
     await purgePublisherCache(newPublisherId);
 
@@ -1757,6 +2011,7 @@ class PackageBackend {
     if (deletedReservedPackageName != null) {
       await deleteReservedPackageFromSql(deletedReservedPackageName!);
     }
+    await mirrorPackageToSql(package!, versions: [newVersion]);
     await upsertPackageVersionAssetsToSql(entities.assets);
     await emailBackend.migrateToSql(outgoingEmail);
     _logger.info('Upload successful. [package-uploaded]');
@@ -1977,12 +2232,14 @@ class PackageBackend {
         _logger.info(
           'Disabled automated publishing using GitHub Actions for package:${package.name} because account identifier changed.',
         );
-        await withRetryTransaction(db, (tx) async {
+        final updated = await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
           p.publishingConfig!.githubConfig!.isEnabled = false;
           p.updated = clock.now().toUtc();
           tx.insert(p);
+          return p;
         });
+        await mirrorPackageToSql(updated);
         throw AuthorizationException.githubActionIssue(
           'GitHub repository identifiers changed, disabling automated publishing',
         );
@@ -2022,12 +2279,14 @@ class PackageBackend {
         _logger.info(
           'Disabled automated publishing using GCP service account for package:${package.name} because account identifier changed.',
         );
-        await withRetryTransaction(db, (tx) async {
+        final updated = await withRetryTransaction(db, (tx) async {
           final p = await tx.lookupValue<Package>(package.key);
           p.publishingConfig!.gcpConfig!.isEnabled = false;
           p.updated = clock.now().toUtc();
           tx.insert(p);
+          return p;
         });
+        await mirrorPackageToSql(updated);
         throw AuthorizationException.githubActionIssue(
           'Google Cloud Service account identifiers changed, disabling automated publishing',
         );
@@ -2112,6 +2371,7 @@ class PackageBackend {
     required String consentRequestFromAgent,
   }) async {
     AuditLogRecord? auditLogRecord;
+    Package? updatedPackage;
     final uploaderUserId = await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
@@ -2133,6 +2393,7 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
+      updatedPackage = package;
       auditLogRecord = await AuditLogRecord.uploaderInviteAccepted(
         user: uploader,
         package: packageName,
@@ -2142,6 +2403,9 @@ class PackageBackend {
     });
     if (auditLogRecord != null) {
       await auditBackend.migrateToSql(auditLogRecord!);
+    }
+    if (updatedPackage != null) {
+      await mirrorPackageToSql(updatedPackage!);
     }
     await purgeAccountCache(userId: uploaderUserId);
     triggerPackagePostUpdates(
@@ -2175,6 +2439,7 @@ class PackageBackend {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
     AuditLogRecord? auditLogRecord;
+    Package? updatedPackage;
     final uploaderUserId = await withRetryTransaction(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = await tx.lookupOrNull<Package>(packageKey);
@@ -2221,6 +2486,7 @@ class PackageBackend {
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
+      updatedPackage = package;
       auditLogRecord = await AuditLogRecord.uploaderRemoved(
         agent: authenticatedUser,
         package: packageName,
@@ -2231,6 +2497,9 @@ class PackageBackend {
     });
     if (auditLogRecord != null) {
       await auditBackend.migrateToSql(auditLogRecord!);
+    }
+    if (updatedPackage != null) {
+      await mirrorPackageToSql(updatedPackage!);
     }
     await purgeAccountCache(userId: uploaderUserId);
     triggerPackagePostUpdates(
@@ -2857,6 +3126,17 @@ class _VersionTransactionDataAcccess {
   ];
 
   return (future: Future.wait(futures));
+}
+
+/// Removes NUL characters from the strings (including map keys) of a
+/// JSON-compatible [value].
+Object? _stripNul(Object? value) {
+  return switch (value) {
+    String() => value.replaceAll('\u0000', ''),
+    List() => value.map(_stripNul).toList(),
+    Map() => value.map((k, v) => MapEntry(_stripNul(k), _stripNul(v))),
+    _ => value,
+  };
 }
 
 /// The GCS object name of a tarball object - excluding leading '/'.

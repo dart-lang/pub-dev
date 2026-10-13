@@ -12,6 +12,7 @@ import 'package:pub_dev/service/security_advisories/sync_security_advisories.dar
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
+import '../../database/package_sql_utils.dart';
 import '../../shared/test_services.dart';
 
 void main() {
@@ -127,6 +128,7 @@ void main() {
 
       expect(pkg!.latestAdvisory, isNotNull);
       expect(pkg.latestAdvisory!.isAfter(beforeSyncTime), isTrue);
+      await expectPackageInSqlMatchesDatastore('oxygen');
 
       final betweenSyncsTime = clock.now();
       expect(pkg.latestAdvisory!.isBefore(betweenSyncsTime), isTrue);

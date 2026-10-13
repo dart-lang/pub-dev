@@ -12,6 +12,7 @@ import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 
+import '../database/package_sql_utils.dart';
 import '../package/backend_test_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
@@ -117,6 +118,7 @@ void main() {
         (db) => db.packageTombstones.byKey('oxygen').fetch(),
       );
       expect(row, isNull);
+      await expectPackageInSqlMatchesDatastore('oxygen');
 
       // verify that upload is unblocked
       final rs2 = await createPubApiClient(

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:_pub_shared/data/account_api.dart';
@@ -18,6 +19,7 @@ import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/model_properties.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
@@ -29,6 +31,7 @@ import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
 
 import '../admin/models_test.dart';
+import '../database/package_sql_utils.dart';
 import '../frontend/handlers/_utils.dart';
 import '../package/backend_test_utils.dart';
 import '../shared/handlers_test_utils.dart';
@@ -103,6 +106,7 @@ void main() {
         });
         final p2 = await packageBackend.lookupPackage('oxygen');
         expect(p2!.isModerated, isTrue);
+        await expectPackageInSqlMatchesDatastore('oxygen');
         await expectModerationActions(
           mc.caseId,
           actions: [ModerationAction.apply],
@@ -192,6 +196,7 @@ void main() {
           email: adminAtPubDevEmail,
         )).setPackageOptions('oxygen', PkgOptions(isUnlisted: true));
         expect(optionsUpdates.isUnlisted, true);
+        await expectPackageInSqlMatchesDatastore('oxygen');
 
         final api = createPubApiClient(authToken: siteAdminToken);
         final info = await api.adminInvokeAction(
@@ -559,6 +564,121 @@ void main() {
         );
         expect(await sqlAssetVersions(), isNot(contains('9.9.9')));
 
+        // the upload has already mirrored the package and its versions, remove
+        // them to exercise the backfill
+        await expectPackageInSqlMatchesDatastore('oxygen');
+        await packageBackend.deletePackageFromSql('oxygen');
+        expect(
+          await packageBackend.backfillPackagesSqlFromDatastore(),
+          greaterThan(0),
+        );
+        await expectPackageInSqlMatchesDatastore('oxygen');
+        expect(await packageBackend.backfillPackagesSqlFromDatastore(), 0);
+
+        // stale rows are refreshed, and their versions reconciled
+        await primaryDatabase.withRetry(
+          (db) => db.packages
+              .where((p) => p.name.equalsValue('oxygen'))
+              .update(
+                (p, set) => set(updatedAt: toExpr(DateTime.utc(2000, 1, 1))),
+              )
+              .execute(),
+        );
+        await primaryDatabase.withRetry(
+          (db) => db.packageVersions
+              .insertValue(
+                package: 'oxygen',
+                version: '9.9.9',
+                createdAt: DateTime.utc(2000, 1, 1),
+                pubspecJson: JsonValue({}),
+                librariesJson: JsonValue([]),
+                uploader: 'orphan',
+                isRetracted: false,
+                isModerated: false,
+                isAdminDeleted: false,
+              )
+              .execute(),
+        );
+        expect(await packageBackend.backfillPackagesSqlFromDatastore(), 1);
+        await expectPackageInSqlMatchesDatastore('oxygen');
+
+        // NUL characters are stripped from the pubspec for Postgres
+        Future<void> updatePubspec(
+          Map<String, dynamic> Function(Map<String, dynamic>) fn,
+        ) async {
+          final pkgKey = dbService.emptyKey.append(Package, id: 'oxygen');
+          final pvKey = pkgKey.append(PackageVersion, id: '1.2.0');
+          final [p as Package, pv as PackageVersion] = await dbService.lookup([
+            pkgKey,
+            pvKey,
+          ]);
+          pv.pubspec = Pubspec(
+            json.encode(
+              fn(json.decode(pv.pubspec!.jsonString) as Map<String, dynamic>),
+            ),
+          );
+          p.updated = clock.now().toUtc();
+          await dbService.commit(inserts: [p, pv]);
+        }
+
+        final originalPubspec = json.decode(
+          (await packageBackend.lookupPackageVersion(
+            'oxygen',
+            '1.2.0',
+          ))!.pubspec!.jsonString,
+        );
+        await updatePubspec((m) => {...m, 'description': 'before\u0000after'});
+        expect(await packageBackend.backfillPackagesSqlFromDatastore(), 1);
+        final nulRow = await primaryDatabase.withRetry(
+          (db) => db.packageVersions.byKey('oxygen', '1.2.0').fetch(),
+        );
+        expect(
+          (nulRow!.pubspecJson.value as Map)['description'],
+          'beforeafter',
+        );
+        await updatePubspec((_) => originalPubspec as Map<String, dynamic>);
+        expect(await packageBackend.backfillPackagesSqlFromDatastore(), 1);
+        await expectPackageInSqlMatchesDatastore('oxygen');
+
+        // rows without a Datastore entity are removed
+        await primaryDatabase.withRetry(
+          (db) => db.packages
+              .insertValue(
+                name: 'orphan',
+                createdAt: DateTime.utc(2000, 1, 1),
+                updatedAt: DateTime.utc(2000, 1, 1),
+                lastVersionPublishedAt: DateTime.utc(2000, 1, 1),
+                latestVersion: '1.0.0',
+                versionsCount: 1,
+                likesCount: 0,
+                isDiscontinued: false,
+                isUnlisted: false,
+                isModerated: false,
+                isAdminDeleted: false,
+                assignedTagsJson: JsonValue([]),
+                deletedVersionsJson: JsonValue([]),
+              )
+              .execute(),
+        );
+        final someUser = (await primaryDatabase.withRetry(
+          (db) => db.users.limit(1).fetch(),
+        )).single;
+        await primaryDatabase.withRetry(
+          (db) => db.packageUploaders
+              .insertValue(package: 'orphan', userId: someUser.userId)
+              .execute(),
+        );
+        expect(await packageBackend.backfillPackagesSqlFromDatastore(), 1);
+        await expectPackageInSqlMatchesDatastore('orphan');
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.packageUploaders
+                .where((u) => u.package.equalsValue('orphan'))
+                .fetch(),
+          ),
+          isEmpty,
+        );
+
         // delete old version
         await accountBackend.withBearerToken(siteAdminToken, () async {
           await adminBackend.removePackageVersion('oxygen', '1.0.0');
@@ -566,6 +686,7 @@ void main() {
         await asyncQueue.ongoingProcessing;
         expect(await sqlAssetVersions(), isNot(contains('1.0.0')));
         expect(await sqlAssetVersions(), contains('1.2.0'));
+        await expectPackageInSqlMatchesDatastore('oxygen');
 
         // canonical file is present
         expect(
@@ -583,6 +704,7 @@ void main() {
         // no package, version or canonical file
         expect(await packageBackend.lookupPackage('oxygen'), isNull);
         expect(await sqlAssetVersions(), isEmpty);
+        await expectPackageInSqlMatchesDatastore('oxygen');
         expect(
           await packageBackend.lookupPackageVersion('oxygen', '1.2.0'),
           isNull,

@@ -29,6 +29,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 
+import '../database/package_sql_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -230,6 +231,7 @@ void main() {
           // package is no longer visible
           final pkgAfterMarked = await dbService.lookupOrNull<Package>(pkgKey);
           expect(pkgAfterMarked!.isVisible, false);
+          await expectPackageInSqlMatchesDatastore('oxygen');
           final archiveAfterMarked = await packageBackend
               .getExportedArchiveInfo('oxygen', '1.2.0');
           expect(archiveAfterMarked, isNull);
@@ -257,6 +259,7 @@ void main() {
             pkgKey,
           );
           expect(pkgAfterReverted!.isVisible, true);
+          await expectPackageInSqlMatchesDatastore('oxygen');
           final archiveAfterReverted = await packageBackend
               .getExportedArchiveInfo('oxygen', '1.2.0');
           expect(archiveAfterReverted, isNotNull);
@@ -343,6 +346,7 @@ void main() {
           // checks after actual removal
           final pkgAfterRemoval = await dbService.lookupOrNull<Package>(pkgKey);
           expect(pkgAfterRemoval, isNull);
+          await expectPackageInSqlMatchesDatastore('oxygen');
 
           final versionsAfterRemoval = await versionsQuery.run().toList();
           expect(versionsAfterRemoval, isEmpty);
@@ -435,6 +439,7 @@ void main() {
             removeVersion,
           );
           expect(pvAfterMarked!.isVisible, false);
+          await expectPackageInSqlMatchesDatastore('oxygen');
           final archiveAfterMarked = await packageBackend
               .getExportedArchiveInfo('oxygen', removeVersion);
           expect(archiveAfterMarked, isNull);
@@ -616,6 +621,7 @@ void main() {
               .single;
           expect(versionsAfterRemoval, hasLength(versions.length - 1));
           expect(missingVersion, removeVersion);
+          await expectPackageInSqlMatchesDatastore('oxygen');
 
           final likeAfterRemoval = await dbService.lookupOrNull<Like>(likeKey);
           expect(likeAfterRemoval, isNotNull);
@@ -703,6 +709,7 @@ void main() {
 
           like = await dbService.lookupOrNull<Like>(likeKey);
           expect(like, null);
+          await expectPackageInSqlMatchesDatastore('oxygen');
         },
       );
 
@@ -758,6 +765,7 @@ void main() {
           );
           final r3 = await client.adminGetAssignedTags('oxygen');
           expect(r3.assignedTags, contains('is:featured'));
+          await expectPackageInSqlMatchesDatastore('oxygen');
 
           // Check that we can set is:featured (again)
           await client.adminPostAssignedTags(
@@ -774,6 +782,7 @@ void main() {
           );
           final r5 = await client.adminGetAssignedTags('oxygen');
           expect(r5.assignedTags, isNot(contains('is:featured')));
+          await expectPackageInSqlMatchesDatastore('oxygen');
 
           // Check that we can remove the tag (again).
           await client.adminPostAssignedTags(
@@ -912,6 +921,7 @@ void main() {
               'admin@pub.dev',
               'someuser@pub.dev',
             });
+            await expectPackageInSqlMatchesDatastore('oxygen');
           },
         );
       });
@@ -985,6 +995,7 @@ void main() {
               'someuser@pub.dev',
             );
             expect(rs.uploaders.single.email, 'user@pub.dev');
+            await expectPackageInSqlMatchesDatastore('oxygen');
           },
         );
 
@@ -997,6 +1008,7 @@ void main() {
               'admin@pub.dev',
             );
             expect(rs.uploaders, isEmpty);
+            await expectPackageInSqlMatchesDatastore('oxygen');
           },
         );
       });

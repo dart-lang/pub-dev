@@ -12,6 +12,7 @@ import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/maintenance/update_package_likes.dart';
 import 'package:test/test.dart';
 
+import '../../database/package_sql_utils.dart';
 import '../../shared/test_models.dart';
 import '../../shared/test_services.dart';
 
@@ -24,6 +25,7 @@ void main() {
         expect(await updatePackageLikes(), 0);
         final p2 = await packageBackend.lookupPackage('oxygen');
         expect(p2!.likes, p1!.likes);
+        await expectPackageInSqlMatchesDatastore('oxygen');
       },
     );
 
@@ -55,6 +57,7 @@ void main() {
         expect(await updatePackageLikes(), 1);
         final p2 = await packageBackend.lookupPackage('oxygen');
         expect(p2!.likes, p1!.likes);
+        await expectPackageInSqlMatchesDatastore('oxygen');
       },
     );
 
@@ -75,6 +78,7 @@ void main() {
         expect(await updatePackageLikes(), 1);
         final p2 = await packageBackend.lookupPackage('oxygen');
         expect(p2!.likes, p1!.likes + 1);
+        await expectPackageInSqlMatchesDatastore('oxygen');
       },
     );
   });

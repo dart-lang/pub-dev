@@ -123,6 +123,7 @@ Future<Map<String, dynamic>> adminMarkPackageVersionVisibility(
     final currentFlutterSdk = await getCachedFlutterSdkVersion(
       lastKnownStable: toolStableFlutterSdkVersion,
     );
+    Package? updatedPackage;
     pv2 = await withRetryTransaction(dbService, (tx) async {
       final v = await tx.lookupValue<PackageVersion>(pv.key);
       await whenUpdating(tx, v, valueToSet!);
@@ -142,9 +143,11 @@ Future<Map<String, dynamic>> adminMarkPackageVersionVisibility(
       }
       pkg.updated = clock.now().toUtc();
       tx.insert(pkg);
+      updatedPackage = pkg;
 
       return v;
     });
+    await packageBackend.mirrorPackageToSql(updatedPackage!, versions: [pv2!]);
 
     await triggerPackagePostUpdates(package, exportForceDelete: true).future;
 
