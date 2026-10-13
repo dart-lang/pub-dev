@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
@@ -25,17 +27,22 @@ Future<int> updatePackageLikes() async {
     _logger.info(
       'Updating likes for package "${p.name}" changing from ${p.likes} to $count.',
     );
-    await withRetryTransaction(dbService, (tx) async {
+    final updated = await withRetryTransaction<Package?>(dbService, (tx) async {
       final pkg = await tx.lookupValue<Package>(p.key);
       if (pkg.updated != p.updated || pkg.likes != p.likes) {
         _logger.info(
           'Skipping like update for package "${p.name}": changed since the like verification started.',
         );
-        return;
+        return null;
       }
       pkg.likes = count;
+      pkg.updated = clock.now().toUtc();
       tx.insert(pkg);
+      return pkg;
     });
+    if (updated != null) {
+      await packageBackend.mirrorPackageToSql(updated);
+    }
     updatedCount++;
   }
   return updatedCount;

@@ -709,6 +709,7 @@ void main() {
 
           like = await dbService.lookupOrNull<Like>(likeKey);
           expect(like, null);
+          await expectPackageInSqlMatchesDatastore('oxygen');
         },
       );
 

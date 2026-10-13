@@ -3,8 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
 
+import '../database/package_sql_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -31,6 +35,8 @@ void main() {
         final rs3 = await client.getLikePackage(pkg1);
         expect(rs3.package, pkg1);
         expect(rs3.liked, true);
+
+        await expectPackageInSqlMatchesDatastore(pkg1);
       },
     );
 
@@ -124,6 +130,26 @@ void main() {
         final rs6 = await client.listPackageLikes();
         expect(rs6.likedPackages!.length, 1);
         expect(rs6.likedPackages![0].package, pkg2);
+
+        await expectPackageInSqlMatchesDatastore(pkg1);
+        await expectPackageInSqlMatchesDatastore(pkg2);
+      },
+    );
+
+    testWithProfile(
+      'Backfill detects likes count change without updated change',
+      fn: () async {
+        expect(await packageBackend.backfillPackagesSqlFromDatastore(), 0);
+        await withRetryTransaction(dbService, (tx) async {
+          final p = await tx.lookupValue<Package>(
+            dbService.emptyKey.append(Package, id: pkg1),
+          );
+          p.likes++;
+          tx.insert(p);
+        });
+        expect(await packageBackend.backfillPackagesSqlFromDatastore(), 1);
+        await expectPackageInSqlMatchesDatastore(pkg1);
+        expect(await packageBackend.backfillPackagesSqlFromDatastore(), 0);
       },
     );
 

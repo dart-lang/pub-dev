@@ -540,22 +540,27 @@ class PackageBackend {
   }
 
   /// Copies [Package] and [PackageVersion] entries from Datastore into SQL,
-  /// for packages that are missing or have a different `updated` timestamp,
+  /// for packages that are missing or have a different `updated` timestamp
+  /// or likes count,
   /// and removes SQL rows that have no matching Datastore entry.
   Future<int> backfillPackagesSqlFromDatastore() async {
     var count = 0;
-    final sqlUpdatedAt = <String, DateTime>{};
+    final sqlState = <String, (DateTime, int)>{};
     final rows = await primaryDatabase.withRetry(
-      (db) => db.packages.select((p) => (p.name, p.updatedAt)).fetch(),
+      (db) => db.packages
+          .select((p) => (p.name, p.updatedAt, p.likesCount))
+          .fetch(),
     );
-    for (final (name, updatedAt) in rows) {
-      sqlUpdatedAt[name] = updatedAt;
+    for (final (name, updatedAt, likesCount) in rows) {
+      sqlState[name] = (updatedAt, likesCount);
     }
 
     await for (final p in allPackages()) {
       final name = p.name!;
-      final sqlUpdated = sqlUpdatedAt.remove(name);
-      if (sqlUpdated != null && sqlUpdated.isAtSameMomentAs(p.updated!)) {
+      final sql = sqlState.remove(name);
+      if (sql != null &&
+          sql.$1.isAtSameMomentAs(p.updated!) &&
+          sql.$2 == p.likes) {
         continue;
       }
       final versions = await versionsOfPackage(name);
@@ -580,7 +585,7 @@ class PackageBackend {
     }
 
     // The remaining entries have no matching Datastore entity.
-    for (final name in sqlUpdatedAt.keys) {
+    for (final name in sqlState.keys) {
       await deletePackageFromSql(name);
       count++;
     }

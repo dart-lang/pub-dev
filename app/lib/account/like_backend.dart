@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 
+import '../package/backend.dart' show packageBackend;
 import '../package/models.dart';
 import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
@@ -50,7 +51,9 @@ class LikeBackend {
   /// Creates and returns a package like entry for the given [user] and
   /// [package], and increments the 'likes' property on [package].
   Future<Like> likePackage(User user, String package) async {
+    Package? updatedPackage;
     final res = await withRetryTransaction<Like>(_db, (tx) async {
+      updatedPackage = null;
       final packageKey = _db.emptyKey.append(Package, id: package);
       final p = await tx.lookupOrNull<Package>(packageKey);
       if (p == null) {
@@ -67,6 +70,7 @@ class LikeBackend {
       }
 
       p.likes++;
+      p.updated = clock.now().toUtc();
       final newLike = Like()
         ..parentKey = user.key
         ..id = p.id
@@ -74,8 +78,12 @@ class LikeBackend {
         ..packageName = p.name;
 
       tx.queueMutations(inserts: [p, newLike]);
+      updatedPackage = p;
       return newLike;
     });
+    if (updatedPackage != null) {
+      await packageBackend.mirrorPackageToSql(updatedPackage!);
+    }
     await cache.packageView(package).purge();
     await purgeAccountCache(userId: user.userId);
     return res;
@@ -84,7 +92,9 @@ class LikeBackend {
   /// Delete a package like entry for the given [user] and [package] if it
   /// exists, and decrements the 'likes' property on [package].
   Future<void> unlikePackage(User user, String package) async {
+    Package? updatedPackage;
     await withRetryTransaction<void>(_db, (tx) async {
+      updatedPackage = null;
       final packageKey = _db.emptyKey.append(Package, id: package);
       final p = await tx.lookupOrNull<Package>(packageKey);
       if (p == null) {
@@ -101,8 +111,13 @@ class LikeBackend {
       }
 
       p.likes--;
+      p.updated = clock.now().toUtc();
       tx.queueMutations(inserts: [p], deletes: [likeKey]);
+      updatedPackage = p;
     });
+    if (updatedPackage != null) {
+      await packageBackend.mirrorPackageToSql(updatedPackage!);
+    }
     await cache.packageView(package).purge();
     await cache.userPackageLikes(user.userId).purge();
   }
