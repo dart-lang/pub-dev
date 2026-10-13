@@ -11,11 +11,6 @@ import 'package:pub_dev/database/database.dart';
 /// add statements that cannot run in a transaction (e.g. `CONCURRENTLY`,
 /// `VACUUM`), or that control the transaction (`BEGIN`, `COMMIT`...).
 const migrateDryRunScripts = <String, String>{
-  // Sanity check that the dry-run mechanism works end to end.
-  'smoke-create-table': '''
-CREATE TABLE "dry_run_smoke" ("id" text NOT NULL, PRIMARY KEY ("id"));
-''',
-
   // Fails if any user_sessions.user_id has no matching users.user_id row.
   // NULL user_id values are allowed (anonymous sessions).
   'user-sessions-fk-user': '''

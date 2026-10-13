@@ -29,8 +29,14 @@ void main() {
           expect(result['rolledBack'], true);
           expect(result['ok'], true, reason: '$result');
         }
-        // The smoke table creation must have been rolled back: dropping it
-        // fails because the table does not exist.
+        // expecting this to complete without an issue
+        expect(
+          await primaryDatabase.migrateDryRun(
+            'CREATE TABLE "dry_run_smoke" ("id" text NOT NULL);',
+          ),
+          isNull,
+        );
+        // dropping should fail because the table does not exist
         final dropError = await primaryDatabase.migrateDryRun(
           'DROP TABLE "dry_run_smoke";',
         );
