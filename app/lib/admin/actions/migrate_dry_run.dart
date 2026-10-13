@@ -19,6 +19,22 @@ ALTER TABLE "user_sessions"
   FOREIGN KEY ("user_id") REFERENCES "users" ("user_id")
   ON UPDATE CASCADE ON DELETE CASCADE;
 ''',
+  // Fails if any package_version_assets row has no matching package_versions
+  // row (which also implies a matching packages row).
+  'package-version-assets-fk-version': '''
+ALTER TABLE "package_version_assets"
+  ADD CONSTRAINT "package_version_assets_fk_package_version"
+  FOREIGN KEY ("package", "version")
+  REFERENCES "package_versions" ("package", "version")
+  ON UPDATE CASCADE ON DELETE CASCADE;
+''',
+  // Fails if any package_version_assets.package has no matching packages row.
+  'package-version-assets-fk-package': '''
+ALTER TABLE "package_version_assets"
+  ADD CONSTRAINT "package_version_assets_fk_package"
+  FOREIGN KEY ("package") REFERENCES "packages" ("name")
+  ON UPDATE CASCADE ON DELETE CASCADE;
+''',
 };
 
 final migrateDryRun = AdminAction(
