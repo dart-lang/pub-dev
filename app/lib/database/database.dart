@@ -429,6 +429,36 @@ extension PrimaryDatabaseExt on PrimaryDatabase {
     return await _withRetryZone((db) => db.transact(() => fn(db)));
   }
 
+  /// Executes the DDL [sql] in a transaction that is **always** rolled back.
+  ///
+  /// Returns `null` if the script ran without errors, otherwise the error
+  /// message. Nothing is persisted either way.
+  ///
+  /// Locks are held until the rollback, hence the short `lock_timeout`: if the
+  /// affected tables are busy, the script fails fast instead of blocking
+  /// other queries.
+  Future<String?> migrateDryRun(String sql) async {
+    try {
+      await _adapter.transact<void>((tx) async {
+        await tx.script(
+          "SET LOCAL lock_timeout = '3s';\n"
+          "SET LOCAL statement_timeout = '30s';\n"
+          '$sql',
+        );
+        throw _DryRunRollback();
+      });
+    } on TransactionAbortedException catch (e) {
+      if (e.reason is _DryRunRollback) {
+        return null;
+      }
+      return e.reason.toString();
+    } on DatabaseException catch (e) {
+      return e.toString();
+    }
+    // Unreachable: the transaction body always throws.
+    throw StateError('Dry-run transaction was not rolled back.');
+  }
+
   Future<K> _withRetryZone<K>(
     Future<K> Function(Database<PrimarySchema> db) fn,
   ) async {
@@ -457,3 +487,6 @@ extension PrimaryDatabaseExt on PrimaryDatabase {
     }
   }
 }
+
+/// Thrown to roll back the transaction in [PrimaryDatabaseExt.migrateDryRun].
+final class _DryRunRollback implements Exception {}
