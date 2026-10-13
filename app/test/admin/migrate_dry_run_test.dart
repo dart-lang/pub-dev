@@ -102,7 +102,7 @@ void main() {
       fn: () async {
         await expectLater(
           migrateDryRun.invoke({'script': 'nope'}),
-          throwsA(isA<Exception>()),
+          throwsA(isA<NotFoundException>()),
         );
       },
     );
