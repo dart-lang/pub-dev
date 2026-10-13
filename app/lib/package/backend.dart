@@ -405,22 +405,19 @@ class PackageBackend {
   /// Upserts the [package] and the touched [versions] into SQL.
   ///
   /// The [deletedVersions] are removed in the same transaction.
-  ///
-  /// The package row is written after the versions, and the uploaders are
-  /// synced right after it: they depend on it through a foreign key.
   Future<void> mirrorPackageToSql(
     Package package, {
     Iterable<PackageVersion> versions = const [],
     Iterable<String> deletedVersions = const [],
   }) async {
     await primaryDatabase.transactWithRetry((db) async {
+      await _upsertPackage(db, package);
       for (final version in deletedVersions) {
         await db.packageVersions.delete(package.name!, version).execute();
       }
       for (final v in versions) {
         await _upsertPackageVersion(db, v);
       }
-      await _upsertPackage(db, package);
     });
   }
 
@@ -528,15 +525,11 @@ class PackageBackend {
 
   /// Deletes the [package] and all of its versions from SQL.
   ///
-  /// The uploader rows are removed by the foreign key cascade.
+  /// The version and uploader rows are removed by the foreign key cascade.
   Future<void> deletePackageFromSql(String package) async {
-    await primaryDatabase.transactWithRetry((db) async {
-      await db.packageVersions
-          .where((v) => v.package.equalsValue(package))
-          .delete()
-          .execute();
-      await db.packages.delete(package).execute();
-    });
+    await primaryDatabase.withRetry(
+      (db) => db.packages.delete(package).execute(),
+    );
   }
 
   /// Copies [Package] and [PackageVersion] entries from Datastore into SQL,
@@ -565,6 +558,7 @@ class PackageBackend {
       }
       final versions = await versionsOfPackage(name);
       await primaryDatabase.transactWithRetry((db) async {
+        await _upsertPackage(db, p);
         final versionNames = <String>{};
         for (final v in versions) {
           await _upsertPackageVersion(db, v);
@@ -579,7 +573,6 @@ class PackageBackend {
             await db.packageVersions.delete(name, version).execute();
           }
         }
-        await _upsertPackage(db, p);
       });
       count++;
     }

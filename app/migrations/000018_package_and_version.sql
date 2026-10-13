@@ -1,22 +1,3 @@
--- Create "package_versions" table
-CREATE TABLE "package_versions" (
-  "package" text NOT NULL,
-  "version" text NOT NULL,
-  "created_at" timestamptz NOT NULL,
-  "sha256" bytea NULL,
-  "pubspec_json" jsonb NOT NULL,
-  "libraries_json" jsonb NOT NULL,
-  "uploader" text NOT NULL,
-  "publisher_id" text NULL,
-  "is_retracted" boolean NOT NULL,
-  "retracted_at" timestamptz NULL,
-  "is_moderated" boolean NOT NULL,
-  "moderated_at" timestamptz NULL,
-  "is_admin_deleted" boolean NOT NULL,
-  "admin_deleted_at" timestamptz NULL,
-  PRIMARY KEY ("package", "version")
-);
-
 -- Create "packages" table
 CREATE TABLE "packages" (
   "name" text NOT NULL,
@@ -57,3 +38,23 @@ CREATE TABLE "package_uploaders" (
 
 -- Create index "package_uploaders_idx_user_package" to table: "package_uploaders"
 CREATE INDEX "package_uploaders_idx_user_package" ON "package_uploaders" ("user_id", "package");
+
+-- Create "package_versions" table
+CREATE TABLE "package_versions" (
+  "package" text NOT NULL,
+  "version" text NOT NULL,
+  "created_at" timestamptz NOT NULL,
+  "sha256" bytea NULL,
+  "pubspec_json" jsonb NOT NULL,
+  "libraries_json" jsonb NOT NULL,
+  "uploader" text NOT NULL,
+  "publisher_id" text NULL,
+  "is_retracted" boolean NOT NULL,
+  "retracted_at" timestamptz NULL,
+  "is_moderated" boolean NOT NULL,
+  "moderated_at" timestamptz NULL,
+  "is_admin_deleted" boolean NOT NULL,
+  "admin_deleted_at" timestamptz NULL,
+  PRIMARY KEY ("package", "version"),
+  CONSTRAINT "package_versions_fk_packageRow" FOREIGN KEY ("package") REFERENCES "packages" ("name") ON UPDATE CASCADE ON DELETE CASCADE
+);

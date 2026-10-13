@@ -101,6 +101,15 @@ abstract final class PackageUploader extends Row {
 ///
 /// TODO: rename to `PackageVersion` after the SQL migration.
 @PrimaryKey(['package', 'version'])
+@ForeignKey(
+  ['package'],
+  table: 'packages',
+  fields: ['name'],
+  name: 'packageRow',
+  as: 'versions',
+  onDelete: .cascade,
+  onUpdate: .cascade,
+)
 abstract final class PackageVersionRow extends Row {
   String get package;
 
