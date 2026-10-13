@@ -63,12 +63,14 @@ Fails if that package has no existing Package entity.
           ...?p.deletedVersions,
           ...deletedVersions,
         }.toList();
-        p.updated = clock.now().toUtc();
-        tx.insert(p);
       }
 
+      // always bump updated
+      p!.updated = clock.now().toUtc();
+      tx.insert(p);
+
       tx.delete(mpKey);
-      return p!;
+      return p;
     });
     await packageBackend.mirrorPackageToSql(updated);
     await packageBackend.deletePackageTombstoneFromSql(packageName);
