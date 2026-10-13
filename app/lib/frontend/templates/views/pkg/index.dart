@@ -158,6 +158,16 @@ d.Node _searchFormContainer({
               ),
               _tagBasedCheckbox(
                 tagPrefix: 'is',
+                tagValue: 'android-kotlin-gradle-plugin',
+                label: 'Kotlin Gradle Plugin',
+                searchForm: searchForm,
+                title:
+                    'Show only Android plugins that use the Kotlin Gradle Plugin.',
+                seeMoreUrl:
+                    'https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors',
+              ),
+              _tagBasedCheckbox(
+                tagPrefix: 'is',
                 tagValue: 'swiftpm-plugin',
                 label: 'SwiftPM plugin',
                 searchForm: searchForm,
