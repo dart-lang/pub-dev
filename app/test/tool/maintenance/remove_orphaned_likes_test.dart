@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -44,6 +45,12 @@ void main() {
         );
         expect(counts.found, 1);
         expect(counts.deleted, 1);
+
+        // The SQL assets of the package would be orphaned otherwise,
+        // TODO: remove after the foreign key with cascade is migrated
+        await primaryDatabase.adapterForTesting.script(
+          'DELETE FROM "package_version_assets" WHERE "package" = \'oxygen\'',
+        );
       },
       // The deleted package is referenced from multiple places.
       // This is the first integrity issue returned.
