@@ -423,16 +423,13 @@ class PackageBackend {
 
   /// Upserts the [p] row and syncs its uploaders.
   ///
-  /// The write is skipped when the SQL row has a newer `updated` timestamp:
+  /// The existing row is overwritten only if it is not newer than [p]:
   /// concurrent mirror calls may carry stale snapshots, and they must not
-  /// overwrite the newer state.
+  /// overwrite the newer state. The comparison is part of the upsert statement,
+  /// so it is atomic with the write.
   Future<void> _upsertPackage(Database<PrimarySchema> db, Package p) async {
-    final current = await db.packages.byKey(p.name!).fetch();
-    if (current != null && current.updatedAt.isAfter(p.updated!)) {
-      return;
-    }
     await db.packages
-        .upsertValue(
+        .insertValue(
           name: p.name!,
           createdAt: p.created!,
           updatedAt: p.updated!,
@@ -460,7 +457,44 @@ class PackageBackend {
               : JsonValue(p.publishingConfig!.toJson()),
           latestAdvisoryAt: p.latestAdvisory,
         )
+        .onConflict(.primaryKey)
+        .update(
+          (row, excluded, set) => set(
+            createdAt: excluded.createdAt,
+            updatedAt: excluded.updatedAt,
+            lastVersionPublishedAt: excluded.lastVersionPublishedAt,
+            latestVersion: excluded.latestVersion,
+            latestPublishedAt: excluded.latestPublishedAt,
+            latestPrereleaseVersion: excluded.latestPrereleaseVersion,
+            latestPrereleasePublishedAt: excluded.latestPrereleasePublishedAt,
+            latestPreviewVersion: excluded.latestPreviewVersion,
+            latestPreviewPublishedAt: excluded.latestPreviewPublishedAt,
+            publisherId: excluded.publisherId,
+            versionsCount: excluded.versionsCount,
+            likesCount: excluded.likesCount,
+            isDiscontinued: excluded.isDiscontinued,
+            replacedBy: excluded.replacedBy,
+            isUnlisted: excluded.isUnlisted,
+            isModerated: excluded.isModerated,
+            moderatedAt: excluded.moderatedAt,
+            isAdminDeleted: excluded.isAdminDeleted,
+            adminDeletedAt: excluded.adminDeletedAt,
+            assignedTagsJson: excluded.assignedTagsJson,
+            deletedVersionsJson: excluded.deletedVersionsJson,
+            publishingConfigJson: excluded.publishingConfigJson,
+            latestAdvisoryAt: excluded.latestAdvisoryAt,
+          ),
+        )
+        .where(
+          (row, excluded) => row.updatedAt.isAfter(excluded.updatedAt).not(),
+        )
         .execute();
+    // The row is either written by this call (and locked by this transaction),
+    // or it was newer: in the latter case the uploaders must not be touched.
+    final current = await db.packages.byKey(p.name!).fetch();
+    if (current == null || current.updatedAt.isAfter(p.updated!)) {
+      return;
+    }
     await _syncPackageUploaders(db, p.name!, p.uploaders ?? const []);
   }
 
