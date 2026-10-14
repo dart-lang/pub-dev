@@ -410,7 +410,8 @@
     }
 
     &:focus-visible {
-      outline: none;
+      outline: 2px solid var(--pub-link-text-color);
+      outline-offset: 2px;
       border-color: var(--pub-link-text-color);
     }
 
