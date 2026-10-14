@@ -202,6 +202,11 @@ d.Node pageLayoutNode({
                 },
               ),
             ),
+            d.a(
+              classes: ['_visuallyhidden'],
+              href: '#-pub-main',
+              text: 'Skip to main content',
+            ),
             siteHeader,
             d.div(
               id: 'banner-container',
@@ -266,7 +271,12 @@ d.Node pageLayoutNode({
                 ),
               ),
 
-            d.element('main', classes: mainClasses, child: mainContent),
+            d.element(
+              'main',
+              id: '-pub-main',
+              classes: mainClasses,
+              child: mainContent,
+            ),
             _siteFooterNode(
               moderationUrl: moderationUrl,
               moderationSubject: moderationSubject,
