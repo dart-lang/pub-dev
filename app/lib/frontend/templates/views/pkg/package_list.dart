@@ -104,7 +104,7 @@ d.Node _packageItem(
           view.name,
           version: isLatest ? null : release.version,
         ),
-        text: 'v ${release.version}',
+        text: release.version,
         title: 'Visit ${view.name} ${release.version} page',
       ),
       d.text(' ('),
