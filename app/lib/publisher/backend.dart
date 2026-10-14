@@ -387,8 +387,8 @@ class PublisherBackend {
     });
     if (created) {
       await auditBackend.migrateToSql(auditLogRecord);
-      await mirrorPublisherToSql(publisherId);
     }
+    await mirrorPublisherToSql(publisherId);
     await purgeAccountCache(userId: user.userId);
     await cache.allPublishersPage().purge();
 
@@ -786,8 +786,8 @@ class PublisherBackend {
     });
     if (added) {
       await auditBackend.migrateToSql(auditLogRecord);
-      await mirrorPublisherToSql(publisherId);
     }
+    await mirrorPublisherToSql(publisherId);
     await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);
   }

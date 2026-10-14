@@ -92,8 +92,8 @@ This should generally only be done with PM approval as it skips actual domain ve
     });
     if (created) {
       await auditBackend.migrateToSql(auditLogRecord);
-      await publisherBackend.mirrorPublisherToSql(publisherId);
     }
+    await publisherBackend.mirrorPublisherToSql(publisherId);
     return {
       'message': 'Publisher created.',
       'publisherId': publisherId,
