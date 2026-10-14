@@ -64,10 +64,26 @@ import 'upload_signer_service.dart';
 // that is stored separately in the database.
 final maxAssetContentLength = 256 * 1024;
 
+// The maximum length of an attestation bundle.
+//
+// Note: unlike the assets extracted from an archive, attestations are rejected
+//       (rather than truncated) when they are longer than this, as a truncated
+//       attestation could never be verified.
+final maxAttestationContentLength = 128 * 1024;
+
+/// The `Content-Type` of an attestation bundle, as stored and as served.
+const attestationContentType = 'application/json; charset="utf-8"';
+
 /// The maximum number of versions a package is allowed to have.
 final _defaultMaxVersionsPerPackage = 1000;
 
 final Logger _logger = Logger('pub.cloud_repository');
+
+/// Matches the UUIDs created by `createUuid()`, used to identify uploads.
+final _uuidRegExp = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+  caseSensitive: false,
+);
 final _validGitHubUserOrRepoRegExp = RegExp(
   r'^[a-z0-9\-\._]+$',
   caseSensitive: false,
@@ -1508,7 +1524,16 @@ class PackageBackend {
     return pv.toApiVersionInfo();
   }
 
-  Future<api.UploadInfo> startUpload(Uri redirectUrl) async {
+  /// Starts an upload, returning the parameters the client needs to upload the
+  /// package archive.
+  ///
+  /// [redirectUrl] is the URL the client is redirected to when the archive has
+  /// been uploaded, and [attestationUrlPrefix] is the URL prefix where the
+  /// client may upload an attestation of the archive.
+  Future<api.UploadInfo> startUpload(
+    Uri redirectUrl, {
+    required Uri attestationUrlPrefix,
+  }) async {
     final restriction = await getUploadRestrictionStatus();
     if (restriction == UploadRestrictionStatus.noUploads) {
       throw PackageRejectedException.uploadRestricted();
@@ -1530,11 +1555,56 @@ class PackageBackend {
     _logger.info(
       'Redirecting pub client to google cloud storage (uuid: $guid)',
     );
-    return uploadSigner.buildUpload(
+    final uploadInfo = await uploadSigner.buildUpload(
       bucket,
       object,
       lifetime,
       successRedirectUrl: '$url',
+    );
+    return api.UploadInfo(
+      url: uploadInfo.url,
+      fields: uploadInfo.fields,
+      attestationUrl: '$attestationUrlPrefix/$guid',
+    );
+  }
+
+  /// Stores the attestation [bytes] uploaded for the upload with [uploadGuid].
+  ///
+  /// The attestation is stored next to the archive in the canonical bucket
+  /// when the upload is finished, see [publishUploadedBlob].
+  Future<void> uploadAttestation(String uploadGuid, List<int> bytes) async {
+    final restriction = await getUploadRestrictionStatus();
+    if (restriction == UploadRestrictionStatus.noUploads) {
+      throw PackageRejectedException.uploadRestricted();
+    }
+    await requireAuthenticatedClient();
+    InvalidInputException.check(
+      _uuidRegExp.hasMatch(uploadGuid),
+      'Invalid upload id.',
+    );
+    if (bytes.length > maxAttestationContentLength) {
+      throw PackageRejectedException.attestationTooLarge(
+        maxAttestationContentLength,
+      );
+    }
+    // Verify that the bundle is a JSON object before storing it. It can only be
+    // verified against the archive when the upload is finished.
+    try {
+      final decoded = jsonDecode(utf8.decode(bytes));
+      if (decoded is! Map<String, dynamic>) {
+        throw FormatException('Attestation bundle must be a JSON object.');
+      }
+    } on FormatException catch (e) {
+      throw PackageRejectedException('Invalid attestation bundle format: $e');
+    }
+
+    _logger.info('Uploading attestation (uuid: $uploadGuid).');
+    await uploadWithRetry(
+      _incomingBucket,
+      tmpAttestationObjectName(uploadGuid),
+      bytes.length,
+      () => Stream.value(bytes),
+      metadata: ObjectMetadata(contentType: attestationContentType),
     );
   }
 
@@ -1552,6 +1622,7 @@ class PackageBackend {
     return await withTempDirectory((Directory dir) async {
       // Check the existence of the uploaded file
       final uploadObjectName = tmpObjectName(uploadGuid);
+      final attestationObjectName = tmpAttestationObjectName(uploadGuid);
       final info = await _incomingBucket.tryInfo(uploadObjectName);
       if (info?.length == null) {
         throw PackageRejectedException.archiveEmpty();
@@ -1680,6 +1751,19 @@ class PackageBackend {
         throw PackageRejectedException.dependencyDoesNotExists(name);
       }
 
+      // Read the attestation, if one was uploaded for this upload.
+      // Note: the content has been validated to be a JSON object when it was
+      //       uploaded, see [uploadAttestation].
+      String? attestationContent;
+      if (await _incomingBucket.tryInfo(attestationObjectName) != null) {
+        attestationContent = utf8.decode(
+          await _incomingBucket.readAsBytes(
+            attestationObjectName,
+            maxSize: maxAttestationContentLength,
+          ),
+        );
+      }
+
       sw.reset();
       final entities = await _createUploadEntities(
         db,
@@ -1694,6 +1778,9 @@ class PackageBackend {
         objectName: workObjectName,
         hasCanonicalArchiveObject:
             canonicalContentMatch == ContentMatchStatus.same,
+        attestationObjectName: attestationContent == null
+            ? null
+            : attestationObjectName,
       );
       _logger.info('Tarball uploaded in ${sw.elapsed}.');
       _logger.info('Removing temporary object $uploadGuid.');
@@ -1701,6 +1788,9 @@ class PackageBackend {
       sw.reset();
       await _incomingBucket.deleteWithRetry(uploadObjectName);
       await _incomingBucket.deleteWithRetry(workObjectName);
+      if (attestationContent != null) {
+        await _incomingBucket.deleteWithRetry(attestationObjectName);
+      }
       _logger.info('Temporary object removed in ${sw.elapsed}.');
       return [
         'Successfully uploaded '
@@ -1782,12 +1872,19 @@ class PackageBackend {
     }
   }
 
+  /// Stores the uploaded archive (and its attestation, if any) in the
+  /// canonical bucket and creates the Datastore entities of the new version.
+  ///
+  /// [attestationObjectName] is the object in the incoming bucket that holds
+  /// the attestation uploaded for the archive, or `null` when the archive was
+  /// published without one.
   Future<(PackageVersion, List<String>)> _performTarballUpload({
     required _UploadEntities entities,
     required AuthenticatedAgent agent,
     required PackageSummary archive,
     required String objectName,
     required bool hasCanonicalArchiveObject,
+    required String? attestationObjectName,
   }) async {
     final sw = Stopwatch()..start();
     final uploadMessages = <String>[];
@@ -1947,6 +2044,21 @@ class PackageBackend {
           ),
           package: newVersion.package,
           version: newVersion.version!,
+        );
+      }
+      if (attestationObjectName != null) {
+        // The attestation is uploaded alongside the archive, not extracted
+        // from it, so it is canonical data too: keep it next to the archive.
+        // The copy is repeated even if the archive was already present from an
+        // earlier attempt of this very upload, it is for the same archive.
+        await _storage.copyObjectWithRetry(
+          _incomingBucket.absoluteObjectName(attestationObjectName),
+          _canonicalBucket.absoluteObjectName(
+            canonicalAttestationObjectName(
+              newVersion.package,
+              newVersion.version!,
+            ),
+          ),
         );
       }
 
@@ -2537,10 +2649,13 @@ class PackageBackend {
     return UploadRestrictionStatus.noRestriction;
   }
 
-  /// Deletes the tarball of a [package] in the given [version] permanently from the canonical bucket.
+  /// Deletes the tarball of a [package] in the given [version] permanently from
+  /// the canonical bucket, together with its attestation (if any).
   Future<void> removePackageTarball(String package, String version) async {
-    final objectName = tarballObjectName(package, version);
-    await _canonicalBucket.deleteWithRetry(objectName);
+    await _canonicalBucket.deleteWithRetry(tarballObjectName(package, version));
+    await _canonicalBucket.deleteWithRetry(
+      canonicalAttestationObjectName(package, version),
+    );
   }
 
   void _updatePackageAutomatedPublishingLock(
@@ -2576,6 +2691,36 @@ class PackageBackend {
     return await _canonicalBucket.tryInfo(objectName);
   }
 
+  /// Gets the object info of the attestation of [version] from the canonical
+  /// bucket, or `null` if the version was published without an attestation.
+  Future<ObjectInfo?> getCanonicalBucketAttestationInfo(
+    String package,
+    String version,
+  ) async {
+    return await _canonicalBucket.tryInfo(
+      canonicalAttestationObjectName(package, version),
+    );
+  }
+
+  /// Reads the attestation of [version] from the canonical bucket, or returns
+  /// `null` if the version was published without an attestation.
+  ///
+  /// Note: this does not check the visibility of the package or the version,
+  ///       callers that serve the content must do that.
+  Future<List<int>?> readCanonicalBucketAttestation(
+    String package,
+    String version,
+  ) async {
+    final objectName = canonicalAttestationObjectName(package, version);
+    if (await _canonicalBucket.tryInfo(objectName) == null) {
+      return null;
+    }
+    return await _canonicalBucket.readAsBytes(
+      objectName,
+      maxSize: maxAttestationContentLength,
+    );
+  }
+
   /// Gets `gs:/<bucket>/<objectName>` for [package] and [version] in the
   /// canonical bucket.
   ///
@@ -2604,20 +2749,61 @@ class PackageBackend {
   Future<Map<String, SourceObjectInfo>> listVersionsInCanonicalBucket(
     String package,
   ) async {
+    return (await listVersionsAndAttestationsInCanonicalBucket(
+      package,
+    )).versions;
+  }
+
+  /// Get map from `version` to [SourceObjectInfo] for each version of [package]
+  /// that has an attestation in the canonical bucket.
+  Future<Map<String, SourceObjectInfo>> listAttestationsInCanonicalBucket(
+    String package,
+  ) async {
+    return (await listVersionsAndAttestationsInCanonicalBucket(
+      package,
+    )).attestations;
+  }
+
+  /// Lists the archives and the attestations of [package] in the canonical
+  /// bucket, each as a map from `version` to [SourceObjectInfo].
+  ///
+  /// The archive and the attestation of a version share the
+  /// `packages/<package>-<version>` name prefix, so both come from a single
+  /// listing and are told apart by their suffix.
+  Future<
+    ({
+      Map<String, SourceObjectInfo> versions,
+      Map<String, SourceObjectInfo> attestations,
+    })
+  >
+  listVersionsAndAttestationsInCanonicalBucket(String package) async {
     final prefix = _tarballObjectNamePackagePrefix(package);
     final items = await _canonicalBucket.listAllItemsWithRetry(
       prefix: prefix,
       delimiter: '',
     );
-    return Map.fromEntries(
-      items.whereType<BucketObjectEntry>().map((item) {
-        final version = item.name.without(prefix: prefix, suffix: '.tar.gz');
-        return MapEntry(
-          version,
-          SourceObjectInfo.fromObjectInfo(_canonicalBucket, item),
+    final versions = <String, SourceObjectInfo>{};
+    final attestations = <String, SourceObjectInfo>{};
+    for (final item in items.whereType<BucketObjectEntry>()) {
+      final name = item.name;
+      final info = SourceObjectInfo.fromObjectInfo(_canonicalBucket, item);
+      if (name.endsWith(_attestationSuffix)) {
+        final version = name.without(
+          prefix: prefix,
+          suffix: _attestationSuffix,
         );
-      }),
-    );
+        attestations[version] = info;
+      } else if (name.endsWith(_tarballSuffix)) {
+        final version = name.without(prefix: prefix, suffix: _tarballSuffix);
+        versions[version] = info;
+      } else {
+        _logger.pubNoticeShout(
+          'stray-file',
+          'Found stray file "$name" in the canonical bucket (ignoring it!)',
+        );
+      }
+    }
+    return (versions: versions, attestations: attestations);
   }
 
   /// Gets the object info of the archive file from the exported API bucket.
@@ -2626,6 +2812,16 @@ class PackageBackend {
     String version,
   ) async {
     final objectName = 'latest/api/archives/$package-$version.tar.gz';
+    return await _exportedApiBucket.tryInfo(objectName);
+  }
+
+  /// Gets the object info of the attestation from the exported API bucket.
+  Future<ObjectInfo?> getExportedAttestationInfo(
+    String package,
+    String version,
+  ) async {
+    final objectName =
+        'latest/api/packages/$package/versions/$version/attestation';
     return await _exportedApiBucket.tryInfo(objectName);
   }
 
@@ -2996,6 +3192,11 @@ DerivedPackageVersionEntities derivePackageVersionEntities({
 @visibleForTesting
 String tmpObjectName(String guid) => 'tmp/$guid';
 
+/// The GCS object name of the attestation uploaded for the temporary object
+/// [guid] - excluding leading '/'.
+@visibleForTesting
+String tmpAttestationObjectName(String guid) => 'tmp/$guid.attestation.json';
+
 /// Verify that the [package] and the optional [version] parameter looks as acceptable input.
 void checkPackageVersionParams(String package, [String? version]) {
   InvalidInputException.checkPackageName(package);
@@ -3142,9 +3343,21 @@ Object? _stripNul(Object? value) {
 /// The GCS object name of a tarball object - excluding leading '/'.
 @visibleForTesting
 String tarballObjectName(String package, String version) =>
-    '${_tarballObjectNamePackagePrefix(package)}$version.tar.gz';
+    '${_tarballObjectNamePackagePrefix(package)}$version$_tarballSuffix';
+
+/// The GCS object name of the attestation of a tarball object in the
+/// canonical bucket - excluding leading '/'.
+///
+/// The name follows the Sigstore convention of naming the bundle after the
+/// artifact it attests to: `packages/<package>-<version>.tar.gz.sigstore.json`.
+@visibleForTesting
+String canonicalAttestationObjectName(String package, String version) =>
+    '${_tarballObjectNamePackagePrefix(package)}$version$_attestationSuffix';
 
 /// The GCS object prefix of a tarball object for a given [package] - excluding leading '/'.
 String _tarballObjectNamePackagePrefix(String package) => 'packages/$package-';
+
+const _tarballSuffix = '.tar.gz';
+const _attestationSuffix = '$_tarballSuffix.sigstore.json';
 
 enum ContentMatchStatus { missing, different, same }

@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:chunked_stream/chunked_stream.dart' show MaximumSizeExceeded;
 import 'package:clock/clock.dart';
 import 'package:intl/intl.dart';
 // ignore: implementation_imports
@@ -302,11 +303,21 @@ extension StringExt on String {
 }
 
 extension ByteFolderExt on Stream<List<int>> {
-  Future<Uint8List> foldBytes() async {
-    final contents = await toList();
+  /// Collects the stream into a single byte array.
+  ///
+  /// If [maxSize] is given, reading stops and a [MaximumSizeExceeded] is
+  /// thrown as soon as more than [maxSize] bytes have arrived, instead of
+  /// buffering the rest of the stream.
+  Future<Uint8List> foldBytes({int? maxSize}) async {
+    if (maxSize != null && maxSize < 0) {
+      throw ArgumentError.value(maxSize, 'maxSize must be positive, if given');
+    }
     final buffer = BytesBuilder(copy: false);
-    for (final chunk in contents) {
+    await for (final chunk in this) {
       buffer.add(chunk);
+      if (maxSize != null && buffer.length > maxSize) {
+        throw MaximumSizeExceeded(maxSize);
+      }
     }
     return buffer.toBytes();
   }

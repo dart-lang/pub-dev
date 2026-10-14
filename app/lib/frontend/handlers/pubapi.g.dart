@@ -75,6 +75,24 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add('GET', r'/api/packages/<package>/versions/<version>/attestation', (
+    Request request,
+    String package,
+    String version,
+  ) async {
+    try {
+      final _$result = await service.getPackageVersionAttestation(
+        request,
+        package,
+        version,
+      );
+      return _$result;
+    } on ApiResponseException catch (e) {
+      return e.asApiResponse();
+    } catch (e, st) {
+      return $utilities.unhandledError(e, st);
+    }
+  });
   router.add('GET', r'/api/archives/<package|[^-/]+>-<version>.tar.gz', (
     Request request,
     String package,
@@ -99,6 +117,23 @@ Router _$PubApiRouter(PubApi service) {
       return $utilities.unhandledError(e, st);
     }
   });
+  router.add(
+    'POST',
+    r'/api/packages/versions/newUploadAttestation/<uploadId>',
+    (Request request, String uploadId) async {
+      try {
+        final _$result = await service.uploadPackageAttestation(
+          request,
+          uploadId,
+        );
+        return $utilities.jsonResponse(_$result.toJson());
+      } on ApiResponseException catch (e) {
+        return e.asApiResponse();
+      } catch (e, st) {
+        return $utilities.unhandledError(e, st);
+      }
+    },
+  );
   router.add('GET', r'/api/packages/versions/newUploadFinish', (
     Request request,
   ) async {
