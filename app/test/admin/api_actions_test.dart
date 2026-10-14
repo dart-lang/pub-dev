@@ -4,6 +4,7 @@
 
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:clock/clock.dart';
+import 'package:logging/logging.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
@@ -35,12 +36,32 @@ void main() {
     testWithProfile(
       'tool-list',
       fn: () async {
+        final logs = <String>[];
+        final sub = Logger(
+          'pub.admin.backend',
+        ).onRecord.listen((r) => logs.add('${r.level}: ${r.message}'));
+        addTearDown(sub.cancel);
+
         final api = createPubApiClient(authToken: siteAdminToken);
         final result = await api.adminInvokeAction(
           'tool-list',
           AdminInvokeActionArguments(arguments: {}),
         );
         expect(result.output.containsKey('tools'), isTrue);
+        expect(
+          logs,
+          containsAll([
+            allOf(
+              contains('INFO: Admin '),
+              contains('invoking action "tool-list" with args: {}'),
+            ),
+            allOf(
+              contains('INFO: Admin '),
+              contains('invoked action "tool-list" in '),
+              contains('with output: {"tools":'),
+            ),
+          ]),
+        );
       },
     );
   });

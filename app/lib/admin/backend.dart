@@ -69,9 +69,28 @@ class AdminBackend {
   /// admin API, but it should only be used as a temporary measure.
   /// Tools should be either removed or migrated to proper top-level API endpoints.
   Future<String> executeTool(String tool, List<String> args) async {
-    await requireAuthenticatedAdmin(AdminPermission.executeTool);
-    final toolFunction = availableTools[tool] ?? executeListTools;
-    return await toolFunction(args);
+    final caller = await requireAuthenticatedAdmin(AdminPermission.executeTool);
+    final sw = Stopwatch()..start();
+    _logger.info(
+      'Admin ${caller.displayId} invoking tool "$tool" with args: $args',
+    );
+    try {
+      final toolFunction = availableTools[tool] ?? executeListTools;
+      final result = await toolFunction(args);
+      _logger.info(
+        'Admin ${caller.displayId} invoked tool "$tool" '
+        'in ${sw.elapsed} with result: $result',
+      );
+      return result;
+    } catch (e, st) {
+      _logger.warning(
+        'Admin ${caller.displayId} failed invoking tool "$tool" '
+        'after ${sw.elapsed}',
+        e,
+        st,
+      );
+      rethrow;
+    }
   }
 
   /// List users.
@@ -804,7 +823,9 @@ class AdminBackend {
     String actionName,
     Map<String, String> args,
   ) async {
-    await requireAuthenticatedAdmin(AdminPermission.invokeAction);
+    final caller = await requireAuthenticatedAdmin(
+      AdminPermission.invokeAction,
+    );
 
     final action = AdminAction.actions.firstWhereOrNull(
       (a) => a.name == actionName,
@@ -822,11 +843,36 @@ class AdminBackend {
       'Unknown options: ${unknownArgs.join(',')}',
     );
 
-    final result = await action.invoke({
-      for (final k in action.options.keys) k: args[k],
-    });
+    Map<String, Object?> redact(Map<String, Object?> map) => {
+      for (final MapEntry(:key, :value) in map.entries)
+        key: (key == 'access-token' || key == 'cookie') && value != null
+            ? '<redacted>'
+            : value,
+    };
 
-    return api.AdminInvokeActionResponse(output: result);
+    final sw = Stopwatch()..start();
+    _logger.info(
+      'Admin ${caller.displayId} invoking action "$actionName" '
+      'with args: ${json.encode(redact(args))}',
+    );
+    try {
+      final result = await action.invoke({
+        for (final k in action.options.keys) k: args[k],
+      });
+      _logger.info(
+        'Admin ${caller.displayId} invoked action "$actionName" '
+        'in ${sw.elapsed} with output: ${json.encode(redact(result))}',
+      );
+      return api.AdminInvokeActionResponse(output: result);
+    } catch (e, st) {
+      _logger.warning(
+        'Admin ${caller.displayId} failed invoking action "$actionName" '
+        'after ${sw.elapsed}',
+        e,
+        st,
+      );
+      rethrow;
+    }
   }
 
   Future<ModerationCase?> lookupModerationCase(String caseId) async {
