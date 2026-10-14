@@ -169,9 +169,9 @@ class PrimaryDatabase {
         LOCK TABLE "schema_migrations" IN EXCLUSIVE MODE;
         DO $$
         BEGIN
-          IF EXISTS (
+          IF NOT EXISTS (
             SELECT 1 FROM "schema_migrations"
-            WHERE "script_name" = '000013_audit_index.sql'
+            WHERE "script_name" = '000014_audit_index.sql'
           ) THEN
             DROP INDEX IF EXISTS "audit_log_associations_idx_kind_value_created";
             DROP INDEX IF EXISTS "audit_log_associations_idx_record_created_at";
@@ -183,7 +183,6 @@ class PrimaryDatabase {
           END IF;
         END $$;
       ''');
-    });
 
     await migrateScripts(
       target: _adapter,
