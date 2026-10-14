@@ -119,7 +119,6 @@ d.Node _packageItem(
     d.span(
       classes: ['packages-metadata-block'],
       children: [
-        d.text('v '),
         ...versionAndTimestamp(releases.stable, isLatest: true),
         if (releases.showPreview) ...[
           d.text(' / '),
