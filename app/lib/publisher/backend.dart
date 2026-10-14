@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/publisher_api.dart' as api;
+import 'package:basics/basics.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
@@ -154,20 +155,28 @@ class PublisherBackend {
     }
   }
 
-  /// Copies [Publisher] and [PublisherMember] entries from Datastore into SQL,
+  /// Copies [Publisher] and [PublisherMember] entries from Datastore into SQL
+  /// for publishers that are missing or have a different `updated` timestamp,
   /// and removes SQL rows that have no matching Datastore entry.
   Future<int> backfillPublishersSqlFromDatastore() async {
     var count = 0;
-    final sqlIds = (await primaryDatabase.withRetry(
-      (db) => db.publishers.select((p) => (p.publisherId,)).fetch(),
-    )).toSet();
+    final sqlState = <String, DateTime>{};
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.publishers.select((p) => (p.publisherId, p.updatedAt)).fetch(),
+    );
+    for (final (publisherId, updatedAt) in rows) {
+      sqlState[publisherId] = updatedAt;
+    }
     await for (final p in _db.query<Publisher>().run()) {
-      sqlIds.remove(p.publisherId);
+      final sqlUpdatedAt = sqlState.remove(p.publisherId);
+      if (sqlUpdatedAt != null && sqlUpdatedAt.isAtOrAfter(p.updated!)) {
+        continue;
+      }
       await mirrorPublisherToSql(p.publisherId);
       count++;
     }
     // The remaining entries have no matching Datastore entity.
-    for (final id in sqlIds) {
+    for (final id in sqlState.keys) {
       await mirrorPublisherToSql(id);
       count++;
     }
