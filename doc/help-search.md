@@ -20,16 +20,48 @@
   - `topic:<topic-name>`: Searches for packages that have specified the
     `topic-name` [topic](/topics).
 
-  - `publisher:<publisher-name.com>`: Searches for packages published by  `publisher-name.com`
+  - `publisher:<publisher-name.com>`: Searches for packages published by `publisher-name.com`.
 
-  - `sdk:<sdk>`: Searches for packages that support the given SDK. `sdk` can be either `flutter` or `dart`
+  - `sdk:<sdk>`: Searches for packages that support the given SDK. `sdk` can be either `flutter` or `dart`.
 
-  - `runtime:<runtime>`: Searches for packages that support the given runtime. `runtime` can be one of `web`, `native-jit` and `native-aot`.
+  - `platform:<platform>`: Searches for packages that support the given platform.
+    `platform` can be one of `android`, `ios`, `linux`, `macos`, `web`, and `windows`.
+
+  - `runtime:<runtime>`: Searches for packages that support the given runtime. `runtime` can be one of `web`, `native-jit`, and `native-aot`.
+
+  - `license:<license>`: Searches for packages with a specific license. Use
+    `license:osi-approved` for packages with [OSI approved licenses][], or use
+    an SPDX license identifier (such as `license:bsd-3-clause` or `license:mit`).
+
+  - `is:<tag>`: Searches for packages with a specific property:
+    - `is:flutter-favorite`: Packages in the [Flutter Favorites](https://docs.flutter.dev/packages-and-plugins/favorites) program.
+    - `is:plugin`: Flutter plugin packages.
+    - `is:swiftpm-plugin`: Flutter plugins supporting Swift Package Manager.
+    - `is:wasm-ready`: Packages compatible with WebAssembly (`dart compile wasm`).
+    - `is:dart3-compatible`: Packages compatible with Dart 3.
+    - `is:null-safe`: Packages that support null safety.
+    - `is:unlisted`: Packages marked as unlisted.
+    - `is:legacy`: Legacy packages that support only Dart SDK 1.x.
+
+  - `has:<tag>`: Searches for packages that include specific content or metadata:
+    - `has:executable`: Packages with Dart files in their `bin/` directory.
+    - `has:screenshot`: Packages that display screenshots on `pub.dev`.
+    - `has:funding-link`: Packages that specify `funding` links in their `pubspec.yaml`.
+    - `has:topic`: Packages that specify at least one topic in their `pubspec.yaml`.
+
+  - `show:unlisted`: Includes unlisted, discontinued, and legacy packages in search results.
 
   - `updated:<duration>`: Searches for packages updated in the given past days,
-    with the following recognized formats: `3d` (3 days), `2w` (two weeks), `6m` (6 months), `2y` 2 years.
+    with the following recognized formats: `3d` (3 days), `2w` (two weeks), `6m` (6 months), `2y` (2 years).
 
-  - `has:executable`: Search for packages with Dart files in their `bin/` directory.
+### Negating tags (`-`)
+
+Tag expressions (`sdk:`, `platform:`, `runtime:`, `license:`, `is:`, `has:`, `topic:`, and `publisher:`) can be negated by prefixing them with `-` to exclude matching packages from search results. For example:
+
+  - `-is:plugin`: Excludes Flutter plugins.
+  - `-platform:web`: Excludes packages that support the web platform.
+
+Note that `package:`, `dependency:`, `dependency*:`, `updated:`, and free-text search terms cannot be negated.
 
 ## Filters
 
