@@ -461,6 +461,7 @@ class PublishingConfig {
   GcpPublishingConfig? gcpConfig;
   GcpPublishingLock? gcpLock;
   ManualPublishingConfig? manualConfig;
+  AttestationPublishingConfig? attestationConfig;
 
   PublishingConfig({
     this.githubConfig,
@@ -468,6 +469,7 @@ class PublishingConfig {
     this.gcpConfig,
     this.gcpLock,
     this.manualConfig,
+    this.attestationConfig,
   });
 
   factory PublishingConfig.fromJson(Map<String, dynamic> json) =>
