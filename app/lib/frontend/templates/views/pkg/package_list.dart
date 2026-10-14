@@ -104,7 +104,7 @@ d.Node _packageItem(
           view.name,
           version: isLatest ? null : release.version,
         ),
-        text: release.version,
+        text: 'v ${release.version}',
         title: 'Visit ${view.name} ${release.version} page',
       ),
       d.text(' ('),
@@ -119,7 +119,6 @@ d.Node _packageItem(
     d.span(
       classes: ['packages-metadata-block'],
       children: [
-        d.text('v '),
         ...versionAndTimestamp(releases.stable, isLatest: true),
         if (releases.showPreview) ...[
           d.text(' / '),
