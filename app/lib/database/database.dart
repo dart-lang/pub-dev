@@ -176,6 +176,8 @@ class PrimaryDatabase {
             DROP INDEX IF EXISTS "audit_log_associations_idx_kind_value_created";
             DROP INDEX IF EXISTS "audit_log_associations_idx_record_created_at";
             DROP INDEX IF EXISTS "audit_log_records_idx_created_at";
+            CREATE INDEX IF NOT EXISTS "audit_log_associations_idx_kind_value"
+              ON "audit_log_associations" ("kind", "value");
             DELETE FROM "schema_migrations"
               WHERE "script_name" = '000013_audit_index.sql';
           END IF;
