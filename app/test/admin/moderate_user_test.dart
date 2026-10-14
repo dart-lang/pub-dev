@@ -20,6 +20,7 @@ import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
 
 import '../database/package_sql_utils.dart';
+import '../database/publisher_sql_utils.dart';
 import '../frontend/handlers/_utils.dart';
 import '../package/backend_test_utils.dart';
 import '../shared/handlers_test_utils.dart';
@@ -413,6 +414,7 @@ void main() {
           'example.com',
         );
         expect(members, isEmpty);
+        await expectPublisherInSqlMatchesDatastore('example.com');
       },
     );
   });

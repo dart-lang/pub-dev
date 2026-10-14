@@ -15,6 +15,7 @@ import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
 
+import '../database/publisher_sql_utils.dart';
 import '../frontend/handlers/_utils.dart';
 import '../package/backend_test_utils.dart';
 import '../shared/handlers_test_utils.dart';
@@ -78,6 +79,7 @@ void main() {
         });
         final p2 = await publisherBackend.lookupPublisher('example.com');
         expect(p2!.isModerated, isTrue);
+        await expectPublisherInSqlMatchesDatastore('example.com');
 
         final r3 = await _moderate(
           'example.com',
@@ -91,6 +93,7 @@ void main() {
         });
         final p3 = await publisherBackend.lookupPublisher('example.com');
         expect(p3!.isModerated, isFalse);
+        await expectPublisherInSqlMatchesDatastore('example.com');
       },
     );
 

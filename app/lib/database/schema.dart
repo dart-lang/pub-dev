@@ -18,6 +18,7 @@ part 'schema.email.dart';
 part 'schema.global_lock.dart';
 part 'schema.neat_task.dart';
 part 'schema.package.dart';
+part 'schema.publisher.dart';
 part 'schema.security_advisory.dart';
 part 'schema.task.dart';
 
@@ -66,6 +67,12 @@ abstract final class PrimarySchema extends Schema {
   Table<ReservedPackageRow> get reservedPackages;
 
   Table<DownloadCount> get downloadCounts;
+
+  // publisher tables
+
+  Table<PublisherRow> get publishers;
+
+  Table<PublisherMemberRow> get publisherMembers;
 
   // security advisory tables
 

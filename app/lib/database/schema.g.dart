@@ -45,6 +45,8 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$PackageTombstone._$table,
     _$ReservedPackageRow._$table,
     _$DownloadCount._$table,
+    _$PublisherRow._$table,
+    _$PublisherMemberRow._$table,
     _$SecurityAdvisoryRow._$table,
     _$SecurityAdvisoryPackage._$table,
     _$Task._$table,
@@ -97,6 +99,12 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<DownloadCount> get downloadCounts =>
       $ForGeneratedCode.declareTable(this, _$DownloadCount._$table);
+
+  Table<PublisherRow> get publishers =>
+      $ForGeneratedCode.declareTable(this, _$PublisherRow._$table);
+
+  Table<PublisherMemberRow> get publisherMembers =>
+      $ForGeneratedCode.declareTable(this, _$PublisherMemberRow._$table);
 
   Table<SecurityAdvisoryRow> get securityAdvisories =>
       $ForGeneratedCode.declareTable(this, _$SecurityAdvisoryRow._$table);
@@ -707,6 +715,18 @@ extension ExpressionUserRowExt on Expr<UserRow> {
   SubQuery<(Expr<PackageUploader>,)> get uploadedPackages => $ForGeneratedCode
       .subqueryTable(_$PackageUploader._$table)
       .where((r) => r.userId.equalsUnlessNull(userId));
+
+  /// Get [SubQuery] of rows from the `publisherMembers` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PublisherMemberRow] rows,
+  /// where [PublisherMemberRow.userId]
+  /// references [UserRow.userId]
+  /// in this row.
+  SubQuery<(Expr<PublisherMemberRow>,)> get publisherMemberships =>
+      $ForGeneratedCode
+          .subqueryTable(_$PublisherMemberRow._$table)
+          .where((r) => r.userId.equalsUnlessNull(userId));
 }
 
 extension ExpressionNullableUserRowExt on Expr<UserRow?> {
@@ -752,6 +772,20 @@ extension ExpressionNullableUserRowExt on Expr<UserRow?> {
       .subqueryTable(_$PackageUploader._$table)
       .where((r) => r.userId.equalsUnlessNull(userId));
 
+  /// Get [SubQuery] of rows from the `publisherMembers` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PublisherMemberRow] rows,
+  /// where [PublisherMemberRow.userId]
+  /// references [UserRow.userId]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<PublisherMemberRow>,)> get publisherMemberships =>
+      $ForGeneratedCode
+          .subqueryTable(_$PublisherMemberRow._$table)
+          .where((r) => r.userId.equalsUnlessNull(userId));
+
   /// Check if the row is not `NULL`.
   ///
   /// This will check if _primary key_ fields in this row are `NULL`.
@@ -793,6 +827,33 @@ extension RightJoinUserRowPackageUploaderExt
   ///
   /// This will match rows where [UserRow.userId] = [PackageUploader.userId].
   Query<(Expr<UserRow?>, Expr<PackageUploader>)> usingUserRow() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
+}
+
+extension InnerJoinUserRowPublisherMemberRowExt
+    on InnerJoin<(Expr<UserRow>,), (Expr<PublisherMemberRow>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [PublisherMemberRow.userId].
+  Query<(Expr<UserRow>, Expr<PublisherMemberRow>)> usingUser() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
+}
+
+extension LeftJoinUserRowPublisherMemberRowExt
+    on LeftJoin<(Expr<UserRow>,), (Expr<PublisherMemberRow>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [PublisherMemberRow.userId].
+  Query<(Expr<UserRow>, Expr<PublisherMemberRow?>)> usingUser() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
+}
+
+extension RightJoinUserRowPublisherMemberRowExt
+    on RightJoin<(Expr<UserRow>,), (Expr<PublisherMemberRow>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [PublisherMemberRow.userId].
+  Query<(Expr<UserRow?>, Expr<PublisherMemberRow>)> usingUser() =>
       on((a, b) => a.userId.equalsUnlessNull(b.userId));
 }
 
@@ -12750,6 +12811,1738 @@ extension InsertOnConflictSingleDownloadCountExt
         package,
         updatedAt,
         countDataJson,
+      ]),
+    ),
+  );
+}
+
+final class _$PublisherRow extends PublisherRow {
+  _$PublisherRow._(
+    this.publisherId,
+    this.description,
+    this.websiteUrl,
+    this.contactEmail,
+    this.createdAt,
+    this.updatedAt,
+    this.isAbandoned,
+    this.isModerated,
+    this.moderatedAt,
+  );
+
+  @override
+  final String publisherId;
+
+  @override
+  final String? description;
+
+  @override
+  final String? websiteUrl;
+
+  @override
+  final String? contactEmail;
+
+  @override
+  final DateTime createdAt;
+
+  @override
+  final DateTime updatedAt;
+
+  @override
+  final bool isAbandoned;
+
+  @override
+  final bool isModerated;
+
+  @override
+  final DateTime? moderatedAt;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'publishers',
+    columns: <String>[
+      'publisher_id',
+      'description',
+      'website_url',
+      'contact_email',
+      'created_at',
+      'updated_at',
+      'is_abandoned',
+      'is_moderated',
+      'moderated_at',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['publisher_id'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [],
+    readRow: _$PublisherRow._$fromDatabase,
+  );
+
+  static PublisherRow? _$fromDatabase(RowReader row) {
+    final publisherId = row.readString();
+    final description = row.readString();
+    final websiteUrl = row.readString();
+    final contactEmail = row.readString();
+    final createdAt = row.readDateTime();
+    final updatedAt = row.readDateTime();
+    final isAbandoned = row.readBool();
+    final isModerated = row.readBool();
+    final moderatedAt = row.readDateTime();
+    if (publisherId == null &&
+        description == null &&
+        websiteUrl == null &&
+        contactEmail == null &&
+        createdAt == null &&
+        updatedAt == null &&
+        isAbandoned == null &&
+        isModerated == null &&
+        moderatedAt == null) {
+      return null;
+    }
+    return _$PublisherRow._(
+      publisherId!,
+      description,
+      websiteUrl,
+      contactEmail,
+      createdAt!,
+      updatedAt!,
+      isAbandoned!,
+      isModerated!,
+      moderatedAt,
+    );
+  }
+
+  @override
+  String toString() =>
+      'PublisherRow(publisherId: "$publisherId", description: "$description", websiteUrl: "$websiteUrl", contactEmail: "$contactEmail", createdAt: "$createdAt", updatedAt: "$updatedAt", isAbandoned: "$isAbandoned", isModerated: "$isModerated", moderatedAt: "$moderatedAt")';
+}
+
+/// Extension methods for table defined in [PublisherRow].
+extension TablePublisherRowExt on Table<PublisherRow> {
+  /// Insert row into the `publishers` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PublisherRow> insert({
+    required Expr<String> publisherId,
+    Expr<String?>? description,
+    Expr<String?>? websiteUrl,
+    Expr<String?>? contactEmail,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> updatedAt,
+    required Expr<bool> isAbandoned,
+    required Expr<bool> isModerated,
+    Expr<DateTime?>? moderatedAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      publisherId,
+      description,
+      websiteUrl,
+      contactEmail,
+      createdAt,
+      updatedAt,
+      isAbandoned,
+      isModerated,
+      moderatedAt,
+    ],
+  );
+
+  /// Insert row into the `publishers` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `description`, `websiteUrl`, `contactEmail`, `createdAt`, `updatedAt`, `isAbandoned`, `isModerated`, `moderatedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PublisherRow> upsert({
+    required Expr<String> publisherId,
+    Expr<String?>? description,
+    Expr<String?>? websiteUrl,
+    Expr<String?>? contactEmail,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> updatedAt,
+    required Expr<bool> isAbandoned,
+    required Expr<bool> isModerated,
+    Expr<DateTime?>? moderatedAt,
+  }) =>
+      insert(
+            publisherId: publisherId,
+            description: description,
+            websiteUrl: websiteUrl,
+            contactEmail: contactEmail,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            isAbandoned: isAbandoned,
+            isModerated: isModerated,
+            moderatedAt: moderatedAt,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              description: excluded.description,
+              websiteUrl: excluded.websiteUrl,
+              contactEmail: excluded.contactEmail,
+              createdAt: excluded.createdAt,
+              updatedAt: excluded.updatedAt,
+              isAbandoned: excluded.isAbandoned,
+              isModerated: excluded.isModerated,
+              moderatedAt: excluded.moderatedAt,
+            ),
+          );
+
+  /// Insert row into the `publishers` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PublisherRow> insertValue({
+    required String publisherId,
+    String? description,
+    String? websiteUrl,
+    String? contactEmail,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required bool isAbandoned,
+    required bool isModerated,
+    DateTime? moderatedAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      publisherId.asExpr,
+      description.asExpr,
+      websiteUrl.asExpr,
+      contactEmail.asExpr,
+      createdAt.asExpr,
+      updatedAt.asExpr,
+      isAbandoned.asExpr,
+      isModerated.asExpr,
+      moderatedAt.asExpr,
+    ],
+  );
+
+  /// Insert row into the `publishers` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `description`, `websiteUrl`, `contactEmail`, `createdAt`, `updatedAt`, `isAbandoned`, `isModerated`, `moderatedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PublisherRow> upsertValue({
+    required String publisherId,
+    String? description,
+    String? websiteUrl,
+    String? contactEmail,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required bool isAbandoned,
+    required bool isModerated,
+    DateTime? moderatedAt,
+  }) =>
+      insertValue(
+            publisherId: publisherId,
+            description: description,
+            websiteUrl: websiteUrl,
+            contactEmail: contactEmail,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            isAbandoned: isAbandoned,
+            isModerated: isModerated,
+            moderatedAt: moderatedAt,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              description: excluded.description,
+              websiteUrl: excluded.websiteUrl,
+              contactEmail: excluded.contactEmail,
+              createdAt: excluded.createdAt,
+              updatedAt: excluded.updatedAt,
+              isAbandoned: excluded.isAbandoned,
+              isModerated: excluded.isModerated,
+              moderatedAt: excluded.moderatedAt,
+            ),
+          );
+
+  /// Bulk insert rows into the `publishers` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<PublisherRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) publisherId,
+    String? Function(T row)? description,
+    String? Function(T row)? websiteUrl,
+    String? Function(T row)? contactEmail,
+    required DateTime Function(T row) createdAt,
+    required DateTime Function(T row) updatedAt,
+    required bool Function(T row) isAbandoned,
+    required bool Function(T row) isModerated,
+    DateTime? Function(T row)? moderatedAt,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [
+      publisherId,
+      description,
+      websiteUrl,
+      contactEmail,
+      createdAt,
+      updatedAt,
+      isAbandoned,
+      isModerated,
+      moderatedAt,
+    ],
+  );
+
+  /// Delete a single row from the `publishers` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<PublisherRow> delete(String publisherId) => $ForGeneratedCode
+      .deleteSingle(byKey(publisherId), _$PublisherRow._$table);
+}
+
+/// Extension methods for building queries against the `publishers` table.
+extension QueryPublisherRowExt on Query<(Expr<PublisherRow>,)> {
+  /// Lookup a single row in `publishers` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<PublisherRow>,)> byKey(String publisherId) => where(
+    (publisherRow) => publisherRow.publisherId.equalsValue(publisherId),
+  ).first;
+
+  /// Update all rows in the `publishers` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<PublisherRow> update(
+    UpdateSet<PublisherRow> Function(
+      Expr<PublisherRow> publisherRow,
+      UpdateSet<PublisherRow> Function({
+        Expr<String> publisherId,
+        Expr<String?> description,
+        Expr<String?> websiteUrl,
+        Expr<String?> contactEmail,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<bool> isAbandoned,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<PublisherRow>(
+    this,
+    _$PublisherRow._$table,
+    (publisherRow) => updateBuilder(
+      publisherRow,
+      ({
+        Expr<String>? publisherId,
+        Expr<String?>? description,
+        Expr<String?>? websiteUrl,
+        Expr<String?>? contactEmail,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<bool>? isAbandoned,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+      }) => $ForGeneratedCode.buildUpdate<PublisherRow>([
+        publisherId,
+        description,
+        websiteUrl,
+        contactEmail,
+        createdAt,
+        updatedAt,
+        isAbandoned,
+        isModerated,
+        moderatedAt,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `publishers` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<PublisherRow> delete() =>
+      $ForGeneratedCode.delete(this, _$PublisherRow._$table);
+}
+
+/// Extension methods for building point queries against the `publishers` table.
+extension QuerySinglePublisherRowExt on QuerySingle<(Expr<PublisherRow>,)> {
+  /// Update the row (if any) in the `publishers` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<PublisherRow> update(
+    UpdateSet<PublisherRow> Function(
+      Expr<PublisherRow> publisherRow,
+      UpdateSet<PublisherRow> Function({
+        Expr<String> publisherId,
+        Expr<String?> description,
+        Expr<String?> websiteUrl,
+        Expr<String?> contactEmail,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<bool> isAbandoned,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<PublisherRow>(
+    this,
+    _$PublisherRow._$table,
+    (publisherRow) => updateBuilder(
+      publisherRow,
+      ({
+        Expr<String>? publisherId,
+        Expr<String?>? description,
+        Expr<String?>? websiteUrl,
+        Expr<String?>? contactEmail,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<bool>? isAbandoned,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+      }) => $ForGeneratedCode.buildUpdate<PublisherRow>([
+        publisherId,
+        description,
+        websiteUrl,
+        contactEmail,
+        createdAt,
+        updatedAt,
+        isAbandoned,
+        isModerated,
+        moderatedAt,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `publishers` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<PublisherRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$PublisherRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `publishers` table.
+extension ExpressionPublisherRowExt on Expr<PublisherRow> {
+  /// The domain name of the publisher.
+  Expr<String> get publisherId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// Markdown formatted description.
+  Expr<String?> get description =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<String?> get websiteUrl =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  /// `null` when the publisher is abandoned and the address is purged.
+  Expr<String?> get contactEmail =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  Expr<DateTime> get createdAt =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime> get updatedAt =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
+
+  Expr<bool> get isAbandoned =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.boolean);
+
+  Expr<bool> get isModerated =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get moderatedAt =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.dateTime);
+
+  /// Get [SubQuery] of rows from the `publisherMembers` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PublisherMemberRow] rows,
+  /// where [PublisherMemberRow.publisherId]
+  /// references [PublisherRow.publisherId]
+  /// in this row.
+  SubQuery<(Expr<PublisherMemberRow>,)> get members => $ForGeneratedCode
+      .subqueryTable(_$PublisherMemberRow._$table)
+      .where((r) => r.publisherId.equalsUnlessNull(publisherId));
+}
+
+extension ExpressionNullablePublisherRowExt on Expr<PublisherRow?> {
+  /// The domain name of the publisher.
+  Expr<String?> get publisherId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// Markdown formatted description.
+  Expr<String?> get description =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<String?> get websiteUrl =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.text);
+
+  /// `null` when the publisher is abandoned and the address is purged.
+  Expr<String?> get contactEmail =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get createdAt =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime?> get updatedAt =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
+
+  Expr<bool?> get isAbandoned =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.boolean);
+
+  Expr<bool?> get isModerated =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.boolean);
+
+  Expr<DateTime?> get moderatedAt =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.dateTime);
+
+  /// Get [SubQuery] of rows from the `publisherMembers` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PublisherMemberRow] rows,
+  /// where [PublisherMemberRow.publisherId]
+  /// references [PublisherRow.publisherId]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<PublisherMemberRow>,)> get members => $ForGeneratedCode
+      .subqueryTable(_$PublisherMemberRow._$table)
+      .where((r) => r.publisherId.equalsUnlessNull(publisherId));
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => publisherId.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinPublisherRowPublisherMemberRowExt
+    on InnerJoin<(Expr<PublisherRow>,), (Expr<PublisherMemberRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PublisherRow.publisherId] = [PublisherMemberRow.publisherId].
+  Query<(Expr<PublisherRow>, Expr<PublisherMemberRow>)> usingPublisher() =>
+      on((a, b) => a.publisherId.equalsUnlessNull(b.publisherId));
+}
+
+extension LeftJoinPublisherRowPublisherMemberRowExt
+    on LeftJoin<(Expr<PublisherRow>,), (Expr<PublisherMemberRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PublisherRow.publisherId] = [PublisherMemberRow.publisherId].
+  Query<(Expr<PublisherRow>, Expr<PublisherMemberRow?>)> usingPublisher() =>
+      on((a, b) => a.publisherId.equalsUnlessNull(b.publisherId));
+}
+
+extension RightJoinPublisherRowPublisherMemberRowExt
+    on RightJoin<(Expr<PublisherRow>,), (Expr<PublisherMemberRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PublisherRow.publisherId] = [PublisherMemberRow.publisherId].
+  Query<(Expr<PublisherRow?>, Expr<PublisherMemberRow>)> usingPublisher() =>
+      on((a, b) => a.publisherId.equalsUnlessNull(b.publisherId));
+}
+
+/// `Table<PublisherRow>` conflict targets for use with `.onConflict`.
+enum PublisherRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `publisherId`.
+  primaryKey(['publisher_id']);
+
+  const PublisherRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertPublisherRowExt on Insert<PublisherRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((publisherRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<PublisherRow> onConflict(PublisherRowConflict target) =>
+      $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictPublisherRowExt on InsertOnConflict<PublisherRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `publisherRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<PublisherRow> update(
+    UpdateSet<PublisherRow> Function(
+      Expr<PublisherRow> publisherRow,
+      Expr<PublisherRow> excluded,
+      UpdateSet<PublisherRow> Function({
+        Expr<String> publisherId,
+        Expr<String?> description,
+        Expr<String?> websiteUrl,
+        Expr<String?> contactEmail,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<bool> isAbandoned,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<PublisherRow>(
+    this,
+    (publisherRow, excluded) => updateBuilder(
+      publisherRow,
+      excluded,
+      ({
+        Expr<String>? publisherId,
+        Expr<String?>? description,
+        Expr<String?>? websiteUrl,
+        Expr<String?>? contactEmail,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<bool>? isAbandoned,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+      }) => $ForGeneratedCode.buildUpdate<PublisherRow>([
+        publisherId,
+        description,
+        websiteUrl,
+        contactEmail,
+        createdAt,
+        updatedAt,
+        isAbandoned,
+        isModerated,
+        moderatedAt,
+      ]),
+    ),
+  );
+}
+
+extension InsertSinglePublisherRowExt on InsertSingle<PublisherRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((publisherRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<PublisherRow> onConflict(
+    PublisherRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSinglePublisherRowExt
+    on InsertOnConflictSingle<PublisherRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `publisherRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<PublisherRow> update(
+    UpdateSet<PublisherRow> Function(
+      Expr<PublisherRow> publisherRow,
+      Expr<PublisherRow> excluded,
+      UpdateSet<PublisherRow> Function({
+        Expr<String> publisherId,
+        Expr<String?> description,
+        Expr<String?> websiteUrl,
+        Expr<String?> contactEmail,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<bool> isAbandoned,
+        Expr<bool> isModerated,
+        Expr<DateTime?> moderatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<PublisherRow>(
+    this,
+    (publisherRow, excluded) => updateBuilder(
+      publisherRow,
+      excluded,
+      ({
+        Expr<String>? publisherId,
+        Expr<String?>? description,
+        Expr<String?>? websiteUrl,
+        Expr<String?>? contactEmail,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<bool>? isAbandoned,
+        Expr<bool>? isModerated,
+        Expr<DateTime?>? moderatedAt,
+      }) => $ForGeneratedCode.buildUpdate<PublisherRow>([
+        publisherId,
+        description,
+        websiteUrl,
+        contactEmail,
+        createdAt,
+        updatedAt,
+        isAbandoned,
+        isModerated,
+        moderatedAt,
+      ]),
+    ),
+  );
+}
+
+final class _$PublisherMemberRow extends PublisherMemberRow {
+  _$PublisherMemberRow._(
+    this.publisherId,
+    this.userId,
+    this.createdAt,
+    this.updatedAt,
+    this.role,
+  );
+
+  @override
+  final String publisherId;
+
+  @override
+  final String userId;
+
+  @override
+  final DateTime createdAt;
+
+  @override
+  final DateTime updatedAt;
+
+  @override
+  final String role;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'publisher_members',
+    columns: <String>[
+      'publisher_id',
+      'user_id',
+      'created_at',
+      'updated_at',
+      'role',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['publisher_id', 'user_id'],
+    unique: <List<String>>[],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'publisher',
+        columns: ['publisher_id'],
+        referencedTable: 'publishers',
+        referencedColumns: ['publisher_id'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'user',
+        columns: ['user_id'],
+        referencedTable: 'users',
+        referencedColumns: ['user_id'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+    ],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: 'userPublisher',
+        sqlName: 'user_publisher',
+        columns: ['user_id', 'publisher_id'],
+      ),
+    ],
+    readRow: _$PublisherMemberRow._$fromDatabase,
+  );
+
+  static PublisherMemberRow? _$fromDatabase(RowReader row) {
+    final publisherId = row.readString();
+    final userId = row.readString();
+    final createdAt = row.readDateTime();
+    final updatedAt = row.readDateTime();
+    final role = row.readString();
+    if (publisherId == null &&
+        userId == null &&
+        createdAt == null &&
+        updatedAt == null &&
+        role == null) {
+      return null;
+    }
+    return _$PublisherMemberRow._(
+      publisherId!,
+      userId!,
+      createdAt!,
+      updatedAt!,
+      role!,
+    );
+  }
+
+  @override
+  String toString() =>
+      'PublisherMemberRow(publisherId: "$publisherId", userId: "$userId", createdAt: "$createdAt", updatedAt: "$updatedAt", role: "$role")';
+}
+
+/// Extension methods for table defined in [PublisherMemberRow].
+extension TablePublisherMemberRowExt on Table<PublisherMemberRow> {
+  /// Insert row into the `publisherMembers` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PublisherMemberRow> insert({
+    required Expr<String> publisherId,
+    required Expr<String> userId,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> updatedAt,
+    required Expr<String> role,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [publisherId, userId, createdAt, updatedAt, role],
+  );
+
+  /// Insert row into the `publisherMembers` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `updatedAt`, `role`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PublisherMemberRow> upsert({
+    required Expr<String> publisherId,
+    required Expr<String> userId,
+    required Expr<DateTime> createdAt,
+    required Expr<DateTime> updatedAt,
+    required Expr<String> role,
+  }) =>
+      insert(
+            publisherId: publisherId,
+            userId: userId,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            role: role,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              updatedAt: excluded.updatedAt,
+              role: excluded.role,
+            ),
+          );
+
+  /// Insert row into the `publisherMembers` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PublisherMemberRow> insertValue({
+    required String publisherId,
+    required String userId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required String role,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      publisherId.asExpr,
+      userId.asExpr,
+      createdAt.asExpr,
+      updatedAt.asExpr,
+      role.asExpr,
+    ],
+  );
+
+  /// Insert row into the `publisherMembers` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `updatedAt`, `role`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PublisherMemberRow> upsertValue({
+    required String publisherId,
+    required String userId,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required String role,
+  }) =>
+      insertValue(
+            publisherId: publisherId,
+            userId: userId,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            role: role,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              updatedAt: excluded.updatedAt,
+              role: excluded.role,
+            ),
+          );
+
+  /// Bulk insert rows into the `publisherMembers` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<PublisherMemberRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) publisherId,
+    required String Function(T row) userId,
+    required DateTime Function(T row) createdAt,
+    required DateTime Function(T row) updatedAt,
+    required String Function(T row) role,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [publisherId, userId, createdAt, updatedAt, role],
+  );
+
+  /// Delete a single row from the `publisherMembers` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<PublisherMemberRow> delete(String publisherId, String userId) =>
+      $ForGeneratedCode.deleteSingle(
+        byKey(publisherId, userId),
+        _$PublisherMemberRow._$table,
+      );
+}
+
+/// Extension methods for building queries against the `publisherMembers` table.
+extension QueryPublisherMemberRowExt on Query<(Expr<PublisherMemberRow>,)> {
+  /// Lookup a single row in `publisherMembers` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<PublisherMemberRow>,)> byKey(
+    String publisherId,
+    String userId,
+  ) => where(
+    (publisherMemberRow) =>
+        publisherMemberRow.publisherId.equalsValue(publisherId) &
+        publisherMemberRow.userId.equalsValue(userId),
+  ).first;
+
+  /// Update all rows in the `publisherMembers` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<PublisherMemberRow> update(
+    UpdateSet<PublisherMemberRow> Function(
+      Expr<PublisherMemberRow> publisherMemberRow,
+      UpdateSet<PublisherMemberRow> Function({
+        Expr<String> publisherId,
+        Expr<String> userId,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<String> role,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<PublisherMemberRow>(
+    this,
+    _$PublisherMemberRow._$table,
+    (publisherMemberRow) => updateBuilder(
+      publisherMemberRow,
+      ({
+        Expr<String>? publisherId,
+        Expr<String>? userId,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<String>? role,
+      }) => $ForGeneratedCode.buildUpdate<PublisherMemberRow>([
+        publisherId,
+        userId,
+        createdAt,
+        updatedAt,
+        role,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `publisherMembers` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<PublisherMemberRow> delete() =>
+      $ForGeneratedCode.delete(this, _$PublisherMemberRow._$table);
+}
+
+/// Extension methods for building point queries against the `publisherMembers` table.
+extension QuerySinglePublisherMemberRowExt
+    on QuerySingle<(Expr<PublisherMemberRow>,)> {
+  /// Update the row (if any) in the `publisherMembers` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<PublisherMemberRow> update(
+    UpdateSet<PublisherMemberRow> Function(
+      Expr<PublisherMemberRow> publisherMemberRow,
+      UpdateSet<PublisherMemberRow> Function({
+        Expr<String> publisherId,
+        Expr<String> userId,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<String> role,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<PublisherMemberRow>(
+    this,
+    _$PublisherMemberRow._$table,
+    (publisherMemberRow) => updateBuilder(
+      publisherMemberRow,
+      ({
+        Expr<String>? publisherId,
+        Expr<String>? userId,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<String>? role,
+      }) => $ForGeneratedCode.buildUpdate<PublisherMemberRow>([
+        publisherId,
+        userId,
+        createdAt,
+        updatedAt,
+        role,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `publisherMembers` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<PublisherMemberRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$PublisherMemberRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `publisherMembers` table.
+extension ExpressionPublisherMemberRowExt on Expr<PublisherMemberRow> {
+  Expr<String> get publisherId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String> get userId =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<DateTime> get createdAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime> get updatedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// One of the `PublisherMemberRole` values.
+  Expr<String> get role =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `publishers` referenced in
+  /// [publisherId].
+  ///
+  /// The gets the row from table `publishers` where
+  /// [PublisherRow.publisherId]
+  /// is equal to [publisherId].
+  Expr<PublisherRow> get publisher => $ForGeneratedCode
+      .subqueryTable(_$PublisherRow._$table)
+      .where((r) => r.publisherId.equalsUnlessNull(publisherId))
+      .first
+      .asNotNull();
+
+  /// Do a subquery lookup of the row from table
+  /// `users` referenced in
+  /// [userId].
+  ///
+  /// The gets the row from table `users` where
+  /// [UserRow.userId]
+  /// is equal to [userId].
+  Expr<UserRow> get user => $ForGeneratedCode
+      .subqueryTable(_$UserRow._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId))
+      .first
+      .asNotNull();
+}
+
+extension ExpressionNullablePublisherMemberRowExt on Expr<PublisherMemberRow?> {
+  Expr<String?> get publisherId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String?> get userId =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get createdAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  Expr<DateTime?> get updatedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// One of the `PublisherMemberRole` values.
+  Expr<String?> get role =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `publishers` referenced in
+  /// [publisherId].
+  ///
+  /// The gets the row from table `publishers` where
+  /// [PublisherRow.publisherId]
+  /// is equal to [publisherId], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<PublisherRow?> get publisher => $ForGeneratedCode
+      .subqueryTable(_$PublisherRow._$table)
+      .where((r) => r.publisherId.equalsUnlessNull(publisherId))
+      .first;
+
+  /// Do a subquery lookup of the row from table
+  /// `users` referenced in
+  /// [userId].
+  ///
+  /// The gets the row from table `users` where
+  /// [UserRow.userId]
+  /// is equal to [userId], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<UserRow?> get user => $ForGeneratedCode
+      .subqueryTable(_$UserRow._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId))
+      .first;
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => publisherId.isNotNull() & userId.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinPublisherMemberRowPublisherRowExt
+    on InnerJoin<(Expr<PublisherMemberRow>,), (Expr<PublisherRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PublisherMemberRow.publisherId] = [PublisherRow.publisherId].
+  Query<(Expr<PublisherMemberRow>, Expr<PublisherRow>)> usingPublisher() =>
+      on((a, b) => b.publisherId.equalsUnlessNull(a.publisherId));
+}
+
+extension LeftJoinPublisherMemberRowPublisherRowExt
+    on LeftJoin<(Expr<PublisherMemberRow>,), (Expr<PublisherRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PublisherMemberRow.publisherId] = [PublisherRow.publisherId].
+  Query<(Expr<PublisherMemberRow>, Expr<PublisherRow?>)> usingPublisher() =>
+      on((a, b) => b.publisherId.equalsUnlessNull(a.publisherId));
+}
+
+extension RightJoinPublisherMemberRowPublisherRowExt
+    on RightJoin<(Expr<PublisherMemberRow>,), (Expr<PublisherRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PublisherMemberRow.publisherId] = [PublisherRow.publisherId].
+  Query<(Expr<PublisherMemberRow?>, Expr<PublisherRow>)> usingPublisher() =>
+      on((a, b) => b.publisherId.equalsUnlessNull(a.publisherId));
+}
+
+extension InnerJoinPublisherMemberRowUserRowExt
+    on InnerJoin<(Expr<PublisherMemberRow>,), (Expr<UserRow>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [PublisherMemberRow.userId] = [UserRow.userId].
+  Query<(Expr<PublisherMemberRow>, Expr<UserRow>)> usingUser() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
+}
+
+extension LeftJoinPublisherMemberRowUserRowExt
+    on LeftJoin<(Expr<PublisherMemberRow>,), (Expr<UserRow>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [PublisherMemberRow.userId] = [UserRow.userId].
+  Query<(Expr<PublisherMemberRow>, Expr<UserRow?>)> usingUser() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
+}
+
+extension RightJoinPublisherMemberRowUserRowExt
+    on RightJoin<(Expr<PublisherMemberRow>,), (Expr<UserRow>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [PublisherMemberRow.userId] = [UserRow.userId].
+  Query<(Expr<PublisherMemberRow?>, Expr<UserRow>)> usingUser() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
+}
+
+/// `Table<PublisherMemberRow>` conflict targets for use with `.onConflict`.
+enum PublisherMemberRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `publisherId`, `userId`.
+  primaryKey(['publisher_id', 'user_id']);
+
+  const PublisherMemberRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertPublisherMemberRowExt on Insert<PublisherMemberRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((publisherMemberRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<PublisherMemberRow> onConflict(
+    PublisherMemberRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictPublisherMemberRowExt
+    on InsertOnConflict<PublisherMemberRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `publisherMemberRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<PublisherMemberRow> update(
+    UpdateSet<PublisherMemberRow> Function(
+      Expr<PublisherMemberRow> publisherMemberRow,
+      Expr<PublisherMemberRow> excluded,
+      UpdateSet<PublisherMemberRow> Function({
+        Expr<String> publisherId,
+        Expr<String> userId,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<String> role,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<PublisherMemberRow>(
+    this,
+    (publisherMemberRow, excluded) => updateBuilder(
+      publisherMemberRow,
+      excluded,
+      ({
+        Expr<String>? publisherId,
+        Expr<String>? userId,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<String>? role,
+      }) => $ForGeneratedCode.buildUpdate<PublisherMemberRow>([
+        publisherId,
+        userId,
+        createdAt,
+        updatedAt,
+        role,
+      ]),
+    ),
+  );
+}
+
+extension InsertSinglePublisherMemberRowExt
+    on InsertSingle<PublisherMemberRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((publisherMemberRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<PublisherMemberRow> onConflict(
+    PublisherMemberRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSinglePublisherMemberRowExt
+    on InsertOnConflictSingle<PublisherMemberRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `publisherMemberRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<PublisherMemberRow> update(
+    UpdateSet<PublisherMemberRow> Function(
+      Expr<PublisherMemberRow> publisherMemberRow,
+      Expr<PublisherMemberRow> excluded,
+      UpdateSet<PublisherMemberRow> Function({
+        Expr<String> publisherId,
+        Expr<String> userId,
+        Expr<DateTime> createdAt,
+        Expr<DateTime> updatedAt,
+        Expr<String> role,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<PublisherMemberRow>(
+    this,
+    (publisherMemberRow, excluded) => updateBuilder(
+      publisherMemberRow,
+      excluded,
+      ({
+        Expr<String>? publisherId,
+        Expr<String>? userId,
+        Expr<DateTime>? createdAt,
+        Expr<DateTime>? updatedAt,
+        Expr<String>? role,
+      }) => $ForGeneratedCode.buildUpdate<PublisherMemberRow>([
+        publisherId,
+        userId,
+        createdAt,
+        updatedAt,
+        role,
       ]),
     ),
   );

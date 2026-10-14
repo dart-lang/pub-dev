@@ -10,6 +10,9 @@ import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/account/agent.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../account/auth_provider.dart';
 import '../account/backend.dart';
@@ -48,6 +51,128 @@ class PublisherBackend {
   final DatastoreDB _db;
 
   PublisherBackend(this._db);
+
+  /// Makes the SQL rows of [publisherId] match the Datastore entities: the
+  /// [Publisher] and all of its [PublisherMember]s.
+  ///
+  /// Call it after the Datastore transaction that changed either of them. If
+  /// the [Publisher] does not exist in Datastore, it is removed from SQL
+  /// (the member rows are removed by the foreign key cascade).
+  Future<void> mirrorPublisherToSql(String publisherId) async {
+    final key = _db.emptyKey.append(Publisher, id: publisherId);
+    final publisher = await _db.lookupOrNull<Publisher>(key);
+    final members = publisher == null
+        ? const <PublisherMember>[]
+        : await _db.query<PublisherMember>(ancestorKey: key).run().toList();
+    await primaryDatabase.transactWithRetry((db) async {
+      if (publisher == null) {
+        await db.publishers.delete(publisherId).execute();
+        return;
+      }
+      await _upsertPublisher(db, publisher, members);
+    });
+  }
+
+  /// Upserts the [p] row and syncs its [members].
+  ///
+  /// The existing row is overwritten only if it is not newer than [p]:
+  /// concurrent calls may carry older snapshots, and they must not overwrite
+  /// the newer state. The comparison is part of the upsert statement,
+  /// so it is atomic with the write. Every change of a [PublisherMember] must
+  /// bump [Publisher.updated], so that the members are guarded too.
+  Future<void> _upsertPublisher(
+    Database<PrimarySchema> db,
+    Publisher p,
+    List<PublisherMember> members,
+  ) async {
+    await db.publishers
+        .insertValue(
+          publisherId: p.publisherId,
+          description: p.description,
+          websiteUrl: p.websiteUrl,
+          contactEmail: p.contactEmail,
+          createdAt: p.created!,
+          updatedAt: p.updated!,
+          isAbandoned: p.isAbandoned,
+          isModerated: p.isModerated,
+          moderatedAt: p.moderatedAt,
+        )
+        .onConflict(.primaryKey)
+        .update(
+          (row, excluded, set) => set(
+            description: excluded.description,
+            websiteUrl: excluded.websiteUrl,
+            contactEmail: excluded.contactEmail,
+            createdAt: excluded.createdAt,
+            updatedAt: excluded.updatedAt,
+            isAbandoned: excluded.isAbandoned,
+            isModerated: excluded.isModerated,
+            moderatedAt: excluded.moderatedAt,
+          ),
+        )
+        .where(
+          (row, excluded) => row.updatedAt.isAfter(excluded.updatedAt).not(),
+        )
+        .execute();
+    // The row is either written by this call (and locked by this transaction),
+    // or it was newer: in the latter case the members must not be touched.
+    final current = await db.publishers.byKey(p.publisherId).fetch();
+    if (current == null || current.updatedAt.isAfter(p.updated!)) {
+      return;
+    }
+    await _syncPublisherMembers(db, p.publisherId, members);
+  }
+
+  /// Makes the member rows of [publisherId] match [members].
+  ///
+  /// Must run after the publisher row is written, because of the foreign key.
+  Future<void> _syncPublisherMembers(
+    Database<PrimarySchema> db,
+    String publisherId,
+    List<PublisherMember> members,
+  ) async {
+    for (final m in members) {
+      await db.publisherMembers
+          .upsertValue(
+            publisherId: publisherId,
+            userId: m.userId!,
+            createdAt: m.created!,
+            updatedAt: m.updated!,
+            role: m.role!,
+          )
+          .execute();
+    }
+    final wanted = members.map((m) => m.userId!).toSet();
+    final existing = await db.publisherMembers
+        .where((m) => m.publisherId.equalsValue(publisherId))
+        .select((m) => (m.userId,))
+        .fetch();
+    for (final userId in existing) {
+      if (!wanted.contains(userId)) {
+        await db.publisherMembers.delete(publisherId, userId).execute();
+      }
+    }
+  }
+
+  /// Copies [Publisher] and [PublisherMember] entries from Datastore into SQL,
+  /// and removes SQL rows that have no matching Datastore entry.
+  Future<int> backfillPublishersSqlFromDatastore() async {
+    var count = 0;
+    final sqlIds = (await primaryDatabase.withRetry(
+      (db) => db.publishers.select((p) => (p.publisherId,)).fetch(),
+    )).toSet();
+    await for (final p in _db.query<Publisher>().run()) {
+      sqlIds.remove(p.publisherId);
+      await mirrorPublisherToSql(p.publisherId);
+      count++;
+    }
+    // The remaining entries have no matching Datastore entity.
+    for (final id in sqlIds) {
+      await mirrorPublisherToSql(id);
+      count++;
+    }
+    return count;
+  }
 
   /// Returns the cached publisher status.
   Future<PublisherStatus> getPublisherStatus(String publisherId) async {
@@ -253,6 +378,7 @@ class PublisherBackend {
     });
     if (created) {
       await auditBackend.migrateToSql(auditLogRecord);
+      await mirrorPublisherToSql(publisherId);
     }
     await purgeAccountCache(userId: user.userId);
     await cache.allPublishersPage().purge();
@@ -376,6 +502,7 @@ class PublisherBackend {
       return p;
     });
     await auditBackend.migrateToSql(auditLogRecord);
+    await mirrorPublisherToSql(publisherId);
 
     await purgePublisherCache(publisherId);
     return _asPublisherInfo(p);
@@ -412,6 +539,7 @@ class PublisherBackend {
       tx.insert(auditLogRecord);
     });
     await auditBackend.migrateToSql(auditLogRecord);
+    await mirrorPublisherToSql(publisherId);
   }
 
   /// Invites a user to become a publisher admin.
@@ -554,11 +682,17 @@ class PublisherBackend {
         final current = await tx.lookupValue<PublisherMember>(key);
         // fall back to current role if role is not updated
         current.role = update.role ?? current.role;
-        current.updated = clock.now().toUtc();
+        final now = clock.now().toUtc();
+        current.updated = now;
         tx.insert(current);
+        // bump the publisher too, the SQL mirror uses it to detect stale writes
+        final publisher = await tx.lookupValue<Publisher>(p.key);
+        publisher.updated = now;
+        tx.insert(publisher);
       });
     }
     final updated = await _db.lookupValue<PublisherMember>(key);
+    await mirrorPublisherToSql(publisherId);
     await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);
     return await _asPublisherMember(updated);
@@ -583,12 +717,17 @@ class PublisherBackend {
         activeUser: user,
         memberToRemove: memberUser!,
       );
-      await withRetryTransaction(
-        _db,
-        (tx) async =>
-            tx.queueMutations(inserts: [auditLogRecord], deletes: [pm.key]),
-      );
+      await withRetryTransaction(_db, (tx) async {
+        // bump the publisher, the SQL mirror uses it to detect stale writes
+        final publisher = await tx.lookupValue<Publisher>(p.key);
+        publisher.updated = clock.now().toUtc();
+        tx.queueMutations(
+          inserts: [publisher, auditLogRecord],
+          deletes: [pm.key],
+        );
+      });
       await auditBackend.migrateToSql(auditLogRecord);
+      await mirrorPublisherToSql(publisherId);
     }
     await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);
@@ -619,8 +758,12 @@ class PublisherBackend {
       if (member != null) return;
       final now = clock.now().toUtc();
       added = true;
+      // bump the publisher, the SQL mirror uses it to detect stale writes
+      final publisher = await tx.lookupValue<Publisher>(key.parent!);
+      publisher.updated = now;
       tx.queueMutations(
         inserts: [
+          publisher,
           PublisherMember()
             ..parentKey = key.parent
             ..id = userId
@@ -634,6 +777,7 @@ class PublisherBackend {
     });
     if (added) {
       await auditBackend.migrateToSql(auditLogRecord);
+      await mirrorPublisherToSql(publisherId);
     }
     await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);
