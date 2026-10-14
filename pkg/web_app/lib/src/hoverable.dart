@@ -108,7 +108,7 @@ void registerHoverable(Element h) {
   h.onMouseLeave.listen((_) {
     h.classList.remove('-hover-dismissed');
   });
-  h.onFocusOut.listen((e) {
+  EventStreamProvider<FocusEvent>('focusout').forTarget(h).listen((e) {
     final related = e.relatedTarget;
     if (related is! Node || !h.contains(related)) {
       if (_activeHover == h) {
