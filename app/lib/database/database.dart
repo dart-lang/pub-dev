@@ -164,6 +164,25 @@ class PrimaryDatabase {
         .map((f) => (name: p.basename(f.path), content: f.readAsStringSync()))
         .toList();
 
+    await _adapter.transact((tx) async {
+      await tx.script(r'''
+        LOCK TABLE "schema_migrations" IN EXCLUSIVE MODE;
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT 1 FROM "schema_migrations"
+            WHERE "script_name" = '000013_audit_index.sql'
+          ) THEN
+            DROP INDEX IF EXISTS "audit_log_associations_idx_kind_value_created";
+            DROP INDEX IF EXISTS "audit_log_associations_idx_record_created_at";
+            DROP INDEX IF EXISTS "audit_log_records_idx_created_at";
+            DELETE FROM "schema_migrations"
+              WHERE "script_name" = '000013_audit_index.sql';
+          END IF;
+        END $$;
+      ''');
+    });
+
     await migrateScripts(
       target: _adapter,
       table: migrationDb.schemaMigrations,
