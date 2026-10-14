@@ -17,6 +17,7 @@ import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:test/test.dart';
 
+import '../database/publisher_sql_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -71,6 +72,7 @@ void main() {
             'websiteUrl': 'https://verified.com/',
             'contactEmail': 'admin@pub.dev',
           });
+          await expectPublisherInSqlMatchesDatastore('verified.com');
 
           // check audit log record
           final page = await auditBackend.listRecordsForPublisher(
@@ -309,6 +311,7 @@ void main() {
         // check updated value
         final updated = await client.publisherInfo('example.com');
         expect(updated.contactEmail, newContactEmail);
+        await expectPublisherInSqlMatchesDatastore('example.com');
       }
 
       testWithProfile(
@@ -642,6 +645,7 @@ void main() {
             'role': 'admin',
             'email': 'user@pub.dev',
           });
+          await expectPublisherInSqlMatchesDatastore('example.com');
         },
       );
 
@@ -896,6 +900,7 @@ void main() {
             user.userId,
           );
           expect(updated.toJson(), rs.toJson());
+          await expectPublisherInSqlMatchesDatastore('example.com');
         },
       );
     });
@@ -968,6 +973,7 @@ void main() {
             user.userId,
           );
           await expectApiException(updated, status: 404, code: 'NotFound');
+          await expectPublisherInSqlMatchesDatastore('example.com');
           // check audit log
           final page = await auditBackend.listRecordsForPublisher(
             'example.com',

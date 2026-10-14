@@ -14,6 +14,7 @@ import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
@@ -253,11 +254,16 @@ class UserMerger {
       _db.query<PublisherMember>()..filter('userId =', fromUserId),
       (PublisherMember m) async {
         await withRetryTransaction(_db, (tx) async {
+          final now = clock.now().toUtc();
+          final publisher = await tx.lookupValue<Publisher>(m.parentKey!);
+          // bump the publisher, the SQL mirror uses it to detect stale writes
+          publisher.updated = now;
           tx.queueMutations(
-            inserts: [m.changeParentUserId(toUserId)],
+            inserts: [publisher, m.changeParentUserId(toUserId)..updated = now],
             deletes: [m.key],
           );
         });
+        await publisherBackend.mirrorPublisherToSql(m.publisherId);
       },
     );
 

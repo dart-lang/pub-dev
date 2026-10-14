@@ -19,6 +19,7 @@ import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
 
 import '../database/package_sql_utils.dart';
+import '../database/publisher_sql_utils.dart';
 import '../shared/test_services.dart';
 
 void main() {
@@ -182,6 +183,8 @@ void main() {
       expect(await publisherBackend.getAdminMemberEmails('verified.com'), [
         'control@pub.dev',
       ]);
+      await expectPublisherInSqlMatchesDatastore('example.com');
+      await expectPublisherInSqlMatchesDatastore('verified.com');
     },
   );
 

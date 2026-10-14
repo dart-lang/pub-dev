@@ -8,6 +8,7 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
@@ -92,6 +93,7 @@ This should generally only be done with PM approval as it skips actual domain ve
     if (created) {
       await auditBackend.migrateToSql(auditLogRecord);
     }
+    await publisherBackend.mirrorPublisherToSql(publisherId);
     return {
       'message': 'Publisher created.',
       'publisherId': publisherId,

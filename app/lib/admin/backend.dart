@@ -26,6 +26,7 @@ import '../audit/models.dart';
 import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, triggerPackagePostUpdates;
 import '../package/models.dart';
+import '../publisher/backend.dart';
 import '../publisher/models.dart';
 import '../scorecard/backend.dart';
 import '../service/email/email_templates.dart';
@@ -210,6 +211,8 @@ class AdminBackend {
     );
     await withRetryTransaction(_db, (tx) async {
       final p = await tx.lookupValue<Publisher>(member.publisherKey);
+      // bump the publisher, the SQL mirror uses it to detect stale writes
+      p.updated = clock.now().toUtc();
       if (seniorMember == null) {
         p.isAbandoned = true;
         p.contactEmail = null;
@@ -222,6 +225,7 @@ class AdminBackend {
       }
       tx.queueMutations(inserts: [p], deletes: [member.key]);
     });
+    await publisherBackend.mirrorPublisherToSql(member.publisherId);
     if (seniorMember == null) {
       // mark packages under the publisher discontinued
       final query = _db.query<Package>()
@@ -1021,6 +1025,7 @@ class AdminBackend {
 
       // removes publisher entity
       await withRetryTransaction(_db, (tx) async => tx.delete(publisher.key));
+      await publisherBackend.mirrorPublisherToSql(publisher.publisherId);
 
       _logger.info('Deleted moderated publisher: ${publisher.publisherId}');
     }

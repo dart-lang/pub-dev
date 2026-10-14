@@ -9,6 +9,7 @@ import 'package:pub_dev/publisher/backend.dart';
 import 'package:test/test.dart';
 
 import '../database/package_sql_utils.dart';
+import '../database/publisher_sql_utils.dart';
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
 
@@ -69,6 +70,7 @@ void main() {
         });
         final p1 = await publisherBackend.lookupPublisher('other.com');
         expect(p1, isNotNull);
+        await expectPublisherInSqlMatchesDatastore('other.com');
         final rs2 = await client.adminInvokeAction(
           'publisher-delete',
           AdminInvokeActionArguments(arguments: {'publisher': 'other.com'}),
@@ -80,6 +82,7 @@ void main() {
         });
         final p2 = await publisherBackend.lookupPublisher('other.com');
         expect(p2, isNull);
+        await expectPublisherInSqlMatchesDatastore('other.com');
       },
     );
 
