@@ -69,28 +69,9 @@ class AdminBackend {
   /// admin API, but it should only be used as a temporary measure.
   /// Tools should be either removed or migrated to proper top-level API endpoints.
   Future<String> executeTool(String tool, List<String> args) async {
-    final caller = await requireAuthenticatedAdmin(AdminPermission.executeTool);
-    final sw = Stopwatch()..start();
-    _logger.info(
-      'Admin ${caller.displayId} invoking tool "$tool" with args: $args',
-    );
-    try {
-      final toolFunction = availableTools[tool] ?? executeListTools;
-      final result = await toolFunction(args);
-      _logger.info(
-        'Admin ${caller.displayId} invoked tool "$tool" '
-        'in ${sw.elapsed} with result: $result',
-      );
-      return result;
-    } catch (e, st) {
-      _logger.warning(
-        'Admin ${caller.displayId} failed invoking tool "$tool" '
-        'after ${sw.elapsed}',
-        e,
-        st,
-      );
-      rethrow;
-    }
+    await requireAuthenticatedAdmin(AdminPermission.executeTool);
+    final toolFunction = availableTools[tool] ?? executeListTools;
+    return await toolFunction(args);
   }
 
   /// List users.
