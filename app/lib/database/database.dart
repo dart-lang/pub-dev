@@ -183,6 +183,7 @@ class PrimaryDatabase {
           END IF;
         END $$;
       ''');
+    });
 
     await migrateScripts(
       target: _adapter,
