@@ -1025,6 +1025,7 @@ class AdminBackend {
 
       // removes publisher entity
       await withRetryTransaction(_db, (tx) async => tx.delete(publisher.key));
+      await publisherBackend.mirrorPublisherToSql(publisher.publisherId);
 
       _logger.info('Deleted moderated publisher: ${publisher.publisherId}');
     }

@@ -242,6 +242,7 @@ void main() {
           await publisherBackend.listPublisherMembers('example.com'),
           isEmpty,
         );
+        await expectPublisherInSqlMatchesDatastore('example.com');
 
         // publisher package has no publisher or uploader
         final pkg = await packageBackend.lookupPackage('neon');
