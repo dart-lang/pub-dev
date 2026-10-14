@@ -54,6 +54,7 @@ import '../shared/redis_cache.dart' show cache, EntryPurgeExt;
 import '../shared/storage.dart';
 import '../shared/urls.dart' as urls;
 import '../shared/utils.dart';
+import 'attestation_verifier.dart';
 import 'model_properties.dart';
 import 'models.dart';
 import 'name_tracker.dart';
@@ -1751,16 +1752,52 @@ class PackageBackend {
         throw PackageRejectedException.dependencyDoesNotExists(name);
       }
 
-      // Read the attestation, if one was uploaded for this upload.
+      // Read and verify the attestation, if one was uploaded for this upload.
       // Note: the content has been validated to be a JSON object when it was
       //       uploaded, see [uploadAttestation].
       String? attestationContent;
+      VersionProvenance? provenance;
       if (await _incomingBucket.tryInfo(attestationObjectName) != null) {
         attestationContent = utf8.decode(
           await _incomingBucket.readAsBytes(
             attestationObjectName,
             maxSize: maxAttestationContentLength,
           ),
+        );
+        _logger.info('Verifying package attestation ($uploadGuid).');
+        final existingPackage = await lookupPackage(pubspec.name);
+        final githubConfig = existingPackage?.publishingConfig?.githubConfig;
+        final configuredGitHubRepository =
+            (githubConfig != null && githubConfig.isEnabled)
+            ? githubConfig.repository
+            : null;
+
+        // The signature is verified over the digest computed above from the
+        // very file that is being published; the archive is not read again.
+        //
+        // Only failures attributable to the uploaded bundle are reported as a
+        // failed result, anything else (e.g. the verifier not being available)
+        // propagates and fails the request with a logged internal error.
+        final verificationResult = attestationVerifier.verify(
+          packageName: pubspec.name,
+          packageVersion: Version.parse(versionString),
+          archiveSha256: sha256Hash,
+          bundleJson: attestationContent,
+          pubspecRepository: pubspec.repository?.toString(),
+          configuredGitHubRepository: configuredGitHubRepository,
+        );
+        if (!verificationResult.isValid) {
+          throw PackageRejectedException(
+            'Invalid package attestation: '
+            '${verificationResult.errors.join(', ')}',
+          );
+        }
+        // The verified facts are persisted with the version, so that neither
+        // the package page nor later policy checks need to parse the bundle.
+        provenance = verificationResult.toVersionProvenance();
+        _logger.info(
+          'Attestation verified successfully for ${pubspec.name} $versionString '
+          'from repository ${verificationResult.repository}.',
         );
       }
 
@@ -1770,6 +1807,7 @@ class PackageBackend {
         agent,
         archive,
         sha256Hash: sha256Hash,
+        provenance: provenance,
       );
       final (version, uploadMessages) = await _performTarballUpload(
         entities: entities,
@@ -3082,11 +3120,15 @@ class DerivedPackageVersionEntities {
 }
 
 /// Creates entities from [archive] summary.
+///
+/// [provenance] is the verified build provenance of the archive, if it was
+/// published with an attestation.
 Future<_UploadEntities> _createUploadEntities(
   DatastoreDB db,
   AuthenticatedAgent agent,
   PackageSummary archive, {
   required List<int> sha256Hash,
+  required VersionProvenance? provenance,
 }) async {
   final pubspec = Pubspec.fromYaml(archive.pubspecContent!);
   final packageKey = db.emptyKey.append(Package, id: pubspec.name);
@@ -3101,7 +3143,8 @@ Future<_UploadEntities> _createUploadEntities(
     ..pubspec = pubspec
     ..libraries = archive.libraries
     ..uploader = agent.agentId
-    ..sha256 = sha256Hash;
+    ..sha256 = sha256Hash
+    ..provenance = provenance;
 
   final derived = derivePackageVersionEntities(
     archive: archive,
