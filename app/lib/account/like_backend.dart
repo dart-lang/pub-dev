@@ -169,62 +169,61 @@ class LikeBackend {
     );
   }
 
-  /// Syncs SQL with the [Like] entities: upserts the missing or changed likes,
-  /// and removes the rows without a matching entity.
+  /// Syncs SQL with the [Like] entities, one package at a time: upserts the
+  /// missing or changed likes, and removes the rows without a matching entity.
   ///
   /// Likes of users or packages that are missing from SQL are skipped.
   Future<int> backfillSqlFromDatastore() async {
     var count = 0;
-    final remainingSqlRows = <(String, String), DateTime>{};
-    final rows = await primaryDatabase.withRetry(
-      (db) => db.packageLikes
-          .select((l) => (l.userId, l.package, l.createdAt))
-          .fetch(),
-    );
-    for (final (userId, package, createdAt) in rows) {
-      remainingSqlRows[(userId, package)] = createdAt;
-    }
+    final packageNames = await packageBackend.allPackageNames().toList();
+    for (final package in packageNames) {
+      final remainingSqlRows = <String, DateTime>{};
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.packageLikes
+            .where((l) => l.package.equalsValue(package))
+            .select((l) => (l.userId, l.createdAt))
+            .fetch(),
+      );
+      for (final (userId, createdAt) in rows) {
+        remainingSqlRows[userId] = createdAt;
+      }
 
-    final hasUserInSqlCache = <String, bool>{};
-    final hasPackageInSqlCache = <String, bool>{};
-    Future<bool> hasUserInSql(String userId) async =>
-        hasUserInSqlCache[userId] ??=
-            await primaryDatabase.withRetry(
-              (db) => db.users.byKey(userId).fetch(),
-            ) !=
-            null;
-    Future<bool> hasPackageInSql(String package) async =>
-        hasPackageInSqlCache[package] ??=
+      bool? hasPackageInSql;
+      final query = _db.query<Like>()..filter('packageName =', package);
+      await for (final like in query.run()) {
+        final sqlCreated = remainingSqlRows.remove(like.userId);
+        final created = like.created;
+        if (created != null &&
+            sqlCreated != null &&
+            sqlCreated.isAtSameMomentAs(created)) {
+          continue;
+        }
+        hasPackageInSql ??=
             await primaryDatabase.withRetry(
               (db) => db.packages.byKey(package).fetch(),
             ) !=
             null;
-
-    await for (final like in _db.query<Like>().run()) {
-      final key = (like.userId, like.package);
-      final sqlCreated = remainingSqlRows.remove(key);
-      final created = like.created;
-      if (created != null &&
-          sqlCreated != null &&
-          sqlCreated.isAtSameMomentAs(created)) {
-        continue;
+        final hasUserInSql =
+            await primaryDatabase.withRetry(
+              (db) => db.users.byKey(like.userId).fetch(),
+            ) !=
+            null;
+        if (!hasPackageInSql || !hasUserInSql) {
+          _logger.warning(
+            'Skipping like of "${like.userId}" on "$package": '
+            'user or package is missing in SQL.',
+          );
+          continue;
+        }
+        await mirrorToSql(like);
+        count++;
       }
-      if (!await hasUserInSql(like.userId) ||
-          !await hasPackageInSql(like.package)) {
-        _logger.warning(
-          'Skipping like of "${like.userId}" on "${like.package}": '
-          'user or package is missing in SQL.',
-        );
-        continue;
-      }
-      await mirrorToSql(like);
-      count++;
-    }
 
-    // Rows left over have no Datastore entity.
-    for (final (userId, package) in remainingSqlRows.keys) {
-      await deleteFromSql(userId, package);
-      count++;
+      // Rows left over have no Datastore entity.
+      for (final userId in remainingSqlRows.keys) {
+        await deleteFromSql(userId, package);
+        count++;
+      }
     }
     return count;
   }
