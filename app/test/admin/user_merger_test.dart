@@ -217,6 +217,29 @@ void main() {
   );
 
   testWithProfile(
+    'like when the target user already likes the package',
+    fn: () async {
+      final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+      final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
+      await likeBackend.likePackage(user, 'oxygen');
+      await likeBackend.likePackage(admin, 'oxygen');
+      expect((await packageBackend.lookupPackage('oxygen'))!.likes, 2);
+
+      await _corruptAndFix();
+
+      expect(await likeBackend.listPackageLikes(admin.userId), isEmpty);
+      expect(
+        (await likeBackend.listPackageLikes(
+          user.userId,
+        )).map((e) => e.package).toList(),
+        ['oxygen'],
+      );
+      expect((await packageBackend.lookupPackage('oxygen'))!.likes, 1);
+      await expectLikesInSqlMatchDatastore();
+    },
+  );
+
+  testWithProfile(
     'audit log record',
     fn: () async {
       final user = await accountBackend.lookupUserByEmail('user@pub.dev');
