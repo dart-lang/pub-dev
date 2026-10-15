@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../../account/backend.dart';
+import '../../account/like_backend.dart';
 import '../../account/models.dart';
 import '../../package/backend.dart';
 import '../../shared/datastore.dart';
@@ -68,6 +69,7 @@ Future<DeleteCounts> removeOrphanedLikes({
         'Removing like for package `${like.package}` because userId `${like.userId}` is missing.',
       );
       await withRetryTransaction(dbService, (tx) async => tx.delete(like.key));
+      await likeBackend.deleteFromSql(like.userId, like.package);
       deleted++;
       return;
     }
@@ -77,6 +79,7 @@ Future<DeleteCounts> removeOrphanedLikes({
         'Removing like for userId `${like.userId}` because package `${like.package}` is missing.',
       );
       await withRetryTransaction(dbService, (tx) async => tx.delete(like.key));
+      await likeBackend.deleteFromSql(like.userId, like.package);
       deleted++;
       return;
     }

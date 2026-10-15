@@ -18,6 +18,7 @@ import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
 
+import '../database/like_sql_utils.dart';
 import '../database/package_sql_utils.dart';
 import '../database/publisher_sql_utils.dart';
 import '../shared/test_services.dart';
@@ -211,6 +212,30 @@ void main() {
         )).map((e) => e.package).toList(),
         ['oxygen'],
       );
+      await expectLikesInSqlMatchDatastore();
+    },
+  );
+
+  testWithProfile(
+    'like when the target user already likes the package',
+    fn: () async {
+      final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+      final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
+      await likeBackend.likePackage(user, 'oxygen');
+      await likeBackend.likePackage(admin, 'oxygen');
+      expect((await packageBackend.lookupPackage('oxygen'))!.likes, 2);
+
+      await _corruptAndFix();
+
+      expect(await likeBackend.listPackageLikes(admin.userId), isEmpty);
+      expect(
+        (await likeBackend.listPackageLikes(
+          user.userId,
+        )).map((e) => e.package).toList(),
+        ['oxygen'],
+      );
+      expect((await packageBackend.lookupPackage('oxygen'))!.likes, 1);
+      await expectLikesInSqlMatchDatastore();
     },
   );
 

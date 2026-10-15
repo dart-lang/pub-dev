@@ -30,6 +30,8 @@ abstract final class PrimarySchema extends Schema {
 
   Table<UserSession> get userSessions;
 
+  Table<PackageLike> get packageLikes;
+
   // audit tables
 
   Table<AuditLogRecordRow> get auditLogRecords;

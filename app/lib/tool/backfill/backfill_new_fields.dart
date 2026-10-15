@@ -5,6 +5,7 @@
 import 'package:logging/logging.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
+import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/backend.dart';
@@ -60,4 +61,8 @@ Future<void> backfillNewFields() async {
   // NOTE: Keep this around until Publisher and PublisherMember are migrated to use SQL.
   _logger.info('Backfilling publishers and publisher members...');
   await publisherBackend.backfillPublishersSqlFromDatastore();
+
+  // NOTE: Keep this around until Like is migrated to SQL.
+  _logger.info('Backfilling package likes...');
+  await likeBackend.backfillSqlFromDatastore();
 }

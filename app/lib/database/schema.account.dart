@@ -72,3 +72,32 @@ abstract final class UserRow extends Row {
 
   String? get moderatedReason;
 }
+
+/// A user liking a package.
+@PrimaryKey(['userId', 'package'])
+@ForeignKey(
+  ['package'],
+  table: 'packages',
+  fields: ['name'],
+  name: 'packageRow',
+  as: 'likes',
+  onDelete: .cascade,
+  onUpdate: .cascade,
+)
+@ForeignKey(
+  ['userId'],
+  table: 'users',
+  fields: ['userId'],
+  name: 'userRow',
+  as: 'likedPackages',
+  onDelete: .cascade,
+  onUpdate: .cascade,
+)
+@Index(name: 'packageUser', fields: ['package', 'userId'])
+abstract final class PackageLike extends Row {
+  String get userId;
+
+  String get package;
+
+  DateTime get createdAt;
+}
