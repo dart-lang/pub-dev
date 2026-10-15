@@ -32,6 +32,7 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
   static final _$tables = [
     _$UserRow._$table,
     _$UserSession._$table,
+    _$PackageLike._$table,
     _$AuditLogRecordRow._$table,
     _$AuditLogAssociation._$table,
     _$ConsentRow._$table,
@@ -60,6 +61,9 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<UserSession> get userSessions =>
       $ForGeneratedCode.declareTable(this, _$UserSession._$table);
+
+  Table<PackageLike> get packageLikes =>
+      $ForGeneratedCode.declareTable(this, _$PackageLike._$table);
 
   Table<AuditLogRecordRow> get auditLogRecords =>
       $ForGeneratedCode.declareTable(this, _$AuditLogRecordRow._$table);
@@ -705,6 +709,17 @@ extension ExpressionUserRowExt on Expr<UserRow> {
   Expr<String?> get moderatedReason =>
       $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
 
+  /// Get [SubQuery] of rows from the `packageLikes` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageLike] rows,
+  /// where [PackageLike.userId]
+  /// references [UserRow.userId]
+  /// in this row.
+  SubQuery<(Expr<PackageLike>,)> get likedPackages => $ForGeneratedCode
+      .subqueryTable(_$PackageLike._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId));
+
   /// Get [SubQuery] of rows from the `packageUploaders` table which
   /// reference this row.
   ///
@@ -759,6 +774,19 @@ extension ExpressionNullableUserRowExt on Expr<UserRow?> {
   Expr<String?> get moderatedReason =>
       $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
 
+  /// Get [SubQuery] of rows from the `packageLikes` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageLike] rows,
+  /// where [PackageLike.userId]
+  /// references [UserRow.userId]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<PackageLike>,)> get likedPackages => $ForGeneratedCode
+      .subqueryTable(_$PackageLike._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId));
+
   /// Get [SubQuery] of rows from the `packageUploaders` table which
   /// reference this row.
   ///
@@ -801,6 +829,33 @@ extension ExpressionNullableUserRowExt on Expr<UserRow?> {
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
   Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinUserRowPackageLikeExt
+    on InnerJoin<(Expr<UserRow>,), (Expr<PackageLike>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [PackageLike.userId].
+  Query<(Expr<UserRow>, Expr<PackageLike>)> usingUserRow() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
+}
+
+extension LeftJoinUserRowPackageLikeExt
+    on LeftJoin<(Expr<UserRow>,), (Expr<PackageLike>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [PackageLike.userId].
+  Query<(Expr<UserRow>, Expr<PackageLike?>)> usingUserRow() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
+}
+
+extension RightJoinUserRowPackageLikeExt
+    on RightJoin<(Expr<UserRow>,), (Expr<PackageLike>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [PackageLike.userId].
+  Query<(Expr<UserRow?>, Expr<PackageLike>)> usingUserRow() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
 }
 
 extension InnerJoinUserRowPackageUploaderExt
@@ -2112,6 +2167,688 @@ extension InsertOnConflictSingleUserSessionExt
         openidNonce,
         accessToken,
         grantedScopes,
+      ]),
+    ),
+  );
+}
+
+final class _$PackageLike extends PackageLike {
+  _$PackageLike._(this.userId, this.package, this.createdAt);
+
+  @override
+  final String userId;
+
+  @override
+  final String package;
+
+  @override
+  final DateTime createdAt;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'package_likes',
+    columns: <String>['user_id', 'package', 'created_at'],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['user_id', 'package'],
+    unique: <List<String>>[],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'packageRow',
+        columns: ['package'],
+        referencedTable: 'packages',
+        referencedColumns: ['name'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'userRow',
+        columns: ['user_id'],
+        referencedTable: 'users',
+        referencedColumns: ['user_id'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+    ],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: 'packageUser',
+        sqlName: 'package_user',
+        columns: ['package', 'user_id'],
+      ),
+    ],
+    readRow: _$PackageLike._$fromDatabase,
+  );
+
+  static PackageLike? _$fromDatabase(RowReader row) {
+    final userId = row.readString();
+    final package = row.readString();
+    final createdAt = row.readDateTime();
+    if (userId == null && package == null && createdAt == null) {
+      return null;
+    }
+    return _$PackageLike._(userId!, package!, createdAt!);
+  }
+
+  @override
+  String toString() =>
+      'PackageLike(userId: "$userId", package: "$package", createdAt: "$createdAt")';
+}
+
+/// Extension methods for table defined in [PackageLike].
+extension TablePackageLikeExt on Table<PackageLike> {
+  /// Insert row into the `packageLikes` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PackageLike> insert({
+    required Expr<String> userId,
+    required Expr<String> package,
+    required Expr<DateTime> createdAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [userId, package, createdAt],
+  );
+
+  /// Insert row into the `packageLikes` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PackageLike> upsert({
+    required Expr<String> userId,
+    required Expr<String> package,
+    required Expr<DateTime> createdAt,
+  }) => insert(userId: userId, package: package, createdAt: createdAt)
+      .onConflict(.primaryKey)
+      .update((_, excluded, set) => set(createdAt: excluded.createdAt));
+
+  /// Insert row into the `packageLikes` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<PackageLike> insertValue({
+    required String userId,
+    required String package,
+    required DateTime createdAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [userId.asExpr, package.asExpr, createdAt.asExpr],
+  );
+
+  /// Insert row into the `packageLikes` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<PackageLike> upsertValue({
+    required String userId,
+    required String package,
+    required DateTime createdAt,
+  }) => insertValue(userId: userId, package: package, createdAt: createdAt)
+      .onConflict(.primaryKey)
+      .update((_, excluded, set) => set(createdAt: excluded.createdAt));
+
+  /// Bulk insert rows into the `packageLikes` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<PackageLike> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) userId,
+    required String Function(T row) package,
+    required DateTime Function(T row) createdAt,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [userId, package, createdAt],
+  );
+
+  /// Delete a single row from the `packageLikes` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<PackageLike> delete(String userId, String package) =>
+      $ForGeneratedCode.deleteSingle(
+        byKey(userId, package),
+        _$PackageLike._$table,
+      );
+}
+
+/// Extension methods for building queries against the `packageLikes` table.
+extension QueryPackageLikeExt on Query<(Expr<PackageLike>,)> {
+  /// Lookup a single row in `packageLikes` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<PackageLike>,)> byKey(String userId, String package) =>
+      where(
+        (packageLike) =>
+            packageLike.userId.equalsValue(userId) &
+            packageLike.package.equalsValue(package),
+      ).first;
+
+  /// Update all rows in the `packageLikes` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<PackageLike> update(
+    UpdateSet<PackageLike> Function(
+      Expr<PackageLike> packageLike,
+      UpdateSet<PackageLike> Function({
+        Expr<String> userId,
+        Expr<String> package,
+        Expr<DateTime> createdAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<PackageLike>(
+    this,
+    _$PackageLike._$table,
+    (packageLike) => updateBuilder(
+      packageLike,
+      ({
+        Expr<String>? userId,
+        Expr<String>? package,
+        Expr<DateTime>? createdAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageLike>([
+        userId,
+        package,
+        createdAt,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `packageLikes` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<PackageLike> delete() =>
+      $ForGeneratedCode.delete(this, _$PackageLike._$table);
+}
+
+/// Extension methods for building point queries against the `packageLikes` table.
+extension QuerySinglePackageLikeExt on QuerySingle<(Expr<PackageLike>,)> {
+  /// Update the row (if any) in the `packageLikes` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<PackageLike> update(
+    UpdateSet<PackageLike> Function(
+      Expr<PackageLike> packageLike,
+      UpdateSet<PackageLike> Function({
+        Expr<String> userId,
+        Expr<String> package,
+        Expr<DateTime> createdAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<PackageLike>(
+    this,
+    _$PackageLike._$table,
+    (packageLike) => updateBuilder(
+      packageLike,
+      ({
+        Expr<String>? userId,
+        Expr<String>? package,
+        Expr<DateTime>? createdAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageLike>([
+        userId,
+        package,
+        createdAt,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `packageLikes` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<PackageLike> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$PackageLike._$table);
+}
+
+/// Extension methods for expressions on a row in the `packageLikes` table.
+extension ExpressionPackageLikeExt on Expr<PackageLike> {
+  Expr<String> get userId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String> get package =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<DateTime> get createdAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// Do a subquery lookup of the row from table
+  /// `packages` referenced in
+  /// [package].
+  ///
+  /// The gets the row from table `packages` where
+  /// [PackageRow.name]
+  /// is equal to [package].
+  Expr<PackageRow> get packageRow => $ForGeneratedCode
+      .subqueryTable(_$PackageRow._$table)
+      .where((r) => r.name.equalsUnlessNull(package))
+      .first
+      .asNotNull();
+
+  /// Do a subquery lookup of the row from table
+  /// `users` referenced in
+  /// [userId].
+  ///
+  /// The gets the row from table `users` where
+  /// [UserRow.userId]
+  /// is equal to [userId].
+  Expr<UserRow> get userRow => $ForGeneratedCode
+      .subqueryTable(_$UserRow._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId))
+      .first
+      .asNotNull();
+}
+
+extension ExpressionNullablePackageLikeExt on Expr<PackageLike?> {
+  Expr<String?> get userId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  Expr<String?> get package =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  Expr<DateTime?> get createdAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// Do a subquery lookup of the row from table
+  /// `packages` referenced in
+  /// [package].
+  ///
+  /// The gets the row from table `packages` where
+  /// [PackageRow.name]
+  /// is equal to [package], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<PackageRow?> get packageRow => $ForGeneratedCode
+      .subqueryTable(_$PackageRow._$table)
+      .where((r) => r.name.equalsUnlessNull(package))
+      .first;
+
+  /// Do a subquery lookup of the row from table
+  /// `users` referenced in
+  /// [userId].
+  ///
+  /// The gets the row from table `users` where
+  /// [UserRow.userId]
+  /// is equal to [userId], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<UserRow?> get userRow => $ForGeneratedCode
+      .subqueryTable(_$UserRow._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId))
+      .first;
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => userId.isNotNull() & package.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinPackageLikePackageRowExt
+    on InnerJoin<(Expr<PackageLike>,), (Expr<PackageRow>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageLike.package] = [PackageRow.name].
+  Query<(Expr<PackageLike>, Expr<PackageRow>)> usingPackageRow() =>
+      on((a, b) => b.name.equalsUnlessNull(a.package));
+}
+
+extension LeftJoinPackageLikePackageRowExt
+    on LeftJoin<(Expr<PackageLike>,), (Expr<PackageRow>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageLike.package] = [PackageRow.name].
+  Query<(Expr<PackageLike>, Expr<PackageRow?>)> usingPackageRow() =>
+      on((a, b) => b.name.equalsUnlessNull(a.package));
+}
+
+extension RightJoinPackageLikePackageRowExt
+    on RightJoin<(Expr<PackageLike>,), (Expr<PackageRow>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageLike.package] = [PackageRow.name].
+  Query<(Expr<PackageLike?>, Expr<PackageRow>)> usingPackageRow() =>
+      on((a, b) => b.name.equalsUnlessNull(a.package));
+}
+
+extension InnerJoinPackageLikeUserRowExt
+    on InnerJoin<(Expr<PackageLike>,), (Expr<UserRow>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageLike.userId] = [UserRow.userId].
+  Query<(Expr<PackageLike>, Expr<UserRow>)> usingUserRow() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
+}
+
+extension LeftJoinPackageLikeUserRowExt
+    on LeftJoin<(Expr<PackageLike>,), (Expr<UserRow>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageLike.userId] = [UserRow.userId].
+  Query<(Expr<PackageLike>, Expr<UserRow?>)> usingUserRow() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
+}
+
+extension RightJoinPackageLikeUserRowExt
+    on RightJoin<(Expr<PackageLike>,), (Expr<UserRow>,)> {
+  /// Join using the `userRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageLike.userId] = [UserRow.userId].
+  Query<(Expr<PackageLike?>, Expr<UserRow>)> usingUserRow() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
+}
+
+/// `Table<PackageLike>` conflict targets for use with `.onConflict`.
+enum PackageLikeConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `userId`, `package`.
+  primaryKey(['user_id', 'package']);
+
+  const PackageLikeConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertPackageLikeExt on Insert<PackageLike> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((packageLike, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<PackageLike> onConflict(PackageLikeConflict target) =>
+      $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictPackageLikeExt on InsertOnConflict<PackageLike> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `packageLike` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<PackageLike> update(
+    UpdateSet<PackageLike> Function(
+      Expr<PackageLike> packageLike,
+      Expr<PackageLike> excluded,
+      UpdateSet<PackageLike> Function({
+        Expr<String> userId,
+        Expr<String> package,
+        Expr<DateTime> createdAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<PackageLike>(
+    this,
+    (packageLike, excluded) => updateBuilder(
+      packageLike,
+      excluded,
+      ({
+        Expr<String>? userId,
+        Expr<String>? package,
+        Expr<DateTime>? createdAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageLike>([
+        userId,
+        package,
+        createdAt,
+      ]),
+    ),
+  );
+}
+
+extension InsertSinglePackageLikeExt on InsertSingle<PackageLike> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((packageLike, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<PackageLike> onConflict(PackageLikeConflict target) =>
+      $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSinglePackageLikeExt
+    on InsertOnConflictSingle<PackageLike> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `packageLike` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<PackageLike> update(
+    UpdateSet<PackageLike> Function(
+      Expr<PackageLike> packageLike,
+      Expr<PackageLike> excluded,
+      UpdateSet<PackageLike> Function({
+        Expr<String> userId,
+        Expr<String> package,
+        Expr<DateTime> createdAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<PackageLike>(
+    this,
+    (packageLike, excluded) => updateBuilder(
+      packageLike,
+      excluded,
+      ({
+        Expr<String>? userId,
+        Expr<String>? package,
+        Expr<DateTime>? createdAt,
+      }) => $ForGeneratedCode.buildUpdate<PackageLike>([
+        userId,
+        package,
+        createdAt,
       ]),
     ),
   );
@@ -7947,6 +8684,17 @@ extension ExpressionPackageRowExt on Expr<PackageRow> {
   Expr<DateTime?> get latestAdvisoryAt =>
       $ForGeneratedCode.field(this, 23, $ForGeneratedCode.dateTime);
 
+  /// Get [SubQuery] of rows from the `packageLikes` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageLike] rows,
+  /// where [PackageLike.package]
+  /// references [PackageRow.name]
+  /// in this row.
+  SubQuery<(Expr<PackageLike>,)> get likes => $ForGeneratedCode
+      .subqueryTable(_$PackageLike._$table)
+      .where((r) => r.package.equalsUnlessNull(name));
+
   /// Get [SubQuery] of rows from the `packageUploaders` table which
   /// reference this row.
   ///
@@ -8055,6 +8803,19 @@ extension ExpressionNullablePackageRowExt on Expr<PackageRow?> {
   Expr<DateTime?> get latestAdvisoryAt =>
       $ForGeneratedCode.field(this, 23, $ForGeneratedCode.dateTime);
 
+  /// Get [SubQuery] of rows from the `packageLikes` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageLike] rows,
+  /// where [PackageLike.package]
+  /// references [PackageRow.name]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<PackageLike>,)> get likes => $ForGeneratedCode
+      .subqueryTable(_$PackageLike._$table)
+      .where((r) => r.package.equalsUnlessNull(name));
+
   /// Get [SubQuery] of rows from the `packageUploaders` table which
   /// reference this row.
   ///
@@ -8096,6 +8857,33 @@ extension ExpressionNullablePackageRowExt on Expr<PackageRow?> {
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
   Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinPackageRowPackageLikeExt
+    on InnerJoin<(Expr<PackageRow>,), (Expr<PackageLike>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageRow.name] = [PackageLike.package].
+  Query<(Expr<PackageRow>, Expr<PackageLike>)> usingPackageRow() =>
+      on((a, b) => a.name.equalsUnlessNull(b.package));
+}
+
+extension LeftJoinPackageRowPackageLikeExt
+    on LeftJoin<(Expr<PackageRow>,), (Expr<PackageLike>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageRow.name] = [PackageLike.package].
+  Query<(Expr<PackageRow>, Expr<PackageLike?>)> usingPackageRow() =>
+      on((a, b) => a.name.equalsUnlessNull(b.package));
+}
+
+extension RightJoinPackageRowPackageLikeExt
+    on RightJoin<(Expr<PackageRow>,), (Expr<PackageLike>,)> {
+  /// Join using the `packageRow` _foreign key_.
+  ///
+  /// This will match rows where [PackageRow.name] = [PackageLike.package].
+  Query<(Expr<PackageRow?>, Expr<PackageLike>)> usingPackageRow() =>
+      on((a, b) => a.name.equalsUnlessNull(b.package));
 }
 
 extension InnerJoinPackageRowPackageUploaderExt

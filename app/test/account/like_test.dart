@@ -2,12 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/like_backend.dart';
+import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
+import '../database/like_sql_utils.dart';
 import '../database/package_sql_utils.dart';
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
@@ -37,6 +44,7 @@ void main() {
         expect(rs3.liked, true);
 
         await expectPackageInSqlMatchesDatastore(pkg1);
+        await expectLikesInSqlMatchDatastore();
       },
     );
 
@@ -133,6 +141,61 @@ void main() {
 
         await expectPackageInSqlMatchesDatastore(pkg1);
         await expectPackageInSqlMatchesDatastore(pkg2);
+        await expectLikesInSqlMatchDatastore();
+      },
+    );
+
+    testWithProfile(
+      'Backfill syncs missing and stale like rows',
+      fn: () async {
+        final client = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        await client.likePackage(pkg1);
+        await client.likePackage(pkg2);
+        expect(await likeBackend.backfillSqlFromDatastore(), 0);
+
+        final user = await accountBackend.lookupUserByEmail(userAtPubDevEmail);
+        await likeBackend.deleteFromSql(user.userId, pkg1);
+        expect(await likeBackend.backfillSqlFromDatastore(), 1);
+        await expectLikesInSqlMatchDatastore();
+
+        // removes the row without a Datastore entity
+        await withRetryTransaction(dbService, (tx) async {
+          tx.delete(
+            dbService.emptyKey
+                .append(User, id: user.userId)
+                .append(Like, id: pkg2),
+          );
+        });
+        expect(await likeBackend.backfillSqlFromDatastore(), 1);
+        expect(await likeBackend.backfillSqlFromDatastore(), 0);
+      },
+    );
+
+    testWithProfile(
+      'Backfill sets missing created timestamp in Datastore and SQL',
+      fn: () async {
+        final user = await accountBackend.lookupUserByEmail(userAtPubDevEmail);
+        await withRetryTransaction(dbService, (tx) async {
+          tx.insert(
+            Like()
+              ..parentKey = user.key
+              ..id = pkg1
+              ..packageName = pkg1,
+          );
+        });
+        expect(await likeBackend.backfillSqlFromDatastore(), 1);
+        final like = await likeBackend.getPackageLikeStatus(user.userId, pkg1);
+        expect(like!.created, isNotNull);
+        final row = await primaryDatabase.withRetry(
+          (db) => db.packageLikes.byKey(user.userId, pkg1).fetch(),
+        );
+        expect(
+          row!.createdAt.microsecondsSinceEpoch,
+          like.created!.microsecondsSinceEpoch,
+        );
+        expect(await likeBackend.backfillSqlFromDatastore(), 0);
       },
     );
 

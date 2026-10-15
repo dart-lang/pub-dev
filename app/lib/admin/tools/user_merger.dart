@@ -7,6 +7,7 @@ import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
@@ -216,12 +217,12 @@ class UserMerger {
     await _processConcurrently(_db.query<Like>(ancestorKey: fromUserKey), (
       Like like,
     ) async {
+      final newLike = like.changeParentUser(toUserKey);
       await withRetryTransaction(_db, (tx) async {
-        tx.queueMutations(
-          inserts: [like.changeParentUser(toUserKey)],
-          deletes: [like.key],
-        );
+        tx.queueMutations(inserts: [newLike], deletes: [like.key]);
       });
+      await likeBackend.mirrorToSql(newLike);
+      await likeBackend.deleteFromSql(like.userId, like.package);
     });
 
     // UserSession
