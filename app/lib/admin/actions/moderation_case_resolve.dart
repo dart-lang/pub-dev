@@ -124,6 +124,7 @@ Closes the moderation case and updates the status based on the actions logged on
       }
 
       mc.status = status!;
+      mc.grounds = grounds;
       mc.violation = violation;
       mc.reason = reason;
       tx.insert(mc);
