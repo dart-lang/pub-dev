@@ -38,6 +38,8 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$ConsentRow._$table,
     _$OutgoingEmailRow._$table,
     _$GlobalLockState._$table,
+    _$ModerationCaseRow._$table,
+    _$ModerationActionLog._$table,
     _$NeatTaskStatusRow._$table,
     _$PackageRow._$table,
     _$PackageUploader._$table,
@@ -79,6 +81,12 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<GlobalLockState> get globalLockStates =>
       $ForGeneratedCode.declareTable(this, _$GlobalLockState._$table);
+
+  Table<ModerationCaseRow> get moderationCases =>
+      $ForGeneratedCode.declareTable(this, _$ModerationCaseRow._$table);
+
+  Table<ModerationActionLog> get moderationActionLogs =>
+      $ForGeneratedCode.declareTable(this, _$ModerationActionLog._$table);
 
   Table<NeatTaskStatusRow> get neatTaskStatuses =>
       $ForGeneratedCode.declareTable(this, _$NeatTaskStatusRow._$table);
@@ -6850,6 +6858,1989 @@ extension InsertOnConflictSingleGlobalLockStateExt
         lockId,
         claimId,
         lockedUntil,
+      ]),
+    ),
+  );
+}
+
+final class _$ModerationCaseRow extends ModerationCaseRow {
+  _$ModerationCaseRow._(
+    this.caseId,
+    this.reporterEmail,
+    this.openedAt,
+    this.resolvedAt,
+    this.source,
+    this.kind,
+    this.subject,
+    this.url,
+    this.appealedCaseId,
+    this.isSubjectOwner,
+    this.status,
+    this.grounds,
+    this.violation,
+    this.reason,
+  );
+
+  @override
+  final String caseId;
+
+  @override
+  final String reporterEmail;
+
+  @override
+  final DateTime openedAt;
+
+  @override
+  final DateTime? resolvedAt;
+
+  @override
+  final String source;
+
+  @override
+  final String kind;
+
+  @override
+  final String subject;
+
+  @override
+  final String? url;
+
+  @override
+  final String? appealedCaseId;
+
+  @override
+  final bool isSubjectOwner;
+
+  @override
+  final String status;
+
+  @override
+  final String? grounds;
+
+  @override
+  final String? violation;
+
+  @override
+  final String? reason;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'moderation_cases',
+    columns: <String>[
+      'case_id',
+      'reporter_email',
+      'opened_at',
+      'resolved_at',
+      'source',
+      'kind',
+      'subject',
+      'url',
+      'appealed_case_id',
+      'is_subject_owner',
+      'status',
+      'grounds',
+      'violation',
+      'reason',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.boolean,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['case_id'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['subject'],
+      ),
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['appealed_case_id'],
+      ),
+    ],
+    readRow: _$ModerationCaseRow._$fromDatabase,
+  );
+
+  static ModerationCaseRow? _$fromDatabase(RowReader row) {
+    final caseId = row.readString();
+    final reporterEmail = row.readString();
+    final openedAt = row.readDateTime();
+    final resolvedAt = row.readDateTime();
+    final source = row.readString();
+    final kind = row.readString();
+    final subject = row.readString();
+    final url = row.readString();
+    final appealedCaseId = row.readString();
+    final isSubjectOwner = row.readBool();
+    final status = row.readString();
+    final grounds = row.readString();
+    final violation = row.readString();
+    final reason = row.readString();
+    if (caseId == null &&
+        reporterEmail == null &&
+        openedAt == null &&
+        resolvedAt == null &&
+        source == null &&
+        kind == null &&
+        subject == null &&
+        url == null &&
+        appealedCaseId == null &&
+        isSubjectOwner == null &&
+        status == null &&
+        grounds == null &&
+        violation == null &&
+        reason == null) {
+      return null;
+    }
+    return _$ModerationCaseRow._(
+      caseId!,
+      reporterEmail!,
+      openedAt!,
+      resolvedAt,
+      source!,
+      kind!,
+      subject!,
+      url,
+      appealedCaseId,
+      isSubjectOwner!,
+      status!,
+      grounds,
+      violation,
+      reason,
+    );
+  }
+
+  @override
+  String toString() =>
+      'ModerationCaseRow(caseId: "$caseId", reporterEmail: "$reporterEmail", openedAt: "$openedAt", resolvedAt: "$resolvedAt", source: "$source", kind: "$kind", subject: "$subject", url: "$url", appealedCaseId: "$appealedCaseId", isSubjectOwner: "$isSubjectOwner", status: "$status", grounds: "$grounds", violation: "$violation", reason: "$reason")';
+}
+
+/// Extension methods for table defined in [ModerationCaseRow].
+extension TableModerationCaseRowExt on Table<ModerationCaseRow> {
+  /// Insert row into the `moderationCases` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<ModerationCaseRow> insert({
+    required Expr<String> caseId,
+    required Expr<String> reporterEmail,
+    required Expr<DateTime> openedAt,
+    Expr<DateTime?>? resolvedAt,
+    required Expr<String> source,
+    required Expr<String> kind,
+    required Expr<String> subject,
+    Expr<String?>? url,
+    Expr<String?>? appealedCaseId,
+    required Expr<bool> isSubjectOwner,
+    required Expr<String> status,
+    Expr<String?>? grounds,
+    Expr<String?>? violation,
+    Expr<String?>? reason,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      caseId,
+      reporterEmail,
+      openedAt,
+      resolvedAt,
+      source,
+      kind,
+      subject,
+      url,
+      appealedCaseId,
+      isSubjectOwner,
+      status,
+      grounds,
+      violation,
+      reason,
+    ],
+  );
+
+  /// Insert row into the `moderationCases` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `reporterEmail`, `openedAt`, `resolvedAt`, `source`, `kind`, `subject`, `url`, `appealedCaseId`, `isSubjectOwner`, `status`, `grounds`, `violation`, `reason`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<ModerationCaseRow> upsert({
+    required Expr<String> caseId,
+    required Expr<String> reporterEmail,
+    required Expr<DateTime> openedAt,
+    Expr<DateTime?>? resolvedAt,
+    required Expr<String> source,
+    required Expr<String> kind,
+    required Expr<String> subject,
+    Expr<String?>? url,
+    Expr<String?>? appealedCaseId,
+    required Expr<bool> isSubjectOwner,
+    required Expr<String> status,
+    Expr<String?>? grounds,
+    Expr<String?>? violation,
+    Expr<String?>? reason,
+  }) =>
+      insert(
+            caseId: caseId,
+            reporterEmail: reporterEmail,
+            openedAt: openedAt,
+            resolvedAt: resolvedAt,
+            source: source,
+            kind: kind,
+            subject: subject,
+            url: url,
+            appealedCaseId: appealedCaseId,
+            isSubjectOwner: isSubjectOwner,
+            status: status,
+            grounds: grounds,
+            violation: violation,
+            reason: reason,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              reporterEmail: excluded.reporterEmail,
+              openedAt: excluded.openedAt,
+              resolvedAt: excluded.resolvedAt,
+              source: excluded.source,
+              kind: excluded.kind,
+              subject: excluded.subject,
+              url: excluded.url,
+              appealedCaseId: excluded.appealedCaseId,
+              isSubjectOwner: excluded.isSubjectOwner,
+              status: excluded.status,
+              grounds: excluded.grounds,
+              violation: excluded.violation,
+              reason: excluded.reason,
+            ),
+          );
+
+  /// Insert row into the `moderationCases` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<ModerationCaseRow> insertValue({
+    required String caseId,
+    required String reporterEmail,
+    required DateTime openedAt,
+    DateTime? resolvedAt,
+    required String source,
+    required String kind,
+    required String subject,
+    String? url,
+    String? appealedCaseId,
+    required bool isSubjectOwner,
+    required String status,
+    String? grounds,
+    String? violation,
+    String? reason,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      caseId.asExpr,
+      reporterEmail.asExpr,
+      openedAt.asExpr,
+      resolvedAt.asExpr,
+      source.asExpr,
+      kind.asExpr,
+      subject.asExpr,
+      url.asExpr,
+      appealedCaseId.asExpr,
+      isSubjectOwner.asExpr,
+      status.asExpr,
+      grounds.asExpr,
+      violation.asExpr,
+      reason.asExpr,
+    ],
+  );
+
+  /// Insert row into the `moderationCases` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `reporterEmail`, `openedAt`, `resolvedAt`, `source`, `kind`, `subject`, `url`, `appealedCaseId`, `isSubjectOwner`, `status`, `grounds`, `violation`, `reason`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<ModerationCaseRow> upsertValue({
+    required String caseId,
+    required String reporterEmail,
+    required DateTime openedAt,
+    DateTime? resolvedAt,
+    required String source,
+    required String kind,
+    required String subject,
+    String? url,
+    String? appealedCaseId,
+    required bool isSubjectOwner,
+    required String status,
+    String? grounds,
+    String? violation,
+    String? reason,
+  }) =>
+      insertValue(
+            caseId: caseId,
+            reporterEmail: reporterEmail,
+            openedAt: openedAt,
+            resolvedAt: resolvedAt,
+            source: source,
+            kind: kind,
+            subject: subject,
+            url: url,
+            appealedCaseId: appealedCaseId,
+            isSubjectOwner: isSubjectOwner,
+            status: status,
+            grounds: grounds,
+            violation: violation,
+            reason: reason,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              reporterEmail: excluded.reporterEmail,
+              openedAt: excluded.openedAt,
+              resolvedAt: excluded.resolvedAt,
+              source: excluded.source,
+              kind: excluded.kind,
+              subject: excluded.subject,
+              url: excluded.url,
+              appealedCaseId: excluded.appealedCaseId,
+              isSubjectOwner: excluded.isSubjectOwner,
+              status: excluded.status,
+              grounds: excluded.grounds,
+              violation: excluded.violation,
+              reason: excluded.reason,
+            ),
+          );
+
+  /// Bulk insert rows into the `moderationCases` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<ModerationCaseRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) caseId,
+    required String Function(T row) reporterEmail,
+    required DateTime Function(T row) openedAt,
+    DateTime? Function(T row)? resolvedAt,
+    required String Function(T row) source,
+    required String Function(T row) kind,
+    required String Function(T row) subject,
+    String? Function(T row)? url,
+    String? Function(T row)? appealedCaseId,
+    required bool Function(T row) isSubjectOwner,
+    required String Function(T row) status,
+    String? Function(T row)? grounds,
+    String? Function(T row)? violation,
+    String? Function(T row)? reason,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [
+      caseId,
+      reporterEmail,
+      openedAt,
+      resolvedAt,
+      source,
+      kind,
+      subject,
+      url,
+      appealedCaseId,
+      isSubjectOwner,
+      status,
+      grounds,
+      violation,
+      reason,
+    ],
+  );
+
+  /// Delete a single row from the `moderationCases` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<ModerationCaseRow> delete(String caseId) => $ForGeneratedCode
+      .deleteSingle(byKey(caseId), _$ModerationCaseRow._$table);
+}
+
+/// Extension methods for building queries against the `moderationCases` table.
+extension QueryModerationCaseRowExt on Query<(Expr<ModerationCaseRow>,)> {
+  /// Lookup a single row in `moderationCases` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<ModerationCaseRow>,)> byKey(String caseId) => where(
+    (moderationCaseRow) => moderationCaseRow.caseId.equalsValue(caseId),
+  ).first;
+
+  /// Update all rows in the `moderationCases` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<ModerationCaseRow> update(
+    UpdateSet<ModerationCaseRow> Function(
+      Expr<ModerationCaseRow> moderationCaseRow,
+      UpdateSet<ModerationCaseRow> Function({
+        Expr<String> caseId,
+        Expr<String> reporterEmail,
+        Expr<DateTime> openedAt,
+        Expr<DateTime?> resolvedAt,
+        Expr<String> source,
+        Expr<String> kind,
+        Expr<String> subject,
+        Expr<String?> url,
+        Expr<String?> appealedCaseId,
+        Expr<bool> isSubjectOwner,
+        Expr<String> status,
+        Expr<String?> grounds,
+        Expr<String?> violation,
+        Expr<String?> reason,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<ModerationCaseRow>(
+    this,
+    _$ModerationCaseRow._$table,
+    (moderationCaseRow) => updateBuilder(
+      moderationCaseRow,
+      ({
+        Expr<String>? caseId,
+        Expr<String>? reporterEmail,
+        Expr<DateTime>? openedAt,
+        Expr<DateTime?>? resolvedAt,
+        Expr<String>? source,
+        Expr<String>? kind,
+        Expr<String>? subject,
+        Expr<String?>? url,
+        Expr<String?>? appealedCaseId,
+        Expr<bool>? isSubjectOwner,
+        Expr<String>? status,
+        Expr<String?>? grounds,
+        Expr<String?>? violation,
+        Expr<String?>? reason,
+      }) => $ForGeneratedCode.buildUpdate<ModerationCaseRow>([
+        caseId,
+        reporterEmail,
+        openedAt,
+        resolvedAt,
+        source,
+        kind,
+        subject,
+        url,
+        appealedCaseId,
+        isSubjectOwner,
+        status,
+        grounds,
+        violation,
+        reason,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `moderationCases` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<ModerationCaseRow> delete() =>
+      $ForGeneratedCode.delete(this, _$ModerationCaseRow._$table);
+}
+
+/// Extension methods for building point queries against the `moderationCases` table.
+extension QuerySingleModerationCaseRowExt
+    on QuerySingle<(Expr<ModerationCaseRow>,)> {
+  /// Update the row (if any) in the `moderationCases` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<ModerationCaseRow> update(
+    UpdateSet<ModerationCaseRow> Function(
+      Expr<ModerationCaseRow> moderationCaseRow,
+      UpdateSet<ModerationCaseRow> Function({
+        Expr<String> caseId,
+        Expr<String> reporterEmail,
+        Expr<DateTime> openedAt,
+        Expr<DateTime?> resolvedAt,
+        Expr<String> source,
+        Expr<String> kind,
+        Expr<String> subject,
+        Expr<String?> url,
+        Expr<String?> appealedCaseId,
+        Expr<bool> isSubjectOwner,
+        Expr<String> status,
+        Expr<String?> grounds,
+        Expr<String?> violation,
+        Expr<String?> reason,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<ModerationCaseRow>(
+    this,
+    _$ModerationCaseRow._$table,
+    (moderationCaseRow) => updateBuilder(
+      moderationCaseRow,
+      ({
+        Expr<String>? caseId,
+        Expr<String>? reporterEmail,
+        Expr<DateTime>? openedAt,
+        Expr<DateTime?>? resolvedAt,
+        Expr<String>? source,
+        Expr<String>? kind,
+        Expr<String>? subject,
+        Expr<String?>? url,
+        Expr<String?>? appealedCaseId,
+        Expr<bool>? isSubjectOwner,
+        Expr<String>? status,
+        Expr<String?>? grounds,
+        Expr<String?>? violation,
+        Expr<String?>? reason,
+      }) => $ForGeneratedCode.buildUpdate<ModerationCaseRow>([
+        caseId,
+        reporterEmail,
+        openedAt,
+        resolvedAt,
+        source,
+        kind,
+        subject,
+        url,
+        appealedCaseId,
+        isSubjectOwner,
+        status,
+        grounds,
+        violation,
+        reason,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `moderationCases` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<ModerationCaseRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$ModerationCaseRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `moderationCases` table.
+extension ExpressionModerationCaseRowExt on Expr<ModerationCaseRow> {
+  /// Matches `ModerationCase.caseId`.
+  Expr<String> get caseId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// The email of the reporter.
+  Expr<String> get reporterEmail =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// The case was opened at this time.
+  Expr<DateTime> get openedAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// The case was resolved at this time (or `null` if it is still open).
+  Expr<DateTime?> get resolvedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// One of the `ModerationSource` values.
+  Expr<String> get source =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  /// One of the `ModerationKind` values.
+  Expr<String> get kind =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  /// The fully qualified name of the subject (e.g. `package:<package>`).
+  ///
+  /// This is not a foreign key: the subject may be a user email, or an entity
+  /// that has been deleted.
+  Expr<String> get subject =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+
+  /// The URL of the page from where the reporter navigated to the report page.
+  Expr<String?> get url =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
+
+  /// The `caseId` of the appealed case (or `null`).
+  Expr<String?> get appealedCaseId =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.text);
+
+  /// Whether the reporter is a known owner of the [subject].
+  Expr<bool> get isSubjectOwner =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.boolean);
+
+  /// One of the `ModerationStatus` values.
+  Expr<String> get status =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.text);
+
+  /// One of the `ModerationGrounds` values (or `null` while pending).
+  Expr<String?> get grounds =>
+      $ForGeneratedCode.field(this, 11, $ForGeneratedCode.text);
+
+  /// One of the `ModerationViolation` values (or `null` while pending).
+  Expr<String?> get violation =>
+      $ForGeneratedCode.field(this, 12, $ForGeneratedCode.text);
+
+  /// The text from the statement of reasons sent to the user.
+  Expr<String?> get reason =>
+      $ForGeneratedCode.field(this, 13, $ForGeneratedCode.text);
+
+  /// Get [SubQuery] of rows from the `moderationActionLogs` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [ModerationActionLog] rows,
+  /// where [ModerationActionLog.caseId]
+  /// references [ModerationCaseRow.caseId]
+  /// in this row.
+  SubQuery<(Expr<ModerationActionLog>,)> get actionLogs => $ForGeneratedCode
+      .subqueryTable(_$ModerationActionLog._$table)
+      .where((r) => r.caseId.equalsUnlessNull(caseId));
+}
+
+extension ExpressionNullableModerationCaseRowExt on Expr<ModerationCaseRow?> {
+  /// Matches `ModerationCase.caseId`.
+  Expr<String?> get caseId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// The email of the reporter.
+  Expr<String?> get reporterEmail =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// The case was opened at this time.
+  Expr<DateTime?> get openedAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// The case was resolved at this time (or `null` if it is still open).
+  Expr<DateTime?> get resolvedAt =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+
+  /// One of the `ModerationSource` values.
+  Expr<String?> get source =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  /// One of the `ModerationKind` values.
+  Expr<String?> get kind =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  /// The fully qualified name of the subject (e.g. `package:<package>`).
+  ///
+  /// This is not a foreign key: the subject may be a user email, or an entity
+  /// that has been deleted.
+  Expr<String?> get subject =>
+      $ForGeneratedCode.field(this, 6, $ForGeneratedCode.text);
+
+  /// The URL of the page from where the reporter navigated to the report page.
+  Expr<String?> get url =>
+      $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
+
+  /// The `caseId` of the appealed case (or `null`).
+  Expr<String?> get appealedCaseId =>
+      $ForGeneratedCode.field(this, 8, $ForGeneratedCode.text);
+
+  /// Whether the reporter is a known owner of the [subject].
+  Expr<bool?> get isSubjectOwner =>
+      $ForGeneratedCode.field(this, 9, $ForGeneratedCode.boolean);
+
+  /// One of the `ModerationStatus` values.
+  Expr<String?> get status =>
+      $ForGeneratedCode.field(this, 10, $ForGeneratedCode.text);
+
+  /// One of the `ModerationGrounds` values (or `null` while pending).
+  Expr<String?> get grounds =>
+      $ForGeneratedCode.field(this, 11, $ForGeneratedCode.text);
+
+  /// One of the `ModerationViolation` values (or `null` while pending).
+  Expr<String?> get violation =>
+      $ForGeneratedCode.field(this, 12, $ForGeneratedCode.text);
+
+  /// The text from the statement of reasons sent to the user.
+  Expr<String?> get reason =>
+      $ForGeneratedCode.field(this, 13, $ForGeneratedCode.text);
+
+  /// Get [SubQuery] of rows from the `moderationActionLogs` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [ModerationActionLog] rows,
+  /// where [ModerationActionLog.caseId]
+  /// references [ModerationCaseRow.caseId]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<ModerationActionLog>,)> get actionLogs => $ForGeneratedCode
+      .subqueryTable(_$ModerationActionLog._$table)
+      .where((r) => r.caseId.equalsUnlessNull(caseId));
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => caseId.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinModerationCaseRowModerationActionLogExt
+    on InnerJoin<(Expr<ModerationCaseRow>,), (Expr<ModerationActionLog>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [ModerationCaseRow.caseId] = [ModerationActionLog.caseId].
+  Query<(Expr<ModerationCaseRow>, Expr<ModerationActionLog>)> usingParent() =>
+      on((a, b) => a.caseId.equalsUnlessNull(b.caseId));
+}
+
+extension LeftJoinModerationCaseRowModerationActionLogExt
+    on LeftJoin<(Expr<ModerationCaseRow>,), (Expr<ModerationActionLog>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [ModerationCaseRow.caseId] = [ModerationActionLog.caseId].
+  Query<(Expr<ModerationCaseRow>, Expr<ModerationActionLog?>)> usingParent() =>
+      on((a, b) => a.caseId.equalsUnlessNull(b.caseId));
+}
+
+extension RightJoinModerationCaseRowModerationActionLogExt
+    on RightJoin<(Expr<ModerationCaseRow>,), (Expr<ModerationActionLog>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [ModerationCaseRow.caseId] = [ModerationActionLog.caseId].
+  Query<(Expr<ModerationCaseRow?>, Expr<ModerationActionLog>)> usingParent() =>
+      on((a, b) => a.caseId.equalsUnlessNull(b.caseId));
+}
+
+/// `Table<ModerationCaseRow>` conflict targets for use with `.onConflict`.
+enum ModerationCaseRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `caseId`.
+  primaryKey(['case_id']);
+
+  const ModerationCaseRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertModerationCaseRowExt on Insert<ModerationCaseRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((moderationCaseRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<ModerationCaseRow> onConflict(
+    ModerationCaseRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictModerationCaseRowExt
+    on InsertOnConflict<ModerationCaseRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `moderationCaseRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<ModerationCaseRow> update(
+    UpdateSet<ModerationCaseRow> Function(
+      Expr<ModerationCaseRow> moderationCaseRow,
+      Expr<ModerationCaseRow> excluded,
+      UpdateSet<ModerationCaseRow> Function({
+        Expr<String> caseId,
+        Expr<String> reporterEmail,
+        Expr<DateTime> openedAt,
+        Expr<DateTime?> resolvedAt,
+        Expr<String> source,
+        Expr<String> kind,
+        Expr<String> subject,
+        Expr<String?> url,
+        Expr<String?> appealedCaseId,
+        Expr<bool> isSubjectOwner,
+        Expr<String> status,
+        Expr<String?> grounds,
+        Expr<String?> violation,
+        Expr<String?> reason,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<ModerationCaseRow>(
+    this,
+    (moderationCaseRow, excluded) => updateBuilder(
+      moderationCaseRow,
+      excluded,
+      ({
+        Expr<String>? caseId,
+        Expr<String>? reporterEmail,
+        Expr<DateTime>? openedAt,
+        Expr<DateTime?>? resolvedAt,
+        Expr<String>? source,
+        Expr<String>? kind,
+        Expr<String>? subject,
+        Expr<String?>? url,
+        Expr<String?>? appealedCaseId,
+        Expr<bool>? isSubjectOwner,
+        Expr<String>? status,
+        Expr<String?>? grounds,
+        Expr<String?>? violation,
+        Expr<String?>? reason,
+      }) => $ForGeneratedCode.buildUpdate<ModerationCaseRow>([
+        caseId,
+        reporterEmail,
+        openedAt,
+        resolvedAt,
+        source,
+        kind,
+        subject,
+        url,
+        appealedCaseId,
+        isSubjectOwner,
+        status,
+        grounds,
+        violation,
+        reason,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleModerationCaseRowExt on InsertSingle<ModerationCaseRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((moderationCaseRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<ModerationCaseRow> onConflict(
+    ModerationCaseRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleModerationCaseRowExt
+    on InsertOnConflictSingle<ModerationCaseRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `moderationCaseRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<ModerationCaseRow> update(
+    UpdateSet<ModerationCaseRow> Function(
+      Expr<ModerationCaseRow> moderationCaseRow,
+      Expr<ModerationCaseRow> excluded,
+      UpdateSet<ModerationCaseRow> Function({
+        Expr<String> caseId,
+        Expr<String> reporterEmail,
+        Expr<DateTime> openedAt,
+        Expr<DateTime?> resolvedAt,
+        Expr<String> source,
+        Expr<String> kind,
+        Expr<String> subject,
+        Expr<String?> url,
+        Expr<String?> appealedCaseId,
+        Expr<bool> isSubjectOwner,
+        Expr<String> status,
+        Expr<String?> grounds,
+        Expr<String?> violation,
+        Expr<String?> reason,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<ModerationCaseRow>(
+    this,
+    (moderationCaseRow, excluded) => updateBuilder(
+      moderationCaseRow,
+      excluded,
+      ({
+        Expr<String>? caseId,
+        Expr<String>? reporterEmail,
+        Expr<DateTime>? openedAt,
+        Expr<DateTime?>? resolvedAt,
+        Expr<String>? source,
+        Expr<String>? kind,
+        Expr<String>? subject,
+        Expr<String?>? url,
+        Expr<String?>? appealedCaseId,
+        Expr<bool>? isSubjectOwner,
+        Expr<String>? status,
+        Expr<String?>? grounds,
+        Expr<String?>? violation,
+        Expr<String?>? reason,
+      }) => $ForGeneratedCode.buildUpdate<ModerationCaseRow>([
+        caseId,
+        reporterEmail,
+        openedAt,
+        resolvedAt,
+        source,
+        kind,
+        subject,
+        url,
+        appealedCaseId,
+        isSubjectOwner,
+        status,
+        grounds,
+        violation,
+        reason,
+      ]),
+    ),
+  );
+}
+
+final class _$ModerationActionLog extends ModerationActionLog {
+  _$ModerationActionLog._(
+    this.caseId,
+    this.logId,
+    this.createdAt,
+    this.subject,
+    this.action,
+    this.note,
+  );
+
+  @override
+  final String caseId;
+
+  @override
+  final String logId;
+
+  @override
+  final DateTime createdAt;
+
+  @override
+  final String subject;
+
+  @override
+  final String action;
+
+  @override
+  final String? note;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'moderation_action_logs',
+    columns: <String>[
+      'case_id',
+      'log_id',
+      'created_at',
+      'subject',
+      'action',
+      'note',
+    ],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: false,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['case_id', 'log_id'],
+    unique: <List<String>>[],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'parent',
+        columns: ['case_id'],
+        referencedTable: 'moderation_cases',
+        referencedColumns: ['case_id'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+    ],
+    indexes: [],
+    readRow: _$ModerationActionLog._$fromDatabase,
+  );
+
+  static ModerationActionLog? _$fromDatabase(RowReader row) {
+    final caseId = row.readString();
+    final logId = row.readString();
+    final createdAt = row.readDateTime();
+    final subject = row.readString();
+    final action = row.readString();
+    final note = row.readString();
+    if (caseId == null &&
+        logId == null &&
+        createdAt == null &&
+        subject == null &&
+        action == null &&
+        note == null) {
+      return null;
+    }
+    return _$ModerationActionLog._(
+      caseId!,
+      logId!,
+      createdAt!,
+      subject!,
+      action!,
+      note,
+    );
+  }
+
+  @override
+  String toString() =>
+      'ModerationActionLog(caseId: "$caseId", logId: "$logId", createdAt: "$createdAt", subject: "$subject", action: "$action", note: "$note")';
+}
+
+/// Extension methods for table defined in [ModerationActionLog].
+extension TableModerationActionLogExt on Table<ModerationActionLog> {
+  /// Insert row into the `moderationActionLogs` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<ModerationActionLog> insert({
+    required Expr<String> caseId,
+    required Expr<String> logId,
+    required Expr<DateTime> createdAt,
+    required Expr<String> subject,
+    required Expr<String> action,
+    Expr<String?>? note,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [caseId, logId, createdAt, subject, action, note],
+  );
+
+  /// Insert row into the `moderationActionLogs` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `subject`, `action`, `note`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<ModerationActionLog> upsert({
+    required Expr<String> caseId,
+    required Expr<String> logId,
+    required Expr<DateTime> createdAt,
+    required Expr<String> subject,
+    required Expr<String> action,
+    Expr<String?>? note,
+  }) =>
+      insert(
+            caseId: caseId,
+            logId: logId,
+            createdAt: createdAt,
+            subject: subject,
+            action: action,
+            note: note,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              subject: excluded.subject,
+              action: excluded.action,
+              note: excluded.note,
+            ),
+          );
+
+  /// Insert row into the `moderationActionLogs` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<ModerationActionLog> insertValue({
+    required String caseId,
+    required String logId,
+    required DateTime createdAt,
+    required String subject,
+    required String action,
+    String? note,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [
+      caseId.asExpr,
+      logId.asExpr,
+      createdAt.asExpr,
+      subject.asExpr,
+      action.asExpr,
+      note.asExpr,
+    ],
+  );
+
+  /// Insert row into the `moderationActionLogs` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `createdAt`, `subject`, `action`, `note`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<ModerationActionLog> upsertValue({
+    required String caseId,
+    required String logId,
+    required DateTime createdAt,
+    required String subject,
+    required String action,
+    String? note,
+  }) =>
+      insertValue(
+            caseId: caseId,
+            logId: logId,
+            createdAt: createdAt,
+            subject: subject,
+            action: action,
+            note: note,
+          )
+          .onConflict(.primaryKey)
+          .update(
+            (_, excluded, set) => set(
+              createdAt: excluded.createdAt,
+              subject: excluded.subject,
+              action: excluded.action,
+              note: excluded.note,
+            ),
+          );
+
+  /// Bulk insert rows into the `moderationActionLogs` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<ModerationActionLog> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) caseId,
+    required String Function(T row) logId,
+    required DateTime Function(T row) createdAt,
+    required String Function(T row) subject,
+    required String Function(T row) action,
+    String? Function(T row)? note,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [caseId, logId, createdAt, subject, action, note],
+  );
+
+  /// Delete a single row from the `moderationActionLogs` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<ModerationActionLog> delete(String caseId, String logId) =>
+      $ForGeneratedCode.deleteSingle(
+        byKey(caseId, logId),
+        _$ModerationActionLog._$table,
+      );
+}
+
+/// Extension methods for building queries against the `moderationActionLogs` table.
+extension QueryModerationActionLogExt on Query<(Expr<ModerationActionLog>,)> {
+  /// Lookup a single row in `moderationActionLogs` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<ModerationActionLog>,)> byKey(
+    String caseId,
+    String logId,
+  ) => where(
+    (moderationActionLog) =>
+        moderationActionLog.caseId.equalsValue(caseId) &
+        moderationActionLog.logId.equalsValue(logId),
+  ).first;
+
+  /// Update all rows in the `moderationActionLogs` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<ModerationActionLog> update(
+    UpdateSet<ModerationActionLog> Function(
+      Expr<ModerationActionLog> moderationActionLog,
+      UpdateSet<ModerationActionLog> Function({
+        Expr<String> caseId,
+        Expr<String> logId,
+        Expr<DateTime> createdAt,
+        Expr<String> subject,
+        Expr<String> action,
+        Expr<String?> note,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<ModerationActionLog>(
+    this,
+    _$ModerationActionLog._$table,
+    (moderationActionLog) => updateBuilder(
+      moderationActionLog,
+      ({
+        Expr<String>? caseId,
+        Expr<String>? logId,
+        Expr<DateTime>? createdAt,
+        Expr<String>? subject,
+        Expr<String>? action,
+        Expr<String?>? note,
+      }) => $ForGeneratedCode.buildUpdate<ModerationActionLog>([
+        caseId,
+        logId,
+        createdAt,
+        subject,
+        action,
+        note,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `moderationActionLogs` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<ModerationActionLog> delete() =>
+      $ForGeneratedCode.delete(this, _$ModerationActionLog._$table);
+}
+
+/// Extension methods for building point queries against the `moderationActionLogs` table.
+extension QuerySingleModerationActionLogExt
+    on QuerySingle<(Expr<ModerationActionLog>,)> {
+  /// Update the row (if any) in the `moderationActionLogs` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<ModerationActionLog> update(
+    UpdateSet<ModerationActionLog> Function(
+      Expr<ModerationActionLog> moderationActionLog,
+      UpdateSet<ModerationActionLog> Function({
+        Expr<String> caseId,
+        Expr<String> logId,
+        Expr<DateTime> createdAt,
+        Expr<String> subject,
+        Expr<String> action,
+        Expr<String?> note,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<ModerationActionLog>(
+    this,
+    _$ModerationActionLog._$table,
+    (moderationActionLog) => updateBuilder(
+      moderationActionLog,
+      ({
+        Expr<String>? caseId,
+        Expr<String>? logId,
+        Expr<DateTime>? createdAt,
+        Expr<String>? subject,
+        Expr<String>? action,
+        Expr<String?>? note,
+      }) => $ForGeneratedCode.buildUpdate<ModerationActionLog>([
+        caseId,
+        logId,
+        createdAt,
+        subject,
+        action,
+        note,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `moderationActionLogs` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<ModerationActionLog> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$ModerationActionLog._$table);
+}
+
+/// Extension methods for expressions on a row in the `moderationActionLogs` table.
+extension ExpressionModerationActionLogExt on Expr<ModerationActionLog> {
+  Expr<String> get caseId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// A ULID (in UUID format) generated from [createdAt], so ordering by it
+  /// matches the order of the entries.
+  Expr<String> get logId =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// The timestamp of the action.
+  Expr<DateTime> get createdAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// The fully qualified name of the subject the action was applied to.
+  Expr<String> get subject =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  /// One of the `ModerationAction` enum names (`apply` or `revert`).
+  Expr<String> get action =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  Expr<String?> get note =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `moderationCases` referenced in
+  /// [caseId].
+  ///
+  /// The gets the row from table `moderationCases` where
+  /// [ModerationCaseRow.caseId]
+  /// is equal to [caseId].
+  Expr<ModerationCaseRow> get parent => $ForGeneratedCode
+      .subqueryTable(_$ModerationCaseRow._$table)
+      .where((r) => r.caseId.equalsUnlessNull(caseId))
+      .first
+      .asNotNull();
+}
+
+extension ExpressionNullableModerationActionLogExt
+    on Expr<ModerationActionLog?> {
+  Expr<String?> get caseId =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// A ULID (in UUID format) generated from [createdAt], so ordering by it
+  /// matches the order of the entries.
+  Expr<String?> get logId =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// The timestamp of the action.
+  Expr<DateTime?> get createdAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// The fully qualified name of the subject the action was applied to.
+  Expr<String?> get subject =>
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.text);
+
+  /// One of the `ModerationAction` enum names (`apply` or `revert`).
+  Expr<String?> get action =>
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.text);
+
+  Expr<String?> get note =>
+      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `moderationCases` referenced in
+  /// [caseId].
+  ///
+  /// The gets the row from table `moderationCases` where
+  /// [ModerationCaseRow.caseId]
+  /// is equal to [caseId], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<ModerationCaseRow?> get parent => $ForGeneratedCode
+      .subqueryTable(_$ModerationCaseRow._$table)
+      .where((r) => r.caseId.equalsUnlessNull(caseId))
+      .first;
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => caseId.isNotNull() & logId.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinModerationActionLogModerationCaseRowExt
+    on InnerJoin<(Expr<ModerationActionLog>,), (Expr<ModerationCaseRow>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [ModerationActionLog.caseId] = [ModerationCaseRow.caseId].
+  Query<(Expr<ModerationActionLog>, Expr<ModerationCaseRow>)> usingParent() =>
+      on((a, b) => b.caseId.equalsUnlessNull(a.caseId));
+}
+
+extension LeftJoinModerationActionLogModerationCaseRowExt
+    on LeftJoin<(Expr<ModerationActionLog>,), (Expr<ModerationCaseRow>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [ModerationActionLog.caseId] = [ModerationCaseRow.caseId].
+  Query<(Expr<ModerationActionLog>, Expr<ModerationCaseRow?>)> usingParent() =>
+      on((a, b) => b.caseId.equalsUnlessNull(a.caseId));
+}
+
+extension RightJoinModerationActionLogModerationCaseRowExt
+    on RightJoin<(Expr<ModerationActionLog>,), (Expr<ModerationCaseRow>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [ModerationActionLog.caseId] = [ModerationCaseRow.caseId].
+  Query<(Expr<ModerationActionLog?>, Expr<ModerationCaseRow>)> usingParent() =>
+      on((a, b) => b.caseId.equalsUnlessNull(a.caseId));
+}
+
+/// `Table<ModerationActionLog>` conflict targets for use with `.onConflict`.
+enum ModerationActionLogConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `caseId`, `logId`.
+  primaryKey(['case_id', 'log_id']);
+
+  const ModerationActionLogConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertModerationActionLogExt on Insert<ModerationActionLog> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((moderationActionLog, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<ModerationActionLog> onConflict(
+    ModerationActionLogConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictModerationActionLogExt
+    on InsertOnConflict<ModerationActionLog> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `moderationActionLog` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<ModerationActionLog> update(
+    UpdateSet<ModerationActionLog> Function(
+      Expr<ModerationActionLog> moderationActionLog,
+      Expr<ModerationActionLog> excluded,
+      UpdateSet<ModerationActionLog> Function({
+        Expr<String> caseId,
+        Expr<String> logId,
+        Expr<DateTime> createdAt,
+        Expr<String> subject,
+        Expr<String> action,
+        Expr<String?> note,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<ModerationActionLog>(
+    this,
+    (moderationActionLog, excluded) => updateBuilder(
+      moderationActionLog,
+      excluded,
+      ({
+        Expr<String>? caseId,
+        Expr<String>? logId,
+        Expr<DateTime>? createdAt,
+        Expr<String>? subject,
+        Expr<String>? action,
+        Expr<String?>? note,
+      }) => $ForGeneratedCode.buildUpdate<ModerationActionLog>([
+        caseId,
+        logId,
+        createdAt,
+        subject,
+        action,
+        note,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleModerationActionLogExt
+    on InsertSingle<ModerationActionLog> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((moderationActionLog, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<ModerationActionLog> onConflict(
+    ModerationActionLogConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleModerationActionLogExt
+    on InsertOnConflictSingle<ModerationActionLog> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `moderationActionLog` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<ModerationActionLog> update(
+    UpdateSet<ModerationActionLog> Function(
+      Expr<ModerationActionLog> moderationActionLog,
+      Expr<ModerationActionLog> excluded,
+      UpdateSet<ModerationActionLog> Function({
+        Expr<String> caseId,
+        Expr<String> logId,
+        Expr<DateTime> createdAt,
+        Expr<String> subject,
+        Expr<String> action,
+        Expr<String?> note,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<ModerationActionLog>(
+    this,
+    (moderationActionLog, excluded) => updateBuilder(
+      moderationActionLog,
+      excluded,
+      ({
+        Expr<String>? caseId,
+        Expr<String>? logId,
+        Expr<DateTime>? createdAt,
+        Expr<String>? subject,
+        Expr<String>? action,
+        Expr<String?>? note,
+      }) => $ForGeneratedCode.buildUpdate<ModerationActionLog>([
+        caseId,
+        logId,
+        createdAt,
+        subject,
+        action,
+        note,
       ]),
     ),
   );

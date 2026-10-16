@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:clock/clock.dart';
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/utils.dart';
@@ -129,6 +130,7 @@ Closes the moderation case and updates the status based on the actions logged on
       tx.insert(mc);
       return mc;
     });
+    await adminBackend.mirrorModerationCaseToSqlById(mc.caseId);
 
     return mc.toDebugInfo();
   },

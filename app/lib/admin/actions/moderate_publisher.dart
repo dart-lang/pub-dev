@@ -78,6 +78,9 @@ can't be updated, administrators must not be able to update publisher options.
         return p;
       });
       await publisherBackend.mirrorPublisherToSql(publisherId);
+      if (refCase != null) {
+        await adminBackend.mirrorModerationCaseToSqlById(refCase.caseId);
+      }
       await purgePublisherCache(publisherId);
     }
 
