@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
@@ -31,6 +32,7 @@ Deletes a moderation case.
         throw NotFoundException.resource(caseId!);
       }
     });
+    await adminBackend.deleteModerationCaseFromSql(caseId!);
 
     return {'deleted': true};
   },

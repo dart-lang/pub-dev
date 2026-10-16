@@ -230,7 +230,7 @@ Future<Message> processReportPageHandler(
 
   // If the email sending fails, we may have pending [ModerationCase] entities
   // in the datastore. These would be reviewed and processed manually.
-  await withRetryTransaction(dbService, (tx) async {
+  final newCase = await withRetryTransaction(dbService, (tx) async {
     final mc = ModerationCase.init(
       caseId: caseId,
       reporterEmail: userEmail!,
@@ -243,7 +243,9 @@ Future<Message> processReportPageHandler(
       appealedCaseId: form.caseId,
     );
     tx.insert(mc);
+    return mc;
   });
+  await adminBackend.mirrorModerationCaseToSql(newCase);
 
   final kind = isAppeal ? 'appeal' : 'report';
   final kindLabel = isAppeal ? 'moderation appeal' : 'content policy violation';
