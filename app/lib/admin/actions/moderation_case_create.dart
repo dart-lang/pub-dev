@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/account/agent.dart';
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/frontend/handlers/report.dart';
 import 'package:pub_dev/service/email/email_templates.dart';
@@ -72,6 +73,7 @@ Returns the fields on the newly created moderation case.
       tx.insert(mc);
       return mc;
     });
+    await adminBackend.mirrorModerationCaseToSql(mc);
 
     return mc.toDebugInfo();
   },

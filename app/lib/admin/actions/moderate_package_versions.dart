@@ -43,7 +43,7 @@ Set the moderated flag on a package version (updating the flag and the timestamp
     final refCase = await adminBackend
         .loadAndVerifyModerationCaseForAdminAction(caseId);
 
-    return await adminMarkPackageVersionVisibility(
+    final result = await adminMarkPackageVersionVisibility(
       package,
       version,
       state: state,
@@ -65,6 +65,10 @@ Set the moderated flag on a package version (updating the flag and the timestamp
         'moderatedAt': v.moderatedAt?.toIso8601String(),
       },
     );
+    if (refCase != null) {
+      await adminBackend.mirrorModerationCaseToSqlById(refCase.caseId);
+    }
+    return result;
   },
 );
 

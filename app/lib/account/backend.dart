@@ -12,6 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
 import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 
@@ -722,6 +723,9 @@ class AccountBackend {
       return user;
     });
     await mirrorUserToSql(user);
+    if (refCaseKey != null) {
+      await adminBackend.mirrorModerationCaseToSqlById(refCaseKey.id as String);
+    }
     await _expireSessionsForUserId(userId);
     await purgeAccountCache(userId: userId);
   }
