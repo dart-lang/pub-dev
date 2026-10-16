@@ -90,6 +90,8 @@ void main() {
       fn: () async {
         final mc = await _prepare(apply: null);
         expect(await _close(mc.caseId), 'no-action');
+        final closed = await adminBackend.lookupModerationCase(mc.caseId);
+        expect(closed!.grounds, ModerationGrounds.none);
       },
     );
 
@@ -119,6 +121,9 @@ void main() {
           await _close(mc.caseId, reason: 'The package violated our policy.'),
           'moderation-applied',
         );
+        final closed = await adminBackend.lookupModerationCase(mc.caseId);
+        expect(closed!.grounds, ModerationGrounds.policy);
+        expect(closed.violation, 'scope_of_platform_service');
 
         // cleanup does remove case after the threshold is reached
         await _verifyCaseExistence(mc.caseId, true);
