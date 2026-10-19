@@ -94,6 +94,52 @@ void main() {
     );
 
     testWithProfile(
+      'prefix with trailing star runs all matching scripts',
+      fn: () async {
+        final result = await migrateDryRun.invoke({'script': 'packages-fk-*'});
+        expect(result['rolledBack'], true);
+        expect(result['ok'], true, reason: '$result');
+        final results = result['results'] as List;
+        expect(results.map((r) => r['script']), [
+          'packages-fk-latest-version',
+          'packages-fk-publisher',
+          'packages-fk-replaced-by',
+        ]);
+
+        final all = await migrateDryRun.invoke({'script': '*'});
+        expect(all['ok'], true, reason: '$all');
+        expect(
+          (all['results'] as List).map((r) => r['script']),
+          migrateDryRunScripts.keys,
+        );
+      },
+    );
+
+    testWithProfile(
+      'prefix reports failures of individual scripts',
+      fn: () async {
+        final adapter = primaryDatabase.adapterForTesting;
+        await adapter.script(
+          'INSERT INTO "user_sessions" '
+          '("session_id", "user_id", "created", "expires") '
+          "VALUES ('s1', 'no-such-user', now(), now())",
+        );
+        try {
+          final result = await migrateDryRun.invoke({'script': 'user*'});
+          expect(result['ok'], false);
+          final byName = {
+            for (final r in result['results'] as List)
+              r['script'] as String: r as Map,
+          };
+          expect(byName['user-sessions-fk-user']!['ok'], false);
+          expect(byName['users-chk-moderated']!['ok'], true);
+        } finally {
+          await adapter.script('DELETE FROM "user_sessions"');
+        }
+      },
+    );
+
+    testWithProfile(
       'missing script',
       fn: () async {
         await expectLater(
@@ -108,6 +154,10 @@ void main() {
       fn: () async {
         await expectLater(
           migrateDryRun.invoke({'script': 'nope'}),
+          throwsA(isA<NotFoundException>()),
+        );
+        await expectLater(
+          migrateDryRun.invoke({'script': 'nope-*'}),
           throwsA(isA<NotFoundException>()),
         );
       },
