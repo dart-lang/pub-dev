@@ -331,7 +331,7 @@
           }
         }
 
-        &:hover .nav-hover-popup,
+        &:hover:not(.-hover-dismissed) .nav-hover-popup,
         &.hover .nav-hover-popup {
           display: block;
         }

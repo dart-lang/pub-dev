@@ -69,7 +69,8 @@
       padding: 12px 12px;
       text-align: left;
 
-      &:hover {
+      &:hover,
+      &:focus-visible {
         background: var(--pub-neutral-hover-bgColor);
         color: var(--pub-sort_control_hover-text-color);
       }
@@ -81,14 +82,13 @@
     }
   }
 
-  &.hover,
-  &:focus-within {
+  &.hover {
     .sort-control-popup {
       display: block;
     }
   }
 
-  &:hover {
+  &:hover:not(.-hover-dismissed) {
     .sort-control-popup {
       @media (min-width: variables.$device-desktop-min-width) {
         display: block;
