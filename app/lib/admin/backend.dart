@@ -937,12 +937,14 @@ class AdminBackend {
       final entries = mc.getActionLog().entries.sorted(
         (a, b) => a.timestamp.compareTo(b.timestamp),
       );
-      for (var i = 0; i < entries.length; i++) {
-        final e = entries[i];
+      final ulidFactory = UlidFactory(monotonic: true);
+      for (final e in entries) {
         await db.moderationActionLogs
             .upsertValue(
               caseId: mc.caseId,
-              logId: Ulid(millis: e.timestamp.millisecondsSinceEpoch).toUuid(),
+              logId: ulidFactory
+                  .next(millis: e.timestamp.millisecondsSinceEpoch)
+                  .toUuid(),
               createdAt: e.timestamp,
               subject: e.subject,
               action: e.moderationAction.name,
