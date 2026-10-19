@@ -22,13 +22,6 @@ ALTER TABLE "consents"
 ALTER TABLE "consents"
   ADD CONSTRAINT "consents_unique_dedup_id" UNIQUE ("dedup_id");
 ''',
-  // Fails if any download_counts.package has no matching packages row.
-  'download-counts-fk-package': '''
-ALTER TABLE "download_counts"
-  ADD CONSTRAINT "download_counts_fk_package"
-  FOREIGN KEY ("package") REFERENCES "packages" ("name")
-  ON UPDATE CASCADE ON DELETE CASCADE;
-''',
   // TODO: re-enable after ModerationCase migration lands
   //   // Fails if a case was resolved before it was opened.
   //   'moderation-cases-chk-resolved': '''
