@@ -15,6 +15,8 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
+import 'package:typed_sql/typed_sql.dart';
+import 'package:ulid/ulid.dart';
 
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
@@ -23,6 +25,8 @@ import '../account/models.dart';
 import '../admin/models.dart';
 import '../audit/backend.dart';
 import '../audit/models.dart';
+import '../database/database.dart';
+import '../database/schema.dart';
 import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, triggerPackagePostUpdates;
 import '../package/models.dart';
@@ -905,6 +909,146 @@ class AdminBackend {
     );
   }
 
+  /// Upserts [mc] and its action log into SQL.
+  Future<void> mirrorModerationCaseToSql(ModerationCase mc) async {
+    await primaryDatabase.transactWithRetry((db) async {
+      await db.moderationCases
+          .upsertValue(
+            caseId: mc.caseId,
+            reporterEmail: mc.reporterEmail,
+            openedAt: mc.opened,
+            resolvedAt: mc.resolved,
+            source: mc.source,
+            kind: mc.kind,
+            subject: mc.subject,
+            url: mc.url,
+            appealedCaseId: mc.appealedCaseId,
+            isSubjectOwner: mc.isSubjectOwner,
+            status: mc.status!,
+            grounds: mc.grounds,
+            violation: mc.violation,
+            reason: mc.reason,
+          )
+          .execute();
+      await db.moderationActionLogs
+          .where((l) => l.caseId.equalsValue(mc.caseId))
+          .delete()
+          .execute();
+      final entries = mc.getActionLog().entries.sorted(
+        (a, b) => a.timestamp.compareTo(b.timestamp),
+      );
+      final ulidFactory = UlidFactory(monotonic: true);
+      for (final e in entries) {
+        await db.moderationActionLogs
+            .upsertValue(
+              caseId: mc.caseId,
+              logId: ulidFactory
+                  .next(millis: e.timestamp.millisecondsSinceEpoch)
+                  .toUuid(),
+              createdAt: e.timestamp,
+              subject: e.subject,
+              action: e.moderationAction.name,
+              note: e.note,
+            )
+            .execute();
+      }
+    });
+  }
+
+  /// Looks up the [ModerationCase] with [caseId] in Datastore and mirrors it
+  /// into SQL.
+  Future<void> mirrorModerationCaseToSqlById(String caseId) async {
+    final mc = await lookupModerationCase(caseId);
+    if (mc != null) {
+      await mirrorModerationCaseToSql(mc);
+    }
+  }
+
+  /// Deletes the SQL rows of the case with [caseId] (including its action log).
+  Future<void> deleteModerationCaseFromSql(String caseId) async {
+    await primaryDatabase.withRetry(
+      (db) => db.moderationCases.delete(caseId).execute(),
+    );
+  }
+
+  /// Syncs SQL with the [ModerationCase] entities: upserts the missing or
+  /// changed cases, and removes the rows without a matching entity.
+  ///
+  /// Returns the number of cases that were changed in SQL.
+  Future<int> backfillModerationCasesSqlFromDatastore() async {
+    var count = 0;
+    final sqlCaseIds = await primaryDatabase.withRetry(
+      (db) => db.moderationCases.select((c) => (c.caseId,)).fetch(),
+    );
+    final remainingCaseIds = sqlCaseIds.toSet();
+
+    await for (final mc in _db.query<ModerationCase>().run()) {
+      remainingCaseIds.remove(mc.caseId);
+      if (await _isModerationCaseInSql(mc)) {
+        continue;
+      }
+      await mirrorModerationCaseToSql(mc);
+      count++;
+    }
+    // Rows left over seem to have no Datastore entity: double-check before
+    // deleting, in case the entity was created after the scan.
+    for (final caseId in remainingCaseIds) {
+      if (await lookupModerationCase(caseId) != null) {
+        continue;
+      }
+      await deleteModerationCaseFromSql(caseId);
+      count++;
+    }
+    return count;
+  }
+
+  Future<bool> _isModerationCaseInSql(ModerationCase mc) async {
+    final row = await primaryDatabase.withRetry(
+      (db) => db.moderationCases.byKey(mc.caseId).fetch(),
+    );
+    if (row == null ||
+        row.reporterEmail != mc.reporterEmail ||
+        !row.openedAt.isAtSameMomentAs(mc.opened) ||
+        !_isSameMomentOrBothNull(row.resolvedAt, mc.resolved) ||
+        row.source != mc.source ||
+        row.kind != mc.kind ||
+        row.subject != mc.subject ||
+        row.url != mc.url ||
+        row.appealedCaseId != mc.appealedCaseId ||
+        row.isSubjectOwner != mc.isSubjectOwner ||
+        row.status != mc.status ||
+        row.grounds != mc.grounds ||
+        row.violation != mc.violation ||
+        row.reason != mc.reason) {
+      return false;
+    }
+    final logs = await primaryDatabase.withRetry(
+      (db) => db.moderationActionLogs
+          .where((l) => l.caseId.equalsValue(mc.caseId))
+          .orderBy((l) => [(l.logId, Order.ascending)])
+          .fetch(),
+    );
+    final entries = mc.getActionLog().entries;
+    if (logs.length != entries.length) {
+      return false;
+    }
+    final sorted = entries.sorted((a, b) => a.timestamp.compareTo(b.timestamp));
+    for (var i = 0; i < logs.length; i++) {
+      final l = logs[i];
+      final e = sorted[i];
+      if (!l.createdAt.isAtSameMomentAs(e.timestamp) ||
+          l.subject != e.subject ||
+          l.action != e.moderationAction.name ||
+          l.note != e.note) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static bool _isSameMomentOrBothNull(DateTime? a, DateTime? b) =>
+      a == null ? b == null : (b != null && a.isAtSameMomentAs(b));
+
   /// Returns a valid [ModerationCase] if it exists.
   /// Returns `null` if [caseId] is `none`.
   ///
@@ -944,6 +1088,7 @@ class AdminBackend {
       // delete the entity
       _logger.info('Deleting ModerationCase: ${mc.caseId}');
       await withRetryTransaction(_db, (tx) async => tx.delete(mc.key));
+      await deleteModerationCaseFromSql(mc.caseId);
       _logger.info('Deleted ModerationCase: ${mc.caseId}');
     }
   }

@@ -16,6 +16,7 @@ part 'schema.audit.dart';
 part 'schema.consent.dart';
 part 'schema.email.dart';
 part 'schema.global_lock.dart';
+part 'schema.moderation.dart';
 part 'schema.neat_task.dart';
 part 'schema.package.dart';
 part 'schema.publisher.dart';
@@ -49,6 +50,12 @@ abstract final class PrimarySchema extends Schema {
   // global lock table
 
   Table<GlobalLockState> get globalLockStates;
+
+  // moderation tables
+
+  Table<ModerationCaseRow> get moderationCases;
+
+  Table<ModerationActionLog> get moderationActionLogs;
 
   // neat periodic task status table
 

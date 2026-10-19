@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Note: `Publisher` and `PublisherMember` are now mirrored to SQL.
  * Note: `Like` is now mirrored to SQL.
+ * Note: `ModerationCase` is now mirrored to SQL.
 
 ## `20261014t070500-all`
  * Bump runtimeVersion to `2026.10.13`.

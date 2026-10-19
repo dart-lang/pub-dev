@@ -38,7 +38,7 @@ Note: the action may take a longer time to complete as the public archive bucket
     final refCase = await adminBackend
         .loadAndVerifyModerationCaseForAdminAction(caseId);
 
-    return await adminMarkPackageVisibility(
+    final result = await adminMarkPackageVisibility(
       package,
       state: state,
       whenUpdating: (tx, p, valueToSet) async {
@@ -59,6 +59,10 @@ Note: the action may take a longer time to complete as the public archive bucket
         'moderatedAt': p.moderatedAt?.toIso8601String(),
       },
     );
+    if (refCase != null) {
+      await adminBackend.mirrorModerationCaseToSqlById(refCase.caseId);
+    }
+    return result;
   },
 );
 

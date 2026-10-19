@@ -76,7 +76,8 @@ Returns the fields of the updated moderation case.
       tx.insert(mc);
     });
     final mc = await adminBackend.lookupModerationCase(caseId);
+    await adminBackend.mirrorModerationCaseToSql(mc!);
 
-    return mc!.toDebugInfo();
+    return mc.toDebugInfo();
   },
 );
