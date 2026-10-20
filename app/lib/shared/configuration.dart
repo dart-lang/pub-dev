@@ -217,14 +217,32 @@ final class Configuration {
 
   /// Load [Configuration] from YAML file at [path] substituting `{{ENV}}` for
   /// the value of environment variable `ENV`.
-  factory Configuration.fromYamlFile(final String path) {
-    final content = replaceEnvVariables(
-      File(path).readAsStringSync(),
-      Platform.environment,
-    );
-    return Configuration.fromJson(
-      json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>,
-    );
+  ///
+  /// If `SEARCH_SERVICE_PREFIX`, `FALLBACK_SEARCH_SERVICE_PREFIX`, or
+  /// `DEFAULT_SERVICE_BASE_URL` are non-empty in [environment], they override
+  /// [searchServicePrefix], [fallbackSearchServicePrefix], and
+  /// [defaultServiceBaseUrl] respectively (also substituting `{{ENV}}`
+  /// placeholders).
+  factory Configuration.fromYamlFile(
+    final String path, {
+    @visibleForTesting Map<String, String>? environment,
+  }) {
+    final env = environment ?? Platform.environment;
+    final content = replaceEnvVariables(File(path).readAsStringSync(), env);
+    final map =
+        json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>;
+    if (env['SEARCH_SERVICE_PREFIX'] case final value? when value.isNotEmpty) {
+      map['searchServicePrefix'] = replaceEnvVariables(value, env);
+    }
+    if (env['FALLBACK_SEARCH_SERVICE_PREFIX'] case final value?
+        when value.isNotEmpty) {
+      map['fallbackSearchServicePrefix'] = replaceEnvVariables(value, env);
+    }
+    if (env['DEFAULT_SERVICE_BASE_URL'] case final value?
+        when value.isNotEmpty) {
+      map['defaultServiceBaseUrl'] = replaceEnvVariables(value, env);
+    }
+    return Configuration.fromJson(map);
   }
 
   @visibleForTesting

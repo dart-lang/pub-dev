@@ -27,6 +27,33 @@ void main() {
     );
   });
 
+  test('Foo config from yaml file with environment overrides', () async {
+    final config = Configuration.fromYamlFile(
+      'test/shared/test_data/foo_config.yaml',
+      environment: {
+        'GAE_VERSION': '20261020t120000',
+        'SEARCH_SERVICE_PREFIX':
+            'https://v-{{GAE_VERSION}}---search-12345.us-central1.run.app',
+        'FALLBACK_SEARCH_SERVICE_PREFIX':
+            'https://search-12345.us-central1.run.app',
+        'DEFAULT_SERVICE_BASE_URL':
+            'https://v-{{GAE_VERSION}}---default-12345.us-central1.run.app',
+      },
+    );
+    expect(
+      config.searchServicePrefix,
+      'https://v-20261020t120000---search-12345.us-central1.run.app',
+    );
+    expect(
+      config.fallbackSearchServicePrefix,
+      'https://search-12345.us-central1.run.app',
+    );
+    expect(
+      config.defaultServiceBaseUrl,
+      'https://v-20261020t120000---default-12345.us-central1.run.app',
+    );
+  });
+
   test('content replacement success', () {
     expect(
       Configuration.replaceEnvVariables('a{{B}}c{{B}}d', {'B': 'bb'}),
