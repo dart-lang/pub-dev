@@ -54,7 +54,7 @@ dependencies:
   mailer: '6.6.0'
   postgres: '3.5.20'
   ulid: '2.2.0'
-  tar: '2.0.2'
+  tar: '2.0.3'
   api_builder:
 
 dev_dependencies:
