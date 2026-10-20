@@ -8,7 +8,6 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:retry/retry.dart';
 import 'package:typed_sql/typed_sql.dart';
 
 part 'migration.g.dart';
@@ -121,17 +120,7 @@ Future<void> migrateScripts({
     final hash = hashes[script.name]!;
     final previousName = i == 0 ? '' : scripts[i - 1].name;
 
-    // Concurrent migrators of the same schema conflict through the history
-    // table (serialization failure or primary key violation) and the loser is
-    // retried: on the next attempt it sees the committed row and skips the
-    // script.
-    await retry(
-      () => _executeScript(target, schemaName, script, hash, previousName),
-      maxAttempts: 3,
-      delayFactor: const Duration(milliseconds: 50),
-      retryIf: (e) =>
-          e is OperationException || e is TransactionAbortedException,
-    );
+    await _executeScript(target, schemaName, script, hash, previousName);
   }
 }
 
@@ -143,10 +132,8 @@ Future<void> _executeScript(
   String previousName,
 ) async {
   await target.transact((tx) async {
-    // With SERIALIZABLE isolation a concurrent migrator of the same schema either
-    // sees the committed history, or fails with a serialization failure (or with a
-    // primary key violation on the history entry) and is retried.
-    await tx.execute('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE', []);
+    // Concurrent migrators block here until the lock holder commits or rolls back.
+    await tx.execute('LOCK TABLE "schema_migrations" IN EXCLUSIVE MODE', []);
 
     // Verify in-transaction that no unexpected script exists.
     final unexpectedRows = await tx
