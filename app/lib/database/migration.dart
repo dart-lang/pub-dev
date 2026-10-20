@@ -166,12 +166,20 @@ Future<void> _executeScript(
         return;
       }
       // otherwise abort migrations
+      if (first.name == script.name) {
+        throw ArgumentError(
+          'Script hash difference detected: `${script.name}` '
+          '(recorded `${first.sha256}`, expected `$hash`).',
+        );
+      }
       throw ArgumentError(
-        'Incompatible existing history: `${first.name}` preceeds `${script.name}`.',
+        'Incompatible existing history: `${first.name}` is recorded after '
+        '`${previousName.isEmpty ? '<start>' : previousName}`, but is not the '
+        'expected next script `${script.name}`.',
       );
     }
 
-    // Execute migration and log exection.
+    // Execute migration and log execution.
     await tx.script(script.content);
 
     await tx.execute(

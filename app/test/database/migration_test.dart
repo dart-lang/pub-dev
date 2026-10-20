@@ -36,6 +36,26 @@ void main() {
     );
 
     testWithProfile(
+      'applies all scripts after a partial application',
+      fn: () async {
+        await primaryDatabase.withRetry((db) async {
+          final m = _setup('test-partial');
+          final scripts = [
+            (name: '000001_first.sql', content: 'SELECT 1;'),
+            (name: '000002_second.sql', content: 'SELECT 2;'),
+            (name: '000003_third.sql', content: 'SELECT 3;'),
+          ];
+
+          await m.run(scripts.sublist(0, 1));
+          expect(await m.rows(), hasLength(1));
+
+          await m.run(scripts);
+          expect(await m.rows(), hasLength(3));
+        });
+      },
+    );
+
+    testWithProfile(
       'throws when unknown migration precedes last local script',
       fn: () async {
         await primaryDatabase.withRetry((db) async {
