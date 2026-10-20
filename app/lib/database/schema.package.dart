@@ -181,6 +181,14 @@ abstract final class PackageTombstone extends Row {
   JsonValue get versionsJson;
 }
 
+extension PackageTombstoneExt on PackageTombstone {
+  /// The `User.userId` list of previous uploaders.
+  List<String> get uploaders => (uploadersJson.value as List).cast<String>();
+
+  /// The list of previous versions.
+  List<String> get versions => (versionsJson.value as List).cast<String>();
+}
+
 /// Entity representing a reserved package: the name is available only for a
 /// subset of the users (`@google.com` + a list of emails).
 ///

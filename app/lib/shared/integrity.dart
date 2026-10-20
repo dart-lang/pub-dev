@@ -784,8 +784,11 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   Stream<String> _checkModeratedPackages() async* {
     _logger.info('Scanning ModeratedPackages...');
 
-    yield* _queryWithPool<ModeratedPackage>((pkg) async* {
-      final packageName = pkg.name!;
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.packageTombstones.fetch(),
+    );
+    for (final row in rows) {
+      final packageName = row.name;
       _moderatedPackages.add(packageName);
       if (await _packageExists(packageName)) {
         // double check actual status to prevent misreports on cache race conditions
@@ -794,7 +797,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
           yield 'Moderated package "$packageName" also present in active packages.';
         }
       }
-    });
+    }
   }
 
   Stream<String> _checkAuditLogs() async* {

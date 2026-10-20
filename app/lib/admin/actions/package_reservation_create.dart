@@ -38,6 +38,7 @@ able to claim it.
     if (p != null) {
       throw InvalidInputException('Package `$package` exists.');
     }
+    await packageBackend.mirrorPackageTombstoneToSqlByName(package);
     final mp = await packageBackend.lookupModeratedPackage(package);
     if (mp != null) {
       throw InvalidInputException('ModeratedPackage `$package` exists.');

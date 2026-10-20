@@ -61,16 +61,14 @@ void main() {
     testWithProfile(
       'cannot reserve ModeratedPackage',
       fn: () async {
-        await dbService.commit(
-          inserts: [
-            ModeratedPackage()
-              ..id = 'pkg'
-              ..name = 'pkg'
-              ..moderated = clock.now()
-              ..uploaders = <String>[]
-              ..versions = <String>['1.0.0'],
-          ],
-        );
+        final mp = ModeratedPackage()
+          ..id = 'pkg'
+          ..name = 'pkg'
+          ..moderated = clock.now()
+          ..uploaders = <String>[]
+          ..versions = <String>['1.0.0'];
+        await dbService.commit(inserts: [mp]);
+        await packageBackend.mirrorPackageTombstoneToSql(mp);
         await expectApiException(
           _reserve('pkg'),
           code: 'InvalidInput',
