@@ -1871,13 +1871,13 @@ class PackageBackend {
     AuditLogRecord? packagePublishedRecord;
     String? deletedReservedPackageName;
     await mirrorPackageTombstoneToSqlByName(newVersion.package);
+    final moderatedPackage = await lookupModeratedPackage(newVersion.package);
     final (pv, outgoingEmail) = await withRetryTransaction(db, (tx) async {
       _logger.info('Starting datastore transaction.');
 
       final tuple = (await tx.lookup([newVersion.key, newVersion.packageKey!]));
       final version = tuple[0] as PackageVersion?;
       package = tuple[1] as Package?;
-      final moderatedPackage = await lookupModeratedPackage(newVersion.package);
 
       if (moderatedPackage != null) {
         throw PackageRejectedException.nameReserved(newVersion.package);

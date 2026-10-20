@@ -180,14 +180,13 @@ class NameTracker {
   /// Returns the names of moderated packages from SQL, optionally only
   /// those moderated after [since].
   Future<List<String>> _fetchModeratedNames({DateTime? since}) async {
-    final rows = await primaryDatabase.withRetry((db) {
+    return await primaryDatabase.withRetry((db) {
       final tombstones = db.packageTombstones;
       final filtered = since == null
           ? tombstones
           : tombstones.where((t) => t.moderatedAt.isAfterValue(since));
       return filtered.select((t) => (t.name,)).fetch();
     });
-    return rows.toList();
   }
 
   Future<void> _scanRecentPackages() async {

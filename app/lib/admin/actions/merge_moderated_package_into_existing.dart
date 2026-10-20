@@ -4,6 +4,7 @@
 
 import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -44,7 +45,7 @@ Fails if that package has no existing Package entity.
       'ModeratedPackage does not exists.',
     );
     final mpKey = dbService.emptyKey.append(ModeratedPackage, id: packageName);
-    final mpVersions = (mp!.versionsJson.value as List).cast<String>();
+    final mpVersions = mp!.versions;
 
     final updated = await withRetryTransaction(dbService, (tx) async {
       // check Package existence
