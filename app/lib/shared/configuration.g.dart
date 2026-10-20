@@ -21,6 +21,9 @@ Configuration _$ConfigurationFromJson(
       'searchServicePrefix',
       'fallbackSearchServicePrefix',
       'defaultServiceBaseUrl',
+      'cloudRunSearchServicePrefix',
+      'cloudRunFallbackSearchServicePrefix',
+      'cloudRunDefaultServiceBaseUrl',
       'searchSnapshotBucketName',
       'maxTaskInstances',
       'maxTaskRunHours',
@@ -106,6 +109,18 @@ Configuration _$ConfigurationFromJson(
       'fallbackSearchServicePrefix',
       (v) => v as String?,
     ),
+    cloudRunSearchServicePrefix: $checkedConvert(
+      'cloudRunSearchServicePrefix',
+      (v) => v as String?,
+    ),
+    cloudRunFallbackSearchServicePrefix: $checkedConvert(
+      'cloudRunFallbackSearchServicePrefix',
+      (v) => v as String?,
+    ),
+    cloudRunDefaultServiceBaseUrl: $checkedConvert(
+      'cloudRunDefaultServiceBaseUrl',
+      (v) => v as String?,
+    ),
     storageBaseUrl: $checkedConvert('storageBaseUrl', (v) => v as String?),
     pubClientAudience: $checkedConvert(
       'pubClientAudience',
@@ -181,6 +196,10 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'searchServicePrefix': instance.searchServicePrefix,
       'fallbackSearchServicePrefix': instance.fallbackSearchServicePrefix,
       'defaultServiceBaseUrl': instance.defaultServiceBaseUrl,
+      'cloudRunSearchServicePrefix': instance.cloudRunSearchServicePrefix,
+      'cloudRunFallbackSearchServicePrefix':
+          instance.cloudRunFallbackSearchServicePrefix,
+      'cloudRunDefaultServiceBaseUrl': instance.cloudRunDefaultServiceBaseUrl,
       'searchSnapshotBucketName': instance.searchSnapshotBucketName,
       'maxTaskInstances': instance.maxTaskInstances,
       'maxTaskRunHours': instance.maxTaskRunHours,
