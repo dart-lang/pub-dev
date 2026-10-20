@@ -81,7 +81,6 @@ void main() {
       final fileContent = f.readAsStringSync();
       final replacedContent = Configuration.replaceEnvVariables(fileContent, {
         'GOOGLE_CLOUD_PROJECT': 'test',
-        'GAE_SERVICE': 'service',
         'GAE_VERSION': '1234',
       });
       final jsonContent = json.decode(

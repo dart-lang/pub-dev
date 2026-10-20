@@ -37,7 +37,6 @@ Configuration _$ConfigurationFromJson(
       'gmailRelayServiceAccount',
       'uploadSignerServiceAccount',
       'blockRobots',
-      'productionHosts',
       'primaryApiUri',
       'primarySiteUri',
       'admins',
@@ -129,10 +128,6 @@ Configuration _$ConfigurationFromJson(
       (v) => v as String?,
     ),
     blockRobots: $checkedConvert('blockRobots', (v) => v as bool),
-    productionHosts: $checkedConvert(
-      'productionHosts',
-      (v) => (v as List<dynamic>?)?.map((e) => e as String).toList(),
-    ),
     primaryApiUri: $checkedConvert(
       'primaryApiUri',
       (v) => v == null ? null : Uri.parse(v as String),
@@ -202,7 +197,6 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'gmailRelayServiceAccount': instance.gmailRelayServiceAccount,
       'uploadSignerServiceAccount': instance.uploadSignerServiceAccount,
       'blockRobots': instance.blockRobots,
-      'productionHosts': instance.productionHosts,
       'primaryApiUri': instance.primaryApiUri?.toString(),
       'primarySiteUri': instance.primarySiteUri.toString(),
       'admins': instance.admins?.map((e) => e.toJson()).toList(),

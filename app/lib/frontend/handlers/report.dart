@@ -257,6 +257,8 @@ Future<Message> processReportPageHandler(
     'Subject: ${subject.fqn}',
     'Message:\n---\n${form.message}\n---',
     'This $kind will be processed by the moderation team.',
+    // Tags matched by support_issue_greeter in Buganizer.
+    isAppeal ? '[content-moderation-appeal]' : '[content-moderation-request]',
   ].join('\n\n');
 
   await emailSender.sendMessage(

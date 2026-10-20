@@ -25,10 +25,6 @@ externalServiceAudience: https://pub.dev
 gmailRelayServiceAccount:
 uploadSignerServiceAccount: package-uploader-signer@dartlang-pub-dev.iam.gserviceaccount.com
 blockRobots: true
-productionHosts:
-- dartlang-pub-dev.appspot.com
-- '{{GAE_SERVICE}}-dot-dartlang-pub-dev.appspot.com'
-- staging.pub.dev
 primaryApiUri: https://staging.pub.dev
 primarySiteUri: https://staging.pub.dev
 admins:
