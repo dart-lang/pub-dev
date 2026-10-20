@@ -187,12 +187,13 @@ class PackageBackend {
     return await db.lookupOrNull<Package>(packageKey);
   }
 
-  /// Looks up a moderated package by name.
+  /// Looks up a moderated package (tombstone) by name in SQL.
   ///
   /// Returns `null` if the package doesn't exist.
-  Future<ModeratedPackage?> lookupModeratedPackage(String packageName) async {
-    final packageKey = db.emptyKey.append(ModeratedPackage, id: packageName);
-    return await db.lookupOrNull<ModeratedPackage>(packageKey);
+  Future<PackageTombstone?> lookupModeratedPackage(String packageName) async {
+    return await primaryDatabase.withRetry(
+      (db) => db.packageTombstones.byKey(packageName).fetch(),
+    );
   }
 
   /// Looks up a reserved package by name.
@@ -243,6 +244,22 @@ class PackageBackend {
           )
           .execute(),
     );
+  }
+
+  /// Looks up the [ModeratedPackage] of [packageName] in Datastore and mirrors
+  /// it into SQL (or removes the SQL row if the entity is missing).
+  ///
+  /// Intended to be called before critical read paths, to minimize the
+  /// inconsistency window. Does not fail if the entity is missing.
+  Future<void> mirrorPackageTombstoneToSqlByName(String packageName) async {
+    final mp = await db.lookupOrNull<ModeratedPackage>(
+      db.emptyKey.append(ModeratedPackage, id: packageName),
+    );
+    if (mp != null) {
+      await mirrorPackageTombstoneToSql(mp);
+    } else {
+      await deletePackageTombstoneFromSql(packageName);
+    }
   }
 
   /// Deletes the [PackageTombstone] from SQL.
@@ -1853,17 +1870,14 @@ class PackageBackend {
     AuditLogRecord? packageCreatedRecord;
     AuditLogRecord? packagePublishedRecord;
     String? deletedReservedPackageName;
+    await mirrorPackageTombstoneToSqlByName(newVersion.package);
     final (pv, outgoingEmail) = await withRetryTransaction(db, (tx) async {
       _logger.info('Starting datastore transaction.');
 
-      final tuple = (await tx.lookup([
-        newVersion.key,
-        newVersion.packageKey!,
-        db.emptyKey.append(ModeratedPackage, id: newVersion.package),
-      ]));
+      final tuple = (await tx.lookup([newVersion.key, newVersion.packageKey!]));
       final version = tuple[0] as PackageVersion?;
       package = tuple[1] as Package?;
-      final moderatedPackage = tuple[2] as ModeratedPackage?;
+      final moderatedPackage = await lookupModeratedPackage(newVersion.package);
 
       if (moderatedPackage != null) {
         throw PackageRejectedException.nameReserved(newVersion.package);

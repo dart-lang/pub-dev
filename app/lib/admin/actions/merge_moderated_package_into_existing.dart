@@ -35,18 +35,18 @@ Fails if that package has no existing Package entity.
         args['package'] ??
         (throw InvalidInputException('Missing --package argument.'));
 
-    final updated = await withRetryTransaction(dbService, (tx) async {
-      // check ModeratedPackage existence
-      final mpKey = dbService.emptyKey.append(
-        ModeratedPackage,
-        id: packageName,
-      );
-      final mp = await tx.lookupOrNull<ModeratedPackage>(mpKey);
-      InvalidInputException.check(
-        mp != null,
-        'ModeratedPackage does not exists.',
-      );
+    await packageBackend.mirrorPackageTombstoneToSqlByName(packageName);
 
+    // check ModeratedPackage existence
+    final mp = await packageBackend.lookupModeratedPackage(packageName);
+    InvalidInputException.check(
+      mp != null,
+      'ModeratedPackage does not exists.',
+    );
+    final mpKey = dbService.emptyKey.append(ModeratedPackage, id: packageName);
+    final mpVersions = (mp!.versionsJson.value as List).cast<String>();
+
+    final updated = await withRetryTransaction(dbService, (tx) async {
       // check Package existence
       final pKey = dbService.emptyKey.append(Package, id: packageName);
       final p = await tx.lookupOrNull<Package>(pKey);
@@ -55,7 +55,7 @@ Fails if that package has no existing Package entity.
       // update deleted version list
       final versionList = await tx.query<PackageVersion>(pKey).run().toList();
       final existingVersions = versionList.map((v) => v.version!).toSet();
-      final deletedVersions = (mp!.versions ?? <String>[])
+      final deletedVersions = mpVersions
           .where((v) => !existingVersions.contains(v))
           .toList();
       if (deletedVersions.isNotEmpty) {

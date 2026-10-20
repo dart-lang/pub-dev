@@ -717,8 +717,9 @@ void main() {
         // ModeratedPackage entity contains both previously deleted and current versions
         final mp = await packageBackend.lookupModeratedPackage('oxygen');
         expect(mp, isNotNull);
-        expect(mp!.versions, contains('1.0.0'));
-        expect(mp.versions, contains('1.2.0'));
+        final versions = mp!.versionsJson.value as List;
+        expect(versions, contains('1.0.0'));
+        expect(versions, contains('1.2.0'));
       },
     );
   });

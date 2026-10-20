@@ -397,6 +397,7 @@ class AdminBackend {
 
     _logger.info('Removing Package from Datastore...');
     var deletedPackages = 0;
+    await packageBackend.mirrorPackageTombstoneToSqlByName(packageName);
     final insertedModeratedPkg = await withRetryTransaction(_db, (tx) async {
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
@@ -409,12 +410,8 @@ class AdminBackend {
       }
       tx.delete(packageKey);
       deletedPackages = 1;
-      final moderatedPkgKey = _db.emptyKey.append(
-        ModeratedPackage,
-        id: packageName,
-      );
-      final moderatedPkg = await _db.lookupOrNull<ModeratedPackage>(
-        moderatedPkgKey,
+      final moderatedPkg = await packageBackend.lookupModeratedPackage(
+        packageName,
       );
       if (moderatedPkg != null) {
         return null;

@@ -10,7 +10,10 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_dev/package/overrides.dart';
 import 'package:pub_package_reader/pub_package_reader.dart';
+import 'package:typed_sql/typed_sql.dart';
 
+import '../database/database.dart';
+import '../database/schema.dart';
 import '../shared/datastore.dart';
 import 'models.dart';
 
@@ -164,14 +167,27 @@ class NameTracker {
     await for (final p in _db!.query<Package>().run()) {
       data.add(TrackedPackage.fromPackage(p));
     }
-    await for (final p in _db.query<ModeratedPackage>().run()) {
-      data.addModeratedName(p.name!);
+    for (final name in await _fetchModeratedNames()) {
+      data.addModeratedName(name);
     }
     _data = data;
     if (!_firstScanCompleter.isCompleted) {
       _firstScanCompleter.complete();
     }
     _logger.info('Packages scanned in ${sw.elapsed}.');
+  }
+
+  /// Returns the names of moderated packages from SQL, optionally only
+  /// those moderated after [since].
+  Future<List<String>> _fetchModeratedNames({DateTime? since}) async {
+    final rows = await primaryDatabase.withRetry((db) {
+      final tombstones = db.packageTombstones;
+      final filtered = since == null
+          ? tombstones
+          : tombstones.where((t) => t.moderatedAt.isAfterValue(since));
+      return filtered.select((t) => (t.name,)).fetch();
+    });
+    return rows.toList();
   }
 
   Future<void> _scanRecentPackages() async {
@@ -191,12 +207,8 @@ class NameTracker {
         _data.add(TrackedPackage.fromPackage(p));
       }
 
-      final moderatedPkgQuery = _db.query<ModeratedPackage>()
-        ..order('moderated')
-        ..filter('moderated >', ts);
-
-      await for (final p in moderatedPkgQuery.run()) {
-        _data.addModeratedName(p.name!);
+      for (final name in await _fetchModeratedNames(since: ts)) {
+        _data.addModeratedName(name);
       }
 
       _data._lastStartedTs = start;
