@@ -191,10 +191,6 @@ final class Configuration {
   /// Whether indexing of the content by robots should be blocked.
   final bool blockRobots;
 
-  /// The list of hostnames which are considered production hosts (e.g. which
-  /// are not limited in the cache use).
-  final List<String>? productionHosts;
-
   /// The base URI to use for API endpoints.
   /// Also used as PUB_HOSTED_URL in analyzer and dartdoc.
   final Uri? primaryApiUri;
@@ -273,7 +269,6 @@ final class Configuration {
     required this.gmailRelayServiceAccount,
     required this.uploadSignerServiceAccount,
     required this.blockRobots,
-    required this.productionHosts,
     required this.primaryApiUri,
     required this.primarySiteUri,
     required this.admins,
@@ -339,7 +334,6 @@ final class Configuration {
       gmailRelayServiceAccount: null, // disable email sending
       uploadSignerServiceAccount: null,
       blockRobots: false,
-      productionHosts: ['localhost'],
       primaryApiUri: Uri.parse('http://localhost:$frontendPort/'),
       primarySiteUri: Uri.parse('http://localhost:$frontendPort/'),
       admins: [
@@ -390,7 +384,6 @@ final class Configuration {
       gmailRelayServiceAccount: null, // disable email sending
       uploadSignerServiceAccount: null,
       blockRobots: true,
-      productionHosts: ['localhost'],
       primaryApiUri: primaryApiUri ?? Uri.parse('https://pub.dev/'),
       primarySiteUri: primarySiteUri ?? Uri.parse('https://pub.dev/'),
       admins: [

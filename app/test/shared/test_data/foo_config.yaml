@@ -15,8 +15,6 @@ externalServiceAudience: 'https://pub.dev'
 gmailRelayServiceAccount:
 uploadSignerServiceAccount: 'foo@dartlang-pub-dev.iam.gserviceaccount.com'
 blockRobots: true
-productionHosts:
-- localhost
 primaryApiUri: https://dartlang-pub-dev.appspot.com
 primarySiteUri: http://localhost:8080
 admins:
