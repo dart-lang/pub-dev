@@ -8,6 +8,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:retry/retry.dart';
 import 'package:typed_sql/typed_sql.dart';
 
 part 'migration.g.dart';
@@ -118,44 +119,66 @@ Future<void> migrateScripts({
   for (var i = 0; i < scripts.length; i++) {
     final script = scripts[i];
     final hash = hashes[script.name]!;
-    await target.transact((tx) async {
-      // Verify in-transaction that no unexpected script exists
-      // QUESTION: can we scope this with schema prefix so that it is part of the same transaction?
-      final unexpectedRows = await table
-          .where((m) {
-            final mn = m.schemaName.equalsValue(schemaName);
-            if (i == 0) {
-              return mn;
-            }
-            return mn.and(m.scriptName.greaterThan(scripts[i - 1].name.asExpr));
-          })
-          .orderBy((m) => [(m.scriptName, Order.ascending)])
-          .fetch();
+    final previousName = i == 0 ? '' : scripts[i - 1].name;
 
-      if (unexpectedRows.isNotEmpty) {
-        final first = unexpectedRows.first;
-        // check race + idempotency, continue migrations with the next script if matching
-        if (first.scriptName == script.name && first.scriptSha256 == hash) {
-          return;
-        }
-        // otherwise abort migrations
-        throw ArgumentError(
-          'Incompatible existing history: `${first.scriptName}` preceeds `${script.name}`.',
-        );
-      }
-
-      // Execute migration and log exection.
-      await tx.script(script.content);
-
-      // QUESTION: can we scope this with schema prefix so that it is part of the same transaction?
-      await table
-          .insert(
-            schemaName: schemaName.asExpr,
-            scriptName: script.name.asExpr,
-            scriptSha256: hash.asExpr,
-            executedAt: Expr.currentTimestamp,
-          )
-          .execute();
-    });
+    // Concurrent migrators of the same schema conflict through the history
+    // table (serialization failure or primary key violation) and the loser is
+    // retried: on the next attempt it sees the committed row and skips the
+    // script.
+    await retry(
+      () => _executeScript(target, schemaName, script, hash, previousName),
+      maxAttempts: 3,
+      delayFactor: const Duration(milliseconds: 50),
+      retryIf: (e) =>
+          e is OperationException || e is TransactionAbortedException,
+    );
   }
+}
+
+Future<void> _executeScript(
+  DatabaseAdapter target,
+  String schemaName,
+  ({String name, String content}) script,
+  String hash,
+  String previousName,
+) async {
+  await target.transact((tx) async {
+    // With SERIALIZABLE isolation a concurrent migrator of the same schema either
+    // sees the committed history, or fails with a serialization failure (or with a
+    // primary key violation on the history entry) and is retried.
+    await tx.execute('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE', []);
+
+    // Verify in-transaction that no unexpected script exists.
+    final unexpectedRows = await tx
+        .query(
+          'SELECT "script_name", "script_sha256" FROM "schema_migrations" '
+          'WHERE "schema_name" = \$1 AND "script_name" > \$2 '
+          'ORDER BY "script_name" ASC LIMIT 1',
+          [schemaName, previousName],
+        )
+        .map((r) => (name: r.readString()!, sha256: r.readString()!))
+        .toList();
+
+    if (unexpectedRows.isNotEmpty) {
+      final first = unexpectedRows.first;
+      // check race + idempotency, continue migrations with the next script if matching
+      if (first.name == script.name && first.sha256 == hash) {
+        return;
+      }
+      // otherwise abort migrations
+      throw ArgumentError(
+        'Incompatible existing history: `${first.name}` preceeds `${script.name}`.',
+      );
+    }
+
+    // Execute migration and log exection.
+    await tx.script(script.content);
+
+    await tx.execute(
+      'INSERT INTO "schema_migrations" '
+      '("schema_name", "script_name", "script_sha256", "executed_at") '
+      'VALUES (\$1, \$2, \$3, CURRENT_TIMESTAMP)',
+      [schemaName, script.name, hash],
+    );
+  });
 }

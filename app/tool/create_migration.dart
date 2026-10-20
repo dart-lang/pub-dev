@@ -4,10 +4,10 @@
 
 import 'dart:io';
 
-import 'package:crypto/crypto.dart';
 import 'package:pana/pana.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_dev/database/schema.dart';
+import 'package:pub_dev/src/database/migration_tools.dart';
 import 'package:typed_sql/typed_sql.dart';
 
 const _devDbContainerName = 'atlas-dev-postgres';
@@ -168,9 +168,11 @@ env "local" {
 
       await latestFile.rename(newFile.path);
 
-      // remove "public". schema prefix
+      // remove "public". schema prefix, make the statements re-runnable
       final rawContent = await newFile.readAsString();
-      await newFile.writeAsString(rawContent.replaceAll('"public".', ''));
+      await newFile.writeAsString(
+        addIfExistsClauses(rawContent.replaceAll('"public".', '')),
+      );
 
       // format sql file
       await runConstrained([
@@ -206,18 +208,14 @@ env "local" {
 Future<void> _updateSha256sum(String migrationsDir) async {
   final sqlFiles = Directory(
     migrationsDir,
-  ).listSync().whereType<File>().where((f) => f.path.endsWith('.sql')).toList();
-  sqlFiles.sort((a, b) => a.path.compareTo(b.path));
+  ).listSync().whereType<File>().where((f) => f.path.endsWith('.sql'));
 
-  final sb = StringBuffer();
-  for (final file in sqlFiles) {
-    final bytes = await file.readAsBytes();
-    final hash = sha256.convert(bytes).toString();
-    final name = file.uri.pathSegments.last;
-    sb.writeln('$hash  $name');
-  }
+  final files = [
+    for (final file in sqlFiles)
+      (name: file.uri.pathSegments.last, bytes: await file.readAsBytes()),
+  ];
 
   await File(
     p.join(migrationsDir, 'sha256sum.txt'),
-  ).writeAsString(sb.toString());
+  ).writeAsString(buildSha256sum(files));
 }

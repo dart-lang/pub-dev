@@ -28,6 +28,9 @@ To generate them automatically:
    migrations and the desired schema, producing a new migration SQL file.
 4. Renames the Atlas-generated timestamped file (e.g. `20260317..._name.sql`)
    to a sequential format (`000001_name.sql`, `000002_name.sql`, ...).
-5. Formats the SQL file using the `sql-formatter` docker image.
-6. Updates `sha256sum.txt` with checksums of all migration files.
-7. Cleans up the Docker container and temporary files on exit.
+5. Adds `IF [NOT] EXISTS` clauses where PostgreSQL supports them (tables,
+   indexes, columns, `DROP CONSTRAINT`), so scripts can be re-run safely.
+   `ADD CONSTRAINT` and `CONCURRENTLY` are not handled automatically.
+6. Formats the SQL file using the `sql-formatter` docker image.
+7. Updates `sha256sum.txt` with checksums of all migration files.
+8. Cleans up the Docker container and temporary files on exit.
