@@ -284,8 +284,11 @@ void main() {
           expect(email.from.email, 'noreply@pub.dev');
           expect(email.recipients.single.email, 'support@pub.dev');
           expect(email.ccRecipients.single.email, 'user2@pub.dev');
-          expect(email.bodyText, contains('[content-moderation]'));
-          expect(email.bodyText, isNot(contains('[moderation-appeal]')));
+          expect(email.bodyText, contains('[content-moderation-request]'));
+          expect(
+            email.bodyText,
+            isNot(contains('[content-moderation-appeal]')),
+          );
 
           final mc = await dbService.query<ModerationCase>().run().single;
           expect(mc.kind, 'notification');
@@ -315,8 +318,11 @@ void main() {
               expect(fakeEmailSender.sentMessages, hasLength(1));
               final email = fakeEmailSender.sentMessages.single;
               expect(email.bodyText, contains('Subject: package:oxygen'));
-              expect(email.bodyText, contains('[content-moderation]'));
-              expect(email.bodyText, isNot(contains('[moderation-appeal]')));
+              expect(email.bodyText, contains('[content-moderation-request]'));
+              expect(
+                email.bodyText,
+                isNot(contains('[content-moderation-appeal]')),
+              );
               expect(email.from.email, 'noreply@pub.dev');
               expect(email.recipients.single.email, 'support@pub.dev');
               expect(email.ccRecipients.single.email, 'user@pub.dev');
@@ -441,9 +447,10 @@ void main() {
           expect(email.from.email, 'noreply@pub.dev');
           expect(email.recipients.single.email, 'support@pub.dev');
           expect(email.ccRecipients.single.email, 'user2@pub.dev');
+          expect(email.bodyText, contains('[content-moderation-appeal]'));
           expect(
             email.bodyText,
-            contains('[content-moderation] [moderation-appeal]'),
+            isNot(contains('[content-moderation-request]')),
           );
 
           final mc = await dbService
@@ -500,9 +507,10 @@ void main() {
           expect(email.from.email, 'noreply@pub.dev');
           expect(email.recipients.single.email, 'support@pub.dev');
           expect(email.ccRecipients.single.email, 'admin@pub.dev');
+          expect(email.bodyText, contains('[content-moderation-appeal]'));
           expect(
             email.bodyText,
-            contains('[content-moderation] [moderation-appeal]'),
+            isNot(contains('[content-moderation-request]')),
           );
 
           final mc = await dbService
