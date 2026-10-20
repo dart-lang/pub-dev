@@ -25,10 +25,6 @@ externalServiceAudience: https://pub.dev
 gmailRelayServiceAccount: pub-gsuite-gmail-delegatee@dartlang-pub.iam.gserviceaccount.com
 uploadSignerServiceAccount: package-uploader-signer@dartlang-pub.iam.gserviceaccount.com
 blockRobots: false
-productionHosts:
-- pub.dartlang.org
-- pub.dev
-- api.pub.dev
 primaryApiUri: https://pub.dev/
 primarySiteUri: https://pub.dev/
 admins:
