@@ -27,6 +27,52 @@ void main() {
     );
   });
 
+  test(
+    'Cloud Run config selects cloudRun* URLs when K_SERVICE is set',
+    () async {
+      final gaeConfig = Configuration.fromYamlFile(
+        'config/dartlang-pub-dev.yaml',
+        environment: {
+          'GOOGLE_CLOUD_PROJECT': 'dartlang-pub-dev',
+          'GAE_VERSION': '20261020t120000',
+        },
+      );
+      expect(
+        gaeConfig.searchServicePrefix,
+        'https://20261020t120000-dot-search-dot-dartlang-pub-dev.appspot.com',
+      );
+      expect(
+        gaeConfig.fallbackSearchServicePrefix,
+        'https://search-dot-dartlang-pub-dev.appspot.com',
+      );
+      expect(
+        gaeConfig.defaultServiceBaseUrl,
+        'https://20261020t120000-dot-dartlang-pub-dev.appspot.com',
+      );
+
+      final cloudRunConfig = Configuration.fromYamlFile(
+        'config/dartlang-pub-dev.yaml',
+        environment: {
+          'GOOGLE_CLOUD_PROJECT': 'dartlang-pub-dev',
+          'GAE_VERSION': '20261020t120000',
+          'K_SERVICE': 'default',
+        },
+      );
+      expect(
+        cloudRunConfig.searchServicePrefix,
+        'https://v-20261020t120000---search-621485135717.us-central1.run.app',
+      );
+      expect(
+        cloudRunConfig.fallbackSearchServicePrefix,
+        'https://search-621485135717.us-central1.run.app',
+      );
+      expect(
+        cloudRunConfig.defaultServiceBaseUrl,
+        'https://v-20261020t120000---default-621485135717.us-central1.run.app',
+      );
+    },
+  );
+
   test('content replacement success', () {
     expect(
       Configuration.replaceEnvVariables('a{{B}}c{{B}}d', {'B': 'bb'}),

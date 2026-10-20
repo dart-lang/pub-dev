@@ -96,6 +96,16 @@ final class Configuration {
   /// safe, as services may be deployed independently.
   final String defaultServiceBaseUrl;
 
+  /// The scheme://host:port prefix for the search service on Cloud Run.
+  final String? cloudRunSearchServicePrefix;
+
+  /// The scheme://host:port prefix for the fallback search service on Cloud Run.
+  final String? cloudRunFallbackSearchServicePrefix;
+
+  /// The scheme://host:port baseUrl for the default service on Cloud Run with
+  /// the same version as this instance.
+  final String? cloudRunDefaultServiceBaseUrl;
+
   /// The name of the Cloud Storage bucket to use for search snapshots.
   final String? searchSnapshotBucketName;
 
@@ -213,14 +223,34 @@ final class Configuration {
 
   /// Load [Configuration] from YAML file at [path] substituting `{{ENV}}` for
   /// the value of environment variable `ENV`.
-  factory Configuration.fromYamlFile(final String path) {
-    final content = replaceEnvVariables(
-      File(path).readAsStringSync(),
-      Platform.environment,
-    );
-    return Configuration.fromJson(
-      json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>,
-    );
+  ///
+  /// When running on Cloud Run (`K_SERVICE` is set in [environment]),
+  /// [cloudRunSearchServicePrefix], [cloudRunFallbackSearchServicePrefix], and
+  /// [cloudRunDefaultServiceBaseUrl] replace [searchServicePrefix],
+  /// [fallbackSearchServicePrefix], and [defaultServiceBaseUrl] respectively.
+  factory Configuration.fromYamlFile(
+    final String path, {
+    @visibleForTesting Map<String, String>? environment,
+  }) {
+    final env = environment ?? Platform.environment;
+    final content = replaceEnvVariables(File(path).readAsStringSync(), env);
+    final map =
+        json.decode(json.encode(loadYaml(content))) as Map<String, dynamic>;
+    if (env['K_SERVICE'] case final kService? when kService.isNotEmpty) {
+      if (map['cloudRunSearchServicePrefix'] case final String value
+          when value.isNotEmpty) {
+        map['searchServicePrefix'] = value;
+      }
+      if (map['cloudRunFallbackSearchServicePrefix'] case final String value
+          when value.isNotEmpty) {
+        map['fallbackSearchServicePrefix'] = value;
+      }
+      if (map['cloudRunDefaultServiceBaseUrl'] case final String value
+          when value.isNotEmpty) {
+        map['defaultServiceBaseUrl'] = value;
+      }
+    }
+    return Configuration.fromJson(map);
   }
 
   @visibleForTesting
@@ -262,6 +292,9 @@ final class Configuration {
     required this.taskWorkerServiceAccount,
     required this.searchServicePrefix,
     required this.fallbackSearchServicePrefix,
+    this.cloudRunSearchServicePrefix,
+    this.cloudRunFallbackSearchServicePrefix,
+    this.cloudRunDefaultServiceBaseUrl,
     required this.storageBaseUrl,
     required this.pubClientAudience,
     required this.pubServerAudience,

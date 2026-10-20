@@ -6,6 +6,9 @@ projectId: dartlang-pub
 searchServicePrefix: https://{{GAE_VERSION}}-dot-search-dot-dartlang-pub.appspot.com
 fallbackSearchServicePrefix: https://search-dot-dartlang-pub.appspot.com
 defaultServiceBaseUrl: https://{{GAE_VERSION}}-dot-{{GOOGLE_CLOUD_PROJECT}}.appspot.com
+cloudRunSearchServicePrefix: https://v-{{GAE_VERSION}}---search-475963186251.us-central1.run.app
+cloudRunFallbackSearchServicePrefix: https://search-475963186251.us-central1.run.app
+cloudRunDefaultServiceBaseUrl: https://v-{{GAE_VERSION}}---default-475963186251.us-central1.run.app
 searchSnapshotBucketName: dartlang-pub--search-snapshot
 exportedApiBucketName: dartlang-pub-exported-api
 maxTaskInstances: 700
