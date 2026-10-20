@@ -1,8 +1,27 @@
-# AppEngine setup
+# AppEngine and Cloud Run setup
 
-`pub.dev` runs on Google AppEngine, and the current document describes
-the setup  steps required for deploying and running it in a custom project.
+`pub.dev` runs on Google AppEngine and Google Cloud Run, and the current document
+describes the setup steps required for deploying and running it in a custom project.
 (Some sections are incomplete, contributions are welcome!)
+
+## Runtime environment variables (App Engine & Cloud Run)
+
+Configuration is loaded from `app/config/<GOOGLE_CLOUD_PROJECT>.yaml` by
+`Configuration.fromEnv()` (`app/lib/shared/configuration.dart`), with runtime
+environment detection in `envConfig` (`app/lib/shared/env_config.dart`):
+
+* **`GAE_SERVICE` / `K_SERVICE`**: Identifies the active service (`default`,
+  `search`, or `analyzer`). App Engine sets `GAE_SERVICE` automatically; Cloud
+  Run sets `K_SERVICE` automatically. When `K_SERVICE` is set,
+  `Configuration.fromYamlFile` selects `cloudRunSearchServicePrefix`,
+  `cloudRunFallbackSearchServicePrefix`, and `cloudRunDefaultServiceBaseUrl` in
+  place of the App Engine `.appspot.com` URLs.
+* **`GAE_VERSION` / `K_REVISION`**: Identifies the deployed version/revision.
+  Because `{{GAE_VERSION}}` is interpolated into `app/config/<project>.yaml` to
+  construct cross-service revision-tag URLs (`v-{{GAE_VERSION}}---<service>-...`)
+  and `taskWorkerImage`, Cloud Run deployments must pass `GAE_VERSION`
+  explicitly (matching the deployed `$APP_VERSION`) alongside
+  `GOOGLE_CLOUD_PROJECT`.
 
 ## Access and IAM
 
