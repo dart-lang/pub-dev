@@ -196,6 +196,11 @@ abstract final class ReservedPackageRow extends Row {
   JsonValue get emailsJson;
 }
 
+extension ReservedPackageRowExt on ReservedPackageRow {
+  /// The list of email addresses allowed to claim this package name.
+  List<String> get emails => (emailsJson.value as List).cast<String>();
+}
+
 /// The per-package rolling download counts (`CountData`).
 @PrimaryKey(['package'])
 abstract final class DownloadCount extends Row {
