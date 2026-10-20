@@ -46,13 +46,14 @@ Future<void> main(List<String> args) async {
     ], throwOnError: true);
     await Future<void>.delayed(Duration(seconds: 3));
 
+    // Note: search_path=public removes the "public". schema prefixes.
     await tempConfig.writeAsString('''
 env "local" {
   migration {
     dir = "file://migrations"
   }
   src = "file://schema.sql"
-  dev = "postgres://postgres:pass@localhost:5432/postgres?sslmode=disable"
+  dev = "postgres://postgres:pass@localhost:5432/postgres?sslmode=disable&search_path=public"
 }
 ''');
 
@@ -168,11 +169,9 @@ env "local" {
 
       await latestFile.rename(newFile.path);
 
-      // remove "public". schema prefix, make the statements re-runnable
-      final rawContent = await newFile.readAsString();
-      await newFile.writeAsString(
-        addIfExistsClauses(rawContent.replaceAll('"public".', '')),
-      );
+      // make the statements re-runnable
+      final original = await newFile.readAsString();
+      await newFile.writeAsString(addIfExistsClauses(original));
 
       // format sql file
       await runConstrained([
