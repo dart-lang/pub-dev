@@ -261,12 +261,19 @@ Future<Message> processReportPageHandler(
     isAppeal ? '[content-moderation-appeal]' : '[content-moderation-request]',
   ].join('\n\n');
 
+  // Only thread appeals onto the original report ticket when the appellant is
+  // the original reporter. Third-party content-owner appeals open a separate
+  // Moderation ticket so Buganizer Expanded Access never exposes the original
+  // reporter's identity or report to the reported content owner.
+  final isReporterAppeal =
+      mc != null && mc.reporterEmail.toLowerCase() == userEmail!.toLowerCase();
   await emailSender.sendMessage(
     createReportPageAdminEmail(
       caseId: caseId,
       kindLabel: kindLabel,
       userEmail: userEmail!,
       bodyText: bodyText,
+      inReplyToLocalMessageId: isReporterAppeal ? mc.caseId : null,
     ),
   );
 
