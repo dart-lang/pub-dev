@@ -64,7 +64,7 @@ class ConsentBackend {
     InvalidInputException.checkUlid(consentId, 'consentId');
     final c = await _lookupAndCheck(consentId, user);
     final action = _actions[c.kind]!;
-    final fromAgent = c.fromAgent!;
+    final fromAgent = c.fromAgent;
     final String invitingUserEmail;
     if (looksLikeUserId(fromAgent)) {
       invitingUserEmail = (await accountBackend.getEmailOfUserId(fromAgent))!;
@@ -72,10 +72,10 @@ class ConsentBackend {
       invitingUserEmail = fromAgent;
     }
     return api.Consent(
-      titleText: action.renderInviteTitleText(invitingUserEmail, c.args!),
+      titleText: action.renderInviteTitleText(invitingUserEmail, c.args),
       descriptionHtml: action.renderInviteHtml(
         invitingUserEmail: invitingUserEmail,
-        args: c.args!,
+        args: c.args,
         currentUserEmail: user.email!,
       ),
     );
@@ -125,28 +125,27 @@ class ConsentBackend {
         kind: kind,
         args: args,
       );
-      Consent? existing;
+      ConsentRow? existing;
 
       final dedupCacheEntry = cache.consentDedupLookup(dedupId);
       final cachedConsentId = await dedupCacheEntry.get();
       if (cachedConsentId != null) {
-        final key = _db.emptyKey.append(Consent, id: cachedConsentId);
-        existing = await _db.lookupOrNull<Consent>(key);
+        existing = await _lookup(cachedConsentId);
       }
-      if (existing == null) {
-        final query = _db.query<Consent>()
-          ..filter('dedupId =', dedupId)
-          ..limit(1);
-        final list = await query.run().toList();
-        existing = list.singleOrNull;
-      }
+      existing ??= await _lookupByDedupId(dedupId);
       if (existing != null) {
         if (existing.isExpired()) {
           // expired entries should be deleted
           await _delete(existing, (a) => a.onExpire(existing!));
         } else if (existing.shouldNotify()) {
           // non-expired entries just re-send the notification
-          return await _sendNotification(activeAgent.displayId, existing);
+          return await _sendNotification(
+            activeAgent.displayId,
+            existing.id,
+            existing.kind,
+            existing.email,
+            existing.args,
+          );
         } else {
           return api.InviteStatus(
             emailSent: false,
@@ -168,7 +167,13 @@ class ConsentBackend {
       await auditBackend.migrateToSql(auditLogRecord);
       await mirrorToSql(consent);
       await dedupCacheEntry.set(consent.consentId);
-      return await _sendNotification(activeAgent.displayId, consent);
+      return await _sendNotification(
+        activeAgent.displayId,
+        consent.consentId,
+        consent.kind!,
+        consent.email!,
+        consent.args!,
+      );
     });
   }
 
@@ -232,21 +237,24 @@ class ConsentBackend {
 
   Future<api.InviteStatus> _sendNotification(
     String activeUserEmail,
-    Consent consent,
+    String consentId,
+    String kind,
+    String invitedEmail,
+    List<String> args,
   ) async {
-    final invitedEmail = consent.email!;
-    final action = _actions[consent.kind]!;
+    final action = _actions[kind]!;
     final email = emailBackend.prepareEntity(
       createInviteEmail(
         invitedEmail: invitedEmail,
-        subject: action.renderEmailSubject(consent.args!),
-        inviteText: action.renderInviteText(activeUserEmail, consent.args!),
-        consentUrl: consentUrl(consent.consentId),
+        subject: action.renderEmailSubject(args),
+        inviteText: action.renderInviteText(activeUserEmail, args),
+        consentUrl: consentUrl(consentId),
       ),
     );
     Consent? updated;
+    final key = _db.emptyKey.append(Consent, id: consentId);
     final status = await withRetryTransaction(_db, (tx) async {
-      final c = await tx.lookupValue<Consent>(consent.key);
+      final c = await tx.lookupValue<Consent>(key);
       c.notificationCount++;
       c.lastNotified = clock.now().toUtc();
       tx.insert(c);
@@ -263,42 +271,40 @@ class ConsentBackend {
     return status;
   }
 
-  /// Removes obsolete/expired [Consent] entries from Datastore.
+  /// Removes obsolete/expired [Consent] entries.
   Future<void> deleteObsoleteConsents() async {
+    // Mirror the expired Datastore entities first, to make sure SQL has them.
     final query = _db.query<Consent>()
       ..filter('expires <', clock.now().toUtc());
-    await for (final entry in query.run()) {
-      try {
-        await _delete(entry, (a) => a.onExpire(entry));
-      } catch (e) {
-        _logger.shout(
-          'Delete failed: ${entry.consentId} ${entry.kind} ${entry.args}',
-          e,
-        );
-      }
+    await for (final consent in query.run()) {
+      await mirrorToSql(consent);
     }
-
-    await primaryDatabase.withRetry(
+    final rows = await primaryDatabase.withRetry(
       (db) => db.consents
           .where((c) => c.expiresAt.isBeforeValue(clock.now().toUtc()))
-          .delete()
-          .execute(),
+          .fetch(),
     );
+    for (final row in rows) {
+      try {
+        await _delete(row, (a) => a.onExpire(row));
+      } catch (e) {
+        _logger.shout('Delete failed: ${row.id} ${row.kind} ${row.args}', e);
+      }
+    }
   }
 
   /// Returns the [Consent] for [consentId] and checks if it is for [user].
-  Future<Consent> _lookupAndCheck(String consentId, User user) async {
-    final key = _db.emptyKey.append(Consent, id: consentId);
-    final c = await _db.lookupOrNull<Consent>(key);
+  Future<ConsentRow> _lookupAndCheck(String consentId, User user) async {
+    final c = await _lookup(consentId);
     if (c == null) {
       throw NotFoundException.resource('consent: $consentId');
     }
     final action = _actions[c.kind]!;
-    if (!action.permitConfirmationWithOtherEmail && c.email != null) {
+    if (!action.permitConfirmationWithOtherEmail) {
       // NOTE: the message must not reveal the invited email address, as it
       //       may be shown to a user that is not the intended recipient.
       InvalidInputException.check(
-        c.email?.toLowerCase() == user.email?.toLowerCase(),
+        c.email.toLowerCase() == user.email?.toLowerCase(),
         'This invitation is not for the user account currently logged in '
         '(`${user.email}`).\n'
         'Invitations must be sent to the primary email address of a Google '
@@ -310,19 +316,60 @@ class ConsentBackend {
     return c;
   }
 
+  /// Returns the [ConsentRow] with [consentId], reading it from SQL.
+  ///
+  /// The Datastore entity is mirrored into SQL right before the read, to
+  /// minimize the inconsistency window (or the SQL row is removed if the
+  /// entity is missing).
+  Future<ConsentRow?> _lookup(String consentId) async {
+    final key = _db.emptyKey.append(Consent, id: consentId);
+    final consent = await _db.lookupOrNull<Consent>(key);
+    if (consent != null) {
+      await mirrorToSql(consent);
+    } else {
+      await primaryDatabase.withRetry(
+        (db) => db.consents.byKey(consentId).delete().execute(),
+      );
+    }
+    return await primaryDatabase.withRetry(
+      (db) => db.consents.byKey(consentId).fetch(),
+    );
+  }
+
+  /// Returns the [ConsentRow] with [dedupId], reading it from SQL.
+  ///
+  /// The matching Datastore entities are mirrored into SQL right before the
+  /// read.
+  Future<ConsentRow?> _lookupByDedupId(String dedupId) async {
+    final query = _db.query<Consent>()
+      ..filter('dedupId =', dedupId)
+      ..limit(1);
+    await for (final consent in query.run()) {
+      await mirrorToSql(consent);
+    }
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.consents
+          .where((c) => c.dedupId.equalsValue(dedupId))
+          .limit(1)
+          .fetch(),
+    );
+    return rows.firstOrNull;
+  }
+
   Future<void> _delete(
-    Consent consent,
+    ConsentRow consent,
     Future Function(ConsentAction action) fn,
   ) async {
     final action = _actions[consent.kind];
     await retry(() async {
       if (action != null) await fn(action);
+      final key = _db.emptyKey.append(Consent, id: consent.id);
       await withRetryTransaction(_db, (tx) async {
-        final c = await tx.lookupOrNull<Consent>(consent.key);
+        final c = await tx.lookupOrNull<Consent>(key);
         if (c != null) tx.delete(c.key);
       });
       await primaryDatabase.withRetry(
-        (db) => db.consents.byKey(consent.consentId).delete().execute(),
+        (db) => db.consents.byKey(consent.id).delete().execute(),
       );
     }, maxAttempts: 3);
   }
@@ -359,16 +406,31 @@ class ConsentBackend {
   }
 }
 
+extension on ConsentRow {
+  List<String> get args => (argsJson.value as List).cast<String>();
+
+  bool isExpired() => clock.now().toUtc().isAfter(expiresAt);
+
+  /// The timestamp when the next notification could be sent out.
+  DateTime get nextNotification => (lastNotifiedAt ?? createdAt).add(
+    Duration(minutes: 1 << notificationCount),
+  );
+
+  /// Whether a new notification should be sent.
+  bool shouldNotify() =>
+      notificationCount == 0 || clock.now().toUtc().isAfter(nextNotification);
+}
+
 /// Callback that will be called on consent actions.
 abstract class ConsentAction {
   /// Callback on accepting the consent.
-  Future<void> onAccept(Consent consent);
+  Future<void> onAccept(ConsentRow consent);
 
   /// Callback on rejecting the consent.
-  Future<void> onReject(Consent consent, User? user);
+  Future<void> onReject(ConsentRow consent, User? user);
 
   /// Callback on timeout of the consent.
-  Future<void> onExpire(Consent consent);
+  Future<void> onExpire(ConsentRow consent);
 
   /// Whether the user accepting the consent can have a different e-mail than
   /// the one the consent request was sent to.
@@ -405,10 +467,10 @@ class _PackageUploaderAction extends ConsentAction {
   _PackageUploaderAction(this._db);
 
   @override
-  Future<void> onAccept(Consent consent) async {
-    final packageName = consent.args![0];
+  Future<void> onAccept(ConsentRow consent) async {
+    final packageName = consent.args[0];
     final currentUser = await requireAuthenticatedWebUser();
-    if (currentUser.email?.toLowerCase() != consent.email?.toLowerCase()) {
+    if (currentUser.email?.toLowerCase() != consent.email.toLowerCase()) {
       throw NotAcceptableException(
         'Current user and consent user does not match.',
       );
@@ -417,17 +479,17 @@ class _PackageUploaderAction extends ConsentAction {
     await packageBackend.confirmUploader(
       packageName,
       currentUser.user,
-      consentRequestFromAgent: consent.fromAgent!,
+      consentRequestFromAgent: consent.fromAgent,
     );
   }
 
   @override
-  Future<void> onReject(Consent consent, User? user) async {
-    final packageName = consent.args![0];
+  Future<void> onReject(ConsentRow consent, User? user) async {
+    final packageName = consent.args[0];
     final record = await AuditLogRecord.uploaderInviteRejected(
       fromAgent: consent.fromAgent,
       package: packageName,
-      uploaderEmail: user?.email ?? consent.email!,
+      uploaderEmail: user?.email ?? consent.email,
       userId: user?.userId,
     );
     await withRetryTransaction(_db, (tx) async {
@@ -437,12 +499,12 @@ class _PackageUploaderAction extends ConsentAction {
   }
 
   @override
-  Future<void> onExpire(Consent consent) async {
-    final packageName = consent.args![0];
+  Future<void> onExpire(ConsentRow consent) async {
+    final packageName = consent.args[0];
     final record = await AuditLogRecord.uploaderInviteExpired(
       fromAgent: consent.fromAgent,
       package: packageName,
-      uploaderEmail: consent.email!,
+      uploaderEmail: consent.email,
     );
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);
@@ -483,23 +545,23 @@ class _PublisherContactAction extends ConsentAction {
   _PublisherContactAction(this._db);
 
   @override
-  Future<void> onAccept(Consent consent) async {
-    final publisherId = consent.args![0];
-    final contactEmail = consent.args![1];
+  Future<void> onAccept(ConsentRow consent) async {
+    final publisherId = consent.args[0];
+    final contactEmail = consent.args[1];
     await publisherBackend.updateContactWithVerifiedEmail(
       publisherId,
       contactEmail,
-      consentRequestFromAgent: consent.fromAgent!,
+      consentRequestFromAgent: consent.fromAgent,
     );
   }
 
   @override
-  Future<void> onReject(Consent consent, User? user) async {
-    final publisherId = consent.args![0];
+  Future<void> onReject(ConsentRow consent, User? user) async {
+    final publisherId = consent.args[0];
     final record = await AuditLogRecord.publisherContactInviteRejected(
       fromAgent: consent.fromAgent,
       publisherId: publisherId,
-      contactEmail: consent.email!,
+      contactEmail: consent.email,
       userEmail: user?.email,
       userId: user?.userId,
     );
@@ -510,12 +572,12 @@ class _PublisherContactAction extends ConsentAction {
   }
 
   @override
-  Future<void> onExpire(Consent consent) async {
-    final publisherId = consent.args![0];
+  Future<void> onExpire(ConsentRow consent) async {
+    final publisherId = consent.args[0];
     final record = await AuditLogRecord.publisherContactInviteExpired(
       fromAgent: consent.fromAgent,
       publisherId: publisherId,
-      contactEmail: consent.email!,
+      contactEmail: consent.email,
     );
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);
@@ -566,26 +628,26 @@ class _PublisherMemberAction extends ConsentAction {
   _PublisherMemberAction(this._db);
 
   @override
-  Future<void> onAccept(Consent consent) async {
-    final publisherId = consent.args![0];
+  Future<void> onAccept(ConsentRow consent) async {
+    final publisherId = consent.args[0];
     final currentUser = await requireAuthenticatedWebUser();
-    if (consent.email?.toLowerCase() != currentUser.email?.toLowerCase()) {
+    if (consent.email.toLowerCase() != currentUser.email?.toLowerCase()) {
       throw NotAcceptableException('Consent is not for the current user.');
     }
     await publisherBackend.inviteConsentGranted(
       publisherId,
       currentUser.userId,
-      consentRequestFromAgent: consent.fromAgent!,
+      consentRequestFromAgent: consent.fromAgent,
     );
   }
 
   @override
-  Future<void> onReject(Consent consent, User? user) async {
-    final publisherId = consent.args![0];
+  Future<void> onReject(ConsentRow consent, User? user) async {
+    final publisherId = consent.args[0];
     final record = await AuditLogRecord.publisherMemberInviteRejected(
       fromAgent: consent.fromAgent,
       publisherId: publisherId,
-      memberEmail: user?.email ?? consent.email!,
+      memberEmail: user?.email ?? consent.email,
       userId: user?.userId,
     );
     await withRetryTransaction(_db, (tx) async {
@@ -595,12 +657,12 @@ class _PublisherMemberAction extends ConsentAction {
   }
 
   @override
-  Future<void> onExpire(Consent consent) async {
-    final publisherId = consent.args![0];
+  Future<void> onExpire(ConsentRow consent) async {
+    final publisherId = consent.args[0];
     final record = await AuditLogRecord.publisherMemberInviteExpired(
       fromAgent: consent.fromAgent,
       publisherId: publisherId,
-      memberEmail: consent.email!,
+      memberEmail: consent.email,
     );
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);
