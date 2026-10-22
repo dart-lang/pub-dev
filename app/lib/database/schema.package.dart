@@ -220,3 +220,9 @@ abstract final class DownloadCount extends Row {
   /// JSON-encoded `CountData` (total + major/minor/patch range counts).
   JsonValue get countDataJson;
 }
+
+extension DownloadCountExt on DownloadCount {
+  /// The decoded rolling download counts.
+  CountData get countData =>
+      CountData.fromJson((countDataJson.value as Map).cast<String, dynamic>());
+}

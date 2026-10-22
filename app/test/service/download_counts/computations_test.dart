@@ -46,7 +46,7 @@ void main() {
           );
         }
 
-        expect(compute30DayTotal(downloadCounts1), 70);
+        expect(compute30DayTotal(downloadCounts1.countData), 70);
 
         final pkg2 = 'bar';
         final versionsCounts2 = {
@@ -71,7 +71,7 @@ void main() {
           );
         }
 
-        expect(compute30DayTotal(downloadCounts2), 105);
+        expect(compute30DayTotal(downloadCounts2.countData), 105);
 
         final pkg3 = 'baz';
         final versionsCounts3 = {
@@ -95,16 +95,14 @@ void main() {
             date.addCalendarDays(i),
           );
         }
-        expect(compute30DayTotal(downloadCounts3), 140);
-
-        final downloadCounts = [
-          downloadCounts1,
-          downloadCounts2,
-          downloadCounts3,
-        ];
+        expect(compute30DayTotal(downloadCounts3.countData), 140);
 
         final res = await compute30DayTotals(
-          Stream.fromIterable(downloadCounts),
+          Stream.fromIterable([
+            (package: pkg, countData: downloadCounts1.countData),
+            (package: pkg2, countData: downloadCounts2.countData),
+            (package: pkg3, countData: downloadCounts3.countData),
+          ]),
         );
 
         expect(res, {'foo': 70, 'bar': 105, 'baz': 140});

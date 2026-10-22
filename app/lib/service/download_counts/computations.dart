@@ -9,7 +9,6 @@ import 'package:gcloud/storage.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/download_counts/backend.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
-import 'package:pub_dev/service/download_counts/models.dart';
 import 'package:pub_dev/service/download_counts/package_trends.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
@@ -52,24 +51,24 @@ Future<void> uploadTrendScores(Map<String, double> trends) async {
 }
 
 Future<void> compute30DaysTotalTask() async {
-  final allDownloadCounts = await downloadCountsBackend.listAllDownloadCounts();
+  final allDownloadCounts = downloadCountsBackend.listAllDownloadCounts();
   final totals = await compute30DayTotals(allDownloadCounts);
   await upload30DaysTotal(totals);
 }
 
 Future<Map<String, int>> compute30DayTotals(
-  Stream<DownloadCounts> downloadCounts,
+  Stream<({String package, CountData countData})> downloadCounts,
 ) async {
   final res = <String, int>{};
   await for (final dc in downloadCounts) {
-    res[dc.package] = compute30DayTotal(dc);
+    res[dc.package] = compute30DayTotal(dc.countData);
   }
 
   return res;
 }
 
-int compute30DayTotal(DownloadCounts downloadCounts) {
-  final totals = downloadCounts.countData.totalCounts;
+int compute30DayTotal(CountData countData) {
+  final totals = countData.totalCounts;
   return totals
       .take(30)
       .fold(0, (previousValue, element) => previousValue + max(0, element));

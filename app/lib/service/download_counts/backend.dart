@@ -163,15 +163,25 @@ class DownloadCountsBackend {
 
   Future<CountData?> lookupDownloadCountData(String pkg) async {
     return (await cache.downloadCounts(pkg).get(() async {
-      final key = _db.emptyKey.append(DownloadCounts, id: pkg);
-      final downloadCounts = await _db.lookupOrNull<DownloadCounts>(key);
-      return downloadCounts?.countData;
+      final row = await primaryDatabase.withRetry(
+        (db) => db.downloadCounts.byKey(pkg).fetch(),
+      );
+      return row?.countData;
     }));
   }
 
-  Future<Stream<DownloadCounts>> listAllDownloadCounts() async {
-    final query = _db.query<DownloadCounts>();
-    return query.run();
+  /// Streams the download counts of all packages from SQL.
+  Stream<({String package, CountData countData})> listAllDownloadCounts() {
+    return fetchAllPaginated<DownloadCount, String>(
+      initialCursor: '',
+      batchSize: 1000,
+      fetchPage: (db, after, batchSize) => db.downloadCounts
+          .where((c) => c.package.greaterThanValue(after))
+          .orderBy((c) => [(c.package, Order.ascending)])
+          .limit(batchSize)
+          .fetch(),
+      cursorOf: (row) => row.package,
+    ).map((row) => (package: row.package, countData: row.countData));
   }
 
   Future<DownloadCounts> updateDownloadCounts(
@@ -193,8 +203,8 @@ class DownloadCountsBackend {
       tx.queueMutations(inserts: [newDownloadCounts]);
       return newDownloadCounts;
     });
-    await cache.downloadCounts(pkg).purge();
     await _mirrorToSql(pkg, downloadCounts.countData);
+    await cache.downloadCounts(pkg).purge();
     return downloadCounts;
   }
 
