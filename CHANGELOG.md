@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: `DownloadCount` is now read from SQL.
 
 ## `20261022t090000-all`
  * Note: `ReservedPackage` is now read from SQL.
