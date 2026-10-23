@@ -698,6 +698,10 @@ class PackageVersion extends db.ExpandoModel<String> {
   @db.DateTimeProperty()
   DateTime? retracted;
 
+  /// The SLSA provenance level (e.g. 2) if this version is attested.
+  @db.IntProperty()
+  int? slsaLevel;
+
   /// `true` if package version was moderated (pending moderation or deletion).
   @db.BoolProperty(required: true)
   bool isModerated = false;
@@ -1249,6 +1253,9 @@ class PackagePageData {
   bool get hasExample => assets.contains(AssetKind.example);
   bool get hasLicense => assets.contains(AssetKind.license);
   bool get hasPubspec => assets.contains(AssetKind.pubspec);
+
+  /// Whether the version was published with a (verified) attestation.
+  bool get hasAttestation => version.provenance != null;
 
   bool get isLatestStable => version.version == package.latestVersion;
 
