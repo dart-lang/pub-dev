@@ -5,14 +5,11 @@
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/account/models.dart';
-import 'package:pub_dev/database/database.dart';
-import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
-import 'package:typed_sql/typed_sql.dart';
 
 import '../database/like_sql_utils.dart';
 import '../database/package_sql_utils.dart';
@@ -187,13 +184,16 @@ void main() {
         });
         expect(await likeBackend.backfillSqlFromDatastore(), 1);
         final like = await likeBackend.getPackageLikeStatus(user.userId, pkg1);
-        expect(like!.created, isNotNull);
-        final row = await primaryDatabase.withRetry(
-          (db) => db.packageLikes.byKey(user.userId, pkg1).fetch(),
-        );
+        expect(like, isNotNull);
+        final created = (await dbService.lookupValue<Like>(
+          dbService.emptyKey
+              .append(User, id: user.userId)
+              .append(Like, id: pkg1),
+        )).created;
+        expect(created, isNotNull);
         expect(
-          row!.createdAt.microsecondsSinceEpoch,
-          like.created!.microsecondsSinceEpoch,
+          like!.createdAt.microsecondsSinceEpoch,
+          created!.microsecondsSinceEpoch,
         );
         expect(await likeBackend.backfillSqlFromDatastore(), 0);
       },
