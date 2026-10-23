@@ -253,7 +253,7 @@ Future<PackageLikeResponse> getLikePackageHandler(
   return PackageLikeResponse(
     liked: like != null,
     package: package,
-    created: like?.created,
+    created: like?.createdAt,
   );
 }
 

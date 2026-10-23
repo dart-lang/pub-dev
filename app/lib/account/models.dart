@@ -147,14 +147,6 @@ class LikeData {
       _$LikeDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$LikeDataToJson(this);
-
-  factory LikeData.fromModel(Like like) {
-    return LikeData(
-      userId: like.userId,
-      package: like.package,
-      created: like.created,
-    );
-  }
 }
 
 /// Convenience helpers for the SQL-backed session row.

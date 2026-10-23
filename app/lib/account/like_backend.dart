@@ -34,10 +34,15 @@ class LikeBackend {
   final DatastoreDB _db;
   LikeBackend(this._db);
 
-  /// Returns [Like] if [userId] likes [package], otherwise returns `null`.
-  Future<Like?> getPackageLikeStatus(String userId, String package) async {
-    final key = _db.emptyKey.append(User, id: userId).append(Like, id: package);
-    return await _db.lookupOrNull<Like>(key);
+  /// Returns the [PackageLike] if [userId] likes [package], otherwise returns
+  /// `null`.
+  Future<PackageLike?> getPackageLikeStatus(
+    String userId,
+    String package,
+  ) async {
+    return await primaryDatabase.withRetry(
+      (db) => db.packageLikes.byKey(userId, package).fetch(),
+    );
   }
 
   /// Returns a list with [LikeData] of all the packages that the given
@@ -45,12 +50,22 @@ class LikeBackend {
   Future<List<LikeData>> listPackageLikes(String userId) async {
     return (await cache.userPackageLikes(userId).get(() async {
       // TODO(zarah): Introduce pagination and/or migrate this to search.
-      final query =
-          _db.query<Like>(ancestorKey: _db.emptyKey.append(User, id: userId))
-            ..order('-created')
-            ..limit(1000);
-      final likes = await query.run().toList();
-      return likes.map((Like l) => LikeData.fromModel(l)).toList();
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.packageLikes
+            .where((l) => l.userId.equalsValue(userId))
+            .orderBy((l) => [(l.createdAt, Order.descending)])
+            .limit(1000)
+            .fetch(),
+      );
+      return rows
+          .map(
+            (r) => LikeData(
+              userId: r.userId,
+              package: r.package,
+              created: r.createdAt,
+            ),
+          )
+          .toList();
     }))!;
   }
 
