@@ -133,6 +133,19 @@ Future<void> _executeScript(
 ) async {
   await target.transact((tx) async {
     // Concurrent migrators block here until the lock holder commits or rolls back.
+    //
+    // `EXCLUSIVE` mode conflicts with every lock mode except `ACCESS SHARE`, and
+    // it only covers the `schema_migrations` table (not the tables altered by
+    // the script). Plain reads, like the sanity checks in `migrateScripts`, are
+    // not blocked: they run unlocked and see the last committed state, which is
+    // either before or after the script, as it is applied atomically with its
+    // log row. Only writers (other migrators) wait on this lock, and they
+    // re-check the history below after acquiring it.
+    //
+    // NOTE: this must stay the first statement of the transaction. Under
+    // `REPEATABLE READ` / `SERIALIZABLE` the snapshot is taken at the first
+    // `SELECT` or data modification (not at `LOCK`), so the re-check below sees
+    // the rows committed by the previous lock holder at any isolation level.
     await tx.execute('LOCK TABLE "schema_migrations" IN EXCLUSIVE MODE', []);
 
     // Verify in-transaction that no unexpected script exists.
