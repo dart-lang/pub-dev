@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2026.10.23`.
+ * Upgraded runtime Dart SDK to `3.13.7`
  * Note: `DownloadCount` is now read from SQL.
 
 ## `20261022t090000-all`
