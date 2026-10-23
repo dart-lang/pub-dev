@@ -14,6 +14,7 @@ import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
+import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
@@ -181,15 +182,15 @@ void main() {
       final all = await securityAdvisoryBackend.listAdvisories();
       expect(all, isNotNull);
       expect(all.length, 2);
-      expect(all.first.id, id);
-      expect(all.last.id, id2);
+      expect(all.first.advisoryId, id);
+      expect(all.last.advisoryId, id2);
 
-      await securityAdvisoryBackend.deleteAdvisory(adv!, syncTime);
+      await securityAdvisoryBackend.deleteAdvisory(adv!.id!, syncTime);
 
       final reduced = await securityAdvisoryBackend.listAdvisories();
       expect(reduced, isNotNull);
       expect(reduced.length, 1);
-      expect(reduced.first.id, id2);
+      expect(reduced.first.advisoryId, id2);
 
       final advisory = await securityAdvisoryBackend.lookupById(id);
       expect(advisory, isNull);
@@ -236,14 +237,14 @@ void main() {
 
       final advisory = await securityAdvisoryBackend.lookupById(id);
       expect(advisory, isNotNull);
-      final syncTime = advisory!.syncTime!;
-      expect(advisory.id, id);
+      final syncTime = advisory!.syncedAt;
+      expect(advisory.advisoryId, id);
       expect(advisory.aliases, [id]);
-      expect(advisory.affectedPackages!.length, 2);
-      expect(advisory.affectedPackages!.first, affectedA.package.name);
-      expect(advisory.affectedPackages!.last, affectedB.package.name);
-      expect(advisory.syncTime!, ingestTime);
-      expect(advisory.syncTime!.isBefore(afterIngestTime), isTrue);
+      expect(advisory.affectedPackages.length, 2);
+      expect(advisory.affectedPackages.first, affectedA.package.name);
+      expect(advisory.affectedPackages.last, affectedB.package.name);
+      expect(advisory.syncedAt, ingestTime.toUtc());
+      expect(advisory.syncedAt.isBefore(afterIngestTime), isTrue);
 
       final list = await securityAdvisoryBackend.lookupSecurityAdvisories(
         'a',
@@ -269,15 +270,15 @@ void main() {
       );
 
       final updatedAdvisory = await securityAdvisoryBackend.lookupById(id);
-      final updatedSyncTime = updatedAdvisory!.syncTime!;
+      final updatedSyncTime = updatedAdvisory!.syncedAt;
 
       expect(updatedAdvisory, isNotNull);
-      expect(updatedAdvisory.id, id);
+      expect(updatedAdvisory.advisoryId, id);
       expect(updatedSyncTime.isAfter(syncTime), isTrue);
       expect(updatedAdvisory.aliases, [id]);
-      expect(updatedAdvisory.affectedPackages!.length, 2);
-      expect(updatedAdvisory.affectedPackages!.first, affectedA.package.name);
-      expect(updatedAdvisory.affectedPackages!.last, affectedC.package.name);
+      expect(updatedAdvisory.affectedPackages.length, 2);
+      expect(updatedAdvisory.affectedPackages.first, affectedA.package.name);
+      expect(updatedAdvisory.affectedPackages.last, affectedC.package.name);
 
       final list2 = await securityAdvisoryBackend.lookupSecurityAdvisories(
         'b',
@@ -325,9 +326,9 @@ void main() {
 
       final advisory = await securityAdvisoryBackend.lookupById(id);
       expect(advisory, isNotNull);
-      expect(advisory!.id, id);
-      expect(advisory.affectedPackages!.length, 1);
-      expect(advisory.affectedPackages!.first, affectedA.package.name);
+      expect(advisory!.advisoryId, id);
+      expect(advisory.affectedPackages.length, 1);
+      expect(advisory.affectedPackages.first, affectedA.package.name);
 
       final list = await securityAdvisoryBackend.lookupSecurityAdvisories(
         'a',
@@ -610,40 +611,18 @@ void main() {
       await securityAdvisoryBackend.ingestSecurityAdvisory(osv4, syncTime);
 
       final all = await securityAdvisoryBackend.listAdvisories();
-      expect(all, isNotNull);
-      expect(all.length, 5);
-      expect(all[0].id, ghsaId);
-      expect(all[1].id, cveId);
-      expect(all[2].id, id);
-      expect(all[3].id, id1);
-      expect(all[4].id, id2);
-      expect(all[0].aliases, contains(ghsaId));
-      expect(all[1].aliases, contains(cveId));
+      expect(all.map((a) => a.advisoryId), [id, id1, id2, cveId, ghsaId]);
+      final byId = {for (final a in all) a.advisoryId: a};
+      expect(byId[ghsaId]!.aliases, contains(ghsaId));
+      expect(byId[cveId]!.aliases, contains(cveId));
 
-      expect(
-        all[0].osv!.databaseSpecific!['pub_display_url'],
-        'https://github.com/advisories/$ghsaId',
-      );
-
-      expect(
-        all[1].osv!.databaseSpecific!['pub_display_url'],
-        'https://osv.dev/vulnerability/$cveId',
-      );
-
-      expect(
-        all[2].osv!.databaseSpecific!['pub_display_url'],
-        'https://osv.dev/vulnerability/$id',
-      );
-
-      expect(
-        all[3].osv!.databaseSpecific!['pub_display_url'],
-        'https://github.com/advisories/$ghsaId',
-      );
-
-      expect(
-        all[4].osv!.databaseSpecific!['pub_display_url'],
-        'https://osv.dev/vulnerability/$cveId',
-      );
+      String? displayUrl(String id) =>
+          byId[id]!.osv.databaseSpecific!['pub_display_url'] as String?;
+      expect(displayUrl(ghsaId), 'https://github.com/advisories/$ghsaId');
+      expect(displayUrl(cveId), 'https://osv.dev/vulnerability/$cveId');
+      expect(displayUrl(id), 'https://osv.dev/vulnerability/$id');
+      expect(displayUrl(id1), 'https://github.com/advisories/$ghsaId');
+      expect(displayUrl(id2), 'https://osv.dev/vulnerability/$cveId');
     },
   );
 
@@ -762,7 +741,10 @@ void main() {
           clock.now(),
         );
         final advisory = await securityAdvisoryBackend.lookupById('123');
-        await securityAdvisoryBackend.deleteAdvisory(advisory!, clock.now());
+        await securityAdvisoryBackend.deleteAdvisory(
+          advisory!.advisoryId,
+          clock.now(),
+        );
         await expectPackageInSqlMatchesDatastore('oxygen');
 
         final row = await primaryDatabase.withRetry(

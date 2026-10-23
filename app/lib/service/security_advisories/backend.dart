@@ -37,9 +37,13 @@ class SecurityAdvisoryBackend {
 
   SecurityAdvisoryBackend(this._db);
 
-  Future<List<SecurityAdvisory>> listAdvisories() async {
-    final query = _db.query<SecurityAdvisory>();
-    return query.run().toList();
+  /// Lists all the advisories, ordered by their id.
+  Future<List<SecurityAdvisoryRow>> listAdvisories() async {
+    return await primaryDatabase.withRetry(
+      (db) => db.securityAdvisories
+          .orderBy((a) => [(a.advisoryId, Order.ascending)])
+          .fetch(),
+    );
   }
 
   Future<List<SecurityAdvisoryData>> lookupSecurityAdvisories(
@@ -47,12 +51,16 @@ class SecurityAdvisoryBackend {
     bool skipCache = false,
   }) async {
     final loadAdvisories = () async {
-      final query = _db.query<SecurityAdvisory>()
-        ..filter('affectedPackages =', package);
-      return query
-          .run()
-          .map((SecurityAdvisory adv) => SecurityAdvisoryData.fromModel(adv))
-          .toList();
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.securityAdvisoryPackages
+            .where((p) => p.package.equalsValue(package))
+            .join(db.securityAdvisories)
+            .usingAdvisory()
+            .select((p, a) => (a,))
+            .fetch(),
+      );
+      return rows.map(SecurityAdvisoryData.fromRow).toList()
+        ..sort((a, b) => a.advisory.id.compareTo(b.advisory.id));
     };
     if (skipCache) {
       return await loadAdvisories();
@@ -85,7 +93,15 @@ class SecurityAdvisoryBackend {
     );
   }
 
-  Future<SecurityAdvisory?> lookupById(String id) async {
+  /// Looks up the advisory with [id].
+  Future<SecurityAdvisoryRow?> lookupById(String id) async {
+    return await primaryDatabase.withRetry(
+      (db) => db.securityAdvisories.byKey(id).fetch(),
+    );
+  }
+
+  /// Looks up the advisory entity with [id] for the write path.
+  Future<SecurityAdvisory?> _lookupEntityById(String id) async {
     final key = _db.emptyKey.append(SecurityAdvisory, id: id);
     return _db.lookupOrNull<SecurityAdvisory>(key);
   }
@@ -119,7 +135,7 @@ class SecurityAdvisoryBackend {
         return null;
       }
 
-      final oldAdvisory = await lookupById(osv.id);
+      final oldAdvisory = await _lookupEntityById(osv.id);
 
       if (oldAdvisory != null && oldAdvisory.modified!.isAtOrAfter(modified)) {
         return oldAdvisory;
@@ -140,10 +156,7 @@ class SecurityAdvisoryBackend {
         ..parentKey = _db.emptyKey
         ..osv = osv
         ..aliases = idAndAliases
-        ..affectedPackages = (osv.affected ?? [])
-            .where((a) => a.package.ecosystem.toLowerCase() == 'pub')
-            .map((a) => a.package.name)
-            .toList()
+        ..affectedPackages = osv.affectedPubPackages
         ..published = osv.published != null
             ? DateTime.parse(osv.published!)
             : modified
@@ -289,10 +302,13 @@ class SecurityAdvisoryBackend {
     return 'https://osv.dev/vulnerability/${idAndAliases.first}';
   }
 
-  Future<void> deleteAdvisory(
-    SecurityAdvisory advisory,
-    DateTime syncTime,
-  ) async {
+  /// Deletes the advisory with [id].
+  Future<void> deleteAdvisory(String id, DateTime syncTime) async {
+    final advisory = await _lookupEntityById(id);
+    if (advisory == null) {
+      await _deleteFromSql(id);
+      return;
+    }
     final updatedPackages = <String, Package>{};
     final result = await withRetryTransaction(_db, (tx) async {
       final key = _db.emptyKey.append(SecurityAdvisory, id: advisory.id);

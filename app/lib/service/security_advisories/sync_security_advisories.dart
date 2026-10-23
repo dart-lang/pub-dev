@@ -43,8 +43,11 @@ Future<void> updateAdvisories(Map<String, OSV> osvs) async {
   final oldAdvisories = await securityAdvisoryBackend.listAdvisories();
 
   for (final advisory in oldAdvisories) {
-    if (!osvs.containsKey(advisory.id)) {
-      await securityAdvisoryBackend.deleteAdvisory(advisory, syncTime);
+    if (!osvs.containsKey(advisory.advisoryId)) {
+      await securityAdvisoryBackend.deleteAdvisory(
+        advisory.advisoryId,
+        syncTime,
+      );
     }
   }
 
