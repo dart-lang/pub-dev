@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Note: `DownloadCount` is now read from SQL.
  * Note: `Like` is now read from SQL.
+ * Note: `SecurityAdvisory` is now read from SQL.
 
 ## `20261022t090000-all`
  * Note: `ReservedPackage` is now read from SQL.
