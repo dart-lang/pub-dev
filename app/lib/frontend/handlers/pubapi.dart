@@ -15,6 +15,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 import '../../account/consent_backend.dart';
+import '../../admin/actions/migrate_dry_run.dart';
 import '../../admin/backend.dart';
 import '../../package/backend.dart' hide InviteStatus;
 import '../../publisher/backend.dart';
@@ -468,11 +469,15 @@ class PubApi {
   Future<Response> search(Request request) => apiSearchHandler(request);
 
   @EndPoint.get('/debug')
-  Future<Response> debug(Request request) async => debugResponse({
-    'package': packageDebugStats(),
-    'search': searchDebugStats(),
-    'database': await primaryDatabase.debug(),
-  });
+  Future<Response> debug(Request request) async {
+    final dryRun = request.requestedUri.queryParameters['dry-run'] == '1';
+    return debugResponse({
+      'package': packageDebugStats(),
+      'search': searchDebugStats(),
+      'database': await primaryDatabase.debug(),
+      if (dryRun) 'migrateDryRun': await migrateDryRun.invoke({'script': '*'}),
+    });
+  }
 
   @EndPoint.get('/packages.json')
   Future<Response> packages(Request request) => packagesHandler(request);
