@@ -169,10 +169,6 @@ env "local" {
 
       await latestFile.rename(newFile.path);
 
-      // make the statements re-runnable
-      final original = await newFile.readAsString();
-      await newFile.writeAsString(addIfExistsClauses(original));
-
       // format sql file
       await runConstrained([
         'docker',
