@@ -427,11 +427,25 @@ class PackageBackend {
   /// Upserts the [package] and the touched [versions] into SQL.
   ///
   /// The [deletedVersions] are removed in the same transaction.
+  ///
+  /// If the [package] is not yet present in SQL, all of its versions are
+  /// loaded from Datastore and upserted, otherwise the package row would be
+  /// created without its versions (and the backfill would skip it).
   Future<void> mirrorPackageToSql(
     Package package, {
     Iterable<PackageVersion> versions = const [],
     Iterable<String> deletedVersions = const [],
   }) async {
+    final existing = await primaryDatabase.withRetry(
+      (db) => db.packages.byKey(package.name!).fetch(),
+    );
+    if (existing == null) {
+      final deleted = deletedVersions.toSet();
+      versions = {
+        for (final v in await versionsOfPackage(package.name!)) v.version!: v,
+        for (final v in versions) v.version!: v,
+      }.values.where((v) => !deleted.contains(v.version));
+    }
     await primaryDatabase.transactWithRetry((db) async {
       await _upsertPackage(db, package);
       for (final version in deletedVersions) {
@@ -598,8 +612,8 @@ class PackageBackend {
   }
 
   /// Copies [Package] and [PackageVersion] entries from Datastore into SQL,
-  /// for packages that are missing or have a different `updated` timestamp
-  /// or likes count,
+  /// for packages that are missing or have a different `updated` timestamp,
+  /// likes count or version rows (missing, extra or with different flags),
   /// and removes SQL rows that have no matching Datastore entry.
   Future<int> backfillPackagesSqlFromDatastore() async {
     var count = 0;
@@ -612,16 +626,51 @@ class PackageBackend {
     for (final (name, updatedAt, likesCount) in rows) {
       sqlState[name] = (updatedAt, likesCount);
     }
+    // Version signatures per package, to detect missing, extra or differently
+    // flagged version rows (including moderated and admin-deleted ones).
+    final sqlSignatures = <String, _VersionSignature>{};
+    final versionRows = await primaryDatabase.withRetry(
+      (db) => db.packageVersions
+          .select(
+            (v) => (
+              v.package,
+              v.version,
+              v.isRetracted,
+              v.isModerated,
+              v.isAdminDeleted,
+            ),
+          )
+          .fetch(),
+    );
+    for (final (package, version, retracted, moderated, deleted)
+        in versionRows) {
+      (sqlSignatures[package] ??= _VersionSignature()).add(
+        version,
+        isRetracted: retracted,
+        isModerated: moderated,
+        isAdminDeleted: deleted,
+      );
+    }
 
     await for (final p in allPackages()) {
       final name = p.name!;
       final sql = sqlState.remove(name);
+      final versions = await versionsOfPackage(name);
+      final datastoreSignature = _VersionSignature();
+      for (final v in versions) {
+        datastoreSignature.add(
+          v.version!,
+          isRetracted: v.isRetracted,
+          isModerated: v.isModerated,
+          isAdminDeleted: v.isAdminDeleted,
+        );
+      }
       if (sql != null &&
           sql.$1.isAtSameMomentAs(p.updated!) &&
-          sql.$2 == p.likes) {
+          sql.$2 == p.likes &&
+          sqlSignatures[name] == datastoreSignature) {
         continue;
       }
-      final versions = await versionsOfPackage(name);
       await primaryDatabase.transactWithRetry((db) async {
         await _upsertPackage(db, p);
         final versionNames = <String>{};
@@ -3167,3 +3216,38 @@ String tarballObjectName(String package, String version) =>
 String _tarballObjectNamePackagePrefix(String package) => 'packages/$package-';
 
 enum ContentMatchStatus { missing, different, same }
+
+/// Order-independent summary of the version rows of a package.
+class _VersionSignature {
+  int _count = 0;
+  int _retracted = 0;
+  int _moderated = 0;
+  int _adminDeleted = 0;
+  int _namesHash = 0;
+
+  void add(
+    String version, {
+    required bool isRetracted,
+    required bool isModerated,
+    required bool isAdminDeleted,
+  }) {
+    _count++;
+    if (isRetracted) _retracted++;
+    if (isModerated) _moderated++;
+    if (isAdminDeleted) _adminDeleted++;
+    _namesHash = (_namesHash + version.hashCode) & 0x3fffffff;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is _VersionSignature &&
+      _count == other._count &&
+      _retracted == other._retracted &&
+      _moderated == other._moderated &&
+      _adminDeleted == other._adminDeleted &&
+      _namesHash == other._namesHash;
+
+  @override
+  int get hashCode =>
+      Object.hash(_count, _retracted, _moderated, _adminDeleted, _namesHash);
+}
