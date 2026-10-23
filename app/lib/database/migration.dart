@@ -118,44 +118,75 @@ Future<void> migrateScripts({
   for (var i = 0; i < scripts.length; i++) {
     final script = scripts[i];
     final hash = hashes[script.name]!;
-    await target.transact((tx) async {
-      // Verify in-transaction that no unexpected script exists
-      // QUESTION: can we scope this with schema prefix so that it is part of the same transaction?
-      final unexpectedRows = await table
-          .where((m) {
-            final mn = m.schemaName.equalsValue(schemaName);
-            if (i == 0) {
-              return mn;
-            }
-            return mn.and(m.scriptName.greaterThan(scripts[i - 1].name.asExpr));
-          })
-          .orderBy((m) => [(m.scriptName, Order.ascending)])
-          .fetch();
+    final previousName = i == 0 ? '' : scripts[i - 1].name;
 
-      if (unexpectedRows.isNotEmpty) {
-        final first = unexpectedRows.first;
-        // check race + idempotency, continue migrations with the next script if matching
-        if (first.scriptName == script.name && first.scriptSha256 == hash) {
-          return;
-        }
-        // otherwise abort migrations
+    await _executeScript(target, schemaName, script, hash, previousName);
+  }
+}
+
+Future<void> _executeScript(
+  DatabaseAdapter target,
+  String schemaName,
+  ({String name, String content}) script,
+  String hash,
+  String previousName,
+) async {
+  await target.transact((tx) async {
+    // Concurrent migrators block here until the lock holder commits or rolls back.
+    //
+    // `EXCLUSIVE` mode conflicts with every lock mode except `ACCESS SHARE`, and
+    // it only covers the `schema_migrations` table (not the tables altered by
+    // the script). Plain reads, like the sanity checks in `migrateScripts`, are
+    // not blocked: they run unlocked and see the last committed state, which is
+    // either before or after the script, as it is applied atomically with its
+    // log row. Only writers (other migrators) wait on this lock, and they
+    // re-check the history below after acquiring it.
+    //
+    // NOTE: this must stay the first statement of the transaction. Under
+    // `REPEATABLE READ` / `SERIALIZABLE` the snapshot is taken at the first
+    // `SELECT` or data modification (not at `LOCK`), so the re-check below sees
+    // the rows committed by the previous lock holder at any isolation level.
+    await tx.execute('LOCK TABLE "schema_migrations" IN EXCLUSIVE MODE', []);
+
+    // Verify in-transaction that no unexpected script exists.
+    final unexpectedRows = await tx
+        .query(
+          'SELECT "script_name", "script_sha256" FROM "schema_migrations" '
+          'WHERE "schema_name" = \$1 AND "script_name" > \$2 '
+          'ORDER BY "script_name" ASC LIMIT 1',
+          [schemaName, previousName],
+        )
+        .map((r) => (name: r.readString()!, sha256: r.readString()!))
+        .toList();
+
+    if (unexpectedRows.isNotEmpty) {
+      final first = unexpectedRows.first;
+      // check race + idempotency, continue migrations with the next script if matching
+      if (first.name == script.name && first.sha256 == hash) {
+        return;
+      }
+      // otherwise abort migrations
+      if (first.name == script.name) {
         throw ArgumentError(
-          'Incompatible existing history: `${first.scriptName}` preceeds `${script.name}`.',
+          'Script hash difference detected: `${script.name}` '
+          '(recorded `${first.sha256}`, expected `$hash`).',
         );
       }
+      throw ArgumentError(
+        'Incompatible existing history: `${first.name}` is recorded after '
+        '`${previousName.isEmpty ? '<start>' : previousName}`, but is not the '
+        'expected next script `${script.name}`.',
+      );
+    }
 
-      // Execute migration and log exection.
-      await tx.script(script.content);
+    // Execute migration and log execution.
+    await tx.script(script.content);
 
-      // QUESTION: can we scope this with schema prefix so that it is part of the same transaction?
-      await table
-          .insert(
-            schemaName: schemaName.asExpr,
-            scriptName: script.name.asExpr,
-            scriptSha256: hash.asExpr,
-            executedAt: Expr.currentTimestamp,
-          )
-          .execute();
-    });
-  }
+    await tx.execute(
+      'INSERT INTO "schema_migrations" '
+      '("schema_name", "script_name", "script_sha256", "executed_at") '
+      'VALUES (\$1, \$2, \$3, CURRENT_TIMESTAMP)',
+      [schemaName, script.name, hash],
+    );
+  });
 }
