@@ -12,9 +12,9 @@ void main() {
   test('building and running Dockerfile.app', () async {
     await buildAppDockerImage();
 
-    // The image is only usable when the server can load the native library of
-    // `package:sigstore` from the snapshot it runs, see
-    // `tool/build-server-snapshot.sh`.
+    // The image is only usable when the server can load the native libraries
+    // of `package:sigstore` and `package:boring` from the snapshot it runs,
+    // see `tool/build-server-snapshot.sh`.
     final output = await runAppDockerImage(['self-check']);
     expect(output, contains('self-check: OK'));
   }, timeout: Timeout(Duration(minutes: 20)));

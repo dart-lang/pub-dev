@@ -5,14 +5,16 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Builds the app-JIT snapshot of the server, with the native assets mapping of
-# `package:sigstore` embedded.
+# `package:sigstore` and `package:boring` embedded.
 #
 # `package:sigstore` calls into a native library (`libsigstore_ffi.so`) through
-# `@Native` bindings, which the Dart VM resolves through a native assets
-# mapping (asset id -> library path). `dart run` produces that mapping by
-# executing the build hooks of the dependencies and embeds it in the kernel it
-# runs; `dart compile jit-snapshot` does not, so a snapshot created by it has
-# no way to find the library at runtime.
+# `@Native` bindings, and routes its cryptography through the BoringSSL of
+# `package:boring` (`libbssl_dart.so`), another native library. The Dart VM
+# resolves `@Native` bindings through a native assets mapping (asset id ->
+# library path). `dart run` produces that mapping by executing the build hooks
+# of the dependencies and embeds it in the kernel it runs; `dart compile
+# jit-snapshot` does not, so a snapshot created by it has no way to find the
+# libraries at runtime.
 #
 # This script does what `dart run` does, with a mapping that points at the
 # location of the library in the production image:
@@ -23,19 +25,22 @@
 #  4. create the app-JIT snapshot from the result (the VM keeps the mapping in
 #     the snapshot, no build hooks or sources are needed at runtime).
 #
-# The library itself is built from the Rust source bundled with the package,
-# see `Dockerfile.app`.
+# The libraries themselves are built from the sources bundled with the
+# packages, see `Dockerfile.app`.
 #
-# Usage: build-server-snapshot.sh <output snapshot> <path of libsigstore_ffi.so at runtime>
+# Usage: build-server-snapshot.sh <output snapshot> \
+#          <path of libsigstore_ffi.so at runtime> \
+#          <path of libbssl_dart.so at runtime>
 
 set -euo pipefail
 
-if [ "$#" -ne 2 ]; then
-  echo "Usage: $0 <output snapshot> <path of libsigstore_ffi.so at runtime>" >&2
+if [ "$#" -ne 3 ]; then
+  echo "Usage: $0 <output snapshot> <path of libsigstore_ffi.so at runtime> <path of libbssl_dart.so at runtime>" >&2
   exit 1
 fi
 OUTPUT="$1"
 SIGSTORE_LIBRARY="$2"
+BORING_LIBRARY="$3"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 APP_DIR="$SCRIPT_DIR/../app"
@@ -65,14 +70,17 @@ cd "$APP_DIR"
 # 1. The server as kernel.
 dart compile kernel -o "$WORK_DIR/server.dill" bin/server.dart
 
-# 2. The native assets mapping as kernel component. The asset id is the
-#    library URI of the `@Native` bindings in `package:sigstore`.
+# 2. The native assets mapping as kernel component. The asset ids are the ones
+#    the build hooks of the packages register: for `package:sigstore` the
+#    library URI of its `@Native` bindings, for `package:boring` the
+#    `@DefaultAsset` of its bindings.
 cat > "$WORK_DIR/native_assets.yaml" <<EOF
 {
   "format-version": [1, 0, 0],
   "native-assets": {
     "linux_$DART_ARCH": {
-      "package:sigstore/src/bindings/lib.g.dart": ["absolute", "$SIGSTORE_LIBRARY"]
+      "package:sigstore/src/bindings/lib.g.dart": ["absolute", "$SIGSTORE_LIBRARY"],
+      "package:boring/boring.dart": ["absolute", "$BORING_LIBRARY"]
     }
   }
 }

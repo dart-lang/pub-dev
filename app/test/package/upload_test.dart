@@ -2033,7 +2033,7 @@ void main() {
           status: 400,
           code: 'PackageRejected',
           message:
-              'Attestation is for an archive with sha256 "$otherSha256", but the uploaded archive has sha256 "${sha256.convert(archiveBytes)}".',
+              'Attestation is for an archive with sha256 "$otherSha256", but this archive has sha256 "${sha256.convert(archiveBytes)}".',
         );
       },
     );
