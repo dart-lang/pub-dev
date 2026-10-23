@@ -7,6 +7,7 @@ import 'dart:convert' show json;
 import 'package:_pub_shared/data/advisories_api.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../database/schema.dart';
 import '../../shared/datastore.dart' as db;
 
 part 'models.g.dart';
@@ -87,6 +88,24 @@ class SecurityAdvisoryData {
       _$SecurityAdvisoryDataFromJson(json);
   Map<String, dynamic> toJson() => _$SecurityAdvisoryDataToJson(this);
 
-  factory SecurityAdvisoryData.fromModel(SecurityAdvisory advisory) =>
-      SecurityAdvisoryData(advisory.osv!, advisory.syncTime!);
+  factory SecurityAdvisoryData.fromRow(SecurityAdvisoryRow row) =>
+      SecurityAdvisoryData(row.osv, row.syncedAt);
+}
+
+extension SecurityAdvisoryRowExt on SecurityAdvisoryRow {
+  OSV get osv => OSV.fromJson((osvJson.value as Map).cast<String, dynamic>());
+
+  /// The advisory id and its aliases.
+  List<String> get aliases => [advisoryId, ...osv.aliases];
+
+  /// The names of the affected `pub` packages.
+  List<String> get affectedPackages => osv.affectedPubPackages;
+}
+
+extension OsvPubExt on OSV {
+  /// The names of the affected `pub` packages.
+  List<String> get affectedPubPackages => (affected ?? [])
+      .where((a) => a.package.ecosystem.toLowerCase() == 'pub')
+      .map((a) => a.package.name)
+      .toList();
 }
