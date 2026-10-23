@@ -1141,6 +1141,7 @@ class PackageBackend {
       final githubConfig = body.github;
       final gcpConfig = body.gcp;
       final manualConfig = body.manual;
+      final attestationConfig = body.attestation;
 
       if (githubConfig != null) {
         final isEnabled = githubConfig.isEnabled;
@@ -1242,6 +1243,8 @@ class PackageBackend {
       publishingConfig.gcpConfig = gcpConfig ?? publishingConfig.gcpConfig;
       publishingConfig.manualConfig =
           manualConfig ?? publishingConfig.manualConfig;
+      publishingConfig.attestationConfig =
+          attestationConfig ?? publishingConfig.attestationConfig;
 
       p.updated = clock.now().toUtc();
       tx.insert(p);
@@ -1256,6 +1259,7 @@ class PackageBackend {
         github: p.publishingConfig!.githubConfig,
         gcp: p.publishingConfig!.gcpConfig,
         manual: p.publishingConfig!.manualConfig,
+        attestation: p.publishingConfig!.attestationConfig,
       );
     });
     if (auditLogRecord != null) {
@@ -1961,6 +1965,7 @@ class PackageBackend {
       agent,
       existingPackage,
       newVersion.version!,
+      hasAttestation: newVersion.provenance != null,
     );
 
     // query admin notification emails before the transaction
@@ -2281,8 +2286,9 @@ class PackageBackend {
   Future<void> _requireUploadAuthorization(
     AuthenticatedAgent agent,
     Package? package,
-    String newVersion,
-  ) async {
+    String newVersion, {
+    bool hasAttestation = false,
+  }) async {
     // new package
     if (package == null) {
       if (agent is AuthenticatedUser) {
@@ -2294,6 +2300,11 @@ class PackageBackend {
     // existing package
     if (package.isNotVisible) {
       throw PackageRejectedException.isBlocked();
+    }
+    final isAttestationRequired =
+        package.publishingConfig?.attestationConfig?.isRequired ?? false;
+    if (isAttestationRequired && !hasAttestation) {
+      throw AuthorizationException.attestationRequired(package.name!);
     }
     if (agent is AuthenticatedUser &&
         await packageBackend.isPackageAdmin(package, agent.user.userId)) {
