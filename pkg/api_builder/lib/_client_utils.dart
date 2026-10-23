@@ -85,6 +85,28 @@ class Client {
     }
     throw RequestException(res.statusCode, res.headers, res.bodyBytes);
   });
+
+  Future<Map<String, dynamic>> sendRaw({
+    required String verb,
+    required String path,
+    Map<String, String>? query,
+    Map<String, String>? headers,
+    List<int>? bodyBytes,
+  }) => _withClient((client) async {
+    final u = Uri.parse(_baseUrl + path).replace(queryParameters: query);
+    final req = http.Request(verb, u);
+    if (headers != null) {
+      req.headers.addAll(headers);
+    }
+    if (bodyBytes != null) {
+      req.bodyBytes = bodyBytes;
+    }
+    final res = await http.Response.fromStream(await client.send(req));
+    if (200 <= res.statusCode && res.statusCode < 300) {
+      return json.fuse(utf8).decode(res.bodyBytes) as Map<String, dynamic>;
+    }
+    throw RequestException(res.statusCode, res.headers, res.bodyBytes);
+  });
 }
 
 /// Utility method exported for use in generated code.
