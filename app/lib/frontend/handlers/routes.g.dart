@@ -51,6 +51,11 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   );
   router.add(
     'GET',
+    r'/packages/<package>/versions/<version>/security',
+    service.packageVersionSecurity,
+  );
+  router.add(
+    'GET',
     r'/packages/<package>/versions/<version>/score/log.txt',
     service.packageVersionScoreLogTxt,
   );
@@ -72,6 +77,7 @@ Router _$PubSiteServiceRouter(PubSiteService service) {
   router.add('GET', r'/packages/<package>/publisher', service.packagePublisher);
   router.add('GET', r'/packages/<package>/pubspec', service.packagePubspec);
   router.add('GET', r'/packages/<package>/score', service.packageScore);
+  router.add('GET', r'/packages/<package>/security', service.packageSecurity);
   router.add(
     'GET',
     r'/packages/<package>/score/log.txt',
