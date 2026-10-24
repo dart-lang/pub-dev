@@ -803,4 +803,72 @@ void main() {
       expect(row.updatedAt.isAtSameMomentAs(newer.updated!), true);
     },
   );
+
+  Future<Set<String>> sqlVersionsOf(String package) async {
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.packageVersions
+          .where((v) => v.package.equalsValue(package))
+          .select((v) => (v.version,))
+          .fetch(),
+    );
+    return rows.toSet();
+  }
+
+  Future<Set<String>> datastoreVersionsOf(String package) async {
+    return (await packageBackend.versionsOfPackage(
+      package,
+    )).map((v) => v.version!).toSet();
+  }
+
+  testWithProfile(
+    'mirroring a package missing from SQL mirrors all of its versions',
+    fn: () async {
+      await packageBackend.deletePackageFromSql('oxygen');
+      expect(await sqlVersionsOf('oxygen'), isEmpty);
+
+      final p = (await packageBackend.lookupPackage('oxygen'))!;
+      await packageBackend.mirrorPackageToSql(p);
+
+      final expected = await datastoreVersionsOf('oxygen');
+      expect(expected.length, greaterThan(1));
+      expect(await sqlVersionsOf('oxygen'), expected);
+    },
+  );
+
+  testWithProfile(
+    'backfill restores missing versions of an up-to-date package',
+    fn: () async {
+      await primaryDatabase.withRetry(
+        (db) => db.packageVersions
+            .where((v) => v.package.equalsValue('oxygen'))
+            .delete()
+            .execute(),
+      );
+      expect(await sqlVersionsOf('oxygen'), isEmpty);
+
+      await packageBackend.backfillPackagesSqlFromDatastore();
+
+      expect(
+        await sqlVersionsOf('oxygen'),
+        await datastoreVersionsOf('oxygen'),
+      );
+    },
+  );
+
+  testWithProfile(
+    'backfill removes extra and restores flagged version rows',
+    fn: () async {
+      final expected = await datastoreVersionsOf('oxygen');
+      final first = expected.first;
+      await primaryDatabase.withRetry(
+        (db) => db.packageVersions.delete('oxygen', first).execute(),
+      );
+      expect(await sqlVersionsOf('oxygen'), isNot(expected));
+
+      await packageBackend.backfillPackagesSqlFromDatastore();
+      expect(await sqlVersionsOf('oxygen'), expected);
+      // a second run has nothing to do
+      expect(await packageBackend.backfillPackagesSqlFromDatastore(), 0);
+    },
+  );
 }
