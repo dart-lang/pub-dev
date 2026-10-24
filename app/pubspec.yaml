@@ -56,6 +56,13 @@ dependencies:
   ulid: '2.2.0'
   tar: '2.0.3'
   api_builder:
+  # TODO(https://github.com/dart-lang/tools/pull/2710): Depend on the hosted
+  # `^0.2.5` once `package:sigstore/provenance.dart` is published.
+  sigstore:
+    git:
+      url: https://github.com/dart-lang/tools.git
+      ref: 233e5ab23f23ec1ff52f79a39efb77db74d5c73d
+      path: pkgs/sigstore
 
 dev_dependencies:
   build_runner: '^2.0.0'
