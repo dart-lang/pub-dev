@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2026.10.23`.
  * Note: `DownloadCount` is now read from SQL.
  * Note: `Like` is now read from SQL.
  * Note: `tasks.state` column is dropped.
