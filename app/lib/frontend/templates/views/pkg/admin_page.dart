@@ -236,6 +236,7 @@ d.Node packageAdminPageNode({
     d.a(name: 'publishing'),
     d.h2(text: 'Publishing'),
     _manualPublishing(package),
+    _attestationPublishing(package),
     _automatedPublishing(package),
     d.a(name: 'version-retraction'),
     d.h2(text: 'Version retraction'),
@@ -492,6 +493,28 @@ It is recommended to disable when automated publishing is enabled.'''),
         id: '-pkg-admin-manual-publishing-enabled',
         label: 'Enable manual publishing',
         checked: manual?.isEnabled ?? true,
+      ),
+    ),
+  ]);
+}
+
+d.Node _attestationPublishing(Package package) {
+  final attestation = package.publishingConfig?.attestationConfig;
+  return d.fragment([
+    d.a(name: 'attestation-publishing'),
+    d.h3(text: 'Provenance attestation'),
+    d.markdown(
+      '''
+Require a verified Sigstore provenance attestation for all future versions of this package.
+
+When enabled, package uploads without a valid attestation bundle will be rejected.''',
+    ),
+    d.div(
+      classes: ['-pub-form-checkbox-row'],
+      child: material.checkbox(
+        id: '-pkg-admin-automated-attestation-required',
+        label: 'Require Sigstore provenance attestation',
+        checked: attestation?.isRequired ?? false,
       ),
     ),
   ]);
