@@ -25,7 +25,6 @@ import '../audit/models.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
-import '../publisher/backend.dart';
 import '../publisher/models.dart';
 import '../service/email/email_templates.dart'
     show isValidEmail, looksLikeEmail;
@@ -344,6 +343,19 @@ class IntegrityChecker extends _BaseIntegrityChecker {
         isModerated: p.isModerated,
         moderatedAt: p.moderatedAt,
       );
+
+      if (p.updated != null && p.updated!.isOlderThanSqlMirrorGracePeriod) {
+        final sqlRow = await primaryDatabase.withRetry(
+          (db) => db.publishers.byKey(p.publisherId).fetch(),
+        );
+        if (sqlRow == null) {
+          yield 'Publisher "${p.publisherId}" has not been mirrored to SQL.';
+        } else if (!sqlRow.updatedAt.isAtSameMomentAs(p.updated!)) {
+          yield 'Publisher "${p.publisherId}" has different `updated` in SQL '
+              '(${sqlRow.updatedAt.toIso8601String()}) than in Datastore '
+              '(${p.updated!.toIso8601String()}).';
+        }
+      }
     });
   }
 
@@ -376,7 +388,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       publisherAttributes.increaseMemberCount(pm.publisherId);
       if (!publisherAttributes.publisherIds.contains(pm.publisherId)) {
         // double check actual status to prevent misreports on cache race conditions
-        final p = await publisherBackend.lookupPublisher(pm.publisherId);
+        final p = await _db.lookupOrNull<Publisher>(pm.publisherKey);
         if (p == null) {
           yield 'PublisherMember "${pm.userId}" references a non-existing `publisherId`: "${pm.publisherId}".';
         }

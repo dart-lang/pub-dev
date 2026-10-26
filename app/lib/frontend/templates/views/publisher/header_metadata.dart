@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../../../publisher/models.dart' show Publisher;
+import '../../../../database/schema.dart' show PublisherRow, PublisherRowExt;
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../static_files.dart' show staticUrls;
 
 /// Creates the content that goes into the publisher page's detail header.
-d.Node publisherHeaderMetadataNode(Publisher publisher) {
+d.Node publisherHeaderMetadataNode(PublisherRow publisher) {
   final websiteUri = urls.parseValidUrl(publisher.websiteUrl);
   final websiteRel = (websiteUri?.shouldIndicateUgc ?? false) ? 'ugc' : null;
   final websiteDisplayable = urls.displayableUrl(publisher.websiteUrl);
@@ -37,7 +37,7 @@ d.Node publisherHeaderMetadataNode(Publisher publisher) {
     d.p(
       children: [
         d.text('Publisher registered '),
-        d.xAgoTimestamp(publisher.created!, datePrefix: 'on'),
+        d.xAgoTimestamp(publisher.createdAt, datePrefix: 'on'),
       ],
     ),
   ]);
@@ -72,7 +72,7 @@ d.Node _ref({
   );
 }
 
-extension on Publisher {
+extension on PublisherRow {
   String get shortDescription {
     if (!hasDescription) {
       return '';

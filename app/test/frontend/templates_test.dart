@@ -748,8 +748,8 @@ void main() {
           timestamps: {
             'neon-created': neon.created,
             'titanium-created': titanium.created,
-            'publisher-created': publisher.created,
-            'publisher-updated': publisher.updated,
+            'publisher-created': publisher.createdAt,
+            'publisher-updated': publisher.updatedAt,
           },
         );
       },
@@ -790,8 +790,8 @@ void main() {
           timestamps: {
             'neon-created': neon.created,
             'titanium-created': titanium.created,
-            'publisher-created': publisher.created,
-            'publisher-updated': publisher.updated,
+            'publisher-created': publisher.createdAt,
+            'publisher-updated': publisher.updatedAt,
           },
         );
       },
@@ -815,8 +815,8 @@ void main() {
           html,
           'publisher_admin_page.html',
           timestamps: {
-            'publisher-created': publisher.created,
-            'publisher-updated': publisher.updated,
+            'publisher-created': publisher.createdAt,
+            'publisher-updated': publisher.updatedAt,
           },
           replacements: {
             ...Map.fromIterables(
@@ -848,8 +848,8 @@ void main() {
           html,
           'publisher_activity_log_page.html',
           timestamps: {
-            'publisher-created': publisher.created,
-            'publisher-updated': publisher.updated,
+            'publisher-created': publisher.createdAt,
+            'publisher-updated': publisher.updatedAt,
             ..._activityLogTimestamps(activities),
           },
         );

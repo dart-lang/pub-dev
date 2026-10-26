@@ -28,7 +28,7 @@ Get information about a publisher and list all its members.
       'description': publisher.description,
       'website': publisher.websiteUrl,
       'contact': publisher.contactEmail,
-      'created': publisher.created?.toIso8601String(),
+      'created': publisher.createdAt.toIso8601String(),
       'members': members
           .map((m) => {'email': m.email, 'role': m.role, 'userId': m.userId})
           .toList(),

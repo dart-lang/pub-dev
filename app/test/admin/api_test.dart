@@ -674,7 +674,12 @@ void main() {
           expect(publisher.isAbandoned, isTrue);
 
           final members = await dbService
-              .query<PublisherMember>(ancestorKey: publisher.key)
+              .query<PublisherMember>(
+                ancestorKey: dbService.emptyKey.append(
+                  Publisher,
+                  id: 'example.com',
+                ),
+              )
               .run()
               .toList();
           expect(members, isEmpty);

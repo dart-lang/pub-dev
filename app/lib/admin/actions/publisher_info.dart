@@ -28,7 +28,7 @@ Loads and displays the publisher information.
     return {
       'publisher': {
         'publisherId': p.publisherId,
-        'created': p.created?.toIso8601String(),
+        'created': p.createdAt.toIso8601String(),
         'contactEmail': p.contactEmail,
         'isModerated': p.isModerated,
         if (p.moderatedAt != null)
