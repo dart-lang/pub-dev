@@ -14,6 +14,7 @@ abstract final class ConsentRow extends Row {
 
   /// Used to detect duplicate invites.
   @Index.field()
+  @Unique.field()
   String get dedupId;
 
   /// One of the `ConsentKind` values.
