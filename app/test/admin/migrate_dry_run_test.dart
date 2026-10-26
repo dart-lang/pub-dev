@@ -45,8 +45,7 @@ void main() {
         expect(await primaryDatabase.migrateDryRun('SELECT 1;'), isNull);
         expect(
           await primaryDatabase.migrateDryRun(
-            'ALTER TABLE "user_sessions" '
-            'DROP CONSTRAINT "user_sessions_fk_user";',
+            'ALTER TABLE "users" DROP CONSTRAINT "users_chk_moderated";',
           ),
           isNotNull,
         );
@@ -72,23 +71,18 @@ void main() {
     );
 
     testWithProfile(
-      'fk script fails on orphaned sessions',
+      'chk script fails on moderated user without timestamp',
       fn: () async {
         final adapter = primaryDatabase.adapterForTesting;
-        await adapter.script(
-          'INSERT INTO "user_sessions" '
-          '("session_id", "user_id", "created", "expires") '
-          "VALUES ('s1', 'no-such-user', now(), now())",
-        );
+        await _breakOneUser(adapter);
         try {
           final result = await migrateDryRun.invoke({
-            'script': 'user-sessions-fk-user',
+            'script': 'users-chk-moderated',
           });
           expect(result['ok'], false);
-          expect(result['error'], contains('user_sessions_fk_user'));
+          expect(result['error'], contains('users_chk_moderated'));
         } finally {
-          // the integrity check at the end of the test would flag the orphan
-          await adapter.script('DELETE FROM "user_sessions"');
+          await _restoreUsers(adapter);
         }
       },
     );
@@ -119,11 +113,7 @@ void main() {
       'prefix reports failures of individual scripts',
       fn: () async {
         final adapter = primaryDatabase.adapterForTesting;
-        await adapter.script(
-          'INSERT INTO "user_sessions" '
-          '("session_id", "user_id", "created", "expires") '
-          "VALUES ('s1', 'no-such-user', now(), now())",
-        );
+        await _breakOneUser(adapter);
         try {
           final result = await migrateDryRun.invoke({'script': 'user*'});
           expect(result['ok'], false);
@@ -131,10 +121,10 @@ void main() {
             for (final r in result['results'] as List)
               r['script'] as String: r as Map,
           };
-          expect(byName['user-sessions-fk-user']!['ok'], false);
-          expect(byName['users-chk-moderated']!['ok'], true);
+          expect(byName['users-chk-moderated']!['ok'], false);
+          expect(byName['users-unique-active-email']!['ok'], true);
         } finally {
-          await adapter.script('DELETE FROM "user_sessions"');
+          await _restoreUsers(adapter);
         }
       },
     );
@@ -163,4 +153,18 @@ void main() {
       },
     );
   });
+}
+
+/// Marks one user as moderated without a `moderated_at` timestamp.
+Future<void> _breakOneUser(dynamic adapter) async {
+  await adapter.script(
+    'UPDATE "users" SET "is_moderated" = true, "moderated_at" = NULL '
+    'WHERE "user_id" = (SELECT min("user_id") FROM "users")',
+  );
+}
+
+Future<void> _restoreUsers(dynamic adapter) async {
+  await adapter.script(
+    'UPDATE "users" SET "is_moderated" = false WHERE "moderated_at" IS NULL',
+  );
 }
