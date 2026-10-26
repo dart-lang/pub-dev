@@ -17,11 +17,6 @@ ALTER TABLE "consents"
   ADD CONSTRAINT "consents_chk_count"
   CHECK (notification_count >= 0);
 ''',
-  // Fails if two consents share the same dedup_id.
-  'consents-unique-dedup-id': '''
-ALTER TABLE "consents"
-  ADD CONSTRAINT "consents_unique_dedup_id" UNIQUE ("dedup_id");
-''',
   // Fails if a case was resolved before it was opened.
   'moderation-cases-chk-resolved': '''
 ALTER TABLE "moderation_cases"
@@ -123,14 +118,6 @@ ALTER TABLE "tasks"
   FOREIGN KEY ("package") REFERENCES "packages" ("name")
   ON UPDATE CASCADE ON DELETE CASCADE;
 ''',
-  // Fails if any user_sessions.user_id has no matching users.user_id row.
-  // NULL user_id values are allowed (anonymous sessions).
-  'user-sessions-fk-user': '''
-ALTER TABLE "user_sessions"
-  ADD CONSTRAINT "user_sessions_fk_user"
-  FOREIGN KEY ("user_id") REFERENCES "users" ("user_id")
-  ON UPDATE CASCADE ON DELETE CASCADE;
-''',
   // Fails if a moderated user lacks moderated_at.
   'users-chk-moderated': '''
 ALTER TABLE "users"
@@ -142,12 +129,6 @@ ALTER TABLE "users"
 CREATE UNIQUE INDEX "users_unique_active_email"
   ON "users" (lower("email"))
   WHERE "email" IS NOT NULL AND NOT "is_deleted";
-''',
-  // Fails if two users share the same oAuthId. NULLs are allowed
-  // (never-logged-in or deleted users) and don't conflict in Postgres.
-  'users-unique-oauth-user-id': '''
-ALTER TABLE "users"
-  ADD CONSTRAINT "users_unique_oauth_user_id" UNIQUE ("oauth_user_id");
 ''',
 };
 

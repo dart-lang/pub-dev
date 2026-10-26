@@ -7,6 +7,15 @@ part of 'schema.dart';
 /// Tracks the client session, optionally with authenticated
 /// userId and cached profile information.
 @PrimaryKey(['sessionId'])
+@ForeignKey(
+  ['userId'],
+  table: 'users',
+  fields: ['userId'],
+  name: 'user',
+  as: 'sessions',
+  onDelete: .cascade,
+  onUpdate: .cascade,
+)
 abstract final class UserSession extends Row {
   /// The session ID, a random UUID String.
   String get sessionId;
@@ -58,6 +67,7 @@ abstract final class UserRow extends Row {
   /// tracking authentications, or if the user [isDeleted] and the user row
   /// is retained for audit purposes.
   @Index.field()
+  @Unique.field()
   String? get oauthUserId;
 
   String? get email;

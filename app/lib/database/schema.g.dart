@@ -272,7 +272,9 @@ final class _$UserRow extends UserRow {
       ),
     ],
     primaryKey: <String>['user_id'],
-    unique: <List<String>>[],
+    unique: <List<String>>[
+      ['oauth_user_id'],
+    ],
     foreignKeys: [],
     indexes: [
       $ForGeneratedCode.indexDefinition(
@@ -596,6 +598,17 @@ extension QueryUserRowExt on Query<(Expr<UserRow>,)> {
     ),
   );
 
+  /// Lookup a single row in `users` table using the
+  /// `oauthUserId` field
+  ///
+  /// We know that lookup by the `oauthUserId` field returns
+  /// at-most one row because the [Unique] annotation in [UserRow].
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<UserRow>,)> byOauthUserId(String oauthUserId) =>
+      where((userRow) => userRow.oauthUserId.equalsValue(oauthUserId)).first;
+
   /// Delete all rows in the `users` table matching this [Query].
   ///
   /// Returns a [Delete] statement on which `.execute()` must be called
@@ -717,6 +730,17 @@ extension ExpressionUserRowExt on Expr<UserRow> {
   Expr<String?> get moderatedReason =>
       $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
 
+  /// Get [SubQuery] of rows from the `userSessions` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [UserSession] rows,
+  /// where [UserSession.userId]
+  /// references [UserRow.userId]
+  /// in this row.
+  SubQuery<(Expr<UserSession>,)> get sessions => $ForGeneratedCode
+      .subqueryTable(_$UserSession._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId));
+
   /// Get [SubQuery] of rows from the `packageLikes` table which
   /// reference this row.
   ///
@@ -781,6 +805,19 @@ extension ExpressionNullableUserRowExt on Expr<UserRow?> {
 
   Expr<String?> get moderatedReason =>
       $ForGeneratedCode.field(this, 7, $ForGeneratedCode.text);
+
+  /// Get [SubQuery] of rows from the `userSessions` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [UserSession] rows,
+  /// where [UserSession.userId]
+  /// references [UserRow.userId]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<UserSession>,)> get sessions => $ForGeneratedCode
+      .subqueryTable(_$UserSession._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId));
 
   /// Get [SubQuery] of rows from the `packageLikes` table which
   /// reference this row.
@@ -920,13 +957,48 @@ extension RightJoinUserRowPublisherMemberRowExt
       on((a, b) => a.userId.equalsUnlessNull(b.userId));
 }
 
+extension InnerJoinUserRowUserSessionExt
+    on InnerJoin<(Expr<UserRow>,), (Expr<UserSession>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [UserSession.userId].
+  Query<(Expr<UserRow>, Expr<UserSession>)> usingUser() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
+}
+
+extension LeftJoinUserRowUserSessionExt
+    on LeftJoin<(Expr<UserRow>,), (Expr<UserSession>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [UserSession.userId].
+  Query<(Expr<UserRow>, Expr<UserSession?>)> usingUser() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
+}
+
+extension RightJoinUserRowUserSessionExt
+    on RightJoin<(Expr<UserRow>,), (Expr<UserSession>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [UserRow.userId] = [UserSession.userId].
+  Query<(Expr<UserRow?>, Expr<UserSession>)> usingUser() =>
+      on((a, b) => a.userId.equalsUnlessNull(b.userId));
+}
+
 /// `Table<UserRow>` conflict targets for use with `.onConflict`.
 enum UserRowConflict {
   /// Conflict with an existing row that has a matching primary key.
   ///
   /// Thus, the other row has matching values for:
   /// `userId`.
-  primaryKey(['user_id']);
+  primaryKey(['user_id']),
+
+  /// `oauthUserId` conflict.
+  ///
+  /// Due to violation of the `UNIQUE` constraint on
+  /// `oauthUserId`.
+  ///
+  /// Thus, the conflicting row has matching values for these fields.
+  oauthUserId(['oauth_user_id']);
 
   const UserRowConflict(this._fields);
 
@@ -1305,7 +1377,16 @@ final class _$UserSession extends UserSession {
     ],
     primaryKey: <String>['session_id'],
     unique: <List<String>>[],
-    foreignKeys: [],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'user',
+        columns: ['user_id'],
+        referencedTable: 'users',
+        referencedColumns: ['user_id'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+    ],
     indexes: [
       $ForGeneratedCode.indexDefinition(
         name: null,
@@ -1858,6 +1939,18 @@ extension ExpressionUserSessionExt on Expr<UserSession> {
   /// The granted scopes from the OpenID authentication.
   Expr<String?> get grantedScopes =>
       $ForGeneratedCode.field(this, 11, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `users` referenced in
+  /// [userId].
+  ///
+  /// The gets the row from table `users` where
+  /// [UserRow.userId]
+  /// is equal to [userId], if any.
+  Expr<UserRow?> get user => $ForGeneratedCode
+      .subqueryTable(_$UserRow._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId))
+      .first;
 }
 
 extension ExpressionNullableUserSessionExt on Expr<UserSession?> {
@@ -1909,6 +2002,20 @@ extension ExpressionNullableUserSessionExt on Expr<UserSession?> {
   Expr<String?> get grantedScopes =>
       $ForGeneratedCode.field(this, 11, $ForGeneratedCode.text);
 
+  /// Do a subquery lookup of the row from table
+  /// `users` referenced in
+  /// [userId].
+  ///
+  /// The gets the row from table `users` where
+  /// [UserRow.userId]
+  /// is equal to [userId], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<UserRow?> get user => $ForGeneratedCode
+      .subqueryTable(_$UserRow._$table)
+      .where((r) => r.userId.equalsUnlessNull(userId))
+      .first;
+
   /// Check if the row is not `NULL`.
   ///
   /// This will check if _primary key_ fields in this row are `NULL`.
@@ -1924,6 +2031,33 @@ extension ExpressionNullableUserSessionExt on Expr<UserSession?> {
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
   Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinUserSessionUserRowExt
+    on InnerJoin<(Expr<UserSession>,), (Expr<UserRow>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [UserSession.userId] = [UserRow.userId].
+  Query<(Expr<UserSession>, Expr<UserRow>)> usingUser() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
+}
+
+extension LeftJoinUserSessionUserRowExt
+    on LeftJoin<(Expr<UserSession>,), (Expr<UserRow>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [UserSession.userId] = [UserRow.userId].
+  Query<(Expr<UserSession>, Expr<UserRow?>)> usingUser() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
+}
+
+extension RightJoinUserSessionUserRowExt
+    on RightJoin<(Expr<UserSession>,), (Expr<UserRow>,)> {
+  /// Join using the `user` _foreign key_.
+  ///
+  /// This will match rows where [UserSession.userId] = [UserRow.userId].
+  Query<(Expr<UserSession?>, Expr<UserRow>)> usingUser() =>
+      on((a, b) => b.userId.equalsUnlessNull(a.userId));
 }
 
 /// `Table<UserSession>` conflict targets for use with `.onConflict`.
@@ -4531,7 +4665,9 @@ final class _$ConsentRow extends ConsentRow {
       ),
     ],
     primaryKey: <String>['id'],
-    unique: <List<String>>[],
+    unique: <List<String>>[
+      ['dedup_id'],
+    ],
     foreignKeys: [],
     indexes: [
       $ForGeneratedCode.indexDefinition(
@@ -4896,6 +5032,17 @@ extension QueryConsentRowExt on Query<(Expr<ConsentRow>,)> {
     ),
   );
 
+  /// Lookup a single row in `consents` table using the
+  /// `dedupId` field
+  ///
+  /// We know that lookup by the `dedupId` field returns
+  /// at-most one row because the [Unique] annotation in [ConsentRow].
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<ConsentRow>,)> byDedupId(String dedupId) =>
+      where((consentRow) => consentRow.dedupId.equalsValue(dedupId)).first;
+
   /// Delete all rows in the `consents` table matching this [Query].
   ///
   /// Returns a [Delete] statement on which `.execute()` must be called
@@ -5090,7 +5237,15 @@ enum ConsentRowConflict {
   ///
   /// Thus, the other row has matching values for:
   /// `id`.
-  primaryKey(['id']);
+  primaryKey(['id']),
+
+  /// `dedupId` conflict.
+  ///
+  /// Due to violation of the `UNIQUE` constraint on
+  /// `dedupId`.
+  ///
+  /// Thus, the conflicting row has matching values for these fields.
+  dedupId(['dedup_id']);
 
   const ConsentRowConflict(this._fields);
 
