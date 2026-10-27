@@ -5,6 +5,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Note: `DownloadCount` is now read from SQL.
  * Note: `Like` is now read from SQL.
  * Note: `tasks.state` column is dropped.
+ * Note: `SecurityAdvisory` is now read from SQL.
 
 ## `20261022t090000-all`
  * Note: `ReservedPackage` is now read from SQL.
