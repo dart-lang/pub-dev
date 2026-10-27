@@ -9,14 +9,15 @@ import 'package:_pub_shared/data/admin_api.dart';
 import 'package:api_builder/_client_utils.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
-import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../shared/test_models.dart';
 import '../shared/test_services.dart';
@@ -146,9 +147,11 @@ void main() {
           await withFakeAuthRequestContext('newmember@pub.dev', () async {
             final authenticatedUser = await requireAuthenticatedWebUser();
             final user = authenticatedUser.user;
-            final consentRow = await dbService.query<Consent>().run().single;
+            final consentRow = (await primaryDatabase.withRetry(
+              (db) => db.consents.fetch(),
+            )).single;
             final consent = await consentBackend.getConsent(
-              consentRow.consentId,
+              consentRow.id,
               user,
             );
             expect(
@@ -159,7 +162,7 @@ void main() {
               consent.descriptionHtml,
               contains('perform administrative actions'),
             );
-            consentId = consentRow.consentId;
+            consentId = consentRow.id;
           });
 
           final acceptingClient = await createFakeAuthPubApiClient(
@@ -240,17 +243,16 @@ void main() {
         await withFakeAuthRequestContext('newmember@pub.dev', () async {
           final authenticatedUser = await requireAuthenticatedWebUser();
           final user = authenticatedUser.user;
-          final consentRow = await dbService.query<Consent>().run().single;
-          final consent = await consentBackend.getConsent(
-            consentRow.consentId,
-            user,
-          );
+          final consentRow = (await primaryDatabase.withRetry(
+            (db) => db.consents.fetch(),
+          )).single;
+          final consent = await consentBackend.getConsent(consentRow.id, user);
           expect(consent.descriptionHtml, contains('/packages/oxygen'));
           expect(
             consent.descriptionHtml,
             contains('perform administrative actions'),
           );
-          consentId = consentRow.consentId;
+          consentId = consentRow.id;
         });
 
         final acceptingClient = await createFakeAuthPubApiClient(
