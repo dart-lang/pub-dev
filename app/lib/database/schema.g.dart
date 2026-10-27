@@ -3,27 +3,6 @@
 part of 'schema.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
-
-TaskState _$TaskStateFromJson(Map<String, dynamic> json) => TaskState(
-  versions: (json['versions'] as Map<String, dynamic>).map(
-    (k, e) => MapEntry(
-      k,
-      PackageVersionStateInfo.fromJson(e as Map<String, dynamic>),
-    ),
-  ),
-  abortedTokens: (json['abortedTokens'] as List<dynamic>)
-      .map((e) => AbortedTokenInfo.fromJson(e as Map<String, dynamic>))
-      .toList(),
-);
-
-Map<String, dynamic> _$TaskStateToJson(TaskState instance) => <String, dynamic>{
-  'versions': instance.versions,
-  'abortedTokens': instance.abortedTokens,
-};
-
-// **************************************************************************
 // Generator: _TypedSqlBuilder
 // **************************************************************************
 
@@ -18830,7 +18809,6 @@ final class _$Task extends Task {
   _$Task._(
     this.runtimeVersion,
     this.package,
-    this.state,
     this.pendingAt,
     this.lastDependencyChanged,
     this.finished,
@@ -18841,9 +18819,6 @@ final class _$Task extends Task {
 
   @override
   final String package;
-
-  @override
-  final TaskState? state;
 
   @override
   final DateTime pendingAt;
@@ -18859,7 +18834,6 @@ final class _$Task extends Task {
     columns: <String>[
       'runtime_version',
       'package',
-      'state',
       'pending_at',
       'last_dependency_changed',
       'finished',
@@ -18875,13 +18849,6 @@ final class _$Task extends Task {
       $ForGeneratedCode.columnDefinition(
         type: $ForGeneratedCode.text,
         isNotNull: true,
-        defaultValue: null,
-        autoIncrement: false,
-        overrides: [],
-      ),
-      $ForGeneratedCode.columnDefinition(
-        type: $ForGeneratedCode.jsonValue,
-        isNotNull: false,
         defaultValue: null,
         autoIncrement: false,
         overrides: [],
@@ -18934,16 +18901,11 @@ final class _$Task extends Task {
   static Task? _$fromDatabase(RowReader row) {
     final runtimeVersion = row.readString();
     final package = row.readString();
-    final state = $ForGeneratedCode.customDataTypeOrNull(
-      row.readJsonValue(),
-      TaskState.fromDatabase,
-    );
     final pendingAt = row.readDateTime();
     final lastDependencyChanged = row.readDateTime();
     final finished = row.readDateTime();
     if (runtimeVersion == null &&
         package == null &&
-        state == null &&
         pendingAt == null &&
         lastDependencyChanged == null &&
         finished == null) {
@@ -18952,7 +18914,6 @@ final class _$Task extends Task {
     return _$Task._(
       runtimeVersion!,
       package!,
-      state,
       pendingAt!,
       lastDependencyChanged!,
       finished!,
@@ -18961,7 +18922,7 @@ final class _$Task extends Task {
 
   @override
   String toString() =>
-      'Task(runtimeVersion: "$runtimeVersion", package: "$package", state: "$state", pendingAt: "$pendingAt", lastDependencyChanged: "$lastDependencyChanged", finished: "$finished")';
+      'Task(runtimeVersion: "$runtimeVersion", package: "$package", pendingAt: "$pendingAt", lastDependencyChanged: "$lastDependencyChanged", finished: "$finished")';
 }
 
 /// Extension methods for table defined in [Task].
@@ -18973,7 +18934,6 @@ extension TableTaskExt on Table<Task> {
   InsertSingle<Task> insert({
     required Expr<String> runtimeVersion,
     required Expr<String> package,
-    Expr<TaskState?>? state,
     required Expr<DateTime> pendingAt,
     required Expr<DateTime> lastDependencyChanged,
     required Expr<DateTime> finished,
@@ -18982,7 +18942,6 @@ extension TableTaskExt on Table<Task> {
     values: [
       runtimeVersion,
       package,
-      state,
       pendingAt,
       lastDependencyChanged,
       finished,
@@ -18994,7 +18953,7 @@ extension TableTaskExt on Table<Task> {
   ///
   /// This is a shorthand for calling `.insert(...)` followed by
   /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
-  /// the fields `state`, `pendingAt`, `lastDependencyChanged`, `finished`,
+  /// the fields `pendingAt`, `lastDependencyChanged`, `finished`,
   /// with the values given, leaving the _primary key_ untouched.
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
@@ -19002,7 +18961,6 @@ extension TableTaskExt on Table<Task> {
   UpsertSingle<Task> upsert({
     required Expr<String> runtimeVersion,
     required Expr<String> package,
-    Expr<TaskState?>? state,
     required Expr<DateTime> pendingAt,
     required Expr<DateTime> lastDependencyChanged,
     required Expr<DateTime> finished,
@@ -19010,7 +18968,6 @@ extension TableTaskExt on Table<Task> {
       insert(
             runtimeVersion: runtimeVersion,
             package: package,
-            state: state,
             pendingAt: pendingAt,
             lastDependencyChanged: lastDependencyChanged,
             finished: finished,
@@ -19018,7 +18975,6 @@ extension TableTaskExt on Table<Task> {
           .onConflict(.primaryKey)
           .update(
             (_, excluded, set) => set(
-              state: excluded.state,
               pendingAt: excluded.pendingAt,
               lastDependencyChanged: excluded.lastDependencyChanged,
               finished: excluded.finished,
@@ -19032,7 +18988,6 @@ extension TableTaskExt on Table<Task> {
   InsertSingle<Task> insertValue({
     required String runtimeVersion,
     required String package,
-    TaskState? state,
     required DateTime pendingAt,
     required DateTime lastDependencyChanged,
     required DateTime finished,
@@ -19041,7 +18996,6 @@ extension TableTaskExt on Table<Task> {
     values: [
       runtimeVersion.asExpr,
       package.asExpr,
-      state.asExpr,
       pendingAt.asExpr,
       lastDependencyChanged.asExpr,
       finished.asExpr,
@@ -19053,7 +19007,7 @@ extension TableTaskExt on Table<Task> {
   ///
   /// This is a shorthand for calling `.insertValue(...)` followed by
   /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
-  /// the fields `state`, `pendingAt`, `lastDependencyChanged`, `finished`,
+  /// the fields `pendingAt`, `lastDependencyChanged`, `finished`,
   /// with the values given, leaving the _primary key_ untouched.
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
@@ -19061,7 +19015,6 @@ extension TableTaskExt on Table<Task> {
   UpsertSingle<Task> upsertValue({
     required String runtimeVersion,
     required String package,
-    TaskState? state,
     required DateTime pendingAt,
     required DateTime lastDependencyChanged,
     required DateTime finished,
@@ -19069,7 +19022,6 @@ extension TableTaskExt on Table<Task> {
       insertValue(
             runtimeVersion: runtimeVersion,
             package: package,
-            state: state,
             pendingAt: pendingAt,
             lastDependencyChanged: lastDependencyChanged,
             finished: finished,
@@ -19077,7 +19029,6 @@ extension TableTaskExt on Table<Task> {
           .onConflict(.primaryKey)
           .update(
             (_, excluded, set) => set(
-              state: excluded.state,
               pendingAt: excluded.pendingAt,
               lastDependencyChanged: excluded.lastDependencyChanged,
               finished: excluded.finished,
@@ -19105,7 +19056,6 @@ extension TableTaskExt on Table<Task> {
     Iterable<T> rows, {
     required String Function(T row) runtimeVersion,
     required String Function(T row) package,
-    TaskState? Function(T row)? state,
     required DateTime Function(T row) pendingAt,
     required DateTime Function(T row) lastDependencyChanged,
     required DateTime Function(T row) finished,
@@ -19115,7 +19065,6 @@ extension TableTaskExt on Table<Task> {
     mappings: [
       runtimeVersion,
       package,
-      state != null ? (T v) => state(v)?.toDatabase() : null,
       pendingAt,
       lastDependencyChanged,
       finished,
@@ -19184,7 +19133,6 @@ extension QueryTaskExt on Query<(Expr<Task>,)> {
       UpdateSet<Task> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<TaskState?> state,
         Expr<DateTime> pendingAt,
         Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
@@ -19200,14 +19148,12 @@ extension QueryTaskExt on Query<(Expr<Task>,)> {
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<TaskState?>? state,
         Expr<DateTime>? pendingAt,
         Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
       }) => $ForGeneratedCode.buildUpdate<Task>([
         runtimeVersion,
         package,
-        state,
         pendingAt,
         lastDependencyChanged,
         finished,
@@ -19259,7 +19205,6 @@ extension QuerySingleTaskExt on QuerySingle<(Expr<Task>,)> {
       UpdateSet<Task> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<TaskState?> state,
         Expr<DateTime> pendingAt,
         Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
@@ -19275,14 +19220,12 @@ extension QuerySingleTaskExt on QuerySingle<(Expr<Task>,)> {
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<TaskState?>? state,
         Expr<DateTime>? pendingAt,
         Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
       }) => $ForGeneratedCode.buildUpdate<Task>([
         runtimeVersion,
         package,
-        state,
         pendingAt,
         lastDependencyChanged,
         finished,
@@ -19308,20 +19251,17 @@ extension ExpressionTaskExt on Expr<Task> {
   Expr<String> get package =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
-  Expr<TaskState?> get state =>
-      $ForGeneratedCode.field(this, 2, TaskStateExt._exprType);
-
   /// Next [DateTime] at which point some package version becomes pending.
   Expr<DateTime> get pendingAt =>
-      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
 
   /// Last [DateTime] a dependency was updated.
   Expr<DateTime> get lastDependencyChanged =>
-      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// The last time the a worker completed with a failure or success.
   Expr<DateTime> get finished =>
-      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
 
   /// Get [SubQuery] of rows from the `taskDependencies` table which
   /// reference this row.
@@ -19377,20 +19317,17 @@ extension ExpressionNullableTaskExt on Expr<Task?> {
   Expr<String?> get package =>
       $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
 
-  Expr<TaskState?> get state =>
-      $ForGeneratedCode.field(this, 2, TaskStateExt._exprType);
-
   /// Next [DateTime] at which point some package version becomes pending.
   Expr<DateTime?> get pendingAt =>
-      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
 
   /// Last [DateTime] a dependency was updated.
   Expr<DateTime?> get lastDependencyChanged =>
-      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 3, $ForGeneratedCode.dateTime);
 
   /// The last time the a worker completed with a failure or success.
   Expr<DateTime?> get finished =>
-      $ForGeneratedCode.field(this, 5, $ForGeneratedCode.dateTime);
+      $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
 
   /// Get [SubQuery] of rows from the `taskDependencies` table which
   /// reference this row.
@@ -19651,7 +19588,6 @@ extension InsertOnConflictTaskExt on InsertOnConflict<Task> {
       UpdateSet<Task> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<TaskState?> state,
         Expr<DateTime> pendingAt,
         Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
@@ -19667,14 +19603,12 @@ extension InsertOnConflictTaskExt on InsertOnConflict<Task> {
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<TaskState?>? state,
         Expr<DateTime>? pendingAt,
         Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
       }) => $ForGeneratedCode.buildUpdate<Task>([
         runtimeVersion,
         package,
-        state,
         pendingAt,
         lastDependencyChanged,
         finished,
@@ -19753,7 +19687,6 @@ extension InsertOnConflictSingleTaskExt on InsertOnConflictSingle<Task> {
       UpdateSet<Task> Function({
         Expr<String> runtimeVersion,
         Expr<String> package,
-        Expr<TaskState?> state,
         Expr<DateTime> pendingAt,
         Expr<DateTime> lastDependencyChanged,
         Expr<DateTime> finished,
@@ -19769,14 +19702,12 @@ extension InsertOnConflictSingleTaskExt on InsertOnConflictSingle<Task> {
       ({
         Expr<String>? runtimeVersion,
         Expr<String>? package,
-        Expr<TaskState?>? state,
         Expr<DateTime>? pendingAt,
         Expr<DateTime>? lastDependencyChanged,
         Expr<DateTime>? finished,
       }) => $ForGeneratedCode.buildUpdate<Task>([
         runtimeVersion,
         package,
-        state,
         pendingAt,
         lastDependencyChanged,
         finished,
@@ -22290,50 +22221,4 @@ extension QueryContentNameNamed<A, B>
   ) => _fromPositionalQuery(
     _asPositionalQuery.where(_wrapBuilder(conditionBuilder)),
   );
-}
-
-/// Wrap this [TaskState] as [Expr<TaskState>] for use queries with
-/// `package:typed_sql`.
-extension TaskStateExt on TaskState {
-  static final _exprType = $ForGeneratedCode.customDataType(
-    $ForGeneratedCode.jsonValue,
-    TaskState.fromDatabase,
-  );
-
-  /// Wrap this [TaskState] as [Expr<TaskState>] for use queries with
-  /// `package:typed_sql`.
-  ///
-  /// Using [asExpr] will inject this value as an SQL parameter,
-  /// use [asExprLiteral] if you wish to inject as SQL literal instead.
-  Expr<TaskState> get asExpr =>
-      $ForGeneratedCode.customDataTypeAsExpr(this, _exprType).asNotNull();
-
-  /// Wrap this [TaskState] as [Expr<TaskState>] for use queries with
-  /// `package:typed_sql`.
-  ///
-  /// Using [asExprLiteral] will inject this value as an SQL literal,
-  /// use [asExpr] if you wish to inject as SQL parameter instead.
-  Expr<TaskState> get asExprLiteral => $ForGeneratedCode
-      .customDataTypeAsExprLiteral(this, _exprType)
-      .asNotNull();
-}
-
-/// Wrap this [TaskState] as [Expr<TaskState>] for use queries with
-/// `package:typed_sql`.
-extension TaskStateNullableExt on TaskState? {
-  /// Wrap this [TaskState] as [Expr<TaskState?>] for use queries with
-  /// `package:typed_sql`.
-  ///
-  /// Using [asExpr] will inject this value as an SQL parameter,
-  /// use [asExprLiteral] if you wish to inject as SQL literal instead.
-  Expr<TaskState?> get asExpr =>
-      $ForGeneratedCode.customDataTypeAsExpr(this, TaskStateExt._exprType);
-
-  /// Wrap this [TaskState] as [Expr<TaskState?>] for use queries with
-  /// `package:typed_sql`.
-  ///
-  /// Using [asExprLiteral] will inject this value as an SQL literal,
-  /// use [asExpr] if you wish to inject as SQL parameter instead.
-  Expr<TaskState?> get asExprLiteral => $ForGeneratedCode
-      .customDataTypeAsExprLiteral(this, TaskStateExt._exprType);
 }

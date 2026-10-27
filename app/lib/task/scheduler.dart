@@ -198,7 +198,7 @@ Future<SchedulePackageResult?> schedulePackageInstance({
       'package:${payload.package} analysis of ${payload.versions.length} '
       'versions.';
 
-  var rollbackPackageState = true;
+  var rollbackTask = true;
   try {
     // Purging cache is important for the edge case, where the new upload happens
     // on a different runtime version, and the current one's cache is still stale
@@ -213,7 +213,7 @@ Future<SchedulePackageResult?> schedulePackageInstance({
       arguments: [json.encode(payload)],
       description: description,
     );
-    rollbackPackageState = false;
+    rollbackTask = false;
     return SchedulePackageResult(
       instanceName: instanceName,
       zone: zone,
@@ -251,8 +251,8 @@ Future<SchedulePackageResult?> schedulePackageInstance({
     );
     onZoneFailure?.call(zone, minutes: 15);
   } finally {
-    if (rollbackPackageState) {
-      // Restore the state of the PackageState for versions that were
+    if (rollbackTask) {
+      // Restore the state of the Task for versions that were
       // supposed to run on the instance we just failed to create.
       // If this doesn't work, we'll eventually retry. Hence, correctness
       // does not hinge on this transaction being successful.
@@ -323,7 +323,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
       return null;
     }
 
-    // Update PackageState
+    // Update Task
     final newVersions = {
       ...oldVersions,
       for (final v in pendingVersions.map((v) => v.toString()))

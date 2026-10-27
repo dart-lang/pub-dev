@@ -4,11 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:json_annotation/json_annotation.dart' hide JsonValue;
-import 'package:meta/meta.dart';
-import 'package:pub_dev/admin/actions/actions.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
-import 'package:pub_dev/task/models.dart';
 import 'package:typed_sql/typed_sql.dart';
 
 part 'schema.g.dart';

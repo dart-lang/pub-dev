@@ -16,8 +16,6 @@ abstract final class Task extends Row {
   String get runtimeVersion;
   String get package;
 
-  TaskState? get state;
-
   /// Next [DateTime] at which point some package version becomes pending.
   DateTime get pendingAt;
 
@@ -113,27 +111,4 @@ abstract final class TaskAbortedToken extends Row {
   String get workerToken;
 
   DateTime get expiresAt;
-}
-
-@immutable
-@JsonSerializable()
-final class TaskState implements CustomDataType<JsonValue> {
-  /// Scheduling state for all versions of this package.
-  final Map<String, PackageVersionStateInfo> versions;
-
-  /// The list of tokens that were removed from this [versions].
-  /// When a worker reports back using one of these tokens, they will
-  /// recieve a [TaskAbortedException].
-  final List<AbortedTokenInfo> abortedTokens;
-
-  TaskState({required this.versions, required this.abortedTokens});
-
-  factory TaskState.fromJson(Map<String, dynamic> m) => _$TaskStateFromJson(m);
-  Map<String, dynamic> toJson() => _$TaskStateToJson(this);
-
-  factory TaskState.fromDatabase(JsonValue value) =>
-      TaskState.fromJson(value.value as Map<String, dynamic>);
-
-  @override
-  JsonValue toDatabase() => JsonValue(toJson());
 }

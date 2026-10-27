@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show json;
 import 'dart:math';
 
 import 'package:clock/clock.dart';
@@ -11,7 +10,6 @@ import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../shared/datastore.dart' as db;
 import '../shared/versions.dart' as shared_versions;
 
 part 'models.g.dart';
@@ -51,15 +49,8 @@ const taskRetryLimit = 3;
 ///  * If `secretToken` used for authorization has expired.
 const maxTaskExecutionTime = Duration(hours: 3);
 
-/// Cloud Datastore does support `DateTime(0)`.
-///
-/// This is undocumented, but Cloud Datastore does not support timestamps
-/// earlier than "0001-01-01T00:00:00Z". This limitation is given for protobuf,
-/// so one can guess that this limitation applied to GRPC based APIs, see:
-/// https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Timestamp
-///
-/// For this reason we'll not use `DateTime(0)` and instead use
-/// [initialTimestamp] to indicate that something has never happened before.
+/// Timestamp (Unix epoch) used to indicate that something has never happened
+/// before.
 final initialTimestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 
 /// Delay before scheduling a fail analysis/dartdoc task again.
@@ -361,40 +352,6 @@ class PackageVersionStateInfo {
   }
 }
 
-/// A [db.Property] encoding a Map from version to [PackageVersionStateInfo] as JSON.
-class PackageVersionStateMapProperty extends db.Property {
-  const PackageVersionStateMapProperty({
-    super.propertyName,
-    super.required = false,
-  }) : super(indexed: false);
-
-  @override
-  Object? encodeValue(
-    db.ModelDB mdb,
-    Object? value, {
-    bool forComparison = false,
-  }) => json.encode(
-    (value as Map<String, PackageVersionStateInfo>).map(
-      (version, state) =>
-          MapEntry(version, _$PackageVersionStateInfoToJson(state)),
-    ),
-  );
-
-  @override
-  Object? decodePrimitiveValue(db.ModelDB mdb, Object? value) =>
-      (json.decode(value as String) as Map<String, dynamic>).map(
-        (version, state) => MapEntry(
-          version,
-          _$PackageVersionStateInfoFromJson(state as Map<String, dynamic>),
-        ),
-      );
-
-  @override
-  bool validate(db.ModelDB mdb, Object? value) =>
-      super.validate(mdb, value) &&
-      (value == null || value is Map<String, PackageVersionStateInfo>);
-}
-
 /// Status for a package.
 @JsonSerializable()
 class PackageStateInfo {
@@ -444,47 +401,15 @@ enum PackageVersionStatus {
 /// Tracks a token that was removed from the [Task], but a worker
 /// may still use it to report a completed task. Such workers may recieve
 /// an error code that says they shouldn't really panic on the rejection.
-@JsonSerializable()
 class AbortedTokenInfo {
   final String token;
   final DateTime expires;
 
   AbortedTokenInfo({required this.token, required this.expires});
 
-  factory AbortedTokenInfo.fromJson(Map<String, dynamic> m) =>
-      _$AbortedTokenInfoFromJson(m);
-  Map<String, dynamic> toJson() => _$AbortedTokenInfoToJson(this);
-
   bool get isNotExpired => clock.now().isBefore(expires);
 
   bool isAuthorized(String token) {
     return fixedTimeEquals(this.token, token) && isNotExpired;
   }
-}
-
-/// A [db.Property] encoding a List os [AbortedTokenInfo] as JSON.
-class AbortedTokenListProperty extends db.Property {
-  const AbortedTokenListProperty({super.propertyName, super.required = false})
-    : super(indexed: false);
-
-  @override
-  Object? encodeValue(
-    db.ModelDB mdb,
-    Object? value, {
-    bool forComparison = false,
-  }) => json.encode(
-    (value as List<AbortedTokenInfo>?)?.map((e) => e.toJson()).toList(),
-  );
-
-  @override
-  Object? decodePrimitiveValue(db.ModelDB mdb, Object? value) => value == null
-      ? null
-      : (json.decode(value as String) as List?)
-            ?.map((e) => AbortedTokenInfo.fromJson(e as Map<String, dynamic>))
-            .toList();
-
-  @override
-  bool validate(db.ModelDB mdb, Object? value) =>
-      super.validate(mdb, value) &&
-      (value == null || value is List<AbortedTokenInfo>);
 }
