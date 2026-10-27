@@ -291,7 +291,7 @@ Future<AccountPublisherOptions> accountPublisherOptionsHandler(
     throw NotFoundException.resource('publisher "$publisherId"');
   }
   final member = await publisherBackend.getPublisherMember(
-    publisher,
+    publisher.publisherId,
     user.userId,
   );
   final isAdmin = member != null && member.role == PublisherMemberRole.admin;

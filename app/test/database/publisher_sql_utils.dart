@@ -4,7 +4,6 @@
 
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
-import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
@@ -13,7 +12,9 @@ import 'package:typed_sql/typed_sql.dart';
 /// Expects that the SQL rows of [publisherId] (and its members) match the
 /// Datastore entities, or that none of them exist when the publisher is gone.
 Future<void> expectPublisherInSqlMatchesDatastore(String publisherId) async {
-  final p = await publisherBackend.lookupPublisher(publisherId);
+  final p = await dbService.lookupOrNull<Publisher>(
+    dbService.emptyKey.append(Publisher, id: publisherId),
+  );
   final members = p == null
       ? const <PublisherMember>[]
       : await dbService

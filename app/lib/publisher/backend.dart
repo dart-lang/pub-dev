@@ -60,18 +60,62 @@ class PublisherBackend {
   /// the [Publisher] does not exist in Datastore, it is removed from SQL
   /// (the member rows are removed by the foreign key cascade).
   Future<void> mirrorPublisherToSql(String publisherId) async {
-    final key = _db.emptyKey.append(Publisher, id: publisherId);
+    final key = _publisherKey(publisherId);
     final publisher = await _db.lookupOrNull<Publisher>(key);
-    final members = publisher == null
-        ? const <PublisherMember>[]
-        : await _db.query<PublisherMember>(ancestorKey: key).run().toList();
-    await primaryDatabase.transactWithRetry((db) async {
-      if (publisher == null) {
-        await db.publishers.delete(publisherId).execute();
+    final (current, currentMembers) = await primaryDatabase.withRetry((
+      db,
+    ) async {
+      final row = await db.publishers.byKey(publisherId).fetch();
+      final members = await db.publisherMembers
+          .where((m) => m.publisherId.equalsValue(publisherId))
+          .fetch();
+      return (row, members);
+    });
+    if (publisher == null) {
+      if (current == null) return;
+      await primaryDatabase.withRetry(
+        (db) => db.publishers.delete(publisherId).execute(),
+      );
+      return;
+    }
+    final members = await _db
+        .query<PublisherMember>(ancestorKey: key)
+        .run()
+        .toList();
+    if (current != null) {
+      if (current.updatedAt.isAfter(publisher.updated!)) return;
+      if (current.updatedAt.isAtSameMomentAs(publisher.updated!) &&
+          _sameMembers(currentMembers, members)) {
         return;
       }
+    }
+    await primaryDatabase.transactWithRetry((db) async {
       await _upsertPublisher(db, publisher, members);
     });
+  }
+
+  bool _sameMembers(List<PublisherMemberRow> rows, List<PublisherMember> ds) {
+    if (rows.length != ds.length) return false;
+    final byUserId = {for (final r in rows) r.userId: r};
+    for (final m in ds) {
+      final r = byUserId[m.userId];
+      if (r == null ||
+          r.role != m.role ||
+          !r.updatedAt.isAtSameMomentAs(m.updated!)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Key _publisherKey(String publisherId) =>
+      _db.emptyKey.append(Publisher, id: publisherId);
+
+  Future<PublisherRow?> _mirrorAndFetch(String publisherId) async {
+    await mirrorPublisherToSql(publisherId);
+    return await primaryDatabase.withRetry(
+      (db) => db.publishers.byKey(publisherId).fetch(),
+    );
   }
 
   /// Upserts the [p] row and syncs its [members].
@@ -186,23 +230,21 @@ class PublisherBackend {
   /// Returns the cached publisher status.
   Future<PublisherStatus> getPublisherStatus(String publisherId) async {
     final status = await cache.publisherStatus(publisherId).get(() async {
-      final pKey = _db.emptyKey.append(Publisher, id: publisherId);
-      final p = await _db.lookupOrNull<Publisher>(pKey);
+      final p = await _mirrorAndFetch(publisherId);
       return p?.status ?? PublisherStatus.missing;
     });
     return status!;
   }
 
-  /// Loads a [Publisher] entity or `null` if there is no such entity.
-  Future<Publisher?> lookupPublisher(String publisherId) async {
+  /// Loads a [PublisherRow] or `null` if there is no such publisher.
+  Future<PublisherRow?> lookupPublisher(String publisherId) async {
     checkPublisherIdParam(publisherId);
-    final pKey = _db.emptyKey.append(Publisher, id: publisherId);
-    return await _db.lookupOrNull<Publisher>(pKey);
+    return await _mirrorAndFetch(publisherId);
   }
 
-  /// Loads a [Publisher] entity or `null` if there is no such entity,
-  /// or if the entity is not listed / visible.
-  Future<Publisher?> getListedPublisher(String publisherId) async {
+  /// Loads a [PublisherRow] or `null` if there is no such publisher,
+  /// or if the publisher is not listed / visible.
+  Future<PublisherRow?> getListedPublisher(String publisherId) async {
     final p = await lookupPublisher(publisherId);
     return p == null || p.isUnlisted ? null : p;
   }
@@ -212,16 +254,19 @@ class PublisherBackend {
   Future<PublisherPage> listPublishers() async {
     return (await cache.allPublishersPage().get(() async {
       final sw = Stopwatch()..start();
-      final query = _db.query<Publisher>();
-      final publishers = await query
-          .run()
-          .where((p) => !p.isUnlisted)
-          .map(
-            (p) => PublisherSummary(
-              publisherId: p.publisherId,
-              created: p.created!,
-            ),
-          )
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.publishers
+            .where(
+              (p) =>
+                  p.isAbandoned.equalsValue(false) &
+                  p.isModerated.equalsValue(false),
+            )
+            .orderBy((p) => [(p.publisherId, Order.ascending)])
+            .select((p) => (p.publisherId, p.createdAt))
+            .fetch(),
+      );
+      final publishers = rows
+          .map((r) => PublisherSummary(publisherId: r.$1, created: r.$2))
           .toList();
       sw.stop();
       if (sw.elapsed.inSeconds > 10) {
@@ -238,10 +283,19 @@ class PublisherBackend {
   /// List all publishers where the [userId] is a member.
   Future<PublisherPage> listPublishersForUser(String userId) async {
     return (await cache.publisherPage(userId).get(() async {
-      final query = _db.query<PublisherMember>()..filter('userId =', userId);
-      final members = await query.run().toList();
-      final publisherKeys = members.map((pm) => pm.publisherKey).toList();
-      if (publisherKeys.length > 100) {
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.publisherMembers
+            .where((m) => m.userId.equalsValue(userId))
+            .join(db.publishers)
+            .on((m, p) => m.publisherId.equals(p.publisherId))
+            .orderBy((m, p) => [(p.publisherId, Order.ascending)])
+            .select(
+              (m, p) =>
+                  (p.publisherId, p.createdAt, p.isAbandoned, p.isModerated),
+            )
+            .fetch(),
+      );
+      if (rows.length > 100) {
         // When this is triggered, we should split the single list of publishers
         // to pages and adjust the uses of this method:
         // - list of publishers on package admin page
@@ -249,39 +303,32 @@ class PublisherBackend {
         // - search using this for query parameters
         _logger.shout('A user has more than 100 publishers.');
       }
-      final publishers = (await _db.lookup<Publisher>(
-        publisherKeys,
-      )).nonNulls.toList();
-      publishers.sort((a, b) => a.publisherId.compareTo(b.publisherId));
       return PublisherPage(
-        publishers: publishers
-            .where((p) => p.isVisible)
-            .map(
-              (p) => PublisherSummary(
-                publisherId: p.publisherId,
-                created: p.created!,
-              ),
-            )
+        publishers: rows
+            .where((r) => !r.$3 && !r.$4)
+            .map((r) => PublisherSummary(publisherId: r.$1, created: r.$2))
             .toList(),
       );
     }))!;
   }
 
-  /// Loads the [PublisherMember] instance for [userId] (or returns null if it does not exists).
-  Future<PublisherMember?> getPublisherMember(
-    Publisher publisher,
+  /// Loads the [PublisherMemberRow] for [userId] (or returns null if it does
+  /// not exists).
+  Future<PublisherMemberRow?> getPublisherMember(
+    String publisherId,
     String userId,
   ) async {
     ArgumentError.checkNotNull(userId, 'userId');
-    final mKey = publisher.key.append(PublisherMember, id: userId);
-    return await _db.lookupOrNull<PublisherMember>(mKey);
+    return await primaryDatabase.withRetry(
+      (db) => db.publisherMembers.byKey(publisherId, userId).fetch(),
+    );
   }
 
   /// Whether the User [userId] has admin permissions on the publisher.
-  Future<bool> isMemberAdmin(Publisher publisher, String? userId) async {
+  Future<bool> isMemberAdmin(PublisherRow publisher, String? userId) async {
     if (publisher.isModerated) return false;
     if (userId == null) return false;
-    final member = await getPublisherMember(publisher, userId);
+    final member = await getPublisherMember(publisher.publisherId, userId);
     if (member == null) return false;
     return member.role == PublisherMemberRole.admin;
   }
@@ -349,7 +396,7 @@ class PublisherBackend {
     );
     var created = false;
     await withRetryTransaction(_db, (tx) async {
-      final key = _db.emptyKey.append(Publisher, id: publisherId);
+      final key = _publisherKey(publisherId);
       final p = await tx.lookupOrNull<Publisher>(key);
       if (p != null) {
         // Check that publisher is the same as what we would create.
@@ -375,7 +422,7 @@ class PublisherBackend {
             contactEmail: user.email,
           ),
           PublisherMember()
-            ..parentKey = _db.emptyKey.append(Publisher, id: publisherId)
+            ..parentKey = _publisherKey(publisherId)
             ..id = user.userId
             ..userId = user.userId
             ..created = now
@@ -393,9 +440,10 @@ class PublisherBackend {
     await cache.allPublishersPage().purge();
 
     // Return publisher as it was created
-    final key = _db.emptyKey.append(Publisher, id: publisherId);
-    final p = await _db.lookupValue<Publisher>(key);
-    return _asPublisherInfo(p);
+    final p = await primaryDatabase.withRetry(
+      (db) => db.publishers.byKey(publisherId).fetch(),
+    );
+    return _asPublisherInfo(p!);
   }
 
   /// Gets the publisher data
@@ -440,13 +488,13 @@ class PublisherBackend {
     }
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
-    await requirePublisherAdmin(publisherId, user.userId);
+    final publisher = await requirePublisherAdmin(publisherId, user.userId);
     final auditLogRecord = await AuditLogRecord.publisherUpdated(
       user: user,
       publisherId: publisherId,
     );
-    final p = await withRetryTransaction(_db, (tx) async {
-      final key = _db.emptyKey.append(Publisher, id: publisherId);
+    await withRetryTransaction(_db, (tx) async {
+      final key = _publisherKey(publisherId);
       final p = await tx.lookupValue<Publisher>(key);
 
       // If websiteUrl has changed, check that it's under the [publisherId] domain.
@@ -486,7 +534,7 @@ class PublisherBackend {
         );
         if (usersByEmail.isNotEmpty) {
           for (final user in usersByEmail) {
-            if (await isMemberAdmin(p, user.userId)) {
+            if (await isMemberAdmin(publisher, user.userId)) {
               contactEmailMatchedAdmin = true;
               p.contactEmail = update.contactEmail;
               break;
@@ -508,13 +556,12 @@ class PublisherBackend {
 
       tx.insert(p);
       tx.insert(auditLogRecord);
-      return p;
     });
     await auditBackend.migrateToSql(auditLogRecord);
-    await mirrorPublisherToSql(publisherId);
+    final updated = await _mirrorAndFetch(publisherId);
 
     await purgePublisherCache(publisherId);
-    return _asPublisherInfo(p);
+    return _asPublisherInfo(updated!);
   }
 
   /// Updates the contact email field of the publisher using a verified e-mail.
@@ -540,7 +587,7 @@ class PublisherBackend {
       contactEmail: contactEmail,
     );
     await withRetryTransaction(_db, (tx) async {
-      final key = _db.emptyKey.append(Publisher, id: publisherId);
+      final key = _publisherKey(publisherId);
       final p = await tx.lookupValue<Publisher>(key);
       p.contactEmail = contactEmail;
       p.updated = clock.now().toUtc();
@@ -587,18 +634,19 @@ class PublisherBackend {
 
     final usersByEmail = await accountBackend.lookupUsersByEmail(invite.email);
     if (usersByEmail.isNotEmpty) {
-      final maybeMembers = await _db.lookup<PublisherMember>(
-        usersByEmail
-            .map(
-              (u) => _db.emptyKey
-                  .append(Publisher, id: publisherId)
-                  .append(PublisherMember, id: u.userId),
-            )
-            .toList(),
-      );
-      for (final m in maybeMembers) {
-        if (m == null) continue;
-        final email = await accountBackend.getEmailOfUserId(m.userId!);
+      await mirrorPublisherToSql(publisherId);
+      final members = await primaryDatabase.withRetry((db) async {
+        final rows = <PublisherMemberRow>[];
+        for (final u in usersByEmail) {
+          final row = await db.publisherMembers
+              .byKey(publisherId, u.userId)
+              .fetch();
+          if (row != null) rows.add(row);
+        }
+        return rows;
+      });
+      for (final m in members) {
+        final email = await accountBackend.getEmailOfUserId(m.userId);
         InvalidInputException.check(
           email != invite.email,
           'User is already a member.',
@@ -612,11 +660,10 @@ class PublisherBackend {
     String publisherId,
   ) async {
     checkPublisherIdParam(publisherId);
-    final key = _db.emptyKey.append(Publisher, id: publisherId);
     // TODO: add caching
-    final query = _db.query<PublisherMember>(ancestorKey: key);
+    final rows = await _listMemberRows(publisherId);
     final members = <api.PublisherMember>[];
-    await for (final pm in query.run()) {
+    for (final pm in rows) {
       members.add(await _asPublisherMember(pm));
     }
     return members;
@@ -636,13 +683,21 @@ class PublisherBackend {
     );
   }
 
+  Future<List<PublisherMemberRow>> _listMemberRows(String publisherId) async {
+    return await primaryDatabase.withRetry(
+      (db) => db.publisherMembers
+          .where((m) => m.publisherId.equalsValue(publisherId))
+          .fetch(),
+    );
+  }
+
   /// The list of email addresses of the members with admin roles. The list
   /// should be used to notify admins on upload events.
   Future<List<String?>> getAdminMemberEmails(String publisherId) async {
     checkPublisherIdParam(publisherId);
-    final key = _db.emptyKey.append(Publisher, id: publisherId);
-    final query = _db.query<PublisherMember>(ancestorKey: key);
-    final userIds = await query.run().map((m) => m.userId!).toList();
+    final userIds = (await _listMemberRows(
+      publisherId,
+    )).map((m) => m.userId).toList();
     return await accountBackend.getEmailsOfUserIds(userIds);
   }
 
@@ -653,9 +708,8 @@ class PublisherBackend {
   ) async {
     checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedWebUser();
-    final p = await requirePublisherAdmin(publisherId, user.userId);
-    final key = p.key.append(PublisherMember, id: userId);
-    final pm = await _db.lookupOrNull<PublisherMember>(key);
+    await requirePublisherAdmin(publisherId, user.userId);
+    final pm = await getPublisherMember(publisherId, userId);
     if (pm == null) {
       throw NotFoundException.resource('member: $userId');
     }
@@ -670,9 +724,10 @@ class PublisherBackend {
   ) async {
     checkPublisherIdParam(publisherId);
     final user = await requireAuthenticatedWebUser();
-    final p = await requirePublisherAdmin(publisherId, user.userId);
-    final key = p.key.append(PublisherMember, id: userId);
-    final pm = await _db.lookupOrNull<PublisherMember>(key);
+    await requirePublisherAdmin(publisherId, user.userId);
+    final publisherKey = _publisherKey(publisherId);
+    final key = publisherKey.append(PublisherMember, id: userId);
+    final pm = await getPublisherMember(publisherId, userId);
     if (pm == null) {
       throw NotFoundException.resource('member: $userId');
     }
@@ -695,16 +750,16 @@ class PublisherBackend {
         current.updated = now;
         tx.insert(current);
         // bump the publisher too, the SQL mirror uses it to detect stale writes
-        final publisher = await tx.lookupValue<Publisher>(p.key);
+        final publisher = await tx.lookupValue<Publisher>(publisherKey);
         publisher.updated = now;
         tx.insert(publisher);
       });
     }
-    final updated = await _db.lookupValue<PublisherMember>(key);
     await mirrorPublisherToSql(publisherId);
+    final updated = await getPublisherMember(publisherId, userId);
     await purgePublisherCache(publisherId);
     await purgeAccountCache(userId: userId);
-    return await _asPublisherMember(updated);
+    return await _asPublisherMember(updated!);
   }
 
   /// Deletes a publisher's member.
@@ -712,13 +767,13 @@ class PublisherBackend {
     checkPublisherIdParam(publisherId);
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
-    final p = await requirePublisherAdmin(publisherId, user.userId);
+    await requirePublisherAdmin(publisherId, user.userId);
     if (userId == user.userId) {
       throw ConflictException.cantUpdateSelf();
     }
 
-    final key = p.key.append(PublisherMember, id: userId);
-    final pm = await _db.lookupOrNull<PublisherMember>(key);
+    final publisherKey = _publisherKey(publisherId);
+    final pm = await getPublisherMember(publisherId, userId);
     if (pm != null) {
       final memberUser = await accountBackend.lookupUserById(userId);
       final auditLogRecord = await AuditLogRecord.publisherMemberRemoved(
@@ -728,11 +783,11 @@ class PublisherBackend {
       );
       await withRetryTransaction(_db, (tx) async {
         // bump the publisher, the SQL mirror uses it to detect stale writes
-        final publisher = await tx.lookupValue<Publisher>(p.key);
+        final publisher = await tx.lookupValue<Publisher>(publisherKey);
         publisher.updated = clock.now().toUtc();
         tx.queueMutations(
           inserts: [publisher, auditLogRecord],
-          deletes: [pm.key],
+          deletes: [publisherKey.append(PublisherMember, id: userId)],
         );
       });
       await auditBackend.migrateToSql(auditLogRecord);
@@ -792,16 +847,16 @@ class PublisherBackend {
     await purgeAccountCache(userId: userId);
   }
 
-  Future<api.PublisherMember> _asPublisherMember(PublisherMember pm) async {
+  Future<api.PublisherMember> _asPublisherMember(PublisherMemberRow pm) async {
     return api.PublisherMember(
-      userId: pm.userId!,
-      role: pm.role!,
-      email: (await accountBackend.getEmailOfUserId(pm.userId!))!,
+      userId: pm.userId,
+      role: pm.role,
+      email: (await accountBackend.getEmailOfUserId(pm.userId))!,
     );
   }
 }
 
-api.PublisherInfo _asPublisherInfo(Publisher p) => api.PublisherInfo(
+api.PublisherInfo _asPublisherInfo(PublisherRow p) => api.PublisherInfo(
   description: p.description,
   websiteUrl: p.websiteUrl,
   contactEmail: p.contactEmail,
@@ -812,7 +867,7 @@ api.PublisherInfo _asPublisherInfo(Publisher p) => api.PublisherInfo(
 ///
 /// Throws AuthenticationException if the user is provided.
 /// Throws AuthorizationException if the user is not an admin for the publisher.
-Future<Publisher> requirePublisherAdmin(
+Future<PublisherRow> requirePublisherAdmin(
   String? publisherId,
   String userId,
 ) async {
@@ -826,11 +881,7 @@ Future<Publisher> requirePublisherAdmin(
     throw NotFoundException('Publisher $publisherId does not exists.');
   }
 
-  final member = await publisherBackend._db.lookupOrNull<PublisherMember>(
-    p.key.append(PublisherMember, id: userId),
-  );
-
-  if (member == null || member.role != PublisherMemberRole.admin) {
+  if (!await publisherBackend.isMemberAdmin(p, userId)) {
     _logger.info(
       'Unauthorized access of Publisher($publisherId) from User($userId).',
     );

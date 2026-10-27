@@ -31,6 +31,29 @@ abstract final class PublisherRow extends Row {
   DateTime? get moderatedAt;
 }
 
+extension PublisherRowExt on PublisherRow {
+  /// Whether the publisher has a displayable description.
+  bool get hasDescription => description != null && description!.isNotEmpty;
+
+  /// Whether the publisher has a displayable contact email.
+  bool get hasContactEmail => contactEmail != null && contactEmail!.isNotEmpty;
+
+  /// Whether we should not list the publisher page in sitemap or promote it in
+  /// search engines.
+  bool get isUnlisted => isAbandoned || isModerated;
+  bool get isVisible => !isUnlisted;
+
+  PublisherStatus get status {
+    if (isModerated) {
+      return PublisherStatus.moderated;
+    } else if (isAbandoned) {
+      return PublisherStatus.abandoned;
+    } else {
+      return PublisherStatus.active;
+    }
+  }
+}
+
 /// A user that is a member of a publisher.
 ///
 /// TODO: rename to `PublisherMember` after the SQL migration.

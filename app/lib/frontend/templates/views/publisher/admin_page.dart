@@ -4,13 +4,13 @@
 
 import 'package:_pub_shared/data/publisher_api.dart' as api;
 
-import '../../../../publisher/models.dart';
+import '../../../../database/schema.dart' show PublisherRow;
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
 
 /// Creates the publisher admin page content.
 d.Node publisherAdminPageNode({
-  required Publisher publisher,
+  required PublisherRow publisher,
   required List<api.PublisherMember> members,
 }) {
   return d.fragment([

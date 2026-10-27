@@ -8,6 +8,7 @@ import 'package:_pub_shared/search/search_form.dart' show SearchForm;
 import 'package:_pub_shared/search/tags.dart';
 
 import '../../audit/models.dart';
+import '../../database/schema.dart' show PublisherRow, PublisherRowExt;
 import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/search_adapter.dart' show SearchResultPage;
 import '../../publisher/models.dart';
@@ -70,7 +71,7 @@ d.Node publisherPackagesListTabContentNode({
 
 /// Renders the search results on the publisher's packages page.
 String renderPublisherPackagesPage({
-  required Publisher publisher,
+  required PublisherRow publisher,
   required PublisherPackagesPageKind kind,
   required SearchForm searchForm,
   required d.Node tabContent,
@@ -144,7 +145,7 @@ String renderPublisherPackagesPage({
 
 /// Renders the publisher admin page.
 String renderPublisherAdminPage({
-  required Publisher publisher,
+  required PublisherRow publisher,
   required List<api.PublisherMember> members,
 }) {
   final tabs = <Tab>[
@@ -185,7 +186,7 @@ String renderPublisherAdminPage({
 
 /// Renders the publisher's activity log page.
 String renderPublisherActivityLogPage({
-  required Publisher publisher,
+  required PublisherRow publisher,
   required AuditLogRecordPage activities,
 }) {
   final activityLog = activityLogNode(
@@ -226,7 +227,7 @@ String renderPublisherActivityLogPage({
   );
 }
 
-d.Node _renderDetailHeader(Publisher publisher) {
+d.Node _renderDetailHeader(PublisherRow publisher) {
   return renderDetailHeader(
     titleNode: d.text(publisher.publisherId),
     metadataNode: publisherHeaderMetadataNode(publisher),

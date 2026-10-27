@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../database/schema.dart';
 import '../../publisher/backend.dart';
 import '../../publisher/models.dart';
 import '../../shared/datastore.dart';
@@ -58,10 +59,14 @@ can't be updated, administrators must not be able to update publisher options.
     final refCase = await adminBackend
         .loadAndVerifyModerationCaseForAdminAction(caseId);
 
-    Publisher? publisher2;
+    PublisherRow? publisher2;
     if (valueToSet != null) {
-      publisher2 = await withRetryTransaction(dbService, (tx) async {
-        final p = await tx.lookupValue<Publisher>(publisher!.key);
+      final publisherKey = dbService.emptyKey.append(
+        Publisher,
+        id: publisherId,
+      );
+      await withRetryTransaction(dbService, (tx) async {
+        final p = await tx.lookupValue<Publisher>(publisherKey);
         p.updateIsModerated(isModerated: valueToSet!);
         tx.insert(p);
 
@@ -74,10 +79,8 @@ can't be updated, administrators must not be able to update publisher options.
           );
           tx.insert(mc);
         }
-
-        return p;
       });
-      await publisherBackend.mirrorPublisherToSql(publisherId);
+      publisher2 = await publisherBackend.lookupPublisher(publisherId);
       if (refCase != null) {
         await adminBackend.mirrorModerationCaseToSqlById(refCase.caseId);
       }

@@ -5,6 +5,7 @@
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
+import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/account/backend.dart';
@@ -16,7 +17,7 @@ import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/publisher/backend.dart';
+import 'package:pub_dev/publisher/models.dart' as pm;
 import 'package:pub_dev/service/email/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
@@ -720,12 +721,16 @@ Future<void> _expireConsent(String? consentId) async {
 Future<void> _removeAdminRole(String publisherId, String email) async {
   await withFakeAuthRequestContext(email, () async {
     final agent = await requireAuthenticatedWebUser();
-    final publisher = await publisherBackend.lookupPublisher(publisherId);
-    final member = await publisherBackend.getPublisherMember(
-      publisher!,
-      agent.userId,
+    final member = await dbService.lookupValue<pm.PublisherMember>(
+      dbService.emptyKey
+          .append(pm.Publisher, id: publisherId)
+          .append(pm.PublisherMember, id: agent.userId),
     );
-    member!.role = 'non-admin';
-    await dbService.commit(inserts: [member]);
+    member.role = 'non-admin';
+    final publisher = await dbService.lookupValue<pm.Publisher>(
+      dbService.emptyKey.append(pm.Publisher, id: publisherId),
+    );
+    publisher.updated = clock.now().toUtc();
+    await dbService.commit(inserts: [member, publisher]);
   });
 }
