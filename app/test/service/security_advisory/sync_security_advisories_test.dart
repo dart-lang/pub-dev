@@ -8,6 +8,7 @@ import 'package:clock/clock.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
+import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/service/security_advisories/sync_security_advisories.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
@@ -211,11 +212,11 @@ void main() {
       // Verify that it creates a good set of advisories in the backend.
       adv = await securityAdvisoryBackend.lookupById('GHSA-4rgh-jx4f-qfcq');
       expect(adv, isNotNull);
-      expect(adv!.osv!.id, equals('GHSA-4rgh-jx4f-qfcq'));
+      expect(adv!.osv.id, equals('GHSA-4rgh-jx4f-qfcq'));
 
       adv = await securityAdvisoryBackend.lookupById('GHSA-vm9r-h74p-hg97');
       expect(adv, isNotNull);
-      expect(adv!.osv!.id, equals('GHSA-vm9r-h74p-hg97'));
+      expect(adv!.osv.id, equals('GHSA-vm9r-h74p-hg97'));
       expect(adv.affectedPackages, contains('jose'));
     },
   );
