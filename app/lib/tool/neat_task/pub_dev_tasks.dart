@@ -88,6 +88,7 @@ List<NeatPeriodicTaskScheduler> createPeriodicTaskSchedulers({
       task: () async {
         await emailBackend.migrateFromDatastore();
         await auditBackend.migrateFromDatastore();
+        await consentBackend.migrateFromDatastore();
       },
     ),
 

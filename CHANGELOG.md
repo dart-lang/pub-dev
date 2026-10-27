@@ -14,6 +14,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Note: A package's likes count is now read from SQL.
  * Note: `ReservedPackage` is now fully migrated to SQL (ongoing delete from Datastore).
  * Note: `ModerationCase` is now read from SQL.
+ * Note: `Consent` reads and updates now work only in SQL; Datastore entities are migrated (and deleted) right after creation.
 
 ## `20261027t132200-all`
  * Bump runtimeVersion to `2026.10.23`.

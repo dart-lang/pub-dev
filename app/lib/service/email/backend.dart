@@ -237,24 +237,30 @@ class EmailBackend {
   /// This should be called right after [email] has been (or would have been)
   /// written to Datastore, so that SQL becomes the sole store for it.
   Future<void> migrateToSql(OutgoingEmail email) async {
-    await primaryDatabase.transactWithRetry(
-      (db) => db.outgoingEmails
-          .upsertValue(
-            id: email.uuid,
-            createdAt: email.created!,
-            attempts: email.attempts,
-            lastAttemptedAt: email.lastAttempted,
-            claimId: email.claimId,
-            pendingAt: email.pendingAt!,
-            fromEmail: email.fromEmail!,
-            recipientEmailsJson: JsonValue(email.recipientEmails),
-            subject: email.subject!,
-            bodyText: email.bodyText!,
-            bodyHtml: email.bodyHtml!,
-          )
-          .execute(),
-    );
+    await primaryDatabase.transactWithRetry((db) => insertIntoSql(db, email));
     await withRetryTransaction(_db, (tx) async => tx.delete(email.key));
+  }
+
+  /// Writes [email] into SQL using [db].
+  Future<void> insertIntoSql(
+    Database<PrimarySchema> db,
+    OutgoingEmail email,
+  ) async {
+    await db.outgoingEmails
+        .upsertValue(
+          id: email.uuid,
+          createdAt: email.created!,
+          attempts: email.attempts,
+          lastAttemptedAt: email.lastAttempted,
+          claimId: email.claimId,
+          pendingAt: email.pendingAt!,
+          fromEmail: email.fromEmail!,
+          recipientEmailsJson: JsonValue(email.recipientEmails),
+          subject: email.subject!,
+          bodyText: email.bodyText!,
+          bodyHtml: email.bodyHtml!,
+        )
+        .execute();
   }
 
   /// Migrates [OutgoingEmail] entries found in Datastore into SQL, deleting

@@ -903,13 +903,15 @@ void main() {
               ),
             );
 
-            final consentRow = await dbService.query<Consent>().run().single;
-            expect(consentRow.args, ['oxygen']);
+            final consentRow = (await primaryDatabase.withRetry(
+              (db) => db.consents.fetch(),
+            )).single;
+            expect(consentRow.argsJson.value, ['oxygen']);
 
             await (await createFakeAuthPubApiClient(
               email: 'someuser@pub.dev',
             )).resolveConsent(
-              consentRow.consentId,
+              consentRow.id,
               account_api.ConsentResult(granted: true),
             );
 
