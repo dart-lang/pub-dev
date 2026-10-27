@@ -229,7 +229,7 @@ class TaskBackend {
   /// day or so.
   Future<void> backfillTrackingState() async {
     // Store package name, so we can skip looking at these when scanning for
-    // [PackageState] entities that shouldn't exist.
+    // [Task] rows that shouldn't exist.
     final packageNames = await _datastore.packages.listAllNames().toSet();
 
     // Allow a little concurrency
@@ -260,7 +260,7 @@ class TaskBackend {
     await pool.close();
     await pool.done;
 
-    // Check that all [PackageState] entities have a matching [Package] entity.
+    // Check that all [Task] rows have a matching [Package] entity.
     final packagesToDelete = <String>{};
     await _database.withRetry((db) async {
       await for (final state in db.taskListAllForCurrentRuntime()) {
@@ -398,9 +398,9 @@ class TaskBackend {
       // This is used if we need to update dependents.
       lastVersionCreated = data.versions.map((pv) => pv.published!).max;
 
-      // Ensure we have PackageState entity
+      // Ensure we have a Task row
       if (task == null) {
-        // Create [PackageState] entity to track the package
+        // Create [Task] row to track the package
         _log.info('Started state tracking for $packageName');
         final versionsMap = {
           for (final version in versions)
@@ -596,9 +596,7 @@ class TaskBackend {
       ),
     );
     if (task == null) {
-      throw NotFoundException.resource(
-        'PackageState($runtimeVersion/$package)',
-      );
+      throw NotFoundException.resource('Task($runtimeVersion/$package)');
     }
     final versionState = _authorizeWorkerCallback(
       package,
@@ -732,9 +730,7 @@ class TaskBackend {
     await _database.transactWithRetry((db) async {
       final task = await db.lookupTaskMetadata(package);
       if (task == null) {
-        throw NotFoundException.resource(
-          'PackageState($runtimeVersion/$package)',
-        );
+        throw NotFoundException.resource('Task($runtimeVersion/$package)');
       }
       final oldVersions = await db.lookupVersions(package);
       final oldAbortedTokens = await db.listAbortedTokens(package);

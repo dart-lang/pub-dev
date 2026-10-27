@@ -8,7 +8,6 @@ import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/versions.dart';
-import 'package:pub_dev/task/models.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
 
@@ -56,15 +55,6 @@ void main() {
               .insert(
                 runtimeVersion: runtimeVersion.asExpr,
                 package: 'foo'.asExpr,
-                state: TaskState(
-                  versions: {
-                    '1.0.0': PackageVersionStateInfo(
-                      scheduled: clock.now(),
-                      attempts: 0,
-                    ),
-                  },
-                  abortedTokens: [],
-                ).asExpr,
                 pendingAt: clock.now().asExpr,
                 lastDependencyChanged: clock.now().asExpr,
                 finished: clock.now().asExpr,
@@ -73,15 +63,11 @@ void main() {
 
           final rows = await db.tasks
               .where((b) => b.package.equalsValue('foo'))
-              .select((b) => (b.package, b.runtimeVersion, b.state))
+              .select((b) => (b.package, b.runtimeVersion))
               .fetch();
           expect(rows, hasLength(1));
           expect(rows.first.$1, 'foo');
           expect(rows.first.$2, runtimeVersion);
-          expect(rows.first.$3!.toJson(), {
-            'versions': {'1.0.0': isNotNull},
-            'abortedTokens': [],
-          });
         });
       },
     );
