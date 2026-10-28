@@ -8,6 +8,7 @@ import 'package:_pub_shared/data/account_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/admin/backend.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
@@ -135,12 +136,12 @@ void _verifyUrl(String? urlParam) {
   }
 }
 
-Future<ModerationCase?> _loadAndVerifyCase(String? caseId) async {
+Future<ModerationCaseRow?> _loadAndVerifyCase(String? caseId) async {
   if (caseId == null) {
     return null;
   }
 
-  final mc = await adminBackend.lookupModerationCase(caseId);
+  final mc = await adminBackend.lookupModerationCaseRow(caseId);
   if (mc == null) {
     throw NotFoundException.resource('case_id "$caseId"');
   }
@@ -152,12 +153,14 @@ Future<ModerationCase?> _loadAndVerifyCase(String? caseId) async {
 }
 
 Future<void> _verifyCaseSubject(
-  ModerationCase mc,
+  ModerationCaseRow mc,
   ModerationSubject subject,
 ) async {
   final hasSubject =
       mc.subject == subject.fqn ||
-      mc.getActionLog().entries.any((e) => e.subject == subject.fqn);
+      (await adminBackend.fetchModerationActionLogs(
+        mc.caseId,
+      )).any((e) => e.subject == subject.fqn);
   InvalidInputException.check(
     hasSubject,
     'The reported case has no resolution on subject "${subject.fqn}".',

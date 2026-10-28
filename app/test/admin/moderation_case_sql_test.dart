@@ -87,6 +87,98 @@ void main() {
     );
 
     testWithProfile(
+      'action log append keeps the logId of the unchanged entries',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-.*.tar.gz".',
+        ),
+      ],
+      fn: () async {
+        final api = createPubApiClient(authToken: siteAdminToken);
+        final rs = await api.adminInvokeAction(
+          'moderation-case-create',
+          AdminInvokeActionArguments(arguments: {'subject': 'package:oxygen'}),
+        );
+        final caseId = rs.output['caseId'] as String;
+
+        Future<List<String>> logIds() async {
+          final logs = await adminBackend.fetchModerationActionLogs(caseId);
+          return logs.map((l) => l.logId).toList();
+        }
+
+        Future<void> moderate(String state) async {
+          await api.adminInvokeAction(
+            'moderate-package',
+            AdminInvokeActionArguments(
+              arguments: {
+                'case': caseId,
+                'package': 'oxygen',
+                'state': state,
+                'note': 'state $state',
+              },
+            ),
+          );
+        }
+
+        await moderate('true');
+        final one = await logIds();
+        expect(one, hasLength(1));
+
+        await moderate('false');
+        final two = await logIds();
+        expect(two, hasLength(2));
+        expect(two.first, one.single);
+        expect(two[0].compareTo(two[1]), lessThan(0));
+
+        // mirroring an up-to-date case is a no-op
+        await adminBackend.mirrorModerationCaseToSqlById(caseId);
+        expect(await logIds(), two);
+        await expectModerationCasesInSqlMatchDatastore();
+
+        // a non-append change in Datastore rewrites the tail only
+        await withRetryTransaction(dbService, (tx) async {
+          final mc = await tx.lookupValue<ModerationCase>(
+            adminBackend.moderationCaseKey(caseId),
+          );
+          final log = mc.getActionLog();
+          log.entries.removeLast();
+          mc.setActionLog(log);
+          tx.insert(mc);
+        });
+        await adminBackend.mirrorModerationCaseToSqlById(caseId);
+        expect(await logIds(), one);
+        await expectModerationCasesInSqlMatchDatastore();
+      },
+    );
+
+    testWithProfile(
+      'reading a case mirrors it, missing entity removes the rows',
+      fn: () async {
+        final api = createPubApiClient(authToken: siteAdminToken);
+        final rs = await api.adminInvokeAction(
+          'moderation-case-create',
+          AdminInvokeActionArguments(arguments: {'subject': 'package:oxygen'}),
+        );
+        final caseId = rs.output['caseId'] as String;
+
+        // SQL row is missing, info restores it
+        await adminBackend.deleteModerationCaseFromSql(caseId);
+        expect(await adminBackend.lookupModerationCaseRow(caseId), isNotNull);
+        await expectModerationCasesInSqlMatchDatastore();
+
+        // Datastore entity is missing, the stale SQL row is removed
+        await withRetryTransaction(dbService, (tx) async {
+          tx.delete(adminBackend.moderationCaseKey(caseId));
+        });
+        expect(await adminBackend.lookupModerationCaseRow(caseId), isNull);
+        expect(
+          await primaryDatabase.withRetry((db) => db.moderationCases.fetch()),
+          isEmpty,
+        );
+      },
+    );
+
+    testWithProfile(
       'backfill syncs missing, stale and orphaned rows',
       fn: () async {
         final api = createPubApiClient(authToken: siteAdminToken);

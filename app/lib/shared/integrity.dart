@@ -20,7 +20,8 @@ import 'package:typed_sql/typed_sql.dart';
 
 import '../account/agent.dart';
 import '../account/models.dart';
-import '../admin/models.dart';
+import '../admin/backend.dart';
+import '../admin/models.dart' hide ModerationActionLog;
 import '../audit/models.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
@@ -1103,17 +1104,23 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
   Stream<String> _checkModerationCases() async* {
     _logger.info('Scanning ModerationCases...');
-    yield* _queryWithPool<ModerationCase>(_checkModerationCase);
+    final rows = await adminBackend.fetchModerationCasesWithLogs();
+    for (final (mc, actionLogs) in rows) {
+      yield* _checkModerationCase(mc, actionLogs);
+    }
   }
 
-  Stream<String> _checkModerationCase(ModerationCase mc) async* {
+  Stream<String> _checkModerationCase(
+    ModerationCaseRow mc,
+    List<ModerationActionLog> actionLogs,
+  ) async* {
     if (!isValidEmail(mc.reporterEmail)) {
       yield 'ModerationCase "${mc.caseId}" has invalid `reporterEmail`.';
     }
-    if (mc.resolved != null && mc.status == ModerationStatus.pending) {
+    if (mc.resolvedAt != null && mc.status == ModerationStatus.pending) {
       yield 'ModerationCase "${mc.caseId}" is resolved but `status` is "pending".';
     }
-    if (mc.status != ModerationStatus.pending && mc.resolved == null) {
+    if (mc.status != ModerationStatus.pending && mc.resolvedAt == null) {
       yield 'ModerationCase "${mc.caseId}" has non-pending `status` but `resolved` is null.';
     }
     final subject = ModerationSubject.tryParse(mc.subject);
@@ -1123,8 +1130,8 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     if (mc.url != null && Uri.tryParse(mc.url!) == null) {
       yield 'ModerationCase "${mc.caseId}" has invalid `url`.';
     }
-    for (final entry in mc.getActionLog().entries) {
-      if (entry.timestamp.isBefore(mc.opened)) {
+    for (final entry in actionLogs) {
+      if (entry.createdAt.isBefore(mc.openedAt)) {
         yield 'ModerationCase "${mc.caseId}" has action logged before it was opened.';
       }
       if (ModerationSubject.tryParse(entry.subject) == null) {
@@ -1134,8 +1141,8 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     // TODO: verify fields once the other PR lands
 
     if (mc.appealedCaseId != null) {
-      final appealed = await _db.lookupOrNull<ModerationCase>(
-        _db.emptyKey.append(ModerationCase, id: mc.appealedCaseId!),
+      final appealed = await primaryDatabase.withRetry(
+        (db) => db.moderationCases.byKey(mc.appealedCaseId!).fetch(),
       );
       if (appealed == null) {
         yield 'ModerationCase "${mc.caseId}" references an appealed case that does not exists.';

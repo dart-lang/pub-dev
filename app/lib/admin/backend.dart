@@ -22,7 +22,7 @@ import '../account/backend.dart';
 import '../account/consent_backend.dart';
 import '../account/like_backend.dart';
 import '../account/models.dart';
-import '../admin/models.dart';
+import '../admin/models.dart' hide ModerationActionLog;
 import '../audit/backend.dart';
 import '../audit/models.dart';
 import '../database/database.dart';
@@ -900,9 +900,82 @@ class AdminBackend {
     }
   }
 
+  /// The Datastore key of the [ModerationCase] with [caseId].
+  Key moderationCaseKey(String caseId) =>
+      dbService.emptyKey.append(ModerationCase, id: caseId);
+
+  /// Looks up the [ModerationCase] entity in Datastore.
+  ///
+  /// Use [lookupModerationCaseRow] for reading the case from SQL.
+  @visibleForTesting
   Future<ModerationCase?> lookupModerationCase(String caseId) async {
     return await dbService.lookupOrNull<ModerationCase>(
-      dbService.emptyKey.append(ModerationCase, id: caseId),
+      moderationCaseKey(caseId),
+    );
+  }
+
+  /// Mirrors the [ModerationCase] with [caseId] from Datastore, then reads it
+  /// from SQL.
+  ///
+  /// Returns `null` if the case doesn't exist.
+  Future<ModerationCaseRow?> lookupModerationCaseRow(String caseId) async {
+    await mirrorModerationCaseToSqlById(caseId);
+    return await primaryDatabase.withRetry(
+      (db) => db.moderationCases.byKey(caseId).fetch(),
+    );
+  }
+
+  /// Fetches the [ModerationCaseRow]s (optionally narrowed by [where]) together
+  /// with their action log entries. The cases are ordered by [orderBy]
+  /// (if specified), then by `caseId`.
+  ///
+  /// The action logs of each case are sorted by `logId`.
+  Future<List<(ModerationCaseRow, List<ModerationActionLog>)>>
+  fetchModerationCasesWithLogs({
+    Expr<bool?> Function(Expr<ModerationCaseRow> c)? where,
+    List<(Expr<Comparable<dynamic>?>, Order)> Function(
+      Expr<ModerationCaseRow> c,
+    )?
+    orderBy,
+  }) async {
+    final rows = await primaryDatabase.withRetry((db) {
+      final cases = where == null
+          ? db.moderationCases
+          : db.moderationCases.where(where);
+      return cases
+          .leftJoin(db.moderationActionLogs)
+          .on((c, l) => c.caseId.equals(l.caseId))
+          .orderBy(
+            (c, l) => [
+              if (orderBy != null) ...orderBy(c),
+              (c.caseId, Order.ascending),
+              (l.logId, Order.ascending),
+            ],
+          )
+          .fetch();
+    });
+    final cases = <String, ModerationCaseRow>{};
+    final logs = <String, List<ModerationActionLog>>{};
+    for (final (c, l) in rows) {
+      cases[c.caseId] = c;
+      final list = logs.putIfAbsent(c.caseId, () => []);
+      if (l != null) {
+        list.add(l);
+      }
+    }
+    return [for (final c in cases.values) (c, logs[c.caseId]!)];
+  }
+
+  /// Fetches the action log entries of the case with [caseId],
+  /// in logId (chronological) order.
+  Future<List<ModerationActionLog>> fetchModerationActionLogs(
+    String caseId,
+  ) async {
+    return await primaryDatabase.withRetry(
+      (db) => db.moderationActionLogs
+          .where((l) => l.caseId.equalsValue(caseId))
+          .orderBy((l) => [(l.logId, Order.ascending)])
+          .fetch(),
     );
   }
 
@@ -927,15 +1000,32 @@ class AdminBackend {
             reason: mc.reason,
           )
           .execute();
-      await db.moderationActionLogs
-          .where((l) => l.caseId.equalsValue(mc.caseId))
-          .delete()
-          .execute();
       final entries = mc.getActionLog().entries.sorted(
         (a, b) => a.timestamp.compareTo(b.timestamp),
       );
+      final existing = await db.moderationActionLogs
+          .where((l) => l.caseId.equalsValue(mc.caseId))
+          .orderBy((l) => [(l.logId, Order.ascending)])
+          .fetch();
+      // The action log is append-only: keep the longest matching prefix, so
+      // the `logId` of the unchanged entries remains stable.
+      var keep = 0;
+      while (keep < existing.length &&
+          keep < entries.length &&
+          _isSameActionLog(existing[keep], entries[keep])) {
+        keep++;
+      }
+      for (final l in existing.skip(keep)) {
+        await db.moderationActionLogs
+            .where(
+              (x) =>
+                  x.caseId.equalsValue(l.caseId) & x.logId.equalsValue(l.logId),
+            )
+            .delete()
+            .execute();
+      }
       final ulidFactory = UlidFactory(monotonic: true);
-      for (final e in entries) {
+      for (final e in entries.skip(keep)) {
         await db.moderationActionLogs
             .upsertValue(
               caseId: mc.caseId,
@@ -952,12 +1042,28 @@ class AdminBackend {
     });
   }
 
+  static bool _isSameActionLog(
+    ModerationActionLog l,
+    ModerationActionLogEntry e,
+  ) =>
+      l.createdAt.isAtSameMomentAs(e.timestamp) &&
+      l.subject == e.subject &&
+      l.action == e.moderationAction.name &&
+      l.note == e.note;
+
   /// Looks up the [ModerationCase] with [caseId] in Datastore and mirrors it
-  /// into SQL.
+  /// into SQL (or removes the SQL rows if the entity is missing).
   Future<void> mirrorModerationCaseToSqlById(String caseId) async {
     final mc = await lookupModerationCase(caseId);
     if (mc != null) {
+      // Skip the write transaction (and the action log re-creation) when SQL
+      // is already up-to-date.
+      if (await _isModerationCaseInSql(mc)) {
+        return;
+      }
       await mirrorModerationCaseToSql(mc);
+    } else {
+      await deleteModerationCaseFromSql(caseId);
     }
   }
 
@@ -1033,10 +1139,7 @@ class AdminBackend {
     for (var i = 0; i < logs.length; i++) {
       final l = logs[i];
       final e = sorted[i];
-      if (!l.createdAt.isAtSameMomentAs(e.timestamp) ||
-          l.subject != e.subject ||
-          l.action != e.moderationAction.name ||
-          l.note != e.note) {
+      if (!_isSameActionLog(l, e)) {
         return false;
       }
     }
@@ -1046,11 +1149,11 @@ class AdminBackend {
   static bool _isSameMomentOrBothNull(DateTime? a, DateTime? b) =>
       a == null ? b == null : (b != null && a.isAtSameMomentAs(b));
 
-  /// Returns a valid [ModerationCase] if it exists.
+  /// Returns a valid [ModerationCaseRow] if it exists.
   /// Returns `null` if [caseId] is `none`.
   ///
   /// Throws exceptions otherwise.
-  Future<ModerationCase?> loadAndVerifyModerationCaseForAdminAction(
+  Future<ModerationCaseRow?> loadAndVerifyModerationCaseForAdminAction(
     String? caseId,
   ) async {
     InvalidInputException.check(
@@ -1061,7 +1164,7 @@ class AdminBackend {
       return null;
     }
 
-    final refCase = await adminBackend.lookupModerationCase(caseId!);
+    final refCase = await lookupModerationCaseRow(caseId!);
     if (refCase == null) {
       throw NotFoundException.resource(caseId);
     }
@@ -1233,10 +1336,13 @@ class AdminBackend {
     required String caseId,
     required String email,
   }) async {
-    final query = dbService.query<ModerationCase>()
-      ..filter('appealedCaseId =', caseId);
-    final list = await query.run().toList();
-    final emails = list.map((mc) => mc.reporterEmail).toSet();
-    return emails.contains(email);
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.moderationCases
+          .where((c) => c.appealedCaseId.equalsValue(caseId))
+          .where((c) => c.reporterEmail.equalsValue(email))
+          .select((c) => (c.caseId,))
+          .fetch(),
+    );
+    return rows.isNotEmpty;
   }
 }

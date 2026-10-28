@@ -132,6 +132,55 @@ void main() {
     );
 
     testWithProfile(
+      'resolved range boundaries',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/oxygen-.*.tar.gz".',
+        ),
+      ],
+      fn: () async {
+        final start = DateTime.utc(2020, 3, 10);
+        final lastIncluded = DateTime.utc(
+          2020,
+          3,
+          11,
+        ).subtract(Duration(microseconds: 1));
+        final times = {
+          // TODO: use a microsecond once the implementation can use `>=` on dates.
+          'before start': start.subtract(Duration(milliseconds: 1)),
+          'at start': start,
+          'last included': lastIncluded,
+          'after end': DateTime.utc(2020, 3, 11),
+        };
+
+        for (final name in times.keys) {
+          final mc = await _report('oxygen');
+          await _moderatePkg('oxygen', caseId: mc.caseId, state: true);
+          await _resolve(mc.caseId, reason: 'reason for $name');
+          await withRetryTransaction(dbService, (tx) async {
+            final c = await tx.lookupValue<ModerationCase>(
+              adminBackend.moderationCaseKey(mc.caseId),
+            );
+            c.opened = times[name]!.subtract(Duration(days: 1));
+            c.resolved = times[name];
+            tx.insert(c);
+          });
+          await adminBackend.mirrorModerationCaseToSqlById(mc.caseId);
+        }
+
+        final api = createPubApiClient(authToken: siteAdminToken);
+        final rs = await api.adminInvokeAction(
+          'moderation-transparency-metrics',
+          AdminInvokeActionArguments(
+            arguments: {'start': '2020-03-10', 'end': '2020-03-10'},
+          ),
+        );
+        // only the cases resolved at start and last included are counted
+        expect((rs.output['moderations'] as Map)['total'], 2);
+      },
+    );
+
+    testWithProfile(
       'moderated package',
       expectedLogMessages: [
         RegExp(
