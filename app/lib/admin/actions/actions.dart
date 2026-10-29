@@ -39,6 +39,7 @@ import 'publisher_info.dart';
 import 'publisher_member_invite.dart';
 import 'publisher_members_list.dart';
 import 'publisher_package_remove.dart';
+import 'sql_table_sizes.dart';
 import 'task_bump_priority.dart';
 import 'tool_execute.dart';
 import 'tool_list.dart';
@@ -132,6 +133,7 @@ final class AdminAction {
     publisherMemberInvite,
     publisherMembersList,
     publisherPackageRemove,
+    sqlTableSizes,
     taskBumpPriority,
     toolExecute,
     toolList,
