@@ -908,6 +908,53 @@ void main() {
       expect(afterDelete.$2.map((t) => t.token), ['token-b']);
     },
   );
+
+  group('derivePendingVersions', () {
+    final t0 = DateTime.utc(2026, 1, 1, 12);
+
+    PackageVersionStateInfo running(DateTime scheduled) =>
+        PackageVersionStateInfo(
+          scheduled: initialTimestamp,
+          attempts: 0,
+        ).scheduleNew(
+          scheduled: scheduled,
+          zone: 'z',
+          instanceName: 'i1',
+          secretToken: 'token',
+        );
+
+    test('running version is not re-attempted on dependency change', () {
+      final versions = {'1.0.0': running(t0)};
+      final pending = derivePendingVersions(
+        versions: versions,
+        lastDependencyChanged: t0.add(Duration(minutes: 5)),
+        at: t0.add(Duration(minutes: 10)),
+      );
+      // Re-selecting would bump attempts to 2 and replace the secret token
+      // of the instance that is still working on it.
+      expect(pending, isEmpty);
+    });
+
+    test('running version is re-attempted after maxTaskExecutionTime', () {
+      final versions = {'1.0.0': running(t0)};
+      final pending = derivePendingVersions(
+        versions: versions,
+        lastDependencyChanged: t0.add(Duration(minutes: 5)),
+        at: t0.add(maxTaskExecutionTime).add(Duration(minutes: 1)),
+      );
+      expect(pending, ['1.0.0']);
+    });
+
+    test('running version is not re-attempted at the 3h boundary', () {
+      final versions = {'1.0.0': running(t0)};
+      final pending = derivePendingVersions(
+        versions: versions,
+        lastDependencyChanged: t0.add(Duration(minutes: 5)),
+        at: t0.add(maxTaskExecutionTime),
+      );
+      expect(pending, isEmpty);
+    });
+  });
 }
 
 extension<T> on Stream<T> {

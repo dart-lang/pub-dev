@@ -92,6 +92,10 @@ DateTime derivePendingAt({
 ///   * `now - scheduled > 21 days`,
 ///   * `lastDependencyChanged > scheduled`, or,
 ///   * `attempts > 0 && attempts < 3 && now - scheduled > 3 hours * attempts^2`
+///
+/// A version that is still running on an instance (`instance != null` and
+/// `now - scheduled <= maxTaskExecutionTime`) is never returned, regardless of
+/// the conditions above.
 List<String> derivePendingVersions({
   required Map<String, PackageVersionStateInfo> versions,
   required DateTime lastDependencyChanged,
@@ -104,18 +108,24 @@ List<String> derivePendingVersions({
       .where(
         // NOTE: Any changes here must be reflected in [derivePendingAt]
         (e) =>
+            // A version that is still running on an instance must not be
+            // scheduled again: it would increment `attempts` a second time and
+            // replace the token the running instance uses to call back.
+            !(e.value.instance != null &&
+                timeSince(e.value.scheduled) <= maxTaskExecutionTime) &&
+            (
             // If scheduled more than 21 days ago
             timeSince(e.value.scheduled) > minTaskRetriggerInterval ||
-            // If a dependency has changed since it was last scheduled
-            lastDependencyChanged.isAfter(e.value.scheduled) ||
-            // If:
-            //  - attempts > 0 (analysis is not done, and has been started)
-            //  - no more than 3 attempts have been done,
-            //  - now - scheduled > 3 hours * attempts^2
-            (e.value.attempts > 0 &&
-                e.value.attempts < taskRetryLimit &&
-                timeSince(e.value.scheduled) >
-                    taskRetryDelay(e.value.attempts)),
+                // If a dependency has changed since it was last scheduled
+                lastDependencyChanged.isAfter(e.value.scheduled) ||
+                // If:
+                //  - attempts > 0 (analysis is not done, and has been started)
+                //  - no more than 3 attempts have been done,
+                //  - now - scheduled > 3 hours * attempts^2
+                (e.value.attempts > 0 &&
+                    e.value.attempts < taskRetryLimit &&
+                    timeSince(e.value.scheduled) >
+                        taskRetryDelay(e.value.attempts))),
       )
       .map((e) => e.key)
       .map(Version.parse)
