@@ -335,7 +335,7 @@ Tab _exampleTab(PackagePageData data) {
     data.asset!,
     urlResolverFn: data.urlResolverFn,
   );
-  final url = data.urlResolverFn?.call(exampleFilename!);
+  final url = data.urlResolverFn?.call(exampleFilename);
   return Tab.withContent(
     id: 'example',
     title: 'Example',
@@ -344,7 +344,7 @@ Tab _exampleTab(PackagePageData data) {
         classes: ['-monospace'],
         child: d.b(
           child: url == null
-              ? d.text(exampleFilename!)
+              ? d.text(exampleFilename)
               : d.a(
                   href: url,
                   target: '_blank',
@@ -384,7 +384,7 @@ Tab _licenseTab(PackagePageData data) {
     content = d.text('No license file found.');
   } else if (hasEditOpData &&
       requestContext.experimentalFlags.isExposeLicenseDiffEnabled) {
-    final text = data.asset!.textContent!;
+    final text = data.asset!.textContent;
     final opAndLicensePairs =
         licenses
             .expand((l) => (l.operations ?? []).map((op) => (op, l)))

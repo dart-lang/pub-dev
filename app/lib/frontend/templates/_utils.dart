@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../package/models.dart' show PackageVersionAsset;
+import '../../database/schema.dart' show PackageVersionAssetRow;
 import '../../shared/markdown.dart';
 import '../dom/dom.dart' as d;
 
 /// Renders a file content (e.g. markdown, dart source file) into HTML.
 d.Node renderFile(
-  PackageVersionAsset asset, {
+  PackageVersionAssetRow asset, {
   UrlResolverFn? urlResolverFn,
   bool isChangelog = false,
 }) {
-  final filename = asset.path!;
-  final content = asset.textContent!;
+  final filename = asset.path;
+  final content = asset.textContent;
   if (_isMarkdownFile(filename)) {
     return d.unsafeRawHtml(
       markdownToHtml(

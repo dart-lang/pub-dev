@@ -12,6 +12,7 @@ import 'package:pana/models.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../database/schema.dart' show PackageVersionAssetRow;
 import '../package/model_properties.dart';
 import '../scorecard/models.dart';
 import '../search/search_service.dart' show ApiPageRef;
@@ -1112,7 +1113,7 @@ class PackagePageData {
   final LatestReleases latestReleases;
   final PackageVersion version;
   final List<String> assets;
-  final PackageVersionAsset? asset;
+  final PackageVersionAssetRow? asset;
   final ScoreCardData scoreCard;
   final bool isAdmin;
   final bool isLiked;
