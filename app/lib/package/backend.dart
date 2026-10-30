@@ -355,6 +355,41 @@ class PackageBackend {
         .execute();
   }
 
+  /// Mirrors the Datastore [PackageVersionAsset] into SQL if it is missing or
+  /// stale, and removes the SQL row if the entity does not exist.
+  Future<void> mirrorPackageVersionAssetToSqlByKey(
+    String package,
+    String version,
+    String kind,
+  ) async {
+    final qvk = QualifiedVersionKey(package: package, version: version);
+    final asset = await db.lookupOrNull<PackageVersionAsset>(
+      db.emptyKey.append(PackageVersionAsset, id: qvk.assetId(kind)),
+    );
+    final existing = await primaryDatabase.withRetry(
+      (db) => db.packageVersionAssets
+          .where((a) => a.package.equalsValue(package))
+          .where((a) => a.version.equalsValue(version))
+          .where((a) => a.kind.equalsValue(kind))
+          .select((a) => (a.updatedAt,))
+          .fetch(),
+    );
+    final sqlUpdatedAt = existing.isEmpty ? null : existing.first;
+    if (asset == null) {
+      if (sqlUpdatedAt != null) {
+        await primaryDatabase.withRetry(
+          (db) =>
+              db.packageVersionAssets.delete(package, version, kind).execute(),
+        );
+      }
+      return;
+    }
+    if (sqlUpdatedAt != null && sqlUpdatedAt.isAtSameMomentAs(asset.updated!)) {
+      return;
+    }
+    await upsertPackageVersionAssetsToSql([asset]);
+  }
+
   /// Deletes the assets of [package] from SQL, limited to [version] if given.
   Future<void> deletePackageVersionAssetsFromSql(
     String package, {
@@ -804,23 +839,25 @@ class PackageBackend {
     return assets;
   }
 
-  /// Looks up a specific package version's asset object.
+  /// Looks up a package version's asset in SQL.
   ///
-  /// Returns null if the [version] is not a semantic version or if the asset
-  /// entity does not exists in the Datastore.
-  Future<PackageVersionAsset?> lookupPackageVersionAsset(
+  /// Returns null if the [version] is not semantic or the asset does not exist.
+  Future<PackageVersionAssetRow?> lookupPackageVersionAsset(
     String package,
     String version,
     String assetKind,
   ) async {
     final canonicalVersion = canonicalizeVersion(version);
     if (canonicalVersion == null) return null;
-    final qvk = QualifiedVersionKey(
-      package: package,
-      version: canonicalVersion,
+    await mirrorPackageVersionAssetToSqlByKey(
+      package,
+      canonicalVersion,
+      assetKind,
     );
-    return await db.lookupOrNull<PackageVersionAsset>(
-      db.emptyKey.append(PackageVersionAsset, id: qvk.assetId(assetKind)),
+    return await primaryDatabase.withRetry(
+      (db) => db.packageVersionAssets
+          .byKey(package, canonicalVersion, assetKind)
+          .fetch(),
     );
   }
 
