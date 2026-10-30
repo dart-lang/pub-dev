@@ -321,7 +321,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
         );
         registerScopeExitCallback(taskBackend.stop);
         registerSecurityAdvisoryBackend(SecurityAdvisoryBackend(dbService));
-        registerDownloadCountsBackend(DownloadCountsBackend(dbService));
+        registerDownloadCountsBackend(DownloadCountsBackend());
         registerScopeExitCallback(downloadCountsBackend.close);
 
         // Create a zone-local flag to indicate that services setup has been completed.
