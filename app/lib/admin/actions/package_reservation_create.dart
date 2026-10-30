@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 
 import 'actions.dart';
@@ -44,23 +43,17 @@ able to claim it.
       throw InvalidInputException('ModeratedPackage `$package` exists.');
     }
 
-    final entry = await withRetryTransaction(dbService, (tx) async {
-      final existing = await tx.lookupOrNull<ReservedPackage>(
-        dbService.emptyKey.append(ReservedPackage, id: package),
-      );
-      final entry = existing ?? ReservedPackage.init(package);
-      entry.emails = <String>{...?emails}.toList();
-      tx.insert(entry);
-      return entry;
-    });
-
-    await packageBackend.mirrorReservedPackageToSql(entry);
+    await packageBackend.upsertReservedPackage(
+      package,
+      <String>{...?emails}.toList(),
+    );
     await cache.reservedPackagePrefixes().purge();
+    final entry = (await packageBackend.lookupReservedPackage(package))!;
 
     return {
       'ReservedPackage': {
         'name': entry.name,
-        'created': entry.created.toIso8601String(),
+        'created': entry.createdAt.toIso8601String(),
         'emails': entry.emails,
       },
     };
