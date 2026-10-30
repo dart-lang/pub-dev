@@ -11,11 +11,14 @@ import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/frontend/handlers/pubapi.client.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart' hide Query;
 
 import '../database/publisher_sql_utils.dart';
 import '../shared/handlers_test_utils.dart';
@@ -413,17 +416,18 @@ void main() {
 
     group('Invite a new member', () {
       Future<List<Map>> queryConsents({String? email}) async {
-        final query = dbService.query<Consent>();
-        return await query
-            .run()
+        final rows = await primaryDatabase.withRetry(
+          (db) => db.consents.fetch(),
+        );
+        return rows
             .where((c) => c.email == email || email == null)
             .map(
               (c) => {
-                'id': c.consentId,
+                'id': c.id,
                 'fromAgent': c.fromAgent,
                 'email': c.email,
                 'kind': c.kind,
-                'args': c.args,
+                'args': c.argsJson.value,
                 'notificationCount': c.notificationCount,
               },
             )
@@ -622,12 +626,12 @@ void main() {
             'example.com',
             InviteMemberRequest(email: 'user@pub.dev'),
           );
-          final consents = await dbService
-              .query<Consent>()
-              .run()
-              .where((c) => c.email == 'user@pub.dev')
-              .toList();
-          final consentId = consents.single.consentId;
+          final consents = await primaryDatabase.withRetry(
+            (db) => db.consents.fetch(),
+          );
+          final consentId = consents
+              .singleWhere((c) => c.email == 'user@pub.dev')
+              .id;
           final client2 = await createFakeAuthPubApiClient(
             email: userAtPubDevEmail,
           );
@@ -659,12 +663,12 @@ void main() {
             'example.com',
             InviteMemberRequest(email: 'newaccount@pub.dev'),
           );
-          final consents = await dbService
-              .query<Consent>()
-              .run()
-              .where((c) => c.email == 'newaccount@pub.dev')
-              .toList();
-          final consentId = consents.single.consentId;
+          final consents = await primaryDatabase.withRetry(
+            (db) => db.consents.fetch(),
+          );
+          final consentId = consents
+              .singleWhere((c) => c.email == 'newaccount@pub.dev')
+              .id;
           final client2 = await createFakeAuthPubApiClient(
             email: 'newaccount@pub.dev',
           );
@@ -694,12 +698,12 @@ void main() {
             'example.com',
             InviteMemberRequest(email: 'user@pub.dev'),
           );
-          final consents = await dbService
-              .query<Consent>()
-              .run()
-              .where((c) => c.email == 'user@pub.dev')
-              .toList();
-          final consentId = consents.single.consentId;
+          final consents = await primaryDatabase.withRetry(
+            (db) => db.consents.fetch(),
+          );
+          final consentId = consents
+              .singleWhere((c) => c.email == 'user@pub.dev')
+              .id;
           final client2 = await createFakeAuthPubApiClient(
             email: userAtPubDevEmail,
           );

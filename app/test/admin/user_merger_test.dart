@@ -5,6 +5,7 @@
 import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/tools/user_merger.dart';
@@ -148,8 +149,10 @@ void main() {
       await dbService.commit(inserts: [target1, target2, controlConsent]);
 
       await _corruptAndFix();
+      // the merge migrates only the affected entities
+      await consentBackend.migrateFromDatastore(minAge: Duration.zero);
 
-      final list = await dbService.query<Consent>().run().toList();
+      final list = await primaryDatabase.withRetry((db) => db.consents.fetch());
       final updated1 = list.firstWhere((c) => c.id == target1.id);
       final updated2 = list.firstWhere((c) => c.id == target2.id);
       final updated3 = list.firstWhere((c) => c.id == controlConsent.id);

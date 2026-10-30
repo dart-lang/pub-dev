@@ -51,14 +51,11 @@ void main() {
       await withFakeAuthRequestContext(userAtPubDevEmail, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
-        final consentRow = await dbService.query<Consent>().run().single;
-        final consent = await consentBackend.getConsent(
-          consentRow.consentId,
-          user,
-        );
+        final consentRow = (await _queryConsents()).single;
+        final consent = await consentBackend.getConsent(consentRow.id, user);
         expect(consent.descriptionHtml, contains('/packages/oxygen'));
         expect(consent.descriptionHtml, contains('publish new versions'));
-        consentId = consentRow.consentId;
+        consentId = consentRow.id;
       });
 
       final page = await auditBackend.listRecordsForPackage('oxygen');
@@ -187,11 +184,11 @@ void main() {
 
         await sendUploadInvite();
         expect(fakeEmailSender.sentMessages, hasLength(1));
-        expect(await dbService.query<Consent>().run().toList(), hasLength(1));
+        expect(await _queryConsents(), hasLength(1));
 
         await sendUploadInvite();
         expect(fakeEmailSender.sentMessages, hasLength(1));
-        expect(await dbService.query<Consent>().run().toList(), hasLength(1));
+        expect(await _queryConsents(), hasLength(1));
       },
     );
 
@@ -242,14 +239,11 @@ void main() {
       await withFakeAuthRequestContext(userAtPubDevEmail, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
-        final consentRow = await dbService.query<Consent>().run().single;
-        final consent = await consentBackend.getConsent(
-          consentRow.consentId,
-          user,
-        );
+        final consentRow = (await _queryConsents()).single;
+        final consent = await consentBackend.getConsent(consentRow.id, user);
         expect(consent.descriptionHtml, contains('/publishers/example.com'));
         expect(consent.descriptionHtml, contains('contact email means'));
-        consentId = consentRow.consentId;
+        consentId = consentRow.id;
       });
 
       final page = await auditBackend.listRecordsForPublisher('example.com');
@@ -345,11 +339,11 @@ void main() {
 
         await sendContactInvite();
         expect(fakeEmailSender.sentMessages, hasLength(1));
-        expect(await dbService.query<Consent>().run().toList(), hasLength(1));
+        expect(await _queryConsents(), hasLength(1));
 
         await sendContactInvite();
         expect(fakeEmailSender.sentMessages, hasLength(1));
-        expect(await dbService.query<Consent>().run().toList(), hasLength(1));
+        expect(await _queryConsents(), hasLength(1));
       },
     );
 
@@ -391,17 +385,14 @@ void main() {
       await withFakeAuthRequestContext(userAtPubDevEmail, () async {
         final authenticatedUser = await requireAuthenticatedWebUser();
         final user = authenticatedUser.user;
-        final consentRow = await dbService.query<Consent>().run().single;
-        final consent = await consentBackend.getConsent(
-          consentRow.consentId,
-          user,
-        );
+        final consentRow = (await _queryConsents()).single;
+        final consent = await consentBackend.getConsent(consentRow.id, user);
         expect(consent.descriptionHtml, contains('/publishers/example.com'));
         expect(
           consent.descriptionHtml,
           contains('perform administrative actions'),
         );
-        consentId = consentRow.consentId;
+        consentId = consentRow.id;
       });
 
       final page = await auditBackend.listRecordsForPublisher('example.com');
@@ -532,11 +523,11 @@ void main() {
 
         await sendMemberInvite();
         expect(fakeEmailSender.sentMessages, hasLength(1));
-        expect(await dbService.query<Consent>().run().toList(), hasLength(1));
+        expect(await _queryConsents(), hasLength(1));
 
         await sendMemberInvite();
         expect(fakeEmailSender.sentMessages, hasLength(1));
-        expect(await dbService.query<Consent>().run().toList(), hasLength(1));
+        expect(await _queryConsents(), hasLength(1));
       },
     );
 
@@ -579,17 +570,15 @@ void main() {
     );
   });
 
-  group('SQL mirror', () {
+  group('SQL migration', () {
     testWithProfile(
-      'mirrorToSql writes row',
+      'migrateToSql writes row and deletes the Datastore entity',
       fn: () async {
         final consent = _testConsent();
         await dbService.commit(inserts: [consent]);
-        await consentBackend.mirrorToSql(consent);
+        await consentBackend.migrateToSql(consent);
 
-        final row = await primaryDatabase.withRetry(
-          (db) => db.consents.byKey(consent.consentId).fetch(),
-        );
+        final row = await _fetchRow(consent.consentId);
         expect(row, isNotNull);
         expect(row!.email, consent.email);
         expect(row.dedupId, consent.dedupId);
@@ -598,71 +587,160 @@ void main() {
         expect(row.fromAgent, KnownAgents.pubSupport);
         expect(row.notificationCount, 0);
         expect(row.lastNotifiedAt, isNull);
+        expect(await _lookupInDatastore(consent.consentId), isNull);
       },
     );
 
     testWithProfile(
-      'mirrorToSql is idempotent',
+      'migrateToSql is idempotent',
       fn: () async {
         final consent = _testConsent();
         await dbService.commit(inserts: [consent]);
-        await consentBackend.mirrorToSql(consent);
-        await consentBackend.mirrorToSql(consent);
+        await consentBackend.migrateToSql(consent);
+        await consentBackend.migrateToSql(consent);
 
-        final rows = await primaryDatabase.withRetry(
-          (db) => db.consents
-              .where((c) => c.id.equalsValue(consent.consentId))
-              .fetch(),
-        );
-        expect(rows, hasLength(1));
+        expect(await _queryConsents(), hasLength(1));
       },
     );
 
     testWithProfile(
-      'deleting the consent removes the mirrored row',
+      'deleting the consent removes the row',
       fn: () async {
         final consent = _testConsent();
         await dbService.commit(inserts: [consent]);
-        await consentBackend.mirrorToSql(consent);
-        expect(
-          await primaryDatabase.withRetry(
-            (db) => db.consents.byKey(consent.consentId).fetch(),
-          ),
-          isNotNull,
-        );
+        await consentBackend.migrateToSql(consent);
+        expect(await _fetchRow(consent.consentId), isNotNull);
 
         await _expireConsent(consent.consentId);
 
-        expect(
-          await primaryDatabase.withRetry(
-            (db) => db.consents.byKey(consent.consentId).fetch(),
-          ),
-          isNull,
-        );
+        expect(await _fetchRow(consent.consentId), isNull);
       },
     );
 
     testWithProfile(
-      'backfillSqlFromDatastore copies missing rows',
+      'migrateFromDatastore migrates old entities only',
+      fn: () async {
+        final old = _testConsent();
+        old.created = old.created!.subtract(Duration(minutes: 5));
+        final fresh = Consent.init(
+          fromAgent: KnownAgents.pubSupport,
+          email: 'fresh@pub.dev',
+          kind: ConsentKind.packageUploader,
+          args: ['oxygen'],
+        );
+        await dbService.commit(inserts: [old, fresh]);
+
+        expect(await consentBackend.migrateFromDatastore(), 1);
+
+        expect(await _fetchRow(old.consentId), isNotNull);
+        expect(await _lookupInDatastore(old.consentId), isNull);
+        expect(await _fetchRow(fresh.consentId), isNull);
+        expect(await _lookupInDatastore(fresh.consentId), isNotNull);
+      },
+    );
+
+    testWithProfile(
+      'migrateFromDatastore does not overwrite an existing row',
+      fn: () async {
+        final consent = _testConsent();
+        consent.created = consent.created!.subtract(Duration(minutes: 5));
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.migrateToSql(consent);
+
+        consent.fromAgent = 'stale';
+        await dbService.commit(inserts: [consent]);
+        await primaryDatabase.withRetry(
+          (db) => db.consents
+              .byKey(consent.consentId)
+              .update((_, set) => set(notificationCount: 3.asExpr))
+              .execute(),
+        );
+
+        await consentBackend.migrateFromDatastore();
+
+        final row = await _fetchRow(consent.consentId);
+        expect(row!.fromAgent, KnownAgents.pubSupport);
+        expect(row.notificationCount, 3);
+        expect(await _lookupInDatastore(consent.consentId), isNull);
+      },
+    );
+
+    testWithProfile(
+      'consent only in Datastore is migrated on lookup',
       fn: () async {
         final consent = _testConsent();
         await dbService.commit(inserts: [consent]);
-        expect(
-          await primaryDatabase.withRetry(
-            (db) => db.consents.byKey(consent.consentId).fetch(),
-          ),
-          isNull,
-        );
+        expect(await _fetchRow(consent.consentId), isNull);
 
-        final count = await consentBackend.backfillSqlFromDatastore();
-        expect(count, greaterThanOrEqualTo(1));
+        await withFakeAuthRequestContext('uploader@pub.dev', () async {
+          final user = (await requireAuthenticatedWebUser()).user;
+          final rs = await consentBackend.getConsent(consent.consentId, user);
+          expect(rs.titleText, contains('oxygen'));
+        });
 
-        expect(
-          await primaryDatabase.withRetry(
-            (db) => db.consents.byKey(consent.consentId).fetch(),
-          ),
-          isNotNull,
+        expect(await _fetchRow(consent.consentId), isNotNull);
+        expect(await _lookupInDatastore(consent.consentId), isNull);
+      },
+    );
+
+    testWithProfile(
+      'consent in both stores is deleted from Datastore on lookup',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.migrateToSql(consent);
+        // simulate the entity being present in both stores
+        await dbService.commit(inserts: [consent]);
+
+        await withFakeAuthRequestContext('uploader@pub.dev', () async {
+          final user = (await requireAuthenticatedWebUser()).user;
+          await consentBackend.getConsent(consent.consentId, user);
+        });
+
+        expect(await _fetchRow(consent.consentId), isNotNull);
+        expect(await _lookupInDatastore(consent.consentId), isNull);
+      },
+    );
+
+    testWithProfile(
+      'expired consent in both stores is not resurrected by migration',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.migrateToSql(consent);
+        // simulate the entity being present in both stores
+        consent.expires = consent.created;
+        await dbService.commit(inserts: [consent]);
+
+        await _expireConsent(consent.consentId);
+        expect(await _lookupInDatastore(consent.consentId), isNull);
+
+        await consentBackend.migrateFromDatastore(minAge: Duration.zero);
+        expect(await _fetchRow(consent.consentId), isNull);
+      },
+    );
+
+    testWithProfile(
+      'sending the notification updates the row',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.migrateToSql(consent);
+
+        await withFakeAuthRetryPubApiClient(
+          email: 'admin@pub.dev',
+          pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
+          (client) async {
+            await client.invitePackageUploader(
+              'oxygen',
+              InviteUploaderRequest(email: userAtPubDevEmail),
+            );
+          },
         );
+        final rows = await _queryConsents();
+        final row = rows.singleWhere((r) => r.email == userAtPubDevEmail);
+        expect(row.notificationCount, 1);
+        expect(row.lastNotifiedAt, isNotNull);
       },
     );
 
@@ -709,12 +787,22 @@ Consent _testConsent() => Consent.init(
   args: ['oxygen'],
 );
 
+Future<List<ConsentRow>> _queryConsents() =>
+    primaryDatabase.withRetry((db) => db.consents.fetch());
+
+Future<ConsentRow?> _fetchRow(String consentId) =>
+    primaryDatabase.withRetry((db) => db.consents.byKey(consentId).fetch());
+
+Future<Consent?> _lookupInDatastore(String consentId) => dbService
+    .lookupOrNull<Consent>(dbService.emptyKey.append(Consent, id: consentId));
+
 Future<void> _expireConsent(String? consentId) async {
-  final consent = await dbService.lookupValue<Consent>(
-    dbService.emptyKey.append(Consent, id: consentId),
+  await primaryDatabase.withRetry(
+    (db) => db.consents
+        .byKey(consentId!)
+        .update((c, set) => set(expiresAt: c.createdAt))
+        .execute(),
   );
-  consent.expires = consent.created;
-  await dbService.commit(inserts: [consent]);
   await consentBackend.deleteObsoleteConsents();
 }
 

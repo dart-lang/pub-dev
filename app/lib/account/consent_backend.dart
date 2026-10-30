@@ -10,7 +10,7 @@ import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:retry/retry.dart';
-import 'package:typed_sql/typed_sql.dart';
+import 'package:typed_sql/typed_sql.dart' hide Query;
 
 import '../account/agent.dart';
 import '../audit/backend.dart';
@@ -139,13 +139,7 @@ class ConsentBackend {
           await _delete(existing, (a) => a.onExpire(existing!));
         } else if (existing.shouldNotify()) {
           // non-expired entries just re-send the notification
-          return await _sendNotification(
-            activeAgent.displayId,
-            existing.id,
-            existing.kind,
-            existing.email,
-            existing.args,
-          );
+          return await _sendNotification(activeAgent.displayId, existing.id);
         } else {
           return api.InviteStatus(
             emailSent: false,
@@ -165,15 +159,9 @@ class ConsentBackend {
         (tx) async => tx.insertAll([consent, auditLogRecord]),
       );
       await auditBackend.migrateToSql(auditLogRecord);
-      await mirrorToSql(consent);
+      await migrateToSql(consent);
       await dedupCacheEntry.set(consent.consentId);
-      return await _sendNotification(
-        activeAgent.displayId,
-        consent.consentId,
-        consent.kind!,
-        consent.email!,
-        consent.args!,
-      );
+      return await _sendNotification(activeAgent.displayId, consent.consentId);
     });
   }
 
@@ -238,47 +226,71 @@ class ConsentBackend {
   Future<api.InviteStatus> _sendNotification(
     String activeUserEmail,
     String consentId,
-    String kind,
-    String invitedEmail,
-    List<String> args,
   ) async {
-    final action = _actions[kind]!;
-    final email = emailBackend.prepareEntity(
-      createInviteEmail(
-        invitedEmail: invitedEmail,
-        subject: action.renderEmailSubject(args),
-        inviteText: action.renderInviteText(activeUserEmail, args),
-        consentUrl: consentUrl(consentId),
-      ),
-    );
-    Consent? updated;
-    final key = _db.emptyKey.append(Consent, id: consentId);
-    final status = await withRetryTransaction(_db, (tx) async {
-      final c = await tx.lookupValue<Consent>(key);
-      c.notificationCount++;
-      c.lastNotified = clock.now().toUtc();
-      tx.insert(c);
-      tx.insert(email);
-      updated = c;
-      return api.InviteStatus(
-        emailSent: true,
-        nextNotification: c.nextNotification,
+    final (status, email) = await primaryDatabase.transactWithRetry((db) async {
+      final current = await db.consents.byKey(consentId).fetch();
+      if (current == null) {
+        throw NotFoundException.resource('consent: $consentId');
+      }
+      final notSent = (
+        api.InviteStatus(
+          emailSent: false,
+          nextNotification: current.nextNotification,
+        ),
+        null,
+      );
+      if (!current.shouldNotify()) {
+        return notSent;
+      }
+      // Guarded by the observed notificationCount: if a concurrent request
+      // has already notified, nothing is updated and no email is sent.
+      final updatedRows = await db.consents
+          .where(
+            (c) =>
+                c.id.equalsValue(consentId) &
+                c.notificationCount.equalsValue(current.notificationCount),
+          )
+          .update(
+            (c, set) => set(
+              notificationCount: c.notificationCount + 1.asExpr,
+              lastNotifiedAt: clock.now().toUtc().asExpr,
+            ),
+          )
+          .returnUpdated()
+          .executeAndFetch();
+      final row = updatedRows.firstOrNull;
+      if (row == null) {
+        return notSent;
+      }
+      final action = _actions[row.kind]!;
+      final email = emailBackend.prepareEntity(
+        createInviteEmail(
+          invitedEmail: row.email,
+          subject: action.renderEmailSubject(row.args),
+          inviteText: action.renderInviteText(activeUserEmail, row.args),
+          consentUrl: consentUrl(row.id),
+        ),
+      );
+      await emailBackend.insertIntoSql(db, email);
+      return (
+        api.InviteStatus(
+          emailSent: true,
+          nextNotification: row.nextNotification,
+        ),
+        email,
       );
     });
-    await mirrorToSql(updated!);
-    await emailBackend.migrateToSql(email);
-    await emailBackend.trySendOutgoingEmail(email);
+    if (email != null) {
+      await emailBackend.trySendOutgoingEmail(email);
+    }
     return status;
   }
 
   /// Removes obsolete/expired [Consent] entries.
   Future<void> deleteObsoleteConsents() async {
-    // Mirror the expired Datastore entities first, to make sure SQL has them.
-    final query = _db.query<Consent>()
-      ..filter('expires <', clock.now().toUtc());
-    await for (final consent in query.run()) {
-      await mirrorToSql(consent);
-    }
+    await _migrateQuery(
+      _db.query<Consent>()..filter('expires <', clock.now().toUtc()),
+    );
     final rows = await primaryDatabase.withRetry(
       (db) => db.consents
           .where((c) => c.expiresAt.isBeforeValue(clock.now().toUtc()))
@@ -316,37 +328,26 @@ class ConsentBackend {
     return c;
   }
 
-  /// Returns the [ConsentRow] with [consentId], reading it from SQL.
+  /// Returns the [ConsentRow] with [consentId].
   ///
-  /// The Datastore entity is mirrored into SQL right before the read, to
-  /// minimize the inconsistency window (or the SQL row is removed if the
-  /// entity is missing).
+  /// The Datastore entity (if any) is migrated and deleted first, otherwise
+  /// it could resurrect the row after the SQL row has been deleted.
   Future<ConsentRow?> _lookup(String consentId) async {
     final key = _db.emptyKey.append(Consent, id: consentId);
     final consent = await _db.lookupOrNull<Consent>(key);
     if (consent != null) {
-      await mirrorToSql(consent);
-    } else {
-      await primaryDatabase.withRetry(
-        (db) => db.consents.byKey(consentId).delete().execute(),
-      );
+      await _migrateFromDatastoreToSql(consent);
     }
     return await primaryDatabase.withRetry(
       (db) => db.consents.byKey(consentId).fetch(),
     );
   }
 
-  /// Returns the [ConsentRow] with [dedupId], reading it from SQL.
+  /// Returns the [ConsentRow] with [dedupId].
   ///
-  /// The matching Datastore entities are mirrored into SQL right before the
-  /// read.
+  /// The matching Datastore entities (if any) are migrated and deleted first.
   Future<ConsentRow?> _lookupByDedupId(String dedupId) async {
-    final query = _db.query<Consent>()
-      ..filter('dedupId =', dedupId)
-      ..limit(1);
-    await for (final consent in query.run()) {
-      await mirrorToSql(consent);
-    }
+    await _migrateQuery(_db.query<Consent>()..filter('dedupId =', dedupId));
     final rows = await primaryDatabase.withRetry(
       (db) => db.consents
           .where((c) => c.dedupId.equalsValue(dedupId))
@@ -363,19 +364,15 @@ class ConsentBackend {
     final action = _actions[consent.kind];
     await retry(() async {
       if (action != null) await fn(action);
-      final key = _db.emptyKey.append(Consent, id: consent.id);
-      await withRetryTransaction(_db, (tx) async {
-        final c = await tx.lookupOrNull<Consent>(key);
-        if (c != null) tx.delete(c.key);
-      });
       await primaryDatabase.withRetry(
         (db) => db.consents.byKey(consent.id).delete().execute(),
       );
     }, maxAttempts: 3);
   }
 
-  /// Mirrors [consent] into SQL (best-effort).
-  Future<void> mirrorToSql(Consent consent) async {
+  /// Migrates the newly created [consent] into SQL and deletes it from
+  /// Datastore.
+  Future<void> migrateToSql(Consent consent) async {
     await primaryDatabase.transactWithRetry(
       (db) => db.consents
           .upsertValue(
@@ -392,17 +389,67 @@ class ConsentBackend {
           )
           .execute(),
     );
+    await withRetryTransaction(_db, (tx) async => tx.delete(consent.key));
   }
 
-  /// Copies [Consent] entries from Datastore into SQL, for entries that are
-  /// not yet present in SQL.
-  Future<int> backfillSqlFromDatastore() async {
+  /// Migrates a Datastore [Consent] into SQL (keeping any existing row) and
+  /// deletes it from Datastore.
+  Future<void> _migrateFromDatastoreToSql(Consent consent) async {
+    await primaryDatabase.transactWithRetry(
+      (db) => db.consents
+          .insertValue(
+            id: consent.consentId,
+            email: consent.email!,
+            dedupId: consent.dedupId!,
+            kind: consent.kind!,
+            argsJson: JsonValue(consent.args),
+            fromAgent: consent.fromAgent!,
+            createdAt: consent.created!,
+            expiresAt: consent.expires!,
+            lastNotifiedAt: consent.lastNotified,
+            notificationCount: consent.notificationCount,
+          )
+          .onConflict(.primaryKey)
+          .doNothing()
+          .execute(),
+    );
+    await withRetryTransaction(_db, (tx) async => tx.delete(consent.key));
+  }
+
+  /// Migrates [Consent] entries older than [minAge] from Datastore into SQL.
+  Future<int> migrateFromDatastore({
+    Duration minAge = const Duration(minutes: 1),
+  }) async {
+    final cutoff = clock.now().toUtc().subtract(minAge);
+    return await _migrateQuery(
+      _db.query<Consent>()..filter('created <', cutoff),
+    );
+  }
+
+  /// Migrates the [Consent] entries matching [query] from Datastore into SQL.
+  ///
+  /// Returns the number of migrated entries.
+  Future<int> _migrateQuery(Query<Consent> query) async {
     var count = 0;
-    await for (final consent in _db.query<Consent>().run()) {
-      await mirrorToSql(consent);
+    await for (final consent in query.run()) {
+      await _migrateFromDatastoreToSql(consent);
       count++;
     }
     return count;
+  }
+
+  /// Updates the `fromAgent` of the consents sent by [fromUserId] to
+  /// [toUserId].
+  Future<void> updateFromAgent(String fromUserId, String toUserId) async {
+    await _migrateQuery(
+      _db.query<Consent>()..filter('fromAgent =', fromUserId),
+    );
+    await primaryDatabase.transactWithRetry(
+      (db) => db.consents
+          .where((c) => c.fromAgent.equalsValue(fromUserId))
+          .update((_, set) => set(fromAgent: toUserId.asExpr))
+          .execute(),
+    );
   }
 }
 
