@@ -1,5 +1,6 @@
 name: All tests
-permissions: read-all
+permissions:
+  contents: read
 on:
   push:
     branches:
@@ -11,7 +12,7 @@ on:
 
 env:
   PUB_ENVIRONMENT: bot.github
-  DART_SDK_VERSION: '3.13.0'
+  DART_SDK_VERSION: '3.13.7'
 
 jobs:
   app_build_only:
@@ -48,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres
+        image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
         # Set health checks to wait until postgres has started
@@ -88,7 +89,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres
+        image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
         # Set health checks to wait until postgres has started
@@ -114,10 +115,12 @@ jobs:
     - run: dart pub get
     - run: dart tool/trigger_puppeteer_download.dart
       working-directory: pkg/pub_integration
-    - run: find test/ -type f -name "*_test.dart" | awk -v shard="${{ strategy.job-index }}" -v total="${{ strategy.job-total }}" 'NR % total == shard' | xargs -I {} dart test -j 1 --run-skipped {}
+    - run: find test/ -type f -name "*_test.dart" | awk -v shard="$SHARD_INDEX" -v total="$TOTAL_SHARDS" 'NR % total == shard' | xargs -I {} dart test -j 1 --run-skipped {}
       working-directory: pkg/pub_integration
       env:
         PUB_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
+        SHARD_INDEX: ${{ strategy.job-index }}
+        TOTAL_SHARDS: ${{ strategy.job-total }}
 
   define_pkg_list:
     runs-on: ubuntu-latest
@@ -139,7 +142,7 @@ jobs:
     needs: define_pkg_list
     services:
       postgres:
-        image: postgres
+        image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
         # Set health checks to wait until postgres has started
@@ -176,14 +179,16 @@ jobs:
     - name: Check for test directory
       id: check_test_dir
       run: |
-        if [ -d "pkg/${{matrix.package}}/test" ]; then
-          echo "Test directory found for ${{matrix.package}}."
+        if [ -d "pkg/${PACKAGE}/test" ]; then
+          echo "Test directory found for ${PACKAGE}."
           echo "exists=true" >> $GITHUB_OUTPUT
         else
-          echo "No test directory found for ${{matrix.package}}. Skipping tests."
+          echo "No test directory found for ${PACKAGE}. Skipping tests."
           echo "exists=false" >> $GITHUB_OUTPUT
         fi
       shell: bash
+      env:
+        PACKAGE: ${{matrix.package}}
     - name: Run tests
       if: steps.check_test_dir.outputs.exists == 'true'
       run: dart test --run-skipped
