@@ -71,7 +71,9 @@ can't be updated, administrators must not be able to update publisher options.
         tx.insert(p);
 
         if (refCase != null) {
-          final mc = await tx.lookupValue<ModerationCase>(refCase.key);
+          final mc = await tx.lookupValue<ModerationCase>(
+            adminBackend.moderationCaseKey(refCase.caseId),
+          );
           mc.addActionLogEntry(
             ModerationSubject.publisher(publisherId).fqn,
             valueToSet! ? ModerationAction.apply : ModerationAction.revert,

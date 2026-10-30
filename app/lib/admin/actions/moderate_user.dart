@@ -80,7 +80,9 @@ The active web sessions of the user will be expired.
       await accountBackend.updateModeratedFlag(
         user!.userId,
         valueToSet,
-        refCaseKey: refCase?.key,
+        refCaseKey: refCase == null
+            ? null
+            : adminBackend.moderationCaseKey(refCase.caseId),
         moderatedReason: moderatedReason,
         note: note,
       );

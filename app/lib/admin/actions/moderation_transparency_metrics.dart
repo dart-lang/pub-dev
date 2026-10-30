@@ -3,8 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/datastore.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import 'actions.dart';
 
@@ -59,14 +62,18 @@ required for the  transparency metrics report.
     // The list of time-to-action days - required for reporting the median.
     final appealTimeToActionDays = <int>[];
 
-    final mcQuery = dbService.query<ModerationCase>()
-      // timestamp start on 00:00:00 on the day
-      ..filter('resolved >=', start)
-      // adding an extra day to make sure the end day is fully included
-      ..filter('resolved <', end.add(Duration(days: 1)));
-    await for (final mc in mcQuery.run()) {
+    // TODO: use `start` directly (with `>=`) once typed_sql supports `>=` and `<=` on dates.
+    final resolvedAfter = start.subtract(Duration(milliseconds: 1));
+    final resolvedBefore = end.add(Duration(days: 1));
+    final mcRows = await adminBackend.fetchModerationCasesWithLogs(
+      where: (c) =>
+          c.resolvedAt.asNotNull().isAfterValue(resolvedAfter) &
+          c.resolvedAt.asNotNull().isBeforeValue(resolvedBefore),
+    );
+    for (final (mc, actionLogs) in mcRows) {
+      final resolved = mc.resolvedAt;
       // sanity check
-      if (mc.resolved == null) {
+      if (resolved == null) {
         continue;
       }
 
@@ -78,7 +85,7 @@ required for the  transparency metrics report.
         violations.increment(mc.violation ?? '');
         sources.increment(mc.source);
 
-        final hasUserRestriction = mc.getActionLog().entries.any(
+        final hasUserRestriction = actionLogs.any(
           (e) => ModerationSubject.tryParse(e.subject)!.isUser,
         );
         // If actions resulted in a user being blocked, then we count it as
@@ -113,7 +120,7 @@ required for the  transparency metrics report.
             break;
         }
 
-        final timeToActionDays = mc.resolved!.difference(mc.opened).inDays + 1;
+        final timeToActionDays = resolved.difference(mc.openedAt).inDays + 1;
         appealTimeToActionDays.add(timeToActionDays);
       }
     }

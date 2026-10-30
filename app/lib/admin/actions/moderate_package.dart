@@ -45,7 +45,9 @@ Note: the action may take a longer time to complete as the public archive bucket
         p.updateIsModerated(isModerated: valueToSet);
 
         if (refCase != null) {
-          final mc = await tx.lookupValue<ModerationCase>(refCase.key);
+          final mc = await tx.lookupValue<ModerationCase>(
+            adminBackend.moderationCaseKey(refCase.caseId),
+          );
           mc.addActionLogEntry(
             ModerationSubject.package(package!).fqn,
             valueToSet ? ModerationAction.apply : ModerationAction.revert,
