@@ -287,15 +287,21 @@ class PackageBackend {
     return count;
   }
 
-  /// Mirrors reserved package into SQL.
-  Future<void> mirrorReservedPackageToSql(ReservedPackage rp) async {
+  /// Creates or updates the reserved package in SQL, keeping the original
+  /// `createdAt` of an existing entry.
+  Future<void> upsertReservedPackage(
+    String packageName,
+    List<String> emails,
+  ) async {
     await primaryDatabase.withRetry(
       (db) => db.reservedPackages
-          .upsertValue(
-            name: rp.name!,
-            createdAt: rp.created,
-            emailsJson: JsonValue(rp.emails),
+          .insertValue(
+            name: packageName,
+            createdAt: clock.now().toUtc(),
+            emailsJson: JsonValue(emails),
           )
+          .onConflict(.primaryKey)
+          .update((row, excluded, set) => set(emailsJson: excluded.emailsJson))
           .execute(),
     );
   }
@@ -305,25 +311,6 @@ class PackageBackend {
     await primaryDatabase.withRetry(
       (db) => db.reservedPackages.delete(packageName).execute(),
     );
-  }
-
-  /// Copies [ReservedPackage] entries from Datastore into SQL, for entries
-  /// that are not yet present in SQL.
-  Future<int> backfillReservedPackagesSqlFromDatastore() async {
-    var count = 0;
-    await for (final rp in db.query<ReservedPackage>().run()) {
-      final existing = await primaryDatabase.withRetry(
-        (db) => db.reservedPackages.byKey(rp.name!).fetch(),
-      );
-      if (existing != null &&
-          existing.createdAt.isAtSameMomentAs(rp.created) &&
-          const ListEquality<String>().equals(existing.emails, rp.emails)) {
-        continue;
-      }
-      await mirrorReservedPackageToSql(rp);
-      count++;
-    }
-    return count;
   }
 
   /// Upserts the [assets] into SQL.
@@ -1952,7 +1939,6 @@ class PackageBackend {
     // inserting metadata to datastore (which happens atomically).
     AuditLogRecord? packageCreatedRecord;
     AuditLogRecord? packagePublishedRecord;
-    String? deletedReservedPackageName;
     await mirrorPackageTombstoneToSqlByName(newVersion.package);
     final moderatedPackage = await lookupModeratedPackage(newVersion.package);
     final (pv, outgoingEmail) = await withRetryTransaction(db, (tx) async {
@@ -1964,16 +1950,6 @@ class PackageBackend {
 
       if (moderatedPackage != null) {
         throw PackageRejectedException.nameReserved(newVersion.package);
-      }
-
-      if (isNew) {
-        final reservedPackage = await tx.lookupOrNull<ReservedPackage>(
-          db.emptyKey.append(ReservedPackage, id: newVersion.package),
-        );
-        if (reservedPackage != null) {
-          tx.delete(reservedPackage.key);
-          deletedReservedPackageName = reservedPackage.name;
-        }
       }
 
       // If the version already exists, we fail.
@@ -2110,8 +2086,10 @@ class PackageBackend {
     if (packagePublishedRecord != null) {
       await auditBackend.migrateToSql(packagePublishedRecord!);
     }
-    if (deletedReservedPackageName != null) {
-      await deleteReservedPackageFromSql(deletedReservedPackageName!);
+    if (isNew) {
+      // TODO: merge this into the upload transaction after everything is
+      //       migrated to SQL.
+      await deleteReservedPackageFromSql(newVersion.package);
     }
     await mirrorPackageToSql(package!, versions: [newVersion]);
     await upsertPackageVersionAssetsToSql(entities.assets);

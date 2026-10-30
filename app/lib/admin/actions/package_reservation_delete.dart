@@ -4,8 +4,6 @@
 
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 
 import 'actions.dart';
@@ -29,11 +27,6 @@ Deletes a ReservedPackage entity, allowing the package name use by any user.
       throw NotFoundException('ReservedPackage `$package` does not exist.');
     }
 
-    await withRetryTransaction(
-      dbService,
-      (tx) async =>
-          tx.delete(dbService.emptyKey.append(ReservedPackage, id: rp.name)),
-    );
     await packageBackend.deleteReservedPackageFromSql(rp.name);
     await cache.reservedPackagePrefixes().purge();
 
