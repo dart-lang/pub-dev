@@ -90,7 +90,7 @@ DateTime derivePendingAt({
 /// When scheduling analysis of a package we piggyback along versions that
 /// are going to be pending soon too. Hence, we return a version if:
 ///   * `now - scheduled > 21 days`,
-///   * `lastDependencyChanged > scheduled`, or,
+///   * `lastDependencyChanged > scheduled && now - scheduled > 24 hours`, or,
 ///   * `attempts > 0 && attempts < 3 && now - scheduled > 3 hours * attempts^2`
 List<String> derivePendingVersions({
   required Map<String, PackageVersionStateInfo> versions,
@@ -106,8 +106,12 @@ List<String> derivePendingVersions({
         (e) =>
             // If scheduled more than 21 days ago
             timeSince(e.value.scheduled) > minTaskRetriggerInterval ||
-            // If a dependency has changed since it was last scheduled
-            lastDependencyChanged.isAfter(e.value.scheduled) ||
+            // If a dependency has changed since it was last scheduled, and
+            // the cool-off period has passed (this also prevents re-scheduling
+            // a version that is still running).
+            (lastDependencyChanged.isAfter(e.value.scheduled) &&
+                timeSince(e.value.scheduled) >
+                    taskDependencyRetriggerCoolOff) ||
             // If:
             //  - attempts > 0 (analysis is not done, and has been started)
             //  - no more than 3 attempts have been done,
