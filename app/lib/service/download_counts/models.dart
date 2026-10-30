@@ -2,42 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show json;
-
 import '../../shared/datastore.dart' as db;
-import 'download_counts.dart';
 
+/// Legacy Datastore entity: the download counts have moved to SQL, only the
+/// id remains so that the leftover entities can be deleted.
 @db.Kind(name: 'DownloadCounts', idType: db.IdType.String)
 class DownloadCounts extends db.ExpandoModel<String> {
   String get package => id!;
-
-  @CountDataProperty(required: true)
-  CountData countData = CountData.empty();
-}
-
-class CountDataProperty extends db.Property {
-  const CountDataProperty({super.propertyName, super.required = false})
-    : super(indexed: false);
-
-  @override
-  Object? decodePrimitiveValue(db.ModelDB db, Object? value) {
-    if (value == null) return null;
-    return CountData.fromJson(
-      json.decode(value as String) as Map<String, dynamic>,
-    );
-  }
-
-  @override
-  Object? encodeValue(
-    db.ModelDB db,
-    Object? value, {
-    bool forComparison = false,
-  }) {
-    return json.encode(value);
-  }
-
-  @override
-  bool validate(db.ModelDB db, Object? value) {
-    return super.validate(db, value) && (value == null || value is CountData);
-  }
 }

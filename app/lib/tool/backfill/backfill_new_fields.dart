@@ -10,6 +10,7 @@ import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/backend.dart';
+import 'package:pub_dev/service/download_counts/models.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
@@ -70,4 +71,10 @@ Future<void> backfillNewFields() async {
   // NOTE: Keep this around until ModerationCase is migrated to SQL.
   _logger.info('Backfilling moderation cases...');
   await adminBackend.backfillModerationCasesSqlFromDatastore();
+
+  // TODO: Remove Datastore entity in a future release.
+  _logger.info('Deleting DownloadCounts from Datastore...');
+  await dbService.deleteWithQuery<DownloadCounts>(
+    dbService.query<DownloadCounts>(),
+  );
 }
