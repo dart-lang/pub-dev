@@ -8,6 +8,7 @@ import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/service/download_counts/models.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
@@ -29,10 +30,6 @@ Future<void> backfillNewFields() async {
   // NOTE: Keep this around until User is migrated to use SQL.
   _logger.info('Backfilling users...');
   await accountBackend.backfillSqlFromDatastore();
-
-  // NOTE: Keep this around until ReservedPackage is migrated to use SQL.
-  _logger.info('Backfilling reserved packages...');
-  await packageBackend.backfillReservedPackagesSqlFromDatastore();
 
   // NOTE: Keep this around until ModeratedPackage is migrated to use SQL.
   _logger.info('Backfilling moderated packages...');
@@ -72,5 +69,11 @@ Future<void> backfillNewFields() async {
   _logger.info('Deleting NeatTaskStatus from Datastore...');
   await dbService.deleteWithQuery<NeatTaskStatus>(
     dbService.query<NeatTaskStatus>(),
+  );
+
+  // TODO: Remove Datastore entity in a future release.
+  _logger.info('Deleting ReservedPackage from Datastore...');
+  await dbService.deleteWithQuery<ReservedPackage>(
+    dbService.query<ReservedPackage>(),
   );
 }
