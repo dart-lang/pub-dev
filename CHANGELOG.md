@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded runtime Dart SDK to `3.13.7`
  * Upgraded stable Dart analysis SDK to `3.13.7`
  * Upgraded stable Flutter analysis SDK to `3.47.8`.
+ * Note: some `Package` and `PackageVersion` listing is now read from SQL.
  * Note: `PackageVersionAsset` is now read from SQL.
  * Note: `DownloadCount` is now fully migrated to SQL (ongoing delete from Datastore).
 

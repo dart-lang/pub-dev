@@ -144,6 +144,40 @@ abstract final class PackageVersionRow extends Row {
   DateTime? get adminDeletedAt;
 }
 
+extension PackageRowExt on PackageRow {
+  bool get isVisible => !isModerated && !isAdminDeleted;
+  bool get isNotVisible => !isVisible;
+
+  bool get isIncludedInRobots {
+    final now = clock.now();
+    return isVisible &&
+        !isDiscontinued &&
+        !isUnlisted &&
+        now.difference(createdAt) > robotsVisibilityMinAge &&
+        now.difference(latestPublishedAt!) < robotsVisibilityMaxAge;
+  }
+
+  bool get isExcludedInRobots => !isIncludedInRobots;
+}
+
+extension PackageVersionRowExt on PackageVersionRow {
+  bool get isVisible => !isModerated && !isAdminDeleted;
+  bool get isNotVisible => !isVisible;
+
+  Pubspec get pubspec =>
+      Pubspec.fromJson((pubspecJson.value as Map).cast<String, dynamic>());
+
+  QualifiedVersionKey get qualifiedVersionKey =>
+      QualifiedVersionKey(package: package, version: version);
+
+  String? get ellipsizedDescription {
+    final description = pubspec.description;
+    if (description == null) return null;
+    if (description.length < 210) return description;
+    return '${description.substring(0, 200)} [...]';
+  }
+}
+
 /// An extracted asset (pubspec, readme, changelog, example, license) of a
 /// package version archive.
 ///
