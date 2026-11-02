@@ -1015,6 +1015,15 @@ class AdminBackend {
           _isSameActionLog(existing[keep], entries[keep])) {
         keep++;
       }
+      // If the first new entry shares the millisecond with the last kept one,
+      // re-create the kept entries of that millisecond too, so their `logId`
+      // order follows the entry order.
+      while (keep > 0 &&
+          keep < entries.length &&
+          entries[keep].timestamp.millisecondsSinceEpoch ==
+              entries[keep - 1].timestamp.millisecondsSinceEpoch) {
+        keep--;
+      }
       for (final l in existing.skip(keep)) {
         await db.moderationActionLogs
             .where(
