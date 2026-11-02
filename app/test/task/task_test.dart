@@ -935,31 +935,68 @@ void main() {
       expect(pending, isEmpty);
     });
 
-    test('dependency change is picked up after the cool-off', () {
-      final versions = {'1.0.0': running(t0)};
-      final pending = derivePendingVersions(
-        versions: versions,
-        lastDependencyChanged: t0.add(Duration(minutes: 5)),
-        at: t0.add(taskDependencyRetriggerCoolOff).add(Duration(minutes: 1)),
+    test('dependency change is picked up only after the cool-off', () {
+      // Completed (attempts == 0): only the dependency clause can match.
+      final versions = {'1.0.0': running(t0).complete(pana: true, docs: true)};
+      final dep = t0.add(Duration(minutes: 5));
+      expect(
+        derivePendingVersions(
+          versions: versions,
+          lastDependencyChanged: dep,
+          at: t0.add(taskDependencyRetriggerCoolOff),
+        ),
+        isEmpty,
       );
-      expect(pending, ['1.0.0']);
+      expect(
+        derivePendingVersions(
+          versions: versions,
+          lastDependencyChanged: dep,
+          at: t0.add(taskDependencyRetriggerCoolOff).add(Duration(minutes: 1)),
+        ),
+        ['1.0.0'],
+      );
+      // No dependency change since scheduling.
+      expect(
+        derivePendingVersions(
+          versions: versions,
+          lastDependencyChanged: t0.subtract(Duration(minutes: 5)),
+          at: t0.add(taskDependencyRetriggerCoolOff).add(Duration(minutes: 1)),
+        ),
+        isEmpty,
+      );
     });
 
     test('versions are pending whenever pendingAt has passed', () {
       for (final attempts in [0, 1, 2, 3]) {
         for (final depMin in [-10, 5, 600]) {
-          final versions = {'1.0.0': running(t0, attempts: attempts)};
+          final versions = {
+            '1.0.0': PackageVersionStateInfo(scheduled: t0, attempts: attempts),
+          };
           final dep = t0.add(Duration(minutes: depMin));
           final pendingAt = derivePendingAt(
             versions: versions,
             lastDependencyChanged: dep,
           );
-          final pending = derivePendingVersions(
-            versions: versions,
-            lastDependencyChanged: dep,
-            at: pendingAt.add(Duration(seconds: 1)),
+          final reason = 'attempts=$attempts depMin=$depMin';
+          expect(
+            derivePendingVersions(
+              versions: versions,
+              lastDependencyChanged: dep,
+              at: pendingAt.add(Duration(seconds: 1)),
+            ),
+            isNotEmpty,
+            reason: reason,
           );
-          expect(pending, isNotEmpty, reason: '$attempts $depMin');
+          // Not pending before pendingAt.
+          expect(
+            derivePendingVersions(
+              versions: versions,
+              lastDependencyChanged: dep,
+              at: pendingAt.subtract(Duration(seconds: 1)),
+            ),
+            isEmpty,
+            reason: reason,
+          );
         }
       }
     });
