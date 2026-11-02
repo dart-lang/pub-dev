@@ -54,13 +54,15 @@ Returns the fields of the updated moderation case.
       'invalid status',
     );
 
-    final mcase = await adminBackend.lookupModerationCase(caseId!);
+    final mcase = await adminBackend.lookupModerationCaseRow(caseId!);
     if (mcase == null) {
       throw NotFoundException.resource(caseId);
     }
 
-    await withRetryTransaction(dbService, (tx) async {
-      final mc = await tx.lookupValue<ModerationCase>(mcase.key);
+    final mc = await withRetryTransaction(dbService, (tx) async {
+      final mc = await tx.lookupValue<ModerationCase>(
+        adminBackend.moderationCaseKey(caseId),
+      );
 
       mc.kind = kind ?? mc.kind;
       mc.reporterEmail = reporterEmail ?? mc.reporterEmail;
@@ -74,9 +76,9 @@ Returns the fields of the updated moderation case.
       );
 
       tx.insert(mc);
+      return mc;
     });
-    final mc = await adminBackend.lookupModerationCase(caseId);
-    await adminBackend.mirrorModerationCaseToSql(mc!);
+    await adminBackend.mirrorModerationCaseToSql(mc);
 
     return mc.toDebugInfo();
   },

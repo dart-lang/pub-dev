@@ -19,23 +19,19 @@ part 'models.g.dart';
 /// We periodically re-analyze all packages to ensure eventual consistency.
 const taskRetriggerInterval = Duration(days: 31);
 
-/// Time before an analysis/dartdoc task for a given package/version is will
-/// piggyback on the sandbox used for analysis of another version of the same
-/// package.
-const minTaskRetriggerInterval = Duration(days: 21);
-
 /// Minimum time before a dependency change can trigger a new analysis/dartdoc
 /// for a given package/version.
 ///
 /// When a dependency of a package is updated, the `lastDependencyChanged` will
-/// be updated, and when then analysis of a version is older than
+/// be updated, and when the analysis of a version is older than
 /// [taskDependencyRetriggerCoolOff] the version will be scheduled for analysis.
 /// Hence, this limits how frequently we schedule if dependencies are updated
 /// frequently.
 ///
 /// Notice, that if we are scheduling a task for analysis for some other reason
-/// any package versions not updated before `lastDependencyChanged` will also
-/// be scheduled, by piggybacking on the same sandbox / task / instance.
+/// any version scheduled before `lastDependencyChanged` and more than
+/// [taskDependencyRetriggerCoolOff] ago will also be scheduled, by piggybacking
+/// on the same sandbox / task / instance.
 const taskDependencyRetriggerCoolOff = Duration(hours: 24);
 
 /// Maximum number of times an analysis/dartdoc task should be retried for a
@@ -88,9 +84,9 @@ DateTime derivePendingAt({
 /// Return a list of pending versions for this package.
 ///
 /// When scheduling analysis of a package we piggyback along versions that
-/// are going to be pending soon too. Hence, we return a version if:
-///   * `now - scheduled > 21 days`,
-///   * `lastDependencyChanged > scheduled`, or,
+/// are already pending too. Hence, we return a version if:
+///   * `now - scheduled > 31 days`,
+///   * `lastDependencyChanged > scheduled && now - scheduled > 24 hours`, or,
 ///   * `attempts > 0 && attempts < 3 && now - scheduled > 3 hours * attempts^2`
 List<String> derivePendingVersions({
   required Map<String, PackageVersionStateInfo> versions,
@@ -104,10 +100,14 @@ List<String> derivePendingVersions({
       .where(
         // NOTE: Any changes here must be reflected in [derivePendingAt]
         (e) =>
-            // If scheduled more than 21 days ago
-            timeSince(e.value.scheduled) > minTaskRetriggerInterval ||
-            // If a dependency has changed since it was last scheduled
-            lastDependencyChanged.isAfter(e.value.scheduled) ||
+            // If scheduled more than 31 days ago
+            timeSince(e.value.scheduled) > taskRetriggerInterval ||
+            // If a dependency has changed since it was last scheduled, and
+            // the cool-off period has passed (this also prevents re-scheduling
+            // a version that is still running).
+            (lastDependencyChanged.isAfter(e.value.scheduled) &&
+                timeSince(e.value.scheduled) >
+                    taskDependencyRetriggerCoolOff) ||
             // If:
             //  - attempts > 0 (analysis is not done, and has been started)
             //  - no more than 3 attempts have been done,

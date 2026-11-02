@@ -9,6 +9,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Note: `PackageVersionAsset` is now read from SQL.
  * Note: `DownloadCount` is now fully migrated to SQL (ongoing delete from Datastore).
  * Note: `ReservedPackage` is now fully migrated to SQL (ongoing delete from Datastore).
+ * Note: `ModerationCase` is now read from SQL.
 
 ## `20261027t132200-all`
  * Bump runtimeVersion to `2026.10.23`.

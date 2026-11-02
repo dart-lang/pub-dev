@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/admin/backend.dart';
+import 'package:pub_dev/database/schema.dart';
 
 import 'actions.dart';
 
@@ -20,11 +21,11 @@ Loads and displays the moderation case information.
       'case must be given',
     );
 
-    final mc = await adminBackend.lookupModerationCase(caseId!);
+    final mc = await adminBackend.lookupModerationCaseRow(caseId!);
     if (mc == null) {
       throw NotFoundException.resource(caseId);
     }
 
-    return mc.toDebugInfo();
+    return mc.toDebugInfo(await adminBackend.fetchModerationActionLogs(caseId));
   },
 );
