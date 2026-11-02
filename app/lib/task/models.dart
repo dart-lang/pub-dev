@@ -23,7 +23,7 @@ const taskRetriggerInterval = Duration(days: 31);
 /// for a given package/version.
 ///
 /// When a dependency of a package is updated, the `lastDependencyChanged` will
-/// be updated, and when then analysis of a version is older than
+/// be updated, and when the analysis of a version is older than
 /// [taskDependencyRetriggerCoolOff] the version will be scheduled for analysis.
 /// Hence, this limits how frequently we schedule if dependencies are updated
 /// frequently.
@@ -84,7 +84,7 @@ DateTime derivePendingAt({
 /// Return a list of pending versions for this package.
 ///
 /// When scheduling analysis of a package we piggyback along versions that
-/// are going to be pending soon too. Hence, we return a version if:
+/// are already pending too. Hence, we return a version if:
 ///   * `now - scheduled > 31 days`,
 ///   * `lastDependencyChanged > scheduled && now - scheduled > 24 hours`, or,
 ///   * `attempts > 0 && attempts < 3 && now - scheduled > 3 hours * attempts^2`
