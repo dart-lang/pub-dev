@@ -391,7 +391,8 @@ class PublisherBackend {
     // Create the publisher
     final now = clock.now().toUtc();
     final auditLogRecord = await AuditLogRecord.publisherCreated(
-      user: user,
+      userId: user.userId,
+      userEmail: user.email,
       publisherId: publisherId,
     );
     var created = false;
@@ -490,7 +491,8 @@ class PublisherBackend {
     final user = authenticatedUser.user;
     final publisher = await requirePublisherAdmin(publisherId, user.userId);
     final auditLogRecord = await AuditLogRecord.publisherUpdated(
-      user: user,
+      userId: user.userId,
+      userEmail: user.email,
       publisherId: publisherId,
     );
     await withRetryTransaction(_db, (tx) async {
@@ -582,7 +584,8 @@ class PublisherBackend {
     );
 
     final auditLogRecord = await AuditLogRecord.publisherContactInviteAccepted(
-      user: user,
+      userId: user.userId,
+      userEmail: user.email,
       publisherId: publisherId,
       contactEmail: contactEmail,
     );
@@ -778,8 +781,10 @@ class PublisherBackend {
       final memberUser = await accountBackend.lookupUserById(userId);
       final auditLogRecord = await AuditLogRecord.publisherMemberRemoved(
         publisherId: publisherId,
-        activeUser: user,
-        memberToRemove: memberUser!,
+        activeUserId: user.userId,
+        activeUserEmail: user.email,
+        memberToRemoveId: memberUser!.userId,
+        memberToRemoveEmail: memberUser.email,
       );
       await withRetryTransaction(_db, (tx) async {
         // bump the publisher, the SQL mirror uses it to detect stale writes
@@ -810,7 +815,8 @@ class PublisherBackend {
     }
     final user = await accountBackend.lookupUserById(userId);
     final auditLogRecord = await AuditLogRecord.publisherMemberInviteAccepted(
-      user: user!,
+      userId: user!.userId,
+      userEmail: user.email,
       publisherId: publisherId,
     );
     var added = false;

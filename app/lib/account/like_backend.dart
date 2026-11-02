@@ -69,9 +69,9 @@ class LikeBackend {
     }))!;
   }
 
-  /// Creates and returns a package like entry for the given [user] and
+  /// Creates and returns a package like entry for the given [userId] and
   /// [package], and increments the 'likes' property on [package].
-  Future<Like> likePackage(User user, String package) async {
+  Future<Like> likePackage(String userId, String package) async {
     Package? updatedPackage;
     final res = await withRetryTransaction<Like>(_db, (tx) async {
       updatedPackage = null;
@@ -82,7 +82,7 @@ class LikeBackend {
       }
 
       final key = _db.emptyKey
-          .append(User, id: user.id)
+          .append(User, id: userId)
           .append(Like, id: package);
       final oldLike = await tx.lookupOrNull<Like>(key);
 
@@ -93,7 +93,7 @@ class LikeBackend {
       p.likes++;
       p.updated = clock.now().toUtc();
       final newLike = Like()
-        ..parentKey = user.key
+        ..parentKey = _db.emptyKey.append(User, id: userId)
         ..id = p.id
         ..created = clock.now().toUtc()
         ..packageName = p.name;
@@ -107,13 +107,13 @@ class LikeBackend {
       await mirrorToSql(res);
     }
     await cache.packageView(package).purge();
-    await purgeAccountCache(userId: user.userId);
+    await purgeAccountCache(userId: userId);
     return res;
   }
 
-  /// Delete a package like entry for the given [user] and [package] if it
+  /// Delete a package like entry for the given [userId] and [package] if it
   /// exists, and decrements the 'likes' property on [package].
-  Future<void> unlikePackage(User user, String package) async {
+  Future<void> unlikePackage(String userId, String package) async {
     Package? updatedPackage;
     await withRetryTransaction<void>(_db, (tx) async {
       updatedPackage = null;
@@ -124,7 +124,7 @@ class LikeBackend {
       }
 
       final likeKey = _db.emptyKey
-          .append(User, id: user.id)
+          .append(User, id: userId)
           .append(Like, id: package);
       final like = await tx.lookupOrNull<Like>(likeKey);
 
@@ -139,10 +139,10 @@ class LikeBackend {
     });
     if (updatedPackage != null) {
       await packageBackend.mirrorPackageToSql(updatedPackage!);
-      await deleteFromSql(user.userId, package);
+      await deleteFromSql(userId, package);
     }
     await cache.packageView(package).purge();
-    await cache.userPackageLikes(user.userId).purge();
+    await cache.userPackageLikes(userId).purge();
   }
 
   /// Upserts [like] into SQL. The user and the package must exist in SQL.

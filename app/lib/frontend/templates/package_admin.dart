@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../account/models.dart';
 import '../../audit/models.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
@@ -17,7 +16,7 @@ import 'views/pkg/admin_page.dart';
 String renderPkgAdminPage(
   PackagePageData data,
   List<String> userPublishers,
-  List<User> uploaderUsers,
+  List<String> uploaderEmails,
   List<String> retractableVersions,
   List<String> retractedVersions,
 ) {
@@ -30,7 +29,7 @@ String renderPkgAdminPage(
       contentNode: packageAdminPageNode(
         package: data.package,
         userPublishers: userPublishers,
-        uploaderUsers: uploaderUsers,
+        uploaderEmails: uploaderEmails,
         retractableVersions: retractableVersions,
         retractedVersions: retractedVersions,
       ),

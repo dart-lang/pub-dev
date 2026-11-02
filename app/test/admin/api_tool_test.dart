@@ -149,7 +149,7 @@ void main() {
             final consentRow = await dbService.query<Consent>().run().single;
             final consent = await consentBackend.getConsent(
               consentRow.consentId,
-              user,
+              user.email!,
             );
             expect(
               consent.descriptionHtml,
@@ -243,7 +243,7 @@ void main() {
           final consentRow = await dbService.query<Consent>().run().single;
           final consent = await consentBackend.getConsent(
             consentRow.consentId,
-            user,
+            user.email!,
           );
           expect(consent.descriptionHtml, contains('/packages/oxygen'));
           expect(

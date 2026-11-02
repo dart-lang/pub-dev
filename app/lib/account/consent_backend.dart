@@ -60,9 +60,9 @@ class ConsentBackend {
   ConsentBackend(this._db);
 
   /// Returns the consent details.
-  Future<api.Consent> getConsent(String consentId, User user) async {
+  Future<api.Consent> getConsent(String consentId, String userEmail) async {
     InvalidInputException.checkUlid(consentId, 'consentId');
-    final c = await _lookupAndCheck(consentId, user);
+    final c = await _lookupAndCheck(consentId, userEmail);
     final action = _actions[c.kind]!;
     final fromAgent = c.fromAgent;
     final String invitingUserEmail;
@@ -76,7 +76,7 @@ class ConsentBackend {
       descriptionHtml: action.renderInviteHtml(
         invitingUserEmail: invitingUserEmail,
         args: c.args,
-        currentUserEmail: user.email!,
+        currentUserEmail: userEmail,
       ),
     );
   }
@@ -84,7 +84,7 @@ class ConsentBackend {
   /// Returns the consent details for API calls.
   Future<api.Consent> handleGetConsent(String consentId) async {
     final authenticatedUser = await requireAuthenticatedWebUser();
-    return getConsent(consentId, authenticatedUser.user);
+    return getConsent(consentId, authenticatedUser.user.email!);
   }
 
   /// Resolves the consent.
@@ -96,13 +96,16 @@ class ConsentBackend {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
 
-    final c = await _lookupAndCheck(consentId, user);
+    final c = await _lookupAndCheck(consentId, user.email);
     InvalidInputException.checkNotNull(result.granted, 'granted');
     if (result.granted) {
       await _delete(c, (a) => a.onAccept(c));
       return api.ConsentResult(granted: true);
     } else {
-      await _delete(c, (a) => a.onReject(c, user));
+      await _delete(
+        c,
+        (a) => a.onReject(c, userId: user.userId, userEmail: user.email),
+      );
       return api.ConsentResult(granted: false);
     }
   }
@@ -209,7 +212,8 @@ class ConsentBackend {
       kind: ConsentKind.publisherContact,
       args: [publisherId, contactEmail],
       auditLogRecord: await AuditLogRecord.publisherContactInvited(
-        user: user,
+        userId: user.userId,
+        userEmail: user.email,
         publisherId: publisherId,
         contactEmail: contactEmail,
       ),
@@ -293,8 +297,11 @@ class ConsentBackend {
     }
   }
 
-  /// Returns the [Consent] for [consentId] and checks if it is for [user].
-  Future<ConsentRow> _lookupAndCheck(String consentId, User user) async {
+  /// Returns the [Consent] for [consentId] and checks if it is for [userEmail].
+  Future<ConsentRow> _lookupAndCheck(
+    String consentId,
+    String? userEmail,
+  ) async {
     final c = await _lookup(consentId);
     if (c == null) {
       throw NotFoundException.resource('consent: $consentId');
@@ -304,13 +311,13 @@ class ConsentBackend {
       // NOTE: the message must not reveal the invited email address, as it
       //       may be shown to a user that is not the intended recipient.
       InvalidInputException.check(
-        c.email.toLowerCase() == user.email?.toLowerCase(),
+        c.email.toLowerCase() == userEmail?.toLowerCase(),
         'This invitation is not for the user account currently logged in '
-        '(`${user.email}`).\n'
+        '(`$userEmail`).\n'
         'Invitations must be sent to the primary email address of a Google '
         'Account (email aliases are not supported).\n'
         'Sign in with the account the invitation was sent to, or ask the '
-        'inviter to send a new invitation to `${user.email}`.',
+        'inviter to send a new invitation to `$userEmail`.',
       );
     }
     return c;
@@ -427,7 +434,11 @@ abstract class ConsentAction {
   Future<void> onAccept(ConsentRow consent);
 
   /// Callback on rejecting the consent.
-  Future<void> onReject(ConsentRow consent, User? user);
+  Future<void> onReject(
+    ConsentRow consent, {
+    String? userId,
+    String? userEmail,
+  });
 
   /// Callback on timeout of the consent.
   Future<void> onExpire(ConsentRow consent);
@@ -478,19 +489,24 @@ class _PackageUploaderAction extends ConsentAction {
 
     await packageBackend.confirmUploader(
       packageName,
-      currentUser.user,
+      currentUser.user.userId,
+      currentUser.user.email,
       consentRequestFromAgent: consent.fromAgent,
     );
   }
 
   @override
-  Future<void> onReject(ConsentRow consent, User? user) async {
+  Future<void> onReject(
+    ConsentRow consent, {
+    String? userId,
+    String? userEmail,
+  }) async {
     final packageName = consent.args[0];
     final record = await AuditLogRecord.uploaderInviteRejected(
       fromAgent: consent.fromAgent,
       package: packageName,
-      uploaderEmail: user?.email ?? consent.email,
-      userId: user?.userId,
+      uploaderEmail: userEmail ?? consent.email,
+      userId: userId,
     );
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);
@@ -556,14 +572,18 @@ class _PublisherContactAction extends ConsentAction {
   }
 
   @override
-  Future<void> onReject(ConsentRow consent, User? user) async {
+  Future<void> onReject(
+    ConsentRow consent, {
+    String? userId,
+    String? userEmail,
+  }) async {
     final publisherId = consent.args[0];
     final record = await AuditLogRecord.publisherContactInviteRejected(
       fromAgent: consent.fromAgent,
       publisherId: publisherId,
       contactEmail: consent.email,
-      userEmail: user?.email,
-      userId: user?.userId,
+      userEmail: userEmail,
+      userId: userId,
     );
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);
@@ -642,13 +662,17 @@ class _PublisherMemberAction extends ConsentAction {
   }
 
   @override
-  Future<void> onReject(ConsentRow consent, User? user) async {
+  Future<void> onReject(
+    ConsentRow consent, {
+    String? userId,
+    String? userEmail,
+  }) async {
     final publisherId = consent.args[0];
     final record = await AuditLogRecord.publisherMemberInviteRejected(
       fromAgent: consent.fromAgent,
       publisherId: publisherId,
-      memberEmail: user?.email ?? consent.email,
-      userId: user?.userId,
+      memberEmail: userEmail ?? consent.email,
+      userId: userId,
     );
     await withRetryTransaction(_db, (tx) async {
       tx.insert(record);

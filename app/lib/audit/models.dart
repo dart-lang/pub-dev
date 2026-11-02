@@ -222,20 +222,21 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   static Future<AuditLogRecord> packagePublicationAutomationUpdated({
     required String package,
     required String? publisherId,
-    required User user,
+    required String userId,
+    required String? userEmail,
   }) {
     return _checkRateLimit(
       AuditLogRecord._init()
         ..kind = AuditLogRecordKind.packagePublicationAutomationUpdated
-        ..agent = user.userId
+        ..agent = userId
         ..summary =
-            '`${user.email}` updated the publication automation config of package `$package`.'
+            '`$userEmail` updated the publication automation config of package `$package`.'
         ..data = {
           'package': package,
-          'user': user.email,
+          'user': userEmail,
           if (publisherId != null) 'publisherId': publisherId,
         }
-        ..users = [user.userId]
+        ..users = [userId]
         ..packages = [package]
         ..packageVersions = []
         ..publishers = [if (publisherId != null) publisherId],
@@ -398,7 +399,8 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> packageTransferred({
-    required User user,
+    required String userId,
+    required String? userEmail,
     required String package,
     required String? fromPublisherId,
     required String toPublisherId,
@@ -406,20 +408,20 @@ class AuditLogRecord extends db.ExpandoModel<String> {
     return _checkRateLimit(
       AuditLogRecord._init()
         ..kind = AuditLogRecordKind.packageTransferred
-        ..agent = user.userId
+        ..agent = userId
         ..summary = [
           'Package `$package` ',
           if (fromPublisherId != null) 'from `$fromPublisherId` ',
           'was transferred to publisher `$toPublisherId` ',
-          'by `${user.email}`.',
+          'by `$userEmail`.',
         ].join()
         ..data = {
           'package': package,
           if (fromPublisherId != null) 'fromPublisherId': fromPublisherId,
           'toPublisherId': toPublisherId,
-          'user': user.email,
+          'user': userEmail,
         }
-        ..users = [user.userId]
+        ..users = [userId]
         ..packages = [package]
         ..packageVersions = []
         ..publishers = [
@@ -463,24 +465,25 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherContactInviteAccepted({
-    required User user,
+    required String userId,
+    required String? userEmail,
     required String publisherId,
     required String contactEmail,
   }) {
     return _checkRateLimit(
       AuditLogRecord._init()
         ..kind = AuditLogRecordKind.publisherContactInviteAccepted
-        ..agent = user.userId
+        ..agent = userId
         ..summary = [
-          '`${user.email}` accepted `$contactEmail` ',
+          '`$userEmail` accepted `$contactEmail` ',
           'to be contact email for publisher `$publisherId`.',
         ].join()
         ..data = {
           'publisherId': publisherId,
           'contactEmail': contactEmail,
-          'user': user.email,
+          'user': userEmail,
         }
-        ..users = [user.userId]
+        ..users = [userId]
         ..packages = []
         ..packageVersions = []
         ..publishers = [publisherId],
@@ -491,24 +494,25 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherContactInvited({
-    required User user,
+    required String userId,
+    required String? userEmail,
     required String publisherId,
     required String contactEmail,
   }) {
     return _checkRateLimit(
       AuditLogRecord._init()
         ..kind = AuditLogRecordKind.publisherContactInvited
-        ..agent = user.userId
+        ..agent = userId
         ..summary = [
-          '`${user.email}` invited `$contactEmail` ',
+          '`$userEmail` invited `$contactEmail` ',
           'to be contact email for publisher `$publisherId`.',
         ].join()
         ..data = {
           'publisherId': publisherId,
           'contactEmail': contactEmail,
-          'user': user.email,
+          'user': userEmail,
         }
-        ..users = [user.userId]
+        ..users = [userId]
         ..packages = []
         ..packageVersions = []
         ..publishers = [publisherId],
@@ -589,16 +593,17 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherCreated({
-    required User user,
+    required String userId,
+    required String? userEmail,
     required String publisherId,
   }) {
     return _checkRateLimit(
       AuditLogRecord._init()
         ..kind = AuditLogRecordKind.publisherCreated
-        ..agent = user.userId
-        ..summary = '`${user.email}` created publisher `$publisherId`.'
-        ..data = {'publisherId': publisherId, 'user': user.email}
-        ..users = [user.userId]
+        ..agent = userId
+        ..summary = '`$userEmail` created publisher `$publisherId`.'
+        ..data = {'publisherId': publisherId, 'user': userEmail}
+        ..users = [userId]
         ..packages = []
         ..packageVersions = []
         ..publishers = [publisherId],
@@ -637,17 +642,18 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherMemberInviteAccepted({
-    required User user,
+    required String userId,
+    required String? userEmail,
     required String publisherId,
   }) {
     return _checkRateLimit(
       AuditLogRecord._init()
         ..kind = AuditLogRecordKind.publisherMemberInviteAccepted
-        ..agent = user.userId
+        ..agent = userId
         ..summary =
-            '`${user.email}` accepted member invite for publisher `$publisherId`.'
-        ..data = {'publisherId': publisherId, 'user': user.email}
-        ..users = [user.userId]
+            '`$userEmail` accepted member invite for publisher `$publisherId`.'
+        ..data = {'publisherId': publisherId, 'user': userEmail}
+        ..users = [userId]
         ..packages = []
         ..packageVersions = []
         ..publishers = [publisherId],
@@ -724,24 +730,26 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherMemberRemoved({
-    required User activeUser,
+    required String activeUserId,
+    required String? activeUserEmail,
     required String publisherId,
-    required User memberToRemove,
+    required String memberToRemoveId,
+    required String? memberToRemoveEmail,
   }) {
     return _checkRateLimit(
       AuditLogRecord._init()
         ..kind = AuditLogRecordKind.publisherMemberRemoved
-        ..agent = activeUser.userId
+        ..agent = activeUserId
         ..summary = [
-          '`${activeUser.email}` removed `${memberToRemove.email}` ',
+          '`$activeUserEmail` removed `$memberToRemoveEmail` ',
           'from publisher `$publisherId`.',
         ].join()
         ..data = {
           'publisherId': publisherId,
-          'memberEmail': memberToRemove.email,
-          'user': activeUser.email,
+          'memberEmail': memberToRemoveEmail,
+          'user': activeUserEmail,
         }
-        ..users = [activeUser.userId, memberToRemove.userId]
+        ..users = [activeUserId, memberToRemoveId]
         ..packages = []
         ..packageVersions = []
         ..publishers = [publisherId],
@@ -752,16 +760,17 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> publisherUpdated({
-    required User user,
+    required String userId,
+    required String? userEmail,
     required String publisherId,
   }) {
     return _checkRateLimit(
       AuditLogRecord._init()
         ..kind = AuditLogRecordKind.publisherUpdated
-        ..agent = user.userId
-        ..summary = '`${user.email}` updated publisher `$publisherId`.'
-        ..data = {'publisherId': publisherId, 'user': user.email}
-        ..users = [user.userId]
+        ..agent = userId
+        ..summary = '`$userEmail` updated publisher `$publisherId`.'
+        ..data = {'publisherId': publisherId, 'user': userEmail}
+        ..users = [userId]
         ..packages = []
         ..packageVersions = []
         ..publishers = [publisherId],
@@ -772,24 +781,26 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> uploaderAdded({
-    required User activeUser,
+    required String activeUserId,
+    required String? activeUserEmail,
     required String package,
-    required User uploaderUser,
+    required String uploaderUserId,
+    required String? uploaderUserEmail,
   }) {
     return _checkRateLimit(
       AuditLogRecord._init()
         ..kind = AuditLogRecordKind.uploaderAdded
-        ..agent = activeUser.userId
+        ..agent = activeUserId
         ..summary = [
-          '`${activeUser.email}` added `${uploaderUser.email}` ',
+          '`$activeUserEmail` added `$uploaderUserEmail` ',
           'to the uploaders of package `$package`.',
         ].join()
         ..data = {
           'package': package,
-          'uploaderEmail': uploaderUser.email,
-          'user': activeUser.email,
+          'uploaderEmail': uploaderUserEmail,
+          'user': activeUserEmail,
         }
-        ..users = [activeUser.userId, uploaderUser.userId]
+        ..users = [activeUserId, uploaderUserId]
         ..packages = [package]
         ..packageVersions = []
         ..publishers = [],
@@ -828,18 +839,19 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   ///
   /// Throws [RateLimitException] when the configured rate limit is reached.
   static Future<AuditLogRecord> uploaderInviteAccepted({
-    required User user,
+    required String userId,
+    required String? userEmail,
     required String package,
   }) {
     return _checkRateLimit(
       AuditLogRecord._init()
         ..kind = AuditLogRecordKind.uploaderInviteAccepted
-        ..agent = user.userId
+        ..agent = userId
         ..summary = [
-          '`${user.email}` accepted uploader invite for package `$package`.',
+          '`$userEmail` accepted uploader invite for package `$package`.',
         ].join()
-        ..data = {'package': package, 'user': user.email}
-        ..users = [user.userId]
+        ..data = {'package': package, 'user': userEmail}
+        ..users = [userId]
         ..packages = [package]
         ..packageVersions = []
         ..publishers = [],
@@ -918,25 +930,23 @@ class AuditLogRecord extends db.ExpandoModel<String> {
   static Future<AuditLogRecord> uploaderRemoved({
     required AuthenticatedAgent agent,
     required String package,
-    required User uploaderUser,
+    required String uploaderUserId,
+    required String? uploaderUserEmail,
   }) {
     return _checkRateLimit(
       AuditLogRecord._init()
         ..kind = AuditLogRecordKind.uploaderRemoved
         ..agent = agent.agentId
         ..summary = [
-          '`${agent.displayId}` removed `${uploaderUser.email}` ',
+          '`${agent.displayId}` removed `$uploaderUserEmail` ',
           'from the uploaders of package `$package`.',
         ].join()
         ..data = {
           'package': package,
-          'uploaderEmail': uploaderUser.email,
+          'uploaderEmail': uploaderUserEmail,
           if (agent.email != null) 'email': agent.email,
         }
-        ..users = [
-          if (agent is AuthenticatedUser) agent.userId,
-          uploaderUser.userId,
-        ]
+        ..users = [if (agent is AuthenticatedUser) agent.userId, uploaderUserId]
         ..packages = [package]
         ..packageVersions = []
         ..publishers = [],

@@ -4,7 +4,6 @@
 
 import 'package:_pub_shared/data/package_api.dart';
 
-import '../../../../account/models.dart';
 import '../../../../package/models.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
@@ -15,7 +14,7 @@ import '../shared/toc.dart';
 d.Node packageAdminPageNode({
   required Package package,
   required List<String> userPublishers,
-  required List<User> uploaderUsers,
+  required List<String> uploaderEmails,
   required List<String> retractableVersions,
   required List<String> retractedVersions,
 }) {
@@ -107,33 +106,33 @@ d.Node packageAdminPageNode({
           ),
         if (!pkgHasPublisher) ...[
           d.h3(text: 'Uploaders'),
-          if (uploaderUsers.length == 1)
+          if (uploaderEmails.length == 1)
             d.p(
               text:
                   'There is only a single uploader. Consider adding more uploaders to protect against losing control of the package.',
               classes: ['warning'],
             ),
-          material.dataTable<User>(
+          material.dataTable<String>(
             id: '-pkg-admin-uploaders-table',
             ariaLabel: 'Uploaders of package',
             columns: [
-              material.DataTableColumn<User>(
+              material.DataTableColumn<String>(
                 headerContent: d.text('Email'),
                 headerClasses: ['email-header'],
-                renderCell: (u) => d.text(u.email!),
+                renderCell: (u) => d.text(u),
               ),
-              material.DataTableColumn<User>(
+              material.DataTableColumn<String>(
                 headerContent: d.text(''),
                 headerClasses: ['icons-header'],
                 renderCell: (u) => d.a(
                   classes: ['-pub-remove-uploader-button'],
                   title: 'Remove uploader',
-                  attributes: {'data-email': u.email!},
+                  attributes: {'data-email': u},
                   text: '×',
                 ),
               ),
             ],
-            entries: uploaderUsers,
+            entries: uploaderEmails,
           ),
           d.p(
             child: material.button(

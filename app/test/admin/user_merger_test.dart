@@ -194,7 +194,7 @@ void main() {
     fn: () async {
       final user = await accountBackend.lookupUserByEmail('user@pub.dev');
       final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
-      await likeBackend.likePackage(admin, 'oxygen');
+      await likeBackend.likePackage(admin.userId, 'oxygen');
       expect(
         (await likeBackend.listPackageLikes(
           admin.userId,
@@ -221,8 +221,8 @@ void main() {
     fn: () async {
       final user = await accountBackend.lookupUserByEmail('user@pub.dev');
       final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
-      await likeBackend.likePackage(user, 'oxygen');
-      await likeBackend.likePackage(admin, 'oxygen');
+      await likeBackend.likePackage(user.userId, 'oxygen');
+      await likeBackend.likePackage(admin.userId, 'oxygen');
       expect((await packageBackend.lookupPackage('oxygen'))!.likes, 2);
 
       await _corruptAndFix();

@@ -46,7 +46,8 @@ This should generally only be done with PM approval as it skips actual domain ve
     // Create the publisher
     final now = clock.now().toUtc();
     final auditLogRecord = await AuditLogRecord.publisherCreated(
-      user: user,
+      userId: user.userId,
+      userEmail: user.email,
       publisherId: publisherId,
     );
     var created = false;

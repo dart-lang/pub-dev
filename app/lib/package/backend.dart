@@ -1301,7 +1301,8 @@ class PackageBackend {
       auditLogRecord = await AuditLogRecord.packagePublicationAutomationUpdated(
         package: p.name!,
         publisherId: p.publisherId,
-        user: user,
+        userId: user.userId,
+        userEmail: user.email,
       );
       tx.insert(auditLogRecord!);
       updatedPackage = p;
@@ -1464,7 +1465,8 @@ class PackageBackend {
       tx.insert(package);
       updatedPackage = package;
       auditLogRecord = await AuditLogRecord.packageTransferred(
-        user: user,
+        userId: user.userId,
+        userEmail: user.email,
         package: package.name!,
         fromPublisherId: currentPublisherId,
         toPublisherId: package.publisherId!,
@@ -2447,12 +2449,13 @@ class PackageBackend {
 
   Future<void> confirmUploader(
     String packageName,
-    User uploader, {
+    String uploaderUserId,
+    String? uploaderEmail, {
     required String consentRequestFromAgent,
   }) async {
     AuditLogRecord? auditLogRecord;
     Package? updatedPackage;
-    final uploaderUserId = await withRetryTransaction(db, (tx) async {
+    await withRetryTransaction<void>(db, (tx) async {
       final packageKey = db.emptyKey.append(Package, id: packageName);
       final package = (await tx.lookup([packageKey])).first as Package;
 
@@ -2463,23 +2466,24 @@ class PackageBackend {
           consentRequestFromAgent,
         );
       }
-      if (package.containsUploader(uploader.userId)) {
+      if (package.containsUploader(uploaderUserId)) {
         // The requested uploaderEmail is already part of the uploaders.
-        return uploader.userId;
+        return;
       }
 
       // Add [uploaderEmail] to uploaders and commit.
-      package.addUploader(uploader.userId);
+      package.addUploader(uploaderUserId);
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
       updatedPackage = package;
       auditLogRecord = await AuditLogRecord.uploaderInviteAccepted(
-        user: uploader,
+        userId: uploaderUserId,
+        userEmail: uploaderEmail,
         package: packageName,
       );
       tx.insert(auditLogRecord!);
-      return uploader.userId;
+      return;
     });
     if (auditLogRecord != null) {
       await auditBackend.migrateToSql(auditLogRecord!);
@@ -2570,7 +2574,8 @@ class PackageBackend {
       auditLogRecord = await AuditLogRecord.uploaderRemoved(
         agent: authenticatedUser,
         package: packageName,
-        uploaderUser: uploader,
+        uploaderUserId: uploader.userId,
+        uploaderUserEmail: uploader.email,
       );
       tx.insert(auditLogRecord!);
       return uploader.userId;
