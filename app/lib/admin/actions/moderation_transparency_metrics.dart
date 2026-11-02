@@ -62,13 +62,13 @@ required for the  transparency metrics report.
     // The list of time-to-action days - required for reporting the median.
     final appealTimeToActionDays = <int>[];
 
-    // TODO: use `start` directly (with `>=`) once typed_sql supports `>=` and `<=` on dates.
-    final resolvedAfter = start.subtract(Duration(milliseconds: 1));
+    final resolvedFrom = start;
+    // adding an extra day to make sure the end day is fully included
     final resolvedBefore = end.add(Duration(days: 1));
     final mcRows = await adminBackend.fetchModerationCasesWithLogs(
       where: (c) =>
-          c.resolvedAt.asNotNull().isAfterValue(resolvedAfter) &
-          c.resolvedAt.asNotNull().isBeforeValue(resolvedBefore),
+          (c.resolvedAt.asNotNull() >= toExpr(resolvedFrom)) &
+          (c.resolvedAt.asNotNull() < toExpr(resolvedBefore)),
     );
     for (final (mc, actionLogs) in mcRows) {
       final resolved = mc.resolvedAt;
