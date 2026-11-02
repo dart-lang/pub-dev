@@ -187,6 +187,18 @@ class PackageBackend {
     return await db.lookupOrNull<Package>(packageKey);
   }
 
+  /// Returns the number of likes of the [packageName] from SQL, or `null` if
+  /// the package is not present in SQL.
+  Future<int?> lookupLikesCount(String packageName) async {
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.packages
+          .where((p) => p.name.equalsValue(packageName))
+          .select((p) => (p.likesCount,))
+          .fetch(),
+    );
+    return rows.singleOrNull;
+  }
+
   /// Looks up a moderated package (tombstone) by name in SQL.
   ///
   /// Returns `null` if the package doesn't exist.
@@ -1419,15 +1431,11 @@ class PackageBackend {
     String packageName,
   ) async {
     checkPackageVersionParams(packageName);
-    final key = db.emptyKey.append(Package, id: packageName);
-    final package = await db.lookupOrNull<Package>(key);
-    if (package == null) {
+    final likes = await lookupLikesCount(packageName);
+    if (likes == null) {
       throw NotFoundException.resource('package "$packageName"');
     }
-    return account_api.PackageLikesCount(
-      package: packageName,
-      likes: package.likes,
-    );
+    return account_api.PackageLikesCount(package: packageName, likes: likes);
   }
 
   /// Sets/updates the publisher of a package.
