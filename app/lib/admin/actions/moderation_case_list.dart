@@ -4,8 +4,10 @@
 
 import 'package:_pub_shared/search/search_form.dart';
 import 'package:clock/clock.dart';
-import 'package:pub_dev/admin/models.dart';
-import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/admin/backend.dart';
+import 'package:pub_dev/admin/models.dart' hide ModerationActionLog;
+import 'package:pub_dev/database/schema.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import 'actions.dart';
 
@@ -35,19 +37,19 @@ List ModerationCase entities with filter options.
     final past = options['past'];
     final pastDuration = past == null ? null : parseTime(past);
 
-    final query = dbService.query<ModerationCase>();
-    switch (sort) {
-      case 'opened':
-        query.order('-opened');
-        break;
-      case 'resolved':
-        query.order('-resolved');
-        break;
-      default:
-        throw InvalidInputException('invalid sort value');
-    }
+    InvalidInputException.check(
+      sort == 'opened' || sort == 'resolved',
+      'invalid sort value',
+    );
+    final rows = await adminBackend.fetchModerationCasesWithLogs(
+      orderBy: (c) => [
+        if (sort == 'resolved') (c.resolvedAt, Order.descending),
+        (c.openedAt, Order.descending),
+      ],
+    );
+    final logsByCase = {for (final (c, l) in rows) c.caseId: l};
 
-    final list = await query.run().where((mc) {
+    final list = rows.map((r) => r.$1).where((mc) {
       if (status == 'resolved' && mc.status == ModerationStatus.pending) {
         return false;
       }
@@ -62,12 +64,12 @@ List ModerationCase entities with filter options.
       }
       final now = clock.now();
       if (pastDuration != null) {
-        if (sort == 'opened' && now.difference(mc.opened) > pastDuration) {
+        if (sort == 'opened' && now.difference(mc.openedAt) > pastDuration) {
           return false;
         }
         if (sort == 'resolved' &&
-            (mc.resolved == null ||
-                now.difference(mc.resolved!) > pastDuration)) {
+            (mc.resolvedAt == null ||
+                now.difference(mc.resolvedAt!) > pastDuration)) {
           return false;
         }
       }
@@ -80,7 +82,9 @@ List ModerationCase entities with filter options.
       case 'compact':
         return {'cases': list.map((e) => e.toCompactInfo()).toList()};
       case 'expanded':
-        return {'cases': list.map((e) => e.toDebugInfo()).toList()};
+        return {
+          'cases': [for (final e in list) e.toDebugInfo(logsByCase[e.caseId]!)],
+        };
       default:
         throw InvalidInputException('invalid density value');
     }

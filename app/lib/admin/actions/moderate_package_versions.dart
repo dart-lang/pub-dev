@@ -51,7 +51,9 @@ Set the moderated flag on a package version (updating the flag and the timestamp
         v.updateIsModerated(isModerated: valueToSet);
 
         if (refCase != null) {
-          final mc = await tx.lookupValue<ModerationCase>(refCase.key);
+          final mc = await tx.lookupValue<ModerationCase>(
+            adminBackend.moderationCaseKey(refCase.caseId),
+          );
           mc.addActionLogEntry(
             ModerationSubject.package(package!, version!).fqn,
             valueToSet ? ModerationAction.apply : ModerationAction.revert,
