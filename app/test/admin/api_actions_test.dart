@@ -8,8 +8,6 @@ import 'package:logging/logging.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 
@@ -99,19 +97,17 @@ void main() {
     fn: () async {
       final originalVersionList = await packageBackend.listVersions('oxygen');
 
-      // inject "bad" ModeratedPackage tombstone
-      final moderatedPkg = ModeratedPackage()
-        ..parentKey = dbService.emptyKey
-        ..id = 'oxygen'
-        ..name = 'oxygen'
-        ..moderated = clock.now().toUtc()
-        ..versions = [
+      // inject "bad" tombstone
+      await packageBackend.insertPackageTombstone(
+        name: 'oxygen',
+        moderatedAt: clock.now().toUtc(),
+        publisherId: null,
+        uploaders: [],
+        versions: [
           originalVersionList.versions.first.version, // existing
           '8.99.100', // non-existing
-        ]
-        ..uploaders = [];
-      await dbService.commit(inserts: [moderatedPkg]);
-      await packageBackend.backfillPackageTombstonesSqlFromDatastore();
+        ],
+      );
 
       // verify that new upload is blocked
       final pubspecContent = generatePubspecYaml('oxygen', '9.0.0');
@@ -129,7 +125,7 @@ void main() {
       // merge tombstone
       final api = createPubApiClient(authToken: siteAdminToken);
       final result = await api.adminInvokeAction(
-        'merge-moderated-package-into-existing',
+        'merge-package-tombstone-into-existing',
         AdminInvokeActionArguments(arguments: {'package': 'oxygen'}),
       );
       expect(result.output, {'package': 'oxygen', 'merged': true});

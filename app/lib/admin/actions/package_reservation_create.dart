@@ -37,10 +37,9 @@ able to claim it.
     if (p != null) {
       throw InvalidInputException('Package `$package` exists.');
     }
-    await packageBackend.mirrorPackageTombstoneToSqlByName(package);
-    final mp = await packageBackend.lookupModeratedPackage(package);
-    if (mp != null) {
-      throw InvalidInputException('ModeratedPackage `$package` exists.');
+    final tombstone = await packageBackend.lookupPackageTombstone(package);
+    if (tombstone != null) {
+      throw InvalidInputException('Package tombstone `$package` exists.');
     }
 
     await packageBackend.upsertReservedPackage(

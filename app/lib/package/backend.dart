@@ -201,10 +201,10 @@ class PackageBackend {
     );
   }
 
-  /// Looks up a moderated package (tombstone) by name in SQL.
+  /// Looks up the [PackageTombstone] of a removed (moderated) package in SQL.
   ///
-  /// Returns `null` if the package doesn't exist.
-  Future<PackageTombstone?> lookupModeratedPackage(String packageName) async {
+  /// Returns `null` if the package has no tombstone.
+  Future<PackageTombstone?> lookupPackageTombstone(String packageName) async {
     return await primaryDatabase.withRetry(
       (db) => db.packageTombstones.byKey(packageName).fetch(),
     );
@@ -245,60 +245,47 @@ class PackageBackend {
         as List<String>;
   }
 
-  /// Mirrors moderated package into SQL as a [PackageTombstone].
-  Future<void> mirrorPackageTombstoneToSql(ModeratedPackage mp) async {
-    await primaryDatabase.withRetry(
-      (db) => db.packageTombstones
-          .upsertValue(
-            name: mp.name!,
-            moderatedAt: mp.moderated,
-            publisherId: mp.publisherId,
-            uploadersJson: JsonValue(mp.uploaders ?? const <String>[]),
-            versionsJson: JsonValue(mp.versions ?? const <String>[]),
-          )
-          .execute(),
-    );
-  }
-
-  /// Looks up the [ModeratedPackage] of [packageName] in Datastore and mirrors
-  /// it into SQL (or removes the SQL row if the entity is missing).
+  /// Inserts (or updates) the [PackageTombstone] in SQL.
   ///
-  /// Intended to be called before critical read paths, to minimize the
-  /// inconsistency window. Does not fail if the entity is missing.
-  Future<void> mirrorPackageTombstoneToSqlByName(String packageName) async {
-    final mp = await db.lookupOrNull<ModeratedPackage>(
-      db.emptyKey.append(ModeratedPackage, id: packageName),
-    );
-    if (mp != null) {
-      await mirrorPackageTombstoneToSql(mp);
-    } else {
-      await deletePackageTombstoneFromSql(packageName);
-    }
+  /// When [includeSqlVersions] is set, the versions of the package currently
+  /// in SQL are read in the same transaction and merged with [versions].
+  ///
+  /// Returns the stored versions.
+  Future<Set<String>> insertPackageTombstone({
+    required String name,
+    required DateTime moderatedAt,
+    required String? publisherId,
+    required List<String> uploaders,
+    required Iterable<String> versions,
+    bool includeSqlVersions = false,
+  }) async {
+    return await primaryDatabase.transactWithRetry((db) async {
+      final stored = <String>{...versions};
+      if (includeSqlVersions) {
+        final rows = await db.packageVersions
+            .where((v) => v.package.equalsValue(name))
+            .select((v) => (v.version,))
+            .fetch();
+        stored.addAll(rows);
+      }
+      await db.packageTombstones
+          .upsertValue(
+            name: name,
+            moderatedAt: moderatedAt,
+            publisherId: publisherId,
+            uploadersJson: JsonValue(uploaders),
+            versionsJson: JsonValue(stored.toList()),
+          )
+          .execute();
+      return stored;
+    });
   }
 
   /// Deletes the [PackageTombstone] from SQL.
-  Future<void> deletePackageTombstoneFromSql(String packageName) async {
+  Future<void> deletePackageTombstone(String packageName) async {
     await primaryDatabase.withRetry(
       (db) => db.packageTombstones.delete(packageName).execute(),
     );
-  }
-
-  /// Copies [ModeratedPackage] entries from Datastore into SQL as
-  /// [PackageTombstone] rows, for entries that are not yet present in SQL.
-  Future<int> backfillPackageTombstonesSqlFromDatastore() async {
-    var count = 0;
-    await for (final mp in db.query<ModeratedPackage>().run()) {
-      final existing = await primaryDatabase.withRetry(
-        (db) => db.packageTombstones.byKey(mp.name!).fetch(),
-      );
-      if (existing != null &&
-          existing.moderatedAt.isAtSameMomentAs(mp.moderated)) {
-        continue;
-      }
-      await mirrorPackageTombstoneToSql(mp);
-      count++;
-    }
-    return count;
   }
 
   /// Creates or updates the reserved package in SQL, keeping the original
@@ -1951,8 +1938,7 @@ class PackageBackend {
     // inserting metadata to datastore (which happens atomically).
     AuditLogRecord? packageCreatedRecord;
     AuditLogRecord? packagePublishedRecord;
-    await mirrorPackageTombstoneToSqlByName(newVersion.package);
-    final moderatedPackage = await lookupModeratedPackage(newVersion.package);
+    final tombstone = await lookupPackageTombstone(newVersion.package);
     final (pv, outgoingEmail) = await withRetryTransaction(db, (tx) async {
       _logger.info('Starting datastore transaction.');
 
@@ -1960,7 +1946,7 @@ class PackageBackend {
       final version = tuple[0] as PackageVersion?;
       package = tuple[1] as Package?;
 
-      if (moderatedPackage != null) {
+      if (tombstone != null) {
         throw PackageRejectedException.nameReserved(newVersion.package);
       }
 

@@ -26,10 +26,6 @@ Future<void> backfillNewFields() async {
   _logger.info('Backfilling users...');
   await accountBackend.backfillSqlFromDatastore();
 
-  // NOTE: Keep this around until ModeratedPackage is migrated to use SQL.
-  _logger.info('Backfilling moderated packages...');
-  await packageBackend.backfillPackageTombstonesSqlFromDatastore();
-
   // NOTE: Keep this around until SecurityAdvisory is migrated to use SQL.
   _logger.info('Backfilling security advisories...');
   await securityAdvisoryBackend.backfillSqlFromDatastore();
@@ -70,5 +66,11 @@ Future<void> backfillNewFields() async {
   _logger.info('Deleting ReservedPackage from Datastore...');
   await dbService.deleteWithQuery<ReservedPackage>(
     dbService.query<ReservedPackage>(),
+  );
+
+  // TODO: Remove Datastore entity in a future release.
+  _logger.info('Deleting ModeratedPackage from Datastore...');
+  await dbService.deleteWithQuery<ModeratedPackage>(
+    dbService.query<ModeratedPackage>(),
   );
 }

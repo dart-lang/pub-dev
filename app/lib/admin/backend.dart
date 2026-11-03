@@ -312,8 +312,8 @@ class AdminBackend {
   /// entities. It is safe to call [removePackage] on an already removed
   /// package, as the call is idempotent.
   ///
-  /// Creates a [ModeratedPackage] instance (if not already present) in
-  /// Datastore representing the removed package. No new package with the same
+  /// Creates a [PackageTombstone] row (if not already present) in
+  /// SQL representing the removed package. No new package with the same
   /// name can be published.
   Future<
     ({
@@ -397,52 +397,35 @@ class AdminBackend {
 
     _logger.info('Removing Package from Datastore...');
     var deletedPackages = 0;
-    await packageBackend.mirrorPackageTombstoneToSqlByName(packageName);
-    final insertedModeratedPkg = await withRetryTransaction(_db, (tx) async {
-      final package = await tx.lookupOrNull<Package>(packageKey);
-      if (package == null) {
-        _logger.info(
-          'Package $packageName not found. Removing related elements.',
-        );
-        // Returning early makes sure we are not creating ghost `ModeratedPackage`
-        // entities because of a typo.
-        return null;
-      }
-      tx.delete(packageKey);
-      deletedPackages = 1;
-      final moderatedPkg = await packageBackend.lookupModeratedPackage(
+    final package = await _db.lookupOrNull<Package>(packageKey);
+    if (package == null) {
+      // Returning early makes sure we are not creating ghost tombstones
+      // because of a typo.
+      _logger.info(
+        'Package $packageName not found. Removing related elements.',
+      );
+    } else {
+      // Tombstone first: a failure in-between is completed by a repeated call.
+      final tombstone = await packageBackend.lookupPackageTombstone(
         packageName,
       );
-      if (moderatedPkg != null) {
-        return null;
+      if (tombstone == null) {
+        final moderatedAt = moderated ?? clock.now().toUtc();
+        final uploaders = package.uploaders ?? const <String>[];
+
+        _logger.info('Adding package tombstone ...');
+        final stored = await packageBackend.insertPackageTombstone(
+          name: packageName,
+          moderatedAt: moderatedAt,
+          publisherId: package.publisherId,
+          uploaders: uploaders,
+          versions: [...versions, ...?package.deletedVersions],
+          includeSqlVersions: true,
+        );
+        versions.addAll(stored);
       }
-      // Refresh versions to make sure we are not missing a freshly uploaded one.
-      versions.addAll(
-        await tx
-            .query<PackageVersion>(packageKey)
-            .run()
-            .map((pv) => pv.version!)
-            .toList(),
-      );
-
-      versions.addAll(package.deletedVersions ?? const <String>[]);
-
-      final insertedModeratedPkg = ModeratedPackage()
-        ..parentKey = _db.emptyKey
-        ..id = packageName
-        ..name = packageName
-        ..moderated = moderated ?? clock.now().toUtc()
-        ..versions = versions.toList()
-        ..publisherId = package.publisherId
-        ..uploaders = package.uploaders;
-      tx.insert(insertedModeratedPkg);
-
-      _logger.info('Adding package to moderated packages ...');
-      return insertedModeratedPkg;
-    });
-
-    if (insertedModeratedPkg != null) {
-      await packageBackend.mirrorPackageTombstoneToSql(insertedModeratedPkg);
+      await _db.commit(deletes: [packageKey]);
+      deletedPackages = 1;
     }
 
     _logger.info('Removing package from PackageVersion ...');

@@ -195,7 +195,7 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
             // The package is neither invisible or tombstoned, hence there is
             // probably an error in the generated data.
             if (pkg == null &&
-                (await packageBackend.lookupModeratedPackage(package)) ==
+                (await packageBackend.lookupPackageTombstone(package)) ==
                     null) {
               _logger.severe(
                 'Package $package appeared in download counts data for file '

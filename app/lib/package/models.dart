@@ -843,27 +843,11 @@ class PackageVersionAsset extends db.ExpandoModel {
   }
 }
 
-/// Entity representing a package that has been removed.
+/// Legacy Datastore entity, moved to SQL as `PackageTombstone`; kept only to
+/// delete leftovers.
+@Deprecated('Use PackageTombstone in SQL instead.')
 @db.Kind(name: 'ModeratedPackage', idType: db.IdType.String)
-class ModeratedPackage extends db.ExpandoModel<String> {
-  @db.StringProperty(required: true)
-  String? name;
-
-  @db.DateTimeProperty()
-  late DateTime moderated;
-
-  /// The previous publisher id (null, if the package did not have a publisher).
-  @db.StringProperty()
-  String? publisherId;
-
-  /// List of User.userId of previous uploaders.
-  @db.StringListProperty()
-  List<String>? uploaders;
-
-  /// List of previous versions.
-  @db.StringListProperty()
-  List<String>? versions;
-}
+class ModeratedPackage extends db.ExpandoModel<String> {}
 
 /// Legacy Datastore entity: reserved packages have moved to SQL, only the id
 /// remains so that the leftover entities can be deleted.
