@@ -8,6 +8,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `3.47.8`.
  * Note: `PackageVersionAsset` is now read from SQL.
  * Note: `DownloadCount` is now fully migrated to SQL (ongoing delete from Datastore).
+ * Note: A package's likes count is now read from SQL.
  * Note: `ReservedPackage` is now fully migrated to SQL (ongoing delete from Datastore).
  * Note: `ModerationCase` is now read from SQL.
 

@@ -233,7 +233,7 @@ class ScoreCardBackend {
     return VersionScore(
       grantedPoints: card.grantedPubPoints,
       maxPoints: card.maxPubPoints,
-      likeCount: pkg.likes,
+      likeCount: await packageBackend.lookupLikesCount(package) ?? pkg.likes,
       downloadCount30Days: downloadCountsBackend.lookup30DaysTotalCounts(
         package,
       ),
