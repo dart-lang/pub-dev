@@ -696,7 +696,10 @@ void main() {
 
         await withFakeAuthRequestContext('uploader@pub.dev', () async {
           final user = (await requireAuthenticatedWebUser()).user;
-          final rs = await consentBackend.getConsent(consent.consentId, user);
+          final rs = await consentBackend.getConsent(
+            consent.consentId,
+            user.email!,
+          );
           expect(rs.titleText, contains('oxygen'));
         });
 
@@ -716,7 +719,7 @@ void main() {
 
         await withFakeAuthRequestContext('uploader@pub.dev', () async {
           final user = (await requireAuthenticatedWebUser()).user;
-          await consentBackend.getConsent(consent.consentId, user);
+          await consentBackend.getConsent(consent.consentId, user.email!);
         });
 
         expect(await _fetchRow(consent.consentId), isNotNull);
