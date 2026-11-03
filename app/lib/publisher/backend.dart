@@ -778,13 +778,13 @@ class PublisherBackend {
     final publisherKey = _publisherKey(publisherId);
     final pm = await getPublisherMember(publisherId, userId);
     if (pm != null) {
-      final memberUser = await accountBackend.lookupUserById(userId);
+      final memberEmail = await accountBackend.getEmailOfUserId(userId);
       final auditLogRecord = await AuditLogRecord.publisherMemberRemoved(
         publisherId: publisherId,
         activeUserId: user.userId,
         activeUserEmail: user.email,
-        memberToRemoveId: memberUser!.userId,
-        memberToRemoveEmail: memberUser.email,
+        memberToRemoveId: userId,
+        memberToRemoveEmail: memberEmail,
       );
       await withRetryTransaction(_db, (tx) async {
         // bump the publisher, the SQL mirror uses it to detect stale writes

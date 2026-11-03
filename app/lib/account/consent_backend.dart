@@ -84,7 +84,7 @@ class ConsentBackend {
   /// Returns the consent details for API calls.
   Future<api.Consent> handleGetConsent(String consentId) async {
     final authenticatedUser = await requireAuthenticatedWebUser();
-    return getConsent(consentId, authenticatedUser.user.email!);
+    return getConsent(consentId, authenticatedUser.email!);
   }
 
   /// Resolves the consent.
@@ -94,9 +94,7 @@ class ConsentBackend {
   ) async {
     InvalidInputException.checkUlid(consentId, 'consentId');
     final authenticatedUser = await requireAuthenticatedWebUser();
-    final user = authenticatedUser.user;
-
-    final c = await _lookupAndCheck(consentId, user.email);
+    final c = await _lookupAndCheck(consentId, authenticatedUser.email);
     InvalidInputException.checkNotNull(result.granted, 'granted');
     if (result.granted) {
       await _delete(c, (a) => a.onAccept(c));
@@ -104,7 +102,11 @@ class ConsentBackend {
     } else {
       await _delete(
         c,
-        (a) => a.onReject(c, userId: user.userId, userEmail: user.email),
+        (a) => a.onReject(
+          c,
+          userId: authenticatedUser.userId,
+          userEmail: authenticatedUser.email,
+        ),
       );
       return api.ConsentResult(granted: false);
     }
@@ -489,8 +491,8 @@ class _PackageUploaderAction extends ConsentAction {
 
     await packageBackend.confirmUploader(
       packageName,
-      currentUser.user.userId,
-      currentUser.user.email,
+      currentUser.userId,
+      currentUser.email,
       consentRequestFromAgent: consent.fromAgent,
     );
   }

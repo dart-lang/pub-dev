@@ -181,10 +181,10 @@ Future<shelf.Response> consentPageHandler(
     throw NotFoundException('Missing consent id.');
   }
 
-  final user = await accountBackend.lookupUserById(
+  final userEmail = await accountBackend.getEmailOfUserId(
     requestContext.authenticatedUserId!,
   );
-  final consent = await consentBackend.getConsent(consentId, user!.email!);
+  final consent = await consentBackend.getConsent(consentId, userEmail!);
   // If consent does not exists (or does not belong to the user), the `getConsent`
   // call above will throw, and the generic error page will be shown.
   // TODO: handle missing/expired consent gracefully
@@ -263,8 +263,7 @@ Future<PackageLikeResponse> likePackageHandler(
   String package,
 ) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
-  final user = authenticatedUser.user;
-  final l = await likeBackend.likePackage(user.userId, package);
+  final l = await likeBackend.likePackage(authenticatedUser.userId, package);
   return PackageLikeResponse(liked: true, package: package, created: l.created);
 }
 
@@ -274,8 +273,7 @@ Future<shelf.Response> unlikePackageHandler(
   String package,
 ) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
-  final user = authenticatedUser.user;
-  await likeBackend.unlikePackage(user.userId, package);
+  await likeBackend.unlikePackage(authenticatedUser.userId, package);
   return shelf.Response(204);
 }
 

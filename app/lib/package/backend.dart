@@ -38,7 +38,6 @@ import 'package:typed_sql/typed_sql.dart';
 import '../account/agent.dart';
 import '../account/backend.dart';
 import '../account/consent_backend.dart';
-import '../account/models.dart' show User;
 import '../audit/backend.dart';
 import '../audit/models.dart';
 import '../publisher/backend.dart';
@@ -2534,13 +2533,10 @@ class PackageBackend {
       await _validatePackageUploader(packageName, package, user.userId);
 
       // Fail if the uploader we want to remove does not exist.
-      final uploaderUsers = await accountBackend.lookupUsersById(
-        package.uploaders!,
-      );
-      final uploadersWithEmail = <User>[];
-      for (final u in uploaderUsers) {
-        final email = await accountBackend.getEmailOfUserId(u!.userId);
-        if (email == uploaderEmail) uploadersWithEmail.add(u);
+      final uploadersWithEmail = <String>[];
+      for (final id in package.uploaders!) {
+        final email = await accountBackend.getEmailOfUserId(id);
+        if (email == uploaderEmail) uploadersWithEmail.add(id);
       }
       if (uploadersWithEmail.isEmpty) {
         throw NotFoundException.resource('uploader: $uploaderEmail');
@@ -2550,7 +2546,7 @@ class PackageBackend {
           'Multiple uploaders with email: $uploaderEmail',
         );
       }
-      final uploader = uploadersWithEmail.single;
+      final uploaderId = uploadersWithEmail.single;
 
       // We cannot have 0 uploaders, if we would remove the last one, we
       // fail with an error.
@@ -2561,12 +2557,12 @@ class PackageBackend {
       // At the moment we don't validate whether the other email addresses
       // are able to authenticate. To prevent accidentally losing the control
       // of a package, we don't allow self-removal.
-      if (user.email == uploader.email || user.userId == uploader.userId) {
+      if (user.email == uploaderEmail || user.userId == uploaderId) {
         throw OperationForbiddenException.selfRemovalNotAllowed();
       }
 
       // Remove the uploader from the list.
-      package.removeUploader(uploader.userId);
+      package.removeUploader(uploaderId);
       package.updated = clock.now().toUtc();
 
       tx.insert(package);
@@ -2574,11 +2570,11 @@ class PackageBackend {
       auditLogRecord = await AuditLogRecord.uploaderRemoved(
         agent: authenticatedUser,
         package: packageName,
-        uploaderUserId: uploader.userId,
-        uploaderUserEmail: uploader.email,
+        uploaderUserId: uploaderId,
+        uploaderUserEmail: uploaderEmail,
       );
       tx.insert(auditLogRecord!);
-      return uploader.userId;
+      return uploaderId;
     });
     if (auditLogRecord != null) {
       await auditBackend.migrateToSql(auditLogRecord!);
