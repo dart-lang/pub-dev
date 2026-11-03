@@ -908,6 +908,99 @@ void main() {
       expect(afterDelete.$2.map((t) => t.token), ['token-b']);
     },
   );
+
+  group('derivePendingVersions', () {
+    final t0 = DateTime.utc(2026, 1, 1, 12);
+
+    PackageVersionStateInfo running(DateTime scheduled, {int attempts = 0}) =>
+        PackageVersionStateInfo(
+          scheduled: initialTimestamp,
+          attempts: attempts,
+        ).scheduleNew(
+          scheduled: scheduled,
+          zone: 'z',
+          instanceName: 'i1',
+          secretToken: 'token',
+        );
+
+    test('running version is not re-attempted on dependency change', () {
+      final versions = {'1.0.0': running(t0)};
+      final pending = derivePendingVersions(
+        versions: versions,
+        lastDependencyChanged: t0.add(Duration(minutes: 5)),
+        at: t0.add(Duration(minutes: 10)),
+      );
+      // Re-selecting would bump attempts to 2 and replace the secret token
+      // of the instance that is still working on it.
+      expect(pending, isEmpty);
+    });
+
+    test('dependency change is picked up only after the cool-off', () {
+      // Completed (attempts == 0): only the dependency clause can match.
+      final versions = {'1.0.0': running(t0).complete(pana: true, docs: true)};
+      final dep = t0.add(Duration(minutes: 5));
+      expect(
+        derivePendingVersions(
+          versions: versions,
+          lastDependencyChanged: dep,
+          at: t0.add(taskDependencyRetriggerCoolOff),
+        ),
+        isEmpty,
+      );
+      expect(
+        derivePendingVersions(
+          versions: versions,
+          lastDependencyChanged: dep,
+          at: t0.add(taskDependencyRetriggerCoolOff).add(Duration(minutes: 1)),
+        ),
+        ['1.0.0'],
+      );
+      // No dependency change since scheduling.
+      expect(
+        derivePendingVersions(
+          versions: versions,
+          lastDependencyChanged: t0.subtract(Duration(minutes: 5)),
+          at: t0.add(taskDependencyRetriggerCoolOff).add(Duration(minutes: 1)),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('versions are pending whenever pendingAt has passed', () {
+      for (final attempts in [0, 1, 2, 3]) {
+        for (final depMin in [-10, 5, 600]) {
+          final versions = {
+            '1.0.0': PackageVersionStateInfo(scheduled: t0, attempts: attempts),
+          };
+          final dep = t0.add(Duration(minutes: depMin));
+          final pendingAt = derivePendingAt(
+            versions: versions,
+            lastDependencyChanged: dep,
+          );
+          final reason = 'attempts=$attempts depMin=$depMin';
+          expect(
+            derivePendingVersions(
+              versions: versions,
+              lastDependencyChanged: dep,
+              at: pendingAt.add(Duration(seconds: 1)),
+            ),
+            isNotEmpty,
+            reason: reason,
+          );
+          // Not pending before pendingAt.
+          expect(
+            derivePendingVersions(
+              versions: versions,
+              lastDependencyChanged: dep,
+              at: pendingAt.subtract(Duration(seconds: 1)),
+            ),
+            isEmpty,
+            reason: reason,
+          );
+        }
+      }
+    });
+  });
 }
 
 extension<T> on Stream<T> {

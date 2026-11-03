@@ -865,27 +865,11 @@ class ModeratedPackage extends db.ExpandoModel<String> {
   List<String>? versions;
 }
 
-/// Entity representing a reserved package: the name is available only
-/// for a subset of the users (`@google.com` + list of [emails]).
+/// Legacy Datastore entity: reserved packages have moved to SQL, only the id
+/// remains so that the leftover entities can be deleted.
 @db.Kind(name: 'ReservedPackage', idType: db.IdType.String)
-class ReservedPackage extends db.ExpandoModel<String> {
-  @db.StringProperty(required: true)
-  String? name;
-
-  @db.DateTimeProperty()
-  late DateTime created;
-
-  /// List of email addresses that are allowed to claim this package name.
-  /// This is on top of the `@google.com` email addresses.
-  @db.StringListProperty()
-  List<String> emails = <String>[];
-
-  ReservedPackage();
-  ReservedPackage.init(this.name) {
-    id = name;
-    created = clock.now().toUtc();
-  }
-}
+@Deprecated('No longer in use.')
+class ReservedPackage extends db.ExpandoModel<String> {}
 
 /// An identifier to point to a specific [package] and [version].
 class QualifiedVersionKey {

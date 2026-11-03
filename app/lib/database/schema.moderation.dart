@@ -88,3 +88,49 @@ abstract final class ModerationActionLog extends Row {
 
   String? get note;
 }
+
+extension ModerationCaseRowExt on ModerationCaseRow {
+  Map<String, dynamic> toCompactInfo() {
+    return {
+      'caseId': caseId,
+      'reporterEmail': reporterEmail,
+      'kind': kind,
+      'opened': openedAt.toIso8601String(),
+      'resolved': resolvedAt?.toIso8601String(),
+      'subject': subject,
+      if (appealedCaseId != null) 'appealedCaseId': appealedCaseId,
+    };
+  }
+
+  /// The debug information of the case, with the [actionLogs] sorted by
+  /// `logId`.
+  Map<String, dynamic> toDebugInfo(List<ModerationActionLog> actionLogs) {
+    return {
+      'caseId': caseId,
+      'reporterEmail': reporterEmail,
+      'kind': kind,
+      'opened': openedAt.toIso8601String(),
+      'resolved': resolvedAt?.toIso8601String(),
+      'source': source,
+      'subject': subject,
+      'isSubjectOwner': isSubjectOwner,
+      'url': url,
+      'status': status,
+      'grounds': grounds,
+      'violation': violation,
+      'reason': reason,
+      'appealedCaseId': appealedCaseId,
+      'actionLog': {
+        'entries': [
+          for (final l in actionLogs)
+            {
+              'timestamp': l.createdAt.toIso8601String(),
+              'subject': l.subject,
+              'moderationAction': l.action,
+              if (l.note != null) 'note': l.note,
+            },
+        ],
+      },
+    };
+  }
+}
