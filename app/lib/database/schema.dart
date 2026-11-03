@@ -4,6 +4,10 @@
 
 import 'dart:typed_data';
 
+import 'package:clock/clock.dart';
+import 'package:pub_dev/package/model_properties.dart' show Pubspec;
+import 'package:pub_dev/package/models.dart'
+    show QualifiedVersionKey, robotsVisibilityMaxAge, robotsVisibilityMinAge;
 import 'package:pub_dev/publisher/models.dart' show PublisherStatus;
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:typed_sql/typed_sql.dart';

@@ -12,6 +12,7 @@ import 'package:pub_dev/shared/changelog.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../admin/actions/actions.dart';
+import '../../database/schema.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../shared/configuration.dart';
@@ -57,7 +58,7 @@ Future<String> buildAllPackagesAtomFeedContent() async {
   final versions = await packageBackend.latestPackageVersions(limit: 100);
   versions.removeWhere((pv) => pv.isNotVisible || pv.isRetracted);
   final contents = await Future.wait(
-    versions.map((v) => _getChangelogReleaseContent(v.package, v.version!)),
+    versions.map((v) => _getChangelogReleaseContent(v.package, v.version)),
   );
   final feed = _allPackagesFeed(versions, contents);
   return feed.toXmlDocument();
@@ -215,7 +216,7 @@ class Feed {
 }
 
 Feed _allPackagesFeed(
-  List<PackageVersion> versions,
+  List<PackageVersionRow> versions,
   List<String> releaseContents,
 ) {
   final entries = <FeedEntry>[];
@@ -245,7 +246,7 @@ Feed _allPackagesFeed(
       FeedEntry(
         id: id,
         title: title,
-        updated: version.created!,
+        updated: version.createdAt,
         publisherId: version.publisherId,
         content: content,
         alternateUrl: alternateUrl,

@@ -11,9 +11,11 @@ part of 'schema.dart';
 abstract final class PackageRow extends Row {
   String get name;
 
+  @Index.field()
   DateTime get createdAt;
 
   /// The last modification of the row, updated on every change.
+  @Index.field()
   DateTime get updatedAt;
 
   /// The publish time of the most recent version (including retracted ones).
@@ -115,6 +117,7 @@ abstract final class PackageVersionRow extends Row {
 
   String get version;
 
+  @Index.field()
   DateTime get createdAt;
 
   /// The SHA-256 hash of the canonical archive file.
@@ -142,6 +145,40 @@ abstract final class PackageVersionRow extends Row {
   bool get isAdminDeleted;
 
   DateTime? get adminDeletedAt;
+}
+
+extension PackageRowExt on PackageRow {
+  bool get isVisible => !isModerated && !isAdminDeleted;
+  bool get isNotVisible => !isVisible;
+
+  bool get isIncludedInRobots {
+    final now = clock.now();
+    return isVisible &&
+        !isDiscontinued &&
+        !isUnlisted &&
+        now.difference(createdAt) > robotsVisibilityMinAge &&
+        now.difference(latestPublishedAt!) < robotsVisibilityMaxAge;
+  }
+
+  bool get isExcludedInRobots => !isIncludedInRobots;
+}
+
+extension PackageVersionRowExt on PackageVersionRow {
+  bool get isVisible => !isModerated && !isAdminDeleted;
+  bool get isNotVisible => !isVisible;
+
+  Pubspec get pubspec =>
+      Pubspec.fromJson((pubspecJson.value as Map).cast<String, dynamic>());
+
+  QualifiedVersionKey get qualifiedVersionKey =>
+      QualifiedVersionKey(package: package, version: version);
+
+  String? get ellipsizedDescription {
+    final description = pubspec.description;
+    if (description == null) return null;
+    if (description.length < 210) return description;
+    return '${description.substring(0, 200)} [...]';
+  }
 }
 
 /// An extracted asset (pubspec, readme, changelog, example, license) of a

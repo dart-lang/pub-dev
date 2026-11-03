@@ -136,30 +136,36 @@ class PackageBackend {
   }
 
   /// Retrieves the packages that need to be included in sitemap.txt.
-  Stream<Package> sitemapPackageNames() {
-    final query = db.query<Package>()
-      ..filter(
-        'updated >',
-        clock.now().toUtc().subtract(robotsVisibilityMaxAge),
-      );
-    return query
-        .run()
-        .where((p) => p.isVisible)
-        .where((p) => p.isIncludedInRobots)
-        .where((p) => !isSdkPackage(p.name!));
+  Stream<PackageRow> sitemapPackageNames() async* {
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.packages
+          .where(
+            (p) => p.updatedAt.isAfterValue(
+              clock.now().toUtc().subtract(robotsVisibilityMaxAge),
+            ),
+          )
+          .fetch(),
+    );
+    yield* Stream.fromIterable(
+      rows
+          .where((p) => p.isIncludedInRobots)
+          .where((p) => !isSdkPackage(p.name)),
+    );
   }
 
   /// Retrieves package versions ordered by their published date descending.
-  Future<List<PackageVersion>> latestPackageVersions({
+  Future<List<PackageVersionRow>> latestPackageVersions({
     int offset = 0,
     required int limit,
   }) async {
-    final query = db.query<PackageVersion>()
-      ..order('-created')
-      ..offset(offset)
-      ..limit(limit);
-    final versions = await query.run().toList();
-    final results = <PackageVersion>[];
+    final versions = await primaryDatabase.withRetry(
+      (db) => db.packageVersions
+          .orderBy((v) => [(v.createdAt, Order.descending)])
+          .limit(limit)
+          .offset(offset)
+          .fetch(),
+    );
+    final results = <PackageVersionRow>[];
     for (final v in versions) {
       if (isSdkPackage(v.package)) continue;
       if (!(await isPackageVisible(v.package))) continue;
