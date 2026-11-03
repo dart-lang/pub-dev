@@ -7,6 +7,7 @@ import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
@@ -261,21 +262,7 @@ class UserMerger {
     });
 
     // Consent's fromUserId attribute
-    await _processConcurrently(
-      _db.query<Consent>()..filter('fromAgent =', fromUserId),
-      (Consent m) async {
-        if (m.parentKey?.id != null) {
-          throw StateError('Old Consent entity: ${m.consentId}.');
-        }
-        await withRetryTransaction(_db, (tx) async {
-          final consent = await tx.lookupValue<Consent>(m.key);
-          if (consent.fromAgent == fromUserId) {
-            consent.fromAgent = toUserId;
-            tx.insert(consent);
-          }
-        });
-      },
-    );
+    await consentBackend.updateFromAgent(fromUserId, toUserId);
 
     // PublisherMember
     await _processConcurrently(

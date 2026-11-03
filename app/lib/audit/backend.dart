@@ -229,13 +229,12 @@ class AuditBackend {
   /// If this fails, the Datastore entity is left behind and will be picked up
   /// by [migrateFromDatastore].
   Future<void> migrateToSql(AuditLogRecord record) async {
-    await primaryDatabase.transactWithRetry(
-      (db) => _upsertSqlRecord(db, record),
-    );
+    await primaryDatabase.transactWithRetry((db) => upsertIntoSql(db, record));
     await withRetryTransaction(_db, (tx) async => tx.delete(record.key));
   }
 
-  Future<void> _upsertSqlRecord(
+  /// Writes [record] into SQL using [db].
+  Future<void> upsertIntoSql(
     Database<PrimarySchema> db,
     AuditLogRecord record,
   ) async {

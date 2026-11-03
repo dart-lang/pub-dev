@@ -9,15 +9,17 @@ import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/account/auth_provider.dart';
 import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../database/package_sql_utils.dart';
 import '../database/publisher_sql_utils.dart';
@@ -245,11 +247,13 @@ void main() {
         await createPubApiClient(
           authToken: siteAdminToken,
         ).adminAddPackageUploader('oxygen', 'user@pub.dev');
-        final consentRow = await dbService.query<Consent>().run().single;
+        final consentRow = (await primaryDatabase.withRetry(
+          (db) => db.consents.fetch(),
+        )).single;
         await (await createFakeAuthPubApiClient(
           email: 'user@pub.dev',
         )).resolveConsent(
-          consentRow.consentId,
+          consentRow.id,
           account_api.ConsentResult(granted: true),
         );
 
