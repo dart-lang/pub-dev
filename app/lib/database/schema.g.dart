@@ -9979,7 +9979,16 @@ final class _$PackageRow extends PackageRow {
     ],
     primaryKey: <String>['name'],
     unique: <List<String>>[],
-    foreignKeys: [],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'publisher',
+        columns: ['publisher_id'],
+        referencedTable: 'publishers',
+        referencedColumns: ['publisher_id'],
+        onDelete: .setNull,
+        onUpdate: .cascade,
+      ),
+    ],
     indexes: [
       $ForGeneratedCode.indexDefinition(
         name: null,
@@ -10852,6 +10861,18 @@ extension ExpressionPackageRowExt on Expr<PackageRow> {
   SubQuery<(Expr<PackageVersionRow>,)> get versions => $ForGeneratedCode
       .subqueryTable(_$PackageVersionRow._$table)
       .where((r) => r.package.equalsUnlessNull(name));
+
+  /// Do a subquery lookup of the row from table
+  /// `publishers` referenced in
+  /// [publisherId].
+  ///
+  /// The gets the row from table `publishers` where
+  /// [PublisherRow.publisherId]
+  /// is equal to [publisherId], if any.
+  Expr<PublisherRow?> get publisher => $ForGeneratedCode
+      .subqueryTable(_$PublisherRow._$table)
+      .where((r) => r.publisherId.equalsUnlessNull(publisherId))
+      .first;
 }
 
 extension ExpressionNullablePackageRowExt on Expr<PackageRow?> {
@@ -10978,6 +10999,20 @@ extension ExpressionNullablePackageRowExt on Expr<PackageRow?> {
       .subqueryTable(_$PackageVersionRow._$table)
       .where((r) => r.package.equalsUnlessNull(name));
 
+  /// Do a subquery lookup of the row from table
+  /// `publishers` referenced in
+  /// [publisherId].
+  ///
+  /// The gets the row from table `publishers` where
+  /// [PublisherRow.publisherId]
+  /// is equal to [publisherId], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<PublisherRow?> get publisher => $ForGeneratedCode
+      .subqueryTable(_$PublisherRow._$table)
+      .where((r) => r.publisherId.equalsUnlessNull(publisherId))
+      .first;
+
   /// Check if the row is not `NULL`.
   ///
   /// This will check if _primary key_ fields in this row are `NULL`.
@@ -11074,6 +11109,33 @@ extension RightJoinPackageRowPackageVersionRowExt
   /// This will match rows where [PackageRow.name] = [PackageVersionRow.package].
   Query<(Expr<PackageRow?>, Expr<PackageVersionRow>)> usingPackageRow() =>
       on((a, b) => a.name.equalsUnlessNull(b.package));
+}
+
+extension InnerJoinPackageRowPublisherRowExt
+    on InnerJoin<(Expr<PackageRow>,), (Expr<PublisherRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PackageRow.publisherId] = [PublisherRow.publisherId].
+  Query<(Expr<PackageRow>, Expr<PublisherRow>)> usingPublisher() =>
+      on((a, b) => b.publisherId.equalsUnlessNull(a.publisherId));
+}
+
+extension LeftJoinPackageRowPublisherRowExt
+    on LeftJoin<(Expr<PackageRow>,), (Expr<PublisherRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PackageRow.publisherId] = [PublisherRow.publisherId].
+  Query<(Expr<PackageRow>, Expr<PublisherRow?>)> usingPublisher() =>
+      on((a, b) => b.publisherId.equalsUnlessNull(a.publisherId));
+}
+
+extension RightJoinPackageRowPublisherRowExt
+    on RightJoin<(Expr<PackageRow>,), (Expr<PublisherRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PackageRow.publisherId] = [PublisherRow.publisherId].
+  Query<(Expr<PackageRow?>, Expr<PublisherRow>)> usingPublisher() =>
+      on((a, b) => b.publisherId.equalsUnlessNull(a.publisherId));
 }
 
 /// `Table<PackageRow>` conflict targets for use with `.onConflict`.
@@ -12818,6 +12880,21 @@ extension ExpressionPackageVersionRowExt on Expr<PackageVersionRow> {
   Expr<DateTime?> get adminDeletedAt =>
       $ForGeneratedCode.field(this, 13, $ForGeneratedCode.dateTime);
 
+  /// Get [SubQuery] of rows from the `packageVersionAssets` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageVersionAssetRow] rows,
+  /// where [PackageVersionAssetRow.package], [PackageVersionAssetRow.version]
+  /// references [PackageVersionRow.package], [PackageVersionRow.version]
+  /// in this row.
+  SubQuery<(Expr<PackageVersionAssetRow>,)> get assets => $ForGeneratedCode
+      .subqueryTable(_$PackageVersionAssetRow._$table)
+      .where(
+        (r) =>
+            r.package.equalsUnlessNull(package) &
+            r.version.equalsUnlessNull(version),
+      );
+
   /// Do a subquery lookup of the row from table
   /// `packages` referenced in
   /// [package].
@@ -12879,6 +12956,23 @@ extension ExpressionNullablePackageVersionRowExt on Expr<PackageVersionRow?> {
   Expr<DateTime?> get adminDeletedAt =>
       $ForGeneratedCode.field(this, 13, $ForGeneratedCode.dateTime);
 
+  /// Get [SubQuery] of rows from the `packageVersionAssets` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageVersionAssetRow] rows,
+  /// where [PackageVersionAssetRow.package], [PackageVersionAssetRow.version]
+  /// references [PackageVersionRow.package], [PackageVersionRow.version]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<PackageVersionAssetRow>,)> get assets => $ForGeneratedCode
+      .subqueryTable(_$PackageVersionAssetRow._$table)
+      .where(
+        (r) =>
+            r.package.equalsUnlessNull(package) &
+            r.version.equalsUnlessNull(version),
+      );
+
   /// Do a subquery lookup of the row from table
   /// `packages` referenced in
   /// [package].
@@ -12908,6 +13002,45 @@ extension ExpressionNullablePackageVersionRowExt on Expr<PackageVersionRow?> {
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
   Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinPackageVersionRowPackageVersionAssetRowExt
+    on InnerJoin<(Expr<PackageVersionRow>,), (Expr<PackageVersionAssetRow>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [PackageVersionRow.package] = [PackageVersionAssetRow.package] and [PackageVersionRow.version] = [PackageVersionAssetRow.version].
+  Query<(Expr<PackageVersionRow>, Expr<PackageVersionAssetRow>)>
+  usingParent() => on(
+    (a, b) =>
+        a.package.equalsUnlessNull(b.package) &
+        a.version.equalsUnlessNull(b.version),
+  );
+}
+
+extension LeftJoinPackageVersionRowPackageVersionAssetRowExt
+    on LeftJoin<(Expr<PackageVersionRow>,), (Expr<PackageVersionAssetRow>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [PackageVersionRow.package] = [PackageVersionAssetRow.package] and [PackageVersionRow.version] = [PackageVersionAssetRow.version].
+  Query<(Expr<PackageVersionRow>, Expr<PackageVersionAssetRow?>)>
+  usingParent() => on(
+    (a, b) =>
+        a.package.equalsUnlessNull(b.package) &
+        a.version.equalsUnlessNull(b.version),
+  );
+}
+
+extension RightJoinPackageVersionRowPackageVersionAssetRowExt
+    on RightJoin<(Expr<PackageVersionRow>,), (Expr<PackageVersionAssetRow>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [PackageVersionRow.package] = [PackageVersionAssetRow.package] and [PackageVersionRow.version] = [PackageVersionAssetRow.version].
+  Query<(Expr<PackageVersionRow?>, Expr<PackageVersionAssetRow>)>
+  usingParent() => on(
+    (a, b) =>
+        a.package.equalsUnlessNull(b.package) &
+        a.version.equalsUnlessNull(b.version),
+  );
 }
 
 extension InnerJoinPackageVersionRowPackageRowExt
@@ -13290,7 +13423,16 @@ final class _$PackageVersionAssetRow extends PackageVersionAssetRow {
     ],
     primaryKey: <String>['package', 'version', 'kind'],
     unique: <List<String>>[],
-    foreignKeys: [],
+    foreignKeys: [
+      $ForGeneratedCode.foreignKeyDefinition(
+        name: 'parent',
+        columns: ['package', 'version'],
+        referencedTable: 'package_versions',
+        referencedColumns: ['package', 'version'],
+        onDelete: .cascade,
+        onUpdate: .cascade,
+      ),
+    ],
     indexes: [],
     readRow: _$PackageVersionAssetRow._$fromDatabase,
   );
@@ -13674,6 +13816,23 @@ extension ExpressionPackageVersionAssetRowExt on Expr<PackageVersionAssetRow> {
 
   Expr<String> get textContent =>
       $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
+
+  /// Do a subquery lookup of the row from table
+  /// `packageVersions` referenced in
+  /// [package], [version].
+  ///
+  /// The gets the row from table `packageVersions` where
+  /// [PackageVersionRow.package], [PackageVersionRow.version]
+  /// is equal to [package], [version].
+  Expr<PackageVersionRow> get parent => $ForGeneratedCode
+      .subqueryTable(_$PackageVersionRow._$table)
+      .where(
+        (r) =>
+            r.package.equalsUnlessNull(package) &
+            r.version.equalsUnlessNull(version),
+      )
+      .first
+      .asNotNull();
 }
 
 extension ExpressionNullablePackageVersionAssetRowExt
@@ -13697,6 +13856,24 @@ extension ExpressionNullablePackageVersionAssetRowExt
   Expr<String?> get textContent =>
       $ForGeneratedCode.field(this, 5, $ForGeneratedCode.text);
 
+  /// Do a subquery lookup of the row from table
+  /// `packageVersions` referenced in
+  /// [package], [version].
+  ///
+  /// The gets the row from table `packageVersions` where
+  /// [PackageVersionRow.package], [PackageVersionRow.version]
+  /// is equal to [package], [version], if any.
+  ///
+  /// If this row is `NULL` the subquery is always return `NULL`.
+  Expr<PackageVersionRow?> get parent => $ForGeneratedCode
+      .subqueryTable(_$PackageVersionRow._$table)
+      .where(
+        (r) =>
+            r.package.equalsUnlessNull(package) &
+            r.version.equalsUnlessNull(version),
+      )
+      .first;
+
   /// Check if the row is not `NULL`.
   ///
   /// This will check if _primary key_ fields in this row are `NULL`.
@@ -13713,6 +13890,45 @@ extension ExpressionNullablePackageVersionAssetRowExt
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
   Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinPackageVersionAssetRowPackageVersionRowExt
+    on InnerJoin<(Expr<PackageVersionAssetRow>,), (Expr<PackageVersionRow>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [PackageVersionAssetRow.package] = [PackageVersionRow.package] and [PackageVersionAssetRow.version] = [PackageVersionRow.version].
+  Query<(Expr<PackageVersionAssetRow>, Expr<PackageVersionRow>)>
+  usingParent() => on(
+    (a, b) =>
+        b.package.equalsUnlessNull(a.package) &
+        b.version.equalsUnlessNull(a.version),
+  );
+}
+
+extension LeftJoinPackageVersionAssetRowPackageVersionRowExt
+    on LeftJoin<(Expr<PackageVersionAssetRow>,), (Expr<PackageVersionRow>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [PackageVersionAssetRow.package] = [PackageVersionRow.package] and [PackageVersionAssetRow.version] = [PackageVersionRow.version].
+  Query<(Expr<PackageVersionAssetRow>, Expr<PackageVersionRow?>)>
+  usingParent() => on(
+    (a, b) =>
+        b.package.equalsUnlessNull(a.package) &
+        b.version.equalsUnlessNull(a.version),
+  );
+}
+
+extension RightJoinPackageVersionAssetRowPackageVersionRowExt
+    on RightJoin<(Expr<PackageVersionAssetRow>,), (Expr<PackageVersionRow>,)> {
+  /// Join using the `parent` _foreign key_.
+  ///
+  /// This will match rows where [PackageVersionAssetRow.package] = [PackageVersionRow.package] and [PackageVersionAssetRow.version] = [PackageVersionRow.version].
+  Query<(Expr<PackageVersionAssetRow?>, Expr<PackageVersionRow>)>
+  usingParent() => on(
+    (a, b) =>
+        b.package.equalsUnlessNull(a.package) &
+        b.version.equalsUnlessNull(a.version),
+  );
 }
 
 /// `Table<PackageVersionAssetRow>` conflict targets for use with `.onConflict`.
@@ -16328,6 +16544,17 @@ extension ExpressionPublisherRowExt on Expr<PublisherRow> {
   Expr<DateTime?> get moderatedAt =>
       $ForGeneratedCode.field(this, 8, $ForGeneratedCode.dateTime);
 
+  /// Get [SubQuery] of rows from the `packages` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageRow] rows,
+  /// where [PackageRow.publisherId]
+  /// references [PublisherRow.publisherId]
+  /// in this row.
+  SubQuery<(Expr<PackageRow>,)> get packages => $ForGeneratedCode
+      .subqueryTable(_$PackageRow._$table)
+      .where((r) => r.publisherId.equalsUnlessNull(publisherId));
+
   /// Get [SubQuery] of rows from the `publisherMembers` table which
   /// reference this row.
   ///
@@ -16371,6 +16598,19 @@ extension ExpressionNullablePublisherRowExt on Expr<PublisherRow?> {
   Expr<DateTime?> get moderatedAt =>
       $ForGeneratedCode.field(this, 8, $ForGeneratedCode.dateTime);
 
+  /// Get [SubQuery] of rows from the `packages` table which
+  /// reference this row.
+  ///
+  /// This returns a [SubQuery] of [PackageRow] rows,
+  /// where [PackageRow.publisherId]
+  /// references [PublisherRow.publisherId]
+  /// in this row, if any.
+  ///
+  /// If this row is `NULL` the subquery is always be empty.
+  SubQuery<(Expr<PackageRow>,)> get packages => $ForGeneratedCode
+      .subqueryTable(_$PackageRow._$table)
+      .where((r) => r.publisherId.equalsUnlessNull(publisherId));
+
   /// Get [SubQuery] of rows from the `publisherMembers` table which
   /// reference this row.
   ///
@@ -16399,6 +16639,33 @@ extension ExpressionNullablePublisherRowExt on Expr<PublisherRow?> {
   /// If this is a reference lookup by subquery it might be more efficient
   /// to check if the referencing field is `NULL`.
   Expr<bool> isNull() => isNotNull().not();
+}
+
+extension InnerJoinPublisherRowPackageRowExt
+    on InnerJoin<(Expr<PublisherRow>,), (Expr<PackageRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PublisherRow.publisherId] = [PackageRow.publisherId].
+  Query<(Expr<PublisherRow>, Expr<PackageRow>)> usingPublisher() =>
+      on((a, b) => a.publisherId.equalsUnlessNull(b.publisherId));
+}
+
+extension LeftJoinPublisherRowPackageRowExt
+    on LeftJoin<(Expr<PublisherRow>,), (Expr<PackageRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PublisherRow.publisherId] = [PackageRow.publisherId].
+  Query<(Expr<PublisherRow>, Expr<PackageRow?>)> usingPublisher() =>
+      on((a, b) => a.publisherId.equalsUnlessNull(b.publisherId));
+}
+
+extension RightJoinPublisherRowPackageRowExt
+    on RightJoin<(Expr<PublisherRow>,), (Expr<PackageRow>,)> {
+  /// Join using the `publisher` _foreign key_.
+  ///
+  /// This will match rows where [PublisherRow.publisherId] = [PackageRow.publisherId].
+  Query<(Expr<PublisherRow?>, Expr<PackageRow>)> usingPublisher() =>
+      on((a, b) => a.publisherId.equalsUnlessNull(b.publisherId));
 }
 
 extension InnerJoinPublisherRowPublisherMemberRowExt
