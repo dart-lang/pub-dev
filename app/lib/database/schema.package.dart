@@ -11,9 +11,11 @@ part of 'schema.dart';
 abstract final class PackageRow extends Row {
   String get name;
 
+  @Index.field()
   DateTime get createdAt;
 
   /// The last modification of the row, updated on every change.
+  @Index.field()
   DateTime get updatedAt;
 
   /// The publish time of the most recent version (including retracted ones).
@@ -115,6 +117,7 @@ abstract final class PackageVersionRow extends Row {
 
   String get version;
 
+  @Index.field()
   DateTime get createdAt;
 
   /// The SHA-256 hash of the canonical archive file.

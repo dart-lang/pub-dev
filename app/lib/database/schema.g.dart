@@ -9980,7 +9980,18 @@ final class _$PackageRow extends PackageRow {
     primaryKey: <String>['name'],
     unique: <List<String>>[],
     foreignKeys: [],
-    indexes: [],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['created_at'],
+      ),
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['updated_at'],
+      ),
+    ],
     readRow: _$PackageRow._$fromDatabase,
   );
 
@@ -12212,7 +12223,13 @@ final class _$PackageVersionRow extends PackageVersionRow {
         onUpdate: .cascade,
       ),
     ],
-    indexes: [],
+    indexes: [
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['created_at'],
+      ),
+    ],
     readRow: _$PackageVersionRow._$fromDatabase,
   );
 
