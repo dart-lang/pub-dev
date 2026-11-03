@@ -149,7 +149,6 @@ class PackageBackend {
     );
     yield* Stream.fromIterable(
       rows
-          .where((p) => p.isVisible)
           .where((p) => p.isIncludedInRobots)
           .where((p) => !isSdkPackage(p.name)),
     );
