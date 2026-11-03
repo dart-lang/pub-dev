@@ -191,10 +191,8 @@ class PackageBackend {
   /// the package is not present in SQL.
   Future<int?> lookupLikesCount(String packageName) async {
     return await primaryDatabase.withRetry(
-      (db) => db.packages
-          .byKey(packageName)
-          .select((p) => (p.likesCount,))
-          .fetch(),
+      (db) =>
+          db.packages.byKey(packageName).select((p) => (p.likesCount,)).fetch(),
     );
   }
 
