@@ -7,7 +7,7 @@ import 'package:_pub_shared/search/search_form.dart';
 import 'package:pub_dev/frontend/templates/listing.dart';
 import 'package:pub_dev/package/search_adapter.dart';
 
-import '../../account/models.dart' show User, SessionData;
+import '../../account/models.dart' show SessionData;
 import '../../audit/models.dart';
 import '../../frontend/templates/views/account/activity_log_table.dart';
 import '../../package/models.dart';
@@ -34,7 +34,8 @@ String renderAuthorizedPage() {
 
 /// Renders the search results on the current user's packages page.
 String renderAccountPackagesPage({
-  required User user,
+  required String userEmail,
+  required DateTime userCreatedAt,
   required SessionData userSessionData,
   required List<PackageView> packageHits,
   required String? startPackage,
@@ -72,7 +73,7 @@ String renderAccountPackagesPage({
       ),
   ]);
   final content = renderDetailPage(
-    headerNode: _accountDetailHeader(user, userSessionData),
+    headerNode: _accountDetailHeader(userEmail, userCreatedAt, userSessionData),
     tabs: [
       _myPublishersLink(),
       Tab.withContent(
@@ -97,7 +98,8 @@ String renderAccountPackagesPage({
 
 /// Renders the current user's liked packages page.
 String renderMyLikedPackagesPage({
-  required User user,
+  required String userEmail,
+  required DateTime userCreatedAt,
   required SessionData userSessionData,
   required SearchForm searchForm,
   required SearchResultPage searchResult,
@@ -119,7 +121,7 @@ String renderMyLikedPackagesPage({
   ]);
 
   final content = renderDetailPage(
-    headerNode: _accountDetailHeader(user, userSessionData),
+    headerNode: _accountDetailHeader(userEmail, userCreatedAt, userSessionData),
     tabs: [
       _myPublishersLink(),
       _myPackagesLink(),
@@ -146,13 +148,14 @@ String renderMyLikedPackagesPage({
 
 /// Renders the current user's publishers page.
 String renderAccountPublishersPage({
-  required User user,
+  required String userEmail,
+  required DateTime userCreatedAt,
   required SessionData userSessionData,
   required List<PublisherSummary> publishers,
 }) {
   final pln = publisherListNode(publishers: publishers, isGlobal: false);
   final content = renderDetailPage(
-    headerNode: _accountDetailHeader(user, userSessionData),
+    headerNode: _accountDetailHeader(userEmail, userCreatedAt, userSessionData),
     tabs: [
       Tab.withContent(
         id: 'my-publishers',
@@ -177,7 +180,8 @@ String renderAccountPublishersPage({
 
 /// Renders the current user's activity page.
 String renderAccountMyActivityPage({
-  required User user,
+  required String userEmail,
+  required DateTime userCreatedAt,
   required SessionData userSessionData,
   required AuditLogRecordPage activities,
 }) {
@@ -188,7 +192,7 @@ String renderAccountMyActivityPage({
   );
 
   final content = renderDetailPage(
-    headerNode: _accountDetailHeader(user, userSessionData),
+    headerNode: _accountDetailHeader(userEmail, userCreatedAt, userSessionData),
     tabs: [
       _myPublishersLink(),
       _myPackagesLink(),
@@ -235,7 +239,11 @@ Tab _myActivityLogLink() => Tab.withLink(
   href: urls.myActivityLogUrl(),
 );
 
-d.Node _accountDetailHeader(User user, SessionData userSessionData) {
+d.Node _accountDetailHeader(
+  String userEmail,
+  DateTime userCreatedAt,
+  SessionData userSessionData,
+) {
   return renderDetailHeader(
     titleNode: d.text(userSessionData.name ?? ''),
     image: d.Image(
@@ -245,11 +253,11 @@ d.Node _accountDetailHeader(User user, SessionData userSessionData) {
       height: 200,
     ),
     metadataNode: d.fragment([
-      d.p(text: user.email!),
+      d.p(text: userEmail),
       d.p(
         children: [
           d.text('Joined '),
-          d.xAgoTimestamp(user.created!, datePrefix: 'on'),
+          d.xAgoTimestamp(userCreatedAt, datePrefix: 'on'),
         ],
       ),
     ]),

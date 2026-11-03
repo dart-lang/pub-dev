@@ -528,7 +528,7 @@ void main() {
           final html = renderPkgAdminPage(
             data,
             ['example.com'],
-            await accountBackend.lookupUsersByEmail('admin@pub.dev'),
+            ['admin@pub.dev'],
             ['2.0.0'],
             ['1.0.0'],
           );
@@ -866,7 +866,8 @@ void main() {
           final authenticatedUser = await requireAuthenticatedWebUser();
           final user = authenticatedUser.user;
           final html = renderAccountPackagesPage(
-            user: user,
+            userEmail: user.email!,
+            userCreatedAt: user.created!,
             userSessionData: requestContext.sessionData!,
             packageHits: [oxygen!, neon!],
             startPackage: 'oxygen',
@@ -894,7 +895,8 @@ void main() {
           final user = authenticatedUser.user;
           final searchForm = SearchForm(query: 'is:liked-by-me');
           final html = renderMyLikedPackagesPage(
-            user: user,
+            userEmail: user.email!,
+            userCreatedAt: user.created!,
             userSessionData: requestContext.sessionData!,
             searchForm: searchForm,
             searchResult: SearchResultPage(
@@ -924,7 +926,8 @@ void main() {
           final user = authenticatedUser.user;
           final publisherCreated = DateTime(2021, 07, 01, 16, 05);
           final html = renderAccountPublishersPage(
-            user: user,
+            userEmail: user.email!,
+            userCreatedAt: user.created!,
             userSessionData: requestContext.sessionData!,
             publishers: [
               PublisherSummary(
@@ -957,7 +960,8 @@ void main() {
           expect(activities.records, isNotEmpty);
           _sortActivitiesForGolden(activities);
           final html = renderAccountMyActivityPage(
-            user: user,
+            userEmail: user.email!,
+            userCreatedAt: user.created!,
             userSessionData: requestContext.sessionData!,
             activities: activities,
           );

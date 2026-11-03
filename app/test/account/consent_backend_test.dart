@@ -54,7 +54,7 @@ void main() {
         final consentRow = await dbService.query<Consent>().run().single;
         final consent = await consentBackend.getConsent(
           consentRow.consentId,
-          user,
+          user.email!,
         );
         expect(consent.descriptionHtml, contains('/packages/oxygen'));
         expect(consent.descriptionHtml, contains('publish new versions'));
@@ -245,7 +245,7 @@ void main() {
         final consentRow = await dbService.query<Consent>().run().single;
         final consent = await consentBackend.getConsent(
           consentRow.consentId,
-          user,
+          user.email!,
         );
         expect(consent.descriptionHtml, contains('/publishers/example.com'));
         expect(consent.descriptionHtml, contains('contact email means'));
@@ -394,7 +394,7 @@ void main() {
         final consentRow = await dbService.query<Consent>().run().single;
         final consent = await consentBackend.getConsent(
           consentRow.consentId,
-          user,
+          user.email!,
         );
         expect(consent.descriptionHtml, contains('/publishers/example.com'));
         expect(

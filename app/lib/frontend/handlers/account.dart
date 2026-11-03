@@ -181,10 +181,10 @@ Future<shelf.Response> consentPageHandler(
     throw NotFoundException('Missing consent id.');
   }
 
-  final user = await accountBackend.lookupUserById(
+  final userEmail = await accountBackend.getEmailOfUserId(
     requestContext.authenticatedUserId!,
   );
-  final consent = await consentBackend.getConsent(consentId, user!);
+  final consent = await consentBackend.getConsent(consentId, userEmail!);
   // If consent does not exists (or does not belong to the user), the `getConsent`
   // call above will throw, and the generic error page will be shown.
   // TODO: handle missing/expired consent gracefully
@@ -263,8 +263,7 @@ Future<PackageLikeResponse> likePackageHandler(
   String package,
 ) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
-  final user = authenticatedUser.user;
-  final l = await likeBackend.likePackage(user, package);
+  final l = await likeBackend.likePackage(authenticatedUser.userId, package);
   return PackageLikeResponse(liked: true, package: package, created: l.created);
 }
 
@@ -274,8 +273,7 @@ Future<shelf.Response> unlikePackageHandler(
   String package,
 ) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
-  final user = authenticatedUser.user;
-  await likeBackend.unlikePackage(user, package);
+  await likeBackend.unlikePackage(authenticatedUser.userId, package);
   return shelf.Response(204);
 }
 
@@ -317,10 +315,12 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
   );
   final hits = await scoreCardBackend.getPackageViews(page.packages);
 
+  final user = (await accountBackend.lookupUserById(
+    requestContext.authenticatedUserId!,
+  ))!;
   final html = renderAccountPackagesPage(
-    user: (await accountBackend.lookupUserById(
-      requestContext.authenticatedUserId!,
-    ))!,
+    userEmail: user.email!,
+    userCreatedAt: user.created!,
     userSessionData: requestContext.sessionData!,
     startPackage: next,
     packageHits: hits.nonNulls.toList(),
@@ -367,7 +367,8 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
     rateLimitKey: null,
   );
   final html = renderMyLikedPackagesPage(
-    user: user,
+    userEmail: user.email!,
+    userCreatedAt: user.created!,
     userSessionData: requestContext.sessionData!,
     searchForm: appliedSearchForm,
     searchResult: searchResult,
@@ -387,10 +388,12 @@ Future<shelf.Response> accountPublishersPageHandler(
   final page = await publisherBackend.listPublishersForUser(
     requestContext.authenticatedUserId!,
   );
+  final user = (await accountBackend.lookupUserById(
+    requestContext.authenticatedUserId!,
+  ))!;
   final content = renderAccountPublishersPage(
-    user: (await accountBackend.lookupUserById(
-      requestContext.authenticatedUserId!,
-    ))!,
+    userEmail: user.email!,
+    userCreatedAt: user.created!,
     userSessionData: requestContext.sessionData!,
     publishers: page.publishers!,
   );
@@ -412,10 +415,12 @@ Future<shelf.Response> accountMyActivityLogPageHandler(
     requestContext.authenticatedUserId!,
     before: before,
   );
+  final user = (await accountBackend.lookupUserById(
+    requestContext.authenticatedUserId!,
+  ))!;
   final content = renderAccountMyActivityPage(
-    user: (await accountBackend.lookupUserById(
-      requestContext.authenticatedUserId!,
-    ))!,
+    userEmail: user.email!,
+    userCreatedAt: user.created!,
     userSessionData: requestContext.sessionData!,
     activities: activities,
   );

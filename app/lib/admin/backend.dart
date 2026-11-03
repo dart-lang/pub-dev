@@ -186,7 +186,7 @@ class AdminBackend {
     final futures = <Future>[];
     for (final like in await likeBackend.listPackageLikes(user.userId)) {
       final f = pool.withResource(
-        () => likeBackend.unlikePackage(user, like.package!),
+        () => likeBackend.unlikePackage(user.userId, like.package!),
       );
       futures.add(f);
     }
@@ -795,7 +795,8 @@ class AdminBackend {
           final record = await AuditLogRecord.uploaderRemoved(
             agent: authenticatedAgent,
             package: packageName,
-            uploaderUser: uploaderUser,
+            uploaderUserId: uploaderUser.userId,
+            uploaderUserEmail: uploaderUser.email,
           );
           auditRecords.add(record);
           tx.insert(record);

@@ -405,7 +405,7 @@ Future<shelf.Response> packageAdminHandler(
       final page = await publisherBackend.listPublishersForUser(
         requestContext.authenticatedUserId!,
       );
-      final uploaderEmails = await accountBackend.lookupUsersById(
+      final uploaderEmails = await accountBackend.getEmailsOfUserIds(
         data.package.uploaders ?? <String>[],
       );
       final retractableVersions = await packageBackend.listRetractableVersions(
@@ -416,7 +416,7 @@ Future<shelf.Response> packageAdminHandler(
       return renderPkgAdminPage(
         data,
         page.publishers!.map((p) => p.publisherId).toList(),
-        uploaderEmails.cast(),
+        uploaderEmails.map((e) => e!).toList(),
         retractableVersions.map((v) => v.id!).toList(),
         retractedVersions.map((v) => v.id!).toList(),
       );
