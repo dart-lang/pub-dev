@@ -190,13 +190,12 @@ class PackageBackend {
   /// Returns the number of likes of the [packageName] from SQL, or `null` if
   /// the package is not present in SQL.
   Future<int?> lookupLikesCount(String packageName) async {
-    final rows = await primaryDatabase.withRetry(
+    return await primaryDatabase.withRetry(
       (db) => db.packages
-          .where((p) => p.name.equalsValue(packageName))
+          .byKey(packageName)
           .select((p) => (p.likesCount,))
           .fetch(),
     );
-    return rows.singleOrNull;
   }
 
   /// Looks up a moderated package (tombstone) by name in SQL.
