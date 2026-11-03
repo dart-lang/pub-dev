@@ -12,6 +12,7 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
+import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
@@ -64,6 +65,18 @@ void main() {
       final page = await auditBackend.listRecordsForPackage('oxygen');
       expect(
         page.records.map((e) => e.summary),
+        contains(
+          '`$adminEmail` invited `user@pub.dev` to be an uploader for package `oxygen`.',
+        ),
+      );
+
+      expect(await dbService.query<Consent>().run().toList(), isEmpty);
+      expect(await dbService.query<AuditLogRecord>().run().toList(), isEmpty);
+      final auditRows = await primaryDatabase.withRetry(
+        (db) => db.auditLogRecords.fetch(),
+      );
+      expect(
+        auditRows.map((r) => r.summary),
         contains(
           '`$adminEmail` invited `user@pub.dev` to be an uploader for package `oxygen`.',
         ),

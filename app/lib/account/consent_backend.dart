@@ -159,12 +159,10 @@ class ConsentBackend {
         kind: kind,
         args: args,
       );
-      await withRetryTransaction(
-        _db,
-        (tx) async => tx.insertAll([consent, auditLogRecord]),
-      );
-      await auditBackend.migrateToSql(auditLogRecord);
-      await migrateToSql(consent);
+      await primaryDatabase.transactWithRetry((db) async {
+        await _insertIntoSql(db, consent);
+        await auditBackend.upsertIntoSql(db, auditLogRecord);
+      });
       await dedupCacheEntry.set(consent.consentId);
       return await _sendNotification(activeAgent.displayId, consent.consentId);
     });
@@ -375,27 +373,50 @@ class ConsentBackend {
     }, maxAttempts: 3);
   }
 
-  /// Migrates the newly created [consent] into SQL and deletes it from
-  /// Datastore.
+  /// Migrates [consent] into SQL and deletes it from Datastore.
+  ///
+  /// Unlike [_migrateFromDatastoreToSql], an existing SQL row with the same id
+  /// is overwritten.
   Future<void> migrateToSql(Consent consent) async {
     await primaryDatabase.transactWithRetry(
-      (db) => db.consents
-          .upsertValue(
-            id: consent.consentId,
-            email: consent.email!,
-            dedupId: consent.dedupId!,
-            kind: consent.kind!,
-            argsJson: JsonValue(consent.args),
-            fromAgent: consent.fromAgent!,
-            createdAt: consent.created!,
-            expiresAt: consent.expires!,
-            lastNotifiedAt: consent.lastNotified,
-            notificationCount: consent.notificationCount,
-          )
-          .execute(),
+      (db) => _upsertIntoSql(db, consent),
     );
     await withRetryTransaction(_db, (tx) async => tx.delete(consent.key));
   }
+
+  /// Inserts the new [consent] into SQL, failing if the id or dedupId exists.
+  Future<void> _insertIntoSql(Database<PrimarySchema> db, Consent consent) => db
+      .consents
+      .insertValue(
+        id: consent.consentId,
+        email: consent.email!,
+        dedupId: consent.dedupId!,
+        kind: consent.kind!,
+        argsJson: JsonValue(consent.args),
+        fromAgent: consent.fromAgent!,
+        createdAt: consent.created!,
+        expiresAt: consent.expires!,
+        lastNotifiedAt: consent.lastNotified,
+        notificationCount: consent.notificationCount,
+      )
+      .execute();
+
+  /// Inserts or overwrites the row for [consent] in SQL.
+  Future<void> _upsertIntoSql(Database<PrimarySchema> db, Consent consent) => db
+      .consents
+      .upsertValue(
+        id: consent.consentId,
+        email: consent.email!,
+        dedupId: consent.dedupId!,
+        kind: consent.kind!,
+        argsJson: JsonValue(consent.args),
+        fromAgent: consent.fromAgent!,
+        createdAt: consent.created!,
+        expiresAt: consent.expires!,
+        lastNotifiedAt: consent.lastNotified,
+        notificationCount: consent.notificationCount,
+      )
+      .execute();
 
   /// Migrates a Datastore [Consent] into SQL (keeping any existing row) and
   /// deletes it from Datastore.
