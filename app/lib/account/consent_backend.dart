@@ -357,13 +357,9 @@ class ConsentBackend {
   /// The matching Datastore entities (if any) are migrated and deleted first.
   Future<ConsentRow?> _lookupByDedupId(String dedupId) async {
     await _migrateQuery(_db.query<Consent>()..filter('dedupId =', dedupId));
-    final rows = await primaryDatabase.withRetry(
-      (db) => db.consents
-          .where((c) => c.dedupId.equalsValue(dedupId))
-          .limit(1)
-          .fetch(),
+    return await primaryDatabase.withRetry(
+      (db) => db.consents.byDedupId(dedupId).fetch(),
     );
-    return rows.firstOrNull;
   }
 
   Future<void> _delete(
