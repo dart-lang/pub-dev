@@ -303,7 +303,7 @@ Future<Payload?> updatePackageStateWithPendingVersions(
   String zone,
   String instanceName,
 ) async {
-  return database.transactWithRetry((db) async {
+  final versionPairs = await database.transactWithRetry((db) async {
     final task = await db.lookupTaskMetadata(package);
     if (task == null) {
       // presumably the package was deleted.
@@ -351,17 +351,44 @@ Future<Payload?> updatePackageStateWithPendingVersions(
       oldVersions: oldVersions,
     );
 
-    // Create payload
-    final payload = Payload(
-      package: package,
-      pubHostedUrl: activeConfiguration.defaultServiceBaseUrl,
-      versions: pendingVersions.map(
-        (v) => VersionTokenPair(
-          version: v.toString(),
-          token: newVersions[v.toString()]!.secretToken!,
-        ),
-      ),
-    );
-    return payload;
+    return pendingVersions
+        .map(
+          (v) => VersionTokenPair(
+            version: v.toString(),
+            token: newVersions[v.toString()]!.secretToken!,
+          ),
+        )
+        .toList();
   });
+  if (versionPairs == null) {
+    return null;
+  }
+
+  List<String>? apiSummaryVersions;
+  try {
+    final scheduledSet = versionPairs.map((v) => v.version).toSet();
+    final needingUpdate = await packageBackend
+        .listVersionsNeedingApiSummaryUpdate(package, limit: 25);
+    final backfill = needingUpdate
+        .map((e) => e.version)
+        .where((v) => !scheduledSet.contains(v))
+        .take(20)
+        .toList();
+    if (backfill.isNotEmpty) {
+      apiSummaryVersions = backfill;
+    }
+  } catch (e, st) {
+    _log.warning(
+      'Failed to compute apiSummaryVersions for $package (continuing without backfill)',
+      e,
+      st,
+    );
+  }
+
+  return Payload(
+    package: package,
+    pubHostedUrl: activeConfiguration.defaultServiceBaseUrl,
+    versions: versionPairs,
+    apiSummaryVersions: apiSummaryVersions,
+  );
 }

@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart' as api;
 import 'package:_pub_shared/utils/sdk_version_cache.dart';
+import 'package:api_summary/model.dart' show ApiSummary, apiSummaryToolVersion;
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -860,6 +861,149 @@ class PackageBackend {
           .byKey(package, canonicalVersion, assetKind)
           .fetch(),
     );
+  }
+
+  /// Stores the canonical `api.json` [ApiSummary] for [package] [version] in
+  /// Datastore and SQL as an [AssetKind.apiSummary] asset, recording
+  /// [toolVersion] in `path` so stale summaries can be detected when
+  /// `package:api_summary` is updated.
+  Future<void> storePackageVersionApiSummary(
+    String package,
+    String version,
+    String apiSummaryJson, {
+    String toolVersion = apiSummaryToolVersion,
+  }) async {
+    final canonicalVersion = canonicalizeVersion(version);
+    if (canonicalVersion == null) return;
+    final pv = await lookupPackageVersion(package, canonicalVersion);
+    final pvInfo = await lookupPackageVersionInfo(package, canonicalVersion);
+    final now = clock.now().toUtc();
+    final asset = PackageVersionAsset.init(
+      package: package,
+      version: canonicalVersion,
+      kind: AssetKind.apiSummary,
+      versionCreated: pv?.created ?? now,
+      updated: now,
+      path: toolVersion,
+      textContent: apiSummaryJson,
+    );
+    if (pvInfo != null && !pvInfo.assets.contains(AssetKind.apiSummary)) {
+      pvInfo.assets.add(AssetKind.apiSummary);
+      pvInfo.assetCount = pvInfo.assets.length;
+      pvInfo.updated = now;
+    }
+    await db.commit(inserts: [asset, ?pvInfo]);
+    await upsertPackageVersionAssetsToSql([asset]);
+  }
+
+  /// Looks up all stored [ApiSummary] models for [package], keyed by version.
+  Future<Map<String, ApiSummary>> lookupPackageApiSummaries(
+    String package,
+  ) async {
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.packageVersionAssets
+          .where(
+            (a) =>
+                a.package.equalsValue(package) &
+                a.kind.equalsValue(AssetKind.apiSummary),
+          )
+          .fetch(),
+    );
+    final rawByVersion = <String, String>{
+      for (final row in rows) row.version: row.textContent,
+    };
+
+    // Also check Datastore in case assets were inserted directly in tests/dev-data
+    // and not yet mirrored to SQL.
+    final dsQuery = db.query<PackageVersionAsset>()
+      ..filter('package =', package);
+    final toMirror = <PackageVersionAsset>[];
+    await for (final a in dsQuery.run()) {
+      if (a.kind == AssetKind.apiSummary &&
+          a.version != null &&
+          a.textContent != null &&
+          !rawByVersion.containsKey(a.version!)) {
+        rawByVersion[a.version!] = a.textContent!;
+        toMirror.add(a);
+      }
+    }
+    if (toMirror.isNotEmpty) {
+      await upsertPackageVersionAssetsToSql(toMirror);
+    }
+
+    final result = <String, ApiSummary>{};
+    for (final entry in rawByVersion.entries) {
+      if (entry.value.trim().isEmpty) {
+        continue;
+      }
+      try {
+        final decoded = json.decode(entry.value);
+        if (decoded is Map<String, dynamic>) {
+          result[entry.key] = ApiSummary.fromJson(decoded);
+        }
+      } on FormatException catch (e, st) {
+        _logger.warning(
+          'Malformed ApiSummary JSON for $package/${entry.key}',
+          e,
+          st,
+        );
+      }
+    }
+    return result;
+  }
+
+  /// Lists visible, non-retracted, null-safe versions of [package] whose stored
+  /// [AssetKind.apiSummary] is either missing or was generated with a tool
+  /// version other than [targetToolVersion].
+  Future<List<({String version, String? currentToolVersion})>>
+  listVersionsNeedingApiSummaryUpdate(
+    String package, {
+    String targetToolVersion = apiSummaryToolVersion,
+    int? limit,
+  }) async {
+    final api.PackageData versionsData;
+    try {
+      versionsData = await listVersionsCached(package);
+    } on NotFoundException {
+      return const [];
+    }
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.packageVersionAssets
+          .where(
+            (a) =>
+                a.package.equalsValue(package) &
+                a.kind.equalsValue(AssetKind.apiSummary),
+          )
+          .select((a) => (a.version, a.path))
+          .fetch(),
+    );
+    final toolByVersion = <String, String>{
+      for (final (v, toolVer) in rows) v: toolVer,
+    };
+    final dsQuery = db.query<PackageVersionAsset>()
+      ..filter('package =', package);
+    await for (final a in dsQuery.run()) {
+      if (a.kind == AssetKind.apiSummary &&
+          a.version != null &&
+          a.path != null &&
+          !toolByVersion.containsKey(a.version!)) {
+        toolByVersion[a.version!] = a.path!;
+      }
+    }
+    final stale = <({String version, String? currentToolVersion})>[];
+    for (final v in versionsData.descendingVersions) {
+      if (v.retracted ?? false) continue;
+      final pubspec = Pubspec.fromJson(v.pubspec);
+      if (!pubspec.hasOptedIntoNullSafety) continue;
+      final existingTool = toolByVersion[v.version];
+      if (existingTool != targetToolVersion) {
+        stale.add((version: v.version, currentToolVersion: existingTool));
+        if (limit != null && stale.length >= limit) {
+          break;
+        }
+      }
+    }
+    return stale;
   }
 
   /// Looks up the qualified [versions].

@@ -12,12 +12,16 @@ Payload _$PayloadFromJson(Map<String, dynamic> json) => Payload(
   versions: (json['versions'] as List<dynamic>).map(
     (e) => VersionTokenPair.fromJson(e as Map<String, dynamic>),
   ),
+  apiSummaryVersions: (json['apiSummaryVersions'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
 );
 
 Map<String, dynamic> _$PayloadToJson(Payload instance) => <String, dynamic>{
   'package': instance.package,
   'pubHostedUrl': instance.pubHostedUrl,
   'versions': instance.versions,
+  if (instance.apiSummaryVersions case final v?) 'apiSummaryVersions': v,
 };
 
 VersionTokenPair _$VersionTokenPairFromJson(Map<String, dynamic> json) =>

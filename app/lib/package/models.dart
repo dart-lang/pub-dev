@@ -762,6 +762,7 @@ abstract class AssetKind {
   static const changelog = 'changelog';
   static const example = 'example';
   static const license = 'license';
+  static const apiSummary = 'api-summary';
 }
 
 /// A derived entity that holds extracted asset of a [PackageVersion] archive.
