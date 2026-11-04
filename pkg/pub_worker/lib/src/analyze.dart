@@ -99,6 +99,9 @@ Future<void> analyze(Payload payload) async {
             pubHostedUrl: payload.pubHostedUrl,
             pubCache: pubCacheDir.path,
             panaCache: panaCacheDir.path,
+            apiSummaryVersions: identical(p, payload.versions.first)
+                ? payload.apiSummaryVersions
+                : null,
           );
         } else {
           await _reportPackageSkipped(
@@ -153,6 +156,7 @@ Future<void> _analyzePackage(
   required String pubHostedUrl,
   required String pubCache,
   required String panaCache,
+  List<String>? apiSummaryVersions,
 }) async {
   _log.info('Running analyze for $package / $version');
 
@@ -191,6 +195,8 @@ Future<void> _analyzePackage(
           'PUB_HOSTED_URL': pubHostedUrl,
           'PUB_CACHE': pubCache,
           'PANA_CACHE': panaCache,
+          if (apiSummaryVersions != null && apiSummaryVersions.isNotEmpty)
+            'API_SUMMARY_BACKFILL_VERSIONS': apiSummaryVersions.join(','),
         },
       );
       await process.stdin.close();

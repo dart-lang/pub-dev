@@ -672,6 +672,46 @@ class TaskBackend {
       version,
       await _gzippedTaskResult(index, 'summary.json'),
     );
+    final gzippedApiJson = await _gzippedTaskResult(index, 'api.json');
+    if (gzippedApiJson != null) {
+      try {
+        final apiJsonText = utf8.decode(gzip.decode(gzippedApiJson));
+        await packageBackend.storePackageVersionApiSummary(
+          package,
+          version,
+          apiJsonText,
+        );
+      } catch (e, st) {
+        _log.warning('Failed to persist api.json for $package/$version', e, st);
+      }
+    }
+    final gzippedBackfillJson = await _gzippedTaskResult(
+      index,
+      'api_summaries.json',
+    );
+    if (gzippedBackfillJson != null) {
+      try {
+        final backfillMap =
+            gzippedUtf8JsonCodec.decode(gzippedBackfillJson)
+                as Map<String, dynamic>;
+        for (final entry in backfillMap.entries) {
+          final apiJsonText = entry.value;
+          if (apiJsonText is String) {
+            await packageBackend.storePackageVersionApiSummary(
+              package,
+              entry.key,
+              apiJsonText,
+            );
+          }
+        }
+      } catch (e, st) {
+        _log.warning(
+          'Failed to persist api_summaries.json for $package/$version',
+          e,
+          st,
+        );
+      }
+    }
     final hasDocIndexHtml = (await index.fetch('doc/index.html')) != null;
 
     // Update dependencies, if pana summary has dependencies

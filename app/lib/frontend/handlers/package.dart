@@ -7,13 +7,20 @@ import 'dart:io';
 
 import 'package:_pub_shared/data/advisories_api.dart'
     show ListAdvisoriesResponse;
+import 'package:_pub_shared/data/package_api.dart' show VersionInfo;
 import 'package:_pub_shared/utils/sdk_version_cache.dart';
+import 'package:api_summary/model.dart'
+    show ApiSummary, apiSummaryToolVersion, diffApiSummaries;
 import 'package:meta/meta.dart';
 import 'package:neat_cache/neat_cache.dart';
+import 'package:pana/models.dart' show ApiChange, ApiDiffSummary;
 import 'package:pub_dev/service/download_counts/computations.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
+import 'package:pub_dev/shared/markdown.dart'
+    show UrlResolverFn, parseChangelogReleases;
 import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../account/backend.dart';
@@ -35,6 +42,8 @@ import '../templates/misc.dart';
 import '../templates/package.dart';
 import '../templates/package_admin.dart';
 import '../templates/package_versions.dart';
+import '../templates/views/pkg/versions/version_row.dart'
+    show VersionChangelogAndDiff;
 
 import 'account.dart' show checkAuthenticatedPageRequest;
 import 'cache_control.dart';
@@ -77,33 +86,27 @@ Future<shelf.Response> packageVersionsListHandler(
   shelf.Request request,
   String packageName,
 ) async {
+  final fromVersion = canonicalizeVersion(
+    request.requestedUri.queryParameters['from'],
+  );
+  final toVersion = canonicalizeVersion(
+    request.requestedUri.queryParameters['to'],
+  );
+  final hasRangeQuery = fromVersion != null || toVersion != null;
   return _handlePackagePage(
     request: request,
     packageName: packageName,
     versionName: null,
-    assetKind: null,
+    assetKind: AssetKind.changelog,
     requiresAdmin: false,
     canonicalUrlFn: (p, v) => urls.pkgVersionsUrl(p),
-    renderFn: (data) async {
-      final versions = await packageBackend.listVersionsCached(packageName);
-
-      final dartSdkVersion = await getCachedDartSdkVersion(
-        lastKnownStable: toolStableDartSdkVersion,
-      );
-      final currentFlutterSdk = await getCachedFlutterSdkVersion(
-        lastKnownStable: toolStableFlutterSdkVersion,
-      );
-      final taskStatus = await taskBackend.packageStatus(packageName);
-      return renderPkgVersionsPage(
-        data,
-        // output is expected in descending versions order
-        versions.descendingVersions,
-        dartSdkVersion: dartSdkVersion.semanticVersion,
-        flutterSdkVersion: currentFlutterSdk.semanticVersion,
-        taskStatus: taskStatus,
-      );
-    },
-    cacheEntry: cache.uiPackageVersions(packageName),
+    renderFn: (data) => _renderMergedVersionsAndChangelogPage(
+      data,
+      activeTab: .versions,
+      fromVersion: fromVersion,
+      toVersion: toVersion,
+    ),
+    cacheEntry: hasRangeQuery ? null : cache.uiPackageVersions(packageName),
   );
 }
 
@@ -116,6 +119,13 @@ Future<shelf.Response> packageChangelogHandler(
   String packageName, {
   String? versionName,
 }) async {
+  final fromVersion = canonicalizeVersion(
+    request.requestedUri.queryParameters['from'],
+  );
+  final toVersion = canonicalizeVersion(
+    request.requestedUri.queryParameters['to'],
+  );
+  final hasRangeQuery = fromVersion != null || toVersion != null;
   return await _handlePackagePage(
     request: request,
     packageName: packageName,
@@ -123,10 +133,296 @@ Future<shelf.Response> packageChangelogHandler(
     assetKind: AssetKind.changelog,
     requiresAdmin: false,
     canonicalUrlFn: (p, v) => urls.pkgChangelogUrl(p, version: v),
-    renderFn: (data) {
-      return renderPkgChangelogPage(data);
-    },
-    cacheEntry: cache.uiPackageChangelog(packageName, versionName),
+    renderFn: (data) => _renderMergedVersionsAndChangelogPage(
+      data,
+      activeTab: .changelog,
+      fromVersion: fromVersion,
+      toVersion: toVersion,
+    ),
+    cacheEntry: hasRangeQuery
+        ? null
+        : cache.uiPackageChangelog(packageName, versionName),
+  );
+}
+
+Future<String> _renderMergedVersionsAndChangelogPage(
+  PackagePageData data, {
+  required urls.PkgPageTab activeTab,
+  String? fromVersion,
+  String? toVersion,
+}) async {
+  final packageName = data.package.name!;
+  final versions = await packageBackend.listVersionsCached(packageName);
+  final dartSdkVersion = await getCachedDartSdkVersion(
+    lastKnownStable: toolStableDartSdkVersion,
+  );
+  final currentFlutterSdk = await getCachedFlutterSdkVersion(
+    lastKnownStable: toolStableFlutterSdkVersion,
+  );
+  final taskStatus = await taskBackend.packageStatus(packageName);
+  final resolved = await resolveMergedVersionDetails(
+    packageName,
+    versions.descendingVersions,
+    latestVersion: data.package.latestVersion,
+    urlResolverFn: data.urlResolverFn,
+    fromVersion: fromVersion,
+    toVersion: toVersion,
+  );
+  return renderPkgVersionsPage(
+    data,
+    // output is expected in descending versions order
+    versions.descendingVersions,
+    dartSdkVersion: dartSdkVersion.semanticVersion,
+    flutterSdkVersion: currentFlutterSdk.semanticVersion,
+    taskStatus: taskStatus,
+    versionDetails: resolved.detailsByVersion,
+    changelogPreambleHtml: resolved.preambleHtml,
+    availableDiffVersions: resolved.availableDiffVersions,
+    fromVersion: fromVersion,
+    toVersion: toVersion,
+    rangeApiDiff: resolved.rangeApiDiff,
+    activeTab: activeTab,
+  );
+}
+
+/// Resolves per-version changelog entries (preferring the latest version's
+/// `CHANGELOG.md` and falling back to each version's own `CHANGELOG.md` when
+/// absent from latest) and public API diff summaries (computed on the fly from
+/// per-version [ApiSummary] assets when available, or falling back to `pana`
+/// task summaries).
+@visibleForTesting
+Future<
+  ({
+    Map<String, VersionChangelogAndDiff> detailsByVersion,
+    String? preambleHtml,
+    List<String> availableDiffVersions,
+    ApiDiffSummary? rangeApiDiff,
+  })
+>
+resolveMergedVersionDetails(
+  String packageName,
+  List<VersionInfo> descendingVersions, {
+  required String? latestVersion,
+  UrlResolverFn? urlResolverFn,
+  String? fromVersion,
+  String? toVersion,
+}) async {
+  final latestAsset = latestVersion == null
+      ? null
+      : await packageBackend.lookupPackageVersionAsset(
+          packageName,
+          latestVersion,
+          AssetKind.changelog,
+        );
+  final latestParsed =
+      (latestAsset != null && latestAsset.textContent.trim().isNotEmpty)
+      ? parseChangelogReleases(
+          latestAsset.textContent,
+          urlResolverFn: urlResolverFn,
+          relativeFrom: latestAsset.path,
+        )
+      : null;
+
+  final latestReleases = latestParsed?.releasesByVersion ?? const {};
+  String? preambleHtml = latestParsed?.descriptionHtml;
+
+  final apiSummaries = await packageBackend.lookupPackageApiSummaries(
+    packageName,
+  );
+  final nonRetractedSemvers =
+      descendingVersions
+          .where((v) => !(v.retracted ?? false))
+          .map((v) => Version.parse(v.version))
+          .toList()
+        ..sort();
+
+  final detailsByVersion = <String, VersionChangelogAndDiff>{};
+  for (final v in descendingVersions) {
+    final ver = v.version;
+    var changelogHtml = latestReleases[ver]?.html;
+    var changelogLabel = latestReleases[ver]?.label;
+    String? fallbackSourceVersion;
+
+    // If the latest CHANGELOG.md had no structured version headers at all,
+    // attach its content to the latest version.
+    if (changelogHtml == null &&
+        ver == latestVersion &&
+        latestReleases.isEmpty &&
+        preambleHtml != null) {
+      changelogHtml = preambleHtml;
+      preambleHtml = null;
+    }
+
+    // Fallback: if this version has no entry in the latest CHANGELOG.md,
+    // inspect the version's own CHANGELOG.md to see if there is one.
+    if (changelogHtml == null && ver != latestVersion) {
+      final ownAsset = await packageBackend.lookupPackageVersionAsset(
+        packageName,
+        ver,
+        AssetKind.changelog,
+      );
+      if (ownAsset != null && ownAsset.textContent.trim().isNotEmpty) {
+        final ownParsed = parseChangelogReleases(
+          ownAsset.textContent,
+          urlResolverFn: urlResolverFn,
+          relativeFrom: ownAsset.path,
+        );
+        final ownRelease = ownParsed.releasesByVersion[ver];
+        if (ownRelease != null && ownRelease.html.isNotEmpty) {
+          changelogHtml = ownRelease.html;
+          changelogLabel = ownRelease.label;
+          fallbackSourceVersion = ver;
+        } else if (ownParsed.releasesByVersion.isEmpty &&
+            ownParsed.descriptionHtml != null &&
+            ownParsed.descriptionHtml!.isNotEmpty) {
+          changelogHtml = ownParsed.descriptionHtml;
+          fallbackSourceVersion = ver;
+        }
+      }
+    }
+
+    ApiDiffSummary? apiDiff;
+    final currentSummary = apiSummaries[ver];
+    if (currentSummary != null) {
+      final currentSemver = Version.parse(ver);
+      final prevSemver = _findPredecessorVersion(
+        currentSemver,
+        nonRetractedSemvers,
+      );
+      if (prevSemver != null) {
+        final prevSummary = apiSummaries[prevSemver.toString()];
+        if (prevSummary != null) {
+          apiDiff = buildApiDiffSummary(
+            prevSummary,
+            currentSummary,
+            previousVersion: prevSemver,
+            currentVersion: currentSemver,
+          );
+        }
+      }
+    }
+    if (apiDiff == null) {
+      final summary = await taskBackend.panaSummary(packageName, ver);
+      apiDiff = summary?.apiDiff;
+    }
+
+    if ((changelogHtml != null && changelogHtml.isNotEmpty) ||
+        apiDiff != null) {
+      detailsByVersion[ver] = VersionChangelogAndDiff(
+        changelogHtml: changelogHtml,
+        changelogLabel: changelogLabel,
+        fallbackSourceVersion: fallbackSourceVersion,
+        apiDiff: apiDiff,
+      );
+    }
+  }
+
+  final availableDiffVersions = [
+    for (final v in descendingVersions)
+      if (apiSummaries.containsKey(v.version)) v.version,
+  ];
+
+  ApiDiffSummary? rangeApiDiff;
+  if (fromVersion != null &&
+      toVersion != null &&
+      apiSummaries[fromVersion] != null &&
+      apiSummaries[toVersion] != null) {
+    rangeApiDiff = buildApiDiffSummary(
+      apiSummaries[fromVersion]!,
+      apiSummaries[toVersion]!,
+      previousVersion: Version.parse(fromVersion),
+      currentVersion: Version.parse(toVersion),
+    );
+  }
+
+  return (
+    detailsByVersion: detailsByVersion,
+    preambleHtml: preambleHtml,
+    availableDiffVersions: availableDiffVersions,
+    rangeApiDiff: rangeApiDiff,
+  );
+}
+
+Version? _findPredecessorVersion(
+  Version currentVersion,
+  List<Version> sortedNonRetractedVersions,
+) {
+  final candidates = sortedNonRetractedVersions
+      .where((v) => v < currentVersion)
+      .toList();
+  if (candidates.isEmpty) return null;
+  if (!currentVersion.isPreRelease) {
+    final stableCandidates = candidates.where((v) => !v.isPreRelease).toList();
+    if (stableCandidates.isNotEmpty) {
+      return stableCandidates.last;
+    }
+  }
+  return candidates.last;
+}
+
+/// Computes an [ApiDiffSummary] on the fly from two [ApiSummary] models.
+@visibleForTesting
+ApiDiffSummary buildApiDiffSummary(
+  ApiSummary oldSummary,
+  ApiSummary newSummary, {
+  required Version previousVersion,
+  required Version currentVersion,
+}) {
+  final diff = diffApiSummaries(oldSummary, newSummary);
+  final breakingChanges = [
+    for (final c in diff.breakingChanges) ApiChange.fromJson(c.toJson()),
+  ];
+  final nonBreakingChanges = [
+    for (final c in diff.nonBreakingChanges) ApiChange.fromJson(c.toJson()),
+  ];
+
+  final hasBreaking = breakingChanges.isNotEmpty;
+  final hasMinor = nonBreakingChanges.any((c) => c.type == 'minor');
+  final hasPatch = nonBreakingChanges.isNotEmpty && !hasMinor;
+
+  final String requiredBump;
+  final Version minimumExpected;
+  if (hasBreaking) {
+    requiredBump = 'major';
+    minimumExpected = previousVersion.nextBreaking;
+  } else if (hasMinor) {
+    requiredBump = 'minor';
+    minimumExpected = previousVersion.major > 0
+        ? previousVersion.nextMinor
+        : previousVersion.nextPatch;
+  } else if (hasPatch) {
+    requiredBump = 'patch';
+    minimumExpected = previousVersion.nextPatch;
+  } else {
+    requiredBump = 'none';
+    minimumExpected = previousVersion;
+  }
+
+  final bool isSufficient;
+  if (currentVersion.isPreRelease) {
+    isSufficient = currentVersion > previousVersion;
+  } else if (previousVersion.isPreRelease) {
+    final prevBase = Version(
+      previousVersion.major,
+      previousVersion.minor,
+      previousVersion.patch,
+    );
+    isSufficient =
+        currentVersion >= prevBase && currentVersion >= minimumExpected;
+  } else {
+    isSufficient = currentVersion >= minimumExpected;
+  }
+
+  return ApiDiffSummary(
+    previousVersion: previousVersion.toString(),
+    currentVersion: currentVersion.toString(),
+    requiredVersionBump: requiredBump,
+    minimumExpectedVersion: minimumExpected.toString(),
+    isVersionIncrementSufficient: isSufficient,
+    toolVersion: apiSummaryToolVersion,
+    breakingChanges: breakingChanges,
+    nonBreakingChanges: nonBreakingChanges,
+    textDiff: diff.textDiff.isNotEmpty ? diff.textDiff : null,
   );
 }
 

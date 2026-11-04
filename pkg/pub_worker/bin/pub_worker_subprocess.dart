@@ -156,6 +156,7 @@ Future<void> main(List<String> args) async {
       resourcesOutputDir: resourcesOutputDir.path,
       totalTimeout: _totalTimeout,
       licenseDataDir: Platform.environment['PANA_LICENSE_DATA_DIR'],
+      runApiDiff: true,
     ),
     logger: Logger('pana'),
   );
@@ -191,6 +192,27 @@ Future<void> main(List<String> args) async {
   await File(
     p.join(outputFolder, 'summary.json'),
   ).writeAsString(json.encode(summary));
+
+  final backfillVersionsEnv =
+      Platform.environment['API_SUMMARY_BACKFILL_VERSIONS'];
+  if (backfillVersionsEnv != null && backfillVersionsEnv.trim().isNotEmpty) {
+    final backfillVersions = backfillVersionsEnv
+        .split(',')
+        .map((v) => v.trim())
+        .where((v) => v.isNotEmpty)
+        .toList();
+    if (backfillVersions.isNotEmpty) {
+      await _backfillApiSummaries(
+        outputFolder: outputFolder,
+        package: package,
+        versions: backfillVersions,
+        pubHostedUrl: pubHostedUrl,
+        pubCache: pubCache,
+        sandboxRunner: sandboxRunner,
+        startedTimestamp: startedTimestamp,
+      );
+    }
+  }
 
   // Post-processing of the dartdoc-generated files seems to take at least as
   // much time as running pana+dartdoc in the first place. If we don't seem to
@@ -449,4 +471,132 @@ Future<List<_SdkBundle>> _detectSdkBundles() async {
       semanticFlutterDartSdkVersion: null,
     ),
   ];
+}
+
+Future<void> _backfillApiSummaries({
+  required String outputFolder,
+  required String package,
+  required List<String> versions,
+  required String pubHostedUrl,
+  required String pubCache,
+  required String? sandboxRunner,
+  required DateTime startedTimestamp,
+}) async {
+  _log.info('Backfilling API summaries for $package: ${versions.join(', ')}');
+  final results = <String, String>{};
+  final backfillDeadline = clock.now().add(const Duration(minutes: 5));
+  final overallCutoff = startedTimestamp.add(_totalTimeout * 0.45);
+  final deadline = backfillDeadline.isBefore(overallCutoff)
+      ? backfillDeadline
+      : overallCutoff;
+
+  for (final ver in versions) {
+    if (clock.now().isAfter(deadline)) {
+      _log.info(
+        'Reached backfill deadline before processing $package:$ver; stopping backfill.',
+      );
+      break;
+    }
+    final tempDir = (await Directory.systemTemp.createTemp(
+      'api-summary-$package-',
+    )).resolveSymbolicLinksSync();
+    try {
+      final pkgDownloadDir = Directory(p.join(tempDir, package));
+      await pkgDownloadDir.create(recursive: true);
+      final unpackPubCacheDir = Directory(p.join(tempDir, 'unpack-pub-cache'));
+      await unpackPubCacheDir.create(recursive: true);
+
+      final unpackPr = await runConstrained(
+        [
+          ?sandboxRunner,
+          'dart',
+          'pub',
+          'unpack',
+          '$package:$ver',
+          '--output',
+          pkgDownloadDir.path,
+          '--no-resolve',
+        ],
+        environment: {
+          'PUB_CACHE': unpackPubCacheDir.path,
+          'PUB_HOSTED_URL': pubHostedUrl,
+          'SANDBOX_OUTPUT': tempDir,
+          'SANDBOX_OUTPUT_JSON': json.encode([tempDir]),
+          'SANDBOX_NETWORK_ENABLED': 'true',
+        },
+        timeout: const Duration(minutes: 1),
+        workingDirectory: tempDir,
+      );
+      await unpackPubCacheDir.delete(recursive: true);
+      if (unpackPr.exitCode != 0) {
+        _log.warning('Failed to unpack $package:$ver for API summary backfill');
+        results[ver] = '';
+        continue;
+      }
+
+      final pkgDir = Directory(p.join(pkgDownloadDir.path, '$package-$ver'));
+      if (!await pkgDir.exists()) {
+        results[ver] = '';
+        continue;
+      }
+      final detected = await _detectSdks(pkgDir.path);
+      final toolEnv = await ToolEnvironment.create(
+        dartSdkConfig: SdkConfig(
+          rootPath: detected.dartSdkPath,
+          configHomePath: _configHomePath('dart', detected.configKind),
+        ),
+        flutterSdkConfig: SdkConfig(
+          rootPath: detected.flutterSdkPath,
+          configHomePath: _configHomePath('flutter', detected.configKind),
+        ),
+        pubCacheDir: pubCache,
+        sandboxRunner: sandboxRunner,
+      );
+      final pubspec = Pubspec.parseYaml(
+        await File(p.join(pkgDir.path, 'pubspec.yaml')).readAsString(),
+      );
+      final pubGetPr = await toolEnv.runPub(
+        pkgDir.path,
+        usesFlutter: pubspec.usesFlutter,
+        command: 'get',
+        stripAllDevDependencies: true,
+      );
+      if (pubGetPr.wasError) {
+        _log.info('Skipping API summary for $package:$ver (pub get failed)');
+        results[ver] = '';
+        continue;
+      }
+
+      final outDir = Directory(p.join(tempDir, 'out'));
+      await outDir.create(recursive: true);
+      final apiJsonFile = File(p.join(outDir.path, 'api.json'));
+      final extractPr = await toolEnv.apiSummaryExtract(
+        packageDir: pkgDir.path,
+        outputFilePath: apiJsonFile.path,
+        timeout: const Duration(minutes: 1),
+      );
+      if (extractPr.wasError || !await apiJsonFile.exists()) {
+        _log.info(
+          'Skipping API summary for $package:$ver (api_summary failed)',
+        );
+        results[ver] = '';
+        continue;
+      }
+      results[ver] = await apiJsonFile.readAsString();
+      _log.info(
+        'Extracted API summary for $package:$ver (${results[ver]!.length} bytes)',
+      );
+    } catch (e, st) {
+      _log.warning('Error backfilling API summary for $package:$ver', e, st);
+    } finally {
+      await Directory(tempDir).delete(recursive: true);
+    }
+  }
+
+  if (results.isNotEmpty) {
+    _log.info('Writing api_summaries.json (${results.length} versions)');
+    await File(
+      p.join(outputFolder, 'api_summaries.json'),
+    ).writeAsString(json.encode(results));
+  }
 }
