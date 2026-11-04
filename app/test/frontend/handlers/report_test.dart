@@ -338,9 +338,13 @@ void main() {
   });
 
   group('Appeal API test', () {
-    Future<void> _prepareApplied({String? logSubject, String? status}) async {
+    Future<void> _prepareApplied({
+      String caseId = 'case/1',
+      String? logSubject,
+      String? status,
+    }) async {
       final mc = ModerationCase.init(
-        caseId: 'case/1',
+        caseId: caseId,
         reporterEmail: 'somebody@pub.dev',
         source: ModerationSource.externalNotification,
         kind: ModerationKind.notification,
@@ -507,6 +511,7 @@ void main() {
           expect(email.from.email, 'noreply@pub.dev');
           expect(email.recipients.single.email, 'support@pub.dev');
           expect(email.ccRecipients.single.email, 'admin@pub.dev');
+          expect(email.inReplyToLocalMessageId, isNull);
           expect(email.bodyText, contains('[content-moderation-appeal]'));
           expect(
             email.bodyText,
@@ -523,6 +528,37 @@ void main() {
           expect(mc.reporterEmail, 'admin@pub.dev');
           expect(mc.appealedCaseId, 'case/1');
           expect(mc.isSubjectOwner, true);
+        });
+      },
+    );
+
+    testWithProfile(
+      'reporter appeal threads onto original case via inReplyToLocalMessageId',
+      fn: () async {
+        const appealedCaseId = '20261020I0123456789';
+        await _prepareApplied(
+          caseId: appealedCaseId,
+          status: ModerationStatus.noAction,
+        );
+
+        await withRetryPubApiClient((client) async {
+          final msg = await client.postReport(
+            ReportForm(
+              email: 'somebody@pub.dev',
+              subject: 'package:oxygen',
+              caseId: appealedCaseId,
+              message: 'Huston, we have a problem.',
+            ),
+          );
+
+          expect(msg.message, 'The appeal was submitted successfully.');
+          expect(fakeEmailSender.sentMessages, hasLength(1));
+          final email = fakeEmailSender.sentMessages.single;
+          expect(email.from.email, 'noreply@pub.dev');
+          expect(email.recipients.single.email, 'support@pub.dev');
+          expect(email.ccRecipients.single.email, 'somebody@pub.dev');
+          expect(email.inReplyToLocalMessageId, appealedCaseId);
+          expect(email.bodyText, contains('[content-moderation-appeal]'));
         });
       },
     );
