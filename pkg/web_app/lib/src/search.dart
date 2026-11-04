@@ -72,6 +72,7 @@ void _setEventsForSearchForm() {
           final tag = tagLink.getAttribute('data-tag');
           final action = tagLink.getAttribute('data-action');
           if (tag == null || tag.isEmpty) return;
+          tagLink.tabIndex = -1;
 
           Future<void> handleClick(Event event) async {
             await _handleInputFieldUpdate(
@@ -131,12 +132,16 @@ Future<void> _handleInputFieldUpdate(
   final newVisibleParams = {...newRequestParams}..remove('open-sections');
   final newVisibleUri = windowUri.replace(queryParameters: newVisibleParams);
 
+  final activeId = document.activeElement?.id;
   _lastTargetUri = newVisibleUri;
   await updateBodyWithHttpGet(
     requestUri: newRequestUri,
     navigationUrl: newVisibleUri.toString(),
     preUpdateCheck: () => _lastTargetUri == newVisibleUri,
   );
+  if (activeId != null && activeId.isNotEmpty) {
+    (document.getElementById(activeId) as HTMLElement?)?.focus();
+  }
 
   // notify GTM on the click
   final action = gtmActionFn(parsedQuery, newQuery);
