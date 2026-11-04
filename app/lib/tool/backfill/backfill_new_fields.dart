@@ -34,17 +34,17 @@ Future<void> backfillNewFields() async {
   _logger.info('Backfilling security advisories...');
   await securityAdvisoryBackend.backfillSqlFromDatastore();
 
-  // NOTE: Keep this around until PackageVersionAsset is migrated to use SQL.
-  _logger.info('Backfilling package version assets...');
-  await packageBackend.backfillPackageVersionAssetsSqlFromDatastore();
+  // NOTE: Keep this around until Publisher and PublisherMember are migrated to use SQL.
+  _logger.info('Backfilling publishers and publisher members...');
+  await publisherBackend.backfillPublishersSqlFromDatastore();
 
   // NOTE: Keep this around until Package and PackageVersion are migrated to use SQL.
   _logger.info('Backfilling packages and package versions...');
   await packageBackend.backfillPackagesSqlFromDatastore();
 
-  // NOTE: Keep this around until Publisher and PublisherMember are migrated to use SQL.
-  _logger.info('Backfilling publishers and publisher members...');
-  await publisherBackend.backfillPublishersSqlFromDatastore();
+  // NOTE: Keep this around until PackageVersionAsset is migrated to use SQL.
+  _logger.info('Backfilling package version assets...');
+  await packageBackend.backfillPackageVersionAssetsSqlFromDatastore();
 
   // NOTE: Keep this around until Like is migrated to SQL.
   _logger.info('Backfilling package likes...');
