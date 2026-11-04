@@ -89,36 +89,42 @@ class AdminBackend {
     InvalidInputException.checkRange(limit, 'limit', minimum: 1, maximum: 1000);
     await requireAuthenticatedAdmin(AdminPermission.listUsers);
 
-    final query = _db.query<User>()..limit(limit);
-
+    String? lastId;
     if (email != null) {
       InvalidInputException.checkNull(oauthUserId, '?ouid=');
       InvalidInputException.checkNull(continuationToken, '?ct=');
-      query.filter('email =', email);
     } else if (oauthUserId != null) {
       InvalidInputException.checkNull(continuationToken, '?ct=');
-      query.filter('oauthUserId =', oauthUserId);
     } else if (continuationToken != null) {
-      String lastId;
       try {
         lastId = _continuationCodec.decode(continuationToken);
       } on FormatException catch (_) {
         throw InvalidInputException.continuationParseError();
       }
       InvalidInputException.checkNotNull(lastId, '?ct=');
-
-      // NOTE: we should fix https://github.com/dart-lang/gcloud/issues/23
-      //       and remove the toDatastoreKey conversion here.
-      final key = _db.modelDB.toDatastoreKey(
-        _db.emptyKey.append(User, id: lastId),
-      );
-      query.filter('__key__ >', key);
-      query.order('__key__');
-    } else {
-      query.order('__key__');
     }
 
-    final users = await query.run().toList();
+    final users = await primaryDatabase.withRetry(
+      (db) => db.users
+          .where((u) {
+            var condition = true.asExpr;
+            if (email != null) {
+              condition = condition & u.email.equalsValue(email).asNotNull();
+            }
+            if (oauthUserId != null) {
+              condition =
+                  condition &
+                  u.oauthUserId.equalsValue(oauthUserId).asNotNull();
+            }
+            if (lastId != null) {
+              condition = condition & (u.userId > lastId.asExpr);
+            }
+            return condition;
+          })
+          .orderBy((u) => [(u.userId, Order.ascending)])
+          .limit(limit)
+          .fetch(),
+    );
     // We may return a page with users less than a limit, but we always
     // set the continuation token to the correct value.
     final newContinuationToken = users.length < limit
@@ -126,7 +132,7 @@ class AdminBackend {
         : _continuationCodec.encode(users.last.userId);
 
     return api.AdminListUsersResponse(
-      users: _convertUsers(users),
+      users: _convertUserRows(users),
       continuationToken: newContinuationToken,
     );
   }
@@ -705,6 +711,19 @@ class AdminBackend {
 
     final users = await accountBackend.lookupUsersById(package.uploaders!);
     return api.PackageUploaders(uploaders: _convertUsers(users));
+  }
+
+  List<api.AdminUserEntry> _convertUserRows(Iterable<UserRow?> users) {
+    return users.nonNulls
+        .where((u) => !u.isDeleted)
+        .map(
+          (u) => api.AdminUserEntry(
+            userId: u.userId,
+            oauthUserId: u.oauthUserId,
+            email: u.email,
+          ),
+        )
+        .toList();
   }
 
   List<api.AdminUserEntry> _convertUsers(Iterable<User?> users) {
@@ -1286,12 +1305,20 @@ class AdminBackend {
     }
 
     // mark user instances deleted
-    final userQuery = _db.query<User>()
-      ..filter('moderatedAt <', before)
-      ..order('moderatedAt');
-    await for (final user in userQuery.run()) {
-      // sanity check
-      if (!user.isModerated || user.isDeleted) {
+    final moderatedUsers = await primaryDatabase.withRetry(
+      (db) => db.users
+          .where(
+            (u) =>
+                u.isModerated &
+                u.isDeleted.not() &
+                (u.moderatedAt.asNotNull() < before.asExpr),
+          )
+          .orderBy((u) => [(u.moderatedAt, Order.ascending)])
+          .fetch(),
+    );
+    for (final u in moderatedUsers) {
+      final user = await accountBackend.lookupUserById(u.userId);
+      if (user == null) {
         continue;
       }
 

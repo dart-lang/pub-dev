@@ -5,8 +5,8 @@
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/admin/models.dart';
+import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:typed_sql/typed_sql.dart';
 
 import 'actions.dart';
@@ -130,18 +130,19 @@ required for the  transparency metrics report.
         ? 0
         : appealTimeToActionDays[appealTimeToActionDays.length ~/ 2];
 
-    final userQuery = dbService.query<User>()
-      // timestamp start on 00:00:00 on the day
-      ..filter('moderatedAt >=', start)
-      // adding an extra day to make sure the end day is fully included
-      ..filter('moderatedAt <', end.add(Duration(days: 1)));
+    final moderatedUsers = await primaryDatabase.withRetry(
+      (db) => db.users
+          .where(
+            (u) =>
+                // timestamp start on 00:00:00 on the day
+                (u.moderatedAt.asNotNull() >= start.asExpr) &
+                // adding an extra day to make sure the end day is fully included
+                (u.moderatedAt.asNotNull() < end.add(Duration(days: 1)).asExpr),
+          )
+          .fetch(),
+    );
     final reasonCounts = <String, int>{};
-    await for (final user in userQuery.run()) {
-      // sanity check
-      if (user.moderatedAt == null) {
-        continue;
-      }
-
+    for (final user in moderatedUsers) {
       // Report group #3: user restrictions.
       reasonCounts.increment(user.moderatedReason ?? '');
     }
