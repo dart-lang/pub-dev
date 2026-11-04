@@ -7,6 +7,7 @@ import 'package:clock/clock.dart';
 import '../../account/agent.dart';
 import '../../account/backend.dart';
 import '../../account/models.dart';
+import '../../database/schema.dart' show UserRow, UserRowExt;
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../publisher/backend.dart';
@@ -51,7 +52,7 @@ The active web sessions of the user will be expired.
     final refCase = await adminBackend
         .loadAndVerifyModerationCaseForAdminAction(caseId);
 
-    User? user;
+    UserRow? user;
     if (looksLikeUserId(userIdOrEmail!)) {
       user = await accountBackend.lookupUserById(userIdOrEmail);
     } else {
@@ -75,7 +76,7 @@ The active web sessions of the user will be expired.
         break;
     }
 
-    User? user2;
+    UserRow? user2;
     if (valueToSet != null) {
       await accountBackend.updateModeratedFlag(
         user!.userId,

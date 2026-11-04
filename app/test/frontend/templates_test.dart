@@ -867,7 +867,7 @@ void main() {
           final user = authenticatedUser.user;
           final html = renderAccountPackagesPage(
             userEmail: user.email!,
-            userCreatedAt: user.created!,
+            userCreatedAt: user.createdAt!,
             userSessionData: requestContext.sessionData!,
             packageHits: [oxygen!, neon!],
             startPackage: 'oxygen',
@@ -896,7 +896,7 @@ void main() {
           final searchForm = SearchForm(query: 'is:liked-by-me');
           final html = renderMyLikedPackagesPage(
             userEmail: user.email!,
-            userCreatedAt: user.created!,
+            userCreatedAt: user.createdAt!,
             userSessionData: requestContext.sessionData!,
             searchForm: searchForm,
             searchResult: SearchResultPage(
@@ -909,7 +909,7 @@ void main() {
             html,
             'my_liked_packages.html',
             timestamps: {
-              'user-created': user.created,
+              'user-created': user.createdAt,
               'oxygen-created': oxygen.created,
               'neon-created': neon.created,
             },
@@ -927,7 +927,7 @@ void main() {
           final publisherCreated = DateTime(2021, 07, 01, 16, 05);
           final html = renderAccountPublishersPage(
             userEmail: user.email!,
-            userCreatedAt: user.created!,
+            userCreatedAt: user.createdAt!,
             userSessionData: requestContext.sessionData!,
             publishers: [
               PublisherSummary(
@@ -940,7 +940,7 @@ void main() {
             html,
             'my_publishers.html',
             timestamps: {
-              'user-created': user.created,
+              'user-created': user.createdAt,
               'publisher-created': publisherCreated,
             },
           );
@@ -961,7 +961,7 @@ void main() {
           _sortActivitiesForGolden(activities);
           final html = renderAccountMyActivityPage(
             userEmail: user.email!,
-            userCreatedAt: user.created!,
+            userCreatedAt: user.createdAt!,
             userSessionData: requestContext.sessionData!,
             activities: activities,
           );
@@ -969,7 +969,7 @@ void main() {
             html,
             'my_activity_log_page.html',
             timestamps: {
-              'user-created': user.created,
+              'user-created': user.createdAt,
               ..._activityLogTimestamps(activities),
             },
           );

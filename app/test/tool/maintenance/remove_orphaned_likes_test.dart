@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/models.dart';
@@ -65,7 +66,10 @@ void main() {
         );
         await client.likePackage('oxygen');
         final user = await accountBackend.lookupUserByEmail('user@pub.dev');
-        await dbService.commit(deletes: [user.key]);
+        await dbService.commit(
+          deletes: [dbService.emptyKey.append(User, id: user.userId)],
+        );
+        await accountBackend.deleteUserMirrorFromSql(user.userId);
         final counts = await removeOrphanedLikes(
           minAgeThreshold: Duration.zero,
         );
