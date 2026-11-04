@@ -70,6 +70,7 @@ abstract final class UserRow extends Row {
   @Unique.field()
   String? get oauthUserId;
 
+  @Index.field()
   String? get email;
 
   DateTime? get createdAt;
@@ -110,4 +111,9 @@ abstract final class PackageLike extends Row {
   String get package;
 
   DateTime get createdAt;
+}
+
+extension UserRowExt on UserRow {
+  bool get isVisible => !isModerated && !isDeleted;
+  bool get isNotVisible => !isVisible;
 }

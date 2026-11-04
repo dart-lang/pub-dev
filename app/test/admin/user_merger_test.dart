@@ -26,13 +26,17 @@ import '../shared/test_services.dart';
 
 void main() {
   Future<void> _corruptAndFix() async {
-    final admin = await accountBackend.lookupUserByEmail('admin@pub.dev');
-    final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+    // Using Datastore entities, as the SQL mirror may be missing on purpose.
+    final users = await dbService.query<User>().run().toList();
+    final admin = users.singleWhere((u) => u.email == 'admin@pub.dev');
+    final user = users.singleWhere((u) => u.email == 'user@pub.dev');
     await dbService.withTransaction((tx) async {
       final oauth = await tx.lookupValue<OAuthUserID>(
         dbService.emptyKey.append(OAuthUserID, id: admin.oauthUserId),
       );
-      final u = await tx.lookupValue<User>(admin.key);
+      final u = await tx.lookupValue<User>(
+        dbService.emptyKey.append(User, id: admin.userId),
+      );
       u.oauthUserId = user.oauthUserId;
       tx.queueMutations(inserts: [u], deletes: [oauth.key]);
       await tx.commit();

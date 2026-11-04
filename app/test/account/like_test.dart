@@ -177,7 +177,7 @@ void main() {
         await withRetryTransaction(dbService, (tx) async {
           tx.insert(
             Like()
-              ..parentKey = user.key
+              ..parentKey = dbService.emptyKey.append(User, id: user.userId)
               ..id = pkg1
               ..packageName = pkg1,
           );

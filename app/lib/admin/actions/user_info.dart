@@ -4,7 +4,7 @@
 
 import '../../account/agent.dart';
 import '../../account/backend.dart';
-import '../../account/models.dart';
+import '../../database/schema.dart' show UserRow;
 import '../../package/backend.dart';
 import '../../publisher/backend.dart';
 
@@ -42,7 +42,7 @@ Output is on this form:
       'user must be given',
     );
 
-    final List<User> users;
+    final List<UserRow> users;
     if (looksLikeUserId(userIdOrEmail!)) {
       final user = await accountBackend.lookupUserById(userIdOrEmail);
       users = [if (user != null) user];
@@ -71,7 +71,7 @@ Output is on this form:
             .toList(),
         'moderated': user.isModerated,
         if (user.isModerated) 'moderatedAt': user.moderatedAt,
-        'created': user.created?.toIso8601String(),
+        'created': user.createdAt?.toIso8601String(),
         'deleted': user.isDeleted,
       });
     }

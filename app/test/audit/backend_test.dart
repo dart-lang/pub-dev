@@ -6,7 +6,6 @@ import 'package:clock/clock.dart';
 import 'package:fake_gcloud/mem_datastore.dart';
 import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/account/backend.dart';
-import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/database/database.dart';
@@ -66,28 +65,27 @@ void main() {
   });
 
   group('message test', () {
-    test('user uploads a package', () {
-      final r = AuditLogRecord.packagePublished(
-        created: clock.now(),
-        package: 'pkg',
-        version: '1.0.0',
-        uploader: AuthenticatedUser(
-          User.init()
-            ..id = 'user-id'
-            ..email = 'user@pub.dev',
-          audience: 'fake-client-audience',
-        ),
-      );
-      expect(
-        r.summary,
-        'Package `pkg` version `1.0.0` was published by `user@pub.dev`.',
-      );
-      expect(r.data, {
-        'package': 'pkg',
-        'version': '1.0.0',
-        'email': 'user@pub.dev',
-      });
-    });
+    testWithProfile(
+      'user uploads a package',
+      fn: () async {
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+        final r = AuditLogRecord.packagePublished(
+          created: clock.now(),
+          package: 'pkg',
+          version: '1.0.0',
+          uploader: AuthenticatedUser(user, audience: 'fake-client-audience'),
+        );
+        expect(
+          r.summary,
+          'Package `pkg` version `1.0.0` was published by `user@pub.dev`.',
+        );
+        expect(r.data, {
+          'package': 'pkg',
+          'version': '1.0.0',
+          'email': 'user@pub.dev',
+        });
+      },
+    );
 
     test('GitHub Action uploads a package', () {
       final token = JsonWebToken(

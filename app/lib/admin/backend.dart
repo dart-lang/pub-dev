@@ -149,7 +149,7 @@ class AdminBackend {
 
   /// Removes user from the Datastore and updates the packages and other
   /// entities they may have controlled.
-  Future<void> _removeUser(User user) async {
+  Future<void> _removeUser(UserRow user) async {
     // Package.uploaders
     final pool = Pool(10);
     final futures = <Future>[];
@@ -181,7 +181,7 @@ class AdminBackend {
   }
 
   // Remove like entities and decrement likes count on all packages liked by [user].
-  Future<void> _removeAndDecrementLikes(User user) async {
+  Future<void> _removeAndDecrementLikes(UserRow user) async {
     final pool = Pool(5);
     final futures = <Future>[];
     for (final like in await likeBackend.listPackageLikes(user.userId)) {
@@ -208,7 +208,7 @@ class AdminBackend {
     await packageBackend.mirrorPackageToSql(updated);
   }
 
-  Future<void> _removeMember(User user, PublisherMember member) async {
+  Future<void> _removeMember(UserRow user, PublisherMember member) async {
     final seniorMember = await _remainingSeniorMember(
       member.publisherKey,
       member.userId!,
@@ -283,9 +283,11 @@ class AdminBackend {
     return otherMembers.first;
   }
 
-  Future<void> _markUserDeleted(User user) async {
+  Future<void> _markUserDeleted(UserRow user) async {
     final u = await withRetryTransaction(_db, (tx) async {
-      final u = await tx.lookupValue<User>(user.key);
+      final u = await tx.lookupValue<User>(
+        _db.emptyKey.append(User, id: user.userId),
+      );
       final deleteKeys = <Key>[];
       if (user.oauthUserId != null) {
         final mappingKey = _db.emptyKey.append(
@@ -704,7 +706,20 @@ class AdminBackend {
     );
 
     final users = await accountBackend.lookupUsersById(package.uploaders!);
-    return api.PackageUploaders(uploaders: _convertUsers(users));
+    return api.PackageUploaders(uploaders: _convertUserRows(users));
+  }
+
+  List<api.AdminUserEntry> _convertUserRows(Iterable<UserRow?> users) {
+    return users.nonNulls
+        .where((u) => !u.isDeleted)
+        .map(
+          (u) => api.AdminUserEntry(
+            userId: u.userId,
+            oauthUserId: u.oauthUserId,
+            email: u.email,
+          ),
+        )
+        .toList();
   }
 
   List<api.AdminUserEntry> _convertUsers(Iterable<User?> users) {
@@ -1289,9 +1304,13 @@ class AdminBackend {
     final userQuery = _db.query<User>()
       ..filter('moderatedAt <', before)
       ..order('moderatedAt');
-    await for (final user in userQuery.run()) {
+    await for (final u in userQuery.run()) {
       // sanity check
-      if (!user.isModerated || user.isDeleted) {
+      if (!u.isModerated || u.isDeleted) {
+        continue;
+      }
+      final user = await accountBackend.lookupUserById(u.userId);
+      if (user == null) {
         continue;
       }
 

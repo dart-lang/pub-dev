@@ -261,6 +261,11 @@ final class _$UserRow extends UserRow {
         sqlName: null,
         columns: ['oauth_user_id'],
       ),
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['email'],
+      ),
     ],
     readRow: _$UserRow._$fromDatabase,
   );
