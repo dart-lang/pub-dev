@@ -202,23 +202,28 @@ class AccountBackend {
 
   AccountBackend(this._db);
 
-  /// Returns the `User` entry for the [userId] or null if it does not exists.
-  Future<User?> lookupUserById(String userId) async {
+  /// Returns the user row for the [userId] or null if it does not exists.
+  Future<UserRow?> lookupUserById(String userId) async {
     checkUserIdParam(userId);
-    return await _db.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
+    return await primaryDatabase.withRetry(
+      (db) => db.users.byKey(userId).fetch(),
+    );
   }
 
-  /// Returns the list of `User` entries for the corresponding id in [userIds].
+  /// Returns the list of user rows for the corresponding id in [userIds].
   ///
-  /// Returns null in the positions where a [User] entry was missing.
-  Future<List<User?>> lookupUsersById(List<String> userIds) async {
+  /// Returns null in the positions where a user row was missing.
+  Future<List<UserRow?>> lookupUsersById(List<String> userIds) async {
     for (final userId in userIds) {
       checkUserIdParam(userId);
     }
-    final keys = userIds
-        .map((id) => _db.emptyKey.append(User, id: id))
-        .toList();
-    return await _db.lookup<User>(keys);
+    return await primaryDatabase.withRetry((db) async {
+      final result = <UserRow?>[];
+      for (final userId in userIds) {
+        result.add(await db.users.byKey(userId).fetch());
+      }
+      return result;
+    });
   }
 
   /// Returns the email address of the [userId].
@@ -251,17 +256,18 @@ class AccountBackend {
     return result;
   }
 
-  /// Returns the list of `User` entries for the [email] or empty list if it
+  /// Returns the list of user rows for the [email] or empty list if it
   /// does not exists.
-  Future<List<User>> lookupUsersByEmail(String email) async {
+  Future<List<UserRow>> lookupUsersByEmail(String email) async {
     email = email.toLowerCase();
-    final query = _db.query<User>()..filter('email =', email);
-    return await query.run().toList();
+    return await primaryDatabase.withRetry(
+      (db) => db.users.where((u) => u.email.equalsValue(email)).fetch(),
+    );
   }
 
-  /// Returns the single `User` entity for the [email].
+  /// Returns the single user row for the [email].
   @visibleForTesting
-  Future<User> lookupUserByEmail(String email) async {
+  Future<UserRow> lookupUserByEmail(String email) async {
     final users = await lookupUsersByEmail(email);
     return users.single;
   }
@@ -281,27 +287,21 @@ class AccountBackend {
     }
   }
 
-  Future<User?> _lookupUserByOauthUserId(String oauthUserId) async {
+  Future<UserRow?> _lookupUserByOauthUserId(String oauthUserId) async {
     // TODO: This should be cached.
-    final oauthUserMapping = await _db.lookupOrNull<OAuthUserID>(
-      _db.emptyKey.append(OAuthUserID, id: oauthUserId),
-    );
-    if (oauthUserMapping == null) {
-      return null;
-    }
-    return await _db.lookupValue<User>(
-      oauthUserMapping.userIdKey!,
-      orElse: () => throw StateError(
-        'Incomplete OAuth userId mapping missing '
-        'User(`${oauthUserMapping.userId}`) referenced by '
-        '`${oauthUserMapping.id}`.',
-      ),
+    return await primaryDatabase.withRetry(
+      (db) => db.users
+          .where((u) => u.oauthUserId.equalsValue(oauthUserId))
+          .fetch()
+          .then((rows) => rows.firstOrNull),
     );
   }
 
-  Future<User> _updateUserEmail(User user, String email) async {
+  Future<UserRow> _updateUserEmail(UserRow user, String email) async {
     final u = await withRetryTransaction(_db, (tx) async {
-      final u = await tx.lookupValue<User>(user.key);
+      final u = await tx.lookupValue<User>(
+        _db.emptyKey.append(User, id: user.userId),
+      );
       if (u.email != email) {
         u.email = email;
         tx.insert(u);
@@ -309,12 +309,12 @@ class AccountBackend {
       return u;
     });
     await mirrorUserToSql(u);
-    return u;
+    return (await lookupUserById(u.userId))!;
   }
 
-  /// Returns an [User] entity for the authenticated service account.
+  /// Returns a [UserRow] for the authenticated service account.
   /// This method should be used only by admin agents.
-  Future<User> userForServiceAccount(
+  Future<UserRow> userForServiceAccount(
     AuthenticatedGcpServiceAccount authenticatedAgent,
   ) async {
     final user = await _lookupOrCreateUserByOauthUserId(
@@ -330,14 +330,14 @@ class AccountBackend {
     return user;
   }
 
-  /// Returns a [User] entity that matches the [auth] results:
+  /// Returns a [UserRow] that matches the [auth] results:
   /// - If there is an entity with the OauthUserID, it will be returned.
   /// - If there is an entity with the email but not OAuthUserID (old account
   ///   that hasn't been used for a while), we will fill the User.oauthUserId
   ///   field and return the entity.
   /// Otherwise (e.g. multiple entities with the same email, or data inconsistency)
   /// the method will return `null`.
-  Future<User?> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
+  Future<UserRow?> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
     final emptyKey = _db.emptyKey;
 
     // Attempt to lookup the user, the common case is that the user exists.
@@ -427,7 +427,7 @@ class AccountBackend {
       return user;
     });
     await mirrorUserToSql(createdOrLinkedUser);
-    return createdOrLinkedUser;
+    return (await lookupUserById(createdOrLinkedUser.userId))!;
   }
 
   /// Updates an existing or creates a new client session for pre-authorization

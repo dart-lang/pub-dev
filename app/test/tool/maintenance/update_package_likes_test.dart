@@ -69,7 +69,7 @@ void main() {
         await dbService.commit(
           inserts: [
             Like()
-              ..parentKey = user.key
+              ..parentKey = dbService.emptyKey.append(User, id: user.userId)
               ..id = 'oxygen'
               ..packageName = 'oxygen'
               ..created = clock.now(),
