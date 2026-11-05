@@ -104,29 +104,10 @@ class Publisher extends db.ExpandoModel<String> {
   }
 }
 
-/// Derived publisher data.
+/// TODO: Remove this class after the entities are deleted from Datastore.
+@Deprecated('Only used to delete the remaining entities from Datastore.')
 @db.Kind(name: 'PublisherInfo', idType: db.IdType.String)
-class PublisherInfo extends db.ExpandoModel<String> {
-  /// The associated domain name of the publisher.
-  String get publisherId => id!;
-
-  @db.DateTimeProperty()
-  DateTime? updated;
-
-  /// List of packages that are associated with this publisher.
-  @db.StringListProperty()
-  List<String>? packages;
-
-  /// List of userIds that are administrators of this publisher.
-  /// (their email address is public information)
-  @db.StringListProperty()
-  List<String>? admins;
-
-  /// List of userIds that are public members of this publisher.
-  /// (their email address is public information)
-  @db.StringListProperty()
-  List<String>? publicMembers;
-}
+class PublisherInfo extends db.ExpandoModel<String> {}
 
 /// Values for [PublisherMember.role]
 abstract class PublisherMemberRole {
