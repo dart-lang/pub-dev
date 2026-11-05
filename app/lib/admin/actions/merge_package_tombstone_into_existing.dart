@@ -9,43 +9,40 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 
-final mergeModeratedPackageIntoExisting = AdminAction(
-  name: 'merge-moderated-package-into-existing',
+final mergePackageTombstoneIntoExisting = AdminAction(
+  name: 'merge-package-tombstone-into-existing',
   summary:
-      'Removes a ModeratedPackage tombstone and merges it into an existing Package entity.',
+      'Removes a package tombstone and merges it into an existing Package entity.',
   description: '''
-This action will remove a package moderation tombstone (ModeratedPackage)
-entity from the Datastore, and merges its deleted version list into its
+This action will remove a package moderation tombstone (PackageTombstone)
+row from SQL, and merges its deleted version list into its
 already existing Package entity.
 The removal will unblock new uploads to the package.
 
-WARNING: Ownership information stored on the ModeratedPackage (e.g. publisher
+WARNING: Ownership information stored on the tombstone (e.g. publisher
          or uploaders) will be lost.
 
 NOTE: The published versions will be rolled into Package.deletedVersions.
 
-Fails if that package has no ModeratedPackage tombstone.
+Fails if that package has no package tombstone.
 Fails if that package has no existing Package entity.
 ''',
   options: {
     'package':
-        'The name of ModeratedPackage to merge into its existing Package.',
+        'The name of the tombstoned package to merge into its existing Package.',
   },
   invoke: (args) async {
     final packageName =
         args['package'] ??
         (throw InvalidInputException('Missing --package argument.'));
 
-    await packageBackend.mirrorPackageTombstoneToSqlByName(packageName);
-
-    // check ModeratedPackage existence
-    final mp = await packageBackend.lookupModeratedPackage(packageName);
+    // check tombstone existence
+    final tombstone = await packageBackend.lookupPackageTombstone(packageName);
     InvalidInputException.check(
-      mp != null,
-      'ModeratedPackage does not exists.',
+      tombstone != null,
+      'Package tombstone does not exist.',
     );
-    final mpKey = dbService.emptyKey.append(ModeratedPackage, id: packageName);
-    final mpVersions = mp!.versions;
+    final tombstoneVersions = tombstone!.versions;
 
     final updated = await withRetryTransaction(dbService, (tx) async {
       // check Package existence
@@ -56,7 +53,7 @@ Fails if that package has no existing Package entity.
       // update deleted version list
       final versionList = await tx.query<PackageVersion>(pKey).run().toList();
       final existingVersions = versionList.map((v) => v.version!).toSet();
-      final deletedVersions = mpVersions
+      final deletedVersions = tombstoneVersions
           .where((v) => !existingVersions.contains(v))
           .toList();
       if (deletedVersions.isNotEmpty) {
@@ -70,11 +67,10 @@ Fails if that package has no existing Package entity.
       p!.updated = clock.now().toUtc();
       tx.insert(p);
 
-      tx.delete(mpKey);
       return p;
     });
     await packageBackend.mirrorPackageToSql(updated);
-    await packageBackend.deletePackageTombstoneFromSql(packageName);
+    await packageBackend.deletePackageTombstone(packageName);
     await triggerPackagePostUpdates(packageName).future;
 
     return {'package': packageName, 'merged': true};

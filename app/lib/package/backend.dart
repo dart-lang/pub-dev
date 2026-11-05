@@ -201,10 +201,10 @@ class PackageBackend {
     );
   }
 
-  /// Looks up a moderated package (tombstone) by name in SQL.
+  /// Looks up the [PackageTombstone] of a removed (moderated) package in SQL.
   ///
-  /// Returns `null` if the package doesn't exist.
-  Future<PackageTombstone?> lookupModeratedPackage(String packageName) async {
+  /// Returns `null` if the package has no tombstone.
+  Future<PackageTombstone?> lookupPackageTombstone(String packageName) async {
     return await primaryDatabase.withRetry(
       (db) => db.packageTombstones.byKey(packageName).fetch(),
     );
@@ -245,60 +245,102 @@ class PackageBackend {
         as List<String>;
   }
 
-  /// Mirrors moderated package into SQL as a [PackageTombstone].
-  Future<void> mirrorPackageTombstoneToSql(ModeratedPackage mp) async {
+  /// Inserts (or updates) the [PackageTombstone] in SQL.
+  ///
+  /// When [includeSqlVersions] is set, the versions of the package currently
+  /// in SQL are read and merged with [versions].
+  ///
+  /// The legacy [ModeratedPackage] Datastore entity is written first: the
+  /// previous release removes the SQL tombstone when the Datastore entity is
+  /// missing, which would unblock uploads to the removed package.
+  ///
+  /// Returns the stored versions.
+  Future<Set<String>> insertPackageTombstone({
+    required String name,
+    required DateTime moderatedAt,
+    required String? publisherId,
+    required List<String> uploaders,
+    required Iterable<String> versions,
+    bool includeSqlVersions = false,
+  }) async {
+    final stored = <String>{...versions};
+    if (includeSqlVersions) {
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.packageVersions
+            .where((v) => v.package.equalsValue(name))
+            .select((v) => (v.version,))
+            .fetch(),
+      );
+      stored.addAll(rows);
+    }
+    await _writeModeratedPackageCopy(
+      name: name,
+      moderatedAt: moderatedAt,
+      publisherId: publisherId,
+      uploaders: uploaders,
+      versions: stored,
+    );
     await primaryDatabase.withRetry(
       (db) => db.packageTombstones
           .upsertValue(
-            name: mp.name!,
-            moderatedAt: mp.moderated,
-            publisherId: mp.publisherId,
-            uploadersJson: JsonValue(mp.uploaders ?? const <String>[]),
-            versionsJson: JsonValue(mp.versions ?? const <String>[]),
+            name: name,
+            moderatedAt: moderatedAt,
+            publisherId: publisherId,
+            uploadersJson: JsonValue(uploaders),
+            versionsJson: JsonValue(stored.toList()),
           )
           .execute(),
     );
+    return stored;
   }
 
-  /// Looks up the [ModeratedPackage] of [packageName] in Datastore and mirrors
-  /// it into SQL (or removes the SQL row if the entity is missing).
+  /// Writes the legacy [ModeratedPackage] Datastore entity.
   ///
-  /// Intended to be called before critical read paths, to minimize the
-  /// inconsistency window. Does not fail if the entity is missing.
-  Future<void> mirrorPackageTombstoneToSqlByName(String packageName) async {
-    final mp = await db.lookupOrNull<ModeratedPackage>(
-      db.emptyKey.append(ModeratedPackage, id: packageName),
-    );
-    if (mp != null) {
-      await mirrorPackageTombstoneToSql(mp);
-    } else {
-      await deletePackageTombstoneFromSql(packageName);
-    }
+  /// TODO: remove after the previous release is no longer running.
+  Future<void> _writeModeratedPackageCopy({
+    required String name,
+    required DateTime moderatedAt,
+    required String? publisherId,
+    required List<String> uploaders,
+    required Iterable<String> versions,
+  }) async {
+    final entity = ModeratedPackage()
+      ..parentKey = db.emptyKey
+      ..id = name
+      ..name = name
+      ..moderated = moderatedAt
+      ..publisherId = publisherId
+      ..uploaders = uploaders
+      ..versions = versions.toList();
+    await db.commit(inserts: [entity]);
   }
 
-  /// Deletes the [PackageTombstone] from SQL.
-  Future<void> deletePackageTombstoneFromSql(String packageName) async {
+  /// Re-creates the legacy [ModeratedPackage] Datastore entity from the SQL
+  /// tombstone of [packageName] (no-op if there is no tombstone).
+  Future<void> ensureModeratedPackageCopy(String packageName) async {
+    final tombstone = await lookupPackageTombstone(packageName);
+    if (tombstone == null) return;
+    await _writeModeratedPackageCopy(
+      name: tombstone.name,
+      moderatedAt: tombstone.moderatedAt,
+      publisherId: tombstone.publisherId,
+      uploaders: tombstone.uploaders,
+      versions: tombstone.versions,
+    );
+  }
+
+  /// Deletes the [PackageTombstone] from SQL (and the legacy
+  /// [ModeratedPackage] Datastore entity).
+  ///
+  /// The Datastore entity is removed first, otherwise the previous release
+  /// would re-create the SQL tombstone from it.
+  Future<void> deletePackageTombstone(String packageName) async {
+    await db.commit(
+      deletes: [db.emptyKey.append(ModeratedPackage, id: packageName)],
+    );
     await primaryDatabase.withRetry(
       (db) => db.packageTombstones.delete(packageName).execute(),
     );
-  }
-
-  /// Copies [ModeratedPackage] entries from Datastore into SQL as
-  /// [PackageTombstone] rows, for entries that are not yet present in SQL.
-  Future<int> backfillPackageTombstonesSqlFromDatastore() async {
-    var count = 0;
-    await for (final mp in db.query<ModeratedPackage>().run()) {
-      final existing = await primaryDatabase.withRetry(
-        (db) => db.packageTombstones.byKey(mp.name!).fetch(),
-      );
-      if (existing != null &&
-          existing.moderatedAt.isAtSameMomentAs(mp.moderated)) {
-        continue;
-      }
-      await mirrorPackageTombstoneToSql(mp);
-      count++;
-    }
-    return count;
   }
 
   /// Creates or updates the reserved package in SQL, keeping the original
@@ -1951,8 +1993,7 @@ class PackageBackend {
     // inserting metadata to datastore (which happens atomically).
     AuditLogRecord? packageCreatedRecord;
     AuditLogRecord? packagePublishedRecord;
-    await mirrorPackageTombstoneToSqlByName(newVersion.package);
-    final moderatedPackage = await lookupModeratedPackage(newVersion.package);
+    final tombstone = await lookupPackageTombstone(newVersion.package);
     final (pv, outgoingEmail) = await withRetryTransaction(db, (tx) async {
       _logger.info('Starting datastore transaction.');
 
@@ -1960,7 +2001,7 @@ class PackageBackend {
       final version = tuple[0] as PackageVersion?;
       package = tuple[1] as Package?;
 
-      if (moderatedPackage != null) {
+      if (tombstone != null) {
         throw PackageRejectedException.nameReserved(newVersion.package);
       }
 

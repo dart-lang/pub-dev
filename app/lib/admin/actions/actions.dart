@@ -8,7 +8,7 @@ import 'download_counts_backfill.dart';
 import 'download_counts_delete.dart';
 import 'email_send.dart';
 import 'exported_api_sync.dart';
-import 'merge_moderated_package_into_existing.dart';
+import 'merge_package_tombstone_into_existing.dart';
 import 'migrate_dry_run.dart';
 import 'moderate_package.dart';
 import 'moderate_package_versions.dart';
@@ -102,7 +102,7 @@ final class AdminAction {
     downloadCountsDelete,
     emailSend,
     exportedApiSync,
-    mergeModeratedPackageIntoExisting,
+    mergePackageTombstoneIntoExisting,
     migrateDryRun,
     moderatePackage,
     moderatePackageVersion,
