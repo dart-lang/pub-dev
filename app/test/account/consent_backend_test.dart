@@ -70,7 +70,11 @@ void main() {
         ),
       );
 
-      expect(await dbService.query<Consent>().run().toList(), isEmpty);
+      // The Datastore entity is kept as a copy of the SQL row.
+      final copies = await dbService.query<Consent>().run().toList();
+      expect(copies.map((c) => c.consentId), [
+        (await _queryConsents()).single.id,
+      ]);
       expect(await dbService.query<AuditLogRecord>().run().toList(), isEmpty);
       final auditRows = await primaryDatabase.withRetry(
         (db) => db.auditLogRecords.fetch(),
@@ -594,53 +598,7 @@ void main() {
 
   group('SQL migration', () {
     testWithProfile(
-      'migrateToSql writes row and deletes the Datastore entity',
-      fn: () async {
-        final consent = _testConsent();
-        await dbService.commit(inserts: [consent]);
-        await consentBackend.migrateToSql(consent);
-
-        final row = await _fetchRow(consent.consentId);
-        expect(row, isNotNull);
-        expect(row!.email, consent.email);
-        expect(row.dedupId, consent.dedupId);
-        expect(row.kind, ConsentKind.packageUploader);
-        expect(row.argsJson.value, ['oxygen']);
-        expect(row.fromAgent, KnownAgents.pubSupport);
-        expect(row.notificationCount, 0);
-        expect(row.lastNotifiedAt, isNull);
-        expect(await _lookupInDatastore(consent.consentId), isNull);
-      },
-    );
-
-    testWithProfile(
-      'migrateToSql is idempotent',
-      fn: () async {
-        final consent = _testConsent();
-        await dbService.commit(inserts: [consent]);
-        await consentBackend.migrateToSql(consent);
-        await consentBackend.migrateToSql(consent);
-
-        expect(await _queryConsents(), hasLength(1));
-      },
-    );
-
-    testWithProfile(
-      'deleting the consent removes the row',
-      fn: () async {
-        final consent = _testConsent();
-        await dbService.commit(inserts: [consent]);
-        await consentBackend.migrateToSql(consent);
-        expect(await _fetchRow(consent.consentId), isNotNull);
-
-        await _expireConsent(consent.consentId);
-
-        expect(await _fetchRow(consent.consentId), isNull);
-      },
-    );
-
-    testWithProfile(
-      'migrateFromDatastore migrates old entities only',
+      'migrateFromDatastore copies old entities only and keeps them',
       fn: () async {
         final old = _testConsent();
         old.created = old.created!.subtract(Duration(minutes: 5));
@@ -654,10 +612,30 @@ void main() {
 
         expect(await consentBackend.migrateFromDatastore(), 1);
 
-        expect(await _fetchRow(old.consentId), isNotNull);
-        expect(await _lookupInDatastore(old.consentId), isNull);
+        final row = await _fetchRow(old.consentId);
+        expect(row, isNotNull);
+        expect(row!.email, old.email);
+        expect(row.dedupId, old.dedupId);
+        expect(row.kind, ConsentKind.packageUploader);
+        expect(row.argsJson.value, ['oxygen']);
+        expect(row.fromAgent, KnownAgents.pubSupport);
+        expect(row.notificationCount, 0);
+        expect(row.lastNotifiedAt, isNull);
+        expect(await _lookupInDatastore(old.consentId), isNotNull);
         expect(await _fetchRow(fresh.consentId), isNull);
         expect(await _lookupInDatastore(fresh.consentId), isNotNull);
+      },
+    );
+
+    testWithProfile(
+      'migrateFromDatastore is idempotent',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.migrateFromDatastore(minAge: Duration.zero);
+        await consentBackend.migrateFromDatastore(minAge: Duration.zero);
+
+        expect(await _queryConsents(), hasLength(1));
       },
     );
 
@@ -665,9 +643,8 @@ void main() {
       'migrateFromDatastore does not overwrite an existing row',
       fn: () async {
         final consent = _testConsent();
-        consent.created = consent.created!.subtract(Duration(minutes: 5));
         await dbService.commit(inserts: [consent]);
-        await consentBackend.migrateToSql(consent);
+        await consentBackend.migrateFromDatastore(minAge: Duration.zero);
 
         consent.fromAgent = 'stale';
         await dbService.commit(inserts: [consent]);
@@ -678,17 +655,16 @@ void main() {
               .execute(),
         );
 
-        await consentBackend.migrateFromDatastore();
+        await consentBackend.migrateFromDatastore(minAge: Duration.zero);
 
         final row = await _fetchRow(consent.consentId);
         expect(row!.fromAgent, KnownAgents.pubSupport);
         expect(row.notificationCount, 3);
-        expect(await _lookupInDatastore(consent.consentId), isNull);
       },
     );
 
     testWithProfile(
-      'consent only in Datastore is migrated on lookup',
+      'consent only in Datastore is copied on lookup',
       fn: () async {
         final consent = _testConsent();
         await dbService.commit(inserts: [consent]);
@@ -704,40 +680,36 @@ void main() {
         });
 
         expect(await _fetchRow(consent.consentId), isNotNull);
-        expect(await _lookupInDatastore(consent.consentId), isNull);
+        expect(await _lookupInDatastore(consent.consentId), isNotNull);
       },
     );
 
     testWithProfile(
-      'consent in both stores is deleted from Datastore on lookup',
+      'resolving the consent removes the row and the Datastore copy',
       fn: () async {
         final consent = _testConsent();
         await dbService.commit(inserts: [consent]);
-        await consentBackend.migrateToSql(consent);
-        // simulate the entity being present in both stores
-        await dbService.commit(inserts: [consent]);
-
-        await withFakeAuthRequestContext('uploader@pub.dev', () async {
-          final user = (await requireAuthenticatedWebUser()).user;
-          await consentBackend.getConsent(consent.consentId, user.email!);
-        });
-
+        await consentBackend.migrateFromDatastore(minAge: Duration.zero);
         expect(await _fetchRow(consent.consentId), isNotNull);
-        expect(await _lookupInDatastore(consent.consentId), isNull);
-      },
-    );
-
-    testWithProfile(
-      'expired consent in both stores is not resurrected by migration',
-      fn: () async {
-        final consent = _testConsent();
-        await dbService.commit(inserts: [consent]);
-        await consentBackend.migrateToSql(consent);
-        // simulate the entity being present in both stores
-        consent.expires = consent.created;
-        await dbService.commit(inserts: [consent]);
+        expect(await _lookupInDatastore(consent.consentId), isNotNull);
 
         await _expireConsent(consent.consentId);
+        await consentBackend.deleteObsoleteConsents();
+
+        expect(await _fetchRow(consent.consentId), isNull);
+        expect(await _lookupInDatastore(consent.consentId), isNull);
+      },
+    );
+
+    testWithProfile(
+      'expired consent is not resurrected by migration',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.migrateFromDatastore(minAge: Duration.zero);
+
+        await _expireConsent(consent.consentId);
+        await consentBackend.deleteObsoleteConsents();
         expect(await _lookupInDatastore(consent.consentId), isNull);
 
         await consentBackend.migrateFromDatastore(minAge: Duration.zero);
@@ -746,11 +718,11 @@ void main() {
     );
 
     testWithProfile(
-      'sending the notification updates the row',
+      'sending the notification updates the row and the copy',
       fn: () async {
         final consent = _testConsent();
         await dbService.commit(inserts: [consent]);
-        await consentBackend.migrateToSql(consent);
+        await consentBackend.migrateFromDatastore(minAge: Duration.zero);
 
         await withFakeAuthRetryPubApiClient(
           email: 'admin@pub.dev',
@@ -766,6 +738,33 @@ void main() {
         final row = rows.singleWhere((r) => r.email == userAtPubDevEmail);
         expect(row.notificationCount, 1);
         expect(row.lastNotifiedAt, isNotNull);
+
+        final copy = await _lookupInDatastore(row.id);
+        expect(copy, isNotNull);
+        expect(copy!.notificationCount, 1);
+        expect(copy.lastNotified, row.lastNotifiedAt);
+        expect(copy.dedupId, row.dedupId);
+        expect(copy.email, row.email);
+      },
+    );
+
+    testWithProfile(
+      'updateFromAgent updates the Datastore copy',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.migrateFromDatastore(minAge: Duration.zero);
+
+        await consentBackend.updateFromAgent(
+          KnownAgents.pubSupport,
+          'new-agent',
+        );
+
+        expect((await _fetchRow(consent.consentId))!.fromAgent, 'new-agent');
+        expect(
+          (await _lookupInDatastore(consent.consentId))!.fromAgent,
+          'new-agent',
+        );
       },
     );
 
