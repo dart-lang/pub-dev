@@ -248,7 +248,11 @@ class PackageBackend {
   /// Inserts (or updates) the [PackageTombstone] in SQL.
   ///
   /// When [includeSqlVersions] is set, the versions of the package currently
-  /// in SQL are read in the same transaction and merged with [versions].
+  /// in SQL are read and merged with [versions].
+  ///
+  /// The legacy [ModeratedPackage] Datastore entity is written first: the
+  /// previous release removes the SQL tombstone when the Datastore entity is
+  /// missing, which would unblock uploads to the removed package.
   ///
   /// Returns the stored versions.
   Future<Set<String>> insertPackageTombstone({
@@ -259,16 +263,25 @@ class PackageBackend {
     required Iterable<String> versions,
     bool includeSqlVersions = false,
   }) async {
-    return await primaryDatabase.transactWithRetry((db) async {
-      final stored = <String>{...versions};
-      if (includeSqlVersions) {
-        final rows = await db.packageVersions
+    final stored = <String>{...versions};
+    if (includeSqlVersions) {
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.packageVersions
             .where((v) => v.package.equalsValue(name))
             .select((v) => (v.version,))
-            .fetch();
-        stored.addAll(rows);
-      }
-      await db.packageTombstones
+            .fetch(),
+      );
+      stored.addAll(rows);
+    }
+    await _writeModeratedPackageCopy(
+      name: name,
+      moderatedAt: moderatedAt,
+      publisherId: publisherId,
+      uploaders: uploaders,
+      versions: stored,
+    );
+    await primaryDatabase.withRetry(
+      (db) => db.packageTombstones
           .upsertValue(
             name: name,
             moderatedAt: moderatedAt,
@@ -276,13 +289,55 @@ class PackageBackend {
             uploadersJson: JsonValue(uploaders),
             versionsJson: JsonValue(stored.toList()),
           )
-          .execute();
-      return stored;
-    });
+          .execute(),
+    );
+    return stored;
   }
 
-  /// Deletes the [PackageTombstone] from SQL.
+  /// Writes the legacy [ModeratedPackage] Datastore entity.
+  ///
+  /// TODO: remove after the previous release is no longer running.
+  Future<void> _writeModeratedPackageCopy({
+    required String name,
+    required DateTime moderatedAt,
+    required String? publisherId,
+    required List<String> uploaders,
+    required Iterable<String> versions,
+  }) async {
+    final entity = ModeratedPackage()
+      ..parentKey = db.emptyKey
+      ..id = name
+      ..name = name
+      ..moderated = moderatedAt
+      ..publisherId = publisherId
+      ..uploaders = uploaders
+      ..versions = versions.toList();
+    await db.commit(inserts: [entity]);
+  }
+
+  /// Re-creates the legacy [ModeratedPackage] Datastore entity from the SQL
+  /// tombstone of [packageName] (no-op if there is no tombstone).
+  Future<void> ensureModeratedPackageCopy(String packageName) async {
+    final tombstone = await lookupPackageTombstone(packageName);
+    if (tombstone == null) return;
+    await _writeModeratedPackageCopy(
+      name: tombstone.name,
+      moderatedAt: tombstone.moderatedAt,
+      publisherId: tombstone.publisherId,
+      uploaders: tombstone.uploaders,
+      versions: tombstone.versions,
+    );
+  }
+
+  /// Deletes the [PackageTombstone] from SQL (and the legacy
+  /// [ModeratedPackage] Datastore entity).
+  ///
+  /// The Datastore entity is removed first, otherwise the previous release
+  /// would re-create the SQL tombstone from it.
   Future<void> deletePackageTombstone(String packageName) async {
+    await db.commit(
+      deletes: [db.emptyKey.append(ModeratedPackage, id: packageName)],
+    );
     await primaryDatabase.withRetry(
       (db) => db.packageTombstones.delete(packageName).execute(),
     );

@@ -423,6 +423,10 @@ class AdminBackend {
           includeSqlVersions: true,
         );
         versions.addAll(stored);
+      } else {
+        // Completes an interrupted removal: the legacy Datastore copy must
+        // exist, otherwise the previous release removes the tombstone.
+        await packageBackend.ensureModeratedPackageCopy(packageName);
       }
       await _db.commit(deletes: [packageKey]);
       deletedPackages = 1;

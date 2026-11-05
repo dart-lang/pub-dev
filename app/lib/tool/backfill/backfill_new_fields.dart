@@ -67,10 +67,4 @@ Future<void> backfillNewFields() async {
   await dbService.deleteWithQuery<ReservedPackage>(
     dbService.query<ReservedPackage>(),
   );
-
-  // TODO: Remove Datastore entity in a future release.
-  _logger.info('Deleting ModeratedPackage from Datastore...');
-  await dbService.deleteWithQuery<ModeratedPackage>(
-    dbService.query<ModeratedPackage>(),
-  );
 }
