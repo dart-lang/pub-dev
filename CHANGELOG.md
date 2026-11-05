@@ -2,7 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
- * Note: `Consent` reads and updates now work only in SQL; Datastore entities are migrated (and deleted) right after creation.
+ * Note: `Consent` reads and updates now work only in SQL; the Datastore `Consent` entity is still written as a copy.
 
 ## `20261103t122300-all`
  * Bump runtimeVersion to `2026.10.29`.
