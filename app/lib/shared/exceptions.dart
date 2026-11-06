@@ -240,6 +240,15 @@ class PackageRejectedException extends ResponseException {
   PackageRejectedException.archiveTooLarge(int limit)
     : super._(400, 'PackageRejected', 'Package archive exceeded $limit bytes.');
 
+  /// The attestation bundle uploaded for a package archive is above [limit]
+  /// bytes.
+  PackageRejectedException.attestationTooLarge(int limit)
+    : super._(
+        400,
+        'PackageRejected',
+        'Attestation bundle is too large (max $limit bytes).',
+      );
+
   /// The package archive tar.gz file is empty, possibly an error happened
   /// during the upload or the system was unable to create an archive.
   PackageRejectedException.archiveEmpty()

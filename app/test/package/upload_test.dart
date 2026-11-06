@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:_pub_shared/data/admin_api.dart';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:clock/clock.dart';
 import 'package:gcloud/db.dart';
@@ -45,6 +47,7 @@ void main() {
         fn: () async {
           final rs = packageBackend.startUpload(
             Uri.parse('http://example.com/'),
+            attestationUrlPrefix: Uri.parse('http://example.com/attestation'),
           );
           await expectLater(rs, throwsA(isA<AuthenticationException>()));
         },
@@ -54,14 +57,26 @@ void main() {
         'successful',
         fn: () async {
           final redirectUri = Uri.parse('http://blobstore.com/upload');
+          final attestationUrlPrefix = Uri.parse(
+            'http://blobstore.com/attestation',
+          );
           await accountBackend.withBearerToken(userClientToken, () async {
-            final info = await packageBackend.startUpload(redirectUri);
+            final info = await packageBackend.startUpload(
+              redirectUri,
+              attestationUrlPrefix: attestationUrlPrefix,
+            );
             expect(info.url, startsWith('http://localhost:'));
             expect(info.url, contains('/fake-incoming-packages/tmp/'));
             expect(info.fields, {
               'key': startsWith('fake-incoming-packages/tmp/'),
               'success_action_redirect': startsWith('$redirectUri?upload_id='),
             });
+            // The attestation is uploaded with the same upload id as the
+            // archive.
+            final uploadId = Uri.parse(
+              info.fields!['success_action_redirect']!,
+            ).queryParameters['upload_id'];
+            expect(info.attestationUrl, '$attestationUrlPrefix/$uploadId');
           });
         },
       );
@@ -1700,6 +1715,303 @@ void main() {
           status: 400,
           code: 'PackageRejected',
           message: 'is too similar to a moderated package',
+        );
+      },
+    );
+
+    testWithProfile(
+      'successful upload with attestation bundle and api retrieval',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/attested_pkg-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/packages/attested_pkg/versions/1.0.0/attestation".',
+        ),
+      ],
+      fn: () async {
+        final pubspecContent =
+            'name: attested_pkg\nversion: 1.0.0\ndescription: A package with attestation.\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+        final archiveBytes = await packageArchiveBytes(
+          pubspecContent: pubspecContent,
+        );
+        final bundleJson = {
+          'mediaType': 'application/vnd.dev.sigstore.bundle.v0.3+json',
+          'verificationMaterial': {},
+          'dsseEnvelope': {
+            'payloadType': 'application/vnd.in-toto+json',
+            'payload': base64Encode(utf8.encode('{}')),
+            'signatures': [],
+          },
+        };
+        // Verbatim is what the spec promises: keep the odd formatting.
+        final attestationBytes = utf8.encode(
+          '  ${jsonEncode(bundleJson).replaceAll(',', ',\n  ')}\n',
+        );
+
+        final client = createPubApiClient(authToken: adminClientToken);
+        // A moderated version must not be the only one, see below.
+        await client.uploadPackageBytes(
+          await packageArchiveBytes(
+            pubspecContent: pubspecContent.replaceFirst('1.0.0', '0.9.0'),
+          ),
+        );
+        final message = await client.uploadPackageBytes(
+          archiveBytes,
+          attestationBytes: attestationBytes,
+        );
+        expect(message.success.message, contains('Successfully uploaded'));
+        await asyncQueue.ongoingProcessing;
+
+        // The attestation is canonical data: it is stored next to the archive.
+        expect(
+          await packageBackend.getCanonicalBucketAttestationInfo(
+            'attested_pkg',
+            '1.0.0',
+          ),
+          isNotNull,
+        );
+        expect(
+          await packageBackend.listAttestationsInCanonicalBucket(
+            'attested_pkg',
+          ),
+          {'1.0.0': isNotNull},
+        );
+        // ... and does not show up as a version.
+        expect(
+          await packageBackend.listVersionsInCanonicalBucket('attested_pkg'),
+          {'0.9.0': isNotNull, '1.0.0': isNotNull},
+        );
+        // It is not a derived asset.
+        final info = await packageBackend.lookupPackageVersionInfo(
+          'attested_pkg',
+          '1.0.0',
+        );
+        expect(info!.assets, isNot(contains('attestation')));
+
+        // The attestation is exported, to be served from the bucket.
+        final exported = await packageBackend.getExportedAttestationInfo(
+          'attested_pkg',
+          '1.0.0',
+        );
+        expect(exported, isNotNull);
+        expect(exported!.length, attestationBytes.length);
+        expect(
+          exported.metadata.contentType,
+          'application/json; charset="utf-8"',
+        );
+        expect(exported.metadata.contentDisposition, isNull);
+
+        // Verify attestation can be retrieved verbatim via the API endpoint.
+        final retrievedBytes = await client.getPackageVersionAttestation(
+          'attested_pkg',
+          '1.0.0',
+        );
+        expect(retrievedBytes, attestationBytes);
+
+        // Moderated versions must not expose their attestation.
+        await createPubApiClient(authToken: siteAdminToken).adminInvokeAction(
+          'moderate-package-version',
+          AdminInvokeActionArguments(
+            arguments: {
+              'case': 'none',
+              'package': 'attested_pkg',
+              'version': '1.0.0',
+              'state': 'true',
+            },
+          ),
+        );
+        await asyncQueue.ongoingProcessing;
+        await expectApiException(
+          client.getPackageVersionAttestation('attested_pkg', '1.0.0'),
+          status: 404,
+          code: 'NotFound',
+        );
+        // The export is removed, the canonical copy is kept (like the archive).
+        expect(
+          await packageBackend.getExportedAttestationInfo(
+            'attested_pkg',
+            '1.0.0',
+          ),
+          isNull,
+        );
+        expect(
+          await packageBackend.getCanonicalBucketAttestationInfo(
+            'attested_pkg',
+            '1.0.0',
+          ),
+          isNotNull,
+        );
+      },
+    );
+
+    testWithProfile(
+      'attestation of a moderated package is not exposed',
+      expectedLogMessages: [
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/archives/attested_pkg-1.0.0.tar.gz".',
+        ),
+        RegExp(
+          r'SHOUT Deleting object from public bucket: ".*/api/packages/attested_pkg/versions/1.0.0/attestation".',
+        ),
+      ],
+      fn: () async {
+        final pubspecContent =
+            'name: attested_pkg\nversion: 1.0.0\ndescription: A package with attestation.\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+        final archiveBytes = await packageArchiveBytes(
+          pubspecContent: pubspecContent,
+        );
+        final client = createPubApiClient(authToken: adminClientToken);
+        await client.uploadPackageBytes(
+          archiveBytes,
+          attestationBytes: utf8.encode('{"mediaType": "test"}'),
+        );
+        await asyncQueue.ongoingProcessing;
+        expect(
+          await client.getPackageVersionAttestation('attested_pkg', '1.0.0'),
+          utf8.encode('{"mediaType": "test"}'),
+        );
+
+        await createPubApiClient(authToken: siteAdminToken).adminInvokeAction(
+          'moderate-package',
+          AdminInvokeActionArguments(
+            arguments: {
+              'case': 'none',
+              'package': 'attested_pkg',
+              'state': 'true',
+            },
+          ),
+        );
+        await asyncQueue.ongoingProcessing;
+        await expectApiException(
+          client.getPackageVersionAttestation('attested_pkg', '1.0.0'),
+          status: 404,
+          code: 'NotFound',
+        );
+        expect(
+          await packageBackend.getExportedAttestationInfo(
+            'attested_pkg',
+            '1.0.0',
+          ),
+          isNull,
+        );
+      },
+    );
+
+    testWithProfile(
+      'retrieving attestation of a package without attestation returns 404',
+      fn: () async {
+        final pubspecContent =
+            'name: unattested_pkg\nversion: 1.0.0\ndescription: A package without attestation.\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+        final archiveBytes = await packageArchiveBytes(
+          pubspecContent: pubspecContent,
+        );
+
+        final client = createPubApiClient(authToken: adminClientToken);
+        final message = await client.uploadPackageBytes(archiveBytes);
+        expect(message.success.message, contains('Successfully uploaded'));
+
+        final rs = client.getPackageVersionAttestation(
+          'unattested_pkg',
+          '1.0.0',
+        );
+        await expectApiException(
+          rs,
+          status: 404,
+          code: 'NotFound',
+          message: 'Could not find `attestation for unattested_pkg 1.0.0`.',
+        );
+      },
+    );
+
+    testWithProfile(
+      'upload fails when attestation bundle has invalid JSON or invalid bytes',
+      fn: () async {
+        final pubspecContent =
+            'name: bad_attested_pkg\nversion: 1.0.0\ndescription: A package with bad attestation.\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+        final archiveBytes = await packageArchiveBytes(
+          pubspecContent: pubspecContent,
+        );
+
+        // 1. Invalid non-UTF8 / tampered raw bytes
+        final rs1 = createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(
+              archiveBytes,
+              attestationBytes: [0xFF, 0xFE, 0xFD],
+            );
+        await expectApiException(
+          rs1,
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Invalid attestation bundle format',
+        );
+
+        // 2. Invalid non-JSON string
+        final rs2 = createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(
+              archiveBytes,
+              attestationBytes: utf8.encode('this is not json'),
+            );
+        await expectApiException(
+          rs2,
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Invalid attestation bundle format',
+        );
+
+        // 3. Non-object JSON
+        final rs3 = createPubApiClient(authToken: adminClientToken)
+            .uploadPackageBytes(
+              archiveBytes,
+              attestationBytes: utf8.encode('[1, 2, 3]'),
+            );
+        await expectApiException(
+          rs3,
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Invalid attestation bundle format',
+        );
+      },
+    );
+    testWithProfile(
+      'attestation upload fails with an invalid upload id',
+      fn: () async {
+        final rs = createPubApiClient(authToken: adminClientToken).client
+            .sendRaw(
+              verb: 'post',
+              path: '/api/packages/versions/newUploadAttestation/not-a-uuid',
+              headers: {'content-type': 'application/json; charset="utf-8"'},
+              bodyBytes: utf8.encode('{}'),
+            );
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'InvalidInput',
+          message: 'Invalid upload id.',
+        );
+      },
+    );
+
+    testWithProfile(
+      'upload fails when attestation bundle is too large',
+      fn: () async {
+        final pubspecContent =
+            'name: large_attested_pkg\nversion: 1.0.0\ndescription: A package with a large attestation.\nenvironment:\n  sdk: ">=2.12.0 <4.0.0"\n';
+        final archiveBytes = await packageArchiveBytes(
+          pubspecContent: pubspecContent,
+        );
+        final attestationBytes = utf8.encode(
+          jsonEncode({'payload': 'x' * maxAttestationContentLength}),
+        );
+
+        final rs = createPubApiClient(
+          authToken: adminClientToken,
+        ).uploadPackageBytes(archiveBytes, attestationBytes: attestationBytes);
+        await expectApiException(
+          rs,
+          status: 400,
+          code: 'PackageRejected',
+          message: 'Attestation bundle is too large',
         );
       },
     );

@@ -18,7 +18,17 @@ class UploadInfo {
   /// The fields the uploader should add to the multipart upload.
   final Map<String, String>? fields;
 
-  UploadInfo({required this.url, required this.fields});
+  /// The endpoint where an attestation of the uploaded package may be posted.
+  ///
+  /// The attestation is uploaded with a `POST` of the JSON bundle to
+  /// [attestationUrl], before the package archive is uploaded to [url].
+  ///
+  /// If this is `null`, the repository does not support publishing with
+  /// attestations.
+  @JsonKey(includeIfNull: false)
+  final String? attestationUrl;
+
+  UploadInfo({required this.url, required this.fields, this.attestationUrl});
 
   factory UploadInfo.fromJson(Map<String, dynamic> json) =>
       _$UploadInfoFromJson(json);
