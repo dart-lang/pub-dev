@@ -158,6 +158,9 @@ class _PkgAdminWidget {
     final manualPublishingEnabledCheckbox =
         document.getElementById('-pkg-admin-manual-publishing-enabled')
             as HTMLInputElement?;
+    final attestationRequiredCheckbox =
+        document.getElementById('-pkg-admin-automated-attestation-required')
+            as HTMLInputElement?;
     final githubEnabledCheckbox =
         document.getElementById('-pkg-admin-automated-github-enabled')
             as HTMLInputElement?;
@@ -217,6 +220,9 @@ class _PkgAdminWidget {
               ),
               manual: ManualPublishingConfig(
                 isEnabled: manualPublishingEnabledCheckbox?.checked ?? true,
+              ),
+              attestation: AttestationPublishingConfig(
+                isRequired: attestationRequiredCheckbox?.checked ?? false,
               ),
             ),
           );

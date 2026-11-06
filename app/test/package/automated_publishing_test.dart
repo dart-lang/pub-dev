@@ -317,11 +317,17 @@ void main() {
           GitHubPublishingConfig? github,
           GcpPublishingConfig? gcp,
           ManualPublishingConfig? manual,
+          AttestationPublishingConfig? attestation,
           required Map<String, dynamic> expected,
         }) async {
           final rs = await client.setAutomatedPublishing(
             'oxygen',
-            PkgPublishingConfig(github: github, gcp: gcp, manual: manual),
+            PkgPublishingConfig(
+              github: github,
+              gcp: gcp,
+              manual: manual,
+              attestation: attestation,
+            ),
           );
           expect(rs.toJson(), expected);
         }
@@ -330,6 +336,14 @@ void main() {
           manual: ManualPublishingConfig(isEnabled: true),
           expected: {
             'manual': {'isEnabled': true},
+          },
+        );
+
+        await update(
+          attestation: AttestationPublishingConfig(isRequired: true),
+          expected: {
+            'manual': {'isEnabled': true},
+            'attestation': {'isRequired': true},
           },
         );
 
@@ -343,6 +357,7 @@ void main() {
               'isWorkflowDispatchEventEnabled': false,
             },
             'manual': {'isEnabled': true},
+            'attestation': {'isRequired': true},
           },
         );
 
@@ -356,6 +371,21 @@ void main() {
               'isWorkflowDispatchEventEnabled': false,
             },
             'manual': {'isEnabled': false},
+            'attestation': {'isRequired': true},
+          },
+        );
+
+        await update(
+          attestation: AttestationPublishingConfig(isRequired: false),
+          expected: {
+            'github': {
+              'isEnabled': false,
+              'requireEnvironment': false,
+              'isPushEventEnabled': true,
+              'isWorkflowDispatchEventEnabled': false,
+            },
+            'manual': {'isEnabled': false},
+            'attestation': {'isRequired': false},
           },
         );
 
@@ -375,6 +405,7 @@ void main() {
               'isWorkflowDispatchEventEnabled': false,
             },
             'manual': {'isEnabled': false},
+            'attestation': {'isRequired': false},
           },
         );
       },
