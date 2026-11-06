@@ -90,6 +90,40 @@ GcpPublishingLock _$GcpPublishingLockFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$GcpPublishingLockToJson(GcpPublishingLock instance) =>
     <String, dynamic>{'oauthUserId': instance.oauthUserId};
 
+VersionProvenance _$VersionProvenanceFromJson(Map<String, dynamic> json) =>
+    VersionProvenance(
+      repository: json['repository'] as String,
+      repositoryId: json['repositoryId'] as String?,
+      repositoryOwnerId: json['repositoryOwnerId'] as String?,
+      workflowPath: json['workflowPath'] as String?,
+      ref: json['ref'] as String?,
+      commitSha: json['commitSha'] as String?,
+      runUrl: json['runUrl'] as String?,
+      signer: json['signer'] as String,
+      issuer: json['issuer'] as String,
+      transparencyLogIndex: (json['transparencyLogIndex'] as num?)?.toInt(),
+      transparencyLogIntegratedTime:
+          json['transparencyLogIntegratedTime'] == null
+          ? null
+          : DateTime.parse(json['transparencyLogIntegratedTime'] as String),
+    );
+
+Map<String, dynamic> _$VersionProvenanceToJson(VersionProvenance instance) =>
+    <String, dynamic>{
+      'repository': instance.repository,
+      'repositoryId': ?instance.repositoryId,
+      'repositoryOwnerId': ?instance.repositoryOwnerId,
+      'workflowPath': ?instance.workflowPath,
+      'ref': ?instance.ref,
+      'commitSha': ?instance.commitSha,
+      'runUrl': ?instance.runUrl,
+      'signer': instance.signer,
+      'issuer': instance.issuer,
+      'transparencyLogIndex': ?instance.transparencyLogIndex,
+      'transparencyLogIntegratedTime': ?instance.transparencyLogIntegratedTime
+          ?.toIso8601String(),
+    };
+
 PackageView _$PackageViewFromJson(Map<String, dynamic> json) => PackageView(
   screenshots: (json['screenshots'] as List<dynamic>?)
       ?.map((e) => ProcessedScreenshot.fromJson(e as Map<String, dynamic>))

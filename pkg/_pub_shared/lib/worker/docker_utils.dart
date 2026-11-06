@@ -18,6 +18,21 @@ Future<void> buildWorkerDockerImage() async {
   await _buildDockerImage(path: 'Dockerfile.worker', image: 'pub_worker');
 }
 
+/// Runs the `pub_app` image built by [buildAppDockerImage] with [args] passed
+/// to its entrypoint (the server), and returns the output of the process.
+///
+/// Throws if the process exits with a non-zero exit code.
+Future<String> runAppDockerImage(List<String> args) async {
+  final pr = await Process.run('docker', ['run', '--rm', 'pub_app', ...args]);
+  if (pr.exitCode != 0) {
+    throw Exception(
+      'docker run exited with code ${pr.exitCode}\n'
+      'stdout:\n${pr.stdout}\nstderr:\n${pr.stderr}',
+    );
+  }
+  return pr.stdout.toString();
+}
+
 Future<void> _buildDockerImage({
   required String path,
   required String image,
