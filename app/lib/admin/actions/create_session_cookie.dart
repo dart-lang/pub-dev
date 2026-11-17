@@ -29,7 +29,9 @@ The test account must have an email in the form pub.dev.testing[something]@gmail
     if (authResult == null) {
       throw InvalidInputException('Invalid access-token');
     }
-    if (!RegExp(r'^pub.dev.testing.*@gmail.com$').hasMatch(authResult.email)) {
+    if (!RegExp(
+      r'^pub\.dev\.testing.*@gmail\.com$',
+    ).hasMatch(authResult.email)) {
       throw InvalidInputException(
         'Can only obtain cookies for users with email in the form pub.dev.testing[something]@gmail.com',
       );

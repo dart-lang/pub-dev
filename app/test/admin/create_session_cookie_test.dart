@@ -19,40 +19,50 @@ void main() {
       'successful cookie creation',
       fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
-        final accessToken = createFakeServiceAccountToken(
-          email: 'pub.dev.testing1@gmail.com',
-          audience: activeConfiguration.pubClientAudience,
-        );
+        for (final email in [
+          'pub.dev.testing1@gmail.com',
+          'pub.dev.testing+bot@gmail.com',
+          'pub.dev.testing@gmail.com',
+        ]) {
+          final accessToken = createFakeServiceAccountToken(
+            email: email,
+            audience: activeConfiguration.pubClientAudience,
+          );
 
-        final result = await client.adminInvokeAction(
-          'create-session-cookie',
-          AdminInvokeActionArguments(arguments: {'access-token': accessToken}),
-        );
+          final result = await client.adminInvokeAction(
+            'create-session-cookie',
+            AdminInvokeActionArguments(
+              arguments: {'access-token': accessToken},
+            ),
+          );
 
-        expect(result.output, contains('cookie'));
-        final cookieHeaders = result.output['cookie'] as Map<String, dynamic>;
-        expect(cookieHeaders, contains('set-cookie'));
-        final setCookies = cookieHeaders['set-cookie'] as List;
-        expect(setCookies, hasLength(2));
-        expect(
-          setCookies[0],
-          contains('${session_cookie.clientSessionLaxCookieName}='),
-        );
-        expect(
-          setCookies[1],
-          contains('${session_cookie.clientSessionStrictCookieName}='),
-        );
+          expect(result.output, contains('cookie'), reason: email);
+          final cookieHeaders = result.output['cookie'] as Map<String, dynamic>;
+          expect(cookieHeaders, contains('set-cookie'), reason: email);
+          final setCookies = cookieHeaders['set-cookie'] as List;
+          expect(setCookies, hasLength(2), reason: email);
+          expect(
+            setCookies[0],
+            contains('${session_cookie.clientSessionLaxCookieName}='),
+            reason: email,
+          );
+          expect(
+            setCookies[1],
+            contains('${session_cookie.clientSessionStrictCookieName}='),
+            reason: email,
+          );
 
-        // Verify the session is actually created and authenticated
-        final sessionId = (setCookies[0] as String)
-            .split(';')
-            .first
-            .split('=')
-            .last;
-        final sessionData = await accountBackend.getSessionData(sessionId);
-        expect(sessionData, isNotNull);
-        expect(sessionData!.isAuthenticated, isTrue);
-        expect(sessionData.email, 'pub.dev.testing1@gmail.com');
+          // Verify the session is actually created and authenticated
+          final sessionId = (setCookies[0] as String)
+              .split(';')
+              .first
+              .split('=')
+              .last;
+          final sessionData = await accountBackend.getSessionData(sessionId);
+          expect(sessionData, isNotNull, reason: email);
+          expect(sessionData!.isAuthenticated, isTrue, reason: email);
+          expect(sessionData.email, email);
+        }
       },
     );
 
@@ -60,21 +70,32 @@ void main() {
       'non-pub.dev.testing email fails',
       fn: () async {
         final client = createPubApiClient(authToken: siteAdminToken);
-        final accessToken = createFakeServiceAccountToken(
-          email: 'user@pub.dev',
-          audience: activeConfiguration.pubClientAudience,
-        );
-        final rs = client.adminInvokeAction(
-          'create-session-cookie',
-          AdminInvokeActionArguments(arguments: {'access-token': accessToken}),
-        );
-        await expectApiException(
-          rs,
-          status: 400,
-          code: 'InvalidInput',
-          message:
-              'Can only obtain cookies for users with email in the form pub.dev.testing[something]@gmail.com',
-        );
+        for (final email in [
+          'user@pub.dev',
+          'pubXdevYtesting@gmail.com',
+          'pubXdev.testing@gmail.com',
+          'pub.devXtesting@gmail.com',
+          'pub.dev.testing@gmailXcom',
+        ]) {
+          final accessToken = createFakeServiceAccountToken(
+            email: email,
+            audience: activeConfiguration.pubClientAudience,
+          );
+          final rs = client.adminInvokeAction(
+            'create-session-cookie',
+            AdminInvokeActionArguments(
+              arguments: {'access-token': accessToken},
+            ),
+          );
+          await expectApiException(
+            rs,
+            status: 400,
+            code: 'InvalidInput',
+            message:
+                'Can only obtain cookies for users with email in the form pub.dev.testing[something]@gmail.com',
+            reason: email,
+          );
+        }
       },
     );
 
