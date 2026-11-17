@@ -217,6 +217,8 @@ class AccountBackend {
     for (final userId in userIds) {
       checkUserIdParam(userId);
     }
+    // TODO: rewrite this with an IN-expression (after typed_sql supports it)
+    //       or as a chained OR filter condition.
     return await primaryDatabase.withRetry((db) async {
       final result = <UserRow?>[];
       for (final userId in userIds) {
@@ -290,10 +292,7 @@ class AccountBackend {
   Future<UserRow?> _lookupUserByOauthUserId(String oauthUserId) async {
     // TODO: This should be cached.
     return await primaryDatabase.withRetry(
-      (db) => db.users
-          .where((u) => u.oauthUserId.equalsValue(oauthUserId))
-          .fetch()
-          .then((rows) => rows.firstOrNull),
+      (db) => db.users.byOauthUserId(oauthUserId).fetch(),
     );
   }
 
