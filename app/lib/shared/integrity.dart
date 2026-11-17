@@ -270,7 +270,92 @@ class IntegrityChecker extends _BaseIntegrityChecker {
         isModerated: user.isModerated,
         moderatedAt: user.moderatedAt,
       );
+
+      yield* _checkUserSqlMirror(user);
     });
+    yield* _checkSqlUsersWithoutDatastore();
+  }
+
+  /// Checks that the SQL `users` mirror of [user] exists and has the same
+  /// field values.
+  ///
+  /// Reads of [User] are served from SQL, so any difference is reported.
+  /// To prevent false positives from concurrent writes, differences are only
+  /// reported after re-reading both sides.
+  Stream<String> _checkUserSqlMirror(User user) async* {
+    final row = await _fetchSqlUser(user.userId);
+    if (row == null) {
+      // Re-check, as the User may have been removed in the meantime.
+      if (await _lookupDatastoreUser(user.userId) != null &&
+          await _fetchSqlUser(user.userId) == null) {
+        yield 'User "${user.userId}" has not been mirrored to SQL.';
+      }
+      return;
+    }
+    if (_userSqlDifferences(user, row).isEmpty) return;
+    final user2 = await _lookupDatastoreUser(user.userId);
+    final row2 = await _fetchSqlUser(user.userId);
+    if (user2 == null || row2 == null) return;
+    final diffs = _userSqlDifferences(user2, row2);
+    if (diffs.isNotEmpty) {
+      yield 'User "${user.userId}" differs in SQL: ${diffs.join(', ')}.';
+    }
+  }
+
+  /// Reports SQL `users` rows that have no Datastore [User], using the user
+  /// ids collected by [_checkUsers]. Rows are streamed page by page.
+  Stream<String> _checkSqlUsersWithoutDatastore() async* {
+    yield* _streamWithPool(
+      () => fetchAllPaginated<String, String>(
+        initialCursor: '',
+        batchSize: 1000,
+        fetchPage: (db, after, batchSize) async {
+          final rows = await db.users
+              .where((u) => u.userId.greaterThanValue(after))
+              .orderBy((u) => [(u.userId, Order.ascending)])
+              .limit(batchSize)
+              .fetch();
+          return rows.map((r) => r.userId).toList();
+        },
+        cursorOf: (userId) => userId,
+      ).where((userId) => !_userToOauth.containsKey(userId)),
+      (userId) async* {
+        // Double check, as the User may have been created after the scan.
+        if (await _userExists(userId)) return;
+        if (await _fetchSqlUser(userId) != null) {
+          yield 'SQL User "$userId" has no corresponding Datastore entity.';
+        }
+      },
+    );
+  }
+
+  Future<User?> _lookupDatastoreUser(String userId) =>
+      _db.lookupOrNull<User>(_db.emptyKey.append(User, id: userId));
+
+  Future<UserRow?> _fetchSqlUser(String userId) =>
+      primaryDatabase.withRetry((db) => db.users.byKey(userId).fetch());
+
+  List<String> _userSqlDifferences(User user, UserRow row) {
+    final diffs = <String>[];
+    void check(String field, Object? ds, Object? sql) {
+      if (ds != sql) diffs.add('`$field` (Datastore: $ds, SQL: $sql)');
+    }
+
+    bool sameMoment(DateTime? a, DateTime? b) =>
+        a == null || b == null ? a == b : a.isAtSameMomentAs(b);
+
+    check('oauthUserId', user.oauthUserId, row.oauthUserId);
+    check('email', user.email, row.email);
+    check('isDeleted', user.isDeleted, row.isDeleted);
+    check('isModerated', user.isModerated, row.isModerated);
+    check('moderatedReason', user.moderatedReason, row.moderatedReason);
+    if (!sameMoment(user.created, row.createdAt)) {
+      check('created', user.created, row.createdAt);
+    }
+    if (!sameMoment(user.moderatedAt, row.moderatedAt)) {
+      check('moderatedAt', user.moderatedAt, row.moderatedAt);
+    }
+    return diffs;
   }
 
   Stream<String> _checkOAuthUserIDs() async* {
