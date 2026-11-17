@@ -66,6 +66,7 @@ void main() {
         await client.likePackage('oxygen');
         final user = await accountBackend.lookupUserByEmail('user@pub.dev');
         await dbService.commit(deletes: [user.key]);
+        await accountBackend.deleteUserMirrorFromSql(user.userId);
         final counts = await removeOrphanedLikes(
           minAgeThreshold: Duration.zero,
         );
