@@ -5,8 +5,6 @@
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:clock/clock.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
 
 import '../package/backend_test_utils.dart';
@@ -59,21 +57,20 @@ void main() {
     );
 
     testWithProfile(
-      'cannot reserve ModeratedPackage',
+      'cannot reserve tombstoned package',
       fn: () async {
-        final mp = ModeratedPackage()
-          ..id = 'pkg'
-          ..name = 'pkg'
-          ..moderated = clock.now()
-          ..uploaders = <String>[]
-          ..versions = <String>['1.0.0'];
-        await dbService.commit(inserts: [mp]);
-        await packageBackend.mirrorPackageTombstoneToSql(mp);
+        await packageBackend.insertPackageTombstone(
+          name: 'pkg',
+          moderatedAt: clock.now(),
+          publisherId: null,
+          uploaders: [],
+          versions: ['1.0.0'],
+        );
         await expectApiException(
           _reserve('pkg'),
           code: 'InvalidInput',
           status: 400,
-          message: 'ModeratedPackage `pkg` exists.',
+          message: 'Package tombstone `pkg` exists.',
         );
       },
     );

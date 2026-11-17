@@ -844,6 +844,12 @@ class PackageVersionAsset extends db.ExpandoModel {
 }
 
 /// Entity representing a package that has been removed.
+///
+/// The source of truth is the SQL `PackageTombstone`. This entity is only
+/// written as a copy, because the previous release treats Datastore as
+/// the source of truth and removes the SQL tombstone when the entity is missing.
+///
+/// TODO: remove (and delete the leftover entities) in a future release.
 @db.Kind(name: 'ModeratedPackage', idType: db.IdType.String)
 class ModeratedPackage extends db.ExpandoModel<String> {
   @db.StringProperty(required: true)

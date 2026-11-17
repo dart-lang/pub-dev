@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded stable Flutter analysis SDK to `3.50.0`.
  * Upgraded dartdoc to `9.0.11`.
  * Note: `Consent` reads and updates now work only in SQL; the Datastore `Consent` entity is still written as a copy.
+ * Note: `PackageTombstone` is now read and updated in SQL; the `ModeratedPackage` Datastore entity is written as a copy.
 
 ## `20261103t122300-all`
  * Bump runtimeVersion to `2026.10.29`.

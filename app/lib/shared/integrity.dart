@@ -159,7 +159,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   final _blockedUsers = <String>{};
   final _packages = <String>{};
   final _packageLikes = <String, int>{};
-  final _moderatedPackages = <String>{};
+  final _tombstonedPackages = <String>{};
   final _packagesWithIsModeratedFlag = <String>{};
   final _packageReplacedBys = <String, String>{};
   final _packagesWithVersion = <String>{};
@@ -201,7 +201,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
 
     yield* _checkVersions();
     yield* _checkLikes();
-    yield* _checkModeratedPackages();
+    yield* _checkPackageTombstones();
     yield* _checkAuditLogs();
     yield* _checkAuditLogsSql();
     yield* _checkConsents();
@@ -794,15 +794,15 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     }
   }
 
-  Stream<String> _checkModeratedPackages() async* {
-    _logger.info('Scanning ModeratedPackages...');
+  Stream<String> _checkPackageTombstones() async* {
+    _logger.info('Scanning package tombstones...');
 
     final rows = await primaryDatabase.withRetry(
       (db) => db.packageTombstones.fetch(),
     );
     for (final row in rows) {
       final packageName = row.name;
-      _moderatedPackages.add(packageName);
+      _tombstonedPackages.add(packageName);
       if (await _packageExists(packageName)) {
         // double check actual status to prevent misreports on cache race conditions
         final p = await packageBackend.lookupPackage(packageName);
@@ -845,7 +845,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     }
 
     for (final p in r.packages ?? const <String>[]) {
-      if (!_moderatedPackages.contains(p) && await _packageMissing(p)) {
+      if (!_tombstonedPackages.contains(p) && await _packageMissing(p)) {
         yield 'AuditLogRecord "${r.id}" has missing package "$p".';
       }
     }
@@ -857,7 +857,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
         continue;
       }
       final p = parts[0];
-      if (!_moderatedPackages.contains(p) && await _packageMissing(p)) {
+      if (!_tombstonedPackages.contains(p) && await _packageMissing(p)) {
         yield 'AuditLogRecord "${r.id}" has missing package "$p" in package version "$pv".';
       }
     }
@@ -964,7 +964,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     }
 
     for (final p in packages) {
-      if (!_moderatedPackages.contains(p) && await _packageMissing(p)) {
+      if (!_tombstonedPackages.contains(p) && await _packageMissing(p)) {
         yield '$label has missing package "$p".';
       }
     }
@@ -976,7 +976,7 @@ class IntegrityChecker extends _BaseIntegrityChecker {
         continue;
       }
       final p = parts[0];
-      if (!_moderatedPackages.contains(p) && await _packageMissing(p)) {
+      if (!_tombstonedPackages.contains(p) && await _packageMissing(p)) {
         yield '$label has missing package "$p" in package version "$pv".';
       }
     }

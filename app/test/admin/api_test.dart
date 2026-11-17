@@ -315,14 +315,7 @@ void main() {
             expect(like, isNotNull);
           });
 
-          final moderatedPkgKey = dbService.emptyKey.append(
-            ModeratedPackage,
-            id: 'oxygen',
-          );
-          var moderatedPkg = await dbService.lookupOrNull<ModeratedPackage>(
-            moderatedPkgKey,
-          );
-          expect(moderatedPkg, isNull);
+          expect(await packageBackend.lookupPackageTombstone('oxygen'), isNull);
 
           final timeBeforeRemoval = clock.now().toUtc();
           final rs = await client.adminInvokeAction(
@@ -354,21 +347,12 @@ void main() {
           final likeAfterRemoval = await dbService.lookupOrNull<Like>(likeKey);
           expect(likeAfterRemoval, isNull);
 
-          moderatedPkg = await dbService.lookupValue<ModeratedPackage>(
-            moderatedPkgKey,
-          );
-          expect(moderatedPkg, isNotNull);
-          expect(moderatedPkg.name, package.name);
-          expect(moderatedPkg.moderated.isAfter(timeBeforeRemoval), isTrue);
-          expect(moderatedPkg.uploaders, package.uploaders);
-          expect(moderatedPkg.publisherId, package.publisherId);
-          expect(moderatedPkg.versions, ['1.0.0', '1.2.0', '2.0.0-dev']);
-
           final row = await primaryDatabase.withRetry(
             (db) => db.packageTombstones.byKey('oxygen').fetch(),
           );
           expect(row, isNotNull);
           expect(row!.name, 'oxygen');
+          expect(row.moderatedAt.isAfter(timeBeforeRemoval), isTrue);
           expect(row.publisherId, package.publisherId);
           expect(row.uploadersJson.value, package.uploaders);
           expect(row.versionsJson.value, ['1.0.0', '1.2.0', '2.0.0-dev']);
@@ -541,14 +525,7 @@ void main() {
             expect(like, isNotNull);
           });
 
-          final moderatedPkgKey = dbService.emptyKey.append(
-            ModeratedPackage,
-            id: 'oxygen',
-          );
-          var moderatedPkg = await dbService.lookupOrNull<ModeratedPackage>(
-            moderatedPkgKey,
-          );
-          expect(moderatedPkg, isNull);
+          expect(await packageBackend.lookupPackageTombstone('oxygen'), isNull);
 
           final timeBeforeRemoval = clock.now().toUtc();
           final rs = await client.adminInvokeAction(
@@ -626,10 +603,7 @@ void main() {
           final likeAfterRemoval = await dbService.lookupOrNull<Like>(likeKey);
           expect(likeAfterRemoval, isNotNull);
 
-          moderatedPkg = await dbService.lookupOrNull<ModeratedPackage>(
-            moderatedPkgKey,
-          );
-          expect(moderatedPkg, isNull);
+          expect(await packageBackend.lookupPackageTombstone('oxygen'), isNull);
 
           // sanity check that scorecard is being loaded
           final sc2 = await scoreCardBackend.getLatestFinishedScoreCardData(

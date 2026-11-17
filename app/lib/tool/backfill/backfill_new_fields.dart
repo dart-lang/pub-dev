@@ -26,10 +26,6 @@ Future<void> backfillNewFields() async {
   _logger.info('Backfilling users...');
   await accountBackend.backfillSqlFromDatastore();
 
-  // NOTE: Keep this around until ModeratedPackage is migrated to use SQL.
-  _logger.info('Backfilling moderated packages...');
-  await packageBackend.backfillPackageTombstonesSqlFromDatastore();
-
   // NOTE: Keep this around until SecurityAdvisory is migrated to use SQL.
   _logger.info('Backfilling security advisories...');
   await securityAdvisoryBackend.backfillSqlFromDatastore();
