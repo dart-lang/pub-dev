@@ -146,6 +146,8 @@ class ConsentBackend {
           // non-expired entries just re-send the notification
           return await _sendNotification(activeAgent.displayId, existing.id);
         } else {
+          // completes an interrupted creation
+          await _writeCopy(existing);
           return api.InviteStatus(
             emailSent: false,
             nextNotification: existing.nextNotification,
@@ -163,6 +165,9 @@ class ConsentBackend {
         await _insertIntoSql(db, consent);
         await auditBackend.upsertIntoSql(db, auditLogRecord);
       });
+      // The copy must exist before the dedup cache entry is set, otherwise
+      // the previous release may look up the consent and remove its SQL row.
+      await _db.commit(inserts: [consent]);
       await dedupCacheEntry.set(consent.consentId);
       return await _sendNotification(activeAgent.displayId, consent.consentId);
     });
@@ -231,7 +236,9 @@ class ConsentBackend {
     String activeUserEmail,
     String consentId,
   ) async {
-    final (status, email) = await primaryDatabase.transactWithRetry((db) async {
+    final (status, email, updated) = await primaryDatabase.transactWithRetry((
+      db,
+    ) async {
       final current = await db.consents.byKey(consentId).fetch();
       if (current == null) {
         throw NotFoundException.resource('consent: $consentId');
@@ -242,6 +249,7 @@ class ConsentBackend {
           nextNotification: current.nextNotification,
         ),
         null,
+        current,
       );
       if (!current.shouldNotify()) {
         return notSent;
@@ -282,8 +290,10 @@ class ConsentBackend {
           nextNotification: row.nextNotification,
         ),
         email,
+        row,
       );
     });
+    await _writeCopy(updated);
     if (email != null) {
       await emailBackend.trySendOutgoingEmail(email);
     }
@@ -337,8 +347,8 @@ class ConsentBackend {
 
   /// Returns the [ConsentRow] with [consentId].
   ///
-  /// The Datastore entity (if any) is migrated and deleted first, otherwise
-  /// it could resurrect the row after the SQL row has been deleted.
+  /// A Datastore entity without a SQL row (e.g. created by the previous
+  /// release) is copied into SQL first.
   Future<ConsentRow?> _lookup(String consentId) async {
     final key = _db.emptyKey.append(Consent, id: consentId);
     final consent = await _db.lookupOrNull<Consent>(key);
@@ -352,7 +362,7 @@ class ConsentBackend {
 
   /// Returns the [ConsentRow] with [dedupId].
   ///
-  /// The matching Datastore entities (if any) are migrated and deleted first.
+  /// The matching Datastore entities without a SQL row are copied first.
   Future<ConsentRow?> _lookupByDedupId(String dedupId) async {
     await _migrateQuery(_db.query<Consent>()..filter('dedupId =', dedupId));
     return await primaryDatabase.withRetry(
@@ -367,21 +377,13 @@ class ConsentBackend {
     final action = _actions[consent.kind];
     await retry(() async {
       if (action != null) await fn(action);
+      // The Datastore copy is removed first, otherwise the previous release could
+      // re-create the SQL row from it.
+      await _db.commit(deletes: [_db.emptyKey.append(Consent, id: consent.id)]);
       await primaryDatabase.withRetry(
         (db) => db.consents.byKey(consent.id).delete().execute(),
       );
     }, maxAttempts: 3);
-  }
-
-  /// Migrates [consent] into SQL and deletes it from Datastore.
-  ///
-  /// Unlike [_migrateFromDatastoreToSql], an existing SQL row with the same id
-  /// is overwritten.
-  Future<void> migrateToSql(Consent consent) async {
-    await primaryDatabase.transactWithRetry(
-      (db) => _upsertIntoSql(db, consent),
-    );
-    await withRetryTransaction(_db, (tx) async => tx.delete(consent.key));
   }
 
   /// Inserts the new [consent] into SQL, failing if the id or dedupId exists.
@@ -401,26 +403,36 @@ class ConsentBackend {
       )
       .execute();
 
-  /// Inserts or overwrites the row for [consent] in SQL.
-  Future<void> _upsertIntoSql(Database<PrimarySchema> db, Consent consent) => db
-      .consents
-      .upsertValue(
-        id: consent.consentId,
-        email: consent.email!,
-        dedupId: consent.dedupId!,
-        kind: consent.kind!,
-        argsJson: JsonValue(consent.args),
-        fromAgent: consent.fromAgent!,
-        createdAt: consent.created!,
-        expiresAt: consent.expires!,
-        lastNotifiedAt: consent.lastNotified,
-        notificationCount: consent.notificationCount,
-      )
-      .execute();
+  /// Writes the legacy [Consent] Datastore entity as a copy of the SQL [row].
+  ///
+  /// The SQL row is the source of truth. The previous release treats Datastore
+  /// as the source of truth: it overwrites the SQL row from the entity, and
+  /// removes the SQL row when the entity is missing.
+  ///
+  /// TODO: remove after the previous release is no longer running.
+  Future<void> _writeCopy(ConsentRow row) async {
+    final entity = Consent()
+      ..id = row.id
+      ..email = row.email
+      ..dedupId = row.dedupId
+      ..kind = row.kind
+      ..args = row.args
+      ..fromAgent = row.fromAgent
+      ..created = row.createdAt
+      ..expires = row.expiresAt
+      ..lastNotified = row.lastNotifiedAt
+      ..notificationCount = row.notificationCount;
+    await _db.commit(inserts: [entity]);
+  }
 
-  /// Migrates a Datastore [Consent] into SQL (keeping any existing row) and
-  /// deletes it from Datastore.
+  /// Copies a Datastore [Consent] into SQL if there is no SQL row yet.
   Future<void> _migrateFromDatastoreToSql(Consent consent) async {
+    final existing = await primaryDatabase.withRetry(
+      (db) => db.consents.byKey(consent.consentId).fetch(),
+    );
+    if (existing != null) {
+      return;
+    }
     await primaryDatabase.transactWithRetry(
       (db) => db.consents
           .insertValue(
@@ -439,10 +451,18 @@ class ConsentBackend {
           .doNothing()
           .execute(),
     );
-    await withRetryTransaction(_db, (tx) async => tx.delete(consent.key));
+    // The consent may have been resolved (and removed from both stores) after
+    // the entity was read: do not leave a resurrected SQL row behind.
+    final key = _db.emptyKey.append(Consent, id: consent.consentId);
+    if (await _db.lookupOrNull<Consent>(key) == null) {
+      await primaryDatabase.withRetry(
+        (db) => db.consents.byKey(consent.consentId).delete().execute(),
+      );
+    }
   }
 
-  /// Migrates [Consent] entries older than [minAge] from Datastore into SQL.
+  /// Copies [Consent] entries older than [minAge] from Datastore into SQL, if
+  /// they have no SQL row yet. The entities are kept as copies.
   Future<int> migrateFromDatastore({
     Duration minAge = const Duration(minutes: 1),
   }) async {
@@ -452,7 +472,7 @@ class ConsentBackend {
     );
   }
 
-  /// Migrates the [Consent] entries matching [query] from Datastore into SQL.
+  /// Copies the [Consent] entries matching [query] from Datastore into SQL.
   ///
   /// Returns the number of migrated entries.
   Future<int> _migrateQuery(Query<Consent> query) async {
@@ -470,12 +490,16 @@ class ConsentBackend {
     await _migrateQuery(
       _db.query<Consent>()..filter('fromAgent =', fromUserId),
     );
-    await primaryDatabase.transactWithRetry(
+    final updated = await primaryDatabase.transactWithRetry(
       (db) => db.consents
           .where((c) => c.fromAgent.equalsValue(fromUserId))
           .update((_, set) => set(fromAgent: toUserId.asExpr))
-          .execute(),
+          .returnUpdated()
+          .executeAndFetch(),
     );
+    for (final row in updated) {
+      await _writeCopy(row);
+    }
   }
 }
 
