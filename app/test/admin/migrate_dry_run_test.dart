@@ -96,7 +96,6 @@ void main() {
         final results = result['results'] as List;
         expect(results.map((r) => r['script']), [
           'packages-fk-latest-version',
-          'packages-fk-publisher',
           'packages-fk-replaced-by',
         ]);
 

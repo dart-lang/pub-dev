@@ -29,22 +29,6 @@ ALTER TABLE "moderation_cases"
   ADD CONSTRAINT "moderation_cases_fk_appealed"
   FOREIGN KEY ("appealed_case_id") REFERENCES "moderation_cases" ("case_id");
 ''',
-  // Fails if any package_version_assets.package has no matching packages row.
-  'package-version-assets-fk-package': '''
-ALTER TABLE "package_version_assets"
-  ADD CONSTRAINT "package_version_assets_fk_package"
-  FOREIGN KEY ("package") REFERENCES "packages" ("name")
-  ON UPDATE CASCADE ON DELETE CASCADE;
-''',
-  // Fails if any package_version_assets row has no matching package_versions
-  // row (which also implies a matching packages row).
-  'package-version-assets-fk-version': '''
-ALTER TABLE "package_version_assets"
-  ADD CONSTRAINT "package_version_assets_fk_package_version"
-  FOREIGN KEY ("package", "version")
-  REFERENCES "package_versions" ("package", "version")
-  ON UPDATE CASCADE ON DELETE CASCADE;
-''',
   // Fails if a moderated / admin-deleted / retracted version lacks its
   // timestamp.
   'package-versions-chk-flags': '''
@@ -75,13 +59,6 @@ ALTER TABLE "packages"
   ADD CONSTRAINT "packages_fk_latest_version"
   FOREIGN KEY ("name", "latest_version")
   REFERENCES "package_versions" ("package", "version");
-''',
-  // Fails if any packages.publisher_id has no matching publishers row.
-  'packages-fk-publisher': '''
-ALTER TABLE "packages"
-  ADD CONSTRAINT "packages_fk_publisher"
-  FOREIGN KEY ("publisher_id") REFERENCES "publishers" ("publisher_id")
-  ON UPDATE CASCADE ON DELETE SET NULL;
 ''',
   // Fails if any packages.replaced_by has no matching packages row.
   'packages-fk-replaced-by': '''

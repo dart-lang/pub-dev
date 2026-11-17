@@ -550,8 +550,8 @@ void main() {
           (db) => db.packageVersionAssets
               .insertValue(
                 package: 'oxygen',
-                version: '9.9.9',
-                kind: 'readme',
+                version: '1.2.0',
+                kind: 'orphan',
                 updatedAt: DateTime.utc(2000, 1, 1),
                 path: 'README.md',
                 textContent: 'orphan',
@@ -562,7 +562,14 @@ void main() {
           await packageBackend.backfillPackageVersionAssetsSqlFromDatastore(),
           1,
         );
-        expect(await sqlAssetVersions(), isNot(contains('9.9.9')));
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.packageVersionAssets
+                .byKey('oxygen', '1.2.0', 'orphan')
+                .fetch(),
+          ),
+          isNull,
+        );
 
         // the upload has already mirrored the package and its versions, remove
         // them to exercise the backfill
@@ -574,6 +581,14 @@ void main() {
         );
         await expectPackageInSqlMatchesDatastore('oxygen');
         expect(await packageBackend.backfillPackagesSqlFromDatastore(), 0);
+
+        // deleting the package cascaded to its assets, restore them
+        expect(await sqlAssetVersions(), isEmpty);
+        expect(
+          await packageBackend.backfillPackageVersionAssetsSqlFromDatastore(),
+          greaterThan(0),
+        );
+        expect(await sqlAssetVersions(), containsAll(['1.0.0', '1.2.0']));
 
         // stale rows are refreshed, and their versions reconciled
         await primaryDatabase.withRetry(

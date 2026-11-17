@@ -8,6 +8,15 @@ part of 'schema.dart';
 ///
 /// TODO: rename to `Package` after the SQL migration.
 @PrimaryKey(['name'])
+@ForeignKey(
+  ['publisherId'],
+  table: 'publishers',
+  fields: ['publisherId'],
+  name: 'publisher',
+  as: 'packages',
+  onDelete: .setNull,
+  onUpdate: .cascade,
+)
 abstract final class PackageRow extends Row {
   String get name;
 
@@ -186,6 +195,15 @@ extension PackageVersionRowExt on PackageVersionRow {
 ///
 /// TODO: rename to `PackageVersionAsset` after the SQL migration.
 @PrimaryKey(['package', 'version', 'kind'])
+@ForeignKey(
+  ['package', 'version'],
+  table: 'packageVersions',
+  fields: ['package', 'version'],
+  name: 'parent',
+  as: 'assets',
+  onDelete: .cascade,
+  onUpdate: .cascade,
+)
 abstract final class PackageVersionAssetRow extends Row {
   String get package;
 
