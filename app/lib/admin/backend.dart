@@ -1305,7 +1305,8 @@ class AdminBackend {
     );
     for (final u in moderatedUsers) {
       final user = await accountBackend.lookupUserById(u.userId);
-      if (user == null) {
+      // re-check, the user may have been un-moderated or deleted meanwhile
+      if (user == null || !user.isModerated || user.isDeleted) {
         continue;
       }
 
