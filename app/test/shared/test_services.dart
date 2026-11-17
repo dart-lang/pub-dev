@@ -10,6 +10,7 @@ import 'package:fake_gcloud/mem_storage.dart';
 import 'package:gcloud/db.dart';
 import 'package:gcloud/service_scope.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/actions/migrate_dry_run.dart';
 import 'package:pub_dev/database/database.dart';
@@ -267,6 +268,7 @@ void setupTestsWithCallerAuthorizationIssues(
             ..moderatedAt = clock.now(),
         ],
       );
+      await accountBackend.mirrorUserToSql(user);
       final rs = fn(client);
       await expectApiException(
         rs,
