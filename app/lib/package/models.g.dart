@@ -59,6 +59,11 @@ PublishingConfig _$PublishingConfigFromJson(Map<String, dynamic> json) =>
           : ManualPublishingConfig.fromJson(
               json['manualConfig'] as Map<String, dynamic>,
             ),
+      attestationConfig: json['attestationConfig'] == null
+          ? null
+          : AttestationPublishingConfig.fromJson(
+              json['attestationConfig'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$PublishingConfigToJson(PublishingConfig instance) =>
@@ -68,6 +73,7 @@ Map<String, dynamic> _$PublishingConfigToJson(PublishingConfig instance) =>
       'gcpConfig': ?instance.gcpConfig?.toJson(),
       'gcpLock': ?instance.gcpLock?.toJson(),
       'manualConfig': ?instance.manualConfig?.toJson(),
+      'attestationConfig': ?instance.attestationConfig?.toJson(),
     };
 
 GitHubPublishingLock _$GitHubPublishingLockFromJson(
