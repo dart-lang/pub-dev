@@ -6,6 +6,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Upgraded runtime Dart SDK to `3.14.1`
  * Note: `PackageVersionInfo` is now read from SQL.
  * Note: `Package` listings are now read from SQL.
+ * Note: like entries and aggregate counts are now based on SQL (Datastore mirror is kept).
 
 ## `20261119t130200-all`
  * Bump runtimeVersion to `2026.11.19`.

@@ -264,7 +264,11 @@ Future<PackageLikeResponse> likePackageHandler(
 ) async {
   final authenticatedUser = await requireAuthenticatedWebUser();
   final l = await likeBackend.likePackage(authenticatedUser.userId, package);
-  return PackageLikeResponse(liked: true, package: package, created: l.created);
+  return PackageLikeResponse(
+    liked: true,
+    package: package,
+    created: l.createdAt,
+  );
 }
 
 /// Handles `DELETE /api/account/likes/<package>`.

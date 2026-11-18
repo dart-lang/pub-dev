@@ -43,9 +43,9 @@ Future<void> backfillNewFields() async {
   _logger.info('Backfilling package version assets...');
   await packageBackend.backfillPackageVersionAssetsSqlFromDatastore();
 
-  // NOTE: Keep this around until Like is migrated to SQL.
-  _logger.info('Backfilling package likes...');
-  await likeBackend.backfillSqlFromDatastore();
+  // NOTE: Keep this around until the Like Datastore copy is removed.
+  _logger.info('Backfilling package likes in Datastore...');
+  await likeBackend.backfillDatastoreFromSql();
 
   // NOTE: Keep this around until ModerationCase is migrated to SQL.
   _logger.info('Backfilling moderation cases...');

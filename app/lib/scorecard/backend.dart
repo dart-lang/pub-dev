@@ -101,6 +101,7 @@ class ScoreCardBackend {
           releases: releases,
           version: pv,
           scoreCard: card,
+          likes: await packageBackend.lookupLikesCount(package) ?? 0,
         );
       } on NotFoundException catch (_) {
         return null;
@@ -228,7 +229,7 @@ class ScoreCardBackend {
     return VersionScore(
       grantedPoints: card.grantedPubPoints,
       maxPoints: card.maxPubPoints,
-      likeCount: await packageBackend.lookupLikesCount(package) ?? pkg.likes,
+      likeCount: await packageBackend.lookupLikesCount(package) ?? 0,
       downloadCount30Days: downloadCountsBackend.lookup30DaysTotalCounts(
         package,
       ),

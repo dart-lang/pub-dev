@@ -969,6 +969,7 @@ class PackageView {
     required LatestReleases releases,
     PackageVersionRow? version,
     required ScoreCardData scoreCard,
+    required int likes,
     List<ApiPageRef>? apiPages,
   }) {
     final tags = <String>{
@@ -983,7 +984,7 @@ class PackageView {
       created: package.created!,
       publisherId: package.publisherId,
       isPending: scoreCard.isPending,
-      likes: package.likes,
+      likes: likes,
       grantedPubPoints: scoreCard.grantedPubPoints,
       maxPubPoints: scoreCard.maxPubPoints,
       tags: tags.toList(),
@@ -1108,6 +1109,7 @@ class PackagePageData {
   final ScoreCardData scoreCard;
   final bool isAdmin;
   final bool isLiked;
+  final int likesCount;
   final WeeklyDownloadCounts? weeklyDownloadCounts;
   PackageView? _view;
 
@@ -1120,6 +1122,7 @@ class PackagePageData {
     required this.scoreCard,
     required this.isAdmin,
     required this.isLiked,
+    required this.likesCount,
     required this.weeklyDownloadCounts,
   }) : latestReleases = latestReleases ?? package.latestReleases;
 
@@ -1180,6 +1183,7 @@ class PackagePageData {
       releases: latestReleases,
       version: version,
       scoreCard: scoreCard,
+      likes: likesCount,
     );
   }
 }
