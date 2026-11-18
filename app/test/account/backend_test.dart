@@ -44,7 +44,7 @@ void main() {
         final u = await accountBackend.lookupUserById(user.userId);
         expect(u!.email, 'user@pub.dev');
         expect(u.oauthUserId, isNotNull);
-        expect(u.id, user.id);
+        expect(u.userId, user.userId);
       },
     );
 

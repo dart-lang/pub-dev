@@ -320,7 +320,7 @@ Future<shelf.Response> accountPackagesPageHandler(shelf.Request request) async {
   ))!;
   final html = renderAccountPackagesPage(
     userEmail: user.email!,
-    userCreatedAt: user.created!,
+    userCreatedAt: user.createdAt!,
     userSessionData: requestContext.sessionData!,
     startPackage: next,
     packageHits: hits.nonNulls.toList(),
@@ -368,7 +368,7 @@ Future<shelf.Response> accountMyLikedPackagesPageHandler(
   );
   final html = renderMyLikedPackagesPage(
     userEmail: user.email!,
-    userCreatedAt: user.created!,
+    userCreatedAt: user.createdAt!,
     userSessionData: requestContext.sessionData!,
     searchForm: appliedSearchForm,
     searchResult: searchResult,
@@ -393,7 +393,7 @@ Future<shelf.Response> accountPublishersPageHandler(
   ))!;
   final content = renderAccountPublishersPage(
     userEmail: user.email!,
-    userCreatedAt: user.created!,
+    userCreatedAt: user.createdAt!,
     userSessionData: requestContext.sessionData!,
     publishers: page.publishers!,
   );
@@ -420,7 +420,7 @@ Future<shelf.Response> accountMyActivityLogPageHandler(
   ))!;
   final content = renderAccountMyActivityPage(
     userEmail: user.email!,
-    userCreatedAt: user.created!,
+    userCreatedAt: user.createdAt!,
     userSessionData: requestContext.sessionData!,
     activities: activities,
   );

@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../database/schema.dart' show UserRow;
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
 import '../service/openid/jwt.dart';
 import '../shared/exceptions.dart';
-
-import 'models.dart';
 
 final _uuidRegExp = RegExp(
   r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
@@ -217,7 +216,7 @@ class AuthenticatedGcpServiceAccount implements AuthenticatedAgent {
 
 /// Holds the authenticated user information.
 class AuthenticatedUser implements AuthenticatedAgent {
-  final User user;
+  final UserRow user;
   final String audience;
 
   AuthenticatedUser(this.user, {required this.audience});
