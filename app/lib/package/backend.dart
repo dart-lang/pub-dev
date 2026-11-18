@@ -160,7 +160,12 @@ class PackageBackend {
   }) async {
     final versions = await primaryDatabase.withRetry(
       (db) => db.packageVersions
-          .orderBy((v) => [(v.createdAt, Order.descending)])
+          .orderBy(
+            (v) => [
+              (v.createdAt, Order.descending),
+              (v.version, Order.descending),
+            ],
+          )
           .limit(limit)
           .offset(offset)
           .fetch(),
@@ -520,7 +525,8 @@ class PackageBackend {
     if (existing == null) {
       final deleted = deletedVersions.toSet();
       versions = {
-        for (final v in await versionsOfPackage(package.name!)) v.version!: v,
+        for (final v in await datastoreVersionsOfPackage(package.name!))
+          v.version!: v,
         for (final v in versions) v.version!: v,
       }.values.where((v) => !deleted.contains(v.version));
     }
@@ -732,7 +738,7 @@ class PackageBackend {
     await for (final p in allPackages()) {
       final name = p.name!;
       final sql = sqlState.remove(name);
-      final versions = await versionsOfPackage(name);
+      final versions = await datastoreVersionsOfPackage(name);
       final datastoreFlags = <String, _VersionFlags>{
         for (final v in versions)
           v.version!: (v.isRetracted, v.isModerated, v.isAdminDeleted),
@@ -935,58 +941,72 @@ class PackageBackend {
     return keys.map((k) => byKey[k]).toList();
   }
 
-  /// Looks up all versions of a package and return them as a [List].
-  Future<List<PackageVersion>> versionsOfPackage(String packageName) async {
-    return streamVersionsOfPackage(packageName).toList();
+  /// Looks up all versions of a package.
+  Future<List<PackageVersionRow>> versionsOfPackage(String packageName) async {
+    return await primaryDatabase.withRetry(
+      (db) => db.packageVersions
+          .where((v) => v.package.equalsValue(packageName))
+          .orderBy((v) => [(v.version, Order.ascending)])
+          .fetch(),
+    );
   }
 
-  /// Looks up all versions of a package and return them as a [Stream].
-  Stream<PackageVersion> streamVersionsOfPackage(
-    String packageName, {
-    String? order,
-    int? limit,
-  }) {
+  /// Looks up all versions of a package from Datastore (only for mirroring
+  /// and integrity checks).
+  Future<List<PackageVersion>> datastoreVersionsOfPackage(
+    String packageName,
+  ) async {
     final packageKey = db.emptyKey.append(Package, id: packageName);
-    final query = db.query<PackageVersion>(ancestorKey: packageKey);
-    if (order != null) {
-      query.order(order);
-    }
-    if (limit != null && limit > 0) {
-      query.limit(limit);
-    }
-    return query.run();
+    return await db
+        .query<PackageVersion>(ancestorKey: packageKey)
+        .run()
+        .toList();
   }
 
-  /// List the versions of [package] that are published in the last N [days].
-  Future<List<PackageVersion>> _listVersionsFromPastDays(
-    String package, {
-    required int days,
-    bool Function(PackageVersion pv)? where,
+  /// Looks up the most recently published [limit] versions of a package.
+  Future<List<PackageVersionRow>> latestVersionsOfPackage(
+    String packageName, {
+    required int limit,
   }) async {
-    final packageKey = db.emptyKey.append(Package, id: package);
-    final query = db.query<PackageVersion>(
-      ancestorKey: packageKey,
-    )..filter('created >=', clock.now().toUtc().subtract(Duration(days: days)));
-    return await query.run().where((pv) => where == null || where(pv)).toList();
+    return await primaryDatabase.withRetry(
+      (db) => db.packageVersions
+          .where((v) => v.package.equalsValue(packageName))
+          .orderBy(
+            (v) => [
+              (v.createdAt, Order.descending),
+              (v.version, Order.descending),
+            ],
+          )
+          .limit(limit)
+          .fetch(),
+    );
   }
 
   /// List retractable versions.
-  Future<List<PackageVersion>> listRetractableVersions(String package) async {
-    return await _listVersionsFromPastDays(
-      package,
-      days: 7,
-      where: (pv) => pv.canBeRetracted,
+  Future<List<PackageVersionRow>> listRetractableVersions(
+    String package,
+  ) async {
+    final threshold = clock.now().toUtc().subtract(const Duration(days: 7));
+    return await primaryDatabase.withRetry(
+      (db) => db.packageVersions
+          .where((v) => v.package.equalsValue(package))
+          .where((v) => v.isRetracted.not())
+          .where((v) => v.createdAt >= toExpr(threshold))
+          .fetch(),
     );
   }
 
   /// List versions that are retracted and the retraction is recent, it can be undone.
-  Future<List<PackageVersion>> listRecentlyRetractedVersions(
+  Future<List<PackageVersionRow>> listRecentlyRetractedVersions(
     String package,
   ) async {
-    return await _listVersionsFromPastDays(
-      package,
-      days: 14,
-      where: (pv) => pv.canUndoRetracted,
+    final threshold = clock.now().toUtc().subtract(const Duration(days: 7));
+    return await primaryDatabase.withRetry(
+      (db) => db.packageVersions
+          .where((v) => v.package.equalsValue(package))
+          .where((v) => v.isRetracted)
+          .where((v) => v.retractedAt.asNotNull() >= toExpr(threshold))
+          .fetch(),
     );
   }
 

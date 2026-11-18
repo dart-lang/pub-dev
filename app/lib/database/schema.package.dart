@@ -198,6 +198,8 @@ extension PackageVersionRowExt on PackageVersionRow {
         clock.now().toUtc().subtract(const Duration(days: 7)),
       );
 
+  Version get semanticVersion => Version.parse(version);
+
   QualifiedVersionKey get qualifiedVersionKey =>
       QualifiedVersionKey(package: package, version: version);
 

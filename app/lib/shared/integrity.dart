@@ -1445,7 +1445,9 @@ class TarballIntegrityChecker extends _BaseIntegrityChecker {
       final bucketVersions = await packageBackend.listVersionsInCanonicalBucket(
         package,
       );
-      final dbVersions = await packageBackend.versionsOfPackage(package);
+      final dbVersions = await packageBackend.datastoreVersionsOfPackage(
+        package,
+      );
 
       for (final e in bucketVersions.entries) {
         final version = e.key;
