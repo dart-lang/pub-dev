@@ -42,20 +42,81 @@ Future<void> runHandler(
 }) async {
   port ??= envConfig.port;
   handler = wrapHandler(logger, handler, sanitize: sanitize);
-  final server = await shelf_io.serve(
-    (request) async {
-      final rs = await fork(() async {
-        return await handler(request);
-      });
-      return rs as shelf.Response;
-    },
+  final server = await HttpServer.bind(
     InternetAddress.anyIPv4,
     port,
     shared: true,
   );
+  serveHttpRequests(logger, server, (request) async {
+    final rs = await fork(() async {
+      return await handler(request);
+    });
+    return rs as shelf.Response;
+  });
   processTerminationSignal ??= waitForProcessSignalTermination;
   await processTerminationSignal();
   await server.close();
+}
+
+/// Serves [requests] with [handler], like `shelf_io.serveRequests`.
+///
+/// Requests whose URI can't be decoded get a `400 Bad Request` here and are
+/// logged with [logger]. `package:shelf` sends the same status and body, but
+/// it also writes the error and a stack trace to stderr.
+void serveHttpRequests(
+  Logger logger,
+  Stream<HttpRequest> requests,
+  shelf.Handler handler,
+) {
+  shelf_io.serveRequests(
+    requests.transform(
+      StreamTransformer.fromHandlers(
+        handleData: (request, sink) {
+          final error = _uriDecodingError(request);
+          if (error == null) {
+            sink.add(request);
+            return;
+          }
+          logger.info(
+            'Rejected request with undecodable URI ${request.uri}: $error',
+          );
+          const body = 'Bad Request';
+          request.response
+            ..statusCode = HttpStatus.badRequest
+            ..headers.set(HttpHeaders.contentTypeHeader, 'text/plain')
+            ..headers.date = DateTime.now().toUtc()
+            ..contentLength = body.length
+            ..write(body);
+          request.response.close().ignore();
+        },
+      ),
+    ),
+    handler,
+  );
+}
+
+/// Returns the [FormatException] that `shelf.Request` would turn into an
+/// `ArgumentError` for the URI of [request], or `null`.
+FormatException? _uriDecodingError(HttpRequest request) {
+  final Uri uri;
+  try {
+    uri = request.requestedUri;
+  } on FormatException {
+    // Not a decoding error, leave it to `package:shelf` as before.
+    return null;
+  }
+  // Only percent-encoded bytes can fail to decode. This keeps the check cheap
+  // for most requests.
+  if (!uri.toString().contains('%')) {
+    return null;
+  }
+  try {
+    uri.pathSegments;
+    uri.queryParametersAll;
+    return null;
+  } on FormatException catch (e) {
+    return e;
+  }
 }
 
 /// Wraps the app handler with useful wrappers.
