@@ -15,6 +15,7 @@ import 'package:watcher/watcher.dart';
 
 import '../../frontend/handlers.dart';
 import '../../frontend/static_files.dart';
+import '../../package/attestation_verifier.dart';
 import '../../package/name_tracker.dart';
 import '../../search/top_packages.dart';
 import '../../service/announcement/backend.dart';
@@ -41,6 +42,11 @@ class DefaultCommand extends Command {
 }
 
 Future _main() async {
+  // Fail at startup, rather than on every attested upload, when the native
+  // library used to verify attestations cannot be loaded (e.g. the snapshot
+  // was built without its native assets mapping).
+  attestationVerifier.checkNativeLibrary();
+
   if (envConfig.isRunningLocally) {
     await updateLocalBuiltFilesIfNeeded();
     await watchForResourceChanges();

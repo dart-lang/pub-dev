@@ -533,6 +533,110 @@ class GcpPublishingLock {
   Map<String, dynamic> toJson() => _$GcpPublishingLockToJson(this);
 }
 
+/// The build provenance of a package version, as verified at upload from the
+/// Sigstore attestation that was published with the archive.
+///
+/// These are the facts pub.dev verified at the time of the upload, persisted
+/// so that nothing has to re-parse the bundle later (e.g. the package page,
+/// or a lock on the provenance repository). The bundle itself is kept next
+/// to the archive in the canonical bucket.
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
+class VersionProvenance {
+  /// The GitHub repository the archive was built from, as `<owner>/<name>`.
+  final String repository;
+
+  /// The immutable id of [repository] at the time of the build, if the
+  /// provenance statement carries it.
+  ///
+  /// Unlike [repository], this survives renames and transfers, and a deleted
+  /// and re-created repository gets a new one.
+  final String? repositoryId;
+
+  /// The immutable id of the owner of [repository] at the time of the build,
+  /// if the provenance statement carries it.
+  final String? repositoryOwnerId;
+
+  /// The path of the workflow in [repository] that ran the build, e.g.
+  /// `.github/workflows/publish.yml`.
+  final String? workflowPath;
+
+  /// The git ref of [repository] the build ran at, e.g. `refs/tags/v1.0.0`.
+  final String? ref;
+
+  /// The commit of [repository] the build ran at.
+  final String? commitSha;
+
+  /// The URL of the workflow run that built the archive, if recorded.
+  final String? runUrl;
+
+  /// The identity of the trusted workflow that signed the attestation, as
+  /// verified by Sigstore - the full workflow reference, e.g.
+  /// `https://github.com/dart-lang/setup-dart/.github/workflows/publish.yml@refs/tags/v2`.
+  final String signer;
+
+  /// The OIDC issuer that authenticated [signer].
+  final String issuer;
+
+  /// The index of the entry in the Sigstore transparency log (Rekor), if the
+  /// bundle carries one.
+  final int? transparencyLogIndex;
+
+  /// The time at which the transparency log entry was integrated, if the
+  /// bundle carries one.
+  final DateTime? transparencyLogIntegratedTime;
+
+  VersionProvenance({
+    required this.repository,
+    this.repositoryId,
+    this.repositoryOwnerId,
+    this.workflowPath,
+    this.ref,
+    this.commitSha,
+    this.runUrl,
+    required this.signer,
+    required this.issuer,
+    this.transparencyLogIndex,
+    this.transparencyLogIntegratedTime,
+  });
+
+  factory VersionProvenance.fromJson(Map<String, dynamic> json) =>
+      _$VersionProvenanceFromJson(json);
+
+  Map<String, dynamic> toJson() => _$VersionProvenanceToJson(this);
+
+  /// The URL of [repository].
+  String get repositoryUrl => 'https://github.com/$repository';
+}
+
+/// A [db.Property] encoding [VersionProvenance] as JSON.
+class VersionProvenanceProperty extends db.Property {
+  const VersionProvenanceProperty({super.propertyName, super.required = false})
+    : super(indexed: false);
+
+  @override
+  Object? encodeValue(
+    db.ModelDB mdb,
+    Object? value, {
+    bool forComparison = false,
+  }) {
+    if (value == null) return null;
+    return json.encode(value as VersionProvenance);
+  }
+
+  @override
+  Object? decodePrimitiveValue(db.ModelDB mdb, Object? value) {
+    if (value == null) return null;
+    return VersionProvenance.fromJson(
+      json.decode(value as String) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  bool validate(db.ModelDB mdb, Object? value) =>
+      super.validate(mdb, value) &&
+      (value == null || value is VersionProvenance);
+}
+
 /// Pub package metadata for a specific uploaded version.
 ///
 /// Metadata such as changelog/readme/libraries are used for rendering HTML
@@ -576,6 +680,13 @@ class PackageVersion extends db.ExpandoModel<String> {
   /// The publisher id at the time of the upload.
   @db.StringProperty()
   String? publisherId;
+
+  /// The build provenance of the archive, as verified from the attestation
+  /// that was uploaded with it.
+  ///
+  /// `null` if the version was published without an attestation.
+  @VersionProvenanceProperty()
+  VersionProvenance? provenance;
 
   /// Whether the version has been retracted.
   @db.BoolProperty(required: true)

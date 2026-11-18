@@ -28,12 +28,14 @@ import '../account/default_auth_provider.dart';
 import '../account/like_backend.dart';
 import '../admin/backend.dart';
 import '../audit/backend.dart';
+import '../fake/backend/fake_attestation_verifier.dart';
 import '../fake/backend/fake_auth_provider.dart';
 import '../fake/backend/fake_domain_verifier.dart';
 import '../fake/backend/fake_email_sender.dart';
 import '../fake/backend/fake_upload_signer_service.dart';
 import '../fake/server/fake_storage_server.dart';
 import '../frontend/handlers.dart';
+import '../package/attestation_verifier.dart';
 import '../package/backend.dart';
 import '../package/name_tracker.dart';
 import '../package/search_adapter.dart';
@@ -95,6 +97,7 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
     registerAuthProvider(DefaultAuthProvider());
     registerScopeExitCallback(authProvider.close);
     registerDomainVerifier(DomainVerifier());
+    registerAttestationVerifier(AttestationVerifier());
     registerEmailSender(
       activeConfiguration.gmailRelayServiceAccount != null &&
               activeConfiguration.isProduction
@@ -188,6 +191,7 @@ Future<R> withFakeServices<R>({
         registerAuthProvider(FakeAuthProvider());
         registerScopeExitCallback(authProvider.close);
         registerDomainVerifier(FakeDomainVerifier());
+        registerAttestationVerifier(FakeAttestationVerifier());
         registerEmailSender(
           FakeEmailSender(outputDir: envConfig.fakeEmailSenderOutputDir),
         );
