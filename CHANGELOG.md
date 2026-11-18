@@ -2,6 +2,7 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Note: like entries and aggregate counts are now based on SQL (Datastore mirror is kept).
 
 ## `20261119t130200-all`
  * Bump runtimeVersion to `2026.11.19`.

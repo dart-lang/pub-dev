@@ -387,7 +387,7 @@ class SearchBackend {
       readme: compactReadme(readmeAsset?.textContent),
       downloadCount: downloadCountsBackend.lookup30DaysTotalCounts(pv.package),
       trendScore: downloadCountsBackend.lookupTrendScore(pv.package),
-      likeCount: await packageBackend.lookupLikesCount(packageName) ?? p.likes,
+      likeCount: await packageBackend.lookupLikesCount(packageName) ?? 0,
       grantedPoints: scoreCard.grantedPubPoints,
       maxPoints: scoreCard.maxPubPoints,
       dependencies: await _buildDependencies(pv.pubspec, scoreCard),
@@ -446,6 +446,8 @@ class SearchBackend {
         tags: p.getTags().toList(),
         created: p.created!,
         updated: p.lastVersionPublished!,
+        // TODO: read the likes count from SQL after every package read is
+        //       migrated to SQL (a per-package lookup here would be an N+1).
         likeCount: p.likes,
         grantedPoints: 0,
         maxPoints: 0,
