@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:pub_dev/dartdoc/dartdoc_page.dart';
 import 'package:pub_dev/dartdoc/models.dart';
 import 'package:pub_dev/frontend/handlers/cache_control.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/handlers.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
@@ -190,12 +191,15 @@ Future<shelf.Response> handleDartDoc(
           return (DocPageStatus.redirect(redirectPath), null);
         }
 
+        final pkg = await packageBackend.lookupPackage(package);
         final html = page.render(
           DartDocPageOptions(
             package: package,
             version: version,
             urlSegment: resolvedDocUrlVersion.urlSegment,
             isLatestStable: resolvedDocUrlVersion.isLatestStable,
+            isDiscontinued: pkg?.isDiscontinued ?? false,
+            replacedBy: pkg?.replacedBy,
             path: path,
             searchQueryParameter: searchQueryParameter,
           ),

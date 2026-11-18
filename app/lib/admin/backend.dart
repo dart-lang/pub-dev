@@ -21,6 +21,7 @@ import '../account/consent_backend.dart';
 import '../account/like_backend.dart';
 import '../account/models.dart';
 import '../admin/models.dart';
+import '../audit/backend.dart';
 import '../audit/models.dart';
 import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, triggerPackagePostUpdates;
@@ -195,6 +196,7 @@ class AdminBackend {
       if (p.uploaders!.isEmpty) {
         p.isDiscontinued = true;
       }
+      p.updated = clock.now().toUtc();
       tx.insert(p);
     });
   }
@@ -230,6 +232,7 @@ class AdminBackend {
           () => withRetryTransaction(_db, (tx) async {
             final p = await tx.lookupValue<Package>(package.key);
             p.isDiscontinued = true;
+            p.updated = clock.now().toUtc();
             tx.insert(p);
           }),
         );
@@ -269,7 +272,7 @@ class AdminBackend {
   }
 
   Future<void> _markUserDeleted(User user) async {
-    await withRetryTransaction(_db, (tx) async {
+    final u = await withRetryTransaction(_db, (tx) async {
       final u = await tx.lookupValue<User>(user.key);
       final deleteKeys = <Key>[];
       if (user.oauthUserId != null) {
@@ -288,7 +291,9 @@ class AdminBackend {
         ..created = null
         ..isDeleted = true;
       tx.queueMutations(inserts: [u], deletes: deleteKeys);
+      return u;
     });
+    await accountBackend.mirrorUserToSql(u);
   }
 
   /// Removes the package from the Datastore and updates other related
@@ -344,6 +349,7 @@ class AdminBackend {
         }
         if (p.replacedBy == packageName) {
           p.replacedBy = null;
+          p.updated = clock.now().toUtc();
           tx.insert(p);
         }
         replacedByFixes++;
@@ -359,6 +365,7 @@ class AdminBackend {
     final deletedPackageVersionAssets = await _db.deleteWithQuery(
       _db.query<PackageVersionAsset>()..filter('package =', packageName),
     );
+    await packageBackend.deletePackageVersionAssetsFromSql(packageName);
 
     _logger.info('Removing package from Like ...');
     final deletedLikes = await _db.deleteWithQuery(
@@ -369,10 +376,11 @@ class AdminBackend {
     final deletedAuditLogRecords = await _db.deleteWithQuery(
       _db.query<AuditLogRecord>()..filter('packages =', packageName),
     );
+    await auditBackend.deleteSqlRecordsForPackage(packageName);
 
     _logger.info('Removing Package from Datastore...');
     var deletedPackages = 0;
-    await withRetryTransaction(_db, (tx) async {
+    final insertedModeratedPkg = await withRetryTransaction(_db, (tx) async {
       final package = await tx.lookupOrNull<Package>(packageKey);
       if (package == null) {
         _logger.info(
@@ -380,7 +388,7 @@ class AdminBackend {
         );
         // Returning early makes sure we are not creating ghost `ModeratedPackage`
         // entities because of a typo.
-        return;
+        return null;
       }
       tx.delete(packageKey);
       deletedPackages = 1;
@@ -391,32 +399,37 @@ class AdminBackend {
       final moderatedPkg = await _db.lookupOrNull<ModeratedPackage>(
         moderatedPkgKey,
       );
-      if (moderatedPkg == null) {
-        // Refresh versions to make sure we are not missing a freshly uploaded one.
-        versions.addAll(
-          await tx
-              .query<PackageVersion>(packageKey)
-              .run()
-              .map((pv) => pv.version!)
-              .toList(),
-        );
-
-        versions.addAll(package.deletedVersions ?? const <String>[]);
-
-        tx.insert(
-          ModeratedPackage()
-            ..parentKey = _db.emptyKey
-            ..id = packageName
-            ..name = packageName
-            ..moderated = moderated ?? clock.now().toUtc()
-            ..versions = versions.toList()
-            ..publisherId = package.publisherId
-            ..uploaders = package.uploaders,
-        );
-
-        _logger.info('Adding package to moderated packages ...');
+      if (moderatedPkg != null) {
+        return null;
       }
+      // Refresh versions to make sure we are not missing a freshly uploaded one.
+      versions.addAll(
+        await tx
+            .query<PackageVersion>(packageKey)
+            .run()
+            .map((pv) => pv.version!)
+            .toList(),
+      );
+
+      versions.addAll(package.deletedVersions ?? const <String>[]);
+
+      final insertedModeratedPkg = ModeratedPackage()
+        ..parentKey = _db.emptyKey
+        ..id = packageName
+        ..name = packageName
+        ..moderated = moderated ?? clock.now().toUtc()
+        ..versions = versions.toList()
+        ..publisherId = package.publisherId
+        ..uploaders = package.uploaders;
+      tx.insert(insertedModeratedPkg);
+
+      _logger.info('Adding package to moderated packages ...');
+      return insertedModeratedPkg;
     });
+
+    if (insertedModeratedPkg != null) {
+      await packageBackend.mirrorPackageTombstoneToSql(insertedModeratedPkg);
+    }
 
     _logger.info('Removing package from PackageVersion ...');
     await _db.deleteWithQuery(
@@ -462,6 +475,7 @@ class AdminBackend {
         'of package $packageName $version to be $isRetracted.',
       );
 
+      AuditLogRecord? auditLogRecord;
       await withRetryTransaction(_db, (tx) async {
         final p = await tx.lookupOrNull<Package>(
           _db.emptyKey.append(Package, id: packageName),
@@ -477,7 +491,7 @@ class AdminBackend {
         }
 
         if (pv.isRetracted != isRetracted) {
-          await packageBackend.doUpdateRetractedStatus(
+          auditLogRecord = await packageBackend.doUpdateRetractedStatus(
             caller,
             tx,
             p,
@@ -486,6 +500,9 @@ class AdminBackend {
           );
         }
       });
+      if (auditLogRecord != null) {
+        await auditBackend.migrateToSql(auditLogRecord!);
+      }
       triggerPackagePostUpdates(packageName);
     }
   }
@@ -522,6 +539,10 @@ class AdminBackend {
       _db.query<PackageVersionAsset>()..filter('package =', packageName),
       where: (PackageVersionAsset asset) => asset.version == version,
     );
+    await packageBackend.deletePackageVersionAssetsFromSql(
+      packageName,
+      version: version,
+    );
 
     await withRetryTransaction(_db, (tx) async {
       final packageKey = _db.emptyKey.append(Package, id: packageName);
@@ -535,7 +556,6 @@ class AdminBackend {
       final versionNames = versions.map((v) => v.version).toList();
       if (versionNames.contains(version)) {
         tx.delete(packageKey.append(PackageVersion, id: version));
-        package.updated = clock.now().toUtc();
         deletedPackageVersions = 1;
       } else {
         _logger.info('Package $packageName does not have a version $version.');
@@ -557,6 +577,7 @@ class AdminBackend {
         package.deletedVersions!.add(version);
       }
 
+      package.updated = clock.now().toUtc();
       tx.insert(package);
     });
 
@@ -722,6 +743,7 @@ class AdminBackend {
       'No users found for email: `$uploaderEmail`.',
     );
 
+    final auditRecords = <AuditLogRecord>[];
     await withRetryTransaction(_db, (tx) async {
       final p = await tx.lookupValue<Package>(package.key);
       InvalidInputException.check(
@@ -733,31 +755,34 @@ class AdminBackend {
         final r = p.uploaders!.remove(uploaderUser.userId);
         if (r) {
           removed = true;
-          tx.insert(
-            await AuditLogRecord.uploaderRemoved(
-              agent: authenticatedAgent,
-              package: packageName,
-              uploaderUser: uploaderUser,
-            ),
+          final record = await AuditLogRecord.uploaderRemoved(
+            agent: authenticatedAgent,
+            package: packageName,
+            uploaderUser: uploaderUser,
           );
+          auditRecords.add(record);
+          tx.insert(record);
         }
       }
       if (removed) {
         if (p.uploaders!.isEmpty) {
           p.isDiscontinued = true;
-          tx.insert(
-            await AuditLogRecord.packageOptionsUpdated(
-              agent: authenticatedAgent,
-              package: packageName,
-              publisherId: p.publisherId,
-              options: ['discontinued'],
-            ),
+          final record = await AuditLogRecord.packageOptionsUpdated(
+            agent: authenticatedAgent,
+            package: packageName,
+            publisherId: p.publisherId,
+            options: ['discontinued'],
           );
+          auditRecords.add(record);
+          tx.insert(record);
         }
         p.updated = clock.now().toUtc();
         tx.insert(p);
       }
     });
+    for (final record in auditRecords) {
+      await auditBackend.migrateToSql(record);
+    }
     return await handleGetPackageUploaders(packageName);
   }
 
@@ -851,7 +876,7 @@ class AdminBackend {
       }
       // delete the entity
       _logger.info('Deleting ModerationCase: ${mc.caseId}');
-      await _db.commit(deletes: [mc.key]);
+      await withRetryTransaction(_db, (tx) async => tx.delete(mc.key));
       _logger.info('Deleted ModerationCase: ${mc.caseId}');
     }
   }
@@ -928,7 +953,7 @@ class AdminBackend {
       );
 
       // removes publisher entity
-      await _db.commit(deletes: [publisher.key]);
+      await withRetryTransaction(_db, (tx) async => tx.delete(publisher.key));
 
       _logger.info('Deleted moderated publisher: ${publisher.publisherId}');
     }

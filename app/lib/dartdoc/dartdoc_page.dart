@@ -22,6 +22,8 @@ final class DartDocPageOptions {
   /// The URL segment the version is served under (e.g. `/1.2.5/` or `/latest/`)
   final String urlSegment;
   final bool isLatestStable;
+  final bool isDiscontinued;
+  final String? replacedBy;
 
   /// Path of the current file relative to the documentation root.
   final String path;
@@ -35,6 +37,8 @@ final class DartDocPageOptions {
     required this.version,
     required this.urlSegment,
     required this.isLatestStable,
+    this.isDiscontinued = false,
+    this.replacedBy,
     required this.path,
     this.searchQueryParameter,
   });
@@ -227,7 +231,34 @@ extension DartDocPageRender on DartDocPage {
       if (aboveSidebarUrl != null) 'data-above-sidebar': aboveSidebarUrl!,
       if (belowSidebarUrl != null) 'data-below-sidebar': belowSidebarUrl!,
     },
-    child: _content,
+    children: [
+      if (options.isDiscontinued)
+        d.div(
+          classes: ['-pub-dartdoc-discontinued-banner'],
+          children: [
+            d.span(
+              classes: ['-pub-dartdoc-discontinued-badge'],
+              text: 'discontinued',
+            ),
+            d.span(
+              children: [
+                d.text('Package '),
+                d.b(text: options.package),
+                d.text(' has been discontinued'),
+                if (options.replacedBy != null) ...[
+                  d.text(' and replaced by '),
+                  d.a(
+                    href: pkgPageUrl(options.replacedBy!),
+                    text: options.replacedBy!,
+                  ),
+                ],
+                d.text('.'),
+              ],
+            ),
+          ],
+        ),
+      _content,
+    ],
   );
 
   d.Node _renderLeftSideBar(DartDocPageOptions options) => d.div(

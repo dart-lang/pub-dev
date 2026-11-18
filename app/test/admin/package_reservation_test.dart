@@ -4,10 +4,13 @@
 
 import 'package:_pub_shared/data/admin_api.dart';
 import 'package:clock/clock.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 
 import '../package/backend_test_utils.dart';
 import '../shared/handlers_test_utils.dart';
@@ -113,6 +116,11 @@ void main() {
 
         final rp = await packageBackend.lookupReservedPackage('pkg');
         expect(rp, isNull);
+
+        final row = await primaryDatabase.withRetry(
+          (db) => db.reservedPackages.byKey('pkg').fetch(),
+        );
+        expect(row, isNull);
       },
     );
 

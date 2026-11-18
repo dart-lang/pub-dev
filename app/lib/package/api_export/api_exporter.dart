@@ -195,7 +195,8 @@ final class ApiExporter {
   ///  * Version listing for [package] is up-to-date,
   ///  * Advisories for [package] is up-to-date,
   ///  * Tarballs for each version of [package] is up-to-date,
-  ///  * Delete tarballs from old versions that no-longer exist.
+  ///  * Attestations for each attested version of [package] is up-to-date,
+  ///  * Delete tarballs and attestations from old versions that no-longer exist.
   ///
   /// This is intended when:
   ///  * Running a full background synchronization.
@@ -238,20 +239,29 @@ final class ApiExporter {
     );
 
     if (!skipArchives) {
-      final versions = await packageBackend.listVersionsInCanonicalBucket(
-        package,
-      );
+      final (:versions, :attestations) = await packageBackend
+          .listVersionsAndAttestationsInCanonicalBucket(package);
 
       // Remove versions that are not exposed in the public API.
-      versions.removeWhere(
-        (version, _) =>
-            !versionListing.versions.any((v) => v.version == version),
-      );
+      bool isListed(String version) =>
+          versionListing.versions.any((v) => v.version == version);
+      versions.removeWhere((version, _) => !isListed(version));
+      attestations.removeWhere((version, _) => !isListed(version));
 
       await _api
           .package(package)
           .synchronizeTarballs(
             versions,
+            forceWrite: forceWrite,
+            forceDelete: forceDelete,
+          );
+      // Note: this must happen before the version listing is written below,
+      //       as clients fetch the attestation of a version when the listing
+      //       says there is one (and fail the download if it is missing).
+      await _api
+          .package(package)
+          .synchronizeAttestations(
+            attestations,
             forceWrite: forceWrite,
             forceDelete: forceDelete,
           );

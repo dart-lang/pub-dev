@@ -10,7 +10,8 @@ library;
 
 import 'dart:async';
 
-import 'package:appengine/appengine.dart';
+import 'package:gcloud/service_scope.dart';
+import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:pub_dev/shared/env_config.dart';
 import 'package:pub_dev/shared/logging.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
@@ -23,8 +24,12 @@ void main() {
     () async {
       setupDebugEnvBasedLogging();
 
-      await withAppEngineServices(() async {
-        registerCloudComputeClient(authClientService);
+      await fork(() async {
+        final gceClient = await auth.clientViaApplicationDefaultCredentials(
+          scopes: [googleCloudComputeScope],
+        );
+        registerCloudComputeClient(gceClient);
+        registerScopeExitCallback(gceClient.close);
 
         // Create CloudCompute instance
         final gce = createGoogleCloudCompute(

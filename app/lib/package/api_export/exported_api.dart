@@ -309,6 +309,26 @@ final class ExportedPackage {
     Duration(hours: 2),
   );
 
+  /// Interface for writing
+  /// `/api/packages/<package>/versions/<version>/attestation`.
+  ///
+  /// This is the attestation bundle that was uploaded with the archive of
+  /// [version], served verbatim.
+  ExportedBlob attestation(String version) => ExportedBlob._(
+    _owner,
+    _attestationObjectName(version),
+    null,
+    'application/json; charset="utf-8"',
+    Duration(hours: 2),
+  );
+
+  /// The object name prefix (without the `latest/` or `<runtimeVersion>/`
+  /// prefix) that all attestations of this package share.
+  String get _attestationsPrefix => '/api/packages/$_package/versions/';
+
+  String _attestationObjectName(String version) =>
+      '$_attestationsPrefix$version$_attestationSuffix';
+
   /// Synchronize tarballs from [versions].
   ///
   /// [versions] is a map from version number to [SourceObjectInfo], where
@@ -328,9 +348,57 @@ final class ExportedPackage {
     bool forceWrite = false,
     bool forceDelete = false,
   }) async {
+    await _synchronizeVersionedBlobs(
+      versions,
+      pathPrefix: '/api/archives/$_package-',
+      suffix: '.tar.gz',
+      blob: tarball,
+      forceWrite: forceWrite,
+      forceDelete: forceDelete,
+    );
+  }
+
+  /// Synchronize attestations from [versions].
+  ///
+  /// [versions] is a map from version number to [SourceObjectInfo], where
+  /// the [SourceObjectInfo] is the GCS object from which the attestation can
+  /// be copied. Versions without an attestation have no entry.
+  ///
+  /// This will **delete** attestations for versions that do not exist in
+  /// [versions], otherwise this behaves like [synchronizeTarballs].
+  ///
+  /// Note: this must complete before a version listing advertising the
+  ///       attestations is written, as clients fetch an attestation when the
+  ///       listing says there is one, and do not retry if it is missing.
+  Future<void> synchronizeAttestations(
+    Map<String, SourceObjectInfo> versions, {
+    bool forceWrite = false,
+    bool forceDelete = false,
+  }) async {
+    await _synchronizeVersionedBlobs(
+      versions,
+      pathPrefix: _attestationsPrefix,
+      suffix: _attestationSuffix,
+      blob: attestation,
+      forceWrite: forceWrite,
+      forceDelete: forceDelete,
+    );
+  }
+
+  /// Synchronize the objects under [pathPrefix] (in each of the prefixes) with
+  /// [versions], where the object of a version is named
+  /// `<pathPrefix><version><suffix>` and is created by [blob].
+  Future<void> _synchronizeVersionedBlobs(
+    Map<String, SourceObjectInfo> versions, {
+    required String pathPrefix,
+    required String suffix,
+    required ExportedBlob Function(String version) blob,
+    required bool forceWrite,
+    required bool forceDelete,
+  }) async {
     await Future.wait([
       ..._owner._prefixes.map((prefix) async {
-        final pfx = '$prefix/api/archives/$_package-';
+        final pfx = '$prefix$pathPrefix';
 
         final versionsForUpload = versions.keys.toSet();
         await _owner._listBucket(prefix: pfx, delimiter: '', (entry) async {
@@ -338,7 +406,7 @@ final class ExportedPackage {
             final BucketDirectoryEntry _ => throw AssertionError('unreachable'),
             final BucketObjectEntry item => item,
           };
-          if (!item.name.endsWith('.tar.gz')) {
+          if (!item.name.endsWith(suffix)) {
             _log.pubNoticeShout(
               'stray-file',
               'Found stray file "${item.name}" in ExportedApi'
@@ -346,11 +414,11 @@ final class ExportedPackage {
             );
             return;
           }
-          final version = item.name.without(prefix: pfx, suffix: '.tar.gz');
+          final version = item.name.without(prefix: pfx, suffix: suffix);
 
           final info = versions[version];
           if (info != null && !forceWrite) {
-            await tarball(
+            await blob(
               version,
             )._copyToPrefixFromIfNotContentEquals(prefix, info, item);
             // This version needs not be uploaded again
@@ -373,7 +441,7 @@ final class ExportedPackage {
         await Future.wait(
           versionsForUpload.map((v) async {
             await _owner._pool.withResource(() async {
-              await tarball(v)._copyToPrefixFromIfNotContentEquals(
+              await blob(v)._copyToPrefixFromIfNotContentEquals(
                 prefix,
                 versions[v]!,
                 null,
@@ -391,11 +459,32 @@ final class ExportedPackage {
   /// [allVersionNumbers] must be encoded as canonical versions.
   Future<void> garbageCollect(Set<String> allVersionNumbers) async {
     await Future.wait([
+      _garbageCollectVersionedBlobs(
+        allVersionNumbers,
+        pathPrefix: '/api/archives/$_package-',
+        suffix: '.tar.gz',
+      ),
+      _garbageCollectVersionedBlobs(
+        allVersionNumbers,
+        pathPrefix: _attestationsPrefix,
+        suffix: _attestationSuffix,
+      ),
+    ]);
+  }
+
+  /// Garbage collect the objects under [pathPrefix] (in each of the prefixes)
+  /// whose version is not in [allVersionNumbers].
+  Future<void> _garbageCollectVersionedBlobs(
+    Set<String> allVersionNumbers, {
+    required String pathPrefix,
+    required String suffix,
+  }) async {
+    await Future.wait([
       ..._owner._prefixes.map((prefix) async {
-        final pfx = prefix + '/api/archives/$_package-';
+        final pfx = '$prefix$pathPrefix';
         await _owner._listBucket(prefix: pfx, delimiter: '', (item) async {
           assert(item.isObject);
-          if (!item.name.endsWith('.tar.gz')) {
+          if (!item.name.endsWith(suffix)) {
             _log.pubNoticeShout(
               'stray-file',
               'Found stray file "${item.name}" in ExportedApi'
@@ -403,7 +492,7 @@ final class ExportedPackage {
             );
             return;
           }
-          final version = item.name.without(prefix: pfx, suffix: '.tar.gz');
+          final version = item.name.without(prefix: pfx, suffix: suffix);
           if (allVersionNumbers.contains(version)) {
             return;
           }
@@ -442,9 +531,23 @@ final class ExportedPackage {
           },
         );
       }),
+      ..._owner._prefixes.map((prefix) async {
+        await _owner._listBucket(
+          prefix: prefix + _attestationsPrefix,
+          delimiter: '',
+          (item) async {
+            _log.shout('Deleting object from public bucket: "${item.name}".');
+            await _owner._bucket.deleteWithRetry(item.name);
+          },
+        );
+      }),
     ]);
   }
 }
+
+/// The suffix of the object name of an exported attestation, after the
+/// version.
+const _attestationSuffix = '/attestation';
 
 /// Information about an object to be used as source in a copy operation.
 ///
@@ -607,12 +710,15 @@ final class ExportedAtomFeedFile<T> extends ExportedObject {
 ///
 /// This will write a binary blob as is, adding headers for
 ///  * `Content-Type`,
-///  * `Content-Disposition`, and,
+///  * `Content-Disposition` (if a filename is given), and,
 ///  * `Cache-Control`.
 final class ExportedBlob extends ExportedObject {
   final String _contentType;
   final Duration _maxAge;
-  final String _filename;
+
+  /// The filename for the `Content-Disposition: attachment` header, or `null`
+  /// to serve the blob inline.
+  final String? _filename;
 
   ExportedBlob._(
     super._owner,
@@ -623,10 +729,13 @@ final class ExportedBlob extends ExportedObject {
   ) : super._();
 
   ObjectMetadata _metadata() {
+    final filename = _filename;
     return ObjectMetadata(
       contentType: _contentType,
       cacheControl: 'public, max-age=${_maxAge.inSeconds}',
-      contentDisposition: 'attachment; filename="$_filename"',
+      contentDisposition: filename == null
+          ? null
+          : 'attachment; filename="$filename"',
       custom: {_validatedCustomHeader: clock.now().toIso8601String()},
     );
   }

@@ -524,9 +524,10 @@
     height: 20px;
     cursor: pointer;
 
-    // Lower contrast than the regular monochrome icon rules.
-    --pub-monochrome-opacity-initial: 0.3;
-    --pub-monochrome-opacity-hover: 0.7;
+    &:active {
+      transform: scale(0.88);
+      opacity: 1;
+    }
   }
 
   .pkg-page-title-copy-feedback {

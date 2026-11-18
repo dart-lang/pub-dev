@@ -175,7 +175,7 @@ class PublishingScript {
       v.minor,
       v.patch + 1,
       build: build,
-    ).toString();
+    ).canonicalizedVersion;
   }
 
   Future<void> _createDummyPkg({required bool oversized}) async {

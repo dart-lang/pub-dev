@@ -4,7 +4,6 @@
 
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:pub_dev/audit/backend.dart';
-import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:test/test.dart';
@@ -87,14 +86,11 @@ void main() {
         expect(p.publishingConfig!.gcpConfig, isNull);
         final audits = await auditBackend.listRecordsForPackage('oxygen');
         // check audit log record exists
-        final record = audits.records.firstWhere(
-          (e) =>
-              e.kind == AuditLogRecordKind.packagePublicationAutomationUpdated,
-        );
-        expect(record.created, isNotNull);
         expect(
-          record.summary,
-          '`admin@pub.dev` updated the publication automation config of package `oxygen`.',
+          audits.records.map((e) => e.summary),
+          contains(
+            '`admin@pub.dev` updated the publication automation config of package `oxygen`.',
+          ),
         );
       },
     );
@@ -125,14 +121,11 @@ void main() {
         expect(p.publishingConfig!.githubConfig, isNull);
         final audits = await auditBackend.listRecordsForPackage('oxygen');
         // check audit log record exists
-        final record = audits.records.firstWhere(
-          (e) =>
-              e.kind == AuditLogRecordKind.packagePublicationAutomationUpdated,
-        );
-        expect(record.created, isNotNull);
         expect(
-          record.summary,
-          '`admin@pub.dev` updated the publication automation config of package `oxygen`.',
+          audits.records.map((e) => e.summary),
+          contains(
+            '`admin@pub.dev` updated the publication automation config of package `oxygen`.',
+          ),
         );
       },
     );

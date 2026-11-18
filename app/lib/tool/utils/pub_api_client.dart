@@ -175,34 +175,49 @@ bool _retryIf(Exception e) {
 extension PubApiClientExt on PubApiClient {
   @visibleForTesting
   Future<String> preparePackageUpload(List<int> bytes) async {
-    final uploadInfo = await getPackageUploadUrl();
-
-    final request = http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
-      ..headers[fakeClockHeaderName] = clock.now().toIso8601String()
-      ..fields.addAll(uploadInfo.fields!)
-      ..files.add(http.MultipartFile.fromBytes('file', bytes))
-      ..followRedirects = false;
-    final uploadRs = await request.send();
-    if (uploadRs.statusCode != 303) {
-      // NOTE: There are tests that fail with this on CI.
-      // TODO: figure out what is causing these issues.
-      final body = await uploadRs.stream.bytesToString();
-      final headers = uploadRs.headers;
-      throw AssertionError(
-        'Expected HTTP redirect, got ${uploadRs.statusCode}.'
-        '\nbody: $body\nheaders: $headers',
-      );
-    }
-
-    final callbackUri = Uri.parse(
-      uploadInfo.fields!['success_action_redirect']!,
-    );
-    return callbackUri.queryParameters['upload_id']!;
+    return await _uploadArchive(await getPackageUploadUrl(), bytes);
   }
 
   @visibleForTesting
-  Future<SuccessMessage> uploadPackageBytes(List<int> bytes) async {
-    final uploadId = await preparePackageUpload(bytes);
+  Future<SuccessMessage> uploadPackageBytes(
+    List<int> bytes, {
+    List<int>? attestationBytes,
+  }) async {
+    final uploadInfo = await getPackageUploadUrl();
+    if (attestationBytes != null) {
+      // The attestation is uploaded before the archive.
+      await client.sendRaw(
+        verb: 'post',
+        path: Uri.parse(uploadInfo.attestationUrl!).path,
+        headers: {'content-type': 'application/json; charset="utf-8"'},
+        bodyBytes: attestationBytes,
+      );
+    }
+    final uploadId = await _uploadArchive(uploadInfo, bytes);
     return await finishPackageUpload(uploadId);
   }
+}
+
+/// Uploads the package archive [bytes] with the parameters from [uploadInfo],
+/// and returns the upload id to finish the upload with.
+Future<String> _uploadArchive(UploadInfo uploadInfo, List<int> bytes) async {
+  final request = http.MultipartRequest('POST', Uri.parse(uploadInfo.url))
+    ..headers[fakeClockHeaderName] = clock.now().toIso8601String()
+    ..fields.addAll(uploadInfo.fields!)
+    ..files.add(http.MultipartFile.fromBytes('file', bytes))
+    ..followRedirects = false;
+  final uploadRs = await request.send();
+  if (uploadRs.statusCode != 303) {
+    // NOTE: There are tests that fail with this on CI.
+    // TODO: figure out what is causing these issues.
+    final body = await uploadRs.stream.bytesToString();
+    final headers = uploadRs.headers;
+    throw AssertionError(
+      'Expected HTTP redirect, got ${uploadRs.statusCode}.'
+      '\nbody: $body\nheaders: $headers',
+    );
+  }
+
+  final callbackUri = Uri.parse(uploadInfo.fields!['success_action_redirect']!);
+  return callbackUri.queryParameters['upload_id']!;
 }

@@ -12,11 +12,14 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/entrypoint/analyzer.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
+import 'package:typed_sql/typed_sql.dart';
 import '../../package/models.dart' show Package;
 
 final _logger = Logger('security_advisories.backend');
@@ -106,6 +109,7 @@ class SecurityAdvisoryBackend {
     DateTime syncTime,
   ) async {
     final updatedPackages = <String>{};
+    var wasWritten = false;
     final result = await withRetryTransaction(_db, (tx) async {
       DateTime modified;
       try {
@@ -145,6 +149,7 @@ class SecurityAdvisoryBackend {
             : modified
         ..syncTime = syncTime;
 
+      wasWritten = true;
       if (newAdvisory.affectedPackages!.length > 50) {
         // This is very unlikely to happen, since a security advisory typically
         // affects one or a few packages. We log this to keep an eye out. If
@@ -173,6 +178,11 @@ class SecurityAdvisoryBackend {
 
       return newAdvisory;
     });
+    if (wasWritten && result != null) {
+      // Mirror to SQL before triggering package post-updates, so that
+      // any cache repopulation triggered below doesn't read stale SQL data.
+      await _mirrorToSql(result);
+    }
     await Future.wait(
       updatedPackages.map(
         (packageName) => triggerPackagePostUpdates(
@@ -183,6 +193,81 @@ class SecurityAdvisoryBackend {
       ),
     );
     return result;
+  }
+
+  /// Mirrors [advisory] into SQL (best-effort).
+  Future<void> _mirrorToSql(SecurityAdvisory advisory) async {
+    await primaryDatabase.transactWithRetry((db) async {
+      final id = advisory.id!;
+      await db.securityAdvisories
+          .upsertValue(
+            advisoryId: id,
+            publishedAt: advisory.published!,
+            modifiedAt: advisory.modified!,
+            syncedAt: advisory.syncTime!,
+            osvJson: JsonValue(advisory.osv!.toJson()),
+          )
+          .execute();
+
+      final wantedPackages = (advisory.affectedPackages ?? const <String>[])
+          .toSet();
+      final existingPackages =
+          (await db.securityAdvisoryPackages
+                  .where((p) => p.advisoryId.equalsValue(id))
+                  .select((p) => (p.package,))
+                  .fetch())
+              .toSet();
+
+      final packagesToAdd = wantedPackages.difference(existingPackages);
+      if (packagesToAdd.isNotEmpty) {
+        await db.securityAdvisoryPackages
+            .insertValuesMapped(
+              packagesToAdd,
+              advisoryId: (_) => id,
+              package: (p) => p,
+            )
+            .execute();
+      }
+
+      final packagesToRemove = existingPackages.difference(wantedPackages);
+      if (packagesToRemove.isNotEmpty) {
+        await db.securityAdvisoryPackages
+            .where(
+              (p) =>
+                  p.advisoryId.equalsValue(id) &
+                  packagesToRemove
+                      .map((pkg) => p.package.equalsValue(pkg))
+                      .reduce((a, b) => a | b),
+            )
+            .delete()
+            .execute();
+      }
+    });
+  }
+
+  /// Deletes the SQL-mirrored security advisory with [id] (best-effort).
+  Future<void> _deleteFromSql(String id) async {
+    await primaryDatabase.withRetry(
+      (db) => db.securityAdvisories.delete(id).execute(),
+    );
+  }
+
+  /// Copies [SecurityAdvisory] entries from Datastore into SQL, for entries
+  /// that are not yet present in SQL (or are stale).
+  Future<int> backfillSqlFromDatastore() async {
+    var count = 0;
+    await for (final advisory in _db.query<SecurityAdvisory>().run()) {
+      final existing = await primaryDatabase.withRetry(
+        (db) => db.securityAdvisories.byKey(advisory.id!).fetch(),
+      );
+      if (existing != null &&
+          existing.syncedAt.isAtSameMomentAs(advisory.syncTime!)) {
+        continue;
+      }
+      await _mirrorToSql(advisory);
+      count++;
+    }
+    return count;
   }
 
   String _computeDisplayUrl(List<String> idAndAliases) {
@@ -233,6 +318,10 @@ class SecurityAdvisoryBackend {
         tx.queueMutations(inserts: packages, deletes: [key]);
       }
     });
+    // Mirror the delete to SQL before triggering package post-updates, so
+    // that any cache repopulation triggered below doesn't read stale SQL
+    // data.
+    await _deleteFromSql(advisory.id!);
     await Future.wait(
       updatedPackages.map(
         (packageName) => triggerPackagePostUpdates(

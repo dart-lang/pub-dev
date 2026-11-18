@@ -27,7 +27,8 @@ Deletes a ReservedPackage entity, allowing the package name use by any user.
       throw NotFoundException('ReservedPackage `$package` does not exist.');
     }
 
-    await dbService.commit(deletes: [rp.key]);
+    await withRetryTransaction(dbService, (tx) async => tx.delete(rp.key));
+    await packageBackend.deleteReservedPackageFromSql(rp.name!);
     await cache.reservedPackagePrefixes().purge();
 
     return {

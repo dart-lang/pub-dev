@@ -18,8 +18,8 @@ ARCH=$(uname -m)
 # See more: https://gvisor.dev/docs/user_guide/install/#specific-release
 URL=https://storage.googleapis.com/gvisor/releases/release/20260112/${ARCH}
 
-curl -o runsc "${URL}/runsc"
-curl -o runsc.sha512 "${URL}/runsc.sha512"
+curl --retry 8 -f -o runsc "${URL}/runsc"
+curl --retry 8 -f -o runsc.sha512 "${URL}/runsc.sha512"
 sha512sum -c runsc.sha512
 rm -f runsc.sha512
 

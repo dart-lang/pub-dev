@@ -15,19 +15,27 @@ final envConfig = _EnvConfig();
 ///
 /// TODO: consider migrating the values to be non-nullable
 class _EnvConfig {
-  /// Service in AppEngine that this process is running in, `null` if running
-  /// locally.
-  late final gaeService = Platform.environment['GAE_SERVICE'];
+  /// Service in AppEngine or Cloud Run that this process is running in, `null`
+  /// if running locally.
+  late final service =
+      Platform.environment['GAE_SERVICE'] ?? Platform.environment['K_SERVICE'];
 
-  /// Version of this service in AppEngine, `null` if running locally.
+  /// Version or revision of this service in AppEngine or Cloud Run, `null` if
+  /// running locally.
   ///
   /// Can be used to construct URLs for the given service.
-  late final _gaeVersion = Platform.environment['GAE_VERSION'];
+  late final _version =
+      Platform.environment['GAE_VERSION'] ?? Platform.environment['K_REVISION'];
 
-  /// Instance of this service in AppEngine, `null` if running locally.
+  /// Instance identifier of this service in AppEngine, `null` if running
+  /// locally or on Cloud Run (Cloud Run Services do not expose an instance
+  /// identifier in environment variables).
   ///
   /// NOTE: use only for narrow debug flows.
-  late final _gaeInstance = Platform.environment['GAE_INSTANCE'];
+  late final _instance = Platform.environment['GAE_INSTANCE'];
+
+  /// HTTP port for the server to listen on (defaults to 8080).
+  late final port = int.tryParse(Platform.environment['PORT'] ?? '') ?? 8080;
 
   late final googleCloudProject = Platform.environment['GOOGLE_CLOUD_PROJECT'];
 
@@ -53,31 +61,31 @@ class _EnvConfig {
   /// When specified, the server will connect to this URL for postgres database connections.
   late final pubPostgresUrl = Platform.environment['PUB_POSTGRES_URL'];
 
-  /// True, if running inside AppEngine.
-  bool get isRunningInAppengine => gaeService != null && _gaeVersion != null;
+  /// True, if running inside AppEngine or Cloud Run.
+  bool get isRunningInCloud => service != null && _version != null;
 
   /// True, if the process is using precompiled binaries. This can be used to decide
   /// if the isolate's source code can be loaded from the file system (as a dill file).
-  bool get hasPrecompiledBinaries => isRunningInAppengine;
+  bool get hasPrecompiledBinaries => isRunningInCloud;
 
-  /// True, if running locally and not inside AppEngine.
-  bool get isRunningLocally => !isRunningInAppengine;
+  /// True, if running locally and not inside AppEngine or Cloud Run.
+  bool get isRunningLocally => !isRunningInCloud;
 
   /// Ensure that we're running in the right environment, or is running locally.
   void checkServiceEnvironment(String name) {
-    if (gaeService != null && gaeService != name) {
-      throw StateError('Cannot start "$name" in "$gaeService" environment.');
+    if (service != null && service != name) {
+      throw StateError('Cannot start "$name" in "$service" environment.');
     }
   }
 
   /// Environment variables that are exposed in the `/debug` endpoint.
   Map<String, dynamic> debugMap({bool includeInstanceHash = false}) {
     return {
-      'GAE_VERSION': _gaeVersion ?? '-',
+      'GAE_VERSION': _version ?? '-',
       'GAE_MEMORY_MB': Platform.environment['GAE_MEMORY_MB'],
       if (includeInstanceHash)
         'instanceHash': sha256
-            .convert(utf8.encode(_gaeInstance ?? '-'))
+            .convert(utf8.encode(_instance ?? '-'))
             .toString(),
     };
   }

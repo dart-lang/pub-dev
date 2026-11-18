@@ -6,10 +6,14 @@ import 'package:_pub_shared/data/account_api.dart' as api;
 import 'package:clock/clock.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:retry/retry.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../account/agent.dart';
+import '../audit/backend.dart';
 import '../audit/models.dart';
 import '../frontend/templates/consent.dart';
 import '../package/backend.dart';
@@ -157,7 +161,12 @@ class ConsentBackend {
         kind: kind,
         args: args,
       );
-      await _db.commit(inserts: [consent, auditLogRecord]);
+      await withRetryTransaction(
+        _db,
+        (tx) async => tx.insertAll([consent, auditLogRecord]),
+      );
+      await auditBackend.migrateToSql(auditLogRecord);
+      await mirrorToSql(consent);
       await dedupCacheEntry.set(consent.consentId);
       return await _sendNotification(activeAgent.displayId, consent);
     });
@@ -235,17 +244,21 @@ class ConsentBackend {
         consentUrl: consentUrl(consent.consentId),
       ),
     );
+    Consent? updated;
     final status = await withRetryTransaction(_db, (tx) async {
       final c = await tx.lookupValue<Consent>(consent.key);
       c.notificationCount++;
       c.lastNotified = clock.now().toUtc();
       tx.insert(c);
       tx.insert(email);
+      updated = c;
       return api.InviteStatus(
         emailSent: true,
         nextNotification: c.nextNotification,
       );
     });
+    await mirrorToSql(updated!);
+    await emailBackend.migrateToSql(email);
     await emailBackend.trySendOutgoingEmail(email);
     return status;
   }
@@ -264,6 +277,13 @@ class ConsentBackend {
         );
       }
     }
+
+    await primaryDatabase.withRetry(
+      (db) => db.consents
+          .where((c) => c.expiresAt.isBeforeValue(clock.now().toUtc()))
+          .delete()
+          .execute(),
+    );
   }
 
   /// Returns the [Consent] for [consentId] and checks if it is for [user].
@@ -275,9 +295,16 @@ class ConsentBackend {
     }
     final action = _actions[c.kind]!;
     if (!action.permitConfirmationWithOtherEmail && c.email != null) {
+      // NOTE: the message must not reveal the invited email address, as it
+      //       may be shown to a user that is not the intended recipient.
       InvalidInputException.check(
         c.email?.toLowerCase() == user.email?.toLowerCase(),
-        'This invitation is not for the user account currently logged in.',
+        'This invitation is not for the user account currently logged in '
+        '(`${user.email}`).\n'
+        'Invitations must be sent to the primary email address of a Google '
+        'Account (email aliases are not supported).\n'
+        'Sign in with the account the invitation was sent to, or ask the '
+        'inviter to send a new invitation to `${user.email}`.',
       );
     }
     return c;
@@ -294,7 +321,41 @@ class ConsentBackend {
         final c = await tx.lookupOrNull<Consent>(consent.key);
         if (c != null) tx.delete(c.key);
       });
+      await primaryDatabase.withRetry(
+        (db) => db.consents.byKey(consent.consentId).delete().execute(),
+      );
     }, maxAttempts: 3);
+  }
+
+  /// Mirrors [consent] into SQL (best-effort).
+  Future<void> mirrorToSql(Consent consent) async {
+    await primaryDatabase.transactWithRetry(
+      (db) => db.consents
+          .upsertValue(
+            id: consent.consentId,
+            email: consent.email!,
+            dedupId: consent.dedupId!,
+            kind: consent.kind!,
+            argsJson: JsonValue(consent.args),
+            fromAgent: consent.fromAgent!,
+            createdAt: consent.created!,
+            expiresAt: consent.expires!,
+            lastNotifiedAt: consent.lastNotified,
+            notificationCount: consent.notificationCount,
+          )
+          .execute(),
+    );
+  }
+
+  /// Copies [Consent] entries from Datastore into SQL, for entries that are
+  /// not yet present in SQL.
+  Future<int> backfillSqlFromDatastore() async {
+    var count = 0;
+    await for (final consent in _db.query<Consent>().run()) {
+      await mirrorToSql(consent);
+      count++;
+    }
+    return count;
   }
 }
 
@@ -363,30 +424,30 @@ class _PackageUploaderAction extends ConsentAction {
   @override
   Future<void> onReject(Consent consent, User? user) async {
     final packageName = consent.args![0];
+    final record = await AuditLogRecord.uploaderInviteRejected(
+      fromAgent: consent.fromAgent,
+      package: packageName,
+      uploaderEmail: user?.email ?? consent.email!,
+      userId: user?.userId,
+    );
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(
-        await AuditLogRecord.uploaderInviteRejected(
-          fromAgent: consent.fromAgent,
-          package: packageName,
-          uploaderEmail: user?.email ?? consent.email!,
-          userId: user?.userId,
-        ),
-      );
+      tx.insert(record);
     });
+    await auditBackend.migrateToSql(record);
   }
 
   @override
   Future<void> onExpire(Consent consent) async {
     final packageName = consent.args![0];
+    final record = await AuditLogRecord.uploaderInviteExpired(
+      fromAgent: consent.fromAgent,
+      package: packageName,
+      uploaderEmail: consent.email!,
+    );
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(
-        await AuditLogRecord.uploaderInviteExpired(
-          fromAgent: consent.fromAgent,
-          package: packageName,
-          uploaderEmail: consent.email!,
-        ),
-      );
+      tx.insert(record);
     });
+    await auditBackend.migrateToSql(record);
   }
 
   @override
@@ -435,31 +496,31 @@ class _PublisherContactAction extends ConsentAction {
   @override
   Future<void> onReject(Consent consent, User? user) async {
     final publisherId = consent.args![0];
+    final record = await AuditLogRecord.publisherContactInviteRejected(
+      fromAgent: consent.fromAgent,
+      publisherId: publisherId,
+      contactEmail: consent.email!,
+      userEmail: user?.email,
+      userId: user?.userId,
+    );
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(
-        await AuditLogRecord.publisherContactInviteRejected(
-          fromAgent: consent.fromAgent,
-          publisherId: publisherId,
-          contactEmail: consent.email!,
-          userEmail: user?.email,
-          userId: user?.userId,
-        ),
-      );
+      tx.insert(record);
     });
+    await auditBackend.migrateToSql(record);
   }
 
   @override
   Future<void> onExpire(Consent consent) async {
     final publisherId = consent.args![0];
+    final record = await AuditLogRecord.publisherContactInviteExpired(
+      fromAgent: consent.fromAgent,
+      publisherId: publisherId,
+      contactEmail: consent.email!,
+    );
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(
-        await AuditLogRecord.publisherContactInviteExpired(
-          fromAgent: consent.fromAgent,
-          publisherId: publisherId,
-          contactEmail: consent.email!,
-        ),
-      );
+      tx.insert(record);
     });
+    await auditBackend.migrateToSql(record);
   }
 
   @override
@@ -521,30 +582,30 @@ class _PublisherMemberAction extends ConsentAction {
   @override
   Future<void> onReject(Consent consent, User? user) async {
     final publisherId = consent.args![0];
+    final record = await AuditLogRecord.publisherMemberInviteRejected(
+      fromAgent: consent.fromAgent,
+      publisherId: publisherId,
+      memberEmail: user?.email ?? consent.email!,
+      userId: user?.userId,
+    );
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(
-        await AuditLogRecord.publisherMemberInviteRejected(
-          fromAgent: consent.fromAgent,
-          publisherId: publisherId,
-          memberEmail: user?.email ?? consent.email!,
-          userId: user?.userId,
-        ),
-      );
+      tx.insert(record);
     });
+    await auditBackend.migrateToSql(record);
   }
 
   @override
   Future<void> onExpire(Consent consent) async {
     final publisherId = consent.args![0];
+    final record = await AuditLogRecord.publisherMemberInviteExpired(
+      fromAgent: consent.fromAgent,
+      publisherId: publisherId,
+      memberEmail: consent.email!,
+    );
     await withRetryTransaction(_db, (tx) async {
-      tx.insert(
-        await AuditLogRecord.publisherMemberInviteExpired(
-          fromAgent: consent.fromAgent,
-          publisherId: publisherId,
-          memberEmail: consent.email!,
-        ),
-      );
+      tx.insert(record);
     });
+    await auditBackend.migrateToSql(record);
   }
 
   @override

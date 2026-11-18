@@ -76,7 +76,7 @@ final class TarArchive {
   /// Reads file content as String.
   Future<String> readContentAsString(String name, {int maxLength = 0}) async {
     final contents = await scanAndReadFiles([name], maxLength: maxLength);
-    String content = utf8.decode(contents.values.single, allowMalformed: true);
+    String content = utf8.decode(contents.values.single);
     if (maxLength > 0 && content.length > maxLength) {
       content = content.substring(0, maxLength) + '[...]\n\n';
     }

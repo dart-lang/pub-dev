@@ -23,6 +23,15 @@ import 'email_templates.dart';
 final _logger = Logger('pub.email');
 final _simpleUrlRegExp = RegExp(r'https?://(.+)');
 
+/// Upper bound for establishing a connection, including obtaining credentials.
+const _connectTimeout = Duration(minutes: 2);
+
+/// Upper bound for sending a single message on an established connection.
+const _sendTimeout = Duration(minutes: 2);
+
+/// Upper bound for closing a connection.
+const _closeTimeout = Duration(seconds: 30);
+
 /// Sets the active [EmailSender].
 void registerEmailSender(EmailSender value) =>
     ss.register(#_email_sender, value);
@@ -83,11 +92,15 @@ abstract class EmailSenderBase implements EmailSender {
             e is TimeoutException ||
             e is IOException ||
             e is SmtpClientCommunicationException ||
-            e is SmtpNoGreetingException,
+            e is SmtpNoGreetingException ||
+            e is SmtpClientAuthenticationException,
         delayFactor: Duration(seconds: 2),
         maxAttempts: 2,
-        onRetry: (_) {
+        onRetry: (e) {
           _forceReconnectSenders.add(sender);
+          if (e is SmtpClientAuthenticationException) {
+            invalidateCredentials();
+          }
         },
       );
     } on SmtpMessageValidationException catch (e, st) {
@@ -107,7 +120,15 @@ abstract class EmailSenderBase implements EmailSender {
 
   Future<_ZonedConnection> _getConnection(String sender) async {
     final connectionFuture = _connectionsBySender[sender];
-    final old = connectionFuture == null ? null : await connectionFuture;
+    _ZonedConnection? old;
+    if (connectionFuture != null) {
+      try {
+        old = await connectionFuture;
+      } catch (_) {
+        // The previous connection attempt failed (and the error was already
+        // reported to its caller), a new connection is created below.
+      }
+    }
     final forceReconnect = _forceReconnectSenders.remove(sender);
     if (!forceReconnect && old != null && !old.isExpired) {
       return old;
@@ -118,10 +139,15 @@ abstract class EmailSenderBase implements EmailSender {
 
       // PersistentConnection needs to be created in its designated zone, as its
       // internal message subscription starts inside the constructor.
+      //
+      // `runAsync` must be used instead of `_zone.run`: errors never cross
+      // error-zone boundaries, so awaiting a future from `_zone.run` would
+      // never complete if `connect` throws (e.g. failing to get an access token),
+      // blocking all further emails from this sender.
       final connectionZone = _CatchAllZone(_parentZone);
-      final connection = await connectionZone._zone.run(
-        () async => connect(sender),
-      );
+      final connection = await connectionZone
+          .runAsync(() => connect(sender))
+          .timeout(_connectTimeout);
       return _ZonedConnection(connectionZone, connection);
     });
     _connectionsBySender[sender] = newConnectionFuture;
@@ -230,8 +256,7 @@ class _GmailSmtpRelay extends EmailSenderBase {
   final String _serviceAccountEmail;
   final http.Client _authClient;
 
-  DateTime _accessTokenRefreshed = DateTime(0);
-  Future<String>? _accessToken;
+  final _accessTokens = <String, ({String token, DateTime expiresAt})>{};
 
   _GmailSmtpRelay(this._serviceAccountEmail, this._authClient);
 
@@ -247,25 +272,27 @@ class _GmailSmtpRelay extends EmailSenderBase {
 
   @override
   void invalidateCredentials() {
-    _accessToken = null;
+    _accessTokens.clear();
   }
 
   Future<SmtpServer> _getSmtpServer(String sender) async {
-    final maxAge = clock.now().subtract(Duration(minutes: 20));
-    if (_accessToken == null || _accessTokenRefreshed.isBefore(maxAge)) {
-      _accessToken = _createAccessToken(sender);
-      _accessTokenRefreshed = clock.now();
+    var cached = _accessTokens[sender];
+    if (cached == null || !clock.now().isBefore(cached.expiresAt)) {
+      cached = await _createAccessToken(sender);
+      _accessTokens[sender] = cached;
     }
 
     // For documentation see:
     // https://support.google.com/a/answer/176600?hl=en
-    return gmailRelaySaslXoauth2(sender, await _accessToken!);
+    return gmailRelaySaslXoauth2(sender, cached.token);
   }
 
   /// Create an access_token for [sender] using the
   /// [_serviceAccountEmail] configured for _domain-wide delegation_ following:
   /// https://developers.google.com/identity/protocols/oauth2/service-account
-  Future<String> _createAccessToken(String sender) async {
+  Future<({String token, DateTime expiresAt})> _createAccessToken(
+    String sender,
+  ) async {
     final iat = clock.now().toUtc().millisecondsSinceEpoch ~/ 1000 - 20;
     iam_credentials.SignJwtResponse jwtResponse;
     try {
@@ -314,7 +341,18 @@ class _GmailSmtpRelay extends EmailSenderBase {
           'while trying exchange JWT for access_token',
         );
       }
-      return json.decode(r.body)['access_token'] as String;
+      final body = json.decode(r.body) as Map<String, Object?>;
+      final accessToken = body['access_token'] as String;
+      final expiresIn = body['expires_in'] as int?;
+      var ttl = const Duration(minutes: 20);
+      if (expiresIn != null) {
+        final remaining =
+            Duration(seconds: expiresIn) - const Duration(minutes: 5);
+        if (remaining < ttl) {
+          ttl = remaining;
+        }
+      }
+      return (token: accessToken, expiresAt: clock.now().add(ttl));
     });
   }
 }
@@ -362,13 +400,16 @@ class _ZonedConnection {
   DateTime _lastUsed;
   var _sentCount = 0;
 
+  /// Whether a [send] timed out, leaving the connection in an unknown state.
+  var _timedOut = false;
+
   _ZonedConnection(this._zone, this._connection)
     : created = clock.now(),
       _lastUsed = clock.now();
 
   bool get isExpired {
     // The connection is in an unknown state, better not use it.
-    if (_zone.hasUncaughtError) {
+    if (_zone.hasUncaughtError || _timedOut) {
       return true;
     }
     // There is a 100-recipient limit per SMTP transaction for smtp-relay.gmail.com.
@@ -391,12 +432,18 @@ class _ZonedConnection {
   Future<void> send(EmailMessage message) async {
     _sentCount += message.recipients.length + message.ccRecipients.length;
     try {
-      if (_zone.hasUncaughtError) {
+      if (_zone.hasUncaughtError || _timedOut) {
         throw EmailSenderException.failed();
       }
-      await _zone.runAsync(() async {
-        await _connection.send(message);
-      });
+      await _zone
+          .runAsync(() async {
+            await _connection.send(message);
+          })
+          .timeout(_sendTimeout);
+    } on TimeoutException {
+      // The send may still be in progress, the connection must not be reused.
+      _timedOut = true;
+      rethrow;
     } finally {
       _lastUsed = clock.now();
     }
@@ -404,9 +451,11 @@ class _ZonedConnection {
 
   Future<void> close() async {
     try {
-      await _zone.runAsync(() async {
-        await _connection.close();
-      });
+      await _zone
+          .runAsync(() async {
+            await _connection.close();
+          })
+          .timeout(_closeTimeout);
     } catch (e, st) {
       _logger.warning('Unable to close SMTP connection.', e, st);
     }

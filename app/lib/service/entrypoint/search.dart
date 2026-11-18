@@ -41,7 +41,7 @@ class SearchCommand extends Command {
     envConfig.checkServiceEnvironment(name);
     await withServices(() async {
       await runSearchInstanceController(
-        port: 8080,
+        port: envConfig.port,
         renewPackageIndex: _createRenewStream(delayDrift: delayDrift),
       );
     });

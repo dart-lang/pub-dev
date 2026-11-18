@@ -475,10 +475,7 @@ Future<PackagePageData> loadPackagePageData(
     packageName,
     versionName!,
   );
-  final versionInfoFuture = packageBackend.lookupPackageVersionInfo(
-    packageName,
-    versionName,
-  );
+  final assetsFuture = packageBackend.getAssets(packageName, versionName);
 
   final assetFuture = assetKind == null
       ? Future.value(null)
@@ -507,7 +504,7 @@ Future<PackagePageData> loadPackagePageData(
     latestReleasesFuture,
     isLikedFuture,
     selectedVersionFuture,
-    versionInfoFuture,
+    assetsFuture,
     assetFuture,
     isAdminFuture,
     scoreCardFuture,
@@ -515,14 +512,8 @@ Future<PackagePageData> loadPackagePageData(
   ]);
 
   final selectedVersion = await selectedVersionFuture;
-  if (selectedVersion == null) {
-    throw NotFoundException.resource(
-      'package "$packageName" version "$versionName"',
-    );
-  }
-
-  final versionInfo = await versionInfoFuture;
-  if (versionInfo == null) {
+  final assets = await assetsFuture;
+  if (selectedVersion == null || assets == null) {
     throw NotFoundException.resource(
       'package "$packageName" version "$versionName"',
     );
@@ -532,7 +523,7 @@ Future<PackagePageData> loadPackagePageData(
     package: package,
     latestReleases: await latestReleasesFuture,
     version: selectedVersion,
-    versionInfo: versionInfo,
+    assets: assets,
     asset: await assetFuture,
     scoreCard: await scoreCardFuture,
     isAdmin: await isAdminFuture,

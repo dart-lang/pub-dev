@@ -192,7 +192,7 @@ pre {
 
   &:hover {
     .-pub-pre-copy-button {
-      opacity: 0.35;
+      opacity: 0.6;
     }
   }
 
@@ -209,11 +209,16 @@ pre {
 
     cursor: pointer;
 
-    opacity: 0.15;
+    opacity: 0.45;
     transition: opacity 0.5s;
 
     &:focus,
     &:hover {
+      opacity: 1;
+    }
+
+    &:active {
+      transform: scale(0.88);
       opacity: 1;
     }
   }

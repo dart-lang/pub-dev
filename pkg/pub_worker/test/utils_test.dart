@@ -96,4 +96,53 @@ void main() {
       false,
     );
   });
+
+  group('parseSandboxOutput', () {
+    test('handles null and empty input', () {
+      expect(parseSandboxOutput(), isEmpty);
+      expect(
+        parseSandboxOutput(sandboxOutput: '', sandboxOutputJson: ''),
+        isEmpty,
+      );
+    });
+
+    test('parses legacy colon-separated SANDBOX_OUTPUT', () {
+      expect(parseSandboxOutput(sandboxOutput: '/tmp/a:/tmp/b::/tmp/c'), [
+        '/tmp/a',
+        '/tmp/b',
+        '/tmp/c',
+      ]);
+    });
+
+    test('parses JSON array in SANDBOX_OUTPUT_JSON including colons', () {
+      expect(
+        parseSandboxOutput(
+          sandboxOutputJson:
+              r'["/tmp/a","/tmp/with:colon","C:\\Users\\test\\out"]',
+        ),
+        ['/tmp/a', '/tmp/with:colon', r'C:\Users\test\out'],
+      );
+    });
+
+    test('prefers SANDBOX_OUTPUT_JSON when both are configured', () {
+      expect(
+        parseSandboxOutput(
+          sandboxOutput: '/tmp/a',
+          sandboxOutputJson: '["/tmp/b"]',
+        ),
+        ['/tmp/b'],
+      );
+    });
+
+    test('throws FormatException on invalid JSON or non-string list', () {
+      expect(
+        () => parseSandboxOutput(sandboxOutputJson: '[invalid'),
+        throwsFormatException,
+      );
+      expect(
+        () => parseSandboxOutput(sandboxOutputJson: '[123]'),
+        throwsFormatException,
+      );
+    });
+  });
 }

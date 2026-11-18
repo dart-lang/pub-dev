@@ -103,6 +103,7 @@ Future<void> main(List<String> args) async {
       'PUB_CACHE': unpackPubCacheDir.path,
       'PUB_HOSTED_URL': pubHostedUrl,
       'SANDBOX_OUTPUT': tempDir,
+      'SANDBOX_OUTPUT_JSON': json.encode([tempDir]),
       'SANDBOX_NETWORK_ENABLED': 'true',
     },
     throwOnError: true,

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:chunked_stream/chunked_stream.dart' show MaximumSizeExceeded;
 import 'package:clock/clock.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -98,6 +99,40 @@ void main() {
       expect(tracker.getLatency(now: _nowPlus(20)).inMilliseconds, 10000);
       tracker.observe(Duration(seconds: 20), now: _nowPlus(25));
       expect(tracker.getLatency().inMilliseconds, greaterThan(15000));
+    });
+  });
+
+  group('foldBytes', () {
+    Stream<List<int>> chunks() => Stream.fromIterable([
+      [1, 2, 3],
+      [4, 5],
+      [6],
+    ]);
+
+    test('collects all chunks', () async {
+      expect(await chunks().foldBytes(), [1, 2, 3, 4, 5, 6]);
+      expect(await chunks().foldBytes(maxSize: 6), [1, 2, 3, 4, 5, 6]);
+    });
+
+    test('stops reading when maxSize is exceeded', () async {
+      var chunksRead = 0;
+      final counted = chunks().map((c) {
+        chunksRead++;
+        return c;
+      });
+      await expectLater(
+        counted.foldBytes(maxSize: 4),
+        throwsA(isA<MaximumSizeExceeded>()),
+      );
+      // The limit is exceeded by the second chunk, the third is never read.
+      expect(chunksRead, 2);
+    });
+
+    test('rejects negative maxSize', () async {
+      await expectLater(
+        chunks().foldBytes(maxSize: -1),
+        throwsA(isA<ArgumentError>()),
+      );
     });
   });
 }

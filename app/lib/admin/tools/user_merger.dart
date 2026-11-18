@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
+import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/audit/backend.dart';
 import 'package:pub_dev/audit/models.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
@@ -170,6 +172,7 @@ class UserMerger {
           if (p.containsUploader(fromUserId)) {
             p.removeUploader(fromUserId);
             p.addUploader(toUserId);
+            p.updated = clock.now().toUtc();
             tx.insert(p);
           }
         });
@@ -240,44 +243,21 @@ class UserMerger {
       },
     );
 
-    // AuditLogRecord: agent
+    // AuditLogRecord: migrate the remaining Datastore entities to SQL first,
+    // the user id replacement happens in SQL.
     await _processConcurrently(
       _db.query<AuditLogRecord>()..filter('agent =', fromUserId),
-      (AuditLogRecord alr) async {
-        await withRetryTransaction(_db, (tx) async {
-          final r = await _db.lookupValue<AuditLogRecord>(alr.key);
-          r.agent = toUserId;
-          r.data = r.data?.map(
-            (key, value) => MapEntry<String, dynamic>(
-              key,
-              value == fromUserId ? toUserId : value,
-            ),
-          );
-          tx.insert(r);
-        });
-      },
+      (AuditLogRecord alr) async => await auditBackend.migrateToSql(alr),
     );
-
-    // AuditLogRecord: users
     await _processConcurrently(
       _db.query<AuditLogRecord>()..filter('users =', fromUserId),
-      (AuditLogRecord alr) async {
-        await withRetryTransaction(_db, (tx) async {
-          final r = await _db.lookupValue<AuditLogRecord>(alr.key);
-          r.users!.remove(fromUserId);
-          r.users!.add(toUserId);
-          r.data = r.data?.map(
-            (key, value) => MapEntry<String, dynamic>(
-              key,
-              value == fromUserId ? toUserId : value,
-            ),
-          );
-          tx.insert(r);
-        });
-      },
+      (AuditLogRecord alr) async => await auditBackend.migrateToSql(alr),
     );
 
-    await withRetryTransaction(_db, (tx) async {
+    // AuditLogRecord: replace the user id in SQL
+    await auditBackend.replaceUserIdInSqlRecords(fromUserId, toUserId);
+
+    final mergedUser = await withRetryTransaction(_db, (tx) async {
       final u = await _db.lookupValue<User>(toUserKey);
       if (toUser.created!.isAfter(fromUser.created!)) {
         u.created = fromUser.created;
@@ -293,7 +273,10 @@ class UserMerger {
       if (fromUserMapping?.userId == fromUserId) {
         tx.delete(fromUserMapping!.key);
       }
+      return u;
     });
+    await accountBackend.mirrorUserToSql(mergedUser);
+    await accountBackend.deleteUserMirrorFromSql(fromUserId);
 
     await purgeAccountCache(userId: fromUserId);
     await purgeAccountCache(userId: toUserId);

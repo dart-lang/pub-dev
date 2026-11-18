@@ -110,5 +110,6 @@ bool isDartDevPublisher(String? publisherId) {
 
 /// Overriding the default maximum number of the allowed package version counts.
 const maxVersionsPerPackageOverrides = <String, int>{
+  'flutter_face_api': 1500, // last updated: 2026-10-02
   'masamune': 1500, // last updated: 2024-09-16
 };

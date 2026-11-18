@@ -4,8 +4,19 @@
 
 set -u
 
-"$@"
-EXIT_CODE=$?
+"$@" &
+CHILD_PID=$!
+
+INTERRUPTED=true
+trap 'INTERRUPTED=true; kill -TERM "$CHILD_PID" 2>/dev/null || true' TERM
+trap 'INTERRUPTED=true; kill -INT "$CHILD_PID" 2>/dev/null || true' INT
+trap 'INTERRUPTED=true; kill -HUP "$CHILD_PID" 2>/dev/null || true' HUP
+
+while [ "$INTERRUPTED" = true ]; do
+  INTERRUPTED=false
+  wait "$CHILD_PID"
+  EXIT_CODE=$?
+done
 
 if [ "$EXIT_CODE" -eq 0 ]; then
   echo '{"message": "[pub-run-wrapper-exited]", "severity": "NOTICE", "component": "pub-run-wrapper"}' >&2

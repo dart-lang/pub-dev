@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
@@ -125,6 +126,10 @@ void main() {
       fn: () async {
         await expectNotFoundResponse(
           await issueGet('/packages/oxygen/versions/0.1.2'),
+        );
+        expect(
+          await cache.packageVersionAssetKinds('oxygen', '0.1.2').get(),
+          isNull,
         );
       },
     );

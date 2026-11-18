@@ -6,17 +6,21 @@ import 'package:_pub_shared/data/account_api.dart' as account_api;
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:_pub_shared/data/publisher_api.dart';
 import 'package:gcloud/db.dart';
+import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/consent_backend.dart';
 import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/audit/backend.dart';
-import 'package:pub_dev/audit/models.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
+import 'package:pub_dev/service/email/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../shared/handlers_test_utils.dart';
 import '../shared/test_models.dart';
@@ -57,12 +61,11 @@ void main() {
       });
 
       final page = await auditBackend.listRecordsForPackage('oxygen');
-      final r = page.records.firstWhere(
-        (e) => e.kind == AuditLogRecordKind.uploaderInvited,
-      );
       expect(
-        r.summary,
-        '`$adminEmail` invited `user@pub.dev` to be an uploader for package `oxygen`.',
+        page.records.map((e) => e.summary),
+        contains(
+          '`$adminEmail` invited `user@pub.dev` to be an uploader for package `oxygen`.',
+        ),
       );
 
       return consentId;
@@ -94,12 +97,11 @@ void main() {
         expect(rs.granted, true);
 
         final page = await auditBackend.listRecordsForPackage('oxygen');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.uploaderInviteAccepted,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` accepted uploader invite for package `oxygen`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` accepted uploader invite for package `oxygen`.',
+          ),
         );
       },
     );
@@ -118,13 +120,46 @@ void main() {
         expect(rs.granted, false);
 
         final page = await auditBackend.listRecordsForPackage('oxygen');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.uploaderInviteRejected,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` rejected uploader invite for package `oxygen`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` rejected uploader invite for package `oxygen`.',
+          ),
         );
+      },
+    );
+
+    testWithProfile(
+      'Uploader invite accessed with a different account',
+      fn: () async {
+        final consentId = await inviteUploader();
+        final client = await createFakeAuthPubApiClient(email: 'other@pub.dev');
+        await expectApiException(
+          client.consentInfo(consentId!),
+          status: 400,
+          code: 'InvalidInput',
+          message:
+              'This invitation is not for the user account currently logged in (`other@pub.dev`).',
+        );
+        await expectApiException(
+          client.resolveConsent(
+            consentId,
+            account_api.ConsentResult(granted: true),
+          ),
+          status: 400,
+          code: 'InvalidInput',
+          message: 'email aliases are not supported',
+        );
+
+        // The invite is still available for the intended account.
+        final userClient = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        final rs = await userClient.resolveConsent(
+          consentId,
+          account_api.ConsentResult(granted: true),
+        );
+        expect(rs.granted, true);
       },
     );
 
@@ -135,12 +170,11 @@ void main() {
         await _expireConsent(consentId);
 
         final page = await auditBackend.listRecordsForPackage('oxygen');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.uploaderInviteExpired,
-        );
         expect(
-          r.summary,
-          'Uploader invite for package `oxygen` expired, `user@pub.dev` did not respond.',
+          page.records.map((e) => e.summary),
+          contains(
+            'Uploader invite for package `oxygen` expired, `user@pub.dev` did not respond.',
+          ),
         );
       },
     );
@@ -218,12 +252,11 @@ void main() {
       });
 
       final page = await auditBackend.listRecordsForPublisher('example.com');
-      final r = page.records.firstWhere(
-        (e) => e.kind == AuditLogRecordKind.publisherContactInvited,
-      );
       expect(
-        r.summary,
-        '`$adminEmail` invited `info@example.com` to be contact email for publisher `example.com`.',
+        page.records.map((e) => e.summary),
+        contains(
+          '`$adminEmail` invited `info@example.com` to be contact email for publisher `example.com`.',
+        ),
       );
       return consentId;
     }
@@ -255,12 +288,11 @@ void main() {
         expect(rs.granted, true);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherContactInviteAccepted,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` accepted `info@example.com` to be contact email for publisher `example.com`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` accepted `info@example.com` to be contact email for publisher `example.com`.',
+          ),
         );
       },
     );
@@ -280,12 +312,11 @@ void main() {
         expect(rs.granted, false);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherContactInviteRejected,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` rejected contact invite of `info@example.com` for publisher `example.com`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` rejected contact invite of `info@example.com` for publisher `example.com`.',
+          ),
         );
       },
     );
@@ -297,12 +328,11 @@ void main() {
         await _expireConsent(consentId);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherContactInviteExpired,
-        );
         expect(
-          r.summary,
-          'Contact invite for publisher `example.com` expired, `info@example.com` did not respond.',
+          page.records.map((e) => e.summary),
+          contains(
+            'Contact invite for publisher `example.com` expired, `info@example.com` did not respond.',
+          ),
         );
       },
     );
@@ -374,12 +404,11 @@ void main() {
       });
 
       final page = await auditBackend.listRecordsForPublisher('example.com');
-      final r = page.records.firstWhere(
-        (e) => e.kind == AuditLogRecordKind.publisherMemberInvited,
-      );
       expect(
-        r.summary,
-        '`$adminEmail` invited `user@pub.dev` to be a member for publisher `example.com`.',
+        page.records.map((e) => e.summary),
+        contains(
+          '`$adminEmail` invited `user@pub.dev` to be a member for publisher `example.com`.',
+        ),
       );
 
       return consentId;
@@ -412,12 +441,11 @@ void main() {
         expect(rs.granted, true);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherMemberInviteAccepted,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` accepted member invite for publisher `example.com`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` accepted member invite for publisher `example.com`.',
+          ),
         );
       },
     );
@@ -437,13 +465,46 @@ void main() {
         expect(rs.granted, false);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherMemberInviteRejected,
-        );
         expect(
-          r.summary,
-          '`user@pub.dev` rejected member invite for publisher `example.com`.',
+          page.records.map((e) => e.summary),
+          contains(
+            '`user@pub.dev` rejected member invite for publisher `example.com`.',
+          ),
         );
+      },
+    );
+
+    testWithProfile(
+      'Publisher member invite accessed with a different account',
+      fn: () async {
+        final consentId = await inviteMember();
+        final client = await createFakeAuthPubApiClient(email: 'other@pub.dev');
+        await expectApiException(
+          client.consentInfo(consentId!),
+          status: 400,
+          code: 'InvalidInput',
+          message:
+              'This invitation is not for the user account currently logged in (`other@pub.dev`).',
+        );
+        await expectApiException(
+          client.resolveConsent(
+            consentId,
+            account_api.ConsentResult(granted: true),
+          ),
+          status: 400,
+          code: 'InvalidInput',
+          message: 'email aliases are not supported',
+        );
+
+        // The invite is still available for the intended account.
+        final userClient = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        final rs = await userClient.resolveConsent(
+          consentId,
+          account_api.ConsentResult(granted: true),
+        );
+        expect(rs.granted, true);
       },
     );
 
@@ -454,12 +515,11 @@ void main() {
         await _expireConsent(consentId);
 
         final page = await auditBackend.listRecordsForPublisher('example.com');
-        final r = page.records.firstWhere(
-          (e) => e.kind == AuditLogRecordKind.publisherMemberInviteExpired,
-        );
         expect(
-          r.summary,
-          'Member invite for publisher `example.com` expired, `user@pub.dev` did not respond.',
+          page.records.map((e) => e.summary),
+          contains(
+            'Member invite for publisher `example.com` expired, `user@pub.dev` did not respond.',
+          ),
         );
       },
     );
@@ -517,7 +577,136 @@ void main() {
       },
     );
   });
+
+  group('SQL mirror', () {
+    testWithProfile(
+      'mirrorToSql writes row',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.mirrorToSql(consent);
+
+        final row = await primaryDatabase.withRetry(
+          (db) => db.consents.byKey(consent.consentId).fetch(),
+        );
+        expect(row, isNotNull);
+        expect(row!.email, consent.email);
+        expect(row.dedupId, consent.dedupId);
+        expect(row.kind, ConsentKind.packageUploader);
+        expect(row.argsJson.value, ['oxygen']);
+        expect(row.fromAgent, KnownAgents.pubSupport);
+        expect(row.notificationCount, 0);
+        expect(row.lastNotifiedAt, isNull);
+      },
+    );
+
+    testWithProfile(
+      'mirrorToSql is idempotent',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.mirrorToSql(consent);
+        await consentBackend.mirrorToSql(consent);
+
+        final rows = await primaryDatabase.withRetry(
+          (db) => db.consents
+              .where((c) => c.id.equalsValue(consent.consentId))
+              .fetch(),
+        );
+        expect(rows, hasLength(1));
+      },
+    );
+
+    testWithProfile(
+      'deleting the consent removes the mirrored row',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        await consentBackend.mirrorToSql(consent);
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.consents.byKey(consent.consentId).fetch(),
+          ),
+          isNotNull,
+        );
+
+        await _expireConsent(consent.consentId);
+
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.consents.byKey(consent.consentId).fetch(),
+          ),
+          isNull,
+        );
+      },
+    );
+
+    testWithProfile(
+      'backfillSqlFromDatastore copies missing rows',
+      fn: () async {
+        final consent = _testConsent();
+        await dbService.commit(inserts: [consent]);
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.consents.byKey(consent.consentId).fetch(),
+          ),
+          isNull,
+        );
+
+        final count = await consentBackend.backfillSqlFromDatastore();
+        expect(count, greaterThanOrEqualTo(1));
+
+        expect(
+          await primaryDatabase.withRetry(
+            (db) => db.consents.byKey(consent.consentId).fetch(),
+          ),
+          isNotNull,
+        );
+      },
+    );
+
+    testWithProfile(
+      'the notification OutgoingEmail is migrated to SQL',
+      fn: () async {
+        // Force the immediate send attempt to fail, so the `OutgoingEmail`
+        // row survives (rather than being deleted right away), and we can
+        // confirm it was migrated into SQL.
+        fakeEmailSender.failNextMessageCount = 1;
+        await withFakeAuthRetryPubApiClient(
+          email: 'admin@pub.dev',
+          pubHostedUrl: activeConfiguration.primarySiteUri.toString(),
+          (client) async {
+            await client.invitePackageUploader(
+              'oxygen',
+              InviteUploaderRequest(email: userAtPubDevEmail),
+            );
+          },
+        );
+
+        final rows = await primaryDatabase.withRetry(
+          (db) => db.outgoingEmails.fetch(),
+        );
+        final row = rows.singleWhere(
+          (r) =>
+              (r.recipientEmailsJson.value as List).contains(userAtPubDevEmail),
+        );
+        expect(row.recipientEmailsJson.value, [userAtPubDevEmail]);
+
+        final inDatastore = await dbService.lookupOrNull<OutgoingEmail>(
+          dbService.emptyKey.append(OutgoingEmail, id: row.id),
+        );
+        expect(inDatastore, isNull);
+      },
+    );
+  });
 }
+
+Consent _testConsent() => Consent.init(
+  fromAgent: KnownAgents.pubSupport,
+  email: 'uploader@pub.dev',
+  kind: ConsentKind.packageUploader,
+  args: ['oxygen'],
+);
 
 Future<void> _expireConsent(String? consentId) async {
   final consent = await dbService.lookupValue<Consent>(

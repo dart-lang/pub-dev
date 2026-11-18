@@ -432,6 +432,87 @@ void main() {
       );
     },
   );
+
+  testWithProfile(
+    'ExportedApi.package().synchronizeAttestations()',
+    expectedLogMessages: [
+      // stale version removed by synchronizeAttestations()
+      RegExp(
+        r'SHOUT Deleting object from public bucket: ".*/api/packages/retry/versions/1.0.5/attestation".',
+      ),
+      // removed by garbageCollect()
+      RegExp(
+        r'SHOUT Deleting object from public bucket: ".*/api/packages/retry/versions/2.0.0/attestation".',
+      ),
+      // removed by delete()
+      RegExp(
+        r'SHOUT Deleting object from public bucket: ".*/api/packages/retry/versions/1.0.0/attestation".',
+      ),
+    ],
+    fn: () async {
+      await storageService.createBucket('exported-api');
+      final bucket = storageService.bucket('exported-api');
+      final exportedApi = ExportedApi(storageService, bucket);
+
+      await storageService.createBucket('canonical-packages');
+      final canonical = storageService.bucket('canonical-packages');
+
+      final src1 = SourceObjectInfo.fromObjectInfo(
+        canonical,
+        await canonical.writeBytes(
+          'packages/retry-1.0.0.tar.gz.sigstore.json',
+          [1, 0, 0],
+        ),
+      );
+      final src2 = SourceObjectInfo.fromObjectInfo(
+        canonical,
+        await canonical.writeBytes(
+          'packages/retry-2.0.0.tar.gz.sigstore.json',
+          [2, 0, 0],
+        ),
+      );
+
+      await exportedApi.package('retry').attestation('1.0.0').copyFrom(src1);
+      await exportedApi.package('retry').attestation('1.0.5').copyFrom(src2);
+
+      const prefix = 'latest/api/packages/retry/versions';
+      expect(await bucket.readBytes('$prefix/1.0.0/attestation'), [1, 0, 0]);
+      expect(await bucket.readBytes('$prefix/1.0.5/attestation'), [2, 0, 0]);
+      final info = await bucket.info('$prefix/1.0.0/attestation');
+      expect(info.metadata.contentType, 'application/json; charset="utf-8"');
+      expect(info.metadata.contentDisposition, isNull);
+
+      await exportedApi.package('retry').synchronizeAttestations({
+        '1.0.0': src1,
+        '2.0.0': src2,
+      });
+
+      expect(await bucket.readBytes('$prefix/1.0.0/attestation'), [1, 0, 0]);
+      // Too young to be deleted.
+      expect(await bucket.readBytes('$prefix/1.0.5/attestation'), [2, 0, 0]);
+      expect(await bucket.readBytes('$prefix/2.0.0/attestation'), [2, 0, 0]);
+
+      clockControl.elapse(days: 2);
+
+      await exportedApi.package('retry').synchronizeAttestations({
+        '1.0.0': src1,
+        '2.0.0': src2,
+      });
+      expect(await bucket.readBytes('$prefix/1.0.0/attestation'), [1, 0, 0]);
+      expect(await bucket.readBytes('$prefix/1.0.5/attestation'), isNull);
+      expect(await bucket.readBytes('$prefix/2.0.0/attestation'), [2, 0, 0]);
+
+      // Garbage collecting versions removes attestations too.
+      clockControl.elapse(days: 2);
+      await exportedApi.package('retry').garbageCollect({'1.0.0'});
+      expect(await bucket.readBytes('$prefix/1.0.0/attestation'), [1, 0, 0]);
+      expect(await bucket.readBytes('$prefix/2.0.0/attestation'), isNull);
+
+      // Deleting the package removes the remaining attestations.
+      await exportedApi.package('retry').delete();
+      expect(await bucket.readBytes('$prefix/1.0.0/attestation'), isNull);
+    },
+  );
 }
 
 extension on Bucket {

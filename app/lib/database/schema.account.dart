@@ -46,3 +46,29 @@ abstract final class UserSession extends Row {
   /// The granted scopes from the OpenID authentication.
   String? get grantedScopes;
 }
+
+// TODO: Rename to User after migration is complete.
+@PrimaryKey(['userId'])
+abstract final class UserRow extends Row {
+  String get userId;
+
+  /// The Google OAuth2 ID of the user.
+  ///
+  /// This may be `null` for users that never logged in since we've started
+  /// tracking authentications, or if the user [isDeleted] and the user row
+  /// is retained for audit purposes.
+  @Index.field()
+  String? get oauthUserId;
+
+  String? get email;
+
+  DateTime? get createdAt;
+
+  bool get isDeleted;
+
+  bool get isModerated;
+
+  DateTime? get moderatedAt;
+
+  String? get moderatedReason;
+}

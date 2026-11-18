@@ -22,6 +22,10 @@ Future<void> verifyPackageUploadRateLimit({
   required String package,
   required bool isNew,
 }) async {
+  if (agent.agentId == KnownAgents.pubSupport) {
+    // Admin account actions are allowed without any rate limit.
+    return;
+  }
   final packagePublishedOp = AuditLogRecordKind.packagePublished;
 
   await _verifyRateLimit(
@@ -48,6 +52,10 @@ Future<void> verifyPackageUploadRateLimit({
 
 Future<void> verifyAuditLogRecordRateLimits(AuditLogRecord record) async {
   final agentId = record.agent;
+  if (agentId == KnownAgents.pubSupport) {
+    // Admin account actions are allowed without any rate limit.
+    return;
+  }
   await _verifyRateLimit(
     rateLimit: _getRateLimit(record.kind!, RateLimitScope.user),
     agentId: agentId,
@@ -87,7 +95,7 @@ Future<void> _verifyRateLimit({
   }
 
   final sw = Stopwatch()..start();
-  List<AuditLogRecord>? auditEntriesFromLastDay;
+  List<AuditLogRecordCacheEntry>? auditEntriesFromLastDay;
 
   Future<void> check({
     required String operation,
@@ -124,19 +132,20 @@ Future<void> _verifyRateLimit({
     final windowStart = now.subtract(window);
     final relevantEntries = auditEntriesFromLastDay!
         .where((e) => e.kind == rateLimit.operation)
-        .where((e) => e.created!.isAfter(windowStart))
-        .where((e) => package == null || _containsPackage(e.packages, package))
+        .where((e) => e.agent != KnownAgents.pubSupport)
+        .where((e) => e.created.isAfter(windowStart))
+        .where((e) => package == null || e.packages.contains(package))
         .where(
           (e) =>
               agentId == null ||
               e.agent == agentId ||
-              _containsUserId(e.users, agentId),
+              e.users.contains(agentId),
         )
         .toList();
 
     if (relevantEntries.length >= maxCount) {
       final firstTimestamp = relevantEntries
-          .map((e) => e.created!)
+          .map((e) => e.created)
           .reduce((a, b) => a.isBefore(b) ? a : b);
       await entry.set(firstTimestamp.add(window), window);
       throw RateLimitException(
@@ -168,18 +177,4 @@ Future<void> _verifyRateLimit({
   );
   sw.stop();
   _logger.info('[rate-limit-verified] Rate limit verified in ${sw.elapsed}');
-}
-
-bool _containsPackage(List<String>? packages, String package) {
-  if (packages == null || packages.isEmpty) {
-    return false;
-  }
-  return packages.contains(package);
-}
-
-bool _containsUserId(List<String>? users, String userId) {
-  if (users == null || users.isEmpty) {
-    return false;
-  }
-  return users.contains(userId);
 }
