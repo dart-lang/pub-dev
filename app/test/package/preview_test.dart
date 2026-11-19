@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_pub_shared/utils/sdk_version_cache.dart';
+import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -55,14 +56,14 @@ void main() {
           '1.0.0',
         ))!;
         expect(
-          pv1.pubspec!.isPreviewForCurrentSdk(
+          pv1.pubspec.isPreviewForCurrentSdk(
             dartSdkVersion: currentSdkVersion,
             flutterSdkVersion: Version(3, 20, 0),
           ),
           isFalse,
         );
         expect(
-          pv1.pubspec!.isPreviewForCurrentSdk(
+          pv1.pubspec.isPreviewForCurrentSdk(
             dartSdkVersion: futureSdkVersion,
             flutterSdkVersion: Version(3, 20, 0),
           ),
@@ -74,14 +75,14 @@ void main() {
           '1.2.0',
         ))!;
         expect(
-          pv2.pubspec!.isPreviewForCurrentSdk(
+          pv2.pubspec.isPreviewForCurrentSdk(
             dartSdkVersion: currentSdkVersion,
             flutterSdkVersion: Version(3, 20, 0),
           ),
           isTrue,
         );
         expect(
-          pv2.pubspec!.isPreviewForCurrentSdk(
+          pv2.pubspec.isPreviewForCurrentSdk(
             dartSdkVersion: futureSdkVersion,
             flutterSdkVersion: Version(3, 20, 0),
           ),

@@ -9,6 +9,7 @@ import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../scorecard/backend.dart';
 import '../../shared/datastore.dart';
+import '../../shared/utils.dart' show canonicalizeVersion;
 import '../../shared/versions.dart';
 
 import '../backend.dart';
@@ -116,7 +117,12 @@ Future<Map<String, dynamic>> adminMarkPackageVersionVisibility(
   if (p == null) {
     throw NotFoundException.resource(package);
   }
-  final pv = await packageBackend.lookupPackageVersion(package, version!);
+  final canonicalVersion = canonicalizeVersion(version!);
+  final pv = canonicalVersion == null
+      ? null
+      : await dbService.lookupOrNull<PackageVersion>(
+          p.key.append(PackageVersion, id: canonicalVersion),
+        );
   if (pv == null) {
     throw NotFoundException.resource('$package $version');
   }

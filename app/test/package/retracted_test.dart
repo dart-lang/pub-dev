@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:_pub_shared/data/package_api.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
@@ -97,9 +98,10 @@ void main() {
           recentlyRetracted: [],
         );
 
-        final pv = await packageBackend.lookupPackageVersion('oxygen', '1.0.0');
-        pv!.created = pv.created!.subtract(Duration(days: 7));
+        final pv = await _lookupEntity('oxygen', '1.0.0');
+        pv.created = pv.created!.subtract(Duration(days: 7));
         await dbService.commit(inserts: [pv]);
+        await _mirror('oxygen', pv);
         await expectVersions(
           retractable: ['1.2.0', '2.0.0-dev'],
           recentlyRetracted: [],
@@ -141,12 +143,10 @@ void main() {
           recentlyRetracted: ['1.2.0'],
         );
 
-        final pv2 = await packageBackend.lookupPackageVersion(
-          'oxygen',
-          '1.2.0',
-        );
-        pv2!.retracted = pv2.created!.subtract(Duration(days: 8));
+        final pv2 = await _lookupEntity('oxygen', '1.2.0');
+        pv2.retracted = pv2.created!.subtract(Duration(days: 8));
         await dbService.commit(inserts: [pv2]);
+        await _mirror('oxygen', pv2);
         await expectVersions(
           retractable: ['1.0.0', '2.0.0-dev'],
           recentlyRetracted: [],
@@ -272,7 +272,7 @@ void main() {
         final pv200devPublished = (await packageBackend.lookupPackageVersion(
           'oxygen',
           '2.0.0-dev',
-        ))!.created;
+        ))!.createdAt;
 
         final client = await createFakeAuthPubApiClient(
           email: adminAtPubDevEmail,
@@ -459,4 +459,17 @@ void main() {
       },
     );
   });
+}
+
+Future<PackageVersion> _lookupEntity(String package, String version) async {
+  return await dbService.lookupValue<PackageVersion>(
+    dbService.emptyKey
+        .append(Package, id: package)
+        .append(PackageVersion, id: version),
+  );
+}
+
+Future<void> _mirror(String package, PackageVersion pv) async {
+  final p = await packageBackend.lookupPackage(package);
+  await packageBackend.mirrorPackageToSql(p!, versions: [pv]);
 }

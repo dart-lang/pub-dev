@@ -277,7 +277,7 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
         registerPackageIndexHolder(PackageIndexHolder());
         registerIndexUpdater(IndexUpdater(dbService));
         registerPublisherBackend(PublisherBackend(dbService));
-        registerScoreCardBackend(ScoreCardBackend(dbService));
+        registerScoreCardBackend(ScoreCardBackend());
         registerScopeExitCallback(scoreCardBackend.close);
         registerSearchBackend(
           SearchBackend(

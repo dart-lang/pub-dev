@@ -12,7 +12,8 @@ import 'package:pana/models.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../database/schema.dart' show PackageVersionAssetRow;
+import '../database/schema.dart'
+    show PackageVersionAssetRow, PackageVersionRow, PackageVersionRowExt;
 import '../package/model_properties.dart';
 import '../scorecard/models.dart';
 import '../search/search_service.dart' show ApiPageRef;
@@ -966,7 +967,7 @@ class PackageView {
   factory PackageView.fromModel({
     required Package package,
     required LatestReleases releases,
-    PackageVersion? version,
+    PackageVersionRow? version,
     required ScoreCardData scoreCard,
     List<ApiPageRef>? apiPages,
   }) {
@@ -992,7 +993,7 @@ class PackageView {
           .toList(),
       apiPages: apiPages,
       screenshots: scoreCard.panaReport?.screenshots,
-      topics: version?.pubspec?.canonicalizedTopics,
+      topics: version?.pubspec.canonicalizedTopics,
     );
   }
 
@@ -1101,7 +1102,7 @@ class PackageLinks {
 class PackagePageData {
   final Package package;
   final LatestReleases latestReleases;
-  final PackageVersion version;
+  final PackageVersionRow version;
   final List<String> assets;
   final PackageVersionAssetRow? asset;
   final ScoreCardData scoreCard;
@@ -1152,7 +1153,7 @@ class PackagePageData {
     }
 
     // Fallback: if the analysis did not complete yet, display inferred URLs from pubspec.yaml
-    final pubspec = version.pubspec!;
+    final pubspec = version.pubspec;
     return PackageLinks.infer(
       homepageUrl: pubspec.homepage,
       documentationUrl: pubspec.documentation,

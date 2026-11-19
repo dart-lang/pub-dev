@@ -1060,7 +1060,7 @@ void main() {
             '1.0.0',
           );
           expect(v1!.isRetracted, false);
-          expect(v1.retracted, null);
+          expect(v1.retractedAt, null);
           final client = createPubApiClient(authToken: siteAdminToken);
           final rs = await client.adminUpdateVersionOptions(
             'oxygen',
@@ -1072,7 +1072,7 @@ void main() {
             '1.0.0',
           );
           expect(v2!.isRetracted, false);
-          expect(v2.retracted, null);
+          expect(v2.retractedAt, null);
           expect(rs.isRetracted, v2.isRetracted);
         },
       );
@@ -1085,7 +1085,7 @@ void main() {
             '1.0.0',
           );
           expect(v1!.isRetracted, false);
-          expect(v1.retracted, null);
+          expect(v1.retractedAt, null);
           final client = createPubApiClient(authToken: siteAdminToken);
 
           // retract
@@ -1099,7 +1099,7 @@ void main() {
             '1.0.0',
           );
           expect(v2!.isRetracted, true);
-          expect(v2.retracted, isNotNull);
+          expect(v2.retractedAt, isNotNull);
           expect(rs1.isRetracted, v2.isRetracted);
 
           // retract again
@@ -1113,7 +1113,7 @@ void main() {
             '1.0.0',
           );
           expect(v3!.isRetracted, true);
-          expect(v3.retracted, v2.retracted);
+          expect(v3.retractedAt, v2.retractedAt);
           expect(rs2.isRetracted, v3.isRetracted);
 
           // revert
@@ -1127,7 +1127,7 @@ void main() {
             '1.0.0',
           );
           expect(v4!.isRetracted, false);
-          expect(v4.retracted, null);
+          expect(v4.retractedAt, null);
           expect(rs3.isRetracted, v4.isRetracted);
         },
       );

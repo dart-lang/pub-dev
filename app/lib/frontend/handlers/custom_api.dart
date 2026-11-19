@@ -156,12 +156,12 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
 
     final uri = activeConfiguration.primaryApiUri;
     for (final version in pageVersions.nonNulls) {
-      final versionString = Uri.encodeComponent(version.version!);
+      final versionString = Uri.encodeComponent(version.version);
       final packageString = Uri.encodeComponent(version.package);
 
       final apiArchiveUrl = urls.pkgArchiveDownloadUrl(
         version.package,
-        version.version!,
+        version.version,
         baseUri: uri,
       );
       final apiPackageUrl = uri!
@@ -175,7 +175,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
         'name': version.package,
         'latest': {
           'version': version.version,
-          'pubspec': version.pubspec!.asJson,
+          'pubspec': (version.pubspecJson.value as Map).cast<String, dynamic>(),
 
           // TODO: We should get rid of these:
           'archive_url': apiArchiveUrl,

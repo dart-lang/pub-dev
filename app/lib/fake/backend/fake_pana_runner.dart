@@ -9,6 +9,7 @@ import 'package:crypto/crypto.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../../database/schema.dart';
 import '../../package/backend.dart';
 import '../../scorecard/backend.dart' show PackageStatus;
 import '../../shared/versions.dart';
@@ -20,7 +21,7 @@ Future<Summary> fakePanaSummary({
   required double documentedRatio,
 }) async {
   final pv = await packageBackend.lookupPackageVersion(package, version);
-  final pubspec = pv!.pubspec!;
+  final pubspec = pv!.pubspec;
   final hasher = createHasher([package, version].join('/'));
   final layoutPoints = hasher('points/layout', max: 30);
   final examplePoints =

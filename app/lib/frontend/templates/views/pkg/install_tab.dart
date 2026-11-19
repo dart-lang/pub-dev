@@ -4,27 +4,27 @@
 
 import 'package:_pub_shared/search/tags.dart';
 
-import '../../../../package/models.dart';
+import '../../../../database/schema.dart';
 import '../../../dom/dom.dart' as d;
 
 d.Node installTabNode({
-  required PackageVersion version,
+  required PackageVersionRow version,
   required List<String>? tags,
   required bool isDevDependency,
 }) {
   final packageName = version.package;
   List<_ImportExample> importExamples;
-  if (version.libraries!.contains('$packageName.dart')) {
+  if (version.libraries.contains('$packageName.dart')) {
     importExamples = <_ImportExample>[
       _ImportExample(packageName, '$packageName.dart'),
     ];
   } else {
-    importExamples = version.libraries!
+    importExamples = version.libraries
         .map((library) => _ImportExample(packageName, library))
         .toList();
   }
 
-  final executables = version.pubspec!.executables?.keys.toList();
+  final executables = version.pubspec.executables?.keys.toList();
   executables?.sort();
   final hasExecutables = executables != null && executables.isNotEmpty;
   final useAsLibrary = !hasExecutables || importExamples.isNotEmpty;
@@ -58,11 +58,11 @@ d.Node _useAsExecutable(String package, List<String> executables) {
 }
 
 d.Node _useAsLibrary(
-  PackageVersion version,
+  PackageVersionRow version,
   List<String>? tags,
   bool isDevDependency,
 ) {
-  final isFlutterPackage = version.pubspec!.usesFlutter;
+  final isFlutterPackage = version.pubspec.usesFlutter;
   final bool usePubGet =
       !isFlutterPackage ||
       tags == null ||

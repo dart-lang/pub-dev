@@ -836,18 +836,16 @@ class PackageBackend {
 
   /// Looks up a specific package version.
   ///
-  /// Returns null if the version is not a semantic version or if the version
-  /// entity does not exists in the datastore.
-  Future<PackageVersion?> lookupPackageVersion(
+  /// Returns null if the version is invalid or does not exist.
+  Future<PackageVersionRow?> lookupPackageVersion(
     String package,
     String version,
   ) async {
     final canonicalVersion = canonicalizeVersion(version);
     if (canonicalVersion == null) return null;
-    final packageVersionKey = db.emptyKey
-        .append(Package, id: package)
-        .append(PackageVersion, id: canonicalVersion);
-    return await db.lookupOrNull<PackageVersion>(packageVersionKey);
+    return await primaryDatabase.withRetry(
+      (db) => db.packageVersions.byKey(package, canonicalVersion).fetch(),
+    );
   }
 
   /// Looks up a specific package version's info object.
@@ -905,18 +903,36 @@ class PackageBackend {
   }
 
   /// Looks up the qualified [versions].
-  Future<List<PackageVersion?>> lookupVersions(
+  ///
+  /// The returned list has the same length and order as [versions] (including
+  /// duplicates), and missing versions are returned as null.
+  Future<List<PackageVersionRow?>> lookupVersions(
     Iterable<QualifiedVersionKey> versions,
   ) async {
-    return await db.lookup<PackageVersion>(
-      versions
-          .map(
-            (k) => db.emptyKey
-                .append(Package, id: k.package)
-                .append(PackageVersion, id: k.version),
-          )
-          .toList(),
-    );
+    final keys = versions.map((k) => (k.package!, k.version!)).toList();
+    if (keys.isEmpty) return [];
+    final uniqueKeys = keys.toSet();
+    final byKey = <(String, String), PackageVersionRow>{};
+    // Chunking keeps the generated SQL expression shallow.
+    for (final chunk in uniqueKeys.slices(100)) {
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.packageVersions
+            .where(
+              (pv) => chunk
+                  .map(
+                    (k) =>
+                        pv.package.equalsValue(k.$1) &
+                        pv.version.equalsValue(k.$2),
+                  )
+                  .reduce((a, b) => a | b),
+            )
+            .fetch(),
+      );
+      for (final r in rows) {
+        byKey[(r.package, r.version)] = r;
+      }
+    }
+    return keys.map((k) => byKey[k]).toList();
   }
 
   /// Looks up all versions of a package and return them as a [List].
@@ -1639,14 +1655,10 @@ class PackageBackend {
     final canonicalVersion = canonicalizeVersion(version);
     InvalidInputException.checkSemanticVersion(canonicalVersion);
 
-    final packageVersionKey = db.emptyKey
-        .append(Package, id: package)
-        .append(PackageVersion, id: canonicalVersion);
-
     if (!await isPackageVisible(package)) {
       throw NotFoundException.resource('package "$package"');
     }
-    final pv = await db.lookupOrNull<PackageVersion>(packageVersionKey);
+    final pv = await lookupPackageVersion(package, canonicalVersion!);
     if (pv == null) {
       throw NotFoundException.resource('version "$version"');
     }
@@ -2840,6 +2852,29 @@ extension PackageVersionExt on PackageVersion {
       ),
       archiveSha256: archiveSha256,
       published: created,
+    );
+  }
+}
+
+extension PackageVersionRowApiExt on PackageVersionRow {
+  api.VersionInfo toApiVersionInfo() {
+    final sha256 = this.sha256;
+    final hasSha256 = sha256 != null && sha256.isNotEmpty;
+    return api.VersionInfo(
+      version: version,
+      retracted: isRetracted ? true : null,
+      pubspec: (pubspecJson.value as Map).cast<String, dynamic>(),
+      archiveUrl: urls.pkgArchiveDownloadUrl(
+        package,
+        version,
+
+        /// We should use the primary API URI here, because the generated URLs may
+        /// end up in multiple cache, and it is critical that we always serve the
+        /// content with the proper cached URLs.
+        baseUri: activeConfiguration.primaryApiUri,
+      ),
+      archiveSha256: hasSha256 ? hex.encode(sha256) : null,
+      published: createdAt,
     );
   }
 }

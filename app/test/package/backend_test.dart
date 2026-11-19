@@ -132,6 +132,48 @@ void main() {
           ]);
         },
       );
+
+      testWithProfile(
+        'empty input',
+        fn: () async {
+          expect(await packageBackend.lookupVersions([]), isEmpty);
+        },
+      );
+
+      testWithProfile(
+        'missing versions and duplicate keys',
+        fn: () async {
+          final list = await packageBackend.lookupVersions([
+            QualifiedVersionKey(package: 'oxygen', version: '1.2.0'),
+            QualifiedVersionKey(package: 'oxygen', version: '0.0.1'),
+            QualifiedVersionKey(package: 'oxygen', version: '1.2.0'),
+            QualifiedVersionKey(package: 'not_a_package', version: '1.0.0'),
+          ]);
+          expect(list.map((pv) => pv?.qualifiedVersionKey.toString()), [
+            'oxygen/1.2.0',
+            null,
+            'oxygen/1.2.0',
+            null,
+          ]);
+        },
+      );
+
+      testWithProfile(
+        'more keys than a single chunk',
+        fn: () async {
+          final keys = [
+            QualifiedVersionKey(package: 'oxygen', version: '1.2.0'),
+            for (var i = 0; i < 250; i++)
+              QualifiedVersionKey(package: 'oxygen', version: '9.0.$i'),
+            QualifiedVersionKey(package: 'neon', version: '1.0.0'),
+          ];
+          final list = await packageBackend.lookupVersions(keys);
+          expect(list, hasLength(keys.length));
+          expect(list.first!.qualifiedVersionKey.toString(), 'oxygen/1.2.0');
+          expect(list.last!.qualifiedVersionKey.toString(), 'neon/1.0.0');
+          expect(list.skip(1).take(250).every((pv) => pv == null), isTrue);
+        },
+      );
     });
 
     group('Backend.versionsOfPackage', () {

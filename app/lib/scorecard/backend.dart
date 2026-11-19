@@ -16,10 +16,10 @@ import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/models.dart';
 
+import '../database/schema.dart';
 import '../package/backend.dart';
-import '../package/models.dart' show Package, PackageVersion, PackageView;
+import '../package/models.dart' show Package, PackageView;
 import '../package/overrides.dart';
-import '../shared/datastore.dart' as db;
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
 
@@ -37,15 +37,13 @@ ScoreCardBackend get scoreCardBackend =>
 
 /// Handles the data store and lookup for ScoreCard.
 class ScoreCardBackend {
-  final db.DatastoreDB _db;
-
   /// Concurrency control to get [PackageView] entities from the cache or Datastore.
   final _packageViewGetterPool = Pool(10);
 
   /// Concurrency control to get [ScoreCardData] from the Datastore.
   final _scoreCardDataPool = Pool(10);
 
-  ScoreCardBackend(this._db);
+  ScoreCardBackend();
 
   Future<void> close() async {
     await _packageViewGetterPool.close();
@@ -180,7 +178,7 @@ class ScoreCardBackend {
       packageName: packageName,
       packageVersion: packageVersion,
       runtimeVersion: stateInfo.runtimeVersion,
-      updated: summary?.createdAt ?? version.created,
+      updated: summary?.createdAt ?? version.createdAt,
       dartdocReport: DartdocReport(
         reportStatus: hasDartdocFile
             ? ReportStatus.success
@@ -196,13 +194,10 @@ class ScoreCardBackend {
 
   /// Returns the status of a package and version.
   Future<PackageStatus> getPackageStatus(String package, String version) async {
-    final packageKey = _db.emptyKey.append(Package, id: package);
-    final list = await _db.lookup([
-      packageKey,
-      packageKey.append(PackageVersion, id: version),
-    ]);
-    final p = list[0] as Package?;
-    final pv = list[1] as PackageVersion?;
+    final (p, pv) = await (
+      packageBackend.lookupPackage(package),
+      packageBackend.lookupPackageVersion(package, version),
+    ).wait;
     return PackageStatus.fromModels(p, pv);
   }
 
@@ -282,11 +277,11 @@ class PackageStatus {
     this.isPublishedByDartDev = false,
   });
 
-  factory PackageStatus.fromModels(Package? p, PackageVersion? pv) {
+  factory PackageStatus.fromModels(Package? p, PackageVersionRow? pv) {
     if (p == null || pv == null || p.isNotVisible) {
       return PackageStatus._(exists: false);
     }
-    final publishDate = pv.created!;
+    final publishDate = pv.createdAt;
     final isLatestStable = p.latestVersion == pv.version;
     final now = clock.now().toUtc();
     final age = now.difference(publishDate).abs();
@@ -298,10 +293,10 @@ class PackageStatus {
       isLatestStable: isLatestStable,
       isDiscontinued: p.isDiscontinued,
       isObsolete: isObsolete,
-      isLegacy: pv.pubspec!.supportsOnlyLegacySdk,
-      isDart3Incompatible: pv.pubspec!.isDart3Incompatible,
-      usesFlutter: pv.pubspec!.usesFlutter,
-      usesPreviewAnalysisSdk: pv.pubspec!.usesPreviewAnalysisSdk(),
+      isLegacy: pv.pubspec.supportsOnlyLegacySdk,
+      isDart3Incompatible: pv.pubspec.isDart3Incompatible,
+      usesFlutter: pv.pubspec.usesFlutter,
+      usesPreviewAnalysisSdk: pv.pubspec.usesPreviewAnalysisSdk(),
       isPublishedByDartDev:
           p.publisherId != null && isDartDevPublisher(p.publisherId),
     );

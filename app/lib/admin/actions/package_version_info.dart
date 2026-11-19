@@ -38,7 +38,7 @@ Loads and displays the package version information.
       'package-version': {
         'package': pv.package,
         'version': pv.version,
-        'created': pv.created?.toIso8601String(),
+        'created': pv.createdAt.toIso8601String(),
         'isModerated': pv.isModerated,
         if (pv.moderatedAt != null)
           'moderatedAt': pv.moderatedAt?.toIso8601String(),
