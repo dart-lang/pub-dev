@@ -43,6 +43,7 @@ void main() {
         'keyframes',
         'last-child',
         'nth-child',
+        'visited',
         '-webkit-search-cancel-button',
       ]);
       // composite patterns
@@ -54,10 +55,13 @@ void main() {
       expressions.removeWhere((e) => e.startsWith('pub-toc-node-'));
       // downloads chart color classes
       expressions.removeWhere((e) => e.startsWith('downloads-chart'));
-      // shared CSS file (with dartdoc)
+      // Glue Cookie Notification Bar classes injected dynamically at runtime.
       expressions.removeAll([
-        'cookie-notice-container',
-        'cookie-notice-button',
+        'glue-cookie-notification-bar',
+        'glue-cookie-notification-bar__text',
+        'glue-cookie-notification-bar__more',
+        'glue-cookie-notification-bar__accept',
+        'glue-cookie-notification-bar__reject',
       ]);
       // test-only style
       expressions.remove('-pub-ongoing-screenshot');

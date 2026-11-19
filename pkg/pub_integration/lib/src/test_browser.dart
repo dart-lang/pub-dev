@@ -202,15 +202,17 @@ class TestBrowserSession {
           rq.url.startsWith('https://www.googletagmanager.com/') ||
           rq.url.startsWith('https://www.google.com/insights') ||
           rq.url.startsWith(
-            'https://www.gstatic.com/brandstudio/kato/cookie_choice_component/',
+            'https://www.gstatic.com/glue/cookienotificationbar/',
           )) {
-        // reduce log error by replying with empty JS content
+        // reduce log error by replying with empty JS/CSS content
         if (rq.url.endsWith('.js') || rq.url.contains('.js?')) {
           await rq.respond(
             status: 200,
             body: '{}',
             contentType: 'application/javascript',
           );
+        } else if (rq.url.endsWith('.css') || rq.url.contains('.css?')) {
+          await rq.respond(status: 200, body: '', contentType: 'text/css');
         } else {
           await rq.abort(error: ErrorReason.failed);
         }

@@ -1,0 +1,78 @@
+/* Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+
+// Override the managed Glue Cookie Notification Bar styles to match
+// pub.dev's light and dark themes.
+body .glue-cookie-notification-bar {
+  background-color: var(--pub-inset-bgColor);
+  color: var(--pub-neutral-textColor);
+  padding: 12px 16px;
+
+  .glue-cookie-notification-bar__text {
+    font-family: var(--pub-font-family-body);
+    font-size: inherit;
+    color: inherit;
+  }
+
+  .glue-cookie-notification-bar__more {
+    white-space: nowrap;
+
+    &,
+    &:visited {
+      color: var(--pub-link-text-color);
+    }
+
+    &:hover,
+    &:focus,
+    &:active {
+      color: var(--pub-link-text-color);
+      background-color: var(--pub-overlay-gray-08);
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 2px var(--pub-link-text-color);
+    }
+  }
+
+  .glue-cookie-notification-bar__accept,
+  .glue-cookie-notification-bar__reject {
+    height: 40px;
+    min-height: 40px;
+    padding: 0 24px;
+    font-family: var(--pub-font-family-body);
+    font-size: 14px;
+    white-space: nowrap;
+
+    // Preserve the managed banner's system colors in high contrast mode.
+    @media (forced-colors: none) {
+      &,
+      &:visited,
+      &:hover,
+      &:focus,
+      &:active {
+        background-color: var(--pub-button-primary-background);
+        color: var(--pub-color-white);
+      }
+
+      &:hover {
+        background-color: var(--pub-button-primary-hover-background);
+      }
+
+      &:active {
+        background-color: var(--pub-button-primary-active-background);
+      }
+
+      &:focus {
+        border-color: var(--pub-inset-bgColor);
+        box-shadow: 0 0 0 2px var(--pub-link-text-color);
+      }
+    }
+  }
+}
+
+@media (forced-colors: none) {
+  body.dark-theme .glue-cookie-notification-bar {
+    border-top: 1px solid var(--pub-home_card-box_shadow-color);
+  }
+}
