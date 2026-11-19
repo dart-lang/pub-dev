@@ -29,6 +29,7 @@ import '../account/like_backend.dart';
 import '../admin/backend.dart';
 import '../audit/backend.dart';
 import '../fake/backend/fake_auth_provider.dart';
+import '../fake/backend/fake_cdn_invalidator.dart';
 import '../fake/backend/fake_domain_verifier.dart';
 import '../fake/backend/fake_email_sender.dart';
 import '../fake/backend/fake_upload_signer_service.dart';
@@ -58,6 +59,7 @@ import '../task/backend.dart';
 import '../task/cloudcompute/fakecloudcompute.dart';
 import '../task/cloudcompute/googlecloudcompute.dart';
 import 'announcement/backend.dart';
+import 'cdn/cdn_invalidator.dart';
 import 'email/email_sender.dart';
 import 'entrypoint/logging.dart';
 import 'secret/backend.dart';
@@ -116,6 +118,17 @@ Future<void> withServices(FutureOr<void> Function() fn) async {
     );
     registerCloudComputeClient(gceClient);
     registerScopeExitCallback(gceClient.close);
+    final cdnUrlMapName = activeConfiguration.cdnUrlMapName;
+    registerCdnInvalidator(
+      cdnUrlMapName != null && cdnUrlMapName.isNotEmpty
+          ? GoogleCloudCdnInvalidator(
+              gceClient,
+              projectId: activeConfiguration.projectId,
+              urlMap: cdnUrlMapName,
+            )
+          : const NoopCdnInvalidator(),
+    );
+    registerScopeExitCallback(cdnInvalidator.close);
     registerTaskWorkerCloudCompute(
       createGoogleCloudCompute(
         project: activeConfiguration.taskWorkerProject!,
@@ -194,6 +207,8 @@ Future<R> withFakeServices<R>({
         registerUploadSigner(
           FakeUploadSignerService(configuration!.storageBaseUrl!),
         );
+        registerCdnInvalidator(FakeCdnInvalidator());
+        registerScopeExitCallback(cdnInvalidator.close);
 
         registerTaskWorkerCloudCompute(cloudCompute ?? FakeCloudCompute());
 

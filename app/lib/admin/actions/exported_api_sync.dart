@@ -46,7 +46,11 @@ Optionally, write rewrite of all files using:
         InvalidInputException.checkPackageName(p);
       }
       for (final p in packages) {
-        await apiExporter.synchronizePackage(p, forceWrite: forceWrite);
+        await apiExporter.synchronizePackage(
+          p,
+          forceWrite: forceWrite,
+          invalidateCdn: true,
+        );
       }
       return {'packages': packages, 'forceWrite': forceWrite};
     }

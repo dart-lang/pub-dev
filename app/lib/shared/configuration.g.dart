@@ -17,6 +17,7 @@ Configuration _$ConfigurationFromJson(
       'reportsBucketName',
       'downloadCountsBucketName',
       'exportedApiBucketName',
+      'cdnUrlMapName',
       'projectId',
       'searchServicePrefix',
       'fallbackSearchServicePrefix',
@@ -75,6 +76,7 @@ Configuration _$ConfigurationFromJson(
       'exportedApiBucketName',
       (v) => v as String?,
     ),
+    cdnUrlMapName: $checkedConvert('cdnUrlMapName', (v) => v as String?),
     maxTaskInstances: $checkedConvert(
       'maxTaskInstances',
       (v) => (v as num).toInt(),
@@ -192,6 +194,7 @@ Map<String, dynamic> _$ConfigurationToJson(Configuration instance) =>
       'reportsBucketName': instance.reportsBucketName,
       'downloadCountsBucketName': instance.downloadCountsBucketName,
       'exportedApiBucketName': instance.exportedApiBucketName,
+      'cdnUrlMapName': instance.cdnUrlMapName,
       'projectId': instance.projectId,
       'searchServicePrefix': instance.searchServicePrefix,
       'fallbackSearchServicePrefix': instance.fallbackSearchServicePrefix,

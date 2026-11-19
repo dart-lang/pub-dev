@@ -78,6 +78,12 @@ final class Configuration {
   /// The name of the Cloud Storage bucket to use for exporting JSON API responses.
   final String? exportedApiBucketName;
 
+  /// The name of the Cloud CDN URL map in [projectId] to invalidate when
+  /// package API responses or archives change (e.g. `pub-urlmap`).
+  ///
+  /// **Optional**, if omitted Cloud CDN cache invalidation is disabled.
+  final String? cdnUrlMapName;
+
   /// The Cloud project Id. This is only required when using Apiary to access
   /// Datastore and/or Cloud Storage
   final String projectId;
@@ -282,6 +288,7 @@ final class Configuration {
     required this.downloadCountsBucketName,
     required this.searchSnapshotBucketName,
     required this.exportedApiBucketName,
+    this.cdnUrlMapName,
     required this.maxTaskInstances,
     required this.maxTaskRunHours,
     required this.taskResultBucketName,
@@ -349,6 +356,7 @@ final class Configuration {
       downloadCountsBucketName: 'fake-bucket-download-counts',
       searchSnapshotBucketName: 'fake-bucket-search',
       exportedApiBucketName: 'fake-exported-apis',
+      cdnUrlMapName: null,
       maxTaskInstances: 10,
       maxTaskRunHours: 2,
       taskResultBucketName: 'fake-bucket-task-result',
@@ -390,6 +398,7 @@ final class Configuration {
     Uri? primarySiteUri,
     String? searchServicePrefix,
     String? imageProxyServiceBaseUrl,
+    String? cdnUrlMapName,
   }) {
     return Configuration(
       canonicalPackagesBucketName: 'fake-canonical-packages',
@@ -399,6 +408,7 @@ final class Configuration {
       downloadCountsBucketName: 'fake-bucket-download-counts',
       searchSnapshotBucketName: 'fake-bucket-search',
       exportedApiBucketName: 'fake-exported-apis',
+      cdnUrlMapName: cdnUrlMapName,
       taskResultBucketName: 'fake-bucket-task-result',
       maxTaskInstances: 10,
       maxTaskRunHours: 2,

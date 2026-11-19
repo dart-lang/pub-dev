@@ -11,6 +11,7 @@ cloudRunFallbackSearchServicePrefix: https://search-621485135717.us-central1.run
 cloudRunDefaultServiceBaseUrl: https://v-{{GAE_VERSION}}---default-621485135717.us-central1.run.app
 searchSnapshotBucketName: dartlang-pub-dev--search-snapshot
 exportedApiBucketName: dartlang-pub-dev-exported-api
+cdnUrlMapName: pub-staging-urlmap
 maxTaskInstances: 50
 maxTaskRunHours: 2
 taskResultBucketName: dartlang-pub-dev-task-output

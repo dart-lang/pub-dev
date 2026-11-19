@@ -131,6 +131,9 @@ void main() {
       // some rules for prod config
       if (config.isProduction) {
         expect(rateLimits, hasLength(greaterThan(10)));
+        expect(config.cdnUrlMapName, 'pub-urlmap');
+      } else if (config.isStaging) {
+        expect(config.cdnUrlMapName, 'pub-staging-urlmap');
       }
 
       // expect bucket names are non-null

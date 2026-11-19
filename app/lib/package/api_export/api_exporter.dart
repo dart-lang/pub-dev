@@ -16,7 +16,9 @@ import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/parallel_foreach.dart';
 
 import '../../search/backend.dart';
+import '../../service/cdn/cdn_invalidator.dart';
 import '../../shared/datastore.dart';
+import '../../shared/urls.dart' show pkgArchiveDownloadUrl;
 import '../../shared/versions.dart';
 import '../../task/global_lock.dart';
 import '../backend.dart';
@@ -205,19 +207,23 @@ final class ApiExporter {
   /// When [forceDelete] is set, the age threshold limit for stray files is
   /// ignored, they will be deleted even if they were updated recently.
   ///
-  /// When [forceDelete] is set, the age threshold limit for stray files is
-  /// ignored, they will be deleted even if they were updated recently.
-  ///
   /// When [skipArchives] is set, skip the archive-related exports
   /// (e.g. public or canonical buckets).
+  ///
+  /// When [invalidateCdn] is set, Cloud CDN cache entries for paths written or
+  /// deleted by this synchronization are invalidated after GCS updates
+  /// complete. Leave this `false` for bulk/background syncs to avoid exceeding
+  /// Cloud CDN invalidation quotas.
   Future<void> synchronizePackage(
     String package, {
     bool forceWrite = false,
     bool forceDelete = false,
     bool skipArchives = false,
+    bool invalidateCdn = false,
   }) async {
     _log.info('synchronizePackage("$package")');
 
+    final pkgApi = _api.package(package);
     final PackageData versionListing;
     try {
       versionListing = await packageBackend.listVersions(package);
@@ -227,7 +233,16 @@ final class ApiExporter {
       if (pkg != null && pkg.isNotVisible) {
         // We only delete the package if it is explicitly not visible.
         // If we can't find it, then it's safer to assume that it's a bug.
-        await _api.package(package).delete();
+        await pkgApi.delete();
+        if (invalidateCdn) {
+          await cdnInvalidator.invalidatePaths([
+            '/api/packages/$package',
+            '/api/packages/$package/*',
+            '/api/archives/$package-*',
+            '/documentation/$package/*',
+            '/packages/$package/*',
+          ]);
+        }
       }
       return;
     }
@@ -237,6 +252,8 @@ final class ApiExporter {
       skipCache: true, // Skipping the cache when fetching security advisories
     );
 
+    var uploadedVersions = const <String>{};
+    var deletedVersions = const <String>{};
     if (!skipArchives) {
       final versions = await packageBackend.listVersionsInCanonicalBucket(
         package,
@@ -248,58 +265,120 @@ final class ApiExporter {
             !versionListing.versions.any((v) => v.version == version),
       );
 
-      await _api
-          .package(package)
-          .synchronizeTarballs(
-            versions,
-            forceWrite: forceWrite,
-            forceDelete: forceDelete,
-          );
+      final tarballChanges = await pkgApi.synchronizeTarballs(
+        versions,
+        forceWrite: forceWrite,
+        forceDelete: forceDelete,
+      );
+      uploadedVersions = tarballChanges.uploadedVersions;
+      deletedVersions = tarballChanges.deletedVersions;
     }
 
-    await _api
-        .package(package)
-        .advisories
-        .write(advisories, forceWrite: forceWrite);
-    await _api
-        .package(package)
-        .versions
-        .write(versionListing, forceWrite: forceWrite);
-    await _api
-        .package(package)
-        .likes
-        .write(
-          await packageBackend.getPackageLikesCount(package),
-          forceWrite: forceWrite,
-        );
-    await _api
-        .package(package)
-        .options
-        .write(
-          await packageBackend.getPackageOptions(package),
-          forceWrite: forceWrite,
-        );
-    await _api
-        .package(package)
-        .publisher
-        .write(
-          await packageBackend.getPublisherInfo(package),
-          forceWrite: forceWrite,
-        );
-    await _api
-        .package(package)
-        .score
-        .write(
-          await scoreCardBackend.getVersionScore(package),
-          forceWrite: forceWrite,
-        );
-    await _api
-        .package(package)
-        .feedAtomFile
-        .write(
-          await buildPackageAtomFeedContent(package),
-          forceWrite: forceWrite,
-        );
+    final advisoriesChanged = await pkgApi.advisories.write(
+      advisories,
+      forceWrite: forceWrite,
+    );
+    final versionsChanged = await pkgApi.versions.write(
+      versionListing,
+      forceWrite: forceWrite,
+    );
+    final likesChanged = await pkgApi.likes.write(
+      await packageBackend.getPackageLikesCount(package),
+      forceWrite: forceWrite,
+    );
+    final optionsChanged = await pkgApi.options.write(
+      await packageBackend.getPackageOptions(package),
+      forceWrite: forceWrite,
+    );
+    final publisherChanged = await pkgApi.publisher.write(
+      await packageBackend.getPublisherInfo(package),
+      forceWrite: forceWrite,
+    );
+    final scoreChanged = await pkgApi.score.write(
+      await scoreCardBackend.getVersionScore(package),
+      forceWrite: forceWrite,
+    );
+    final feedAtomChanged = await pkgApi.feedAtomFile.write(
+      await buildPackageAtomFeedContent(package),
+      forceWrite: forceWrite,
+    );
+
+    if (invalidateCdn) {
+      final pathsToInvalidate = _collectCdnInvalidationPaths(
+        package: package,
+        pkgApi: pkgApi,
+        versionsChanged: versionsChanged,
+        changedSubpaths: [
+          if (advisoriesChanged) pkgApi.advisories.path,
+          if (likesChanged) pkgApi.likes.path,
+          if (optionsChanged) pkgApi.options.path,
+          if (publisherChanged) pkgApi.publisher.path,
+          if (scoreChanged) pkgApi.score.path,
+          if (feedAtomChanged) pkgApi.feedAtomFile.path,
+        ],
+        uploadedVersions: uploadedVersions,
+        deletedVersions: deletedVersions,
+      );
+      if (pathsToInvalidate.isNotEmpty) {
+        await cdnInvalidator.invalidatePaths(pathsToInvalidate);
+      }
+    }
+  }
+
+  List<String> _collectCdnInvalidationPaths({
+    required String package,
+    required ExportedPackage pkgApi,
+    required bool versionsChanged,
+    required List<String> changedSubpaths,
+    required Set<String> uploadedVersions,
+    required Set<String> deletedVersions,
+  }) {
+    final paths = <String>[];
+    if (versionsChanged) {
+      paths.add(pkgApi.versions.path);
+    }
+
+    final invalidateAllPackageSubpaths =
+        changedSubpaths.length > 1 || deletedVersions.length > 3;
+    if (invalidateAllPackageSubpaths) {
+      paths.add('/api/packages/$package/*');
+    } else if (changedSubpaths.length == 1) {
+      paths.add(changedSubpaths.single);
+    }
+
+    final invalidateAllArchives =
+        deletedVersions.length > 3 || uploadedVersions.length > 1;
+    if (invalidateAllArchives) {
+      paths.add('/api/archives/$package-*');
+    } else {
+      // [pkgArchiveDownloadUrl] percent-encodes `+` in build metadata as `%2B`,
+      // matching the `archive_url` requested by `dart pub`. Cloud CDN
+      // normalizes percent-encoding on invalidation rules, so this covers both
+      // encoded and unencoded request paths.
+      for (final version in deletedVersions) {
+        paths.add(pkgArchiveDownloadUrl(package, version));
+      }
+      if (uploadedVersions.length == 1) {
+        paths.add(pkgArchiveDownloadUrl(package, uploadedVersions.single));
+      }
+    }
+
+    if (deletedVersions.length > 3) {
+      paths.add('/documentation/$package/*');
+      paths.add('/packages/$package/*');
+    } else if (deletedVersions.isNotEmpty) {
+      for (final version in deletedVersions) {
+        if (!invalidateAllPackageSubpaths) {
+          paths.add('/api/packages/$package/versions/$version/archive.tar.gz');
+        }
+        paths.add('/packages/$package/versions/$version.tar.gz');
+        paths.add('/packages/$package/versions/$version/*');
+        paths.add('/documentation/$package/$version/*');
+      }
+      paths.add('/documentation/$package/latest/*');
+    }
+
+    return paths;
   }
 
   /// Scan for updates from packages until [abort] is resolved, or [claim]
