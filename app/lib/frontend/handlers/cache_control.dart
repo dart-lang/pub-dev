@@ -69,6 +69,13 @@ final class CacheControl {
     public: true,
   );
 
+  /// `Cache-Control` headers for generated task resources (such as package
+  /// screenshots) served under `/packages/<pkg>/versions/<ver>/gen-res/*`.
+  static const taskResource = CacheControl(
+    maxAge: Duration(minutes: 30),
+    public: true,
+  );
+
   /// `Cache-Control` headers for API end-points returning completion data for
   /// use in IDE integrations.
   static const completionData = CacheControl(

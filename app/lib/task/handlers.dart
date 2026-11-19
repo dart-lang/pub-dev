@@ -246,10 +246,6 @@ Future<shelf.Response> handleDartDoc(
     return notFoundHandler(request);
   }
 
-  if (request.method.toUpperCase() == 'HEAD') {
-    return headHtmlResponse(headers: CacheControl.documentationPage.headers);
-  }
-
   final acceptsGzip = request.acceptsGzipEncoding();
   return shelf.Response.ok(
     acceptsGzip ? dataGz : gzip.decode(dataGz),
@@ -310,6 +306,10 @@ Future<shelf.Response> handleTaskResource(
     return notFoundHandler(request);
   }
 
+  if (!await packageBackend.isPackageVisible(package)) {
+    return notFoundHandler(request);
+  }
+
   final dataGz = await taskBackend.gzippedTaskResult(
     package,
     version,
@@ -319,17 +319,14 @@ Future<shelf.Response> handleTaskResource(
     return notFoundHandler(request);
   }
 
-  if (request.method.toUpperCase() == 'HEAD') {
-    return headHtmlResponse();
-  }
-
   final acceptsGzip = request.acceptsGzipEncoding();
   return shelf.Response.ok(
     acceptsGzip ? dataGz : gzip.decode(dataGz),
     headers: {
+      ...CacheControl.taskResource.headers,
       'Content-Type': mime,
-      if (acceptsGzip) 'Content-Encoding': 'gzip',
       'Vary': 'Accept-Encoding',
+      if (acceptsGzip) 'Content-Encoding': 'gzip',
     },
   );
 }
