@@ -20,6 +20,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/migration_phases.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/api_export/api_exporter.dart';
 import 'package:pub_dev/package/api_export/exported_api.dart';
@@ -411,6 +412,9 @@ class PackageBackend {
     String version,
     String kind,
   ) async {
+    if (!await isDatastorePrimary(MigrationEntity.packageVersionAssets)) {
+      return;
+    }
     final qvk = QualifiedVersionKey(package: package, version: version);
     final asset = await db.lookupOrNull<PackageVersionAsset>(
       db.emptyKey.append(PackageVersionAsset, id: qvk.assetId(kind)),
@@ -426,17 +430,28 @@ class PackageBackend {
     final sqlUpdatedAt = existing.isEmpty ? null : existing.first;
     if (asset == null) {
       if (sqlUpdatedAt != null) {
-        await primaryDatabase.withRetry(
-          (db) =>
-              db.packageVersionAssets.delete(package, version, kind).execute(),
-        );
+        await primaryDatabase.transactWithRetry((db) async {
+          if (!await db.isDatastorePrimary(
+            MigrationEntity.packageVersionAssets,
+          )) {
+            return;
+          }
+          await db.packageVersionAssets
+              .delete(package, version, kind)
+              .execute();
+        });
       }
       return;
     }
     if (sqlUpdatedAt != null && sqlUpdatedAt.isAtSameMomentAs(asset.updated!)) {
       return;
     }
-    await upsertPackageVersionAssetsToSql([asset]);
+    await primaryDatabase.transactWithRetry((db) async {
+      if (!await db.isDatastorePrimary(MigrationEntity.packageVersionAssets)) {
+        return;
+      }
+      await _upsertAsset(db, asset);
+    });
   }
 
   /// Deletes the assets of [package] from SQL, limited to [version] if given.
@@ -465,15 +480,31 @@ class PackageBackend {
   /// single query (without the `text_content` column), and only the missing or
   /// stale entries are upserted.
   Future<int> backfillPackageVersionAssetsSqlFromDatastore() async {
+    if (!await isDatastorePrimary(MigrationEntity.packageVersionAssets)) {
+      _logger.info(
+        'Skipping package version assets SQL backfill: '
+        'package_version_assets is not datastore-primary.',
+      );
+      return 0;
+    }
     var count = 0;
     await for (final packageName in allPackageNames()) {
       final existing = <(String, String), DateTime>{};
-      final rows = await primaryDatabase.withRetry(
-        (db) => db.packageVersionAssets
+      final (isPrimary, rows) = await primaryDatabase.withRetry((db) async {
+        if (!await db.isDatastorePrimary(
+          MigrationEntity.packageVersionAssets,
+        )) {
+          return (false, const <(String, String, DateTime)>[]);
+        }
+        final rows = await db.packageVersionAssets
             .where((a) => a.package.equalsValue(packageName))
             .select((a) => (a.version, a.kind, a.updatedAt))
-            .fetch(),
-      );
+            .fetch();
+        return (true, rows);
+      });
+      if (!isPrimary) {
+        return count;
+      }
       for (final (version, kind, updatedAt) in rows) {
         existing[(version, kind)] = updatedAt;
       }
@@ -490,18 +521,40 @@ class PackageBackend {
       }
 
       if (stale.isNotEmpty) {
-        await upsertPackageVersionAssetsToSql(stale);
+        final upserted = await primaryDatabase.transactWithRetry((db) async {
+          if (!await db.isDatastorePrimary(
+            MigrationEntity.packageVersionAssets,
+          )) {
+            return false;
+          }
+          for (final a in stale) {
+            await _upsertAsset(db, a);
+          }
+          return true;
+        });
+        if (!upserted) {
+          return count;
+        }
         count += stale.length;
       }
       if (existing.isNotEmpty) {
         // The remaining entries have no matching Datastore entity.
-        await primaryDatabase.transactWithRetry((db) async {
+        final deleted = await primaryDatabase.transactWithRetry((db) async {
+          if (!await db.isDatastorePrimary(
+            MigrationEntity.packageVersionAssets,
+          )) {
+            return false;
+          }
           for (final (version, kind) in existing.keys) {
             await db.packageVersionAssets
                 .delete(packageName, version, kind)
                 .execute();
           }
+          return true;
         });
+        if (!deleted) {
+          return count;
+        }
         count += existing.length;
       }
     }
@@ -532,7 +585,10 @@ class PackageBackend {
       }.values.where((v) => !deleted.contains(v.version));
     }
     await primaryDatabase.transactWithRetry((db) async {
-      await _upsertPackage(db, package);
+      final updateLikesCount = await db.isDatastorePrimary(
+        MigrationEntity.packageLikes,
+      );
+      await _upsertPackage(db, package, updateLikesCount: updateLikesCount);
       for (final version in deletedVersions) {
         await db.packageVersions.delete(package.name!, version).execute();
       }
@@ -548,7 +604,11 @@ class PackageBackend {
   /// concurrent mirror calls may carry stale snapshots, and they must not
   /// overwrite the newer state. The comparison is part of the upsert statement,
   /// so it is atomic with the write.
-  Future<void> _upsertPackage(Database<PrimarySchema> db, Package p) async {
+  Future<void> _upsertPackage(
+    Database<PrimarySchema> db,
+    Package p, {
+    required bool updateLikesCount,
+  }) async {
     await db.packages
         .insertValue(
           name: p.name!,
@@ -592,7 +652,7 @@ class PackageBackend {
             latestPreviewPublishedAt: excluded.latestPreviewPublishedAt,
             publisherId: excluded.publisherId,
             versionsCount: excluded.versionsCount,
-            likesCount: excluded.likesCount,
+            likesCount: updateLikesCount ? excluded.likesCount : row.likesCount,
             isDiscontinued: excluded.isDiscontinued,
             replacedBy: excluded.replacedBy,
             isUnlisted: excluded.isUnlisted,
@@ -701,13 +761,25 @@ class PackageBackend {
   /// likes count or version rows (missing, extra or with different flags),
   /// and removes SQL rows that have no matching Datastore entry.
   Future<int> backfillPackagesSqlFromDatastore() async {
+    if (!await isDatastorePrimary(MigrationEntity.packages)) {
+      _logger.info(
+        'Skipping packages SQL backfill: packages is not datastore-primary.',
+      );
+      return 0;
+    }
     var count = 0;
     final sqlState = <String, (DateTime, int)>{};
-    final rows = await primaryDatabase.withRetry(
-      (db) => db.packages
+    final (likesDatastorePrimary, rows) = await primaryDatabase.withRetry((
+      db,
+    ) async {
+      final likesPrimary = await db.isDatastorePrimary(
+        MigrationEntity.packageLikes,
+      );
+      final rows = await db.packages
           .select((p) => (p.name, p.updatedAt, p.likesCount))
-          .fetch(),
-    );
+          .fetch();
+      return (likesPrimary, rows);
+    });
     for (final (name, updatedAt, likesCount) in rows) {
       sqlState[name] = (updatedAt, likesCount);
     }
@@ -746,15 +818,21 @@ class PackageBackend {
       };
       if (sql != null &&
           sql.$1.isAtSameMomentAs(p.updated!) &&
-          sql.$2 == p.likes &&
+          (!likesDatastorePrimary || sql.$2 == p.likes) &&
           _versionFlagsEquality.equals(
             sqlVersionFlags[name] ?? {},
             datastoreFlags,
           )) {
         continue;
       }
-      await primaryDatabase.transactWithRetry((db) async {
-        await _upsertPackage(db, p);
+      final updated = await primaryDatabase.transactWithRetry((db) async {
+        if (!await db.isDatastorePrimary(MigrationEntity.packages)) {
+          return false;
+        }
+        final updateLikesCount = await db.isDatastorePrimary(
+          MigrationEntity.packageLikes,
+        );
+        await _upsertPackage(db, p, updateLikesCount: updateLikesCount);
         final versionNames = <String>{};
         for (final v in versions) {
           await _upsertPackageVersion(db, v);
@@ -769,13 +847,26 @@ class PackageBackend {
             await db.packageVersions.delete(name, version).execute();
           }
         }
+        return true;
       });
+      if (!updated) {
+        return count;
+      }
       count++;
     }
 
     // The remaining entries have no matching Datastore entity.
     for (final name in sqlState.keys) {
-      await deletePackageFromSql(name);
+      final deleted = await primaryDatabase.transactWithRetry((db) async {
+        if (!await db.isDatastorePrimary(MigrationEntity.packages)) {
+          return false;
+        }
+        await db.packages.delete(name).execute();
+        return true;
+      });
+      if (!deleted) {
+        return count;
+      }
       count++;
     }
     return count;

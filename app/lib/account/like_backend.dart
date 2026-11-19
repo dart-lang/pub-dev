@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 
 import '../database/database.dart';
+import '../database/migration_phases.dart';
 import '../database/schema.dart';
 import '../package/backend.dart' show packageBackend;
 import '../package/models.dart';
@@ -104,7 +105,7 @@ class LikeBackend {
     });
     if (updatedPackage != null) {
       await packageBackend.mirrorPackageToSql(updatedPackage!);
-      await mirrorToSql(res);
+      await _mirrorNewLikeToSql(res);
     }
     await cache.packageView(package).purge();
     await purgeAccountCache(userId: userId);
@@ -139,10 +140,71 @@ class LikeBackend {
     });
     if (updatedPackage != null) {
       await packageBackend.mirrorPackageToSql(updatedPackage!);
-      await deleteFromSql(userId, package);
+      await removeLikeFromSql(userId, package);
     }
     await cache.packageView(package).purge();
     await cache.userPackageLikes(userId).purge();
+  }
+
+  /// Mirrors a newly created [like] into SQL, applying an atomic `+1` delta to
+  /// `packages.likes_count` when `package_likes` is not `datastore-primary` (so
+  /// `mirrorPackageToSql` left `likes_count` untouched and we never clobber the
+  /// SQL count with a stale Datastore snapshot).
+  Future<void> _mirrorNewLikeToSql(Like like) async {
+    final created = like.created ?? await _setMissingCreated(like);
+    await primaryDatabase.transactWithRetry((db) async {
+      if (await db.isDatastorePrimary(MigrationEntity.packageLikes)) {
+        await db.packageLikes
+            .upsertValue(
+              userId: like.userId,
+              package: like.package,
+              createdAt: created,
+            )
+            .execute();
+        return;
+      }
+      final inserted = await db.packageLikes
+          .insertValue(
+            userId: like.userId,
+            package: like.package,
+            createdAt: created,
+          )
+          .onConflict(.primaryKey)
+          .doNothing()
+          .returnInserted()
+          .executeAndFetch();
+      if (inserted != null) {
+        await db.packages
+            .where((p) => p.name.equalsValue(like.package))
+            .update((p, set) => set(likesCount: p.likesCount + 1.asExpr))
+            .execute();
+      }
+    });
+  }
+
+  /// Removes a deleted like from SQL, applying an atomic `-1` delta to
+  /// `packages.likes_count` when `package_likes` is not `datastore-primary`.
+  Future<void> removeLikeFromSql(String userId, String package) async {
+    await primaryDatabase.transactWithRetry((db) async {
+      if (await db.isDatastorePrimary(MigrationEntity.packageLikes)) {
+        await db.packageLikes.delete(userId, package).execute();
+        return;
+      }
+      final deleted = await db.packageLikes
+          .where(
+            (l) =>
+                l.userId.equalsValue(userId) & l.package.equalsValue(package),
+          )
+          .delete()
+          .returnDeleted()
+          .executeAndFetch();
+      if (deleted.isNotEmpty) {
+        await db.packages
+            .where((p) => p.name.equalsValue(package))
+            .update((p, set) => set(likesCount: p.likesCount - 1.asExpr))
+            .execute();
+      }
+    });
   }
 
   /// Upserts [like] into SQL. The user and the package must exist in SQL.
@@ -189,16 +251,30 @@ class LikeBackend {
   ///
   /// Likes of users or packages that are missing from SQL are skipped.
   Future<int> backfillSqlFromDatastore() async {
+    if (!await isDatastorePrimary(MigrationEntity.packageLikes)) {
+      _logger.info(
+        'Skipping package likes SQL backfill: '
+        'package_likes is not datastore-primary.',
+      );
+      return 0;
+    }
     var count = 0;
     final packageNames = await packageBackend.allPackageNames().toList();
     for (final package in packageNames) {
       final remainingSqlRows = <String, DateTime>{};
-      final rows = await primaryDatabase.withRetry(
-        (db) => db.packageLikes
+      final (isPrimary, rows) = await primaryDatabase.withRetry((db) async {
+        if (!await db.isDatastorePrimary(MigrationEntity.packageLikes)) {
+          return (false, const <(String, DateTime)>[]);
+        }
+        final rows = await db.packageLikes
             .where((l) => l.package.equalsValue(package))
             .select((l) => (l.userId, l.createdAt))
-            .fetch(),
-      );
+            .fetch();
+        return (true, rows);
+      });
+      if (!isPrimary) {
+        return count;
+      }
       for (final (userId, createdAt) in rows) {
         remainingSqlRows[userId] = createdAt;
       }
@@ -213,30 +289,60 @@ class LikeBackend {
             sqlCreated.isAtSameMomentAs(created)) {
           continue;
         }
-        hasPackageInSql ??=
-            await primaryDatabase.withRetry(
-              (db) => db.packages.byKey(package).fetch(),
-            ) !=
-            null;
-        final hasUserInSql =
-            await primaryDatabase.withRetry(
-              (db) => db.users.byKey(like.userId).fetch(),
-            ) !=
-            null;
-        if (!hasPackageInSql || !hasUserInSql) {
+        final (isPrimary, hasPackage, hasUser) = await primaryDatabase
+            .withRetry((db) async {
+              if (!await db.isDatastorePrimary(MigrationEntity.packageLikes)) {
+                return (false, false, false);
+              }
+              final pkg =
+                  hasPackageInSql ??
+                  await db.packages.byKey(package).fetch() != null;
+              final user = await db.users.byKey(like.userId).fetch() != null;
+              return (true, pkg, user);
+            });
+        if (!isPrimary) {
+          return count;
+        }
+        hasPackageInSql = hasPackage;
+        if (!hasPackage || !hasUser) {
           _logger.warning(
             'Skipping like of "${like.userId}" on "$package": '
             'user or package is missing in SQL.',
           );
           continue;
         }
-        await mirrorToSql(like);
+        final createdAt = like.created ?? await _setMissingCreated(like);
+        final mirrored = await primaryDatabase.transactWithRetry((db) async {
+          if (!await db.isDatastorePrimary(MigrationEntity.packageLikes)) {
+            return false;
+          }
+          await db.packageLikes
+              .upsertValue(
+                userId: like.userId,
+                package: like.package,
+                createdAt: createdAt,
+              )
+              .execute();
+          return true;
+        });
+        if (!mirrored) {
+          return count;
+        }
         count++;
       }
 
       // Rows left over have no Datastore entity.
       for (final userId in remainingSqlRows.keys) {
-        await deleteFromSql(userId, package);
+        final deleted = await primaryDatabase.transactWithRetry((db) async {
+          if (!await db.isDatastorePrimary(MigrationEntity.packageLikes)) {
+            return false;
+          }
+          await db.packageLikes.delete(userId, package).execute();
+          return true;
+        });
+        if (!deleted) {
+          return count;
+        }
         count++;
       }
     }

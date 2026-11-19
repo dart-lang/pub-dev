@@ -18,6 +18,7 @@ import 'package:typed_sql/typed_sql.dart' hide AuthenticationException;
 
 import '../audit/models.dart';
 import '../database/database.dart';
+import '../database/migration_phases.dart';
 import '../database/schema.dart';
 import '../frontend/request_context.dart';
 import '../service/openid/gcp_openid.dart';
@@ -756,11 +757,23 @@ class AccountBackend {
   /// Copies [User] entities from Datastore into SQL, for entities that are
   /// not yet present in SQL.
   Future<int> backfillSqlFromDatastore() async {
+    if (!await isDatastorePrimary(MigrationEntity.users)) {
+      _logger.info(
+        'Skipping users SQL backfill: users is not datastore-primary.',
+      );
+      return 0;
+    }
     var count = 0;
     await for (final user in _db.query<User>().run()) {
-      final existing = await primaryDatabase.withRetry(
-        (db) => db.users.byKey(user.userId).fetch(),
-      );
+      final (isPrimary, existing) = await primaryDatabase.withRetry((db) async {
+        if (!await db.isDatastorePrimary(MigrationEntity.users)) {
+          return (false, null);
+        }
+        return (true, await db.users.byKey(user.userId).fetch());
+      });
+      if (!isPrimary) {
+        return count;
+      }
       if (existing != null) {
         continue;
       }

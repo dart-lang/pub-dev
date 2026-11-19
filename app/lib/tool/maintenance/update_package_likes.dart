@@ -5,6 +5,7 @@
 import 'package:clock/clock.dart';
 import 'package:logging/logging.dart';
 import 'package:pub_dev/account/models.dart';
+import 'package:pub_dev/database/migration_phases.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -15,6 +16,12 @@ final _logger = Logger('adjust_like_counts');
 ///
 /// Return the number of packages that were updated.
 Future<int> updatePackageLikes() async {
+  if (!await isDatastorePrimary(MigrationEntity.packageLikes)) {
+    _logger.info(
+      'Skipping package likes update: package_likes is not datastore-primary.',
+    );
+    return 0;
+  }
   _logger.info('Scanning packages for like count consistency...');
 
   var updatedCount = 0;
@@ -23,6 +30,9 @@ Future<int> updatePackageLikes() async {
     final count = await query.run().fold<int>(0, (sum, like) => sum + 1);
     if (p.likes == count) {
       continue;
+    }
+    if (!await isDatastorePrimary(MigrationEntity.packageLikes)) {
+      return updatedCount;
     }
     _logger.info(
       'Updating likes for package "${p.name}" changing from ${p.likes} to $count.',

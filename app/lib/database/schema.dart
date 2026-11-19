@@ -21,6 +21,7 @@ part 'schema.audit.dart';
 part 'schema.consent.dart';
 part 'schema.email.dart';
 part 'schema.global_lock.dart';
+part 'schema.migration_phase.dart';
 part 'schema.moderation.dart';
 part 'schema.neat_task.dart';
 part 'schema.package.dart';
@@ -55,6 +56,10 @@ abstract final class PrimarySchema extends Schema {
   // global lock table
 
   Table<GlobalLockState> get globalLockStates;
+
+  // migration phase table
+
+  Table<MigrationPhaseRow> get migrationPhases;
 
   // moderation tables
 

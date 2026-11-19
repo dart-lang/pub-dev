@@ -13,6 +13,7 @@ import 'package:collection/collection.dart';
 import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/migration_phases.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/entrypoint/analyzer.dart';
@@ -271,11 +272,24 @@ class SecurityAdvisoryBackend {
   /// Copies [SecurityAdvisory] entries from Datastore into SQL, for entries
   /// that are not yet present in SQL (or are stale).
   Future<int> backfillSqlFromDatastore() async {
+    if (!await isDatastorePrimary(MigrationEntity.securityAdvisories)) {
+      _logger.info(
+        'Skipping security advisories SQL backfill: '
+        'security_advisories is not datastore-primary.',
+      );
+      return 0;
+    }
     var count = 0;
     await for (final advisory in _db.query<SecurityAdvisory>().run()) {
-      final existing = await primaryDatabase.withRetry(
-        (db) => db.securityAdvisories.byKey(advisory.id!).fetch(),
-      );
+      final (isPrimary, existing) = await primaryDatabase.withRetry((db) async {
+        if (!await db.isDatastorePrimary(MigrationEntity.securityAdvisories)) {
+          return (false, null);
+        }
+        return (true, await db.securityAdvisories.byKey(advisory.id!).fetch());
+      });
+      if (!isPrimary) {
+        return count;
+      }
       if (existing != null &&
           existing.syncedAt.isAtSameMomentAs(advisory.syncTime!)) {
         continue;

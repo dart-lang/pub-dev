@@ -26,6 +26,7 @@ import '../admin/models.dart' hide ModerationActionLog;
 import '../audit/backend.dart';
 import '../audit/models.dart';
 import '../database/database.dart';
+import '../database/migration_phases.dart';
 import '../database/schema.dart';
 import '../package/backend.dart'
     show checkPackageVersionParams, packageBackend, triggerPackagePostUpdates;
@@ -977,7 +978,18 @@ class AdminBackend {
 
   /// Upserts [mc] and its action log into SQL.
   Future<void> mirrorModerationCaseToSql(ModerationCase mc) async {
-    await primaryDatabase.transactWithRetry((db) async {
+    await _mirrorModerationCaseToSql(mc, onlyIfDatastorePrimary: false);
+  }
+
+  Future<bool> _mirrorModerationCaseToSql(
+    ModerationCase mc, {
+    required bool onlyIfDatastorePrimary,
+  }) async {
+    return await primaryDatabase.transactWithRetry((db) async {
+      if (onlyIfDatastorePrimary &&
+          !await db.isDatastorePrimary(MigrationEntity.moderationCases)) {
+        return false;
+      }
       await db.moderationCases
           .upsertValue(
             caseId: mc.caseId,
@@ -1044,6 +1056,7 @@ class AdminBackend {
             )
             .execute();
       }
+      return true;
     });
   }
 
@@ -1059,6 +1072,9 @@ class AdminBackend {
   /// Looks up the [ModerationCase] with [caseId] in Datastore and mirrors it
   /// into SQL (or removes the SQL rows if the entity is missing).
   Future<void> mirrorModerationCaseToSqlById(String caseId) async {
+    if (!await isDatastorePrimary(MigrationEntity.moderationCases)) {
+      return;
+    }
     final mc = await lookupModerationCase(caseId);
     if (mc != null) {
       // Skip the write transaction (and the action log re-creation) when SQL
@@ -1066,9 +1082,14 @@ class AdminBackend {
       if (await _isModerationCaseInSql(mc)) {
         return;
       }
-      await mirrorModerationCaseToSql(mc);
+      await _mirrorModerationCaseToSql(mc, onlyIfDatastorePrimary: true);
     } else {
-      await deleteModerationCaseFromSql(caseId);
+      await primaryDatabase.transactWithRetry((db) async {
+        if (!await db.isDatastorePrimary(MigrationEntity.moderationCases)) {
+          return;
+        }
+        await db.moderationCases.delete(caseId).execute();
+      });
     }
   }
 
@@ -1084,6 +1105,13 @@ class AdminBackend {
   ///
   /// Returns the number of cases that were changed in SQL.
   Future<int> backfillModerationCasesSqlFromDatastore() async {
+    if (!await isDatastorePrimary(MigrationEntity.moderationCases)) {
+      _logger.info(
+        'Skipping moderation cases SQL backfill: '
+        'moderation_cases is not datastore-primary.',
+      );
+      return 0;
+    }
     var count = 0;
     final sqlCaseIds = await primaryDatabase.withRetry(
       (db) => db.moderationCases.select((c) => (c.caseId,)).fetch(),
@@ -1095,7 +1123,13 @@ class AdminBackend {
       if (await _isModerationCaseInSql(mc)) {
         continue;
       }
-      await mirrorModerationCaseToSql(mc);
+      final mirrored = await _mirrorModerationCaseToSql(
+        mc,
+        onlyIfDatastorePrimary: true,
+      );
+      if (!mirrored) {
+        return count;
+      }
       count++;
     }
     // Rows left over seem to have no Datastore entity: double-check before
@@ -1104,7 +1138,16 @@ class AdminBackend {
       if (await lookupModerationCase(caseId) != null) {
         continue;
       }
-      await deleteModerationCaseFromSql(caseId);
+      final deleted = await primaryDatabase.transactWithRetry((db) async {
+        if (!await db.isDatastorePrimary(MigrationEntity.moderationCases)) {
+          return false;
+        }
+        await db.moderationCases.delete(caseId).execute();
+        return true;
+      });
+      if (!deleted) {
+        return count;
+      }
       count++;
     }
     return count;
@@ -1178,6 +1221,13 @@ class AdminBackend {
 
   /// Scans datastore and deletes [ModerationCase] entities opened more than 3 years ago.
   Future<void> deleteModerationCases() async {
+    if (!await isDatastorePrimary(MigrationEntity.moderationCases)) {
+      _logger.info(
+        'Skipping moderation cases cleanup: '
+        'moderation_cases is not datastore-primary.',
+      );
+      return;
+    }
     final before = clock.ago(days: 3 * 365).toUtc();
 
     /// Querying the cases that were opened before the threshold,
@@ -1190,10 +1240,18 @@ class AdminBackend {
       if (mc.opened.isAfter(before)) {
         continue;
       }
+      if (!await isDatastorePrimary(MigrationEntity.moderationCases)) {
+        return;
+      }
       // delete the entity
       _logger.info('Deleting ModerationCase: ${mc.caseId}');
       await withRetryTransaction(_db, (tx) async => tx.delete(mc.key));
-      await deleteModerationCaseFromSql(mc.caseId);
+      await primaryDatabase.transactWithRetry((db) async {
+        if (!await db.isDatastorePrimary(MigrationEntity.moderationCases)) {
+          return;
+        }
+        await db.moderationCases.delete(mc.caseId).execute();
+      });
       _logger.info('Deleted ModerationCase: ${mc.caseId}');
     }
   }

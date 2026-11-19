@@ -14,6 +14,7 @@ final _tableCounters = <String, Future<int?> Function(Database<PrimarySchema>)>{
   'consents': (db) => db.consents.count().fetch(),
   'download_counts': (db) => db.downloadCounts.count().fetch(),
   'global_lock_states': (db) => db.globalLockStates.count().fetch(),
+  'migration_phases': (db) => db.migrationPhases.count().fetch(),
   'moderation_action_logs': (db) => db.moderationActionLogs.count().fetch(),
   'moderation_cases': (db) => db.moderationCases.count().fetch(),
   'neat_task_statuses': (db) => db.neatTaskStatuses.count().fetch(),

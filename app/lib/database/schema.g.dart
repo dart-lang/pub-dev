@@ -17,6 +17,7 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$ConsentRow._$table,
     _$OutgoingEmailRow._$table,
     _$GlobalLockState._$table,
+    _$MigrationPhaseRow._$table,
     _$ModerationCaseRow._$table,
     _$ModerationActionLog._$table,
     _$NeatTaskStatusRow._$table,
@@ -60,6 +61,9 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
 
   Table<GlobalLockState> get globalLockStates =>
       $ForGeneratedCode.declareTable(this, _$GlobalLockState._$table);
+
+  Table<MigrationPhaseRow> get migrationPhases =>
+      $ForGeneratedCode.declareTable(this, _$MigrationPhaseRow._$table);
 
   Table<ModerationCaseRow> get moderationCases =>
       $ForGeneratedCode.declareTable(this, _$ModerationCaseRow._$table);
@@ -6997,6 +7001,567 @@ extension InsertOnConflictSingleGlobalLockStateExt
         lockId,
         claimId,
         lockedUntil,
+      ]),
+    ),
+  );
+}
+
+final class _$MigrationPhaseRow extends MigrationPhaseRow {
+  _$MigrationPhaseRow._(this.entity, this.phase, this.updatedAt);
+
+  @override
+  final String entity;
+
+  @override
+  final String phase;
+
+  @override
+  final DateTime updatedAt;
+
+  static final _$table = $ForGeneratedCode.tableDefinition(
+    tableName: 'migration_phases',
+    columns: <String>['entity', 'phase', 'updated_at'],
+    columnInfo: [
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.text,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+      $ForGeneratedCode.columnDefinition(
+        type: $ForGeneratedCode.dateTime,
+        isNotNull: true,
+        defaultValue: null,
+        autoIncrement: false,
+        overrides: [],
+      ),
+    ],
+    primaryKey: <String>['entity'],
+    unique: <List<String>>[],
+    foreignKeys: [],
+    indexes: [],
+    readRow: _$MigrationPhaseRow._$fromDatabase,
+  );
+
+  static MigrationPhaseRow? _$fromDatabase(RowReader row) {
+    final entity = row.readString();
+    final phase = row.readString();
+    final updatedAt = row.readDateTime();
+    if (entity == null && phase == null && updatedAt == null) {
+      return null;
+    }
+    return _$MigrationPhaseRow._(entity!, phase!, updatedAt!);
+  }
+
+  @override
+  String toString() =>
+      'MigrationPhaseRow(entity: "$entity", phase: "$phase", updatedAt: "$updatedAt")';
+}
+
+/// Extension methods for table defined in [MigrationPhaseRow].
+extension TableMigrationPhaseRowExt on Table<MigrationPhaseRow> {
+  /// Insert row into the `migrationPhases` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<MigrationPhaseRow> insert({
+    required Expr<String> entity,
+    required Expr<String> phase,
+    required Expr<DateTime> updatedAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [entity, phase, updatedAt],
+  );
+
+  /// Insert row into the `migrationPhases` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insert(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `phase`, `updatedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<MigrationPhaseRow> upsert({
+    required Expr<String> entity,
+    required Expr<String> phase,
+    required Expr<DateTime> updatedAt,
+  }) => insert(entity: entity, phase: phase, updatedAt: updatedAt)
+      .onConflict(.primaryKey)
+      .update(
+        (_, excluded, set) =>
+            set(phase: excluded.phase, updatedAt: excluded.updatedAt),
+      );
+
+  /// Insert row into the `migrationPhases` table.
+  ///
+  /// Returns a [InsertSingle] statement on which `.execute` must be
+  /// called for the row to be inserted.
+  InsertSingle<MigrationPhaseRow> insertValue({
+    required String entity,
+    required String phase,
+    required DateTime updatedAt,
+  }) => $ForGeneratedCode.insertInto(
+    table: this,
+    values: [entity.asExpr, phase.asExpr, updatedAt.asExpr],
+  );
+
+  /// Insert row into the `migrationPhases` table, or update the
+  /// existing row if it conflicts with the _primary key_.
+  ///
+  /// This is a shorthand for calling `.insertValue(...)` followed by
+  /// `.onConflict(.primaryKey)` and `.update(...)` to overwrite
+  /// the fields `phase`, `updatedAt`,
+  /// with the values given, leaving the _primary key_ untouched.
+  ///
+  /// Returns an [UpsertSingle] statement on which `.execute()` must be
+  /// called for the row to be inserted or updated.
+  UpsertSingle<MigrationPhaseRow> upsertValue({
+    required String entity,
+    required String phase,
+    required DateTime updatedAt,
+  }) => insertValue(entity: entity, phase: phase, updatedAt: updatedAt)
+      .onConflict(.primaryKey)
+      .update(
+        (_, excluded, set) =>
+            set(phase: excluded.phase, updatedAt: excluded.updatedAt),
+      );
+
+  /// Bulk insert rows into the `migrationPhases` table.
+  ///
+  /// This method takes an `Iterable<T>` and requires that you provide
+  /// a _mapping function_ from `T` to each column to be inserted.
+  ///
+  /// If a mapping function is omitted, the _default value_ will be
+  /// inserted, or `NULL` if column is nullable and as no default value.
+  /// To explicitely insert `NULL`, use a _mapping function_ that maps
+  /// `T` to `null`.
+  ///
+  /// > [!NOTE]
+  /// > This method aims utilize database specific bulk insertion logic
+  /// > to ensure good performance. Database adapters may pipeline bulk
+  /// > insertions through multiple statements inside a transaction.
+  ///
+  /// Returns a [Insert] statement on which `.execute` must be
+  /// called for the rows to be inserted.
+  Insert<MigrationPhaseRow> insertValuesMapped<T>(
+    Iterable<T> rows, {
+    required String Function(T row) entity,
+    required String Function(T row) phase,
+    required DateTime Function(T row) updatedAt,
+  }) => $ForGeneratedCode.insertValuesMapped(
+    table: this,
+    rows: rows,
+    mappings: [entity, phase, updatedAt],
+  );
+
+  /// Delete a single row from the `migrationPhases` table, specified by
+  /// _primary key_.
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be
+  /// called for the row to be deleted.
+  ///
+  /// To delete multiple rows, using `.where()` to filter which rows
+  /// should be deleted. If you wish to delete all rows, use
+  /// `.where((_) => toExpr(true)).delete()`.
+  DeleteSingle<MigrationPhaseRow> delete(String entity) => $ForGeneratedCode
+      .deleteSingle(byKey(entity), _$MigrationPhaseRow._$table);
+}
+
+/// Extension methods for building queries against the `migrationPhases` table.
+extension QueryMigrationPhaseRowExt on Query<(Expr<MigrationPhaseRow>,)> {
+  /// Lookup a single row in `migrationPhases` table using the _primary key_.
+  ///
+  /// Returns a [QuerySingle] object, which returns at-most one row,
+  /// when `.fetch()` is called.
+  QuerySingle<(Expr<MigrationPhaseRow>,)> byKey(String entity) => where(
+    (migrationPhaseRow) => migrationPhaseRow.entity.equalsValue(entity),
+  ).first;
+
+  /// Update all rows in the `migrationPhases` table matching this [Query].
+  ///
+  /// The changes to be applied to each row matching this [Query] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [Update] statement on which `.execute()` must be called
+  /// for the rows to be updated.
+  ///
+  /// **Example:** decrementing `1` from the `value` field for each row
+  /// where `value > 0`.
+  /// ```dart
+  /// await db.mytable
+  ///   .where((row) => row.value > toExpr(0))
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  Update<MigrationPhaseRow> update(
+    UpdateSet<MigrationPhaseRow> Function(
+      Expr<MigrationPhaseRow> migrationPhaseRow,
+      UpdateSet<MigrationPhaseRow> Function({
+        Expr<String> entity,
+        Expr<String> phase,
+        Expr<DateTime> updatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.update<MigrationPhaseRow>(
+    this,
+    _$MigrationPhaseRow._$table,
+    (migrationPhaseRow) => updateBuilder(
+      migrationPhaseRow,
+      ({
+        Expr<String>? entity,
+        Expr<String>? phase,
+        Expr<DateTime>? updatedAt,
+      }) => $ForGeneratedCode.buildUpdate<MigrationPhaseRow>([
+        entity,
+        phase,
+        updatedAt,
+      ]),
+    ),
+  );
+
+  /// Delete all rows in the `migrationPhases` table matching this [Query].
+  ///
+  /// Returns a [Delete] statement on which `.execute()` must be called
+  /// for the rows to be deleted.
+  Delete<MigrationPhaseRow> delete() =>
+      $ForGeneratedCode.delete(this, _$MigrationPhaseRow._$table);
+}
+
+/// Extension methods for building point queries against the `migrationPhases` table.
+extension QuerySingleMigrationPhaseRowExt
+    on QuerySingle<(Expr<MigrationPhaseRow>,)> {
+  /// Update the row (if any) in the `migrationPhases` table matching this
+  /// [QuerySingle].
+  ///
+  /// The changes to be applied to the row matching this [QuerySingle] are
+  /// defined using the [updateBuilder], which is given an [Expr]
+  /// representation of the row being updated and a `set` function to
+  /// specify which fields should be updated. The result of the `set`
+  /// function should always be returned from the `updateBuilder`.
+  ///
+  /// Returns an [UpdateSingle] statement on which `.execute()` must be
+  /// called for the row to be updated. The resulting statement will
+  /// **not** fail, if there are no rows matching this query exists.
+  ///
+  /// **Example:** decrementing `1` from the `value` field the row with
+  /// `id = 1`.
+  /// ```dart
+  /// await db.mytable
+  ///   .byKey(1)
+  ///   .update((row, set) => set(
+  ///     value: row.value - toExpr(1),
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  UpdateSingle<MigrationPhaseRow> update(
+    UpdateSet<MigrationPhaseRow> Function(
+      Expr<MigrationPhaseRow> migrationPhaseRow,
+      UpdateSet<MigrationPhaseRow> Function({
+        Expr<String> entity,
+        Expr<String> phase,
+        Expr<DateTime> updatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateSingle<MigrationPhaseRow>(
+    this,
+    _$MigrationPhaseRow._$table,
+    (migrationPhaseRow) => updateBuilder(
+      migrationPhaseRow,
+      ({
+        Expr<String>? entity,
+        Expr<String>? phase,
+        Expr<DateTime>? updatedAt,
+      }) => $ForGeneratedCode.buildUpdate<MigrationPhaseRow>([
+        entity,
+        phase,
+        updatedAt,
+      ]),
+    ),
+  );
+
+  /// Delete the row (if any) in the `migrationPhases` table matching this [QuerySingle].
+  ///
+  /// Returns a [DeleteSingle] statement on which `.execute()` must be called
+  /// for the row to be deleted. The resulting statement will **not**
+  /// fail, if there are no rows matching this query exists.
+  DeleteSingle<MigrationPhaseRow> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$MigrationPhaseRow._$table);
+}
+
+/// Extension methods for expressions on a row in the `migrationPhases` table.
+extension ExpressionMigrationPhaseRowExt on Expr<MigrationPhaseRow> {
+  /// Identifier of the entity, matching its primary SQL table name.
+  Expr<String> get entity =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// Active migration phase (e.g. `datastore-primary`, `sql-primary`).
+  Expr<String> get phase =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// Timestamp when the phase was last updated.
+  Expr<DateTime> get updatedAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+}
+
+extension ExpressionNullableMigrationPhaseRowExt on Expr<MigrationPhaseRow?> {
+  /// Identifier of the entity, matching its primary SQL table name.
+  Expr<String?> get entity =>
+      $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
+
+  /// Active migration phase (e.g. `datastore-primary`, `sql-primary`).
+  Expr<String?> get phase =>
+      $ForGeneratedCode.field(this, 1, $ForGeneratedCode.text);
+
+  /// Timestamp when the phase was last updated.
+  Expr<DateTime?> get updatedAt =>
+      $ForGeneratedCode.field(this, 2, $ForGeneratedCode.dateTime);
+
+  /// Check if the row is not `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNotNull() => entity.isNotNull();
+
+  /// Check if the row is `NULL`.
+  ///
+  /// This will check if _primary key_ fields in this row are `NULL`.
+  ///
+  /// If this is a reference lookup by subquery it might be more efficient
+  /// to check if the referencing field is `NULL`.
+  Expr<bool> isNull() => isNotNull().not();
+}
+
+/// `Table<MigrationPhaseRow>` conflict targets for use with `.onConflict`.
+enum MigrationPhaseRowConflict {
+  /// Conflict with an existing row that has a matching primary key.
+  ///
+  /// Thus, the other row has matching values for:
+  /// `entity`.
+  primaryKey(['entity']);
+
+  const MigrationPhaseRowConflict(this._fields);
+
+  final List<String> _fields;
+}
+
+extension InsertMigrationPhaseRowExt on Insert<MigrationPhaseRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((migrationPhaseRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflict<MigrationPhaseRow> onConflict(
+    MigrationPhaseRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+}
+
+extension InsertOnConflictMigrationPhaseRowExt
+    on InsertOnConflict<MigrationPhaseRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `migrationPhaseRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  Upsert<MigrationPhaseRow> update(
+    UpdateSet<MigrationPhaseRow> Function(
+      Expr<MigrationPhaseRow> migrationPhaseRow,
+      Expr<MigrationPhaseRow> excluded,
+      UpdateSet<MigrationPhaseRow> Function({
+        Expr<String> entity,
+        Expr<String> phase,
+        Expr<DateTime> updatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflict<MigrationPhaseRow>(
+    this,
+    (migrationPhaseRow, excluded) => updateBuilder(
+      migrationPhaseRow,
+      excluded,
+      ({
+        Expr<String>? entity,
+        Expr<String>? phase,
+        Expr<DateTime>? updatedAt,
+      }) => $ForGeneratedCode.buildUpdate<MigrationPhaseRow>([
+        entity,
+        phase,
+        updatedAt,
+      ]),
+    ),
+  );
+}
+
+extension InsertSingleMigrationPhaseRowExt on InsertSingle<MigrationPhaseRow> {
+  /// Build an `INSERT` statement with an `ON CONFLICT` clause.
+  ///
+  /// The [target] argument specifies the _conflict target_ to be
+  /// handled. The _conflict target_ is always a `UNIQUE` constraint or
+  /// `PRIMARY KEY` constraint.
+  ///
+  /// If a row to be inserted violates the _conflict target_ constraint,
+  /// then the conflict action is triggered:
+  /// * `.doNothing()` to skip insertion of the new row, and,
+  /// * `.update((migrationPhaseRow, excluded, set) => set(...))` to
+  ///   update the conflicting row.
+  ///
+  /// If a row to be inserted violates a constraint other than the one
+  /// specified in _conflict target_ then the entire `INSERT` statement
+  /// will fail.
+  ///
+  /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
+  InsertOnConflictSingle<MigrationPhaseRow> onConflict(
+    MigrationPhaseRowConflict target,
+  ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
+}
+
+extension InsertOnConflictSingleMigrationPhaseRowExt
+    on InsertOnConflictSingle<MigrationPhaseRow> {
+  /// Build an `INSERT` statement an [upsert-clause][1].
+  ///
+  /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
+  /// constraint previously specified as _conflict target_, the existing
+  /// row is updated using the expressions defined with the
+  /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
+  ///   * `migrationPhaseRow` an [Expr] representing the existing row in
+  ///     the database,
+  ///   * `excluded` an [Expr] representing the row to be inserted in the
+  ///     database, and,
+  ///   * `set` a function to specify which fields should be updated and
+  ///     build the [UpdateSet].
+  ///
+  /// The result of the `set` function should always be immediately
+  /// returned from the [updateBuilder].
+  ///
+  /// **Example:** Insert a counter with `count = 2` or increment the
+  /// existing row, if a `PRIMARY KEY` conflict occurs.
+  /// ```dart
+  /// await db.counters.insertValue(
+  ///     name: 'my-counter', // primary key
+  ///     count: 2,
+  ///   )
+  ///   .onConflict(.primaryKey)
+  ///   .update((counter, excluded, set) => set(
+  ///     count: counter.count + excluded.count,
+  ///   ))
+  ///   .execute();
+  /// ```
+  ///
+  /// This is equivalent to
+  /// `INSERT ... ON CONFLICT (...) UPDATE SET ...` in SQL.
+  ///
+  /// > [!WARNING]
+  /// > The `updateBuilder` callback does not make the update, it builds
+  /// > the expressions for updating the rows. You should **never** invoke
+  /// > the `set` function more than once, and the result should always
+  /// > be returned immediately.
+  ///
+  /// [1]: https://www.sqlite.org/lang_upsert.html
+  UpsertSingle<MigrationPhaseRow> update(
+    UpdateSet<MigrationPhaseRow> Function(
+      Expr<MigrationPhaseRow> migrationPhaseRow,
+      Expr<MigrationPhaseRow> excluded,
+      UpdateSet<MigrationPhaseRow> Function({
+        Expr<String> entity,
+        Expr<String> phase,
+        Expr<DateTime> updatedAt,
+      })
+      set,
+    )
+    updateBuilder,
+  ) => $ForGeneratedCode.updateOnConflictSingle<MigrationPhaseRow>(
+    this,
+    (migrationPhaseRow, excluded) => updateBuilder(
+      migrationPhaseRow,
+      excluded,
+      ({
+        Expr<String>? entity,
+        Expr<String>? phase,
+        Expr<DateTime>? updatedAt,
+      }) => $ForGeneratedCode.buildUpdate<MigrationPhaseRow>([
+        entity,
+        phase,
+        updatedAt,
       ]),
     ),
   );
@@ -22506,6 +23071,149 @@ extension QueryContentNameNamed<A, B>
   /// returned by [conditionBuilder] evaluates to `true`.
   Query<({Expr<A> content, Expr<B> name})> where(
     Expr<bool?> Function(({Expr<A> content, Expr<B> name}) expr)
+    conditionBuilder,
+  ) => _fromPositionalQuery(
+    _asPositionalQuery.where(_wrapBuilder(conditionBuilder)),
+  );
+}
+
+/// Extension methods for building queries projected to a named record.
+extension QueryEntityPhaseUpdatedAtNamed<A, B, C>
+    on Query<({Expr<A> entity, Expr<B> phase, Expr<C> updatedAt})> {
+  Query<(Expr<A>, Expr<B>, Expr<C>)> get _asPositionalQuery => $ForGeneratedCode
+      .renamedRecord(this, (e) => (e.entity, e.phase, e.updatedAt));
+
+  static Query<({Expr<A> entity, Expr<B> phase, Expr<C> updatedAt})>
+  _fromPositionalQuery<A, B, C>(Query<(Expr<A>, Expr<B>, Expr<C>)> query) =>
+      $ForGeneratedCode.renamedRecord(
+        query,
+        (e) => (entity: e.$1, phase: e.$2, updatedAt: e.$3),
+      );
+
+  static T Function(Expr<A> a, Expr<B> b, Expr<C> c) _wrapBuilder<T, A, B, C>(
+    T Function(({Expr<A> entity, Expr<B> phase, Expr<C> updatedAt}) e) builder,
+  ) =>
+      (a, b, c) => builder((entity: a, phase: b, updatedAt: c));
+
+  /// Query the database for rows in this [Query] as a [Stream].
+  Stream<({A entity, B phase, C updatedAt})> stream() async* {
+    yield* _asPositionalQuery.stream().map(
+      (e) => (entity: e.$1, phase: e.$2, updatedAt: e.$3),
+    );
+  }
+
+  /// Query the database for rows in this [Query] as a [List].
+  Future<List<({A entity, B phase, C updatedAt})>> fetch() async =>
+      await stream().toList();
+
+  /// Offset [Query] using `OFFSET` clause.
+  ///
+  /// The resulting [Query] will skip the first [offset] rows.
+  Query<({Expr<A> entity, Expr<B> phase, Expr<C> updatedAt})> offset(
+    int offset,
+  ) => _fromPositionalQuery(_asPositionalQuery.offset(offset));
+
+  /// Limit [Query] using `LIMIT` clause.
+  ///
+  /// The resulting [Query] will only return the first [limit] rows.
+  Query<({Expr<A> entity, Expr<B> phase, Expr<C> updatedAt})> limit(
+    int limit,
+  ) => _fromPositionalQuery(_asPositionalQuery.limit(limit));
+
+  /// Create a projection of this [Query] using `SELECT` clause.
+  ///
+  /// The [projectionBuilder] **must** return a [Record] where all the
+  /// values are [Expr] objects. If something else is returned you will
+  /// get a [Query] object which doesn't have any methods!
+  ///
+  /// All methods and properties on [Query<T>] are extension methods and
+  /// they are only defined for records `T` where all the values are
+  /// [Expr] objects.
+  Query<T> select<T extends Record>(
+    T Function(({Expr<A> entity, Expr<B> phase, Expr<C> updatedAt}) expr)
+    projectionBuilder,
+  ) => _asPositionalQuery.select(_wrapBuilder(projectionBuilder));
+
+  /// Filter [Query] using `WHERE` clause.
+  ///
+  /// Returns a [Query] retaining rows from this [Query] where the expression
+  /// returned by [conditionBuilder] evaluates to `true`.
+  Query<({Expr<A> entity, Expr<B> phase, Expr<C> updatedAt})> where(
+    Expr<bool?> Function(
+      ({Expr<A> entity, Expr<B> phase, Expr<C> updatedAt}) expr,
+    )
+    conditionBuilder,
+  ) => _fromPositionalQuery(
+    _asPositionalQuery.where(_wrapBuilder(conditionBuilder)),
+  );
+}
+
+/// Extension methods for building queries projected to a named record.
+extension QueryPhasePreviousPhaseUpdatedAtNamed<A, B, C>
+    on Query<({Expr<A> phase, Expr<B> previousPhase, Expr<C> updatedAt})> {
+  Query<(Expr<A>, Expr<B>, Expr<C>)> get _asPositionalQuery => $ForGeneratedCode
+      .renamedRecord(this, (e) => (e.phase, e.previousPhase, e.updatedAt));
+
+  static Query<({Expr<A> phase, Expr<B> previousPhase, Expr<C> updatedAt})>
+  _fromPositionalQuery<A, B, C>(Query<(Expr<A>, Expr<B>, Expr<C>)> query) =>
+      $ForGeneratedCode.renamedRecord(
+        query,
+        (e) => (phase: e.$1, previousPhase: e.$2, updatedAt: e.$3),
+      );
+
+  static T Function(Expr<A> a, Expr<B> b, Expr<C> c) _wrapBuilder<T, A, B, C>(
+    T Function(({Expr<A> phase, Expr<B> previousPhase, Expr<C> updatedAt}) e)
+    builder,
+  ) =>
+      (a, b, c) => builder((phase: a, previousPhase: b, updatedAt: c));
+
+  /// Query the database for rows in this [Query] as a [Stream].
+  Stream<({A phase, B previousPhase, C updatedAt})> stream() async* {
+    yield* _asPositionalQuery.stream().map(
+      (e) => (phase: e.$1, previousPhase: e.$2, updatedAt: e.$3),
+    );
+  }
+
+  /// Query the database for rows in this [Query] as a [List].
+  Future<List<({A phase, B previousPhase, C updatedAt})>> fetch() async =>
+      await stream().toList();
+
+  /// Offset [Query] using `OFFSET` clause.
+  ///
+  /// The resulting [Query] will skip the first [offset] rows.
+  Query<({Expr<A> phase, Expr<B> previousPhase, Expr<C> updatedAt})> offset(
+    int offset,
+  ) => _fromPositionalQuery(_asPositionalQuery.offset(offset));
+
+  /// Limit [Query] using `LIMIT` clause.
+  ///
+  /// The resulting [Query] will only return the first [limit] rows.
+  Query<({Expr<A> phase, Expr<B> previousPhase, Expr<C> updatedAt})> limit(
+    int limit,
+  ) => _fromPositionalQuery(_asPositionalQuery.limit(limit));
+
+  /// Create a projection of this [Query] using `SELECT` clause.
+  ///
+  /// The [projectionBuilder] **must** return a [Record] where all the
+  /// values are [Expr] objects. If something else is returned you will
+  /// get a [Query] object which doesn't have any methods!
+  ///
+  /// All methods and properties on [Query<T>] are extension methods and
+  /// they are only defined for records `T` where all the values are
+  /// [Expr] objects.
+  Query<T> select<T extends Record>(
+    T Function(({Expr<A> phase, Expr<B> previousPhase, Expr<C> updatedAt}) expr)
+    projectionBuilder,
+  ) => _asPositionalQuery.select(_wrapBuilder(projectionBuilder));
+
+  /// Filter [Query] using `WHERE` clause.
+  ///
+  /// Returns a [Query] retaining rows from this [Query] where the expression
+  /// returned by [conditionBuilder] evaluates to `true`.
+  Query<({Expr<A> phase, Expr<B> previousPhase, Expr<C> updatedAt})> where(
+    Expr<bool?> Function(
+      ({Expr<A> phase, Expr<B> previousPhase, Expr<C> updatedAt}) expr,
+    )
     conditionBuilder,
   ) => _fromPositionalQuery(
     _asPositionalQuery.where(_wrapBuilder(conditionBuilder)),

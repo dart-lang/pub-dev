@@ -246,10 +246,12 @@ class UserMerger {
       });
       if (moved) {
         await likeBackend.mirrorToSql(newLike);
-      }
-      await likeBackend.deleteFromSql(like.userId, like.package);
-      if (updatedPackage != null) {
-        await packageBackend.mirrorPackageToSql(updatedPackage!);
+        await likeBackend.deleteFromSql(like.userId, like.package);
+      } else {
+        if (updatedPackage != null) {
+          await packageBackend.mirrorPackageToSql(updatedPackage!);
+        }
+        await likeBackend.removeLikeFromSql(like.userId, like.package);
       }
     });
 

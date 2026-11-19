@@ -12,6 +12,7 @@ import 'package:gcloud/service_scope.dart' as ss;
 import 'package:logging/logging.dart';
 import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/migration_phases.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:typed_sql/typed_sql.dart';
 
@@ -60,6 +61,9 @@ class PublisherBackend {
   /// the [Publisher] does not exist in Datastore, it is removed from SQL
   /// (the member rows are removed by the foreign key cascade).
   Future<void> mirrorPublisherToSql(String publisherId) async {
+    if (!await isDatastorePrimary(MigrationEntity.publishers)) {
+      return;
+    }
     final key = _publisherKey(publisherId);
     final publisher = await _db.lookupOrNull<Publisher>(key);
     final (current, currentMembers) = await primaryDatabase.withRetry((
@@ -73,9 +77,12 @@ class PublisherBackend {
     });
     if (publisher == null) {
       if (current == null) return;
-      await primaryDatabase.withRetry(
-        (db) => db.publishers.delete(publisherId).execute(),
-      );
+      await primaryDatabase.transactWithRetry((db) async {
+        if (!await db.isDatastorePrimary(MigrationEntity.publishers)) {
+          return;
+        }
+        await db.publishers.delete(publisherId).execute();
+      });
       return;
     }
     final members = await _db
@@ -90,6 +97,9 @@ class PublisherBackend {
       }
     }
     await primaryDatabase.transactWithRetry((db) async {
+      if (!await db.isDatastorePrimary(MigrationEntity.publishers)) {
+        return;
+      }
       await _upsertPublisher(db, publisher, members);
     });
   }
@@ -203,6 +213,12 @@ class PublisherBackend {
   /// for publishers that are missing or have a different `updated` timestamp,
   /// and removes SQL rows that have no matching Datastore entry.
   Future<int> backfillPublishersSqlFromDatastore() async {
+    if (!await isDatastorePrimary(MigrationEntity.publishers)) {
+      _logger.info(
+        'Skipping publishers SQL backfill: publishers is not datastore-primary.',
+      );
+      return 0;
+    }
     var count = 0;
     final sqlState = <String, DateTime>{};
     final rows = await primaryDatabase.withRetry(
@@ -216,11 +232,17 @@ class PublisherBackend {
       if (sqlUpdatedAt != null && sqlUpdatedAt.isAtOrAfter(p.updated!)) {
         continue;
       }
+      if (!await isDatastorePrimary(MigrationEntity.publishers)) {
+        return count;
+      }
       await mirrorPublisherToSql(p.publisherId);
       count++;
     }
     // The remaining entries have no matching Datastore entity.
     for (final id in sqlState.keys) {
+      if (!await isDatastorePrimary(MigrationEntity.publishers)) {
+        return count;
+      }
       await mirrorPublisherToSql(id);
       count++;
     }

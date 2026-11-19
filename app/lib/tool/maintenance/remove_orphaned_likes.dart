@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 import '../../account/backend.dart';
 import '../../account/like_backend.dart';
 import '../../account/models.dart';
+import '../../database/migration_phases.dart';
 import '../../package/backend.dart';
 import '../../shared/datastore.dart';
 import '../../shared/parallel_foreach.dart';
@@ -22,6 +23,12 @@ final _minAgeThreshold = Duration(days: 1);
 Future<DeleteCounts> removeOrphanedLikes({
   @visibleForTesting Duration? minAgeThreshold,
 }) async {
+  if (!await isDatastorePrimary(MigrationEntity.packageLikes)) {
+    _logger.info(
+      'Skipping orphaned likes removal: package_likes is not datastore-primary.',
+    );
+    return DeleteCounts(0, 0);
+  }
   _logger.info('Scanning for orphaned likes...');
   final existingUserIds = <String>{};
   final existingPackages = <String>{};
@@ -65,6 +72,9 @@ Future<DeleteCounts> removeOrphanedLikes({
     }
 
     if (await isUserIdMissing(like.userId)) {
+      if (!await isDatastorePrimary(MigrationEntity.packageLikes)) {
+        return;
+      }
       _logger.info(
         'Removing like for package `${like.package}` because userId `${like.userId}` is missing.',
       );
@@ -75,6 +85,9 @@ Future<DeleteCounts> removeOrphanedLikes({
     }
 
     if (await isPackageMissing(like.package)) {
+      if (!await isDatastorePrimary(MigrationEntity.packageLikes)) {
+        return;
+      }
       _logger.info(
         'Removing like for userId `${like.userId}` because package `${like.package}` is missing.',
       );

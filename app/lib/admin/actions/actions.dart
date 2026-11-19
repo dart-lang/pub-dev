@@ -10,6 +10,8 @@ import 'email_send.dart';
 import 'exported_api_sync.dart';
 import 'merge_package_tombstone_into_existing.dart';
 import 'migrate_dry_run.dart';
+import 'migration_phase_list.dart';
+import 'migration_phase_set.dart';
 import 'moderate_package.dart';
 import 'moderate_package_versions.dart';
 import 'moderate_publisher.dart';
@@ -104,6 +106,8 @@ final class AdminAction {
     exportedApiSync,
     mergePackageTombstoneIntoExisting,
     migrateDryRun,
+    migrationPhaseList,
+    migrationPhaseSet,
     moderatePackage,
     moderatePackageVersion,
     moderatePublisher,
