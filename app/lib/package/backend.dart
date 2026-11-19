@@ -836,18 +836,16 @@ class PackageBackend {
 
   /// Looks up a specific package version.
   ///
-  /// Returns null if the version is not a semantic version or if the version
-  /// entity does not exists in the datastore.
-  Future<PackageVersion?> lookupPackageVersion(
+  /// Returns null if the version is invalid or does not exist.
+  Future<PackageVersionRow?> lookupPackageVersion(
     String package,
     String version,
   ) async {
     final canonicalVersion = canonicalizeVersion(version);
     if (canonicalVersion == null) return null;
-    final packageVersionKey = db.emptyKey
-        .append(Package, id: package)
-        .append(PackageVersion, id: canonicalVersion);
-    return await db.lookupOrNull<PackageVersion>(packageVersionKey);
+    return await primaryDatabase.withRetry(
+      (db) => db.packageVersions.byKey(package, canonicalVersion).fetch(),
+    );
   }
 
   /// Looks up a specific package version's info object.
@@ -905,18 +903,29 @@ class PackageBackend {
   }
 
   /// Looks up the qualified [versions].
-  Future<List<PackageVersion?>> lookupVersions(
+  ///
+  /// The returned list has the same length and order as [versions] (including
+  /// duplicates), and missing versions are returned as null.
+  Future<List<PackageVersionRow?>> lookupVersions(
     Iterable<QualifiedVersionKey> versions,
   ) async {
-    return await db.lookup<PackageVersion>(
-      versions
-          .map(
-            (k) => db.emptyKey
-                .append(Package, id: k.package)
-                .append(PackageVersion, id: k.version),
+    final keys = versions.map((k) => (k.package!, k.version!)).toList();
+    if (keys.isEmpty) return [];
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.packageVersions
+          .where(
+            (pv) => keys
+                .map(
+                  (k) =>
+                      pv.package.equalsValue(k.$1) &
+                      pv.version.equalsValue(k.$2),
+                )
+                .reduce((a, b) => a | b),
           )
-          .toList(),
+          .fetch(),
     );
+    final byKey = {for (final r in rows) (r.package, r.version): r};
+    return keys.map((k) => byKey[k]).toList();
   }
 
   /// Looks up all versions of a package and return them as a [List].
@@ -2840,6 +2849,25 @@ extension PackageVersionExt on PackageVersion {
       ),
       archiveSha256: archiveSha256,
       published: created,
+    );
+  }
+}
+
+extension PackageVersionRowApiExt on PackageVersionRow {
+  api.VersionInfo toApiVersionInfo() {
+    final sha256 = this.sha256;
+    final hasSha256 = sha256 != null && sha256.isNotEmpty;
+    return api.VersionInfo(
+      version: version,
+      retracted: isRetracted ? true : null,
+      pubspec: pubspec.asJson,
+      archiveUrl: urls.pkgArchiveDownloadUrl(
+        package,
+        version,
+        baseUri: activeConfiguration.primaryApiUri,
+      ),
+      archiveSha256: hasSha256 ? hex.encode(sha256) : null,
+      published: createdAt,
     );
   }
 }

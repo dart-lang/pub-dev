@@ -19,6 +19,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import '../../account/backend.dart';
 import '../../account/like_backend.dart';
 import '../../audit/backend.dart';
+import '../../database/schema.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart';

@@ -7,6 +7,7 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:pub_dev/frontend/static_files.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../../database/schema.dart';
 import '../../package/model_properties.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;

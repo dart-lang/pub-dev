@@ -179,8 +179,39 @@ extension PackageVersionRowExt on PackageVersionRow {
   Pubspec get pubspec =>
       Pubspec.fromJson((pubspecJson.value as Map).cast<String, dynamic>());
 
+  Version get semanticVersion => Version.parse(version);
+
+  List<String> get libraries => (librariesJson.value as List).cast<String>();
+
+  bool get canBeRetracted =>
+      !isRetracted &&
+      createdAt.isAfter(clock.now().toUtc().subtract(const Duration(days: 7)));
+
+  bool get canUndoRetracted =>
+      isRetracted &&
+      retractedAt!.isAfter(
+        clock.now().toUtc().subtract(const Duration(days: 7)),
+      );
+
   QualifiedVersionKey get qualifiedVersionKey =>
       QualifiedVersionKey(package: package, version: version);
+
+  Iterable<String> getTags() {
+    final p = pubspec;
+    final pluginForName = p.implementsFederatedPluginName;
+    return <String>{
+      if (p.supportsOnlyLegacySdk) ...[
+        PackageVersionTags.isLegacy,
+        PackageTags.isUnlisted,
+      ],
+      if (p.funding.isNotEmpty) PackageVersionTags.hasFundingLink,
+      if (p.hasTopic) PackageVersionTags.hasTopic,
+      if (pluginForName != null) ...[
+        PackageVersionTags.hasImplementsFederatedPlugin,
+        PackageVersionTags.implementsFederatedPlugin(pluginForName),
+      ],
+    };
+  }
 
   String? get ellipsizedDescription {
     final description = pubspec.description;

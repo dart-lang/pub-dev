@@ -4,12 +4,15 @@
 
 import 'dart:typed_data';
 
+import 'package:_pub_shared/search/tags.dart'
+    show PackageTags, PackageVersionTags;
 import 'package:clock/clock.dart';
 import 'package:pub_dev/package/model_properties.dart' show Pubspec;
 import 'package:pub_dev/package/models.dart'
     show QualifiedVersionKey, robotsVisibilityMaxAge, robotsVisibilityMinAge;
 import 'package:pub_dev/publisher/models.dart' show PublisherStatus;
 import 'package:pub_dev/service/download_counts/download_counts.dart';
+import 'package:pub_semver/pub_semver.dart' show Version;
 import 'package:typed_sql/typed_sql.dart';
 
 part 'schema.g.dart';

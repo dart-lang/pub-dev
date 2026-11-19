@@ -28,6 +28,7 @@ import '../../service/download_counts/backend.dart';
 import '../../service/topics/models.dart';
 import '../../shared/redis_cache.dart';
 import '../../shared/utils.dart';
+import '../database/schema.dart';
 import '../package/backend.dart';
 import '../package/model_properties.dart';
 import '../package/models.dart';
@@ -41,7 +42,6 @@ import '../shared/storage.dart';
 import '../shared/versions.dart';
 import '../task/backend.dart';
 import '../task/global_lock.dart';
-
 import 'models.dart';
 import 'result_combiner.dart';
 import 'sdk_mem_index.dart';
@@ -306,7 +306,7 @@ class SearchBackend {
     }
     final readmeAsset = await packageBackend.lookupPackageVersionAsset(
       packageName,
-      pv.version!,
+      pv.version,
       AssetKind.readme,
     );
 
@@ -354,7 +354,7 @@ class SearchBackend {
     try {
       final pubDataBytes = await taskBackend.gzippedTaskResult(
         packageName,
-        pv.version!,
+        pv.version,
         'doc/pub-data.json',
       );
       final pubDataContent = pubDataBytes == null
@@ -370,8 +370,8 @@ class SearchBackend {
     }
 
     final descriptionAndTopics = <String>[
-      pv.pubspec!.description ?? '',
-      ...pv.pubspec!.canonicalizedTopics,
+      pv.pubspec.description ?? '',
+      ...pv.pubspec.canonicalizedTopics,
     ].join(' ');
 
     // select the latest entity updated timestamp (when available)
@@ -379,7 +379,7 @@ class SearchBackend {
 
     return PackageDocument(
       package: pv.package,
-      version: pv.version!,
+      version: pv.version,
       tags: tags.toList(),
       description: compactDescription(descriptionAndTopics),
       created: p.created!,
@@ -390,7 +390,7 @@ class SearchBackend {
       likeCount: await packageBackend.lookupLikesCount(packageName) ?? p.likes,
       grantedPoints: scoreCard.grantedPubPoints,
       maxPoints: scoreCard.maxPubPoints,
-      dependencies: await _buildDependencies(pv.pubspec!, scoreCard),
+      dependencies: await _buildDependencies(pv.pubspec, scoreCard),
       apiDocPages: apiDocPages,
       timestamp: clock.now().toUtc(),
       sourceUpdated: sourceUpdated,

@@ -9,6 +9,7 @@ import 'package:pana/pana.dart';
 import 'package:pub_dev/frontend/request_context.dart';
 import 'package:pub_dev/frontend/templates/views/pkg/liked_package_list.dart';
 
+import '../../database/schema.dart';
 import '../../package/models.dart';
 import '../../package/overrides.dart' show devDependencyPackages;
 import '../../shared/handlers.dart';
@@ -121,7 +122,7 @@ d.Node renderPkgHeader(PackagePageData data) {
   final metadataNode = packageHeaderNode(
     packageName: package.name!,
     publisherId: package.publisherId,
-    published: data.version.created!,
+    published: data.version.createdAt,
     isDart3Incompatible: pkgView.tags.contains(
       PackageVersionTags.isDart3Incompatible,
     ),
@@ -131,7 +132,7 @@ d.Node renderPkgHeader(PackagePageData data) {
   return renderDetailHeader(
     titleNode: titleContentNode(
       package: package.name!,
-      version: data.version.version!,
+      version: data.version.version,
     ),
     likeNode: renderLikeButtonAndLabel(
       package: package.name!,
@@ -233,7 +234,7 @@ String _renderPkgPage({
     footerNode: renderPackageSchemaOrgHtml(data),
   );
 
-  final isFlutterPackage = data.version.pubspec!.usesFlutter;
+  final isFlutterPackage = data.version.pubspec.usesFlutter;
   final packageAndVersion = data.isLatestStable
       ? data.package.name!
       : '${data.package.name} ${data.version.version}';
@@ -278,13 +279,13 @@ String _renderPkgPage({
 
 PageData pkgPageData(
   Package package,
-  PackageVersion selectedVersion, {
+  PackageVersionRow selectedVersion, {
   bool? editable,
 }) {
   return PageData(
     pkgData: PkgData(
       package: package.name!,
-      version: selectedVersion.version!,
+      version: selectedVersion.version,
       publisherId: package.publisherId,
       isDiscontinued: package.isDiscontinued,
       isLatest: package.latestVersion == selectedVersion.version,
@@ -484,10 +485,10 @@ Tab _scoreTab(PackagePageData data) {
     title: 'Scores',
     contentNode: scoreTabNode(
       package: data.package.name!,
-      version: data.version.version!,
+      version: data.version.version,
       card: data.scoreCard,
       likeCount: data.package.likes,
-      usesFlutter: data.version.pubspec!.usesFlutter,
+      usesFlutter: data.version.pubspec.usesFlutter,
       isLatestStable: data.isLatestStable,
     ),
   );
@@ -501,10 +502,10 @@ d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
     '@type': 'SoftwareSourceCode',
     'name': p.name,
     'version': pv.version,
-    'description': '${p.name} - ${pv.pubspec!.description}',
+    'description': '${p.name} - ${pv.pubspec.description}',
     'url': urls.pkgPageUrl(p.name!, includeHost: true),
     'dateCreated': p.created!.toIso8601String(),
-    'dateModified': pv.created!.toIso8601String(),
+    'dateModified': pv.createdAt.toIso8601String(),
     'programmingLanguage': 'Dart',
     'image': '${urls.siteRoot}/static/img/pub-dev-icon-cover-image.png',
   };

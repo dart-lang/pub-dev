@@ -8,6 +8,7 @@ import 'package:pana/pana.dart';
 import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pubspec_parse/pubspec_parse.dart' as pubspek;
 
+import '../../../../database/schema.dart';
 import '../../../../package/models.dart';
 import '../../../../package/overrides.dart' show sdkPackageUrls;
 import '../../../../service/topics/models.dart';
@@ -54,8 +55,8 @@ d.Node packageInfoBoxNode({
       isPending: data.toPackageView().isPending,
     );
   }
-  final dependencies = _dependencyListNode(version.pubspec?.dependencies);
-  final topics = _topicsNode(version.pubspec?.canonicalizedTopics);
+  final dependencies = _dependencyListNode(version.pubspec.dependencies);
+  final topics = _topicsNode(version.pubspec.canonicalizedTopics);
 
   final screenshots = data.scoreCard.panaReport?.screenshots;
   String? thumbnailUrl;
@@ -64,14 +65,14 @@ d.Node packageInfoBoxNode({
   if (screenshots != null && screenshots.isNotEmpty) {
     thumbnailUrl = taskBackend.resourceUrl(
       package.name!,
-      version.version!,
+      version.version,
       screenshots.first.webp190Thumbnail,
     );
     for (final screenshot in screenshots) {
       screenshotUrls.add(
         taskBackend.resourceUrl(
           package.name!,
-          version.version!,
+          version.version,
           screenshot.webpImage,
         ),
       );
@@ -97,7 +98,7 @@ d.Node packageInfoBoxNode({
     _publisher(package.publisherId),
     if (data.weeklyDownloadCounts != null)
       _downloadsChart(data.weeklyDownloadCounts!),
-    _metadata(description: version.pubspec!.description, metaLinks: metaLinks),
+    _metadata(description: version.pubspec.description, metaLinks: metaLinks),
     if (topics != null) _block('Topics', topics),
     if (fundingLinks.isNotEmpty)
       _block(
@@ -113,7 +114,7 @@ d.Node packageInfoBoxNode({
     if (dependencies != null) _block('Dependencies', dependencies),
     _more(
       package.name!,
-      showImplementsLink: data.version.pubspec?.hasFlutterPlugin ?? false,
+      showImplementsLink: data.version.pubspec.hasFlutterPlugin,
     ),
   ]);
 }

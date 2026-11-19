@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../../audit/models.dart';
+import '../../database/schema.dart';
 import '../../package/models.dart';
 import '../../shared/urls.dart' as urls;
-
 import 'detail_page.dart';
 import 'layout.dart';
 import 'package.dart';

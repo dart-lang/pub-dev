@@ -9,6 +9,7 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
+import '../../database/schema.dart';
 
 final topicsJsonFileName = 'topics.json';
 
@@ -24,7 +25,7 @@ Future<void> countTopics() async {
     if (v == null) {
       continue;
     }
-    for (final t in v.pubspec!.canonicalizedTopics) {
+    for (final t in v.pubspec.canonicalizedTopics) {
       topics.update(t, (value) => value + 1, ifAbsent: () => 1);
     }
   }

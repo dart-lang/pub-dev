@@ -199,7 +199,7 @@ void main() {
           'pkg_show_page.html',
           timestamps: {
             'published': data.package.created,
-            'updated': data.version.created,
+            'updated': data.version.createdAt,
           },
         );
       },
@@ -220,7 +220,7 @@ void main() {
           'pkg_changelog_page.html',
           timestamps: {
             'published': data.package.created,
-            'updated': data.version.created,
+            'updated': data.version.createdAt,
           },
         );
       },
@@ -241,7 +241,7 @@ void main() {
           'pkg_example_page.html',
           timestamps: {
             'published': data.package.created,
-            'updated': data.version.created,
+            'updated': data.version.createdAt,
           },
         );
       },
@@ -258,7 +258,7 @@ void main() {
           'pkg_install_page.html',
           timestamps: {
             'published': data.package.created,
-            'updated': data.version.created,
+            'updated': data.version.createdAt,
           },
         );
       },
@@ -275,7 +275,7 @@ void main() {
           'pkg_score_page.html',
           timestamps: {
             'published': data.package.created,
-            'updated': data.version.created,
+            'updated': data.version.createdAt,
           },
         );
       },
@@ -311,7 +311,7 @@ void main() {
           'pkg_score_page_with_downloads_chart.html',
           timestamps: {
             'published': data.package.created,
-            'updated': data.version.created,
+            'updated': data.version.createdAt,
           },
         );
       },
@@ -332,7 +332,7 @@ void main() {
           'pkg_show_version_page.html',
           timestamps: {
             'published': data.package.created,
-            'updated': data.version.created,
+            'updated': data.version.createdAt,
           },
         );
       },
@@ -356,7 +356,7 @@ void main() {
           'pkg_show_page_flutter_plugin.html',
           timestamps: {
             'published': data.package.created,
-            'updated': data.version.created,
+            'updated': data.version.createdAt,
           },
         );
       },
@@ -389,7 +389,7 @@ void main() {
           'pkg_show_page_discontinued.html',
           timestamps: {
             'published': data.package.created,
-            'updated': data.version.created,
+            'updated': data.version.createdAt,
           },
         );
       },
@@ -423,7 +423,7 @@ void main() {
           'pkg_show_page_retracted.html',
           timestamps: {
             'published': data.package.created,
-            'updated': data.version.created,
+            'updated': data.version.createdAt,
           },
         );
 
@@ -438,7 +438,7 @@ void main() {
           'pkg_show_page_retracted_non_retracted_version.html',
           timestamps: {
             'published': data2.package.created,
-            'updated': data2.version.created,
+            'updated': data2.version.createdAt,
           },
         );
       },
@@ -472,7 +472,7 @@ void main() {
           'pkg_show_page_retracted_non_retracted_version.html',
           timestamps: {
             'published': data2.package.created,
-            'updated': data2.version.created,
+            'updated': data2.version.createdAt,
           },
         );
       },
@@ -537,7 +537,7 @@ void main() {
             'pkg_admin_page.html',
             timestamps: {
               'published': data.package.created,
-              'updated': data.version.created,
+              'updated': data.version.createdAt,
             },
           );
         });
@@ -582,7 +582,7 @@ void main() {
             'pkg_activity_log_page.html',
             timestamps: {
               'published': data.package.created,
-              'updated': data.version.created,
+              'updated': data.version.createdAt,
               ..._activityLogTimestamps(activities),
             },
           );
@@ -677,7 +677,7 @@ void main() {
           html,
           'pkg_versions_page.html',
           timestamps: {
-            'version-created': data.version.created,
+            'version-created': data.version.createdAt,
             'package-created': data.package.created,
           },
         );

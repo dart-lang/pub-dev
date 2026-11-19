@@ -640,7 +640,7 @@ void main() {
           (await packageBackend.lookupPackageVersion(
             'oxygen',
             '1.2.0',
-          ))!.pubspec!.jsonString,
+          ))!.pubspec.jsonString,
         );
         await updatePubspec((m) => {...m, 'description': 'before\u0000after'});
         expect(await packageBackend.backfillPackagesSqlFromDatastore(), 1);
