@@ -69,12 +69,13 @@ Future<String> buildPackageAtomFeedContent(String package) async {
   if (!await packageBackend.isPackageVisible(package)) {
     throw NotFoundException.resource(package);
   }
-  final versions = await packageBackend
-      .streamVersionsOfPackage(package, order: '-created', limit: 10)
-      .toList();
+  final versions = await packageBackend.latestVersionsOfPackage(
+    package,
+    limit: 10,
+  );
   versions.removeWhere((pv) => pv.isNotVisible || pv.isRetracted);
   final contents = await Future.wait(
-    versions.map((v) => _getChangelogReleaseContent(package, v.version!)),
+    versions.map((v) => _getChangelogReleaseContent(package, v.version)),
   );
   final feed = _packageFeed(package, versions, contents);
   return feed.toXmlDocument();
@@ -267,7 +268,7 @@ Feed _allPackagesFeed(
 
 Feed _packageFeed(
   String package,
-  List<PackageVersion> versions,
+  List<PackageVersionRow> versions,
   List<String> releaseContents,
 ) {
   return Feed(
@@ -298,10 +299,10 @@ Feed _packageFeed(
         alternateUrl: alternateUrl,
         alternateTitle: v.version,
         content: [
-          '${v.version} was published on ${shortDateFormat.format(v.created!)}.',
+          '${v.version} was published on ${shortDateFormat.format(v.createdAt)}.',
           if (releaseContent.isNotEmpty) 'Changelog excerpt:\n$releaseContent',
         ].join('\n\n'),
-        updated: v.created!,
+        updated: v.createdAt,
       );
     }).toList(),
   );

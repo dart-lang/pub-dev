@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Note: `User` listings are now read from SQL.
  * Note: some `User` reads (login + lookups) now use SQL only.
  * Note: `PackageVersion` reads now use SQL.
+ * Note: `PackageVersion` listings (versions list, atom feed, retraction candidates) now read from SQL.
 
 ## `20261117t125500-all`
  * Bump runtimeVersion to `2026.11.17`.

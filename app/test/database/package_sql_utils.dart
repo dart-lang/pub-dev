@@ -17,7 +17,7 @@ Future<void> expectPackageInSqlMatchesDatastore(String package) async {
   final p = await packageBackend.lookupPackage(package);
   final versions = p == null
       ? const <PackageVersion>[]
-      : await packageBackend.versionsOfPackage(package);
+      : await packageBackend.datastoreVersionsOfPackage(package);
   final row = await primaryDatabase.withRetry(
     (db) => db.packages.byKey(package).fetch(),
   );

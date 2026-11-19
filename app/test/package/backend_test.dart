@@ -857,7 +857,7 @@ void main() {
   }
 
   Future<Set<String>> datastoreVersionsOf(String package) async {
-    return (await packageBackend.versionsOfPackage(
+    return (await packageBackend.datastoreVersionsOfPackage(
       package,
     )).map((v) => v.version!).toSet();
   }

@@ -418,8 +418,8 @@ Future<shelf.Response> packageAdminHandler(
         data,
         page.publishers!.map((p) => p.publisherId).toList(),
         uploaderEmails.map((e) => e!).toList(),
-        retractableVersions.map((v) => v.id!).toList(),
-        retractedVersions.map((v) => v.id!).toList(),
+        retractableVersions.map((v) => v.version).toList(),
+        retractedVersions.map((v) => v.version).toList(),
       );
     },
   );
