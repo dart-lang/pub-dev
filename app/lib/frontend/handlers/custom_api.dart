@@ -12,7 +12,6 @@ import 'package:gcloud/storage.dart';
 import 'package:pub_dev/frontend/templates/views/shared/search_banner.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../../database/schema.dart';
 import '../../frontend/request_context.dart';
 import '../../package/backend.dart';
 import '../../package/models.dart';
@@ -176,7 +175,7 @@ Future<shelf.Response> apiPackagesHandler(shelf.Request request) async {
         'name': version.package,
         'latest': {
           'version': version.version,
-          'pubspec': version.pubspec.asJson,
+          'pubspec': (version.pubspecJson.value as Map).cast<String, dynamic>(),
 
           // TODO: We should get rid of these:
           'archive_url': apiArchiveUrl,
