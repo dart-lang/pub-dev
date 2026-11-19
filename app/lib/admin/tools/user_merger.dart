@@ -215,43 +215,7 @@ class UserMerger {
     );
 
     // Like
-    await _processConcurrently(_db.query<Like>(ancestorKey: fromUserKey), (
-      Like like,
-    ) async {
-      final newLike = like.changeParentUser(toUserKey);
-      Package? updatedPackage;
-      var moved = false;
-      await withRetryTransaction(_db, (tx) async {
-        updatedPackage = null;
-        moved = false;
-        final existing = await tx.lookupOrNull<Like>(newLike.key);
-        if (existing == null) {
-          tx.queueMutations(inserts: [newLike], deletes: [like.key]);
-          moved = true;
-          return;
-        }
-        // The target user already likes the package: keep their like, drop
-        // the duplicate and decrement the counter to avoid drifting.
-        final p = await tx.lookupOrNull<Package>(
-          _db.emptyKey.append(Package, id: like.package),
-        );
-        if (p == null) {
-          tx.queueMutations(deletes: [like.key]);
-          return;
-        }
-        p.likes--;
-        p.updated = clock.now().toUtc();
-        tx.queueMutations(inserts: [p], deletes: [like.key]);
-        updatedPackage = p;
-      });
-      if (moved) {
-        await likeBackend.mirrorToSql(newLike);
-      }
-      await likeBackend.deleteFromSql(like.userId, like.package);
-      if (updatedPackage != null) {
-        await packageBackend.mirrorPackageToSql(updatedPackage!);
-      }
-    });
+    await likeBackend.transferLikes(fromUserId, toUserId);
 
     // UserSession
     await primaryDatabase.transactWithRetry((db) async {

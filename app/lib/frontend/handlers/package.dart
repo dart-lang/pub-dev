@@ -500,8 +500,10 @@ Future<PackagePageData> loadPackagePageData(
   );
 
   final weeklyDownloadCountsFuture = getWeeklyTotalDownloads(package.name!);
+  final likesCountFuture = packageBackend.lookupLikesCount(packageName);
 
   await Future.wait([
+    likesCountFuture,
     latestReleasesFuture,
     isLikedFuture,
     selectedVersionFuture,
@@ -529,6 +531,7 @@ Future<PackagePageData> loadPackagePageData(
     scoreCard: await scoreCardFuture,
     isAdmin: await isAdminFuture,
     isLiked: await isLikedFuture,
+    likesCount: await likesCountFuture ?? 0,
     weeklyDownloadCounts: await weeklyDownloadCountsFuture,
   );
 }

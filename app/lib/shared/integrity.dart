@@ -834,7 +834,6 @@ class IntegrityChecker extends _BaseIntegrityChecker {
   Stream<String> _checkLikes() async* {
     _logger.info('Scanning Likes...');
 
-    final counts = <String, int>{};
     yield* _queryWithPool<Like>((like) async* {
       if (like.packageName == null) {
         yield 'Like entity for user "${like.userId}" and package "${like.package}" has a '
@@ -849,9 +848,16 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       if (await _packageMissing(like.package)) {
         yield 'User "${like.userId}" likes missing package "${like.package}".';
       }
-
-      counts[like.package] = (counts[like.package] ?? 0) + 1;
     });
+
+    // The counts are based on the SQL rows, which are the source of truth.
+    final counts = <String, int>{};
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.packageLikes.select((l) => (l.package,)).fetch(),
+    );
+    for (final package in rows) {
+      counts[package] = (counts[package] ?? 0) + 1;
+    }
 
     final allPackages = <String>{..._packageLikes.keys, ...counts.keys};
     for (final package in allPackages) {
