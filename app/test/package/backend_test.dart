@@ -856,10 +856,10 @@ void main() {
     return rows.toSet();
   }
 
-  Future<Set<String>> versionsOf(String package) async {
-    return (await packageBackend.versionsOfPackage(
+  Future<Set<String>> datastoreVersionsOf(String package) async {
+    return (await packageBackend.datastoreVersionsOfPackage(
       package,
-    )).map((v) => v.version).toSet();
+    )).map((v) => v.version!).toSet();
   }
 
   testWithProfile(
@@ -871,7 +871,7 @@ void main() {
       final p = (await packageBackend.lookupPackage('oxygen'))!;
       await packageBackend.mirrorPackageToSql(p);
 
-      final expected = await versionsOf('oxygen');
+      final expected = await datastoreVersionsOf('oxygen');
       expect(expected.length, greaterThan(1));
       expect(await sqlVersionsOf('oxygen'), expected);
     },
@@ -890,14 +890,17 @@ void main() {
 
       await packageBackend.backfillPackagesSqlFromDatastore();
 
-      expect(await sqlVersionsOf('oxygen'), await versionsOf('oxygen'));
+      expect(
+        await sqlVersionsOf('oxygen'),
+        await datastoreVersionsOf('oxygen'),
+      );
     },
   );
 
   testWithProfile(
     'backfill removes extra and restores flagged version rows',
     fn: () async {
-      final expected = await versionsOf('oxygen');
+      final expected = await datastoreVersionsOf('oxygen');
       final first = expected.first;
       await primaryDatabase.withRetry(
         (db) => db.packageVersions.delete('oxygen', first).execute(),
