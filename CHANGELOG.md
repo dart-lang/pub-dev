@@ -2,6 +2,8 @@ Important changes to data models, configuration, and migrations between each
 AppEngine version, listed here to ease deployment and troubleshooting.
 
 ## Next Release (replace with git tag when deployed)
+ * Bump runtimeVersion to `2026.11.19`.
+ * Upgraded dependencies
  * Note: `User` listings are now read from SQL.
  * Note: some `User` reads (login + lookups) now use SQL only.
  * Note: `PackageVersion` reads now use SQL.
