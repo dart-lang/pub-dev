@@ -172,12 +172,16 @@ extension PackageRowExt on PackageRow {
   bool get isExcludedInRobots => !isIncludedInRobots;
 }
 
+/// Caches the parsed [Pubspec] per row instance.
+final _pubspecCache = Expando<Pubspec>();
+
 extension PackageVersionRowExt on PackageVersionRow {
   bool get isVisible => !isModerated && !isAdminDeleted;
   bool get isNotVisible => !isVisible;
 
-  Pubspec get pubspec =>
-      Pubspec.fromJson((pubspecJson.value as Map).cast<String, dynamic>());
+  Pubspec get pubspec => _pubspecCache[this] ??= Pubspec.fromJson(
+    (pubspecJson.value as Map).cast<String, dynamic>(),
+  );
 
   Version get semanticVersion => Version.parse(version);
 
