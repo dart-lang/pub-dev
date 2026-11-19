@@ -164,6 +164,7 @@ class PackageBackend {
             (v) => [
               (v.createdAt, Order.descending),
               (v.version, Order.descending),
+              (v.package, Order.descending),
             ],
           )
           .limit(limit)
@@ -991,7 +992,8 @@ class PackageBackend {
       (db) => db.packageVersions
           .where((v) => v.package.equalsValue(package))
           .where((v) => v.isRetracted.not())
-          .where((v) => v.createdAt >= toExpr(threshold))
+          .where((v) => v.createdAt > toExpr(threshold))
+          .orderBy((v) => [(v.version, Order.ascending)])
           .fetch(),
     );
   }
@@ -1005,7 +1007,8 @@ class PackageBackend {
       (db) => db.packageVersions
           .where((v) => v.package.equalsValue(package))
           .where((v) => v.isRetracted)
-          .where((v) => v.retractedAt.asNotNull() >= toExpr(threshold))
+          .where((v) => v.retractedAt.asNotNull() > toExpr(threshold))
+          .orderBy((v) => [(v.version, Order.ascending)])
           .fetch(),
     );
   }
