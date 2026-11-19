@@ -193,6 +193,7 @@ extension PackageVersionRowExt on PackageVersionRow {
 
   bool get canUndoRetracted =>
       isRetracted &&
+      retractedAt != null &&
       retractedAt!.isAfter(
         clock.now().toUtc().subtract(const Duration(days: 7)),
       );
