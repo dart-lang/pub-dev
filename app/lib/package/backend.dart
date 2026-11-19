@@ -1648,14 +1648,10 @@ class PackageBackend {
     final canonicalVersion = canonicalizeVersion(version);
     InvalidInputException.checkSemanticVersion(canonicalVersion);
 
-    final packageVersionKey = db.emptyKey
-        .append(Package, id: package)
-        .append(PackageVersion, id: canonicalVersion);
-
     if (!await isPackageVisible(package)) {
       throw NotFoundException.resource('package "$package"');
     }
-    final pv = await db.lookupOrNull<PackageVersion>(packageVersionKey);
+    final pv = await lookupPackageVersion(package, canonicalVersion!);
     if (pv == null) {
       throw NotFoundException.resource('version "$version"');
     }
@@ -2860,10 +2856,14 @@ extension PackageVersionRowApiExt on PackageVersionRow {
     return api.VersionInfo(
       version: version,
       retracted: isRetracted ? true : null,
-      pubspec: pubspec.asJson,
+      pubspec: (pubspecJson.value as Map).cast<String, dynamic>(),
       archiveUrl: urls.pkgArchiveDownloadUrl(
         package,
         version,
+
+        /// We should use the primary API URI here, because the generated URLs may
+        /// end up in multiple cache, and it is critical that we always serve the
+        /// content with the proper cached URLs.
         baseUri: activeConfiguration.primaryApiUri,
       ),
       archiveSha256: hasSha256 ? hex.encode(sha256) : null,
