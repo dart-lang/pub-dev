@@ -911,20 +911,27 @@ class PackageBackend {
   ) async {
     final keys = versions.map((k) => (k.package!, k.version!)).toList();
     if (keys.isEmpty) return [];
-    final rows = await primaryDatabase.withRetry(
-      (db) => db.packageVersions
-          .where(
-            (pv) => keys
-                .map(
-                  (k) =>
-                      pv.package.equalsValue(k.$1) &
-                      pv.version.equalsValue(k.$2),
-                )
-                .reduce((a, b) => a | b),
-          )
-          .fetch(),
-    );
-    final byKey = {for (final r in rows) (r.package, r.version): r};
+    final uniqueKeys = keys.toSet();
+    final byKey = <(String, String), PackageVersionRow>{};
+    // Chunking keeps the generated SQL expression shallow.
+    for (final chunk in uniqueKeys.slices(100)) {
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.packageVersions
+            .where(
+              (pv) => chunk
+                  .map(
+                    (k) =>
+                        pv.package.equalsValue(k.$1) &
+                        pv.version.equalsValue(k.$2),
+                  )
+                  .reduce((a, b) => a | b),
+            )
+            .fetch(),
+      );
+      for (final r in rows) {
+        byKey[(r.package, r.version)] = r;
+      }
+    }
     return keys.map((k) => byKey[k]).toList();
   }
 
