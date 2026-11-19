@@ -12,11 +12,14 @@ import 'package:http/retry.dart';
 import 'package:retry/retry.dart';
 
 final _transientStatusCodes = {
-  // See: https://cloud.google.com/storage/docs/xml-api/reference-status
+  // See: https://cloud.google.com/storage/docs/retry-strategy
+  // and: https://cloud.google.com/storage/docs/xml-api/reference-status
+  408,
   429,
   500,
   502,
   503,
+  504,
 };
 
 /// Creates a HTTP client that retries transient status codes.
