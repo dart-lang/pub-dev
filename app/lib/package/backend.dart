@@ -2856,29 +2856,6 @@ class PackageBackend {
   }
 }
 
-extension PackageVersionExt on PackageVersion {
-  api.VersionInfo toApiVersionInfo() {
-    final hasSha256 = this.sha256 != null && this.sha256!.isNotEmpty;
-    final archiveSha256 = hasSha256 ? hex.encode(this.sha256!) : null;
-    return api.VersionInfo(
-      version: version!,
-      retracted: isRetracted ? true : null,
-      pubspec: pubspec!.asJson,
-      archiveUrl: urls.pkgArchiveDownloadUrl(
-        package,
-        version!,
-
-        /// We should use the primary API URI here, because the generated URLs may
-        /// end up in multiple cache, and it is critical that we always serve the
-        /// content with the proper cached URLs.
-        baseUri: activeConfiguration.primaryApiUri,
-      ),
-      archiveSha256: archiveSha256,
-      published: created,
-    );
-  }
-}
-
 extension PackageVersionRowApiExt on PackageVersionRow {
   api.VersionInfo toApiVersionInfo() {
     final sha256 = this.sha256;
