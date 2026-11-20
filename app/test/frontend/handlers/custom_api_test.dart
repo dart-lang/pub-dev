@@ -158,6 +158,7 @@ void main() {
         p!.updateIsModerated(isModerated: true);
         expect(p.isVisible, isFalse);
         await dbService.commit(inserts: [p]);
+        await packageBackend.mirrorPackageToSql(p);
         await nameTracker.reloadFromDatastore();
         await cache.packageNamesDataJsonGz().purge();
         final rs2 = await http.get(
@@ -173,6 +174,7 @@ void main() {
         // reverting to make sure integrity check is passing
         p.updateIsModerated(isModerated: false);
         await dbService.commit(inserts: [p]);
+        await packageBackend.mirrorPackageToSql(p);
       },
     );
   });

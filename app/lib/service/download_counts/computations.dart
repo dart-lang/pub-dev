@@ -25,7 +25,7 @@ Future<Map<String, double>> computeTrend() async {
   final res = <String, double>{};
 
   await for (final pkg in packageBackend.allPackages()) {
-    final name = pkg.name!;
+    final name = pkg.name;
     final downloads =
         (await downloadCountsBackend.lookupDownloadCountData(
           name,

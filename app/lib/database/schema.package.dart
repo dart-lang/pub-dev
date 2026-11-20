@@ -170,6 +170,39 @@ extension PackageRowExt on PackageRow {
   }
 
   bool get isExcludedInRobots => !isIncludedInRobots;
+
+  List<String> get assignedTags => (assignedTagsJson.value as List).cast();
+
+  bool isNewPackage() => isNewPackageCreatedAt(createdAt);
+
+  Iterable<String> getTags() => computePackageTags(
+    assignedTags: assignedTags,
+    createdAt: createdAt,
+    isDiscontinued: isDiscontinued,
+    isUnlisted: isUnlisted,
+    publisherId: publisherId,
+  );
+}
+
+bool isNewPackageCreatedAt(DateTime createdAt) =>
+    createdAt.difference(clock.now()).abs().inDays <= 30;
+
+/// Shared by [PackageRow] and the Datastore `Package` entity.
+// TODO: inline into PackageRowExt once the Datastore Package is removed.
+Iterable<String> computePackageTags({
+  required Iterable<String>? assignedTags,
+  required DateTime createdAt,
+  required bool isDiscontinued,
+  required bool isUnlisted,
+  required String? publisherId,
+}) {
+  return <String>{
+    ...?assignedTags,
+    if (isNewPackageCreatedAt(createdAt)) PackageTags.isRecent,
+    if (isDiscontinued) ...[PackageTags.isDiscontinued, PackageTags.isUnlisted],
+    if (isUnlisted) PackageTags.isUnlisted,
+    if (publisherId != null) PackageTags.publisherTag(publisherId),
+  };
 }
 
 /// Caches the parsed [Pubspec] per row instance.
