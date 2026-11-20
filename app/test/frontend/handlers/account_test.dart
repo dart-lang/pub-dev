@@ -3,10 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:clock/clock.dart';
+import 'package:pub_dev/account/agent.dart';
 import 'package:pub_dev/account/backend.dart';
+import 'package:pub_dev/account/consent_backend.dart';
+import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/configuration.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
@@ -125,6 +129,56 @@ void main() {
         expect(rs.statusCode, 303);
         final location = rs.headers['location']!;
         expect(location, '/sign-in?go=%2Fmy-packages');
+      },
+    );
+
+    testWithProfile(
+      '/consent reads fresh SQL email even when _emailCache is stale',
+      fn: () async {
+        final cookies = await acquireSessionCookies('user@pub.dev');
+        final user = await accountBackend.lookupUserByEmail('user@pub.dev');
+
+        // Warm this instance's in-memory _emailCache with the old email.
+        expect(
+          await accountBackend.getEmailOfUserId(user.userId),
+          'user@pub.dev',
+        );
+
+        // Simulate another instance updating the user's email in Datastore and
+        // SQL while this instance's in-memory _emailCache still holds the old
+        // email.
+        const newEmail = 'renamed@pub.dev';
+        final dsUser = await dbService.lookupValue<User>(
+          dbService.emptyKey.append(User, id: user.userId),
+        );
+        dsUser.email = newEmail;
+        await dbService.commit(inserts: [dsUser]);
+        await accountBackend.mirrorUserToSql(dsUser);
+        expect(
+          await accountBackend.getEmailOfUserId(user.userId),
+          'user@pub.dev',
+        );
+
+        await consentBackend.invitePublisherMember(
+          authenticatedAgent: SupportAgent(),
+          publisherId: 'example.com',
+          invitedUserEmail: newEmail,
+        );
+        final consents = await primaryDatabase.withRetry(
+          (db) =>
+              db.consents.where((c) => c.email.equalsValue(newEmail)).fetch(),
+        );
+        final consentId = consents.single.id;
+
+        await expectHtmlResponse(
+          await issueGet(
+            '/consent?id=$consentId',
+            headers: {'cookie': cookies},
+            host: activeConfiguration.primarySiteUri.host,
+          ),
+          status: 200,
+          present: ['example.com'],
+        );
       },
     );
   });
