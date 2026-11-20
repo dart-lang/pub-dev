@@ -118,6 +118,63 @@ void main() {
       );
     });
 
+    group('Backend.getAssets', () {
+      testWithProfile(
+        'returns sorted asset kinds',
+        fn: () async {
+          final assets = await packageBackend.getAssets('oxygen', '1.2.0');
+          expect(assets, isNotEmpty);
+          expect(assets, contains('readme'));
+          expect(assets, [...assets!]..sort());
+        },
+      );
+
+      testWithProfile(
+        'canonicalizes the version',
+        fn: () async {
+          expect(
+            await packageBackend.getAssets('oxygen', '01.02.0'),
+            await packageBackend.getAssets('oxygen', '1.2.0'),
+          );
+        },
+      );
+
+      testWithProfile(
+        'invalid version',
+        fn: () async {
+          expect(
+            await packageBackend.getAssets('oxygen', 'not-a-version'),
+            isNull,
+          );
+        },
+      );
+
+      testWithProfile(
+        'missing version',
+        fn: () async {
+          expect(await packageBackend.getAssets('oxygen', '0.0.0-dev'), isNull);
+          expect(
+            await packageBackend.getAssets('missing_pkg', '1.0.0'),
+            isNull,
+          );
+        },
+      );
+
+      testWithProfile(
+        'version without assets',
+        fn: () async {
+          await primaryDatabase.withRetry(
+            (db) => db.packageVersionAssets
+                .where((a) => a.package.equalsValue('oxygen'))
+                .where((a) => a.version.equalsValue('1.2.0'))
+                .delete()
+                .execute(),
+          );
+          expect(await packageBackend.getAssets('oxygen', '1.2.0'), isEmpty);
+        },
+      );
+    });
+
     group('Backend.lookupLatestVersions', () {
       testWithProfile(
         'two packages',
