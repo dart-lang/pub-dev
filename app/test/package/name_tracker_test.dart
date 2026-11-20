@@ -6,7 +6,6 @@ import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/backend.dart';
 import 'package:pub_dev/package/name_tracker.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/test_profile/models.dart';
 import 'package:test/test.dart';
 
@@ -15,7 +14,7 @@ import '../shared/test_services.dart';
 
 void main() {
   group('json', () {
-    final nameTracker = NameTracker(null);
+    final nameTracker = NameTracker();
     // main package
     nameTracker.add(TrackedPackage.simple('json'));
     // package was added before publishing was blocked.
@@ -47,7 +46,7 @@ void main() {
   });
 
   group('isolate', () {
-    final nameTracker = NameTracker(null);
+    final nameTracker = NameTracker();
     nameTracker.add(TrackedPackage.simple('isolates'));
 
     test('conflicting package: singular', () async {
@@ -57,7 +56,7 @@ void main() {
   });
 
   group('m vs rn', () {
-    final nameTracker = NameTracker(null);
+    final nameTracker = NameTracker();
     nameTracker.add(TrackedPackage.simple('morning'));
 
     test('morning', () async {
@@ -68,7 +67,7 @@ void main() {
   });
 
   group('vv vs w', () {
-    final nameTracker = NameTracker(null);
+    final nameTracker = NameTracker();
     nameTracker.add(TrackedPackage.simple('webb'));
 
     test('morning', () async {
@@ -79,7 +78,7 @@ void main() {
 
   group('time and version', () {
     test('earlier time does not override the entry', () {
-      final nameTracker = NameTracker(null);
+      final nameTracker = NameTracker();
       nameTracker.add(
         TrackedPackage(
           package: 'a',
@@ -105,7 +104,7 @@ void main() {
     });
 
     test('later time does override the entry', () {
-      final nameTracker = NameTracker(null);
+      final nameTracker = NameTracker();
       nameTracker.add(
         TrackedPackage(
           package: 'a',
@@ -156,7 +155,7 @@ void main() {
         defaultUser: 'user@pub.dev',
       ),
       fn: () async {
-        final tracker = NameTracker(dbService);
+        final tracker = NameTracker(scanRecent: true);
         await tracker.reloadFromDatastore();
         // new version is accepted
         expect(await tracker.accept('aaa_bbb'), isNull);
@@ -164,6 +163,16 @@ void main() {
         expect(await tracker.accept('aaa_bbbs'), 'aaa_bbb');
         expect(await tracker.accept('aaabbb'), 'aaa_bbb');
         expect(await tracker.accept('aa_ab_bb'), 'aaa_bbb');
+
+        // the recent scan (without a full scan) picks up the same visibility
+        final recentTracker = NameTracker(scanRecent: true);
+        expect(await recentTracker.accept('other'), isNull);
+        expect(
+          recentTracker.visiblePackagesOrderedByLastPublished.map(
+            (e) => e.package,
+          ),
+          ['aaa_bbb'],
+        );
 
         await accountBackend.withBearerToken(
           siteAdminToken,

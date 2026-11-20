@@ -258,7 +258,6 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
         registerScopeExitCallback(announcementBackend.close);
         registerApiExporter(
           ApiExporter(
-            dbService,
             storageService: storageService,
             bucket: storageService.bucket(
               activeConfiguration.exportedApiBucketName!,
@@ -272,16 +271,15 @@ Future<R> _withPubServices<R>(FutureOr<R> Function() fn) async {
         registerConsentBackend(ConsentBackend(dbService));
         registerEmailBackend(EmailBackend(dbService));
         registerLikeBackend(LikeBackend(dbService));
-        registerNameTracker(NameTracker(dbService));
+        registerNameTracker(NameTracker(scanRecent: true));
         registerScopeExitCallback(() async => nameTracker.stopTracking());
         registerPackageIndexHolder(PackageIndexHolder());
-        registerIndexUpdater(IndexUpdater(dbService));
+        registerIndexUpdater(IndexUpdater());
         registerPublisherBackend(PublisherBackend(dbService));
         registerScoreCardBackend(ScoreCardBackend());
         registerScopeExitCallback(scoreCardBackend.close);
         registerSearchBackend(
           SearchBackend(
-            dbService,
             storageService.bucket(
               activeConfiguration.searchSnapshotBucketName!,
             ),

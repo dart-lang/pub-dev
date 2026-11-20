@@ -4,6 +4,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
 ## Next Release (replace with git tag when deployed)
  * Bump runtimeVersion to `2026.11.20`.
  * Upgraded runtime Dart SDK to `3.14.1`
+ * Note: `Package` listings are now read from SQL.
 
 ## `20261119t130200-all`
  * Bump runtimeVersion to `2026.11.19`.

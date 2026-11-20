@@ -36,7 +36,6 @@ import '../package/overrides.dart';
 import '../scorecard/backend.dart';
 import '../scorecard/models.dart';
 import '../search/mem_index.dart';
-import '../shared/datastore.dart';
 import '../shared/exceptions.dart';
 import '../shared/storage.dart';
 import '../shared/versions.dart';
@@ -84,10 +83,9 @@ void registerSearchIndex(SearchIndex index) =>
 
 /// Datastore-related access methods for the search service
 class SearchBackend {
-  final DatastoreDB _db;
   final VersionedJsonStorage _snapshotStorage;
 
-  SearchBackend(this._db, Bucket snapshotBucket)
+  SearchBackend(Bucket snapshotBucket)
     : _snapshotStorage = VersionedJsonStorage(snapshotBucket, 'snapshot/');
 
   /// Runs a forever loop and tries to get a global lock.
@@ -194,7 +192,7 @@ class SearchBackend {
       }
       // This is the first scan, there isn't any existing document that we
       // can compare to, ignoring the updated field.
-      final f = pool.withResource(() => updatePackage(package.name!, null));
+      final f = pool.withResource(() => updatePackage(package.name, null));
       futures.add(f);
     }
     await Future.wait(futures);
@@ -259,7 +257,9 @@ class SearchBackend {
       }
     }
 
-    await for (final e in _db.packages.listUpdatedSince(updatedThreshold)) {
+    await for (final e in packageBackend.listPackagesUpdatedSince(
+      updatedThreshold,
+    )) {
       addResult(e.name, e.updated);
     }
 
@@ -432,21 +432,19 @@ class SearchBackend {
 
   /// Loads a minimum set of package document data for indexing.
   Stream<PackageDocument> loadMinimumPackageIndex() async* {
-    final query = _db.query<Package>();
-    await for (final p in query.run()) {
+    await for (final p in packageBackend.allPackages()) {
       if (p.isNotVisible) continue;
       if (p.publisherId != null) {
         final ps = await publisherBackend.getPublisherStatus(p.publisherId!);
         if (!ps.isVisible) continue;
       }
-      final releases = await packageBackend.latestReleases(p);
       yield PackageDocument(
-        package: p.name!,
-        version: releases.stable.version,
+        package: p.name,
+        version: p.latestVersion,
         tags: p.getTags().toList(),
-        created: p.created!,
-        updated: p.lastVersionPublished!,
-        likeCount: p.likes,
+        created: p.createdAt,
+        updated: p.lastVersionPublishedAt,
+        likeCount: p.likesCount,
         grantedPoints: 0,
         maxPoints: 0,
         timestamp: clock.now().toUtc(),

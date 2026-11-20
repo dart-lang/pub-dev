@@ -14,8 +14,7 @@ import 'package:pub_dev/package/overrides.dart';
 import 'package:pub_dev/search/models.dart';
 import 'package:pub_dev/search/search_service.dart';
 
-import '../package/models.dart' show Package;
-import '../shared/datastore.dart';
+import '../package/backend.dart' show packageBackend;
 
 import 'backend.dart';
 import 'mem_index.dart';
@@ -67,10 +66,6 @@ Future<void> saveInMemoryPackageIndexToFile(
 }
 
 class IndexUpdater {
-  final DatastoreDB _db;
-
-  IndexUpdater(this._db);
-
   /// Loads the package index snapshot, or if it fails, creates a minimal
   /// package index with only package names and minimal information.
   Future<void> init() async {
@@ -98,8 +93,8 @@ class IndexUpdater {
   @visibleForTesting
   Future<List<PackageDocument>> loadAllPackageDocuments() async {
     final documents = <PackageDocument>[];
-    await for (final p in _db.query<Package>().run()) {
-      final doc = await searchBackend.loadDocument(p.name!);
+    await for (final name in packageBackend.allPackageNames()) {
+      final doc = await searchBackend.loadDocument(name);
       documents.add(doc);
     }
     return documents;
