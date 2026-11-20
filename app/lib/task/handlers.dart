@@ -325,8 +325,8 @@ Future<shelf.Response> handleTaskResource(
     headers: {
       ...CacheControl.taskResource.headers,
       'Content-Type': mime,
-      'Vary': 'Accept-Encoding',
       if (acceptsGzip) 'Content-Encoding': 'gzip',
+      'Vary': 'Accept-Encoding',
     },
   );
 }
