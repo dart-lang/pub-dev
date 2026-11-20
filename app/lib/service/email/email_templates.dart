@@ -413,6 +413,7 @@ EmailMessage createReportPageAdminEmail({
   required String kindLabel,
   required String userEmail,
   required String bodyText,
+  String? inReplyToLocalMessageId,
 }) {
   return EmailMessage(
     _notificationsFrom,
@@ -420,6 +421,7 @@ EmailMessage createReportPageAdminEmail({
     'pub.dev $kindLabel: $caseId',
     bodyText,
     localMessageId: caseId,
+    inReplyToLocalMessageId: inReplyToLocalMessageId,
     ccRecipients: [EmailAddress(userEmail)],
   );
 }
