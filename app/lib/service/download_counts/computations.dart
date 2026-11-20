@@ -24,8 +24,7 @@ Future<void> computeTrendScoreTask() async {
 Future<Map<String, double>> computeTrend() async {
   final res = <String, double>{};
 
-  await for (final pkg in packageBackend.allPackages()) {
-    final name = pkg.name;
+  await for (final name in packageBackend.allPackageNames()) {
     final downloads =
         (await downloadCountsBackend.lookupDownloadCountData(
           name,

@@ -236,7 +236,6 @@ class NameTracker {
       final rows = await primaryDatabase.withRetry(
         (db) => db.packages
             .where((p) => p.lastVersionPublishedAt.isAfterValue(ts))
-            .orderBy((p) => [(p.lastVersionPublishedAt, Order.descending)])
             .select(
               (p) => (
                 p.name,

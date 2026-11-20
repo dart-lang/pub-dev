@@ -164,10 +164,13 @@ void main() {
         expect(await tracker.accept('aaabbb'), 'aaa_bbb');
         expect(await tracker.accept('aa_ab_bb'), 'aaa_bbb');
 
-        // the recent scan picks up the same visibility as the full scan
-        await tracker.reloadFromDatastore();
+        // the recent scan (without a full scan) picks up the same visibility
+        final recentTracker = NameTracker(scanRecent: true);
+        expect(await recentTracker.accept('other'), isNull);
         expect(
-          tracker.visiblePackagesOrderedByLastPublished.map((e) => e.package),
+          recentTracker.visiblePackagesOrderedByLastPublished.map(
+            (e) => e.package,
+          ),
           ['aaa_bbb'],
         );
 

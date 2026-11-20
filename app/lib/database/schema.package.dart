@@ -28,6 +28,7 @@ abstract final class PackageRow extends Row {
   DateTime get updatedAt;
 
   /// The publish time of the most recent version (including retracted ones).
+  @Index.field()
   DateTime get lastVersionPublishedAt;
 
   /// The latest stable version (pre-release versions are deprioritized).
@@ -46,6 +47,7 @@ abstract final class PackageRow extends Row {
   DateTime? get latestPreviewPublishedAt;
 
   /// The owner publisher (null, if the package does not have a publisher).
+  @Index.field()
   String? get publisherId;
 
   /// The number of visible versions.
