@@ -102,7 +102,8 @@ d.Node pageLayoutNode({
 
             d.link(
               rel: 'stylesheet',
-              href: 'https://www.gstatic.com/glue/v25_0/ccb.min.css',
+              href:
+                  'https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.css',
             ),
             d.link(
               rel: 'search',
@@ -138,9 +139,14 @@ d.Node pageLayoutNode({
             ),
             d.script(
               src:
-                  'https://www.gstatic.com/brandstudio/kato/cookie_choice_component/cookie_consent_bar.v3.js',
+                  'https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.js',
               defer: true,
-              attributes: {'data-autoload-cookie-consent-bar': 'true'},
+              attributes: {
+                'data-glue-cookie-notification-bar-category': '2B',
+                'data-glue-cookie-notification-bar-site-id': 'pub.dev',
+                'data-glue-cookie-notification-bar-auto-margin-class':
+                    'site-footer',
+              },
             ),
             if (csrfToken != null && csrfToken.isNotEmpty)
               d.meta(name: 'csrf-token', content: csrfToken),
