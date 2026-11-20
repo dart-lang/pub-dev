@@ -724,11 +724,11 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       // check if PackageVersionAsset is referenced in PackageVersionInfo
       if (!referencedAssetIds.contains(pva.assetId)) {
         // double check actual status to prevent misreports on cache race conditions
-        final info = await packageBackend.lookupPackageVersionInfo(
+        final assets = await packageBackend.getAssets(
           pva.package!,
           pva.version!,
         );
-        if (info == null || !info.assets.contains(pva.kind!)) {
+        if (assets == null || !assets.contains(pva.kind!)) {
           yield 'PackageVersionAsset "${pva.id}" is not referenced from PackageVersionInfo.';
         }
       }

@@ -630,10 +630,7 @@ void main() {
           await packageBackend.lookupPackageVersion('oxygen', '1.0.0'),
           isNull,
         );
-        expect(
-          await packageBackend.lookupPackageVersionInfo('oxygen', '1.0.0'),
-          isNull,
-        );
+        expect(await packageBackend.getAssets('oxygen', '1.0.0'), isNull);
         expect(
           await packageBackend.lookupPackageVersionAsset(
             'oxygen',

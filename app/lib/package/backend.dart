@@ -855,34 +855,32 @@ class PackageBackend {
     );
   }
 
-  /// Looks up a specific package version's info object.
-  ///
-  /// Returns null if the [version] is not a semantic version or if the info
-  /// entity does not exists in the datastore.
-  Future<PackageVersionInfo?> lookupPackageVersionInfo(
-    String package,
-    String version,
-  ) async {
-    final canonicalVersion = canonicalizeVersion(version);
-    if (canonicalVersion == null) return null;
-    final qvk = QualifiedVersionKey(
-      package: package,
-      version: canonicalVersion,
-    );
-    return await db.lookupOrNull<PackageVersionInfo>(
-      db.emptyKey.append(PackageVersionInfo, id: qvk.qualifiedVersion),
-    );
-  }
-
   /// Returns the list of `AssetKind` values that exist for [package] [version].
   ///
-  /// Returns an empty list if the info entity does not exist in the datastore.
+  /// Returns `null` if the [version] is not semantic or the package version
+  /// does not exist in SQL.
   Future<List<String>?> getAssets(String package, String version) async {
+    final canonicalVersion = canonicalizeVersion(version);
+    if (canonicalVersion == null) return null;
     final assets = await cache
-        .packageVersionAssetKinds(package, version)
+        .packageVersionAssetKinds(package, canonicalVersion)
         .obtain(() async {
-          final info = await lookupPackageVersionInfo(package, version);
-          return info?.assets;
+          return await primaryDatabase.withRetry((db) async {
+            final versionRow = await db.packageVersions
+                .byKey(package, canonicalVersion)
+                .select((pv) => (pv.version,))
+                .fetch();
+            if (versionRow == null) return null;
+            return await db.packageVersionAssets
+                .where(
+                  (a) =>
+                      a.package.equalsValue(package) &
+                      a.version.equalsValue(canonicalVersion),
+                )
+                .orderBy((a) => [(a.kind, Order.ascending)])
+                .select((a) => (a.kind,))
+                .fetch();
+          });
         });
     return assets;
   }
