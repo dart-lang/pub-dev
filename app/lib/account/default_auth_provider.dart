@@ -439,7 +439,7 @@ abstract class BaseAuthProvider extends AuthProvider {
     }
     return AuthResult(
       oauthUserId: sub,
-      email: email,
+      email: email.toLowerCase(),
       audience: aud,
       name: name as String?,
       imageUrl: picture as String?,
