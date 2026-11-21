@@ -28,10 +28,37 @@ Element? _activeHover;
 ///  Their `:hover` and `.hover` style must match to have the same effect.
 void _setEventForHoverable() {
   document.body!.onClick.listen(deactivateHover);
+  window.onKeyDown.listen((e) {
+    if (e.key != 'Escape') return;
+    final activeElement = document.activeElement;
+    final focusedHoverable = activeElement is Element
+        ? activeElement.closest('.hoverable')
+        : null;
+    deactivateHover(e);
+    for (final h
+        in document.querySelectorAll('.hoverable:hover').toElementList()) {
+      h.classList.add('-hover-dismissed');
+    }
+    if (focusedHoverable != null) {
+      _hoverableTrigger(focusedHoverable)?.focus();
+    }
+  });
   for (final h in document.querySelectorAll('.hoverable').toElementList()) {
     registerHoverable(h);
   }
 }
+
+HTMLElement? _hoverableTrigger(Element h) =>
+    h.querySelector(
+          '.nav-main-button, .nav-profile-img, .sort-control-selected',
+        )
+        as HTMLElement?;
+
+List<HTMLElement> _hoverableMenuItems(Element h) => h
+    .querySelectorAll(
+      '.nav-hover-popup a, .nav-hover-popup button, .sort-control-popup button',
+    )
+    .toElementList<HTMLElement>();
 
 /// Deactivates the active hover (hiding the hovering panel).
 void deactivateHover(_) {
@@ -41,19 +68,70 @@ void deactivateHover(_) {
   }
 }
 
+void _activateHover(Element h, {bool focusFirstItem = false}) {
+  if (h != _activeHover) {
+    deactivateHover(null);
+    _activeHover = h;
+    h.classList.add('hover');
+  }
+  h.classList.remove('-hover-dismissed');
+  if (focusFirstItem) {
+    final items = _hoverableMenuItems(h);
+    if (items.isNotEmpty) {
+      items.first.focus();
+    }
+  }
+}
+
 /// Registers the given Element to follow hoverable events.
 void registerHoverable(Element h) {
   h.onClick.listen((e) {
+    final target = e.target;
+    if (target is Element &&
+        target.closest('.nav-hover-popup, .sort-control-popup') != null) {
+      return;
+    }
     if (h != _activeHover) {
+      _activateHover(h, focusFirstItem: true);
+      e.stopPropagation();
+    } else {
       deactivateHover(e);
-      _activeHover = h;
-      h.classList.add('hover');
       e.stopPropagation();
     }
   });
   h.onMouseEnter.listen((e) {
+    h.classList.remove('-hover-dismissed');
     if (h != _activeHover) {
       deactivateHover(e);
+    }
+  });
+  h.onMouseLeave.listen((_) {
+    h.classList.remove('-hover-dismissed');
+  });
+  EventStreamProvider<FocusEvent>('focusout').forTarget(h).listen((e) {
+    final related = e.relatedTarget;
+    if (related is! Node || !h.contains(related)) {
+      if (_activeHover == h) {
+        deactivateHover(e);
+      }
+    }
+  });
+  h.onKeyDown.listen((e) {
+    if (e.key != 'ArrowDown' && e.key != 'ArrowUp') return;
+    final items = _hoverableMenuItems(h);
+    if (items.isEmpty) return;
+    e.preventDefault();
+    _activateHover(h);
+    final active = document.activeElement;
+    final currentIndex = active is HTMLElement ? items.indexOf(active) : -1;
+    if (e.key == 'ArrowDown') {
+      final nextIndex = currentIndex < 0
+          ? 0
+          : (currentIndex + 1) % items.length;
+      items[nextIndex].focus();
+    } else {
+      final prevIndex = currentIndex <= 0 ? items.length - 1 : currentIndex - 1;
+      items[prevIndex].focus();
     }
   });
 }
