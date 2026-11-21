@@ -32,20 +32,28 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
   if (docFilePath == null) {
     return notFoundHandler(request);
   }
-  checkPackageVersionParams(docFilePath.package, docFilePath.version);
-  if (isSdkPackage(docFilePath.package)) {
-    return redirectResponse(sdkPackageUrls[docFilePath.package]!);
+  final package = docFilePath.package;
+  final version = docFilePath.version;
+  checkPackageVersionParams(package, version);
+  if (isSdkPackage(package)) {
+    return redirectResponse(sdkPackageUrls[package]!);
   }
-  if (!await packageBackend.isPackageVisible(docFilePath.package)) {
+  if (!await packageBackend.isPackageVisible(package)) {
     return notFoundHandler(request);
   }
-  if (docFilePath.version == null) {
-    return redirectResponse(pkgDocUrl(docFilePath.package, isLatest: true));
+  if (version == null) {
+    return redirectResponse(pkgDocUrl(package, isLatest: true));
   }
+  final canonicalVersion = version == 'latest'
+      ? 'latest'
+      : Version.parse(version).canonicalizedVersion;
   final detectedPath = docFilePath.path;
   if (detectedPath == null) {
+    return redirectResponse(pkgDocUrl(package, version: canonicalVersion));
+  }
+  if (version != canonicalVersion) {
     return redirectResponse(
-      pkgDocUrl(docFilePath.package, version: docFilePath.version),
+      pkgDocUrl(package, version: canonicalVersion, relativePath: detectedPath),
     );
   }
   // 8.3.0 dartdoc links to directories without an ending slash.
@@ -56,24 +64,18 @@ Future<shelf.Response> documentationHandler(shelf.Request request) async {
       !request.requestedUri.path.endsWith('/index.html')) {
     // removes last segment `index.html` and adds `/` at the end of the url.
     return redirectResponse(
-      pkgDocUrl(
-        docFilePath.package,
-        version: docFilePath.version,
-        relativePath: detectedPath,
-      ),
+      pkgDocUrl(package, version: canonicalVersion, relativePath: detectedPath),
     );
   }
 
-  final package = docFilePath.package;
-  final version = docFilePath.version!;
-  final resolved = await _resolveDocUrlVersion(package, version);
+  final resolved = await _resolveDocUrlVersion(package, canonicalVersion);
   if (resolved.isEmpty) {
     return notFoundHandler(
       request,
       body: resolved.message ?? default404NotFound,
     );
   }
-  if (version != resolved.urlSegment) {
+  if (canonicalVersion != resolved.urlSegment) {
     return redirectResponse(
       pkgDocUrl(
         package,
