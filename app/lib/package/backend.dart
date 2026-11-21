@@ -3281,6 +3281,7 @@ class _VersionTransactionDataAcccess {
           package,
           forceDelete: exportForceDelete,
           skipArchives: skipArchiveExport,
+          invalidateCdn: true,
         ),
       ),
     if (!skipReanalysis)

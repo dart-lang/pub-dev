@@ -15,6 +15,7 @@ import 'package:pub_dev/account/models.dart';
 import 'package:pub_dev/admin/actions/migrate_dry_run.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
+import 'package:pub_dev/fake/backend/fake_cdn_invalidator.dart';
 import 'package:pub_dev/fake/backend/fake_download_counts.dart';
 import 'package:pub_dev/fake/backend/fake_email_sender.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
@@ -147,6 +148,7 @@ final class FakeAppengineEnv {
                 await youtubeBackend.start();
                 await asyncQueue.ongoingProcessing;
                 fakeEmailSender.sentMessages.clear();
+                fakeCdnInvalidator.invalidatedPaths.clear();
 
                 await fork(() async {
                   await fn();

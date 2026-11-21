@@ -45,10 +45,12 @@ const _minGarbageAge = Duration(hours: 3);
 /// All writes to the bucket containing the exported API should
 /// go through this interface.
 final class ExportedApi {
+  static const _latestPrefix = 'latest';
+
   final Pool _pool = Pool(80);
   final Storage _storage;
   final Bucket _bucket;
-  final List<String> _prefixes = ['latest', runtimeVersion];
+  final List<String> _prefixes = [_latestPrefix, runtimeVersion];
 
   ExportedApi(this._storage, this._bucket);
 
@@ -323,13 +325,20 @@ final class ExportedPackage {
   /// [versions] **must** have an entry for each version that exists.
   /// This will **delete** tarballs for versions that do not exist in
   /// [versions].
-  Future<void> synchronizeTarballs(
+  ///
+  /// Returns the versions whose tarballs were uploaded/updated or deleted
+  /// under the `latest/` prefix.
+  Future<({Set<String> uploadedVersions, Set<String> deletedVersions})>
+  synchronizeTarballs(
     Map<String, SourceObjectInfo> versions, {
     bool forceWrite = false,
     bool forceDelete = false,
   }) async {
+    final uploadedVersions = <String>{};
+    final deletedVersions = <String>{};
     await Future.wait([
       ..._owner._prefixes.map((prefix) async {
+        final isLatest = prefix == ExportedApi._latestPrefix;
         final pfx = '$prefix/api/archives/$_package-';
 
         final versionsForUpload = versions.keys.toSet();
@@ -350,9 +359,12 @@ final class ExportedPackage {
 
           final info = versions[version];
           if (info != null && !forceWrite) {
-            await tarball(
+            final copied = await tarball(
               version,
             )._copyToPrefixFromIfNotContentEquals(prefix, info, item);
+            if (isLatest && copied) {
+              uploadedVersions.add(version);
+            }
             // This version needs not be uploaded again
             versionsForUpload.remove(version);
 
@@ -366,6 +378,9 @@ final class ExportedPackage {
             // This avoids any races where we delete files we've just created
             _log.shout('Deleting object from public bucket: "${item.name}".');
             await _owner._bucket.deleteWithRetry(item.name);
+            if (isLatest && info == null) {
+              deletedVersions.add(version);
+            }
           }
         });
 
@@ -373,17 +388,25 @@ final class ExportedPackage {
         await Future.wait(
           versionsForUpload.map((v) async {
             await _owner._pool.withResource(() async {
-              await tarball(v)._copyToPrefixFromIfNotContentEquals(
-                prefix,
-                versions[v]!,
-                null,
-                forceWrite: forceWrite,
-              );
+              final copied = await tarball(v)
+                  ._copyToPrefixFromIfNotContentEquals(
+                    prefix,
+                    versions[v]!,
+                    null,
+                    forceWrite: forceWrite,
+                  );
+              if (isLatest && copied) {
+                uploadedVersions.add(v);
+              }
             });
           }),
         );
       }),
     ]);
+    return (
+      uploadedVersions: uploadedVersions,
+      deletedVersions: deletedVersions,
+    );
   }
 
   /// Garbage collect versions from this package not in [allVersionNumbers].
@@ -478,6 +501,9 @@ sealed class ExportedObject {
   final String _objectName;
   ExportedObject._(this._owner, this._objectName);
 
+  /// The public URL path of this exported object (starting with `/`).
+  String get path => _objectName;
+
   /// Delete this file.
   Future<void> delete() async {
     await Future.wait(
@@ -540,22 +566,29 @@ final class ExportedJsonFile<T> extends ExportedObject {
   ///
   /// This will only write if `Content-Length` and `md5Hash` doesn't match the
   /// existing file, or if [forceWrite] is given.
-  Future<void> write(T data, {bool forceWrite = false}) async {
+  ///
+  /// Returns `true` if the object under `latest/` was written.
+  Future<bool> write(T data, {bool forceWrite = false}) async {
     final gzipped = _jsonGzip.encode(data);
     final metadata = _metadata();
 
+    var latestChanged = false;
     await Future.wait(
       _owner._prefixes.map((prefix) async {
         await _owner._pool.withResource(() async {
-          await _owner._bucket.writeBytesIfDifferent(
+          final changed = await _owner._bucket.writeBytesIfDifferent(
             prefix + _objectName,
             gzipped,
             metadata,
             forceWrite: forceWrite,
           );
+          if (prefix == ExportedApi._latestPrefix && changed) {
+            latestChanged = true;
+          }
         });
       }),
     );
+    return latestChanged;
   }
 }
 
@@ -584,22 +617,29 @@ final class ExportedAtomFeedFile<T> extends ExportedObject {
   ///
   /// This will only write if `Content-Length` and `md5Hash` doesn't match the
   /// existing file, or if [forceWrite] is given.
-  Future<void> write(String content, {bool forceWrite = false}) async {
+  ///
+  /// Returns `true` if the object under `latest/` was written.
+  Future<bool> write(String content, {bool forceWrite = false}) async {
     final gzipped = gzip.encode(utf8.encode(content));
     final metadata = _metadata();
 
+    var latestChanged = false;
     await Future.wait(
       _owner._prefixes.map((prefix) async {
         await _owner._pool.withResource(() async {
-          await _owner._bucket.writeBytesIfDifferent(
+          final changed = await _owner._bucket.writeBytesIfDifferent(
             prefix + _objectName,
             gzipped,
             metadata,
             forceWrite: forceWrite,
           );
+          if (prefix == ExportedApi._latestPrefix && changed) {
+            latestChanged = true;
+          }
         });
       }),
     );
+    return latestChanged;
   }
 }
 
@@ -635,20 +675,27 @@ final class ExportedBlob extends ExportedObject {
   ///
   /// This will only write of `Content-Length` and `md5Hash` doesn't match the
   /// existing file, or if [forceWrite] is given.
-  Future<void> write(List<int> data, {bool forceWrite = false}) async {
+  ///
+  /// Returns `true` if the object under `latest/` was written.
+  Future<bool> write(List<int> data, {bool forceWrite = false}) async {
     final metadata = _metadata();
+    var latestChanged = false;
     await Future.wait(
       _owner._prefixes.map((prefix) async {
         await _owner._pool.withResource(() async {
-          await _owner._bucket.writeBytesIfDifferent(
+          final changed = await _owner._bucket.writeBytesIfDifferent(
             prefix + _objectName,
             data,
             metadata,
             forceWrite: forceWrite,
           );
+          if (prefix == ExportedApi._latestPrefix && changed) {
+            latestChanged = true;
+          }
         });
       }),
     );
+    return latestChanged;
   }
 
   /// Copy binary blob from [SourceObjectInfo] to this file.
@@ -660,24 +707,31 @@ final class ExportedBlob extends ExportedObject {
   /// This method will use [ObjectInfo.length] and [ObjectInfo.md5Hash] to
   /// determine if it's necessary to copy the object.
   /// If [forceWrite] is given, this method will always copy the object.
-  Future<void> copyFrom(
+  ///
+  /// Returns `true` if the object under `latest/` was copied.
+  Future<bool> copyFrom(
     SourceObjectInfo source, {
     bool forceWrite = false,
   }) async {
+    var latestChanged = false;
     await Future.wait(
       _owner._prefixes.map((prefix) async {
         await _owner._pool.withResource(() async {
           final dst = prefix + _objectName;
 
-          await _copyToPrefixFromIfNotContentEquals(
+          final changed = await _copyToPrefixFromIfNotContentEquals(
             prefix,
             source,
             await _owner._bucket.tryInfo(dst),
             forceWrite: forceWrite,
           );
+          if (prefix == ExportedApi._latestPrefix && changed) {
+            latestChanged = true;
+          }
         });
       }),
     );
+    return latestChanged;
   }
 
   /// Copy from [source] to [prefix] if required by [destinationInfo].
@@ -690,9 +744,11 @@ final class ExportedBlob extends ExportedObject {
   /// header, if it's older than [_updateValidatedAfter]. This ensures that we
   /// can detect stray files that are not being updated (but also not deleted).
   ///
+  /// Returns `true` if the object was copied, `false` if skipped.
+  ///
   /// Throws, if [destinationInfo] is not `null` and its [ObjectInfo.name]
   /// doesn't match the intended target object in [prefix].
-  Future<void> _copyToPrefixFromIfNotContentEquals(
+  Future<bool> _copyToPrefixFromIfNotContentEquals(
     String prefix,
     SourceObjectInfo source,
     ObjectInfo? destinationInfo, {
@@ -726,7 +782,7 @@ final class ExportedBlob extends ExportedObject {
             _log.warning('Failed to updateMetadata on "$dst" failed', e, st);
           }
         }
-        return;
+        return false;
       }
     }
 
@@ -737,11 +793,12 @@ final class ExportedBlob extends ExportedObject {
       _owner._bucket.absoluteObjectName(dst),
       metadata: _metadata(),
     );
+    return true;
   }
 }
 
 extension on Bucket {
-  Future<void> writeBytesIfDifferent(
+  Future<bool> writeBytesIfDifferent(
     String name,
     List<int> bytes,
     ObjectMetadata metadata, {
@@ -762,7 +819,7 @@ extension on Bucket {
               _log.warning('Failed to updateMetadata on "$name" failed', e, st);
             }
           }
-          return;
+          return false;
         }
       }
     }
@@ -774,6 +831,7 @@ extension on Bucket {
       () => Stream.value(bytes),
       metadata: metadata,
     );
+    return true;
   }
 }
 
