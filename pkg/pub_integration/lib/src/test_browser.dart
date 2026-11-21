@@ -233,6 +233,11 @@ class TestBrowserSession {
     });
 
     page.onResponse.listen((rs) async {
+      // Filters out data: and other-domain URLs (e.g. fonts.gstatic.com or
+      // external assets referenced from package READMEs).
+      if (!rs.url.startsWith(_browser._origin)) {
+        return;
+      }
       if (rs.status >= 500) {
         serverErrors.add(
           '${rs.status} ${rs.statusText} received on ${rs.request.url}',
@@ -263,10 +268,7 @@ class TestBrowserSession {
         }
       }
 
-      if (rs.status == 200 &&
-          rs.request.method.toUpperCase() == 'GET' &&
-          // filters out data: and other-domain URLs
-          rs.url.startsWith(_browser._origin)) {
+      if (rs.status == 200 && rs.request.method.toUpperCase() == 'GET') {
         final uri = Uri.parse(rs.url);
         final firstPathSegment = uri.pathSegments.firstOrNull;
 
