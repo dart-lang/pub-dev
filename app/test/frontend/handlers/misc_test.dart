@@ -64,6 +64,40 @@ void main() {
         );
       },
     );
+
+    testWithProfile(
+      'suggests similar package and search link on /packages/<pkg> 404',
+      fn: () async {
+        final rs = await issueGet('/packages/fluttertitanium');
+        await expectHtmlResponse(
+          rs,
+          status: 404,
+          present: [
+            '404 Not Found',
+            '/packages/flutter_titanium', // link to similar package page
+            '/packages?q=fluttertitanium', // link to search page
+          ],
+        );
+      },
+    );
+
+    testWithProfile(
+      'link to search page on /packages/<nonexistent> 404',
+      fn: () async {
+        final rs = await issueGet('/packages/not_oxygen');
+        await expectHtmlResponse(
+          rs,
+          status: 404,
+          present: [
+            '404 Not Found',
+            '/packages?q=not_oxygen', // link to search page
+          ],
+          absent: [
+            'href="/packages/not_oxygen"', // link to package page
+          ],
+        );
+      },
+    );
   });
 
   group('CSP reporting', () {
