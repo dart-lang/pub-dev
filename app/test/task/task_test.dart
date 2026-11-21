@@ -15,6 +15,7 @@ import 'package:indexed_blob/indexed_blob.dart';
 import 'package:pana/pana.dart';
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/versions.dart' show runtimeVersion;
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/fakecloudcompute.dart';
@@ -1001,6 +1002,104 @@ void main() {
       }
     });
   });
+
+  testWithProfile(
+    'backfills apiSummaryVersions and stores api_summaries.json',
+    testProfile: TestProfile(
+      defaultUser: 'admin@pub.dev',
+      generatedPackages: [
+        GeneratedTestPackage(
+          name: 'oxygen',
+          versions: [
+            GeneratedTestVersion(version: '1.0.0'),
+            GeneratedTestVersion(version: '1.0.1'),
+            GeneratedTestVersion(version: '1.1.0'),
+            GeneratedTestVersion(version: '1.2.0'),
+          ],
+        ),
+      ],
+      users: [TestUser(email: 'admin@pub.dev', likes: [])],
+    ),
+    fn: () async {
+      await taskBackend.backfillTrackingState();
+      clockControl.elapse(minutes: 5);
+      await taskBackend.runOneLoopCycle();
+
+      final instances = await cloud.listInstances().toList();
+      expect(instances, hasLength(1));
+      final instance = instances.single;
+      cloud.fakeStartInstance(instance.instanceName);
+
+      final payload = instance.payload;
+      expect(payload.versions.map((v) => v.version).toList(), [
+        '1.2.0',
+        '1.1.0',
+      ]);
+      expect(payload.apiSummaryVersions, ['1.0.1', '1.0.0']);
+
+      final firstVersion = payload.versions.first;
+      final api = createPubApiClient(authToken: firstVersion.token);
+      final uploadInfo = await api.taskUploadResult(
+        payload.package,
+        firstVersion.version,
+      );
+
+      final c = http.Client();
+      try {
+        final blobId = uploadInfo.blobId;
+        final output = await BlobIndexPair.build(blobId, (addFile) async {
+          await addFile(
+            'log.txt',
+            Stream.value('pana log').transform(utf8.fuse(gzip).encoder),
+          );
+          await addFile(
+            'api_summaries.json',
+            Stream.value(
+              json.encode({
+                '1.0.1': json.encode({
+                  'name': 'oxygen',
+                  'libraries': <Object?>[],
+                }),
+                // Empty string records a tombstone for failed historical extraction.
+                '1.0.0': '',
+              }),
+            ).transform(utf8.fuse(gzip).encoder),
+          );
+        });
+        await upload(
+          c,
+          uploadInfo.blob,
+          () => Stream.value(output.blob),
+          output.blob.length,
+          filename: uploadInfo.blobId,
+        );
+        await upload(
+          c,
+          uploadInfo.index,
+          () => Stream.value(output.index.asBytes()),
+          output.index.asBytes().length,
+          filename: 'blob.index',
+          contentType: 'application/json',
+        );
+      } finally {
+        c.close();
+      }
+
+      await api.taskUploadFinished(payload.package, firstVersion.version);
+
+      final summaries = await packageBackend.lookupPackageApiSummaries(
+        'oxygen',
+      );
+      expect(summaries.keys, ['1.0.1']);
+      expect(summaries['1.0.1']!.libraries, isEmpty);
+
+      final remaining = await packageBackend
+          .listVersionsNeedingApiSummaryUpdate('oxygen');
+      // 1.0.1 (valid summary) and 1.0.0 (tombstone) are no longer pending.
+      expect(remaining, isNot(contains('1.0.1')));
+      expect(remaining, isNot(contains('1.0.0')));
+    },
+  );
 }
 
 extension<T> on Stream<T> {

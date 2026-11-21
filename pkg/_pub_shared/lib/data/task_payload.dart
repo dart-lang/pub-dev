@@ -34,12 +34,22 @@ final class Payload {
   /// is the one it's most important to process.
   final List<VersionTokenPair> versions;
 
+  /// Optional list of additional package versions for which `pub_worker`
+  /// should extract `api.json` (`PackageVersionAsset` `api-summary`) without
+  /// running full `pana` or `dartdoc`.
+  @JsonKey(includeIfNull: false)
+  final List<String>? apiSummaryVersions;
+
   // json_serializable boiler-plate
   Payload({
     required this.package,
     required this.pubHostedUrl,
     required Iterable<VersionTokenPair> versions,
-  }) : versions = UnmodifiableListView(versions.toList(growable: false));
+    Iterable<String>? apiSummaryVersions,
+  }) : versions = UnmodifiableListView(versions.toList(growable: false)),
+       apiSummaryVersions = apiSummaryVersions == null
+           ? null
+           : UnmodifiableListView(apiSummaryVersions.toList(growable: false));
 
   factory Payload.fromJson(Map<String, dynamic> json) =>
       _$PayloadFromJson(json);

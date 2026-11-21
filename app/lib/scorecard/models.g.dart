@@ -83,6 +83,9 @@ PanaReport _$PanaReportFromJson(Map<String, dynamic> json) => PanaReport(
   screenshots: (json['screenshots'] as List<dynamic>?)
       ?.map((e) => ProcessedScreenshot.fromJson(e as Map<String, dynamic>))
       .toList(),
+  apiDiff: json['apiDiff'] == null
+      ? null
+      : ApiDiffSummary.fromJson(json['apiDiff'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$PanaReportToJson(PanaReport instance) =>
@@ -97,6 +100,7 @@ Map<String, dynamic> _$PanaReportToJson(PanaReport instance) =>
       'result': ?instance.result,
       'screenshots': ?instance.screenshots,
       'urlProblems': ?instance.urlProblems,
+      'apiDiff': ?instance.apiDiff,
     };
 
 DartdocReport _$DartdocReportFromJson(Map<String, dynamic> json) =>

@@ -539,13 +539,6 @@ List<Tab> buildPackageTabs({
         title: 'Readme',
         href: urls.pkgReadmeUrl(package.name!, version: linkVersion),
       );
-  final changelogTab =
-      contentIf(.changelog) ??
-      Tab.withLink(
-        id: 'changelog',
-        title: 'Changelog',
-        href: urls.pkgChangelogUrl(package.name!, version: linkVersion),
-      );
   final exampleTab =
       contentIf(.example) ??
       Tab.withLink(
@@ -562,9 +555,10 @@ List<Tab> buildPackageTabs({
       );
   final versionsTab =
       contentIf(.versions) ??
+      contentIf(.changelog) ??
       Tab.withLink(
         id: 'versions',
-        title: 'Versions',
+        title: data.hasChangelog ? 'Versions / Changelog' : 'Versions',
         href: urls.pkgVersionsUrl(package.name!),
       );
   final scoreTab =
@@ -590,7 +584,6 @@ List<Tab> buildPackageTabs({
       );
   return <Tab>[
     readmeTab,
-    if (data.hasChangelog) changelogTab,
     if (data.hasExample) exampleTab,
     installingTab,
     if (tab == .license) content,

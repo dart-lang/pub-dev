@@ -388,6 +388,73 @@ class _TaskListRewriteTreeVisitor extends html_parsing.TreeVisitor {
   }
 }
 
+/// Parsed and sanitized per-version changelog entries extracted from a
+/// `CHANGELOG.md` file.
+final class SanitizedChangelog {
+  /// Optional introductory HTML before the first version heading.
+  final String? descriptionHtml;
+
+  /// Map from version string (as parsed by [ChangelogParser]) to sanitized HTML
+  /// content and optional heading label.
+  final Map<String, ({String html, String? label})> releasesByVersion;
+
+  SanitizedChangelog({
+    this.descriptionHtml,
+    required Map<String, ({String html, String? label})> releasesByVersion,
+  }) : releasesByVersion = Map.unmodifiable(releasesByVersion);
+}
+
+/// Parses a `CHANGELOG.md` [text] into sanitized per-version HTML entries.
+SanitizedChangelog parseChangelogReleases(
+  String text, {
+  UrlResolverFn? urlResolverFn,
+  String? relativeFrom = 'CHANGELOG.md',
+}) {
+  try {
+    text = text.replaceAll('\r\n', '\n');
+    final nodes = _parseMarkdownSource(text);
+    final rawHtml = m.renderToHtml(nodes);
+    final root = html_parser.parseFragment(rawHtml);
+
+    _RelativeUrlRewriter(urlResolverFn, relativeFrom).visit(root);
+    if (activeConfiguration.imageProxyServiceBaseUrl != null) {
+      _ImageProxyRewriter().visit(root);
+    }
+    _UnsafeUrlFilter().visit(root);
+    _TaskListRewriteTreeVisitor().visit(root);
+
+    final changelog = ChangelogParser().parseHtmlNodes(root.nodes);
+    final releasesByVersion = <String, ({String html, String? label})>{};
+    for (final release in changelog.releases) {
+      final sanitized = _renderSafeHtml(
+        release.content.asHtmlText,
+        isChangelog: false,
+        disableHashIds: true,
+      ).trim();
+      releasesByVersion.putIfAbsent(
+        release.version,
+        () => (html: sanitized, label: release.label),
+      );
+    }
+    final descriptionRaw = changelog.description?.asHtmlText.trim();
+    final descriptionHtml =
+        (descriptionRaw != null && descriptionRaw.isNotEmpty)
+        ? _renderSafeHtml(
+            descriptionRaw,
+            isChangelog: false,
+            disableHashIds: true,
+          ).trim()
+        : null;
+    return SanitizedChangelog(
+      descriptionHtml: descriptionHtml,
+      releasesByVersion: releasesByVersion,
+    );
+  } catch (e, st) {
+    _logger.shout('Error parsing changelog releases.', e, st);
+    return SanitizedChangelog(releasesByVersion: const {});
+  }
+}
+
 /// Group corresponding changelog nodes together, if it matches the following
 /// pattern:
 /// - version identifiers are the only content in a single line

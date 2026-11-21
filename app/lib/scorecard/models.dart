@@ -95,6 +95,8 @@ class PanaReport {
 
   final List<UrlProblem>? urlProblems;
 
+  final ApiDiffSummary? apiDiff;
+
   PanaReport({
     required this.timestamp,
     required this.panaRuntimeInfo,
@@ -106,6 +108,7 @@ class PanaReport {
     required this.result,
     required this.urlProblems,
     required this.screenshots,
+    this.apiDiff,
   });
 
   factory PanaReport.fromJson(Map<String, dynamic> json) =>
@@ -147,6 +150,7 @@ class PanaReport {
       result: summary?.result,
       urlProblems: summary?.urlProblems,
       screenshots: summary?.screenshots,
+      apiDiff: summary?.apiDiff,
     );
   }
 

@@ -8,6 +8,14 @@
 set -e
 
 TARGET_DIR=$1
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+LOCAL_PANA="${SCRIPT_DIR}/../third_party/pana"
+if [[ -d "${LOCAL_PANA}" ]]; then
+  cp -R "${LOCAL_PANA}" "${TARGET_DIR}"
+  exit 0
+fi
+
 PANA_VERSION=${2:-$(dart pub deps -s compact | grep pana | head -n 1 | cut -d' ' -f3)}
 
 if [[ ! "$PANA_VERSION" ]]; then

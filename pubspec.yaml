@@ -22,3 +22,14 @@ workspace:
 
 dev_dependencies:
   lints: ^6.0.0
+
+dependency_overrides:
+  pana:
+    git:
+      url: https://github.com/sigurdm/pana.git
+      ref: api-diff
+  api_summary:
+    git:
+      url: https://github.com/sigurdm/tools.git
+      path: pkgs/api_summary
+      ref: api-summary-diff

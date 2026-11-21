@@ -20,7 +20,10 @@ d.Node versionSectionNode({
         d.tr(
           children: [
             d.th(classes: ['version'], text: 'Version'),
-            d.th(classes: ['badge'], text: ''),
+            d.th(
+              classes: ['badge', 'version-changes-header'],
+              child: d.span(classes: ['label'], text: 'Changes & API'),
+            ),
             d.th(
               classes: ['sdk'],
               child: d.span(classes: ['label'], text: 'Min Dart SDK'),

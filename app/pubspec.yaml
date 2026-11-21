@@ -50,6 +50,7 @@ dependencies:
   yaml: ^3.1.0
   # pana version to be pinned
   pana: '0.23.19'
+  api_summary: ^1.1.0
   # 3rd-party packages with pinned versions
   mailer: '6.6.0'
   postgres: '3.5.20'

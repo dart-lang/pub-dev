@@ -25,6 +25,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "13.3.0"
+  api_summary:
+    dependency: "direct overridden"
+    description:
+      path: "pkgs/api_summary"
+      ref: api-summary-diff
+      resolved-ref: d8592b146cfd37e1b288a6cc86e12cd71ddf9f60
+      url: "https://github.com/sigurdm/tools.git"
+    source: git
+    version: "1.1.0"
   appengine:
     dependency: transitive
     description:
@@ -610,13 +619,14 @@ packages:
     source: hosted
     version: "2.2.0"
   pana:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: pana
-      sha256: "0c76e89f3dea0398df0e13d61f733903c864a9f7fac58087d2c1cbfba9950c20"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.23.19"
+      path: "."
+      ref: api-diff
+      resolved-ref: "66272b39c807441ca16c364af2984829b01eeac7"
+      url: "https://github.com/sigurdm/pana.git"
+    source: git
+    version: "0.23.20-wip"
   path:
     dependency: transitive
     description:

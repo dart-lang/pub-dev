@@ -61,6 +61,11 @@ RUN dart pub get
 RUN /home/worker/pub-dev/tool/setup-pana.sh /home/worker/pana
 ENV PANA_LICENSE_DATA_DIR="/home/worker/pana/lib/src/third_party/spdx/licenses"
 
+# AOT compile api_summary into /home/worker/bin (mounted inside the gVisor sandbox)
+RUN if [ -f /home/worker/pub-dev/third_party/api_summary/bin/api_summary.dart ]; then \
+      dart compile exe -o /home/worker/bin/api_summary /home/worker/pub-dev/third_party/api_summary/bin/api_summary.dart; \
+    fi
+
 # AOT compile pub_worker
 ENV PUB_WORKER_BUILD_DIR="/home/worker/pub-dev/pkg/pub_worker/build"
 RUN mkdir -p "${PUB_WORKER_BUILD_DIR}"
