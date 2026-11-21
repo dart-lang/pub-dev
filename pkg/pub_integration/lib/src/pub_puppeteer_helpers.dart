@@ -174,9 +174,12 @@ extension PubPageExt on Page {
 
   Future<void> _waitConfirmDialogThenConfirmOp() async {
     // Click ok in the dialog to confirm
-    await waitAndClickOnDialogOk(waitForOneResponse: true);
+    await waitAndClick(
+      '.-pub-dom-dialog-cancel-button + .-pub-dom-dialog-ok-button',
+      waitForOneResponse: true,
+    );
     // Click ok on the popup saying it was done
-    await waitAndClickOnDialogOk();
+    await waitAndClick('.-pub-dom-dialog-ok-button:only-child');
     await _waitForModelHidden();
   }
 
