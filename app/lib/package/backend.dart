@@ -512,6 +512,8 @@ class PackageBackend {
   ///
   /// The [deletedVersions] are removed in the same transaction.
   ///
+  /// The [assets] are upserted in the same transaction, after the versions.
+  ///
   /// If the [package] is not yet present in SQL, all of its versions are
   /// loaded from Datastore and upserted, otherwise the package row would be
   /// created without its versions (and the backfill would skip it).
@@ -519,6 +521,7 @@ class PackageBackend {
     Package package, {
     Iterable<PackageVersion> versions = const [],
     Iterable<String> deletedVersions = const [],
+    Iterable<PackageVersionAsset> assets = const [],
   }) async {
     final existing = await primaryDatabase.withRetry(
       (db) => db.packages.byKey(package.name!).fetch(),
@@ -538,6 +541,9 @@ class PackageBackend {
       }
       for (final v in versions) {
         await _upsertPackageVersion(db, v);
+      }
+      for (final a in assets) {
+        await _upsertAsset(db, a);
       }
     });
   }
@@ -855,34 +861,33 @@ class PackageBackend {
     );
   }
 
-  /// Looks up a specific package version's info object.
-  ///
-  /// Returns null if the [version] is not a semantic version or if the info
-  /// entity does not exists in the datastore.
-  Future<PackageVersionInfo?> lookupPackageVersionInfo(
-    String package,
-    String version,
-  ) async {
-    final canonicalVersion = canonicalizeVersion(version);
-    if (canonicalVersion == null) return null;
-    final qvk = QualifiedVersionKey(
-      package: package,
-      version: canonicalVersion,
-    );
-    return await db.lookupOrNull<PackageVersionInfo>(
-      db.emptyKey.append(PackageVersionInfo, id: qvk.qualifiedVersion),
-    );
-  }
-
   /// Returns the list of `AssetKind` values that exist for [package] [version].
   ///
-  /// Returns an empty list if the info entity does not exist in the datastore.
+  /// Returns `null` if the [version] is not semantic or the package version
+  /// does not exist in SQL.
   Future<List<String>?> getAssets(String package, String version) async {
+    final canonicalVersion = canonicalizeVersion(version);
+    if (canonicalVersion == null) return null;
     final assets = await cache
-        .packageVersionAssetKinds(package, version)
+        .packageVersionAssetKinds(package, canonicalVersion)
         .obtain(() async {
-          final info = await lookupPackageVersionInfo(package, version);
-          return info?.assets;
+          return await primaryDatabase.withRetry((db) async {
+            final kinds = await db.packageVersionAssets
+                .where(
+                  (a) =>
+                      a.package.equalsValue(package) &
+                      a.version.equalsValue(canonicalVersion),
+                )
+                .orderBy((a) => [(a.kind, Order.ascending)])
+                .select((a) => (a.kind,))
+                .fetch();
+            if (kinds.isNotEmpty) return kinds;
+            final versionRow = await db.packageVersions
+                .byKey(package, canonicalVersion)
+                .select((pv) => (pv.version,))
+                .fetch();
+            return versionRow == null ? null : const <String>[];
+          });
         });
     return assets;
   }
@@ -2179,8 +2184,11 @@ class PackageBackend {
       //       migrated to SQL.
       await deleteReservedPackageFromSql(newVersion.package);
     }
-    await mirrorPackageToSql(package!, versions: [newVersion]);
-    await upsertPackageVersionAssetsToSql(entities.assets);
+    await mirrorPackageToSql(
+      package!,
+      versions: [newVersion],
+      assets: entities.assets,
+    );
     await emailBackend.migrateToSql(outgoingEmail);
     _logger.info('Upload successful. [package-uploaded]');
     _logger.info('Upload transaction completed in ${sw.elapsed}.');
