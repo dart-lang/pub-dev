@@ -40,11 +40,11 @@ d.Node _useAsExecutable(String package, List<String> executables) {
   return d.fragment([
     d.h2(text: 'Use this package as an executable'),
     d.h3(text: 'Install it'),
-    d.p(text: 'You can install the package from the command line:'),
+    d.p(text: 'Requires Dart 3.10 or later.'),
     d.codeSnippet(
       language: 'shell',
-      textToCopy: 'dart pub global activate $package',
-      child: d.strong(text: 'dart pub global activate $package'),
+      textToCopy: 'dart install $package',
+      child: d.strong(text: 'dart install $package'),
     ),
     d.h3(text: 'Use it'),
     d.p(text: 'The package has the following executables:'),
