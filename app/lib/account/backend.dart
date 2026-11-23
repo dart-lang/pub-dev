@@ -20,6 +20,7 @@ import '../audit/models.dart';
 import '../database/database.dart';
 import '../database/schema.dart';
 import '../frontend/request_context.dart';
+import '../service/email/email_templates.dart' show looksLikeEmail;
 import '../service/openid/gcp_openid.dart';
 import '../service/openid/github_openid.dart';
 import '../shared/configuration.dart';
@@ -297,6 +298,7 @@ class AccountBackend {
   }
 
   Future<UserRow> _updateUserEmail(UserRow user, String email) async {
+    email = email.toLowerCase();
     final u = await withRetryTransaction(_db, (tx) async {
       final u = await tx.lookupValue<User>(
         _db.emptyKey.append(User, id: user.userId),
@@ -308,7 +310,26 @@ class AccountBackend {
       return u;
     });
     await mirrorUserToSql(u);
+    await _emailCache[u.userId].purge();
+    await _updateSessionsEmailForUserId(u.userId, email);
     return (await lookupUserById(u.userId))!;
+  }
+
+  /// Updates the cached email on all active sessions for [userId].
+  Future<void> _updateSessionsEmailForUserId(
+    String userId,
+    String email,
+  ) async {
+    final updatedSessions = await primaryDatabase.withRetry(
+      (db) => db.userSessions
+          .where((session) => session.userId.equalsValue(userId))
+          .update((_, set) => set(email: email.asExpr))
+          .returnUpdated()
+          .executeAndFetch(),
+    );
+    for (final session in updatedSessions) {
+      await cache.userSessionData(session.sessionId).purgeAndRepeat();
+    }
   }
 
   /// Returns a [UserRow] for the authenticated service account.
@@ -338,13 +359,14 @@ class AccountBackend {
   /// the method will return `null`.
   Future<UserRow?> _lookupOrCreateUserByOauthUserId(AuthResult auth) async {
     final emptyKey = _db.emptyKey;
+    final authEmail = auth.email.toLowerCase();
 
     // Attempt to lookup the user, the common case is that the user exists.
     // If the user exists, it's always cheaper to lookup the user outside a
     // transaction.
     final user = await _lookupUserByOauthUserId(auth.oauthUserId);
-    if (user != null && user.email != auth.email && auth.email.isNotEmpty) {
-      return await _updateUserEmail(user, auth.email);
+    if (user != null && user.email != authEmail && authEmail.isNotEmpty) {
+      return await _updateUserEmail(user, authEmail);
     }
     if (user != null) {
       return user;
@@ -376,7 +398,7 @@ class AccountBackend {
       // legacy users, we should avoid creation of new users with only emails
       // as this lookup is eventually consistent.
       final usersWithEmail =
-          await (_db.query<User>()..filter('email =', auth.email))
+          await (_db.query<User>()..filter('email =', authEmail))
               .run()
               .toList();
       if (usersWithEmail.length == 1 &&
@@ -412,7 +434,7 @@ class AccountBackend {
         ..parentKey = emptyKey
         ..id = createUuid()
         ..oauthUserId = auth.oauthUserId
-        ..email = auth.email
+        ..email = authEmail
         ..created = clock.now().toUtc();
 
       tx.insert(user);
@@ -474,7 +496,29 @@ class AccountBackend {
     final info = await authProvider.callTokenInfoWithAccessToken(
       accessToken: profile.accessToken ?? '',
     );
-    final user = await _lookupOrCreateUserByOauthUserId(profile);
+    // Google's OAuth2 id_token may intentionally return a user's legacy email
+    // after a primary email rename (to preserve compatibility with email-keyed
+    // apps), while the access-token tokeninfo endpoint returns the user's
+    // current primary email. Prefer the verified email from tokeninfo when it
+    // matches the same user and audience.
+    final tokenInfoEmail = info.email?.toLowerCase();
+    final effectiveProfile =
+        profile.oauthUserId.isNotEmpty &&
+            info.userId == profile.oauthUserId &&
+            info.audience == profile.audience &&
+            info.verifiedEmail == true &&
+            (info.expiresIn == null || info.expiresIn! > 0) &&
+            tokenInfoEmail != null &&
+            looksLikeEmail(tokenInfoEmail)
+        ? profile.withEmail(tokenInfoEmail)
+        : profile;
+    if (effectiveProfile.email != profile.email.toLowerCase()) {
+      _logger.info(
+        'Resolved updated email from access token info for '
+        'oauthUserId=${profile.oauthUserId}.',
+      );
+    }
+    final user = await _lookupOrCreateUserByOauthUserId(effectiveProfile);
     if (user == null || user.isModerated || user.isDeleted) {
       throw AuthenticationException.failed();
     }

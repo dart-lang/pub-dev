@@ -422,6 +422,188 @@ void main() {
           expect(reauthenticated?.email, newEmail);
         },
       );
+
+      testWithProfile(
+        'success - prefers verified access token email over legacy id_token email',
+        testProfile: emptyTestProfile,
+        fn: () async {
+          final oldEmail = 'old@gmail.com';
+          final oauthUserId = fakeOauthUserIdFromEmail(oldEmail);
+          final session1 = await accountBackend.createOrUpdateClientSession();
+          await accountBackend.updateClientSessionWithProfile(
+            sessionId: session1.sessionId,
+            profile: AuthResult(
+              oauthUserId: oauthUserId,
+              email: oldEmail,
+              audience: activeConfiguration.pubServerAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: oldEmail,
+                audience: activeConfiguration.pubServerAudience,
+                oauthUserId: oauthUserId,
+              ),
+            ),
+          );
+          final userId = (await accountBackend.lookupUserByEmail(
+            oldEmail,
+          )).userId;
+
+          // Warm in-memory _emailCache and create a second active session
+          // cached in Redis to verify both caches stay in sync.
+          expect(await accountBackend.getEmailOfUserId(userId), oldEmail);
+          final sessionOther = await accountBackend
+              .createOrUpdateClientSession();
+          await accountBackend.updateClientSessionWithProfile(
+            sessionId: sessionOther.sessionId,
+            profile: AuthResult(
+              oauthUserId: oauthUserId,
+              email: oldEmail,
+              audience: activeConfiguration.pubServerAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: oldEmail,
+                audience: activeConfiguration.pubServerAudience,
+                oauthUserId: oauthUserId,
+              ),
+            ),
+          );
+          expect(
+            (await accountBackend.getSessionData(
+              sessionOther.sessionId,
+            ))?.email,
+            oldEmail,
+          );
+
+          // Simulate Google returning the old email in id_token while
+          // tokeninfo?access_token returns the updated primary email.
+          final session2 = await accountBackend.updateClientSessionWithProfile(
+            sessionId: session1.sessionId,
+            profile: AuthResult(
+              oauthUserId: oauthUserId,
+              email: oldEmail,
+              audience: activeConfiguration.pubServerAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: 'New@Gmail.com',
+                audience: activeConfiguration.pubServerAudience,
+                oauthUserId: oauthUserId,
+                emailVerified: true,
+              ),
+            ),
+          );
+
+          expect(session2.sessionId, session1.sessionId);
+          expect(session2.userId, userId);
+          expect(session2.email, 'new@gmail.com');
+
+          // User row, _emailCache, and other active sessions are all updated.
+          final user = await accountBackend.lookupUserById(userId);
+          expect(user!.email, 'new@gmail.com');
+          expect(
+            await accountBackend.getEmailOfUserId(userId),
+            'new@gmail.com',
+          );
+          expect(await accountBackend.lookupUsersByEmail(oldEmail), isEmpty);
+          expect(
+            (await accountBackend.lookupUserByEmail('new@gmail.com')).userId,
+            userId,
+          );
+          expect(
+            (await accountBackend.getSessionData(
+              sessionOther.sessionId,
+            ))?.email,
+            'new@gmail.com',
+          );
+        },
+      );
+
+      testWithProfile(
+        'ignores unverified or mismatched access token info email',
+        testProfile: emptyTestProfile,
+        fn: () async {
+          final email = 'old@gmail.com';
+          final oauthUserId = fakeOauthUserIdFromEmail(email);
+          final session = await accountBackend.createOrUpdateClientSession();
+          await accountBackend.updateClientSessionWithProfile(
+            sessionId: session.sessionId,
+            profile: AuthResult(
+              oauthUserId: oauthUserId,
+              email: email,
+              audience: activeConfiguration.pubServerAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: email,
+                audience: activeConfiguration.pubServerAudience,
+                oauthUserId: oauthUserId,
+              ),
+            ),
+          );
+
+          // Unverified email in tokeninfo must be ignored.
+          final unverified = await accountBackend
+              .updateClientSessionWithProfile(
+                sessionId: session.sessionId,
+                profile: AuthResult(
+                  oauthUserId: oauthUserId,
+                  email: email,
+                  audience: activeConfiguration.pubServerAudience!,
+                  accessToken: createFakeServiceAccountToken(
+                    email: 'unverified@gmail.com',
+                    audience: activeConfiguration.pubServerAudience,
+                    oauthUserId: oauthUserId,
+                    emailVerified: false,
+                  ),
+                ),
+              );
+          expect(unverified.email, email);
+
+          // Different oauthUserId in tokeninfo must be ignored.
+          final wrongUser = await accountBackend.updateClientSessionWithProfile(
+            sessionId: session.sessionId,
+            profile: AuthResult(
+              oauthUserId: oauthUserId,
+              email: email,
+              audience: activeConfiguration.pubServerAudience!,
+              accessToken: createFakeServiceAccountToken(
+                email: 'other@gmail.com',
+                audience: activeConfiguration.pubServerAudience,
+                oauthUserId: 'different-oauth-user-id',
+                emailVerified: true,
+              ),
+            ),
+          );
+          expect(wrongUser.email, email);
+
+          // Different audience in tokeninfo must be ignored.
+          final wrongAudience = await accountBackend
+              .updateClientSessionWithProfile(
+                sessionId: session.sessionId,
+                profile: AuthResult(
+                  oauthUserId: oauthUserId,
+                  email: email,
+                  audience: activeConfiguration.pubServerAudience!,
+                  accessToken: createFakeServiceAccountToken(
+                    email: 'wrong-aud@gmail.com',
+                    audience: 'other-audience',
+                    oauthUserId: oauthUserId,
+                    emailVerified: true,
+                  ),
+                ),
+              );
+          expect(wrongAudience.email, email);
+        },
+      );
+
+      testWithProfile(
+        'normalizes mixed-case email from JWT authentication',
+        testProfile: emptyTestProfile,
+        fn: () async {
+          final auth = await authProvider.tryAuthenticateAsUser(
+            createFakeServiceAccountToken(
+              email: 'MixedCase@Pub.Dev',
+              audience: activeConfiguration.pubServerAudience,
+            ),
+          );
+          expect(auth, isNotNull);
+          expect(auth!.email, 'mixedcase@pub.dev');
+        },
+      );
     });
   });
 }

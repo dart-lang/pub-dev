@@ -66,6 +66,7 @@ class FakeAuthProvider extends BaseAuthProvider {
       email: token.payload['email'] as String?,
       scope: token.payload['scope'] as String?,
       userId: token.payload['sub'] as String?,
+      verifiedEmail: token.payload['email_verified'] as bool? ?? true,
     );
   }
 
@@ -226,11 +227,17 @@ String createFakeServiceAccountToken({
   String? audience,
   // utf8-encoded `valid` unless specified otherwise
   List<int>? signature,
+  String? oauthUserId,
+  bool? emailVerified,
 }) {
   return _createGcpToken(
     email: email,
     audience: audience ?? 'https://pub.dev',
     signature: signature,
+    extraPayload: {
+      if (oauthUserId != null) 'sub': oauthUserId,
+      if (emailVerified != null) 'email_verified': emailVerified,
+    },
   );
 }
 

@@ -41,6 +41,17 @@ class AuthResult {
       accessToken: accessToken,
     );
   }
+
+  AuthResult withEmail(String email) {
+    return AuthResult(
+      oauthUserId: oauthUserId,
+      email: email,
+      audience: audience,
+      name: name,
+      imageUrl: imageUrl,
+      accessToken: accessToken,
+    );
+  }
 }
 
 class AccountProfile {
