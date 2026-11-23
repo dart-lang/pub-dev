@@ -69,178 +69,336 @@ class LikeBackend {
     }))!;
   }
 
-  /// Creates and returns a package like entry for the given [userId] and
-  /// [package], and increments the 'likes' property on [package].
-  Future<Like> likePackage(String userId, String package) async {
-    Package? updatedPackage;
-    final res = await withRetryTransaction<Like>(_db, (tx) async {
-      updatedPackage = null;
-      final packageKey = _db.emptyKey.append(Package, id: package);
-      final p = await tx.lookupOrNull<Package>(packageKey);
-      if (p == null) {
+  /// Likes the [package] for [userId] (SQL first, then the Datastore copy).
+  ///
+  /// Returns the time of the like.
+  Future<DateTime> likePackage(String userId, String package) async {
+    final created = await primaryDatabase.transactWithRetry((db) async {
+      if (await db.packages.byKey(package).fetch() == null) {
         throw NotFoundException.resource(package);
       }
-
-      final key = _db.emptyKey
-          .append(User, id: userId)
-          .append(Like, id: package);
-      final oldLike = await tx.lookupOrNull<Like>(key);
-
-      if (oldLike != null) {
-        return oldLike;
+      final inserted = await db.packageLikes
+          .insertValue(
+            userId: userId,
+            package: package,
+            createdAt: clock.now().toUtc(),
+          )
+          .onConflict(.primaryKey)
+          .doNothing()
+          .returnInserted()
+          .executeAndFetch();
+      if (inserted != null) {
+        // Only the insert that created the row increments the count.
+        await _updateLikesCount(db, package, 1);
+        return inserted.createdAt;
       }
-
-      p.likes++;
-      p.updated = clock.now().toUtc();
-      final newLike = Like()
-        ..parentKey = _db.emptyKey.append(User, id: userId)
-        ..id = p.id
-        ..created = clock.now().toUtc()
-        ..packageName = p.name;
-
-      tx.queueMutations(inserts: [p, newLike]);
-      updatedPackage = p;
-      return newLike;
+      // The like already existed. If a concurrent unlike removed it since,
+      // the outcome is the same as if that unlike had run right after this
+      // like, so there is nothing else to do.
+      final existing = await db.packageLikes.byKey(userId, package).fetch();
+      return existing?.createdAt ?? clock.now().toUtc();
     });
-    if (updatedPackage != null) {
-      await packageBackend.mirrorPackageToSql(updatedPackage!);
-      await mirrorToSql(res);
-    }
+    await _tryWriteCopy(userId, package);
     await cache.packageView(package).purge();
     await purgeAccountCache(userId: userId);
-    return res;
-  }
-
-  /// Delete a package like entry for the given [userId] and [package] if it
-  /// exists, and decrements the 'likes' property on [package].
-  Future<void> unlikePackage(String userId, String package) async {
-    Package? updatedPackage;
-    await withRetryTransaction<void>(_db, (tx) async {
-      updatedPackage = null;
-      final packageKey = _db.emptyKey.append(Package, id: package);
-      final p = await tx.lookupOrNull<Package>(packageKey);
-      if (p == null) {
-        throw NotFoundException.resource(package);
-      }
-
-      final likeKey = _db.emptyKey
-          .append(User, id: userId)
-          .append(Like, id: package);
-      final like = await tx.lookupOrNull<Like>(likeKey);
-
-      if (like == null) {
-        return;
-      }
-
-      p.likes--;
-      p.updated = clock.now().toUtc();
-      tx.queueMutations(inserts: [p], deletes: [likeKey]);
-      updatedPackage = p;
-    });
-    if (updatedPackage != null) {
-      await packageBackend.mirrorPackageToSql(updatedPackage!);
-      await deleteFromSql(userId, package);
-    }
-    await cache.packageView(package).purge();
-    await cache.userPackageLikes(userId).purge();
-  }
-
-  /// Upserts [like] into SQL. The user and the package must exist in SQL.
-  ///
-  /// A [Like] without `created` gets the current time, also stored in Datastore.
-  Future<void> mirrorToSql(Like like) async {
-    final created = like.created ?? await _setMissingCreated(like);
-    await primaryDatabase.transactWithRetry(
-      (db) => db.packageLikes
-          .upsertValue(
-            userId: like.userId,
-            package: like.package,
-            createdAt: created,
-          )
-          .execute(),
-    );
-  }
-
-  /// Sets the missing `created` of [like] in Datastore, unless it was set
-  /// concurrently, and returns the stored value.
-  Future<DateTime> _setMissingCreated(Like like) async {
-    final updated = await withRetryTransaction<Like?>(_db, (tx) async {
-      final current = await tx.lookupOrNull<Like>(like.key);
-      if (current == null) return null;
-      current.created ??= clock.now().toUtc();
-      tx.insert(current);
-      return current;
-    });
-    // If the entity was removed concurrently, the next backfill drops the row.
-    final created = updated?.created ?? clock.now().toUtc();
-    like.created = created;
     return created;
   }
 
-  /// Deletes the SQL row of the like of [userId] on [package].
-  Future<void> deleteFromSql(String userId, String package) async {
-    await primaryDatabase.withRetry(
-      (db) => db.packageLikes.delete(userId, package).execute(),
-    );
+  Future<void> unlikePackage(String userId, String package) async {
+    await primaryDatabase.transactWithRetry((db) async {
+      if (await db.packages.byKey(package).fetch() == null) {
+        throw NotFoundException.resource(package);
+      }
+      await _deleteRow(db, userId, package);
+    });
+    await _afterRemove(userId, package);
   }
 
-  /// Syncs SQL with the [Like] entities, one package at a time: upserts the
-  /// missing or changed likes, and removes the rows without a matching entity.
+  /// Removes the like from SQL and Datastore (a failed Datastore delete is
+  /// repaired by the backfill).
+  Future<void> removeLike(String userId, String package) async {
+    await primaryDatabase.transactWithRetry(
+      (db) => _deleteRow(db, userId, package),
+    );
+    await _afterRemove(userId, package);
+  }
+
+  Future<void> _deleteRow(
+    Database<PrimarySchema> db,
+    String userId,
+    String package,
+  ) async {
+    final deleted = await db.packageLikes
+        .where(
+          (l) => l.userId.equalsValue(userId) & l.package.equalsValue(package),
+        )
+        .delete()
+        .returnDeleted()
+        .executeAndFetch();
+    if (deleted.isNotEmpty) {
+      await _updateLikesCount(db, package, -1);
+    }
+  }
+
+  Future<void> _afterRemove(String userId, String package) async {
+    await _tryWriteCopy(userId, package);
+    await cache.packageView(package).purge();
+    await purgeAccountCache(userId: userId);
+  }
+
+  /// Moves the likes of [fromUserId] to [toUserId], dropping duplicates.
+  Future<void> transferLikes(String fromUserId, String toUserId) async {
+    if (fromUserId == toUserId) return;
+    final packages = await primaryDatabase.withRetry(
+      (db) => db.packageLikes
+          .where((l) => l.userId.equalsValue(fromUserId))
+          .select((l) => (l.package,))
+          .fetch(),
+    );
+    for (final package in packages) {
+      final countChanged = await primaryDatabase.transactWithRetry((db) async {
+        final deleted = await db.packageLikes
+            .where(
+              (l) =>
+                  l.userId.equalsValue(fromUserId) &
+                  l.package.equalsValue(package),
+            )
+            .delete()
+            .returnDeleted()
+            .executeAndFetch();
+        if (deleted.isEmpty) return false;
+        // The target user may have liked it concurrently: drop the duplicate.
+        final inserted = await db.packageLikes
+            .insertValue(
+              userId: toUserId,
+              package: package,
+              createdAt: deleted.single.createdAt,
+            )
+            .onConflict(.primaryKey)
+            .doNothing()
+            .returnInserted()
+            .executeAndFetch();
+        if (inserted != null) return false;
+        await _updateLikesCount(db, package, -1);
+        return true;
+      });
+      if (countChanged) {
+        await cache.packageView(package).purge();
+      }
+      // SQL is already updated: a failed copy update is repaired by the
+      // backfill.
+      await _tryWriteCopy(fromUserId, package);
+      await _tryWriteCopy(toUserId, package);
+    }
+    await purgeAccountCache(userId: fromUserId);
+    await purgeAccountCache(userId: toUserId);
+  }
+
+  Future<void> _updateLikesCount(
+    Database<PrimarySchema> db,
+    String package,
+    int delta,
+  ) async {
+    await db.packages
+        .where((p) => p.name.equalsValue(package))
+        .update((p, set) => set(likesCount: p.likesCount + delta.asExpr))
+        .execute();
+  }
+
+  /// Writes the Datastore copy, logging failures (see
+  /// [backfillDatastoreFromSql]).
+  Future<void> _tryWriteCopy(String userId, String package) async {
+    try {
+      await _writeCopy(userId, package);
+    } catch (e, st) {
+      _logger.severe(
+        'Failed to update the Datastore copy of the like of "$userId" on '
+        '"$package".',
+        e,
+        st,
+      );
+    }
+  }
+
+  /// Makes the Datastore entities of the like match SQL.
   ///
-  /// Likes of users or packages that are missing from SQL are skipped.
-  Future<int> backfillSqlFromDatastore() async {
+  /// SQL is re-checked after the commit and the write is repeated if it
+  /// changed, so a concurrent like/unlike cannot leave a stale copy behind.
+  Future<void> _writeCopy(String userId, String package) async {
+    const maxAttempts = 5;
+    for (var attempt = 1; ; attempt++) {
+      PackageLike? row;
+      int? likesCount;
+      Package? updatedPackage;
+      await withRetryTransaction(_db, (tx) async {
+        updatedPackage = null;
+        row = await getPackageLikeStatus(userId, package);
+        likesCount = await packageBackend.lookupLikesCount(package);
+        final likeKey = _db.emptyKey
+            .append(User, id: userId)
+            .append(Like, id: package);
+        final inserts = <Model>[];
+        final deletes = <Key>[];
+        if (row == null) {
+          deletes.add(likeKey);
+        } else {
+          inserts.add(_likeEntity(row!));
+        }
+        final p = await _updatedPackageEntity(tx, package, likesCount);
+        if (p != null) inserts.add(p);
+        tx.queueMutations(inserts: inserts, deletes: deletes);
+        updatedPackage = p;
+      });
+      if (updatedPackage != null) {
+        await packageBackend.mirrorPackageToSql(updatedPackage!);
+      }
+
+      final currentRow = await getPackageLikeStatus(userId, package);
+      final currentCount = await packageBackend.lookupLikesCount(package);
+      final unchanged =
+          currentCount == likesCount &&
+          currentRow?.createdAt == row?.createdAt &&
+          (currentRow == null) == (row == null);
+      if (unchanged) return;
+      if (attempt >= maxAttempts) {
+        _logger.warning(
+          'Datastore copy of the like of "$userId" on "$package" kept '
+          'changing, giving up after $attempt attempts.',
+        );
+        return;
+      }
+    }
+  }
+
+  Like _likeEntity(PackageLike row) => Like()
+    ..parentKey = _db.emptyKey.append(User, id: row.userId)
+    ..id = row.package
+    ..created = row.createdAt
+    ..packageName = row.package;
+
+  /// Returns the [Package] entity updated with [likesCount], or `null` if
+  /// unchanged.
+  Future<Package?> _updatedPackageEntity(
+    TransactionWrapper tx,
+    String package,
+    int? likesCount,
+  ) async {
+    if (likesCount == null) return null;
+    final p = await tx.lookupOrNull<Package>(
+      _db.emptyKey.append(Package, id: package),
+    );
+    if (p == null || p.likes == likesCount) return null;
+    p.likes = likesCount;
+    p.updated = clock.now().toUtc();
+    return p;
+  }
+
+  /// Updates the likes count of the [Package] entity from SQL, returns whether
+  /// it was changed.
+  ///
+  /// When the caller already knows the SQL [likesCount], it is used to skip
+  /// the Datastore transaction if the entity is up-to-date. The transaction
+  /// always works from the current SQL value.
+  Future<bool> syncPackageEntity(String package, {int? likesCount}) async {
+    likesCount ??= await packageBackend.lookupLikesCount(package);
+    if (likesCount == null) return false;
+    final current = await packageBackend.lookupPackage(package);
+    if (current == null || current.likes == likesCount) return false;
+
+    Package? updatedPackage;
+    await withRetryTransaction(_db, (tx) async {
+      updatedPackage = await _updatedPackageEntity(
+        tx,
+        package,
+        await packageBackend.lookupLikesCount(package),
+      );
+      if (updatedPackage != null) tx.queueMutations(inserts: [updatedPackage!]);
+    });
+    if (updatedPackage == null) return false;
+    await packageBackend.mirrorPackageToSql(updatedPackage!);
+    return true;
+  }
+
+  /// Recalculates `packages.likesCount` from the like rows and syncs the
+  /// Datastore copy. Returns whether the SQL count was changed.
+  Future<bool> reconcileLikesCount(String package) async {
+    final changed = await primaryDatabase.transactWithRetry((db) async {
+      final stored = await db.packages
+          .byKey(package)
+          .select((p) => (p.likesCount,))
+          .fetch();
+      if (stored == null) return false;
+      final counted =
+          await db.packageLikes
+              .where((l) => l.package.equalsValue(package))
+              .count()
+              .fetch() ??
+          0;
+      if (stored == counted) return false;
+      final updated = await db.packages
+          .where(
+            (p) =>
+                p.name.equalsValue(package) & p.likesCount.equalsValue(stored),
+          )
+          .update((p, set) => set(likesCount: counted.asExpr))
+          .returnUpdated()
+          .executeAndFetch();
+      if (updated.isEmpty) {
+        _logger.info(
+          'Skipped updating likes for package "$package": '
+          'the count was changed concurrently.',
+        );
+        return false;
+      }
+      _logger.info(
+        'Updated likes for package "$package" changing from $stored to '
+        '$counted.',
+      );
+      return true;
+    });
+    await syncPackageEntity(package);
+    if (changed) {
+      await cache.packageView(package).purge();
+    }
+    return changed;
+  }
+
+  /// Syncs the Datastore like entities and counts with SQL (entities without
+  /// a SQL row are deleted). Returns the number of changes.
+  Future<int> backfillDatastoreFromSql() async {
     var count = 0;
-    final packageNames = await packageBackend
-        .datastoreAllPackageNames()
-        .toList();
-    for (final package in packageNames) {
-      final remainingSqlRows = <String, DateTime>{};
+    final sqlPackages = await primaryDatabase.withRetry(
+      (db) => db.packages.select((p) => (p.name, p.likesCount)).fetch(),
+    );
+    for (final (package, likesCount) in sqlPackages) {
+      final entities = <String, DateTime?>{};
+      final query = _db.query<Like>()..filter('packageName =', package);
+      await for (final like in query.run()) {
+        entities[like.userId] = like.created;
+      }
+
       final rows = await primaryDatabase.withRetry(
         (db) => db.packageLikes
             .where((l) => l.package.equalsValue(package))
-            .select((l) => (l.userId, l.createdAt))
             .fetch(),
       );
-      for (final (userId, createdAt) in rows) {
-        remainingSqlRows[userId] = createdAt;
-      }
-
-      bool? hasPackageInSql;
-      final query = _db.query<Like>()..filter('packageName =', package);
-      await for (final like in query.run()) {
-        final sqlCreated = remainingSqlRows.remove(like.userId);
-        final created = like.created;
-        if (created != null &&
-            sqlCreated != null &&
-            sqlCreated.isAtSameMomentAs(created)) {
+      for (final row in rows) {
+        final created = entities[row.userId];
+        if (created != null && created.isAtSameMomentAs(row.createdAt)) {
           continue;
         }
-        hasPackageInSql ??=
-            await primaryDatabase.withRetry(
-              (db) => db.packages.byKey(package).fetch(),
-            ) !=
-            null;
-        final hasUserInSql =
-            await primaryDatabase.withRetry(
-              (db) => db.users.byKey(like.userId).fetch(),
-            ) !=
-            null;
-        if (!hasPackageInSql || !hasUserInSql) {
-          _logger.warning(
-            'Skipping like of "${like.userId}" on "$package": '
-            'user or package is missing in SQL.',
-          );
-          continue;
-        }
-        await mirrorToSql(like);
+        await _writeCopy(row.userId, package);
         count++;
       }
 
-      // Rows left over have no Datastore entity.
-      for (final userId in remainingSqlRows.keys) {
-        await deleteFromSql(userId, package);
+      final sqlUsers = {for (final row in rows) row.userId};
+      for (final userId in entities.keys) {
+        if (sqlUsers.contains(userId)) continue;
+        await _writeCopy(userId, package);
         count++;
       }
+
+      if (await syncPackageEntity(package, likesCount: likesCount)) count++;
     }
     return count;
   }

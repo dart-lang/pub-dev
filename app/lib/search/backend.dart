@@ -387,7 +387,7 @@ class SearchBackend {
       readme: compactReadme(readmeAsset?.textContent),
       downloadCount: downloadCountsBackend.lookup30DaysTotalCounts(pv.package),
       trendScore: downloadCountsBackend.lookupTrendScore(pv.package),
-      likeCount: await packageBackend.lookupLikesCount(packageName) ?? p.likes,
+      likeCount: await packageBackend.lookupLikesCount(packageName) ?? 0,
       grantedPoints: scoreCard.grantedPubPoints,
       maxPoints: scoreCard.maxPubPoints,
       dependencies: await _buildDependencies(pv.pubspec, scoreCard),

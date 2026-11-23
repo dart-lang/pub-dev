@@ -136,7 +136,7 @@ d.Node renderPkgHeader(PackagePageData data) {
     ),
     likeNode: renderLikeButtonAndLabel(
       package: package.name!,
-      likeCount: package.likes,
+      likeCount: data.likesCount,
       isLiked: data.isLiked,
     ),
     isFlutterFavorite: (package.assignedTags ?? []).contains(
@@ -487,7 +487,7 @@ Tab _scoreTab(PackagePageData data) {
       package: data.package.name!,
       version: data.version.version,
       card: data.scoreCard,
-      likeCount: data.package.likes,
+      likeCount: data.likesCount,
       usesFlutter: data.version.pubspec.usesFlutter,
       isLatestStable: data.isLatestStable,
     ),

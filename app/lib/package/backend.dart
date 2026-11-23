@@ -645,6 +645,8 @@ class PackageBackend {
 
   /// Upserts the [p] row and syncs its uploaders.
   ///
+  /// The likes count is set on insert only, SQL owns it afterwards.
+  ///
   /// The existing row is overwritten only if it is not newer than [p]:
   /// concurrent mirror calls may carry stale snapshots, and they must not
   /// overwrite the newer state. The comparison is part of the upsert statement,
@@ -693,7 +695,6 @@ class PackageBackend {
             latestPreviewPublishedAt: excluded.latestPreviewPublishedAt,
             publisherId: excluded.publisherId,
             versionsCount: excluded.versionsCount,
-            likesCount: excluded.likesCount,
             isDiscontinued: excluded.isDiscontinued,
             replacedBy: excluded.replacedBy,
             isUnlisted: excluded.isUnlisted,
@@ -798,19 +799,16 @@ class PackageBackend {
   }
 
   /// Copies [Package] and [PackageVersion] entries from Datastore into SQL,
-  /// for packages that are missing or have a different `updated` timestamp,
-  /// likes count or version rows (missing, extra or with different flags),
+  /// for packages that are missing or differ in `updated` or version rows,
   /// and removes SQL rows that have no matching Datastore entry.
   Future<int> backfillPackagesSqlFromDatastore() async {
     var count = 0;
-    final sqlState = <String, (DateTime, int)>{};
+    final sqlState = <String, DateTime>{};
     final rows = await primaryDatabase.withRetry(
-      (db) => db.packages
-          .select((p) => (p.name, p.updatedAt, p.likesCount))
-          .fetch(),
+      (db) => db.packages.select((p) => (p.name, p.updatedAt)).fetch(),
     );
-    for (final (name, updatedAt, likesCount) in rows) {
-      sqlState[name] = (updatedAt, likesCount);
+    for (final (name, updatedAt) in rows) {
+      sqlState[name] = updatedAt;
     }
     // Version flags per package, to detect missing, extra or differently
     // flagged version rows (including moderated and admin-deleted ones).
@@ -846,8 +844,7 @@ class PackageBackend {
           v.version!: (v.isRetracted, v.isModerated, v.isAdminDeleted),
       };
       if (sql != null &&
-          sql.$1.isAtSameMomentAs(p.updated!) &&
-          sql.$2 == p.likes &&
+          sql.isAtSameMomentAs(p.updated!) &&
           _versionFlagsEquality.equals(
             sqlVersionFlags[name] ?? {},
             datastoreFlags,
