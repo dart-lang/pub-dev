@@ -70,8 +70,10 @@ class LikeBackend {
   }
 
   /// Likes the [package] for [userId] (SQL first, then the Datastore copy).
-  Future<PackageLike> likePackage(String userId, String package) async {
-    final like = await primaryDatabase.transactWithRetry((db) async {
+  ///
+  /// Returns the time of the like.
+  Future<DateTime> likePackage(String userId, String package) async {
+    final created = await primaryDatabase.transactWithRetry((db) async {
       if (await db.packages.byKey(package).fetch() == null) {
         throw NotFoundException.resource(package);
       }
@@ -85,17 +87,21 @@ class LikeBackend {
           .doNothing()
           .returnInserted()
           .executeAndFetch();
-      if (inserted == null) {
+      if (inserted != null) {
         // Only the insert that created the row increments the count.
-        return (await db.packageLikes.byKey(userId, package).fetch())!;
+        await _updateLikesCount(db, package, 1);
+        return inserted.createdAt;
       }
-      await _updateLikesCount(db, package, 1);
-      return inserted;
+      // The like already existed. If a concurrent unlike removed it since,
+      // the outcome is the same as if that unlike had run right after this
+      // like, so there is nothing else to do.
+      final existing = await db.packageLikes.byKey(userId, package).fetch();
+      return existing?.createdAt ?? clock.now().toUtc();
     });
     await _tryWriteCopy(userId, package);
     await cache.packageView(package).purge();
     await purgeAccountCache(userId: userId);
-    return like;
+    return created;
   }
 
   Future<void> unlikePackage(String userId, String package) async {
