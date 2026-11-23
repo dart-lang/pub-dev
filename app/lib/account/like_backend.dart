@@ -295,11 +295,23 @@ class LikeBackend {
 
   /// Updates the likes count of the [Package] entity from SQL, returns whether
   /// it was changed.
-  Future<bool> _syncPackageEntity(String package) async {
-    final likesCount = await packageBackend.lookupLikesCount(package);
+  ///
+  /// When the caller already knows the SQL [likesCount], it is used to skip
+  /// the Datastore transaction if the entity is up-to-date. The transaction
+  /// always works from the current SQL value.
+  Future<bool> syncPackageEntity(String package, {int? likesCount}) async {
+    likesCount ??= await packageBackend.lookupLikesCount(package);
+    if (likesCount == null) return false;
+    final current = await packageBackend.lookupPackage(package);
+    if (current == null || current.likes == likesCount) return false;
+
     Package? updatedPackage;
     await withRetryTransaction(_db, (tx) async {
-      updatedPackage = await _updatedPackageEntity(tx, package, likesCount);
+      updatedPackage = await _updatedPackageEntity(
+        tx,
+        package,
+        await packageBackend.lookupLikesCount(package),
+      );
       if (updatedPackage != null) tx.queueMutations(inserts: [updatedPackage!]);
     });
     if (updatedPackage == null) return false;
@@ -344,7 +356,7 @@ class LikeBackend {
       );
       return true;
     });
-    await _syncPackageEntity(package);
+    await syncPackageEntity(package);
     if (changed) {
       await cache.packageView(package).purge();
     }
@@ -355,10 +367,10 @@ class LikeBackend {
   /// a SQL row are deleted). Returns the number of changes.
   Future<int> backfillDatastoreFromSql() async {
     var count = 0;
-    final packageNames = await primaryDatabase.withRetry(
-      (db) => db.packages.select((p) => (p.name,)).fetch(),
+    final sqlPackages = await primaryDatabase.withRetry(
+      (db) => db.packages.select((p) => (p.name, p.likesCount)).fetch(),
     );
-    for (final package in packageNames) {
+    for (final (package, likesCount) in sqlPackages) {
       final entities = <String, DateTime?>{};
       final query = _db.query<Like>()..filter('packageName =', package);
       await for (final like in query.run()) {
@@ -386,7 +398,7 @@ class LikeBackend {
         count++;
       }
 
-      if (await _syncPackageEntity(package)) count++;
+      if (await syncPackageEntity(package, likesCount: likesCount)) count++;
     }
     return count;
   }

@@ -850,14 +850,39 @@ class IntegrityChecker extends _BaseIntegrityChecker {
     });
 
     // The counts are based on the SQL rows, which are the source of truth.
-    final counts = <String, int>{};
-    final rows = await primaryDatabase.withRetry(
-      (db) => db.packageLikes.select((l) => (l.package,)).fetch(),
+    final counts = {
+      for (final (package, count) in await primaryDatabase.withRetry(
+        (db) => db.packageLikes
+            .groupBy((l) => (l.package,))
+            .aggregate((agg) => agg.count())
+            .fetch(),
+      ))
+        package: count,
+    };
+
+    // The SQL `likes_count` must match the like rows.
+    final sqlLikes = await primaryDatabase.withRetry(
+      (db) => db.packages.select((p) => (p.name, p.likesCount)).fetch(),
     );
-    for (final package in rows) {
-      counts[package] = (counts[package] ?? 0) + 1;
+    for (final (package, originalStored) in sqlLikes) {
+      if (originalStored < 0) {
+        yield 'Package "$package" has a negative `likes_count` in SQL.';
+      }
+      final counted = counts[package] ?? 0;
+      if (counted == originalStored) {
+        continue;
+      }
+      final updatedStored = await packageBackend.lookupLikesCount(package);
+      if (updatedStored == null || counted == updatedStored) {
+        continue;
+      }
+      if (_isLikeDiffTolerable(counted, updatedStored)) {
+        continue;
+      }
+      yield 'Package "$package" has like count difference in SQL: observed: $counted != stored: $updatedStored.';
     }
 
+    // The Datastore copy is a mirror of the SQL state.
     final allPackages = <String>{..._packageLikes.keys, ...counts.keys};
     for (final package in allPackages) {
       final counted = counts[package] ?? 0;
@@ -867,22 +892,25 @@ class IntegrityChecker extends _BaseIntegrityChecker {
       }
 
       final p = await packageBackend.lookupPackage(package);
-      final updatedStored = p!.likes;
+      if (p == null) {
+        continue;
+      }
+      final updatedStored = p.likes;
       if (counted == updatedStored) {
         continue;
       }
-
-      final diff = counted - updatedStored;
-
-      // Allowing some difference to attribute for the likes created or removed
-      // between the package reads and the current counts.
-      if (diff.abs() <= math.max(3, counted * 0.10)) {
+      if (_isLikeDiffTolerable(counted, updatedStored)) {
         continue;
       }
 
       yield 'Package "$package" has like count difference: observed: $counted != stored: $updatedStored.';
     }
   }
+
+  /// Allowing some difference to attribute for the likes created or removed
+  /// between the package reads and the current counts.
+  bool _isLikeDiffTolerable(int counted, int stored) =>
+      (counted - stored).abs() <= math.max(3, counted * 0.10);
 
   Stream<String> _checkPackageTombstones() async* {
     _logger.info('Scanning package tombstones...');
