@@ -91,17 +91,19 @@ class ScoreCardBackend {
         final releases = await packageBackend.latestReleases(p);
         final pvFuture = packageBackend.lookupPackageVersion(package, version);
         final cardFuture = scoreCardBackend.getScoreCardData(package, version);
-        await Future.wait([pvFuture, cardFuture]);
+        final likesFuture = packageBackend.lookupLikesCount(package);
+        await Future.wait([pvFuture, cardFuture, likesFuture]);
 
         final pv = await pvFuture;
         final card = await cardFuture;
+        final likes = await likesFuture;
 
         return PackageView.fromModel(
           package: p,
           releases: releases,
           version: pv,
           scoreCard: card,
-          likes: await packageBackend.lookupLikesCount(package) ?? 0,
+          likes: likes ?? 0,
         );
       } on NotFoundException catch (_) {
         return null;
