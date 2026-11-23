@@ -244,7 +244,7 @@ class LikeBackend {
         updatedPackage = p;
       });
       if (updatedPackage != null) {
-        await _writeUpdatedAtToSql(updatedPackage!);
+        await packageBackend.mirrorPackageToSql(updatedPackage!);
       }
 
       final currentRow = await getPackageLikeStatus(userId, package);
@@ -262,21 +262,6 @@ class LikeBackend {
         return;
       }
     }
-  }
-
-  /// Aligns `packages.updatedAt` with [Package.updated] (a newer SQL value is
-  /// kept).
-  Future<void> _writeUpdatedAtToSql(Package p) async {
-    await primaryDatabase.withRetry(
-      (db) => db.packages
-          .where(
-            (r) =>
-                r.name.equalsValue(p.name!) &
-                r.updatedAt.isAfterValue(p.updated!).not(),
-          )
-          .update((r, set) => set(updatedAt: p.updated!.asExpr))
-          .execute(),
-    );
   }
 
   Like _likeEntity(PackageLike row) => Like()
@@ -312,7 +297,7 @@ class LikeBackend {
       if (updatedPackage != null) tx.queueMutations(inserts: [updatedPackage!]);
     });
     if (updatedPackage == null) return false;
-    await _writeUpdatedAtToSql(updatedPackage!);
+    await packageBackend.mirrorPackageToSql(updatedPackage!);
     return true;
   }
 
