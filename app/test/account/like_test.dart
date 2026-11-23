@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:clock/clock.dart';
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/account/like_backend.dart';
 import 'package:pub_dev/account/models.dart';
@@ -12,6 +13,7 @@ import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:test/test.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 import '../database/like_sql_utils.dart';
 import '../database/package_sql_utils.dart';
@@ -141,6 +143,37 @@ void main() {
         await expectPackageInSqlMatchesDatastore(pkg1);
         await expectPackageInSqlMatchesDatastore(pkg2);
         await expectLikesInSqlMatchDatastore();
+      },
+    );
+
+    testWithProfile(
+      'Like keeps the concurrent Package changes in SQL',
+      fn: () async {
+        // A concurrent operation committed the Package in Datastore, but its
+        // SQL mirror is not applied yet.
+        await withRetryTransaction(dbService, (tx) async {
+          final p = await tx.lookupValue<Package>(
+            dbService.emptyKey.append(Package, id: pkg1),
+          );
+          p.isDiscontinued = true;
+          p.updated = clock.now().toUtc();
+          tx.insert(p);
+        });
+        final stale = (await packageBackend.lookupPackage(pkg1))!;
+
+        final client = await createFakeAuthPubApiClient(
+          email: userAtPubDevEmail,
+        );
+        await client.likePackage(pkg1);
+
+        // The late mirror of the older snapshot must not matter.
+        await packageBackend.mirrorPackageToSql(stale);
+        await expectPackageInSqlMatchesDatastore(pkg1);
+        final row = await primaryDatabase.withRetry(
+          (db) => db.packages.byKey(pkg1).fetch(),
+        );
+        expect(row!.isDiscontinued, isTrue);
+        expect(row.likesCount, 1);
       },
     );
 

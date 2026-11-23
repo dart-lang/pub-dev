@@ -104,5 +104,42 @@ void main() {
         expect(p2!.likes, p1!.likes);
       },
     );
+
+    testWithProfile(
+      'only the mismatching packages are updated',
+      fn: () async {
+        final untouched = await packageBackend.lookupPackage(
+          'flutter_titanium',
+        );
+        final neon1 = await packageBackend.lookupPackage('neon');
+        await primaryDatabase.transactWithRetry(
+          (db) => db.packages
+              .where((p) => p.name.equalsValue('oxygen'))
+              .update((p, set) => set(likesCount: p.likesCount + 1.asExpr))
+              .execute(),
+        );
+        await withRetryTransaction(dbService, (tx) async {
+          final p = await tx.lookupValue<Package>(
+            dbService.emptyKey.append(Package, id: 'neon'),
+          );
+          p.likes++;
+          tx.insert(p);
+        });
+
+        // Only the SQL repair is counted, the Datastore copy follows it.
+        expect(await updatePackageLikes(), 1);
+        expect(await updatePackageLikes(), 0);
+
+        expect(await packageBackend.lookupLikesCount('oxygen'), 0);
+        expect((await packageBackend.lookupPackage('oxygen'))!.likes, 0);
+        expect(
+          (await packageBackend.lookupPackage('neon'))!.likes,
+          neon1!.likes,
+        );
+        final after = await packageBackend.lookupPackage('flutter_titanium');
+        expect(after!.updated, untouched!.updated);
+        expect(after.likes, untouched.likes);
+      },
+    );
   });
 }
