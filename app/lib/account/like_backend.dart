@@ -317,11 +317,25 @@ class LikeBackend {
               .fetch() ??
           0;
       if (stored == counted) return false;
+      final updated = await db.packages
+          .where(
+            (p) =>
+                p.name.equalsValue(package) & p.likesCount.equalsValue(stored),
+          )
+          .update((p, set) => set(likesCount: counted.asExpr))
+          .returnUpdated()
+          .executeAndFetch();
+      if (updated.isEmpty) {
+        _logger.info(
+          'Skipped updating likes for package "$package": '
+          'the count was changed concurrently.',
+        );
+        return false;
+      }
       _logger.info(
-        'Updating likes for package "$package" changing from $stored to '
+        'Updated likes for package "$package" changing from $stored to '
         '$counted.',
       );
-      await _updateLikesCount(db, package, counted - stored);
       return true;
     });
     await _syncPackageEntity(package);
