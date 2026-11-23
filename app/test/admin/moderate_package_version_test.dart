@@ -15,6 +15,7 @@ import 'package:pub_dev/admin/models.dart';
 import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/fake/backend/fake_pub_worker.dart';
 import 'package:pub_dev/package/backend.dart';
+import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/search/backend.dart';
 import 'package:pub_dev/service/async_queue/async_queue.dart';
@@ -630,8 +631,11 @@ void main() {
           await packageBackend.lookupPackageVersion('oxygen', '1.0.0'),
           isNull,
         );
+        expect(await packageBackend.getAssets('oxygen', '1.0.0'), isNull);
         expect(
-          await packageBackend.lookupPackageVersionInfo('oxygen', '1.0.0'),
+          await dbService.lookupOrNull<PackageVersionInfo>(
+            dbService.emptyKey.append(PackageVersionInfo, id: 'oxygen/1.0.0'),
+          ),
           isNull,
         );
         expect(
