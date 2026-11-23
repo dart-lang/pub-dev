@@ -28,6 +28,7 @@ abstract final class PackageRow extends Row {
   DateTime get updatedAt;
 
   /// The publish time of the most recent version (including retracted ones).
+  @Index.field()
   DateTime get lastVersionPublishedAt;
 
   /// The latest stable version (pre-release versions are deprioritized).
@@ -46,6 +47,7 @@ abstract final class PackageRow extends Row {
   DateTime? get latestPreviewPublishedAt;
 
   /// The owner publisher (null, if the package does not have a publisher).
+  @Index.field()
   String? get publisherId;
 
   /// The number of visible versions.
@@ -170,6 +172,39 @@ extension PackageRowExt on PackageRow {
   }
 
   bool get isExcludedInRobots => !isIncludedInRobots;
+
+  List<String> get assignedTags => (assignedTagsJson.value as List).cast();
+
+  bool isNewPackage() => isNewPackageCreatedAt(createdAt);
+
+  Iterable<String> getTags() => computePackageTags(
+    assignedTags: assignedTags,
+    createdAt: createdAt,
+    isDiscontinued: isDiscontinued,
+    isUnlisted: isUnlisted,
+    publisherId: publisherId,
+  );
+}
+
+bool isNewPackageCreatedAt(DateTime createdAt) =>
+    createdAt.difference(clock.now()).abs().inDays <= 30;
+
+/// Shared by [PackageRow] and the Datastore `Package` entity.
+// TODO: inline into PackageRowExt once the Datastore Package is removed.
+Iterable<String> computePackageTags({
+  required Iterable<String>? assignedTags,
+  required DateTime createdAt,
+  required bool isDiscontinued,
+  required bool isUnlisted,
+  required String? publisherId,
+}) {
+  return <String>{
+    ...?assignedTags,
+    if (isNewPackageCreatedAt(createdAt)) PackageTags.isRecent,
+    if (isDiscontinued) ...[PackageTags.isDiscontinued, PackageTags.isUnlisted],
+    if (isUnlisted) PackageTags.isUnlisted,
+    if (publisherId != null) PackageTags.publisherTag(publisherId),
+  };
 }
 
 /// Caches the parsed [Pubspec] per row instance.

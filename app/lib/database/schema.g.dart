@@ -10005,6 +10005,16 @@ final class _$PackageRow extends PackageRow {
         sqlName: null,
         columns: ['updated_at'],
       ),
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['last_version_published_at'],
+      ),
+      $ForGeneratedCode.indexDefinition(
+        name: null,
+        sqlName: null,
+        columns: ['publisher_id'],
+      ),
     ],
     readRow: _$PackageRow._$fromDatabase,
   );

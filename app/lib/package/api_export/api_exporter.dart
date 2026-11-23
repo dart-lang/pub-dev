@@ -15,8 +15,8 @@ import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/parallel_foreach.dart';
 
+import '../../database/schema.dart';
 import '../../search/backend.dart';
-import '../../shared/datastore.dart';
 import '../../shared/versions.dart';
 import '../../task/global_lock.dart';
 import '../backend.dart';
@@ -35,8 +35,6 @@ ApiExporter get apiExporter => ss.lookup(#_apiExporter) as ApiExporter;
 const _concurrency = 50;
 
 final class ApiExporter {
-  final DatastoreDB _db;
-
   final ExportedApi _api;
 
   /// If [stop] has been called to stop background processes.
@@ -50,11 +48,8 @@ final class ApiExporter {
   /// `null` when not started yet.
   Completer<void>? _stopped;
 
-  ApiExporter(
-    this._db, {
-    required Storage storageService,
-    required Bucket bucket,
-  }) : _api = ExportedApi(storageService, bucket);
+  ApiExporter({required Storage storageService, required Bucket bucket})
+    : _api = ExportedApi(storageService, bucket);
 
   /// Start continuous background processes for scheduling of tasks.
   ///
@@ -142,14 +137,13 @@ final class ApiExporter {
   /// This is intended to be scheduled from a daily background task.
   Future<void> synchronizeExportedApi({bool forceWrite = false}) async {
     final allPackageNames = <String>{};
-    final packageQuery = _db.query<Package>();
     var errCount = 0;
     Object? lastError;
     StackTrace? lastStackTrace;
-    await packageQuery.run().parallelForEach(
+    await packageBackend.allPackages().parallelForEach(
       _concurrency,
       (pkg) async {
-        final name = pkg.name!;
+        final name = pkg.name;
         if (pkg.isNotVisible) {
           return;
         }
@@ -321,9 +315,7 @@ final class ApiExporter {
     var since = clock.ago(days: 3);
     while (claim.valid && !abort.isCompleted) {
       // Look at all packages changed in [since]
-      final q = _db.query<Package>()
-        ..filter('updated >', since)
-        ..order('-updated');
+      final changedPackages = packageBackend.listPackagesUpdatedSince(since);
 
       if (clock.now().isAfter(nextLongScan)) {
         // Next time we'll do a longer scan
@@ -335,7 +327,7 @@ final class ApiExporter {
       }
 
       // Look at all packages that has changed
-      await for (final p in q.run()) {
+      await for (final p in changedPackages) {
         // Abort, if claim is invalid or abort has been resolved!
         if (!claim.valid || abort.isCompleted) {
           return;
@@ -343,16 +335,16 @@ final class ApiExporter {
 
         // Check if the [updated] timestamp has been seen before.
         // If so, we skip checking it!
-        final lastSeen = seen[p.name!];
-        if (lastSeen != null && lastSeen.toUtc() == p.updated!.toUtc()) {
+        final lastSeen = seen[p.name];
+        if (lastSeen != null && lastSeen.toUtc() == p.updated.toUtc()) {
           continue;
         }
         // Remember the updated time for this package, so we don't check it
         // again...
-        seen[p.name!] = p.updated!;
+        seen[p.name] = p.updated;
 
         // Check the package
-        await synchronizePackage(p.name!);
+        await synchronizePackage(p.name);
       }
 
       // Cleanup the [seen] map for anything older than [since], as this won't

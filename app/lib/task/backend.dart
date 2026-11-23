@@ -230,7 +230,7 @@ class TaskBackend {
   Future<void> backfillTrackingState() async {
     // Store package name, so we can skip looking at these when scanning for
     // [Task] rows that shouldn't exist.
-    final packageNames = await _datastore.packages.listAllNames().toSet();
+    final packageNames = await packageBackend.allPackageNames().toSet();
 
     // Allow a little concurrency
     final pool = Pool(10);
@@ -298,7 +298,7 @@ class TaskBackend {
     Stream<({String name, DateTime updated})> stream() async* {
       final since = _scanPackagesUpdatedState.since;
       // list packages with updated >= since
-      yield* _datastore.packages.listUpdatedSince(since);
+      yield* packageBackend.listPackagesUpdatedSince(since);
       // list tasks with dependency updated >= since
       final list = await _database.withRetry(
         (db) => db.tasks

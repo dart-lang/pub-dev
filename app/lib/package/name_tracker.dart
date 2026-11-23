@@ -14,8 +14,6 @@ import 'package:typed_sql/typed_sql.dart';
 
 import '../database/database.dart';
 import '../database/schema.dart';
-import '../shared/datastore.dart';
-import 'models.dart';
 
 final _logger = Logger('pub.name_tracker');
 
@@ -50,13 +48,25 @@ class TrackedPackage {
     required this.isVisible,
   });
 
-  factory TrackedPackage.fromPackage(Package p) => TrackedPackage(
-    package: p.name!,
-    updated: p.updated!,
-    latestVersion: p.latestVersion!,
-    lastPublished: p.lastVersionPublished!,
-    isVisible: p.isVisible && !isSdkPackage(p.name!),
-  );
+  factory TrackedPackage.fromColumns(
+    (String, DateTime, String, DateTime, bool, bool) c,
+  ) {
+    final (
+      name,
+      updated,
+      latestVersion,
+      lastPublished,
+      isModerated,
+      isDeleted,
+    ) = c;
+    return TrackedPackage(
+      package: name,
+      updated: updated,
+      latestVersion: latestVersion,
+      lastPublished: lastPublished,
+      isVisible: !isModerated && !isDeleted && !isSdkPackage(name),
+    );
+  }
 
   @visibleForTesting
   TrackedPackage.simple(this.package)
@@ -98,7 +108,7 @@ NameTracker get nameTracker => ss.lookup(#_name_tracker) as NameTracker;
 /// It also provides a quick access to list all of the package names without
 /// iterating over Datastore entries.
 class NameTracker {
-  final DatastoreDB? _db;
+  final bool _scanRecent;
   var _data = _Data();
 
   final _firstScanCompleter = Completer();
@@ -106,7 +116,7 @@ class NameTracker {
   Timer? _recentScanTimer;
   Timer? _reloadTimer;
 
-  NameTracker(this._db);
+  NameTracker({bool scanRecent = false}) : _scanRecent = scanRecent;
 
   /// Whether to accept the upload attempt of a given package [name].
   ///
@@ -123,7 +133,7 @@ class NameTracker {
     }
     // Trigger a new scan (if updater is active) to get the packages that may
     // have been uploaded recently.
-    if (_db != null) {
+    if (_scanRecent) {
       await _scanRecentPackages().timeout(_pollingTimeout);
     }
     return _data.accept(name);
@@ -164,8 +174,32 @@ class NameTracker {
     final sw = Stopwatch()..start();
     _logger.info('Scanning packages...');
     final data = _Data();
-    await for (final p in _db!.query<Package>().run()) {
-      data.add(TrackedPackage.fromPackage(p));
+    final packages =
+        fetchAllPaginated<
+          (String, DateTime, String, DateTime, bool, bool),
+          String
+        >(
+          initialCursor: '',
+          batchSize: 1000,
+          fetchPage: (db, after, batchSize) => db.packages
+              .where((p) => p.name.greaterThanValue(after))
+              .orderBy((p) => [(p.name, Order.ascending)])
+              .limit(batchSize)
+              .select(
+                (p) => (
+                  p.name,
+                  p.updatedAt,
+                  p.latestVersion,
+                  p.lastVersionPublishedAt,
+                  p.isModerated,
+                  p.isAdminDeleted,
+                ),
+              )
+              .fetch(),
+          cursorOf: (c) => c.$1,
+        );
+    await for (final c in packages) {
+      data.add(TrackedPackage.fromColumns(c));
     }
     for (final name in await _fetchModeratedNames()) {
       data.addModeratedName(name);
@@ -199,11 +233,23 @@ class NameTracker {
     final ts = _data._lastStartedTs.subtract(const Duration(hours: 1));
     _logger.info('Scanning recent packages starting from "$ts"...');
     try {
-      final query = _db!.query<Package>()
-        ..order('-lastVersionPublished')
-        ..filter('lastVersionPublished >', ts);
-      await for (final p in query.run()) {
-        _data.add(TrackedPackage.fromPackage(p));
+      final rows = await primaryDatabase.withRetry(
+        (db) => db.packages
+            .where((p) => p.lastVersionPublishedAt.isAfterValue(ts))
+            .select(
+              (p) => (
+                p.name,
+                p.updatedAt,
+                p.latestVersion,
+                p.lastVersionPublishedAt,
+                p.isModerated,
+                p.isAdminDeleted,
+              ),
+            )
+            .fetch(),
+      );
+      for (final c in rows) {
+        _data.add(TrackedPackage.fromColumns(c));
       }
 
       for (final name in await _fetchModeratedNames(since: ts)) {

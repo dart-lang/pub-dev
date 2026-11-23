@@ -225,6 +225,161 @@ void main() {
         },
       );
     });
+
+    group('Backend.listPackagesUpdatedSince', () {
+      testWithProfile(
+        'paginated results match across batch sizes',
+        fn: () async {
+          final since = DateTime(2000);
+          final all = await packageBackend
+              .listPackagesUpdatedSince(since)
+              .toList();
+          expect(all.map((e) => e.name).toSet(), {
+            'flutter_titanium',
+            'neon',
+            'oxygen',
+          });
+          // ordered by updated (desc), then name (asc)
+          for (var i = 1; i < all.length; i++) {
+            final a = all[i - 1];
+            final b = all[i];
+            expect(
+              a.updated.isAfter(b.updated) ||
+                  (a.updated == b.updated && a.name.compareTo(b.name) < 0),
+              isTrue,
+            );
+          }
+
+          final paged = await packageBackend
+              .listPackagesUpdatedSince(since, batchSize: 1)
+              .toList();
+          expect(paged.map((e) => e.name), all.map((e) => e.name));
+        },
+      );
+
+      testWithProfile(
+        'pagination is stable across identical updated timestamps',
+        fn: () async {
+          final tie = DateTime.utc(2030, 1, 1);
+          await primaryDatabase.transactWithRetry((db) async {
+            await db.packages
+                .update((_, set) => set(updatedAt: tie.asExpr))
+                .execute();
+            await db.packages
+                .where((p) => p.name.equalsValue('neon'))
+                .update(
+                  (_, set) => set(
+                    updatedAt: tie.subtract(const Duration(days: 1)).asExpr,
+                  ),
+                )
+                .execute();
+          });
+          final all = await packageBackend
+              .listPackagesUpdatedSince(DateTime(2000))
+              .toList();
+          expect(all.map((e) => e.name), [
+            'flutter_titanium',
+            'oxygen',
+            'neon',
+          ]);
+          expect(all.first.updated, tie);
+
+          for (final batchSize in [1, 2, 3]) {
+            final paged = await packageBackend
+                .listPackagesUpdatedSince(DateTime(2000), batchSize: batchSize)
+                .toList();
+            expect(paged.map((e) => e.name), [
+              'flutter_titanium',
+              'oxygen',
+              'neon',
+            ], reason: 'batchSize: $batchSize');
+          }
+        },
+      );
+
+      testWithProfile(
+        'since is exclusive',
+        fn: () async {
+          final all = await packageBackend
+              .listPackagesUpdatedSince(DateTime(2000))
+              .toList();
+          final newest = all.first.updated;
+          final after = await packageBackend
+              .listPackagesUpdatedSince(newest, batchSize: 1)
+              .toList();
+          expect(after, isEmpty);
+          final before = await packageBackend
+              .listPackagesUpdatedSince(
+                newest.subtract(const Duration(milliseconds: 1)),
+                batchSize: 1,
+              )
+              .toList();
+          expect(before.map((e) => e.name), contains(all.first.name));
+        },
+      );
+    });
+
+    group('Backend.allPackages', () {
+      testWithProfile(
+        'batching does not change the result',
+        fn: () async {
+          final names = await packageBackend.allPackageNames().toList();
+          expect(names, ['flutter_titanium', 'neon', 'oxygen']);
+          final rows = await packageBackend.allPackages(batchSize: 1).toList();
+          expect(rows.map((r) => r.name), names);
+          for (final r in rows) {
+            final p = (await packageBackend.lookupPackage(r.name))!;
+            expect(r.getTags().toSet(), p.getTags().toSet());
+          }
+        },
+      );
+    });
+
+    group('Backend.listPackagesForUser', () {
+      testWithProfile(
+        'paginates with next',
+        fn: () async {
+          final user = await accountBackend.lookupUserByEmail(
+            adminAtPubDevEmail,
+          );
+          final all = await packageBackend
+              .streamPackagesWhereUserIsUploader(user.userId)
+              .toList();
+          expect(all, ['flutter_titanium', 'oxygen']);
+
+          final first = await packageBackend.listPackagesForUser(
+            user.userId,
+            limit: 1,
+          );
+          expect(first.packages, ['flutter_titanium']);
+          expect(first.nextPackage, 'oxygen');
+
+          final second = await packageBackend.listPackagesForUser(
+            user.userId,
+            limit: 1,
+            next: first.nextPackage,
+          );
+          expect(second.packages, ['oxygen']);
+          expect(second.nextPackage, isNull);
+
+          final full = await packageBackend.listPackagesForUser(
+            user.userId,
+            limit: 2,
+          );
+          expect(full.packages, ['flutter_titanium', 'oxygen']);
+          expect(full.nextPackage, isNull);
+        },
+      );
+
+      testWithProfile(
+        'unknown user has no packages',
+        fn: () async {
+          final page = await packageBackend.listPackagesForUser('unknown-user');
+          expect(page.packages, isEmpty);
+          expect(page.nextPackage, isNull);
+        },
+      );
+    });
   });
 
   group('backend.repository', () {
