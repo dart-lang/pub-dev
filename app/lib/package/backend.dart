@@ -129,10 +129,105 @@ class PackageBackend {
     }))!;
   }
 
-  Stream<Package> allPackages() => db.query<Package>().run();
+  Stream<PackageRow> allPackages({int batchSize = 100}) {
+    return fetchAllPaginated<PackageRow, String>(
+      initialCursor: '',
+      batchSize: batchSize,
+      fetchPage: (db, after, batchSize) => db.packages
+          .where((p) => p.name.greaterThanValue(after))
+          .orderBy((p) => [(p.name, Order.ascending)])
+          .limit(batchSize)
+          .fetch(),
+      cursorOf: (row) => row.name,
+    );
+  }
+
+  /// Lists the package names with their latest stable version, without
+  /// loading the full rows.
+  Stream<({String name, String latestVersion})> allPackageLatestVersions() {
+    return fetchAllPaginated<({String name, String latestVersion}), String>(
+      initialCursor: '',
+      batchSize: 1000,
+      fetchPage: (db, after, batchSize) async {
+        final rows = await db.packages
+            .where((p) => p.name.greaterThanValue(after))
+            .orderBy((p) => [(p.name, Order.ascending)])
+            .limit(batchSize)
+            .select((p) => (p.name, p.latestVersion))
+            .fetch();
+        return [for (final (n, v) in rows) (name: n, latestVersion: v)];
+      },
+      cursorOf: (r) => r.name,
+    );
+  }
 
   Stream<String> allPackageNames() {
-    return allPackages().map((p) => p.name!);
+    return fetchAllPaginated<String, String>(
+      initialCursor: '',
+      batchSize: 1000,
+      fetchPage: (db, after, batchSize) => db.packages
+          .where((p) => p.name.greaterThanValue(after))
+          .orderBy((p) => [(p.name, Order.ascending)])
+          .limit(batchSize)
+          .select((p) => (p.name,))
+          .fetch(),
+      cursorOf: (name) => name,
+    );
+  }
+
+  /// Packages updated after [since], latest first.
+  Stream<({String name, DateTime updated})> listPackagesUpdatedSince(
+    DateTime since, {
+    int batchSize = 1000,
+  }) {
+    // Keyset pagination on (updatedAt desc, name asc).
+    return fetchAllPaginated<
+      ({String name, DateTime updated}),
+      ({DateTime updated, String name})
+    >(
+      initialCursor: (updated: DateTime.utc(9999), name: ''),
+      batchSize: batchSize,
+      fetchPage: (db, after, batchSize) async {
+        final rows = await db.packages
+            .where(
+              (p) =>
+                  (p.updatedAt > toExpr(since)) &
+                  (p.updatedAt <= toExpr(after.updated)) &
+                  ((p.updatedAt < toExpr(after.updated)) |
+                      (p.name > toExpr(after.name))),
+            )
+            .orderBy(
+              (p) => [
+                (p.updatedAt, Order.descending),
+                (p.name, Order.ascending),
+              ],
+            )
+            .limit(batchSize)
+            .select((p) => (p.name, p.updatedAt))
+            .fetch();
+        return [for (final (n, u) in rows) (name: n, updated: u)];
+      },
+      cursorOf: (r) => (updated: r.updated, name: r.name),
+    );
+  }
+
+  /// Returns the names of the packages owned by [publisherId].
+  Future<List<String>> packageNamesOfPublisher(String publisherId) async {
+    final rows = await primaryDatabase.withRetry(
+      (db) => db.packages
+          .where((p) => p.publisherId.equalsValue(publisherId))
+          .orderBy((p) => [(p.name, Order.ascending)])
+          .select((p) => (p.name,))
+          .fetch(),
+    );
+    return rows;
+  }
+
+  /// Datastore listing, for backfills only.
+  Stream<Package> datastoreAllPackages() => db.query<Package>().run();
+
+  Stream<String> datastoreAllPackageNames() {
+    return datastoreAllPackages().map((p) => p.name!);
   }
 
   /// Retrieves the packages that need to be included in sitemap.txt.
@@ -466,7 +561,7 @@ class PackageBackend {
   /// stale entries are upserted.
   Future<int> backfillPackageVersionAssetsSqlFromDatastore() async {
     var count = 0;
-    await for (final packageName in allPackageNames()) {
+    await for (final packageName in datastoreAllPackageNames()) {
       final existing = <(String, String), DateTime>{};
       final rows = await primaryDatabase.withRetry(
         (db) => db.packageVersionAssets
@@ -742,7 +837,7 @@ class PackageBackend {
       );
     }
 
-    await for (final p in allPackages()) {
+    await for (final p in datastoreAllPackages()) {
       final name = p.name!;
       final sql = sqlState.remove(name);
       final versions = await datastoreVersionsOfPackage(name);
@@ -800,17 +895,21 @@ class PackageBackend {
     String? next,
     int limit = 10,
   }) async {
-    final query = db.query<Package>()
-      ..filter('uploaders =', userId)
-      ..order('name')
-      ..limit(limit + 1);
-    if (next != null) {
-      query.filter('name >=', next);
-    }
-    final packages = await query.run().toList();
+    final names = await primaryDatabase.withRetry(
+      (db) => db.packageUploaders
+          .where(
+            (u) =>
+                u.userId.equalsValue(userId) &
+                u.package.greaterThanOrEqualValue(next ?? ''),
+          )
+          .orderBy((u) => [(u.package, Order.ascending)])
+          .limit(limit + 1)
+          .select((u) => (u.package,))
+          .fetch(),
+    );
     return PackageListPage(
-      packages: packages.take(limit).map((p) => p.name!).toList(),
-      nextPackage: packages.length <= limit ? null : packages.last.name!,
+      packages: names.take(limit).toList(),
+      nextPackage: names.length <= limit ? null : names.last,
     );
   }
 
@@ -1104,8 +1203,7 @@ class PackageBackend {
     final pool = Pool(concurrency ?? 1);
     var count = 0;
     final futures = <Future>[];
-    await for (final p in db.query<Package>().run()) {
-      final package = p.name!;
+    await for (final package in allPackageNames()) {
       final f = pool.withResource(() async {
         final updated = await updatePackageVersions(
           package,
@@ -3211,24 +3309,6 @@ final class _PackageDataAccess {
     final packageKey = _db.emptyKey.append(Package, id: name);
     final package = await _db.lookupOrNull<Package>(packageKey);
     return package != null;
-  }
-
-  Stream<String> listAllNames() async* {
-    final query = _db.query<Package>();
-    await for (final p in query.run()) {
-      yield p.name!;
-    }
-  }
-
-  Stream<({String name, DateTime updated})> listUpdatedSince(
-    DateTime since,
-  ) async* {
-    final query = _db.query<Package>()
-      ..filter('updated >', since)
-      ..order('-updated');
-    await for (final p in query.run()) {
-      yield (name: p.name!, updated: p.updated!);
-    }
   }
 }
 

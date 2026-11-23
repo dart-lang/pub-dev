@@ -190,7 +190,9 @@ class LikeBackend {
   /// Likes of users or packages that are missing from SQL are skipped.
   Future<int> backfillSqlFromDatastore() async {
     var count = 0;
-    final packageNames = await packageBackend.allPackageNames().toList();
+    final packageNames = await packageBackend
+        .datastoreAllPackageNames()
+        .toList();
     for (final package in packageNames) {
       final remainingSqlRows = <String, DateTime>{};
       final rows = await primaryDatabase.withRetry(

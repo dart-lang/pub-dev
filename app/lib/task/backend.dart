@@ -230,7 +230,7 @@ class TaskBackend {
   Future<void> backfillTrackingState() async {
     // Store package name, so we can skip looking at these when scanning for
     // [Task] rows that shouldn't exist.
-    final packageNames = await _datastore.packages.listAllNames().toSet();
+    final packageNames = await packageBackend.allPackageNames().toSet();
 
     // Allow a little concurrency
     final pool = Pool(10);
@@ -298,7 +298,7 @@ class TaskBackend {
     Stream<({String name, DateTime updated})> stream() async* {
       final since = _scanPackagesUpdatedState.since;
       // list packages with updated >= since
-      yield* _datastore.packages.listUpdatedSince(since);
+      yield* packageBackend.listPackagesUpdatedSince(since);
       // list tasks with dependency updated >= since
       final list = await _database.withRetry(
         (db) => db.tasks
@@ -380,17 +380,24 @@ class TaskBackend {
       );
     } on NotFoundException catch (_) {
       // If package is not visible, we should remove it!
+      final deletedVersions = <String>{};
       for (final rv in acceptedRuntimeVersions) {
-        await _database.withRetry(
-          (db) => db.tasks.delete(rv, packageName).execute(),
-        );
+        await _database.withRetry((db) async {
+          deletedVersions.addAll(
+            (await db.lookupVersions(packageName, runtimeVersion: rv)).keys,
+          );
+          await db.tasks.delete(rv, packageName).execute();
+        });
       }
+      await _purgeCache(packageName, versions: deletedVersions);
       return;
     }
     final versions = _versionsToTrack(
       data,
     ).map((v) => v.canonicalizedVersion).toList();
+    var deselectedVersions = <String>[];
     final changed = await _database.transactWithRetry((db) async {
+      deselectedVersions = <String>[];
       final task = await db.lookupTaskMetadata(packageName);
       latestVersion = data.latest.version;
 
@@ -432,9 +439,7 @@ class TaskBackend {
 
       // List of versions that are tracked, but don't exist. These have
       // probably been deselected by _versionsToTrack.
-      final deselectedVersions = [
-        ...oldVersions.keys.whereNot(versions.contains),
-      ];
+      deselectedVersions = [...oldVersions.keys.whereNot(versions.contains)];
 
       // There should never be an overlap between versions untracked and
       // versions that tracked by now deselected.
@@ -500,7 +505,10 @@ class TaskBackend {
     });
 
     if (changed) {
-      await _purgeCache(packageName, latestVersion);
+      await _purgeCache(
+        packageName,
+        versions: {?latestVersion, ...deselectedVersions},
+      );
     }
 
     if (updateDependents &&
@@ -782,7 +790,7 @@ class TaskBackend {
     });
 
     // Clearing the state cache after the update.
-    await _purgeCache(package, version);
+    await _purgeCache(package, versions: [version]);
     await apiExporter.synchronizePackage(package);
 
     // If nothing else is running on the instance, delete it!
@@ -839,13 +847,18 @@ class TaskBackend {
   }
 
   /// Purge cache entries used to serve [gzippedTaskResult] for given
-  /// [package] and [version].
-  Future<void> _purgeCache(String package, [String? version]) async {
+  /// [package] and [versions].
+  Future<void> _purgeCache(
+    String package, {
+    Iterable<String> versions = const [],
+  }) async {
     await Future.wait([
       cache.taskPackageStatus(package).purge(),
       cache.latestFinishedVersion(package).purge(),
-      if (version != null) cache.taskResultIndex(package, version).purge(),
-      if (version != null) purgeScorecardData(package, version, isLatest: true),
+      for (final version in versions) ...[
+        cache.taskResultIndex(package, version).purge(),
+        purgeScorecardData(package, version, isLatest: true),
+      ],
     ]);
   }
 

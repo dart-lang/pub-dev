@@ -13,7 +13,12 @@ import 'package:pub_dev/service/download_counts/download_counts.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../database/schema.dart'
-    show PackageVersionAssetRow, PackageVersionRow, PackageVersionRowExt;
+    show
+        PackageVersionAssetRow,
+        PackageVersionRow,
+        PackageVersionRowExt,
+        computePackageTags,
+        isNewPackageCreatedAt;
 import '../package/model_properties.dart';
 import '../scorecard/models.dart';
 import '../search/search_service.dart' show ApiPageRef;
@@ -377,21 +382,16 @@ class Package extends db.ExpandoModel<String> {
     return true;
   }
 
-  bool isNewPackage() => created!.difference(clock.now()).abs().inDays <= 30;
+  bool isNewPackage() => isNewPackageCreatedAt(created!);
 
   /// List of tags from the flags on the current [Package] entity.
-  Iterable<String> getTags() {
-    return <String>{
-      ...?assignedTags,
-      if (isNewPackage()) PackageTags.isRecent,
-      if (isDiscontinued) ...[
-        PackageTags.isDiscontinued,
-        PackageTags.isUnlisted,
-      ],
-      if (isUnlisted) PackageTags.isUnlisted,
-      if (publisherId != null) PackageTags.publisherTag(publisherId!),
-    };
-  }
+  Iterable<String> getTags() => computePackageTags(
+    assignedTags: assignedTags,
+    createdAt: created!,
+    isDiscontinued: isDiscontinued,
+    isUnlisted: isUnlisted,
+    publisherId: publisherId,
+  );
 
   LatestReleases get latestReleases {
     return LatestReleases(

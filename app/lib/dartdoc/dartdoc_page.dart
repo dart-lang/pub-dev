@@ -134,8 +134,24 @@ extension DartDocPageRender on DartDocPage {
             'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0',
       ),
 
+      d.link(
+        rel: 'stylesheet',
+        href:
+            'https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.css',
+      ),
       d.link(rel: 'stylesheet', href: staticUrls.dartdocCss),
       d.link(rel: 'icon', href: staticUrls.smallDartFavicon),
+      // Dartdoc's <footer> has no CSS class, so auto-margin-class is omitted
+      // (matching api.dart.dev).
+      d.script(
+        src:
+            'https://www.gstatic.com/glue/cookienotificationbar/cookienotificationbar.min.js',
+        defer: true,
+        attributes: {
+          'data-glue-cookie-notification-bar-category': '2B',
+          'data-glue-cookie-notification-bar-site-id': 'pub.dev',
+        },
+      ),
     ],
   );
 

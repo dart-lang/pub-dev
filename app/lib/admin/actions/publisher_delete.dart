@@ -4,7 +4,7 @@
 
 import 'package:pub_dev/account/backend.dart';
 import 'package:pub_dev/admin/actions/actions.dart';
-import 'package:pub_dev/package/models.dart';
+import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/shared/datastore.dart';
@@ -28,13 +28,11 @@ The publisher can be regenerated later (no tombstoning).
       throw InvalidInputException('Missing `publisher` argument');
     }
 
-    final packagesQuery = dbService.query<Package>()
-      ..filter('publisherId =', publisherId);
-    final packages = await packagesQuery.run().toList();
+    final packages = await packageBackend.packageNamesOfPublisher(publisherId);
     if (packages.isNotEmpty) {
       throw NotAcceptableException(
         'Publisher "$publisherId" cannot be deleted, as it has package(s): '
-        '${packages.map((e) => e.name!).join(', ')}.',
+        '${packages.join(', ')}.',
       );
     }
 

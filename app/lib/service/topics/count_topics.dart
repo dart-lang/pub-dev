@@ -4,9 +4,7 @@
 
 import 'package:gcloud/storage.dart';
 import 'package:pub_dev/package/backend.dart';
-import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
 import '../../database/schema.dart';
@@ -16,11 +14,10 @@ final topicsJsonFileName = 'topics.json';
 Future<void> countTopics() async {
   final topics = <String, int>{};
 
-  final pq = dbService.query<Package>();
-  await for (final p in pq.run()) {
+  await for (final p in packageBackend.allPackageLatestVersions()) {
     final v = await packageBackend.lookupPackageVersion(
-      p.name!,
-      p.latestVersion!,
+      p.name,
+      p.latestVersion,
     );
     if (v == null) {
       continue;
