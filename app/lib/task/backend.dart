@@ -259,19 +259,22 @@ class TaskBackend {
     await pool.done;
 
     // Check that all [Task] rows have a matching [Package] entity.
-    final packagesToDelete = <String>{};
+    final candidates = <String>{};
     await _database.withRetry((db) async {
       await for (final state in db.taskListAllForCurrentRuntime()) {
-        if (packageNames.contains(state.package)) {
-          continue;
+        if (!packageNames.contains(state.package)) {
+          candidates.add(state.package);
         }
-        // Lookup the package to ensure it really doesn't exist
-        if (await packageBackend.packageExists(state.package)) {
-          continue;
-        }
-        packagesToDelete.add(state.package);
       }
     });
+    final packagesToDelete = <String>{};
+    for (final package in candidates) {
+      if (await packageBackend.packageExists(package) ||
+          await packageBackend.lookupPackage(package) != null) {
+        continue;
+      }
+      packagesToDelete.add(package);
+    }
     for (final package in packagesToDelete) {
       try {
         await _database.withRetry((db) => db.taskDelete(package));
