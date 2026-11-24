@@ -14,6 +14,8 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../database/schema.dart'
     show
+        PackageRow,
+        PackageRowExt,
         PackageVersionAssetRow,
         PackageVersionRow,
         PackageVersionRowExt,
@@ -234,17 +236,16 @@ class Package extends db.ExpandoModel<String> {
       ? null
       : Version.parse(latestPreviewVersion!);
 
-  bool get showPrereleaseVersion {
-    if (latestPrereleaseVersion == null) return false;
-    return latestSemanticVersion < latestPrereleaseSemanticVersion! &&
-        (latestPreviewSemanticVersion == null ||
-            latestPreviewSemanticVersion! < latestPrereleaseSemanticVersion!);
-  }
+  bool get showPrereleaseVersion => shouldShowPrereleaseVersion(
+    stable: latestVersion!,
+    prerelease: latestPrereleaseVersion,
+    preview: latestPreviewVersion,
+  );
 
-  bool get showPreviewVersion {
-    if (latestPreviewVersion == null) return false;
-    return latestSemanticVersion < latestPreviewSemanticVersion!;
-  }
+  bool get showPreviewVersion => shouldShowPreviewVersion(
+    stable: latestVersion!,
+    preview: latestPreviewVersion,
+  );
 
   // Check if a [userId] is in the list of [uploaders].
   bool containsUploader(String? userId) {
@@ -393,23 +394,14 @@ class Package extends db.ExpandoModel<String> {
     publisherId: publisherId,
   );
 
-  LatestReleases get latestReleases {
-    return LatestReleases(
-      stable: Release(version: latestVersion!, published: latestPublished!),
-      prerelease: showPrereleaseVersion
-          ? Release(
-              version: latestPrereleaseVersion!,
-              published: latestPrereleasePublished!,
-            )
-          : null,
-      preview: showPreviewVersion
-          ? Release(
-              version: latestPreviewVersion!,
-              published: latestPreviewPublished!,
-            )
-          : null,
-    );
-  }
+  LatestReleases get latestReleases => LatestReleases.select(
+    stable: latestVersion!,
+    stablePublished: latestPublished!,
+    prerelease: latestPrereleaseVersion,
+    prereleasePublished: latestPrereleasePublished,
+    preview: latestPreviewVersion,
+    previewPublished: latestPreviewPublished,
+  );
 
   void updateIsModerated({required bool isModerated}) {
     this.isModerated = isModerated;
@@ -424,6 +416,28 @@ class Package extends db.ExpandoModel<String> {
   }
 }
 
+/// Whether the prerelease version is newer than both the stable and the
+/// preview versions.
+bool shouldShowPrereleaseVersion({
+  required String stable,
+  required String? prerelease,
+  required String? preview,
+}) {
+  if (prerelease == null) return false;
+  final prereleaseVersion = Version.parse(prerelease);
+  return Version.parse(stable) < prereleaseVersion &&
+      (preview == null || Version.parse(preview) < prereleaseVersion);
+}
+
+/// Whether the preview version is newer than the stable version.
+bool shouldShowPreviewVersion({
+  required String stable,
+  required String? preview,
+}) {
+  if (preview == null) return false;
+  return Version.parse(stable) < Version.parse(preview);
+}
+
 /// Describes the various categories of latest releases.
 @JsonSerializable()
 class LatestReleases {
@@ -435,6 +449,33 @@ class LatestReleases {
 
   factory LatestReleases.fromJson(Map<String, dynamic> json) =>
       _$LatestReleasesFromJson(json);
+
+  /// Selects the releases to display, based on the version ordering rules:
+  /// the prerelease and preview are only included if they are newer than
+  /// the stable version (and the prerelease is newer than the preview).
+  factory LatestReleases.select({
+    required String stable,
+    required DateTime stablePublished,
+    String? prerelease,
+    DateTime? prereleasePublished,
+    String? preview,
+    DateTime? previewPublished,
+  }) {
+    return LatestReleases(
+      stable: Release(version: stable, published: stablePublished),
+      prerelease:
+          shouldShowPrereleaseVersion(
+            stable: stable,
+            prerelease: prerelease,
+            preview: preview,
+          )
+          ? Release(version: prerelease!, published: prereleasePublished!)
+          : null,
+      preview: shouldShowPreviewVersion(stable: stable, preview: preview)
+          ? Release(version: preview!, published: previewPublished!)
+          : null,
+    );
+  }
 
   Map<String, dynamic> toJson() => _$LatestReleasesToJson(this);
 
@@ -965,30 +1006,56 @@ class PackageView {
       _$PackageViewFromJson(json);
 
   factory PackageView.fromModel({
-    required Package package,
+    required PackageRow package,
     required LatestReleases releases,
     PackageVersionRow? version,
     required ScoreCardData scoreCard,
     required int likes,
     List<ApiPageRef>? apiPages,
   }) {
+    return PackageView._fromParts(
+      name: package.name,
+      created: package.createdAt,
+      publisherId: package.publisherId,
+      replacedBy: package.replacedBy,
+      packageTags: package.getTags(),
+      releases: releases,
+      version: version,
+      scoreCard: scoreCard,
+      likes: likes,
+      apiPages: apiPages,
+    );
+  }
+
+  factory PackageView._fromParts({
+    required String name,
+    required DateTime created,
+    required String? publisherId,
+    required String? replacedBy,
+    required Iterable<String> packageTags,
+    required LatestReleases releases,
+    required PackageVersionRow? version,
+    required ScoreCardData scoreCard,
+    required int likes,
+    required List<ApiPageRef>? apiPages,
+  }) {
     final tags = <String>{
-      ...package.getTags(),
+      ...packageTags,
       ...?version?.getTags(),
       ...?scoreCard.derivedTags,
     };
     return PackageView(
-      name: package.name!,
+      name: name,
       releases: releases,
       ellipsizedDescription: version?.ellipsizedDescription,
-      created: package.created!,
-      publisherId: package.publisherId,
+      created: created,
+      publisherId: publisherId,
       isPending: scoreCard.isPending,
       likes: likes,
       grantedPubPoints: scoreCard.grantedPubPoints,
       maxPubPoints: scoreCard.maxPubPoints,
       tags: tags.toList(),
-      replacedBy: package.replacedBy,
+      replacedBy: replacedBy,
       spdxIdentifiers: scoreCard.panaReport?.licenses
           ?.map((e) => e.spdxIdentifier)
           .toList(),
@@ -1101,7 +1168,7 @@ class PackageLinks {
 
 /// Common data structure shared between package pages.
 class PackagePageData {
-  final Package package;
+  final PackageRow package;
   final LatestReleases latestReleases;
   final PackageVersionRow version;
   final List<String> assets;
@@ -1115,7 +1182,6 @@ class PackagePageData {
 
   PackagePageData({
     required this.package,
-    LatestReleases? latestReleases,
     required this.version,
     required this.assets,
     required this.asset,
@@ -1124,7 +1190,7 @@ class PackagePageData {
     required this.isLiked,
     required this.likesCount,
     required this.weeklyDownloadCounts,
-  }) : latestReleases = latestReleases ?? package.latestReleases;
+  }) : latestReleases = package.latestReleases;
 
   bool get hasReadme => assets.contains(AssetKind.readme);
   bool get hasChangelog => assets.contains(AssetKind.changelog);

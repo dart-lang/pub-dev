@@ -521,7 +521,7 @@ void main() {
         json.decode(utf8.decode(await client.listVersions('oxygen')))
             as Map<String, dynamic>,
       );
-      expect(oxygenPkgInfo.advisoriesUpdated, syncTime);
+      expect(oxygenPkgInfo.advisoriesUpdated, syncTime.toUtc());
 
       final neonPkgInfo = PackageData.fromJson(
         json.decode(utf8.decode(await client.listVersions('neon')))
@@ -532,7 +532,7 @@ void main() {
       final oxygenRes = await client.getPackageAdvisories('oxygen');
       expect(oxygenRes.advisories.length, 1);
       expect(oxygenRes.advisories.first.id, '123');
-      expect(oxygenRes.advisoriesUpdated, syncTime);
+      expect(oxygenRes.advisoriesUpdated, syncTime.toUtc());
 
       final neonRes = await client.getPackageAdvisories('neon');
       expect(neonRes.advisories, isEmpty);

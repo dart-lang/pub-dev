@@ -276,7 +276,7 @@ class SearchBackend {
   /// When a package, or its latest version is missing, the method throws
   /// [RemovedPackageException].
   Future<PackageDocument> loadDocument(String packageName) async {
-    final p = await packageBackend.lookupPackage(packageName);
+    final p = await packageBackend.lookupPackageRow(packageName);
     if (p == null || p.isNotVisible) {
       throw RemovedPackageException();
     }
@@ -296,7 +296,7 @@ class SearchBackend {
 
     // Load the version with the analysis above, or the latest version if no analysis
     // has been finished yet.
-    final releases = await packageBackend.latestReleases(p);
+    final releases = p.latestReleases;
     final pv = await packageBackend.lookupPackageVersion(
       packageName,
       scoreCard.packageVersion ?? releases.stable.version,
@@ -375,15 +375,15 @@ class SearchBackend {
     ].join(' ');
 
     // select the latest entity updated timestamp (when available)
-    final sourceUpdated = [p.updated, scoreCard.updated].nonNulls.maxOrNull;
+    final sourceUpdated = [p.updatedAt, scoreCard.updated].nonNulls.maxOrNull;
 
     return PackageDocument(
       package: pv.package,
       version: pv.version,
       tags: tags.toList(),
       description: compactDescription(descriptionAndTopics),
-      created: p.created!,
-      updated: p.lastVersionPublished!,
+      created: p.createdAt,
+      updated: p.lastVersionPublishedAt,
       readme: compactReadme(readmeAsset?.textContent),
       downloadCount: downloadCountsBackend.lookup30DaysTotalCounts(pv.package),
       trendScore: downloadCountsBackend.lookupTrendScore(pv.package),

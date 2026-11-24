@@ -70,7 +70,7 @@ String renderPkgVersionsPage(
       children: [
         d.text('${versions.length} $versionsPlural'),
         d.a(
-          href: urls.pkgFeedUrl(data.package.name!),
+          href: urls.pkgFeedUrl(data.package.name),
           title: 'Versions feed',
           child: d.img(
             classes: [
@@ -111,7 +111,7 @@ String renderPkgVersionsPage(
       versionSectionNode(
         id: 'preview',
         label: 'Preview',
-        packageName: data.package.name!,
+        packageName: data.package.name,
         rows: previewVersionRows,
       ),
     );
@@ -121,7 +121,7 @@ String renderPkgVersionsPage(
       versionSectionNode(
         id: 'stable',
         label: 'Stable',
-        packageName: data.package.name!,
+        packageName: data.package.name,
         rows: stableVersionRows,
       ),
     );
@@ -131,7 +131,7 @@ String renderPkgVersionsPage(
       versionSectionNode(
         id: 'prerelease',
         label: 'Prerelease',
-        packageName: data.package.name!,
+        packageName: data.package.name,
         rows: prereleaseVersionRows,
       ),
     );
@@ -141,7 +141,7 @@ String renderPkgVersionsPage(
       versionSectionNode(
         id: 'retracted',
         label: 'Retracted',
-        packageName: data.package.name!,
+        packageName: data.package.name,
         rows: retractedVersionRows,
       ),
     );
@@ -166,7 +166,7 @@ String renderPkgVersionsPage(
   );
 
   final canonicalUrl = urls.pkgPageUrl(
-    data.package.name!,
+    data.package.name,
     includeHost: true,
     pkgPageTab: urls.PkgPageTab.versions,
   );

@@ -36,7 +36,7 @@ d.Node renderPkgInfoBox(PackagePageData data) {
   final packageLinks = data.packageLinks;
 
   final dartdocsUrl = urls.pkgDocUrl(
-    package.name!,
+    package.name,
     version: data.version.version,
     isLatest: data.isLatestStable,
   );
@@ -120,7 +120,7 @@ d.Node renderPkgHeader(PackagePageData data) {
 
   final pkgView = data.toPackageView();
   final metadataNode = packageHeaderNode(
-    packageName: package.name!,
+    packageName: package.name,
     publisherId: package.publisherId,
     published: data.version.createdAt,
     isDart3Incompatible: pkgView.tags.contains(
@@ -131,15 +131,15 @@ d.Node renderPkgHeader(PackagePageData data) {
 
   return renderDetailHeader(
     titleNode: titleContentNode(
-      package: package.name!,
+      package: package.name,
       version: data.version.version,
     ),
     likeNode: renderLikeButtonAndLabel(
-      package: package.name!,
+      package: package.name,
       likeCount: data.likesCount,
       isLiked: data.isLiked,
     ),
-    isFlutterFavorite: (package.assignedTags ?? []).contains(
+    isFlutterFavorite: package.assignedTags.contains(
       PackageTags.isFlutterFavorite,
     ),
     metadataNode: metadataNode,
@@ -236,7 +236,7 @@ String _renderPkgPage({
 
   final isFlutterPackage = data.version.pubspec.usesFlutter;
   final packageAndVersion = data.isLatestStable
-      ? data.package.name!
+      ? data.package.name
       : '${data.package.name} ${data.version.version}';
   final pageTitleTabIdentifier = _pageTitleTabIdentifiers[tab];
   final pageTitle = <String>[
@@ -247,7 +247,7 @@ String _renderPkgPage({
     'package',
   ].join(' ');
   final canonicalUrl = urls.pkgPageUrl(
-    data.package.name!,
+    data.package.name,
     version: data.isLatestStable ? null : data.version.version,
     includeHost: true,
     pkgPageTab: tab,
@@ -271,20 +271,20 @@ String _renderPkgPage({
       data.version,
       editable: tab == urls.PkgPageTab.admin,
     ),
-    versionsFeedUrl: urls.pkgFeedUrl(data.package.name!),
+    versionsFeedUrl: urls.pkgFeedUrl(data.package.name),
     versionsFeedTitle:
-        'Recently published versions of package ${data.package.name!} on pub.dev',
+        'Recently published versions of package ${data.package.name} on pub.dev',
   );
 }
 
 PageData pkgPageData(
-  Package package,
+  PackageRow package,
   PackageVersionRow selectedVersion, {
   bool? editable,
 }) {
   return PageData(
     pkgData: PkgData(
-      package: package.name!,
+      package: package.name,
       version: selectedVersion.version,
       publisherId: package.publisherId,
       isDiscontinued: package.isDiscontinued,
@@ -484,7 +484,7 @@ Tab _scoreTab(PackagePageData data) {
     id: 'analysis',
     title: 'Scores',
     contentNode: scoreTabNode(
-      package: data.package.name!,
+      package: data.package.name,
       version: data.version.version,
       card: data.scoreCard,
       likeCount: data.likesCount,
@@ -503,15 +503,15 @@ d.Node renderPackageSchemaOrgHtml(PackagePageData data) {
     'name': p.name,
     'version': pv.version,
     'description': '${p.name} - ${pv.pubspec.description}',
-    'url': urls.pkgPageUrl(p.name!, includeHost: true),
-    'dateCreated': p.created!.toIso8601String(),
+    'url': urls.pkgPageUrl(p.name, includeHost: true),
+    'dateCreated': p.createdAt.toIso8601String(),
     'dateModified': pv.createdAt.toIso8601String(),
     'programmingLanguage': 'Dart',
     'image': '${urls.siteRoot}/static/img/pub-dev-icon-cover-image.png',
   };
   if (data.hasLicense) {
     map['license'] = urls.pkgLicenseUrl(
-      data.package.name!,
+      data.package.name,
       version: data.isLatestStable ? null : data.version.version,
       includeHost: true,
     );
@@ -537,56 +537,56 @@ List<Tab> buildPackageTabs({
       Tab.withLink(
         id: 'readme',
         title: 'Readme',
-        href: urls.pkgReadmeUrl(package.name!, version: linkVersion),
+        href: urls.pkgReadmeUrl(package.name, version: linkVersion),
       );
   final changelogTab =
       contentIf(.changelog) ??
       Tab.withLink(
         id: 'changelog',
         title: 'Changelog',
-        href: urls.pkgChangelogUrl(package.name!, version: linkVersion),
+        href: urls.pkgChangelogUrl(package.name, version: linkVersion),
       );
   final exampleTab =
       contentIf(.example) ??
       Tab.withLink(
         id: 'example',
         title: 'Example',
-        href: urls.pkgExampleUrl(package.name!, version: linkVersion),
+        href: urls.pkgExampleUrl(package.name, version: linkVersion),
       );
   final installingTab =
       contentIf(.install) ??
       Tab.withLink(
         id: 'installing',
         title: 'Installing',
-        href: urls.pkgInstallUrl(package.name!, version: linkVersion),
+        href: urls.pkgInstallUrl(package.name, version: linkVersion),
       );
   final versionsTab =
       contentIf(.versions) ??
       Tab.withLink(
         id: 'versions',
         title: 'Versions',
-        href: urls.pkgVersionsUrl(package.name!),
+        href: urls.pkgVersionsUrl(package.name),
       );
   final scoreTab =
       contentIf(.score) ??
       Tab.withLink(
         id: 'analysis',
         title: 'Scores',
-        href: urls.pkgScoreUrl(package.name!, version: linkVersion),
+        href: urls.pkgScoreUrl(package.name, version: linkVersion),
       );
   final adminTab =
       contentIf(.admin) ??
       Tab.withLink(
         id: 'admin',
         title: 'Admin',
-        href: urls.pkgAdminUrl(package.name!),
+        href: urls.pkgAdminUrl(package.name),
       );
   final activityLogTab =
       contentIf(.activityLog) ??
       Tab.withLink(
         id: 'activity-log',
         title: 'Activity log',
-        href: urls.pkgActivityLogUrl(package.name!),
+        href: urls.pkgActivityLogUrl(package.name),
       );
   return <Tab>[
     readmeTab,

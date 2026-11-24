@@ -18,7 +18,7 @@ import 'package:pub_dev/task/models.dart';
 
 import '../database/schema.dart';
 import '../package/backend.dart';
-import '../package/models.dart' show Package, PackageView;
+import '../package/models.dart' show PackageView;
 import '../package/overrides.dart';
 import '../shared/redis_cache.dart' show cache;
 import '../shared/utils.dart';
@@ -75,7 +75,7 @@ class ScoreCardBackend {
       if (!await packageBackend.isPackageVisible(package)) {
         return null;
       }
-      final p = await packageBackend.lookupPackage(package);
+      final p = await packageBackend.lookupPackageRow(package);
       if (p == null) {
         _logger.warning('Package lookup failed for "$package".');
         return null;
@@ -83,12 +83,9 @@ class ScoreCardBackend {
 
       final version =
           await taskBackend.latestFinishedVersion(package) ?? p.latestVersion;
-      if (version == null) {
-        return null;
-      }
 
       try {
-        final releases = await packageBackend.latestReleases(p);
+        final releases = p.latestReleases;
         final pvFuture = packageBackend.lookupPackageVersion(package, version);
         final cardFuture = scoreCardBackend.getScoreCardData(package, version);
         final likesFuture = packageBackend.lookupLikesCount(package);
@@ -128,9 +125,8 @@ class ScoreCardBackend {
   /// Returns the [ScoreCardData] for the given package and version.
   Future<ScoreCardData> getScoreCardData(
     String packageName,
-    String packageVersion, {
-    Package? package,
-  }) async {
+    String packageVersion,
+  ) async {
     InvalidInputException.check(
       packageVersion != 'latest',
       'latest is no longer supported',
@@ -141,7 +137,7 @@ class ScoreCardBackend {
       return cached;
     }
 
-    package ??= await packageBackend.lookupPackage(packageName);
+    final package = await packageBackend.lookupPackageRow(packageName);
     if (package == null) {
       throw NotFoundException('Package "$packageName" does not exist.');
     }
@@ -198,7 +194,7 @@ class ScoreCardBackend {
   /// Returns the status of a package and version.
   Future<PackageStatus> getPackageStatus(String package, String version) async {
     final (p, pv) = await (
-      packageBackend.lookupPackage(package),
+      packageBackend.lookupPackageRow(package),
       packageBackend.lookupPackageVersion(package, version),
     ).wait;
     return PackageStatus.fromModels(p, pv);
@@ -209,12 +205,12 @@ class ScoreCardBackend {
     String package, {
     String? version,
   }) async {
-    final pkg = await packageBackend.lookupPackage(package);
+    final pkg = await packageBackend.lookupPackageRow(package);
     if (pkg == null) {
       throw NotFoundException.resource('package "$package"');
     }
     final v = (version == null || version == 'latest')
-        ? pkg.latestVersion!
+        ? pkg.latestVersion
         : version;
     final pv = await packageBackend.lookupPackageVersion(package, v);
     if (pv == null) {
@@ -280,7 +276,7 @@ class PackageStatus {
     this.isPublishedByDartDev = false,
   });
 
-  factory PackageStatus.fromModels(Package? p, PackageVersionRow? pv) {
+  factory PackageStatus.fromModels(PackageRow? p, PackageVersionRow? pv) {
     if (p == null || pv == null || p.isNotVisible) {
       return PackageStatus._(exists: false);
     }

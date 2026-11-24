@@ -217,7 +217,7 @@ final class ApiExporter {
       versionListing = await packageBackend.listVersions(package);
     } on NotFoundException {
       // Handle the case where package is moderated.
-      final pkg = await packageBackend.lookupPackage(package);
+      final pkg = await packageBackend.lookupPackageRow(package);
       if (pkg != null && pkg.isNotVisible) {
         // We only delete the package if it is explicitly not visible.
         // If we can't find it, then it's safer to assume that it's a bug.

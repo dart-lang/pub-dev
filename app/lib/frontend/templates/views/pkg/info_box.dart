@@ -49,7 +49,7 @@ d.Node packageInfoBoxNode({
     license = _licenseNode(
       licenses: licenses,
       licenseUrl: urls.pkgLicenseUrl(
-        data.package.name!,
+        data.package.name,
         version: data.isLatestStable ? null : data.version.version,
       ),
       isPending: data.toPackageView().isPending,
@@ -64,14 +64,14 @@ d.Node packageInfoBoxNode({
   final screenshotDescriptions = <String>[];
   if (screenshots != null && screenshots.isNotEmpty) {
     thumbnailUrl = taskBackend.resourceUrl(
-      package.name!,
+      package.name,
       version.version,
       screenshots.first.webp190Thumbnail,
     );
     for (final screenshot in screenshots) {
       screenshotUrls.add(
         taskBackend.resourceUrl(
-          package.name!,
+          package.name,
           version.version,
           screenshot.webpImage,
         ),
@@ -113,7 +113,7 @@ d.Node packageInfoBoxNode({
     if (license != null) _block('License', license),
     if (dependencies != null) _block('Dependencies', dependencies),
     _more(
-      package.name!,
+      package.name,
       showImplementsLink: data.version.pubspec.hasFlutterPlugin,
     ),
   ]);

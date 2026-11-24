@@ -122,10 +122,8 @@ class PackageBackend {
   /// Whether the package exists and is not blocked or deleted.
   Future<bool> isPackageVisible(String package) async {
     return (await cache.packageVisible(package).get(() async {
-      final p = await db.lookupOrNull<Package>(
-        db.emptyKey.append(Package, id: package),
-      );
-      return p != null && p.isVisible;
+      final row = await lookupPackageRow(package);
+      return row != null && row.isVisible;
     }))!;
   }
 
@@ -278,10 +276,13 @@ class PackageBackend {
   /// Returns the latest stable version of a package.
   Future<String?> getLatestVersion(String package) async {
     return cache.packageLatestVersion(package).get(() async {
-      final p = await db.lookupOrNull<Package>(
-        db.emptyKey.append(Package, id: package),
+      final latest = await primaryDatabase.withRetry(
+        (db) => db.packages
+            .byKey(package)
+            .select((p) => (p.latestVersion,))
+            .fetch(),
       );
-      return p?.latestVersion;
+      return latest;
     });
   }
 
@@ -291,6 +292,32 @@ class PackageBackend {
   Future<Package?> lookupPackage(String packageName) async {
     final packageKey = db.emptyKey.append(Package, id: packageName);
     return await db.lookupOrNull<Package>(packageKey);
+  }
+
+  /// Whether the package exists in SQL.
+  Future<bool> packageExists(String packageName) async {
+    return await lookupPackageRow(packageName) != null;
+  }
+
+  /// Looks up a package by name from SQL.
+  ///
+  /// Returns `null` if the package doesn't exist.
+  Future<PackageRow?> lookupPackageRow(String packageName) async {
+    return await primaryDatabase.withRetry(
+      (db) => db.packages.byKey(packageName).fetch(),
+    );
+  }
+
+  /// Returns the `User.userId` list of the uploaders of the [packageName]
+  /// from SQL, in a stable order.
+  Future<List<String>> lookupPackageUploaders(String packageName) async {
+    return await primaryDatabase.withRetry(
+      (db) => db.packageUploaders
+          .where((u) => u.package.equalsValue(packageName))
+          .orderBy((u) => [(u.userId, Order.ascending)])
+          .select((u) => (u.userId,))
+          .fetch(),
+    );
   }
 
   /// Returns the number of likes of the [packageName] from SQL, or `null` if
@@ -937,12 +964,6 @@ class PackageBackend {
     return list as List<String>;
   }
 
-  /// Returns the latest releases info of a package.
-  Future<LatestReleases> latestReleases(Package package) async {
-    // TODO: implement runtimeVersion-specific release calculation
-    return package.latestReleases;
-  }
-
   /// Looks up a specific package version.
   ///
   /// Returns null if the version is invalid or does not exist.
@@ -1218,7 +1239,7 @@ class PackageBackend {
   /// Returns the package options.
   Future<api.PkgOptions> getPackageOptions(String package) async {
     checkPackageVersionParams(package);
-    final p = await packageBackend.lookupPackage(package);
+    final p = await packageBackend.lookupPackageRow(package);
     if (p == null) {
       throw NotFoundException.resource(package);
     }
@@ -1586,15 +1607,30 @@ class PackageBackend {
     }
   }
 
+  /// Same as [isPackageAdmin], but reads from the SQL [PackageRow].
+  Future<bool> isPackageRowAdmin(PackageRow p, String userId) async {
+    if (p.isNotVisible) {
+      return false;
+    }
+    final publisherId = p.publisherId;
+    if (publisherId == null) {
+      return (await lookupPackageUploaders(p.name)).contains(userId);
+    }
+    final publisher = await publisherBackend.getListedPublisher(publisherId);
+    if (publisher == null) {
+      return false;
+    }
+    return await publisherBackend.isMemberAdmin(publisher, userId);
+  }
+
   /// Returns the publisher info of a given package.
   Future<api.PackagePublisherInfo> getPublisherInfo(String packageName) async {
     checkPackageVersionParams(packageName);
-    final key = db.emptyKey.append(Package, id: packageName);
-    final package = await db.lookupOrNull<Package>(key);
+    final package = await lookupPackageRow(packageName);
     if (package == null) {
       throw NotFoundException.resource('package "$packageName"');
     }
-    return _asPackagePublisherInfo(package);
+    return api.PackagePublisherInfo(publisherId: package.publisherId);
   }
 
   /// Returns the number of likes of a given package.
@@ -1706,7 +1742,7 @@ class PackageBackend {
   ///
   /// Used in `pub` client for finding which versions exist.
   Future<api.PackageData> listVersions(String package) async {
-    final pkg = await packageBackend.lookupPackage(package);
+    final pkg = await packageBackend.lookupPackageRow(package);
     if (pkg == null || pkg.isNotVisible) {
       throw NotFoundException.resource('package "$package"');
     }
@@ -1729,7 +1765,7 @@ class PackageBackend {
       replacedBy: pkg.replacedBy,
       latest: latest.toApiVersionInfo(),
       versions: packageVersions.map((pv) => pv.toApiVersionInfo()).toList(),
-      advisoriesUpdated: pkg.latestAdvisory,
+      advisoriesUpdated: pkg.latestAdvisoryAt,
     );
   }
 
@@ -3284,29 +3320,12 @@ void checkPackageVersionParams(String package, [String? version]) {
   }
 }
 
-/// Low-level, narrowly typed data access methods for [Package] entity.
-extension PackageDatastoreDBExt on DatastoreDB {
-  _PackageDataAccess get packages => _PackageDataAccess(this);
-}
-
 extension PackageTransactionWrapperExt on TransactionWrapper {
   _PackageTransactionDataAcccess get packages =>
       _PackageTransactionDataAcccess(this);
 
   _VersionTransactionDataAcccess get versions =>
       _VersionTransactionDataAcccess(this);
-}
-
-final class _PackageDataAccess {
-  final DatastoreDB _db;
-
-  _PackageDataAccess(this._db);
-
-  Future<bool> exists(String name) async {
-    final packageKey = _db.emptyKey.append(Package, id: name);
-    final package = await _db.lookupOrNull<Package>(packageKey);
-    return package != null;
-  }
 }
 
 class _PackageTransactionDataAcccess {

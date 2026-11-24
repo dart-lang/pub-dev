@@ -57,10 +57,10 @@ String renderPkgActivityLogPage(
   AuditLogRecordPage activities,
 ) {
   final activityLog = activityLogNode(
-    baseUrl: urls.pkgActivityLogUrl(data.package.name!),
+    baseUrl: urls.pkgActivityLogUrl(data.package.name),
     activities: activities,
     forCategory: 'package',
-    forEntity: data.package.name!,
+    forEntity: data.package.name,
   );
   final tabs = buildPackageTabs(
     data: data,

@@ -89,7 +89,7 @@ Future<void> verifyModerationSubjectExists(ModerationSubject? subject) async {
   final package = subject?.package;
   final version = subject?.version;
   if (package != null) {
-    final p = await packageBackend.lookupPackage(package);
+    final p = await packageBackend.lookupPackageRow(package);
     if (p == null) {
       throw NotFoundException('Package "$package" does not exist.');
     }

@@ -25,7 +25,7 @@ remains bumped and the background scheduler will pick it up as soon as possible.
         (throw InvalidInputException('Needs a package name'));
     InvalidInputException.checkPackageName(package);
     // Make sure package exists.
-    final pkg = await packageBackend.lookupPackage(package);
+    final pkg = await packageBackend.lookupPackageRow(package);
     if (pkg == null) {
       throw InvalidInputException('No package $package');
     }

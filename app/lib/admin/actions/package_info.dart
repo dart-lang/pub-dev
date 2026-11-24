@@ -21,23 +21,22 @@ Loads and displays the package information.
       '`package` must be given',
     );
 
-    final p = await packageBackend.lookupPackage(package!);
+    final p = await packageBackend.lookupPackageRow(package!);
     if (p == null) {
       throw NotFoundException.resource(package);
     }
 
-    final uploaderIds = p.uploaders;
-    List<String>? uploaderEmails;
-    if (uploaderIds != null) {
-      uploaderEmails = (await accountBackend.getEmailsOfUserIds(
-        uploaderIds,
-      )).nonNulls.toList();
-    }
+    final uploaderIds = await packageBackend.lookupPackageUploaders(package);
+    final uploaderEmails = uploaderIds.isEmpty
+        ? null
+        : (await accountBackend.getEmailsOfUserIds(
+            uploaderIds,
+          )).nonNulls.toList();
 
     return {
       'package': {
         'name': p.name,
-        'created': p.created?.toIso8601String(),
+        'created': p.createdAt.toIso8601String(),
         'publisherId': p.publisherId,
         'uploaders': uploaderEmails,
         'latestVersion': p.latestVersion,

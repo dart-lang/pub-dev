@@ -116,7 +116,7 @@ Future<List<String>> _resolveEmails(String value) async {
     switch (ms!.kind) {
       case ModerationSubjectKind.package:
       case ModerationSubjectKind.packageVersion:
-        final pkg = await packageBackend.lookupPackage(ms.package!);
+        final pkg = await packageBackend.lookupPackageRow(ms.package!);
         if (pkg == null) {
           throw InvalidInputException('Unknown package kind: ${ms.package}');
         }
@@ -125,7 +125,7 @@ Future<List<String>> _resolveEmails(String value) async {
           emails.addAll(list.nonNulls);
         } else {
           final list = await accountBackend.lookupUsersById(
-            pkg.uploaders ?? const <String>[],
+            await packageBackend.lookupPackageUploaders(ms.package!),
           );
           emails.addAll(list.map((e) => e?.email).nonNulls);
         }
