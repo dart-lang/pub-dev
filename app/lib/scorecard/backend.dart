@@ -87,7 +87,11 @@ class ScoreCardBackend {
       try {
         final releases = p.latestReleases;
         final pvFuture = packageBackend.lookupPackageVersion(package, version);
-        final cardFuture = scoreCardBackend.getScoreCardData(package, version);
+        final cardFuture = scoreCardBackend.getScoreCardData(
+          package,
+          version,
+          package: p,
+        );
         final likesFuture = packageBackend.lookupLikesCount(package);
         await Future.wait([pvFuture, cardFuture, likesFuture]);
 
@@ -125,8 +129,9 @@ class ScoreCardBackend {
   /// Returns the [ScoreCardData] for the given package and version.
   Future<ScoreCardData> getScoreCardData(
     String packageName,
-    String packageVersion,
-  ) async {
+    String packageVersion, {
+    PackageRow? package,
+  }) async {
     InvalidInputException.check(
       packageVersion != 'latest',
       'latest is no longer supported',
@@ -137,7 +142,7 @@ class ScoreCardBackend {
       return cached;
     }
 
-    final package = await packageBackend.lookupPackageRow(packageName);
+    package ??= await packageBackend.lookupPackageRow(packageName);
     if (package == null) {
       throw NotFoundException('Package "$packageName" does not exist.');
     }
@@ -217,7 +222,11 @@ class ScoreCardBackend {
       throw NotFoundException.resource('package "$package" version "$version"');
     }
 
-    final card = await scoreCardBackend.getScoreCardData(package, v);
+    final card = await scoreCardBackend.getScoreCardData(
+      package,
+      v,
+      package: pkg,
+    );
     final tags = <String>{
       ...pkg.getTags(),
       ...pv.getTags(),

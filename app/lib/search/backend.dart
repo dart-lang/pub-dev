@@ -319,6 +319,7 @@ class SearchBackend {
       final futureVersionAnalysis = await scoreCardBackend.getScoreCardData(
         packageName,
         version,
+        package: p,
       );
       final futureTags = <String>{
         ...?futureVersion?.getTags(),
