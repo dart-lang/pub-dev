@@ -34,7 +34,7 @@ Future<String> executeRecentUploaders(List<String> args) async {
 
   final pool = Pool(10);
 
-  final updatedAfter = clock.now().subtract(Duration(days: maxAgeDays));
+  final updatedAfter = clock.ago(days: maxAgeDays).toUtc();
   final packages = await primaryDatabase.withRetry(
     (db) => db.packages
         .where((p) => p.updatedAt >= toExpr(updatedAfter))

@@ -28,7 +28,7 @@ Loads and displays the package information.
 
     final uploaderIds = await packageBackend.lookupPackageUploaders(package);
     final uploaderEmails = uploaderIds.isEmpty
-        ? null
+        ? <String>[]
         : (await accountBackend.getEmailsOfUserIds(
             uploaderIds,
           )).nonNulls.toList();

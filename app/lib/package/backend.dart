@@ -296,7 +296,11 @@ class PackageBackend {
 
   /// Whether the package exists in SQL.
   Future<bool> packageExists(String packageName) async {
-    return await lookupPackageRow(packageName) != null;
+    return await primaryDatabase.withRetry(
+          (db) =>
+              db.packages.byKey(packageName).select((p) => (p.name,)).fetch(),
+        ) !=
+        null;
   }
 
   /// Looks up a package by name from SQL.

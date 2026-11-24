@@ -1013,49 +1013,23 @@ class PackageView {
     required int likes,
     List<ApiPageRef>? apiPages,
   }) {
-    return PackageView._fromParts(
-      name: package.name,
-      created: package.createdAt,
-      publisherId: package.publisherId,
-      replacedBy: package.replacedBy,
-      packageTags: package.getTags(),
-      releases: releases,
-      version: version,
-      scoreCard: scoreCard,
-      likes: likes,
-      apiPages: apiPages,
-    );
-  }
-
-  factory PackageView._fromParts({
-    required String name,
-    required DateTime created,
-    required String? publisherId,
-    required String? replacedBy,
-    required Iterable<String> packageTags,
-    required LatestReleases releases,
-    required PackageVersionRow? version,
-    required ScoreCardData scoreCard,
-    required int likes,
-    required List<ApiPageRef>? apiPages,
-  }) {
     final tags = <String>{
-      ...packageTags,
+      ...package.getTags(),
       ...?version?.getTags(),
       ...?scoreCard.derivedTags,
     };
     return PackageView(
-      name: name,
+      name: package.name,
       releases: releases,
       ellipsizedDescription: version?.ellipsizedDescription,
-      created: created,
-      publisherId: publisherId,
+      created: package.createdAt,
+      publisherId: package.publisherId,
       isPending: scoreCard.isPending,
       likes: likes,
       grantedPubPoints: scoreCard.grantedPubPoints,
       maxPubPoints: scoreCard.maxPubPoints,
       tags: tags.toList(),
-      replacedBy: replacedBy,
+      replacedBy: package.replacedBy,
       spdxIdentifiers: scoreCard.panaReport?.licenses
           ?.map((e) => e.spdxIdentifier)
           .toList(),
