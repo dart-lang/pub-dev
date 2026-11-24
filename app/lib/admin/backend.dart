@@ -1209,17 +1209,20 @@ class AdminBackend {
             (p) => p.isModerated & (p.moderatedAt.asNotNull() < toExpr(before)),
           )
           .orderBy((p) => [(p.moderatedAt, Order.ascending)])
-          .select((p) => (p.name, p.moderatedAt))
+          .select((p) => (p.name,))
           .fetch(),
     );
-    for (final (name, moderatedAt) in packages) {
+    for (final name in packages) {
       // sanity check: the SQL data may be stale
       final current = await packageBackend.lookupPackage(name);
-      if (current == null || !current.isModerated) {
+      if (current == null ||
+          !current.isModerated ||
+          current.moderatedAt == null ||
+          !current.moderatedAt!.isBefore(before)) {
         continue;
       }
       _logger.info('Deleting moderated package: $name');
-      await removePackage(name, moderated: moderatedAt);
+      await removePackage(name, moderated: current.moderatedAt);
       _logger.info('Deleted moderated package: $name');
     }
 
@@ -1240,7 +1243,10 @@ class AdminBackend {
             .append(Package, id: package)
             .append(PackageVersion, id: version),
       );
-      if (current == null || !current.isModerated) {
+      if (current == null ||
+          !current.isModerated ||
+          current.moderatedAt == null ||
+          !current.moderatedAt!.isBefore(before)) {
         continue;
       }
       final key = QualifiedVersionKey(package: package, version: version);
@@ -1338,7 +1344,10 @@ class AdminBackend {
     for (final name in packages) {
       // sanity check: the SQL data may be stale
       final current = await packageBackend.lookupPackage(name);
-      if (current == null || !current.isAdminDeleted) {
+      if (current == null ||
+          !current.isAdminDeleted ||
+          current.adminDeletedAt == null ||
+          !current.adminDeletedAt!.isBefore(before)) {
         continue;
       }
       _logger.info('Deleting admin-deleted package: $name');
@@ -1365,7 +1374,10 @@ class AdminBackend {
             .append(Package, id: package)
             .append(PackageVersion, id: version),
       );
-      if (current == null || !current.isAdminDeleted) {
+      if (current == null ||
+          !current.isAdminDeleted ||
+          current.adminDeletedAt == null ||
+          !current.adminDeletedAt!.isBefore(before)) {
         continue;
       }
       final key = QualifiedVersionKey(package: package, version: version);
