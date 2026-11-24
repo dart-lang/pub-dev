@@ -70,7 +70,7 @@ void main() {
           '#-pkg-admin-automated-button',
           waitForOneResponse: true,
         );
-        await page.waitAndClickOnDialogOk();
+        await page.waitAndClickOnDialogOk(waitForOneResponse: true);
         await page.reload();
         final value = await page.propertyValue(
           '#-pkg-admin-automated-github-repository',
@@ -88,7 +88,7 @@ void main() {
           '#-pkg-admin-automated-button',
           waitForOneResponse: true,
         );
-        await page.waitAndClickOnDialogOk();
+        await page.waitAndClickOnDialogOk(waitForOneResponse: true);
         await page.reload();
 
         final value = await page.propertyValue(
