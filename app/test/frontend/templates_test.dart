@@ -59,7 +59,7 @@ void main() {
       String versionName,
       String? assetKind,
     ) async => loadPackagePageData(
-      (await packageBackend.lookupPackage(name))!,
+      (await packageBackend.lookupPackageRow(name))!,
       versionName,
       assetKind,
     );
@@ -198,7 +198,7 @@ void main() {
           html,
           'pkg_show_page.html',
           timestamps: {
-            'published': data.package.created,
+            'published': data.package.createdAt,
             'updated': data.version.createdAt,
           },
         );
@@ -219,7 +219,7 @@ void main() {
           html,
           'pkg_changelog_page.html',
           timestamps: {
-            'published': data.package.created,
+            'published': data.package.createdAt,
             'updated': data.version.createdAt,
           },
         );
@@ -240,7 +240,7 @@ void main() {
           html,
           'pkg_example_page.html',
           timestamps: {
-            'published': data.package.created,
+            'published': data.package.createdAt,
             'updated': data.version.createdAt,
           },
         );
@@ -257,7 +257,7 @@ void main() {
           html,
           'pkg_install_page.html',
           timestamps: {
-            'published': data.package.created,
+            'published': data.package.createdAt,
             'updated': data.version.createdAt,
           },
         );
@@ -274,7 +274,7 @@ void main() {
           html,
           'pkg_score_page.html',
           timestamps: {
-            'published': data.package.created,
+            'published': data.package.createdAt,
             'updated': data.version.createdAt,
           },
         );
@@ -310,7 +310,7 @@ void main() {
           html,
           'pkg_score_page_with_downloads_chart.html',
           timestamps: {
-            'published': data.package.created,
+            'published': data.package.createdAt,
             'updated': data.version.createdAt,
           },
         );
@@ -331,7 +331,7 @@ void main() {
           html,
           'pkg_show_version_page.html',
           timestamps: {
-            'published': data.package.created,
+            'published': data.package.createdAt,
             'updated': data.version.createdAt,
           },
         );
@@ -355,7 +355,7 @@ void main() {
           html,
           'pkg_show_page_flutter_plugin.html',
           timestamps: {
-            'published': data.package.created,
+            'published': data.package.createdAt,
             'updated': data.version.createdAt,
           },
         );
@@ -388,7 +388,7 @@ void main() {
           html,
           'pkg_show_page_discontinued.html',
           timestamps: {
-            'published': data.package.created,
+            'published': data.package.createdAt,
             'updated': data.version.createdAt,
           },
         );
@@ -422,7 +422,7 @@ void main() {
           html,
           'pkg_show_page_retracted.html',
           timestamps: {
-            'published': data.package.created,
+            'published': data.package.createdAt,
             'updated': data.version.createdAt,
           },
         );
@@ -437,7 +437,7 @@ void main() {
           html2,
           'pkg_show_page_retracted_non_retracted_version.html',
           timestamps: {
-            'published': data2.package.created,
+            'published': data2.package.createdAt,
             'updated': data2.version.createdAt,
           },
         );
@@ -471,7 +471,7 @@ void main() {
           html2,
           'pkg_show_page_retracted_non_retracted_version.html',
           timestamps: {
-            'published': data2.package.created,
+            'published': data2.package.createdAt,
             'updated': data2.version.createdAt,
           },
         );
@@ -492,8 +492,8 @@ void main() {
           html,
           'pkg_show_page_publisher.html',
           timestamps: {
-            'published': data.package.created,
-            'updated': data.package.lastVersionPublished,
+            'published': data.package.createdAt,
+            'updated': data.package.lastVersionPublishedAt,
           },
         );
       },
@@ -536,7 +536,7 @@ void main() {
             html,
             'pkg_admin_page.html',
             timestamps: {
-              'published': data.package.created,
+              'published': data.package.createdAt,
               'updated': data.version.createdAt,
             },
           );
@@ -565,7 +565,7 @@ void main() {
             ),
           );
 
-          final mockPast = data.package.created!.subtract(Duration(days: 75));
+          final mockPast = data.package.createdAt.subtract(Duration(days: 75));
           activities.records.add(
             AuditLogRecordView(
               recordId: 'mock-old',
@@ -581,7 +581,7 @@ void main() {
             html,
             'pkg_activity_log_page.html',
             timestamps: {
-              'published': data.package.created,
+              'published': data.package.createdAt,
               'updated': data.version.createdAt,
               ..._activityLogTimestamps(activities),
             },
@@ -678,7 +678,7 @@ void main() {
           'pkg_versions_page.html',
           timestamps: {
             'version-created': data.version.createdAt,
-            'package-created': data.package.created,
+            'package-created': data.package.createdAt,
           },
         );
       },

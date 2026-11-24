@@ -1203,37 +1203,56 @@ class AdminBackend {
   Future<void> deleteModeratedSubjects() async {
     final before = clock.ago(days: 3 * 366).toUtc(); // extra buffer days
     // delete packages
-    final pQuery = _db.query<Package>()
-      ..filter('moderatedAt <', before)
-      ..order('moderatedAt');
-    await for (final package in pQuery.run()) {
-      // sanity check
-      if (!package.isModerated) {
+    final packages = await primaryDatabase.withRetry(
+      (db) => db.packages
+          .where(
+            (p) => p.isModerated & (p.moderatedAt.asNotNull() < toExpr(before)),
+          )
+          .orderBy((p) => [(p.moderatedAt, Order.ascending)])
+          .select((p) => (p.name,))
+          .fetch(),
+    );
+    for (final name in packages) {
+      // sanity check: the SQL data may be stale
+      final current = await packageBackend.lookupPackage(name);
+      if (current == null ||
+          !current.isModerated ||
+          current.moderatedAt == null ||
+          !current.moderatedAt!.isBefore(before)) {
         continue;
       }
-
-      _logger.info('Deleting moderated package: ${package.name}');
-      await removePackage(package.name!, moderated: package.moderatedAt);
-      _logger.info('Deleted moderated package: ${package.name}');
+      _logger.info('Deleting moderated package: $name');
+      await removePackage(name, moderated: current.moderatedAt);
+      _logger.info('Deleted moderated package: $name');
     }
 
     // delete package versions
-    final pvQuery = _db.query<PackageVersion>()
-      ..filter('moderatedAt <', before)
-      ..order('moderatedAt');
-    await for (final version in pvQuery.run()) {
-      // sanity check
-      if (!version.isModerated) {
+    final versions = await primaryDatabase.withRetry(
+      (db) => db.packageVersions
+          .where(
+            (v) => v.isModerated & (v.moderatedAt.asNotNull() < toExpr(before)),
+          )
+          .orderBy((v) => [(v.moderatedAt, Order.ascending)])
+          .select((v) => (v.package, v.version))
+          .fetch(),
+    );
+    for (final (package, version) in versions) {
+      // sanity check: the SQL data may be stale
+      final current = await _db.lookupOrNull<PackageVersion>(
+        _db.emptyKey
+            .append(Package, id: package)
+            .append(PackageVersion, id: version),
+      );
+      if (current == null ||
+          !current.isModerated ||
+          current.moderatedAt == null ||
+          !current.moderatedAt!.isBefore(before)) {
         continue;
       }
-
-      _logger.info(
-        'Deleting moderated package version: ${version.qualifiedVersionKey}',
-      );
-      await removePackageVersion(version.package, version.version!);
-      _logger.info(
-        'Deleted moderated package version: ${version.qualifiedVersionKey}',
-      );
+      final key = QualifiedVersionKey(package: package, version: version);
+      _logger.info('Deleting moderated package version: $key');
+      await removePackageVersion(package, version);
+      _logger.info('Deleted moderated package version: $key');
     }
 
     // delete publishers
@@ -1311,37 +1330,60 @@ class AdminBackend {
     final before = clock.ago(days: 62).toUtc(); // extra buffer days
 
     // delete packages
-    final pQuery = _db.query<Package>()
-      ..filter('adminDeletedAt <', before)
-      ..order('adminDeletedAt');
-    await for (final package in pQuery.run()) {
-      // sanity check
-      if (!package.isAdminDeleted) {
+    final packages = await primaryDatabase.withRetry(
+      (db) => db.packages
+          .where(
+            (p) =>
+                p.isAdminDeleted &
+                (p.adminDeletedAt.asNotNull() < toExpr(before)),
+          )
+          .orderBy((p) => [(p.adminDeletedAt, Order.ascending)])
+          .select((p) => (p.name,))
+          .fetch(),
+    );
+    for (final name in packages) {
+      // sanity check: the SQL data may be stale
+      final current = await packageBackend.lookupPackage(name);
+      if (current == null ||
+          !current.isAdminDeleted ||
+          current.adminDeletedAt == null ||
+          !current.adminDeletedAt!.isBefore(before)) {
         continue;
       }
-
-      _logger.info('Deleting admin-deleted package: ${package.name}');
-      await removePackage(package.name!);
-      _logger.info('Deleted moderated package: ${package.name}');
+      _logger.info('Deleting admin-deleted package: $name');
+      await removePackage(name);
+      _logger.info('Deleted admin-deleted package: $name');
     }
 
     // delete package versions
-    final pvQuery = _db.query<PackageVersion>()
-      ..filter('adminDeletedAt <', before)
-      ..order('adminDeletedAt');
-    await for (final version in pvQuery.run()) {
-      // sanity check
-      if (!version.isAdminDeleted) {
+    final versions = await primaryDatabase.withRetry(
+      (db) => db.packageVersions
+          .where(
+            (v) =>
+                v.isAdminDeleted &
+                (v.adminDeletedAt.asNotNull() < toExpr(before)),
+          )
+          .orderBy((v) => [(v.adminDeletedAt, Order.ascending)])
+          .select((v) => (v.package, v.version))
+          .fetch(),
+    );
+    for (final (package, version) in versions) {
+      // sanity check: the SQL data may be stale
+      final current = await _db.lookupOrNull<PackageVersion>(
+        _db.emptyKey
+            .append(Package, id: package)
+            .append(PackageVersion, id: version),
+      );
+      if (current == null ||
+          !current.isAdminDeleted ||
+          current.adminDeletedAt == null ||
+          !current.adminDeletedAt!.isBefore(before)) {
         continue;
       }
-
-      _logger.info(
-        'Deleting admin-deleted package version: ${version.qualifiedVersionKey}',
-      );
-      await removePackageVersion(version.package, version.version!);
-      _logger.info(
-        'Deleted moderated package version: ${version.qualifiedVersionKey}',
-      );
+      final key = QualifiedVersionKey(package: package, version: version);
+      _logger.info('Deleting admin-deleted package version: $key');
+      await removePackageVersion(package, version);
+      _logger.info('Deleted admin-deleted package version: $key');
     }
   }
 

@@ -13,8 +13,10 @@ import 'package:clock/clock.dart';
 import 'package:pool/pool.dart';
 import 'package:pub_dev/account/backend.dart';
 
-import 'package:pub_dev/package/models.dart';
-import 'package:pub_dev/shared/datastore.dart';
+import 'package:pub_dev/database/database.dart';
+import 'package:pub_dev/database/schema.dart';
+import 'package:pub_dev/package/backend.dart';
+import 'package:typed_sql/typed_sql.dart';
 
 Future<String> executeRecentUploaders(List<String> args) async {
   final parser = ArgParser()
@@ -32,23 +34,24 @@ Future<String> executeRecentUploaders(List<String> args) async {
 
   final pool = Pool(10);
 
-  final updatedAfter = clock.now().subtract(Duration(days: maxAgeDays));
-  final query = dbService.query<Package>()..filter('updated >=', updatedAfter);
+  final updatedAfter = clock.ago(days: maxAgeDays).toUtc();
+  final packages = await primaryDatabase.withRetry(
+    (db) => db.packages
+        .where((p) => p.updatedAt >= toExpr(updatedAfter))
+        .select((p) => (p.name, p.publisherId))
+        .fetch(),
+  );
   final futures = <Future>[];
-  await for (final p in query.run()) {
+  for (final (name, publisherId) in packages) {
     Future<void> process() async {
-      if (p.publisherId != null) {
-        byPublishers
-            .putIfAbsent(p.publisherId!, () => <String>[])
-            .add(p.name ?? '');
+      if (publisherId != null) {
+        byPublishers.putIfAbsent(publisherId, () => <String>[]).add(name);
       } else {
         final uploaderEmails = await accountBackend.getEmailsOfUserIds(
-          p.uploaders!,
+          await packageBackend.lookupPackageUploaders(name),
         );
         uploaderEmails.forEach((email) {
-          byUploaders
-              .putIfAbsent(email ?? '', () => <String>[])
-              .add(p.name ?? '');
+          byUploaders.putIfAbsent(email ?? '', () => <String>[]).add(name);
         });
       }
     }

@@ -191,7 +191,7 @@ Future<Set<String>> processDownloadCounts(DateTime date) async {
 
             nonExistingVersions.forEach((v) => dayCounts.remove(v));
           } on NotFoundException catch (e) {
-            final pkg = await packageBackend.lookupPackage(package);
+            final pkg = await packageBackend.lookupPackageRow(package);
             // The package is neither invisible or tombstoned, hence there is
             // probably an error in the generated data.
             if (pkg == null &&

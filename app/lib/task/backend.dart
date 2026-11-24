@@ -30,7 +30,6 @@ import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/package/upload_signer_service.dart';
 import 'package:pub_dev/scorecard/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
-import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/exceptions.dart';
 import 'package:pub_dev/shared/redis_cache.dart';
 import 'package:pub_dev/shared/storage.dart';
@@ -92,7 +91,6 @@ void registerTaskBackend(TaskBackend backend) =>
 TaskBackend get taskBackend => ss.lookup(#_taskBackend) as TaskBackend;
 
 class TaskBackend {
-  final DatastoreDB _datastore;
   final PrimaryDatabase _database;
   final Bucket _bucket;
 
@@ -112,7 +110,7 @@ class TaskBackend {
   DeleteInstancesState _deleteInstancesState = DeleteInstancesState.init();
   CreateInstancesState _createInstanesState = CreateInstancesState.init();
 
-  TaskBackend(this._datastore, this._database, this._bucket);
+  TaskBackend(this._database, this._bucket);
 
   /// Start continuous background processes for scheduling of tasks.
   ///
@@ -261,19 +259,22 @@ class TaskBackend {
     await pool.done;
 
     // Check that all [Task] rows have a matching [Package] entity.
-    final packagesToDelete = <String>{};
+    final candidates = <String>{};
     await _database.withRetry((db) async {
       await for (final state in db.taskListAllForCurrentRuntime()) {
-        if (packageNames.contains(state.package)) {
-          continue;
+        if (!packageNames.contains(state.package)) {
+          candidates.add(state.package);
         }
-        // Lookup the package to ensure it really doesn't exist
-        if (await _datastore.packages.exists(state.package)) {
-          continue;
-        }
-        packagesToDelete.add(state.package);
       }
     });
+    final packagesToDelete = <String>{};
+    for (final package in candidates) {
+      if (await packageBackend.packageExists(package) ||
+          await packageBackend.lookupPackage(package) != null) {
+        continue;
+      }
+      packagesToDelete.add(package);
+    }
     for (final package in packagesToDelete) {
       try {
         await _database.withRetry((db) => db.taskDelete(package));

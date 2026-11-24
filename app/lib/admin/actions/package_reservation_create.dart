@@ -33,8 +33,9 @@ able to claim it.
     );
     final emails = options['emails']?.split(',');
 
-    final p = await packageBackend.lookupPackage(package!);
-    if (p != null) {
+    // Admin action: double-check Datastore, in case the SQL mirror is behind.
+    if (await packageBackend.packageExists(package!) ||
+        await packageBackend.lookupPackage(package) != null) {
       throw InvalidInputException('Package `$package` exists.');
     }
     final tombstone = await packageBackend.lookupPackageTombstone(package);

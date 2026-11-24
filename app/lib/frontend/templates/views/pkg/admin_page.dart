@@ -4,7 +4,7 @@
 
 import 'package:_pub_shared/data/package_api.dart';
 
-import '../../../../package/models.dart';
+import '../../../../database/schema.dart';
 import '../../../../shared/urls.dart' as urls;
 import '../../../dom/dom.dart' as d;
 import '../../../dom/material.dart' as material;
@@ -12,7 +12,7 @@ import '../shared/toc.dart';
 
 /// Creates the package admin page content.
 d.Node packageAdminPageNode({
-  required Package package,
+  required PackageRow package,
   required List<String> userPublishers,
   required List<String> uploaderEmails,
   required List<String> retractableVersions,
@@ -319,7 +319,7 @@ d.Node packageAdminPageNode({
   ]);
 }
 
-d.Node _automatedPublishing(Package package) {
+d.Node _automatedPublishing(PackageRow package) {
   final github = package.publishingConfig?.githubConfig;
   final gcp = package.publishingConfig?.gcpConfig;
   final isGitHubEnabled = github?.isEnabled ?? false;
@@ -474,7 +474,7 @@ d.Node _automatedPublishing(Package package) {
   ]);
 }
 
-d.Node _manualPublishing(Package package) {
+d.Node _manualPublishing(PackageRow package) {
   final manual = package.publishingConfig?.manualConfig;
   return d.fragment([
     d.a(name: 'manual-publishing'),

@@ -177,6 +177,21 @@ extension PackageRowExt on PackageRow {
 
   bool isNewPackage() => isNewPackageCreatedAt(createdAt);
 
+  PublishingConfig? get publishingConfig {
+    final json = publishingConfigJson?.value;
+    if (json == null) return null;
+    return PublishingConfig.fromJson((json as Map).cast<String, dynamic>());
+  }
+
+  LatestReleases get latestReleases => LatestReleases.select(
+    stable: latestVersion,
+    stablePublished: latestPublishedAt!,
+    prerelease: latestPrereleaseVersion,
+    prereleasePublished: latestPrereleasePublishedAt,
+    preview: latestPreviewVersion,
+    previewPublished: latestPreviewPublishedAt,
+  );
+
   Iterable<String> getTags() => computePackageTags(
     assignedTags: assignedTags,
     createdAt: createdAt,

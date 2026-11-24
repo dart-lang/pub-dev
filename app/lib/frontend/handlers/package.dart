@@ -58,7 +58,7 @@ Future<shelf.Response> packageShowHandlerJson(
   String packageName,
 ) async {
   checkPackageVersionParams(packageName);
-  final package = await packageBackend.lookupPackage(packageName);
+  final package = await packageBackend.lookupPackageRow(packageName);
   if (package == null || package.isNotVisible) {
     return formattedNotFoundHandler(request);
   }
@@ -321,7 +321,7 @@ Future<shelf.Response> _handlePackagePage({
     }
   }
 
-  final package = await packageBackend.lookupPackage(packageName);
+  final package = await packageBackend.lookupPackageRow(packageName);
   if (package == null) {
     return formattedNotFoundHandler(request);
   }
@@ -407,7 +407,7 @@ Future<shelf.Response> packageAdminHandler(
         requestContext.authenticatedUserId!,
       );
       final uploaderEmails = await accountBackend.getEmailsOfUserIds(
-        data.package.uploaders ?? <String>[],
+        await packageBackend.lookupPackageUploaders(packageName),
       );
       final retractableVersions = await packageBackend.listRetractableVersions(
         packageName,
@@ -452,14 +452,12 @@ Future<shelf.Response> packageActivityLogHandler(
 
 @visibleForTesting
 Future<PackagePageData> loadPackagePageData(
-  Package package,
+  PackageRow package,
   String? versionName,
   String? assetKind,
 ) async {
-  final packageName = package.name!;
+  final packageName = package.name;
   versionName ??= package.latestVersion;
-
-  final latestReleasesFuture = packageBackend.latestReleases(package);
 
   final isLikedFuture = Future(() async {
     if (requestContext.isNotAuthenticated) {
@@ -467,14 +465,14 @@ Future<PackagePageData> loadPackagePageData(
     }
     final likeStatus = await likeBackend.getPackageLikeStatus(
       requestContext.authenticatedUserId!,
-      package.name!,
+      package.name,
     );
     return likeStatus != null;
   });
 
   final selectedVersionFuture = packageBackend.lookupPackageVersion(
     packageName,
-    versionName!,
+    versionName,
   );
   final assetsFuture = packageBackend.getAssets(packageName, versionName);
 
@@ -488,7 +486,7 @@ Future<PackagePageData> loadPackagePageData(
 
   final isAdminFuture = requestContext.isNotAuthenticated
       ? Future.value(false)
-      : packageBackend.isPackageAdmin(
+      : packageBackend.isPackageRowAdmin(
           package,
           requestContext.authenticatedUserId!,
         );
@@ -499,12 +497,11 @@ Future<PackagePageData> loadPackagePageData(
     package: package,
   );
 
-  final weeklyDownloadCountsFuture = getWeeklyTotalDownloads(package.name!);
+  final weeklyDownloadCountsFuture = getWeeklyTotalDownloads(package.name);
   final likesCountFuture = packageBackend.lookupLikesCount(packageName);
 
   await Future.wait([
     likesCountFuture,
-    latestReleasesFuture,
     isLikedFuture,
     selectedVersionFuture,
     assetsFuture,
@@ -524,7 +521,6 @@ Future<PackagePageData> loadPackagePageData(
 
   return PackagePageData(
     package: package,
-    latestReleases: await latestReleasesFuture,
     version: selectedVersion,
     assets: assets,
     asset: await assetFuture,
@@ -581,7 +577,7 @@ Future<ListAdvisoriesResponse> listAdvisoriesForPackage(
   String packageName,
 ) async {
   InvalidInputException.checkPackageName(packageName);
-  final package = await packageBackend.lookupPackage(packageName);
+  final package = await packageBackend.lookupPackageRow(packageName);
   if (package == null) {
     throw NotFoundException.resource(packageName);
   }
