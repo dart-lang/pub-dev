@@ -333,6 +333,24 @@ class PublisherBackend {
     return member.role == PublisherMemberRole.admin;
   }
 
+  /// Whether the User [userId] has admin permissions on the publisher
+  /// [publisherId].
+  ///
+  /// A SQL denial is final, a SQL grant is double-checked against the
+  /// Datastore entities.
+  Future<bool> isMemberAdminById(String publisherId, String userId) async {
+    final publisher = await lookupPublisher(publisherId);
+    if (publisher == null || publisher.isUnlisted) return false;
+    if (!await isMemberAdmin(publisher, userId)) return false;
+    final key = _publisherKey(publisherId);
+    final entity = await _db.lookupOrNull<Publisher>(key);
+    if (entity == null || entity.isUnlisted) return false;
+    final member = await _db.lookupOrNull<PublisherMember>(
+      key.append(PublisherMember, id: userId),
+    );
+    return member != null && member.role == PublisherMemberRole.admin;
+  }
+
   /// Create publisher.
   Future<api.PublisherInfo> createPublisher(String publisherId) async {
     checkPublisherIdParam(publisherId);

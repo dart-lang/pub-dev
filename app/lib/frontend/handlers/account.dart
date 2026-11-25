@@ -209,12 +209,12 @@ Future<AccountPkgOptions> accountPkgOptionsHandler(
 ) async {
   checkPackageVersionParams(package);
   final user = await requireAuthenticatedWebUser();
-  final p = await packageBackend.lookupPackage(package);
+  final p = await packageBackend.lookupPackageRow(package);
   if (p == null) {
     throw NotFoundException.resource(package);
   }
   return AccountPkgOptions(
-    isAdmin: await packageBackend.isPackageAdmin(p, user.userId),
+    isAdmin: await packageBackend.isPackageRowAdmin(p, user.userId),
   );
 }
 
@@ -244,8 +244,7 @@ Future<PackageLikeResponse> getLikePackageHandler(
 ) async {
   checkPackageVersionParams(package);
   final user = await requireAuthenticatedWebUser();
-  final p = await packageBackend.lookupPackage(package);
-  if (p == null) {
+  if (!await packageBackend.packageExists(package)) {
     throw NotFoundException.resource(package);
   }
 

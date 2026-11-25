@@ -223,8 +223,11 @@ Future<Message> processReportPageHandler(
   bool isSubjectOwner = false;
   if (user != null) {
     if (subject.isPackage) {
-      final pkg = await packageBackend.lookupPackage(subject.package!);
-      isSubjectOwner = await packageBackend.isPackageAdmin(pkg!, user.userId);
+      final pkg = await packageBackend.lookupPackageRow(subject.package!);
+      isSubjectOwner = await packageBackend.isPackageRowAdmin(
+        pkg!,
+        user.userId,
+      );
     } else if (subject.isPublisher) {
       final p = await publisherBackend.lookupPublisher(subject.publisherId!);
       isSubjectOwner = await publisherBackend.isMemberAdmin(p!, user.userId);

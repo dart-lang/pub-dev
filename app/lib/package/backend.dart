@@ -1281,11 +1281,12 @@ class PackageBackend {
       );
     }
 
-    final pkg = await _requirePackageAdmin(package, user.userId);
+    await _requirePackageAdmin(package, user.userId);
+    final pkgKey = db.emptyKey.append(Package, id: package);
     AuditLogRecord? auditLogRecord;
     Package? updatedPackage;
     await withRetryTransaction(db, (tx) async {
-      final p = await tx.lookupValue<Package>(pkg.key);
+      final p = await tx.lookupValue<Package>(pkgKey);
 
       final optionsChanges = <String>[];
       if (options.isDiscontinued != null &&
@@ -1346,12 +1347,13 @@ class PackageBackend {
     final user = authenticatedUser.user;
 
     final pkg = await _requirePackageAdmin(package, user.userId);
-    final versionKey = pkg.key.append(PackageVersion, id: version);
+    final pkgKey = db.emptyKey.append(Package, id: package);
+    final versionKey = pkgKey.append(PackageVersion, id: version);
     AuditLogRecord? auditLogRecord;
     Package? updatedPackage;
     PackageVersion? updatedVersion;
     await withRetryTransaction(db, (tx) async {
-      final p = await tx.lookupValue<Package>(pkg.key);
+      final p = await tx.lookupValue<Package>(pkgKey);
       final pv = await tx.lookupOrNull<PackageVersion>(versionKey);
       if (pv == null) {
         throw NotFoundException.resource(version);
@@ -1406,11 +1408,12 @@ class PackageBackend {
   ) async {
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
-    final pkg = await _requirePackageAdmin(package, user.userId);
+    await _requirePackageAdmin(package, user.userId);
+    final pkgKey = db.emptyKey.append(Package, id: package);
     AuditLogRecord? auditLogRecord;
     Package? updatedPackage;
     final result = await withRetryTransaction(db, (tx) async {
-      final p = await tx.lookupValue<Package>(pkg.key);
+      final p = await tx.lookupValue<Package>(pkgKey);
       final githubConfig = body.github;
       final gcpConfig = body.gcp;
       final manualConfig = body.manual;
@@ -1600,14 +1603,13 @@ class PackageBackend {
       return false;
     }
     if (p.publisherId == null) {
-      return p.containsUploader(userId);
-    } else {
-      final publisherId = p.publisherId!;
-      final publisher = await publisherBackend.getListedPublisher(publisherId);
-      if (publisher == null) {
+      // SQL denial is final, a SQL grant is double-checked against Datastore.
+      if (!(await lookupPackageUploaders(p.name!)).contains(userId)) {
         return false;
       }
-      return await publisherBackend.isMemberAdmin(publisher, userId);
+      return p.containsUploader(userId);
+    } else {
+      return await publisherBackend.isMemberAdminById(p.publisherId!, userId);
     }
   }
 
@@ -1618,13 +1620,14 @@ class PackageBackend {
     }
     final publisherId = p.publisherId;
     if (publisherId == null) {
-      return (await lookupPackageUploaders(p.name)).contains(userId);
+      // SQL denial is final, a SQL grant is double-checked against Datastore.
+      if (!(await lookupPackageUploaders(p.name)).contains(userId)) {
+        return false;
+      }
+      final entity = await lookupPackage(p.name);
+      return entity != null && entity.containsUploader(userId);
     }
-    final publisher = await publisherBackend.getListedPublisher(publisherId);
-    if (publisher == null) {
-      return false;
-    }
-    return await publisherBackend.isMemberAdmin(publisher, userId);
+    return await publisherBackend.isMemberAdminById(publisherId, userId);
   }
 
   /// Returns the publisher info of a given package.
@@ -1664,11 +1667,12 @@ class PackageBackend {
     await requirePublisherAdmin(newPublisherId!, user.userId);
     if (preTxPackage.publisherId == newPublisherId) {
       // If desired publisherId is already the current publisherId, then we're already done.
-      return _asPackagePublisherInfo(preTxPackage);
+      return api.PackagePublisherInfo(publisherId: preTxPackage.publisherId);
     }
 
     final preTxUploaderEmails = await _listAdminNotificationEmailsForPackage(
-      preTxPackage,
+      preTxPackage.name,
+      preTxPackage.publisherId,
     );
     final newPublisherAdminEmails = await publisherBackend.getAdminMemberEmails(
       newPublisherId,
@@ -2138,7 +2142,8 @@ class PackageBackend {
       }
     } else {
       uploaderEmails = await _listAdminNotificationEmailsForPackage(
-        existingPackage,
+        existingPackage.name!,
+        existingPackage.publisherId,
       );
     }
     if (uploaderEmails.isEmpty) {
@@ -2605,22 +2610,25 @@ class PackageBackend {
     }
   }
 
-  /// List the admin emails that need to be notified when a [package] has a
+  /// List the admin emails that need to be notified when a package has a
   /// significant event (e.g. new version is uploaded).
   ///
   /// - Returns either the uploader emails of the publisher's admin member emails.
   ///   Throws exception if the list is empty, we should be able to notify somebody.
   Future<List<String>> _listAdminNotificationEmailsForPackage(
-    Package package,
+    String packageName,
+    String? publisherId,
   ) async {
-    final emails = package.publisherId == null
-        ? await accountBackend.getEmailsOfUserIds(package.uploaders!)
-        : await publisherBackend.getAdminMemberEmails(package.publisherId!);
+    final emails = publisherId == null
+        ? await accountBackend.getEmailsOfUserIds(
+            await lookupPackageUploaders(packageName),
+          )
+        : await publisherBackend.getAdminMemberEmails(publisherId);
     final existingEmails = emails.nonNulls.toList();
     if (existingEmails.isEmpty) {
       // should not happen
       throw AssertionError(
-        'Package "${package.name}" has no admin email to notify.',
+        'Package "$packageName" has no admin email to notify.',
       );
     }
     return existingEmails;
@@ -2636,12 +2644,15 @@ class PackageBackend {
     final uploaderEmail = invite.email.toLowerCase();
     final authenticatedUser = await requireAuthenticatedWebUser();
     final user = authenticatedUser.user;
-    final packageKey = db.emptyKey.append(Package, id: packageName);
-    final package = await db.lookupOrNull<Package>(packageKey);
-
-    await _validatePackageUploader(packageName, package, user.userId);
+    final package = await lookupPackageRow(packageName);
+    if (package == null) {
+      throw NotFoundException.resource(packageName);
+    }
+    if (!await isPackageRowAdmin(package, user.userId)) {
+      throw AuthorizationException.userCannotChangeUploaders(packageName);
+    }
     // Don't send invites for publisher-owned packages.
-    if (package!.publisherId != null) {
+    if (package.publisherId != null) {
       throw OperationForbiddenException.publisherOwnedPackageNoUploader(
         packageName,
         package.publisherId!,
@@ -2654,7 +2665,7 @@ class PackageBackend {
     );
 
     final uploaderUsers = await accountBackend.lookupUsersById(
-      package.uploaders!,
+      await lookupPackageUploaders(packageName),
     );
     final isNotUploaderYet = !uploaderUsers.any(
       (u) => u!.email == uploaderEmail,
@@ -3033,16 +3044,16 @@ enum UploadRestrictionStatus {
   noUploads,
 }
 
-/// Loads [package], returns its [Package] instance, and also checks if
+/// Loads [package], returns its [PackageRow] instance, and also checks if
 /// [userId] is an admin of the package.
 ///
 /// Throws [AuthorizationException] if the user is not an admin for the package.
-Future<Package> _requirePackageAdmin(String package, String userId) async {
-  final p = await packageBackend.lookupPackage(package);
+Future<PackageRow> _requirePackageAdmin(String package, String userId) async {
+  final p = await packageBackend.lookupPackageRow(package);
   if (p == null) {
     throw NotFoundException.resource('package "$package"');
   }
-  if (!await packageBackend.isPackageAdmin(p, userId)) {
+  if (!await packageBackend.isPackageRowAdmin(p, userId)) {
     throw AuthorizationException.userIsNotAdminForPackage(package);
   }
   return p;
