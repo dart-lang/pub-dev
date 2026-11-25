@@ -100,12 +100,6 @@ class SecurityAdvisoryBackend {
     );
   }
 
-  /// Looks up the advisory entity with [id] for the write path.
-  Future<SecurityAdvisory?> _lookupEntityById(String id) async {
-    final key = _db.emptyKey.append(SecurityAdvisory, id: id);
-    return _db.lookupOrNull<SecurityAdvisory>(key);
-  }
-
   bool _isValidAdvisory(OSV osv) {
     final errors = sanityCheckOSV(osv);
     errors.forEach(
@@ -120,113 +114,77 @@ class SecurityAdvisoryBackend {
   /// taken to resolve this. Instead both advisories will be stored and served.
   /// It's assumed that security advisory database owners take care to keep the
   /// security advisories sound, and that inconsistencies are intentional.
-  Future<SecurityAdvisory?> ingestSecurityAdvisory(
+  Future<SecurityAdvisoryRow?> ingestSecurityAdvisory(
     OSV osv,
     DateTime syncTime,
   ) async {
-    final updatedPackages = <String, Package>{};
-    var wasWritten = false;
-    final result = await withRetryTransaction(_db, (tx) async {
-      DateTime modified;
-      try {
-        modified = DateTime.parse(osv.modified);
-      } on FormatException {
-        logger.severe('Failed to parse osv.modified: "${osv.modified}".');
-        return null;
-      }
-
-      final oldAdvisory = await _lookupEntityById(osv.id);
-
-      if (oldAdvisory != null && oldAdvisory.modified!.isAtOrAfter(modified)) {
-        return oldAdvisory;
-      }
-
-      if (!_isValidAdvisory(osv)) return null;
-
-      final idAndAliases = [osv.id, ...osv.aliases];
-
-      osv.databaseSpecific ??= <String, dynamic>{};
-      osv.databaseSpecific?['pub_display_url'] = _computeDisplayUrl(
-        idAndAliases,
-      );
-
-      final newAdvisory = SecurityAdvisory()
-        ..id = osv.id
-        ..modified = modified
-        ..parentKey = _db.emptyKey
-        ..osv = osv
-        ..aliases = idAndAliases
-        ..affectedPackages = osv.affectedPubPackages
-        ..published = osv.published != null
-            ? DateTime.parse(osv.published!)
-            : modified
-        ..syncTime = syncTime;
-
-      wasWritten = true;
-      if (newAdvisory.affectedPackages!.length > 50) {
-        // This is very unlikely to happen, since a security advisory typically
-        // affects one or a few packages. We log this to keep an eye out. If
-        // it turns out that this becomes a problem we need to consider other
-        // solutions with eventual consistency.
-        _logger.shout(
-          'Failed to update `latestAdvisory` field for packages affected by'
-          ' `${newAdvisory.name}`. Too many (>50) affected packages.',
-        );
-        tx.queueMutations(
-          // This is an upsert
-          inserts: [newAdvisory],
-        );
-      } else {
-        final packages = await _lookupAffectedPackages(newAdvisory, tx);
-        for (final pkg in packages) {
-          pkg.latestAdvisory = syncTime;
-          pkg.updated = clock.now().toUtc();
-          updatedPackages[pkg.name!] = pkg;
-        }
-        tx.queueMutations(
-          // This is an upsert
-          inserts: [newAdvisory, ...packages],
-        );
-      }
-
-      return newAdvisory;
-    });
-    if (wasWritten && result != null) {
-      // Mirror to SQL before triggering package post-updates, so that
-      // any cache repopulation triggered below doesn't read stale SQL data.
-      await _mirrorToSql(result);
+    DateTime modified;
+    try {
+      modified = DateTime.parse(osv.modified);
+    } on FormatException {
+      logger.severe('Failed to parse osv.modified: "${osv.modified}".');
+      return null;
     }
-    for (final pkg in updatedPackages.values) {
-      await packageBackend.mirrorPackageToSql(pkg);
+
+    final oldAdvisory = await lookupById(osv.id);
+    if (oldAdvisory != null && oldAdvisory.modifiedAt.isAtOrAfter(modified)) {
+      return oldAdvisory;
     }
-    await Future.wait(
-      updatedPackages.keys.map(
-        (packageName) => triggerPackagePostUpdates(
-          packageName,
-          skipReanalysis: true,
-          skipArchiveExport: true,
-        ).future,
-      ),
+
+    if (!_isValidAdvisory(osv)) return null;
+
+    osv.databaseSpecific ??= <String, dynamic>{};
+    osv.databaseSpecific?['pub_display_url'] = _computeDisplayUrl([
+      osv.id,
+      ...osv.aliases,
+    ]);
+
+    final affectedPackages = osv.affectedPubPackages;
+    final updatedPackages = await _updateLatestAdvisory(
+      osv.id,
+      affectedPackages,
+      syncTime,
     );
+
+    // The packages are updated before the advisory is written: if the SQL write
+    // fails, the next sync still sees the old advisory and retries the update.
+    final result = await _upsertAdvisory(
+      osv,
+      affectedPackages,
+      published: osv.published != null
+          ? DateTime.parse(osv.published!)
+          : modified,
+      modified: modified,
+      syncTime: syncTime,
+    );
+
+    // Trigger package post-updates only after the SQL write, so that any
+    // cache repopulation doesn't read stale SQL data.
+    await _postUpdatePackages(updatedPackages);
     return result;
   }
 
-  /// Mirrors [advisory] into SQL (best-effort).
-  Future<void> _mirrorToSql(SecurityAdvisory advisory) async {
-    await primaryDatabase.transactWithRetry((db) async {
-      final id = advisory.id!;
+  /// Upserts the advisory row and syncs its affected packages.
+  Future<SecurityAdvisoryRow> _upsertAdvisory(
+    OSV osv,
+    List<String> affectedPackages, {
+    required DateTime published,
+    required DateTime modified,
+    required DateTime syncTime,
+  }) async {
+    final id = osv.id;
+    return await primaryDatabase.transactWithRetry((db) async {
       await db.securityAdvisories
           .upsertValue(
             advisoryId: id,
-            publishedAt: advisory.published!,
-            modifiedAt: advisory.modified!,
-            syncedAt: advisory.syncTime!,
-            osvJson: JsonValue(advisory.osv!.toJson()),
+            publishedAt: published,
+            modifiedAt: modified,
+            syncedAt: syncTime,
+            osvJson: JsonValue(osv.toJson()),
           )
           .execute();
 
-      final wantedPackages = (advisory.affectedPackages ?? const <String>[])
-          .toSet();
+      final wantedPackages = affectedPackages.toSet();
       final existingPackages =
           (await db.securityAdvisoryPackages
                   .where((p) => p.advisoryId.equalsValue(id))
@@ -258,32 +216,60 @@ class SecurityAdvisoryBackend {
             .delete()
             .execute();
       }
+
+      return (await db.securityAdvisories.byKey(id).fetch())!;
     });
   }
 
-  /// Deletes the SQL-mirrored security advisory with [id] (best-effort).
-  Future<void> _deleteFromSql(String id) async {
-    await primaryDatabase.withRetry(
-      (db) => db.securityAdvisories.delete(id).execute(),
-    );
+  /// Sets `latestAdvisory` on the [packageNames] affected by [advisoryId].
+  ///
+  /// Returns the updated packages by name.
+  Future<Map<String, Package>> _updateLatestAdvisory(
+    String advisoryId,
+    List<String> packageNames,
+    DateTime syncTime,
+  ) async {
+    if (packageNames.length > 50) {
+      // This is very unlikely to happen, since a security advisory typically
+      // affects one or a few packages. We log this to keep an eye out. If
+      // it turns out that this becomes a problem we need to consider other
+      // solutions with eventual consistency.
+      _logger.shout(
+        'Failed to update `latestAdvisory` field for packages affected by'
+        ' `$advisoryId`. Too many (>50) affected packages.',
+      );
+      return const {};
+    }
+    final updatedPackages = <String, Package>{};
+    await withRetryTransaction(_db, (tx) async {
+      final packages = await _lookupAffectedPackages(
+        advisoryId,
+        packageNames,
+        tx,
+      );
+      for (final pkg in packages) {
+        pkg.latestAdvisory = syncTime;
+        pkg.updated = clock.now().toUtc();
+        updatedPackages[pkg.name!] = pkg;
+      }
+      tx.queueMutations(inserts: packages);
+    });
+    return updatedPackages;
   }
 
-  /// Copies [SecurityAdvisory] entries from Datastore into SQL, for entries
-  /// that are not yet present in SQL (or are stale).
-  Future<int> backfillSqlFromDatastore() async {
-    var count = 0;
-    await for (final advisory in _db.query<SecurityAdvisory>().run()) {
-      final existing = await primaryDatabase.withRetry(
-        (db) => db.securityAdvisories.byKey(advisory.id!).fetch(),
-      );
-      if (existing != null &&
-          existing.syncedAt.isAtSameMomentAs(advisory.syncTime!)) {
-        continue;
-      }
-      await _mirrorToSql(advisory);
-      count++;
+  Future<void> _postUpdatePackages(Map<String, Package> updatedPackages) async {
+    for (final pkg in updatedPackages.values) {
+      await packageBackend.mirrorPackageToSql(pkg);
     }
-    return count;
+    await Future.wait(
+      updatedPackages.keys.map(
+        (packageName) => triggerPackagePostUpdates(
+          packageName,
+          skipReanalysis: true,
+          skipArchiveExport: true,
+        ).future,
+      ),
+    );
   }
 
   String _computeDisplayUrl(List<String> idAndAliases) {
@@ -304,69 +290,36 @@ class SecurityAdvisoryBackend {
 
   /// Deletes the advisory with [id].
   Future<void> deleteAdvisory(String id, DateTime syncTime) async {
-    final advisory = await _lookupEntityById(id);
+    final advisory = await lookupById(id);
     if (advisory == null) {
-      await _deleteFromSql(id);
       return;
     }
-    final updatedPackages = <String, Package>{};
-    final result = await withRetryTransaction(_db, (tx) async {
-      final key = _db.emptyKey.append(SecurityAdvisory, id: advisory.id);
-
-      if (advisory.affectedPackages!.length > 50) {
-        // This is very unlikely to happen, since a security advisory typically
-        // affects one or a few packages. We log this to keep an eye out. If
-        // it turns out that this becomes a problem we need to consider other
-        // solutions with eventual consistency.
-        _logger.shout(
-          'Failed to update `latestAdvisory` field for packages affected by'
-          ' `${advisory.name}`. Too many (>50) affected packages.',
-        );
-
-        // If necessary this can be optimized by deleting up to 500 at once.
-        // At this point we don't expect many deletes so we keep it simple.
-        // await _db.commit(deletes: [key]);
-        tx.queueMutations(deletes: [key]);
-      } else {
-        final packages = await _lookupAffectedPackages(advisory, tx);
-        for (final pkg in packages) {
-          pkg.latestAdvisory = syncTime;
-          pkg.updated = clock.now().toUtc();
-          updatedPackages[pkg.name!] = pkg;
-        }
-        tx.queueMutations(inserts: packages, deletes: [key]);
-      }
-    });
-    // Mirror the delete to SQL before triggering package post-updates, so
-    // that any cache repopulation triggered below doesn't read stale SQL
-    // data.
-    await _deleteFromSql(advisory.id!);
-    for (final pkg in updatedPackages.values) {
-      await packageBackend.mirrorPackageToSql(pkg);
-    }
-    await Future.wait(
-      updatedPackages.keys.map(
-        (packageName) => triggerPackagePostUpdates(
-          packageName,
-          skipReanalysis: true,
-          skipArchiveExport: true,
-        ).future,
-      ),
+    // The packages are updated before the advisory is deleted: if the SQL
+    // delete fails, the next sync still sees the advisory and retries.
+    final updatedPackages = await _updateLatestAdvisory(
+      id,
+      advisory.affectedPackages,
+      syncTime,
     );
-    return result;
+    // The affected packages are removed through the cascading foreign key.
+    await primaryDatabase.withRetry(
+      (db) => db.securityAdvisories.delete(id).execute(),
+    );
+    await _postUpdatePackages(updatedPackages);
   }
 
   Future<List<Package>> _lookupAffectedPackages(
-    SecurityAdvisory advisory,
+    String advisoryId,
+    List<String> packageNames,
     TransactionWrapper tx,
   ) async {
     final packages = <Package>[];
-    for (final packageName in advisory.affectedPackages!) {
+    for (final packageName in packageNames) {
       final package = await tx.packages.lookupOrNull(packageName);
       if (package == null) {
         _logger.shout(
           'Package $packageName not found, while ingesting advisory '
-          '${advisory.id}.',
+          '$advisoryId.',
         );
         continue;
       }

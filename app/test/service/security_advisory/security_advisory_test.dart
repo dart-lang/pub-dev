@@ -15,6 +15,7 @@ import 'package:pub_dev/fake/backend/fake_auth_provider.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/service/security_advisories/models.dart';
+import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/shared/utils.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
@@ -185,7 +186,7 @@ void main() {
       expect(all.first.advisoryId, id);
       expect(all.last.advisoryId, id2);
 
-      await securityAdvisoryBackend.deleteAdvisory(adv!.id!, syncTime);
+      await securityAdvisoryBackend.deleteAdvisory(adv!.advisoryId, syncTime);
 
       final reduced = await securityAdvisoryBackend.listAdvisories();
       expect(reduced, isNotNull);
@@ -762,28 +763,17 @@ void main() {
     );
 
     testWithProfile(
-      'backfillSqlFromDatastore copies missing rows',
+      'ingestSecurityAdvisory does not write Datastore entity',
       fn: () async {
         await securityAdvisoryBackend.ingestSecurityAdvisory(
           testOsv('123'),
           clock.now(),
         );
-        await primaryDatabase.withRetry(
-          (db) => db.securityAdvisories.delete('123').execute(),
-        );
-
-        var row = await primaryDatabase.withRetry(
-          (db) => db.securityAdvisories.byKey('123').fetch(),
-        );
-        expect(row, isNull);
-
-        final count = await securityAdvisoryBackend.backfillSqlFromDatastore();
-        expect(count, greaterThanOrEqualTo(1));
-
-        row = await primaryDatabase.withRetry(
-          (db) => db.securityAdvisories.byKey('123').fetch(),
-        );
-        expect(row, isNotNull);
+        final entities = await dbService
+            .query<SecurityAdvisory>()
+            .run()
+            .toList();
+        expect(entities, isEmpty);
       },
     );
   });
