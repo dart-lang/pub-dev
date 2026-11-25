@@ -224,6 +224,7 @@ void main() {
           package!.uploaders = [agent.userId];
         });
         await dbService.commit(inserts: [package!]);
+        await packageBackend.mirrorPackageToSql(package);
 
         final client = await createFakeAuthPubApiClient(
           email: userAtPubDevEmail,

@@ -624,12 +624,12 @@ class AdminBackend {
   Future<api.AssignedTags> handleGetAssignedTags(String packageName) async {
     checkPackageVersionParams(packageName);
     await requireAuthenticatedAdmin(AdminPermission.manageAssignedTags);
-    final package = await packageBackend.lookupPackage(packageName);
+    final package = await packageBackend.lookupPackageRow(packageName);
     if (package == null) {
       throw NotFoundException.resource(packageName);
     }
 
-    return api.AssignedTags(assignedTags: package.assignedTags!);
+    return api.AssignedTags(assignedTags: package.assignedTags);
   }
 
   /// Handles `POST '/api/admin/packages/<package>/assigned-tags'`.
@@ -689,7 +689,7 @@ class AdminBackend {
   ) async {
     checkPackageVersionParams(packageName);
     await requireAuthenticatedAdmin(AdminPermission.managePackageOwnership);
-    final package = await packageBackend.lookupPackage(packageName);
+    final package = await packageBackend.lookupPackageRow(packageName);
     if (package == null) {
       throw NotFoundException.resource(packageName);
     }
@@ -698,7 +698,9 @@ class AdminBackend {
       'Package must not be under a publisher.',
     );
 
-    final users = await accountBackend.lookupUsersById(package.uploaders!);
+    final users = await accountBackend.lookupUsersById(
+      await packageBackend.lookupPackageUploaders(packageName),
+    );
     return api.PackageUploaders(uploaders: _convertUserRows(users));
   }
 
@@ -726,8 +728,7 @@ class AdminBackend {
     final authenticatedAgent = await requireAuthenticatedAdmin(
       AdminPermission.managePackageOwnership,
     );
-    final package = await packageBackend.lookupPackage(packageName);
-    if (package == null) {
+    if (!await packageBackend.packageExists(packageName)) {
       throw NotFoundException.resource(packageName);
     }
 

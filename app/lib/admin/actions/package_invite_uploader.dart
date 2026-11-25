@@ -28,7 +28,7 @@ Sends an invite to <email> to become uploader of <package>.
         options['email'] ??
         (throw InvalidInputException('Missing --email argument.'));
 
-    final package = await packageBackend.lookupPackage(packageName);
+    final package = await packageBackend.lookupPackageRow(packageName);
     if (package == null) {
       throw NotFoundException.resource(packageName);
     }
@@ -49,7 +49,7 @@ Sends an invite to <email> to become uploader of <package>.
     );
 
     final uploaderUsers = await accountBackend.lookupUsersById(
-      package.uploaders!,
+      await packageBackend.lookupPackageUploaders(packageName),
     );
     final isNotUploaderYet = !uploaderUsers.any(
       (u) => u!.email == invitedEmail,
