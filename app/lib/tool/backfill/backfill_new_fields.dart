@@ -11,7 +11,6 @@ import 'package:pub_dev/package/models.dart';
 import 'package:pub_dev/publisher/backend.dart';
 import 'package:pub_dev/publisher/models.dart';
 import 'package:pub_dev/service/download_counts/models.dart';
-import 'package:pub_dev/service/security_advisories/backend.dart';
 import 'package:pub_dev/shared/datastore.dart';
 import 'package:pub_dev/tool/neat_task/datastore_status_provider.dart';
 
@@ -26,10 +25,6 @@ Future<void> backfillNewFields() async {
   // NOTE: Keep this around until User is migrated to use SQL.
   _logger.info('Backfilling users...');
   await accountBackend.backfillSqlFromDatastore();
-
-  // NOTE: Keep this around until SecurityAdvisory is migrated to use SQL.
-  _logger.info('Backfilling security advisories...');
-  await securityAdvisoryBackend.backfillSqlFromDatastore();
 
   // NOTE: Keep this around until Publisher and PublisherMember are migrated to use SQL.
   _logger.info('Backfilling publishers and publisher members...');

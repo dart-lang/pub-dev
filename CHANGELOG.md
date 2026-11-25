@@ -7,6 +7,7 @@ AppEngine version, listed here to ease deployment and troubleshooting.
  * Note: `PackageVersionInfo` is now read from SQL.
  * Note: most `Package` listings and reads now use SQL.
  * Note: like entries and aggregate counts are now based on SQL (Datastore mirror is kept).
+ * Note: `SecurityAdvisory` is now read and updated in SQL only; the Datastore entities are no longer written.
 
 ## `20261119t130200-all`
  * Bump runtimeVersion to `2026.11.19`.
