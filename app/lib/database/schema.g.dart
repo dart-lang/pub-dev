@@ -19,13 +19,13 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
     _$GlobalLockState._$table,
     _$ModerationCaseRow._$table,
     _$ModerationActionLog._$table,
-    _$NeatTaskStatusRow._$table,
+    _$NeatTaskStatus._$table,
     _$PackageRow._$table,
     _$PackageUploader._$table,
     _$PackageVersionRow._$table,
     _$PackageVersionAssetRow._$table,
     _$PackageTombstone._$table,
-    _$ReservedPackageRow._$table,
+    _$ReservedPackage._$table,
     _$DownloadCount._$table,
     _$PublisherRow._$table,
     _$PublisherMemberRow._$table,
@@ -67,8 +67,8 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
   Table<ModerationActionLog> get moderationActionLogs =>
       $ForGeneratedCode.declareTable(this, _$ModerationActionLog._$table);
 
-  Table<NeatTaskStatusRow> get neatTaskStatuses =>
-      $ForGeneratedCode.declareTable(this, _$NeatTaskStatusRow._$table);
+  Table<NeatTaskStatus> get neatTaskStatuses =>
+      $ForGeneratedCode.declareTable(this, _$NeatTaskStatus._$table);
 
   Table<PackageRow> get packages =>
       $ForGeneratedCode.declareTable(this, _$PackageRow._$table);
@@ -85,8 +85,8 @@ extension PrimarySchemaSchema on Database<PrimarySchema> {
   Table<PackageTombstone> get packageTombstones =>
       $ForGeneratedCode.declareTable(this, _$PackageTombstone._$table);
 
-  Table<ReservedPackageRow> get reservedPackages =>
-      $ForGeneratedCode.declareTable(this, _$ReservedPackageRow._$table);
+  Table<ReservedPackage> get reservedPackages =>
+      $ForGeneratedCode.declareTable(this, _$ReservedPackage._$table);
 
   Table<DownloadCount> get downloadCounts =>
       $ForGeneratedCode.declareTable(this, _$DownloadCount._$table);
@@ -8985,8 +8985,8 @@ extension InsertOnConflictSingleModerationActionLogExt
   );
 }
 
-final class _$NeatTaskStatusRow extends NeatTaskStatusRow {
-  _$NeatTaskStatusRow._(
+final class _$NeatTaskStatus extends NeatTaskStatus {
+  _$NeatTaskStatus._(
     this.taskName,
     this.runtimeVersion,
     this.status,
@@ -9065,10 +9065,10 @@ final class _$NeatTaskStatusRow extends NeatTaskStatusRow {
         columns: ['updated_at'],
       ),
     ],
-    readRow: _$NeatTaskStatusRow._$fromDatabase,
+    readRow: _$NeatTaskStatus._$fromDatabase,
   );
 
-  static NeatTaskStatusRow? _$fromDatabase(RowReader row) {
+  static NeatTaskStatus? _$fromDatabase(RowReader row) {
     final taskName = row.readString();
     final runtimeVersion = row.readString();
     final status = row.readUint8List();
@@ -9081,7 +9081,7 @@ final class _$NeatTaskStatusRow extends NeatTaskStatusRow {
         updatedAt == null) {
       return null;
     }
-    return _$NeatTaskStatusRow._(
+    return _$NeatTaskStatus._(
       taskName!,
       runtimeVersion!,
       status!,
@@ -9092,16 +9092,16 @@ final class _$NeatTaskStatusRow extends NeatTaskStatusRow {
 
   @override
   String toString() =>
-      'NeatTaskStatusRow(taskName: "$taskName", runtimeVersion: "$runtimeVersion", status: "$status", etag: "$etag", updatedAt: "$updatedAt")';
+      'NeatTaskStatus(taskName: "$taskName", runtimeVersion: "$runtimeVersion", status: "$status", etag: "$etag", updatedAt: "$updatedAt")';
 }
 
-/// Extension methods for table defined in [NeatTaskStatusRow].
-extension TableNeatTaskStatusRowExt on Table<NeatTaskStatusRow> {
+/// Extension methods for table defined in [NeatTaskStatus].
+extension TableNeatTaskStatusExt on Table<NeatTaskStatus> {
   /// Insert row into the `neatTaskStatuses` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
-  InsertSingle<NeatTaskStatusRow> insert({
+  InsertSingle<NeatTaskStatus> insert({
     required Expr<String> taskName,
     required Expr<String> runtimeVersion,
     required Expr<Uint8List> status,
@@ -9122,7 +9122,7 @@ extension TableNeatTaskStatusRowExt on Table<NeatTaskStatusRow> {
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
   /// called for the row to be inserted or updated.
-  UpsertSingle<NeatTaskStatusRow> upsert({
+  UpsertSingle<NeatTaskStatus> upsert({
     required Expr<String> taskName,
     required Expr<String> runtimeVersion,
     required Expr<Uint8List> status,
@@ -9149,7 +9149,7 @@ extension TableNeatTaskStatusRowExt on Table<NeatTaskStatusRow> {
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
-  InsertSingle<NeatTaskStatusRow> insertValue({
+  InsertSingle<NeatTaskStatus> insertValue({
     required String taskName,
     required String runtimeVersion,
     required Uint8List status,
@@ -9176,7 +9176,7 @@ extension TableNeatTaskStatusRowExt on Table<NeatTaskStatusRow> {
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
   /// called for the row to be inserted or updated.
-  UpsertSingle<NeatTaskStatusRow> upsertValue({
+  UpsertSingle<NeatTaskStatus> upsertValue({
     required String taskName,
     required String runtimeVersion,
     required Uint8List status,
@@ -9216,7 +9216,7 @@ extension TableNeatTaskStatusRowExt on Table<NeatTaskStatusRow> {
   ///
   /// Returns a [Insert] statement on which `.execute` must be
   /// called for the rows to be inserted.
-  Insert<NeatTaskStatusRow> insertValuesMapped<T>(
+  Insert<NeatTaskStatus> insertValuesMapped<T>(
     Iterable<T> rows, {
     required String Function(T row) taskName,
     required String Function(T row) runtimeVersion,
@@ -9238,28 +9238,26 @@ extension TableNeatTaskStatusRowExt on Table<NeatTaskStatusRow> {
   /// To delete multiple rows, using `.where()` to filter which rows
   /// should be deleted. If you wish to delete all rows, use
   /// `.where((_) => toExpr(true)).delete()`.
-  DeleteSingle<NeatTaskStatusRow> delete(
-    String taskName,
-    String runtimeVersion,
-  ) => $ForGeneratedCode.deleteSingle(
-    byKey(taskName, runtimeVersion),
-    _$NeatTaskStatusRow._$table,
-  );
+  DeleteSingle<NeatTaskStatus> delete(String taskName, String runtimeVersion) =>
+      $ForGeneratedCode.deleteSingle(
+        byKey(taskName, runtimeVersion),
+        _$NeatTaskStatus._$table,
+      );
 }
 
 /// Extension methods for building queries against the `neatTaskStatuses` table.
-extension QueryNeatTaskStatusRowExt on Query<(Expr<NeatTaskStatusRow>,)> {
+extension QueryNeatTaskStatusExt on Query<(Expr<NeatTaskStatus>,)> {
   /// Lookup a single row in `neatTaskStatuses` table using the _primary key_.
   ///
   /// Returns a [QuerySingle] object, which returns at-most one row,
   /// when `.fetch()` is called.
-  QuerySingle<(Expr<NeatTaskStatusRow>,)> byKey(
+  QuerySingle<(Expr<NeatTaskStatus>,)> byKey(
     String taskName,
     String runtimeVersion,
   ) => where(
-    (neatTaskStatusRow) =>
-        neatTaskStatusRow.taskName.equalsValue(taskName) &
-        neatTaskStatusRow.runtimeVersion.equalsValue(runtimeVersion),
+    (neatTaskStatus) =>
+        neatTaskStatus.taskName.equalsValue(taskName) &
+        neatTaskStatus.runtimeVersion.equalsValue(runtimeVersion),
   ).first;
 
   /// Update all rows in the `neatTaskStatuses` table matching this [Query].
@@ -9289,10 +9287,10 @@ extension QueryNeatTaskStatusRowExt on Query<(Expr<NeatTaskStatusRow>,)> {
   /// > the expressions for updating the rows. You should **never** invoke
   /// > the `set` function more than once, and the result should always
   /// > be returned immediately.
-  Update<NeatTaskStatusRow> update(
-    UpdateSet<NeatTaskStatusRow> Function(
-      Expr<NeatTaskStatusRow> neatTaskStatusRow,
-      UpdateSet<NeatTaskStatusRow> Function({
+  Update<NeatTaskStatus> update(
+    UpdateSet<NeatTaskStatus> Function(
+      Expr<NeatTaskStatus> neatTaskStatus,
+      UpdateSet<NeatTaskStatus> Function({
         Expr<String> taskName,
         Expr<String> runtimeVersion,
         Expr<Uint8List> status,
@@ -9302,18 +9300,18 @@ extension QueryNeatTaskStatusRowExt on Query<(Expr<NeatTaskStatusRow>,)> {
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.update<NeatTaskStatusRow>(
+  ) => $ForGeneratedCode.update<NeatTaskStatus>(
     this,
-    _$NeatTaskStatusRow._$table,
-    (neatTaskStatusRow) => updateBuilder(
-      neatTaskStatusRow,
+    _$NeatTaskStatus._$table,
+    (neatTaskStatus) => updateBuilder(
+      neatTaskStatus,
       ({
         Expr<String>? taskName,
         Expr<String>? runtimeVersion,
         Expr<Uint8List>? status,
         Expr<String>? etag,
         Expr<DateTime>? updatedAt,
-      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatusRow>([
+      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatus>([
         taskName,
         runtimeVersion,
         status,
@@ -9327,13 +9325,12 @@ extension QueryNeatTaskStatusRowExt on Query<(Expr<NeatTaskStatusRow>,)> {
   ///
   /// Returns a [Delete] statement on which `.execute()` must be called
   /// for the rows to be deleted.
-  Delete<NeatTaskStatusRow> delete() =>
-      $ForGeneratedCode.delete(this, _$NeatTaskStatusRow._$table);
+  Delete<NeatTaskStatus> delete() =>
+      $ForGeneratedCode.delete(this, _$NeatTaskStatus._$table);
 }
 
 /// Extension methods for building point queries against the `neatTaskStatuses` table.
-extension QuerySingleNeatTaskStatusRowExt
-    on QuerySingle<(Expr<NeatTaskStatusRow>,)> {
+extension QuerySingleNeatTaskStatusExt on QuerySingle<(Expr<NeatTaskStatus>,)> {
   /// Update the row (if any) in the `neatTaskStatuses` table matching this
   /// [QuerySingle].
   ///
@@ -9363,10 +9360,10 @@ extension QuerySingleNeatTaskStatusRowExt
   /// > the expressions for updating the rows. You should **never** invoke
   /// > the `set` function more than once, and the result should always
   /// > be returned immediately.
-  UpdateSingle<NeatTaskStatusRow> update(
-    UpdateSet<NeatTaskStatusRow> Function(
-      Expr<NeatTaskStatusRow> neatTaskStatusRow,
-      UpdateSet<NeatTaskStatusRow> Function({
+  UpdateSingle<NeatTaskStatus> update(
+    UpdateSet<NeatTaskStatus> Function(
+      Expr<NeatTaskStatus> neatTaskStatus,
+      UpdateSet<NeatTaskStatus> Function({
         Expr<String> taskName,
         Expr<String> runtimeVersion,
         Expr<Uint8List> status,
@@ -9376,18 +9373,18 @@ extension QuerySingleNeatTaskStatusRowExt
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateSingle<NeatTaskStatusRow>(
+  ) => $ForGeneratedCode.updateSingle<NeatTaskStatus>(
     this,
-    _$NeatTaskStatusRow._$table,
-    (neatTaskStatusRow) => updateBuilder(
-      neatTaskStatusRow,
+    _$NeatTaskStatus._$table,
+    (neatTaskStatus) => updateBuilder(
+      neatTaskStatus,
       ({
         Expr<String>? taskName,
         Expr<String>? runtimeVersion,
         Expr<Uint8List>? status,
         Expr<String>? etag,
         Expr<DateTime>? updatedAt,
-      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatusRow>([
+      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatus>([
         taskName,
         runtimeVersion,
         status,
@@ -9402,12 +9399,12 @@ extension QuerySingleNeatTaskStatusRowExt
   /// Returns a [DeleteSingle] statement on which `.execute()` must be called
   /// for the row to be deleted. The resulting statement will **not**
   /// fail, if there are no rows matching this query exists.
-  DeleteSingle<NeatTaskStatusRow> delete() =>
-      $ForGeneratedCode.deleteSingle(this, _$NeatTaskStatusRow._$table);
+  DeleteSingle<NeatTaskStatus> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$NeatTaskStatus._$table);
 }
 
 /// Extension methods for expressions on a row in the `neatTaskStatuses` table.
-extension ExpressionNeatTaskStatusRowExt on Expr<NeatTaskStatusRow> {
+extension ExpressionNeatTaskStatusExt on Expr<NeatTaskStatus> {
   /// The name of the task.
   Expr<String> get taskName =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
@@ -9430,7 +9427,7 @@ extension ExpressionNeatTaskStatusRowExt on Expr<NeatTaskStatusRow> {
       $ForGeneratedCode.field(this, 4, $ForGeneratedCode.dateTime);
 }
 
-extension ExpressionNullableNeatTaskStatusRowExt on Expr<NeatTaskStatusRow?> {
+extension ExpressionNullableNeatTaskStatusExt on Expr<NeatTaskStatus?> {
   /// The name of the task.
   Expr<String?> get taskName =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
@@ -9469,20 +9466,20 @@ extension ExpressionNullableNeatTaskStatusRowExt on Expr<NeatTaskStatusRow?> {
   Expr<bool> isNull() => isNotNull().not();
 }
 
-/// `Table<NeatTaskStatusRow>` conflict targets for use with `.onConflict`.
-enum NeatTaskStatusRowConflict {
+/// `Table<NeatTaskStatus>` conflict targets for use with `.onConflict`.
+enum NeatTaskStatusConflict {
   /// Conflict with an existing row that has a matching primary key.
   ///
   /// Thus, the other row has matching values for:
   /// `taskName`, `runtimeVersion`.
   primaryKey(['task_name', 'runtime_version']);
 
-  const NeatTaskStatusRowConflict(this._fields);
+  const NeatTaskStatusConflict(this._fields);
 
   final List<String> _fields;
 }
 
-extension InsertNeatTaskStatusRowExt on Insert<NeatTaskStatusRow> {
+extension InsertNeatTaskStatusExt on Insert<NeatTaskStatus> {
   /// Build an `INSERT` statement with an `ON CONFLICT` clause.
   ///
   /// The [target] argument specifies the _conflict target_ to be
@@ -9492,7 +9489,7 @@ extension InsertNeatTaskStatusRowExt on Insert<NeatTaskStatusRow> {
   /// If a row to be inserted violates the _conflict target_ constraint,
   /// then the conflict action is triggered:
   /// * `.doNothing()` to skip insertion of the new row, and,
-  /// * `.update((neatTaskStatusRow, excluded, set) => set(...))` to
+  /// * `.update((neatTaskStatus, excluded, set) => set(...))` to
   ///   update the conflicting row.
   ///
   /// If a row to be inserted violates a constraint other than the one
@@ -9500,20 +9497,19 @@ extension InsertNeatTaskStatusRowExt on Insert<NeatTaskStatusRow> {
   /// will fail.
   ///
   /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
-  InsertOnConflict<NeatTaskStatusRow> onConflict(
-    NeatTaskStatusRowConflict target,
-  ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
+  InsertOnConflict<NeatTaskStatus> onConflict(NeatTaskStatusConflict target) =>
+      $ForGeneratedCode.insertOnConflict(this, target._fields);
 }
 
-extension InsertOnConflictNeatTaskStatusRowExt
-    on InsertOnConflict<NeatTaskStatusRow> {
+extension InsertOnConflictNeatTaskStatusExt
+    on InsertOnConflict<NeatTaskStatus> {
   /// Build an `INSERT` statement an [upsert-clause][1].
   ///
   /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
   /// constraint previously specified as _conflict target_, the existing
   /// row is updated using the expressions defined with the
   /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
-  ///   * `neatTaskStatusRow` an [Expr] representing the existing row in
+  ///   * `neatTaskStatus` an [Expr] representing the existing row in
   ///     the database,
   ///   * `excluded` an [Expr] representing the row to be inserted in the
   ///     database, and,
@@ -9547,11 +9543,11 @@ extension InsertOnConflictNeatTaskStatusRowExt
   /// > be returned immediately.
   ///
   /// [1]: https://www.sqlite.org/lang_upsert.html
-  Upsert<NeatTaskStatusRow> update(
-    UpdateSet<NeatTaskStatusRow> Function(
-      Expr<NeatTaskStatusRow> neatTaskStatusRow,
-      Expr<NeatTaskStatusRow> excluded,
-      UpdateSet<NeatTaskStatusRow> Function({
+  Upsert<NeatTaskStatus> update(
+    UpdateSet<NeatTaskStatus> Function(
+      Expr<NeatTaskStatus> neatTaskStatus,
+      Expr<NeatTaskStatus> excluded,
+      UpdateSet<NeatTaskStatus> Function({
         Expr<String> taskName,
         Expr<String> runtimeVersion,
         Expr<Uint8List> status,
@@ -9561,10 +9557,10 @@ extension InsertOnConflictNeatTaskStatusRowExt
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateOnConflict<NeatTaskStatusRow>(
+  ) => $ForGeneratedCode.updateOnConflict<NeatTaskStatus>(
     this,
-    (neatTaskStatusRow, excluded) => updateBuilder(
-      neatTaskStatusRow,
+    (neatTaskStatus, excluded) => updateBuilder(
+      neatTaskStatus,
       excluded,
       ({
         Expr<String>? taskName,
@@ -9572,7 +9568,7 @@ extension InsertOnConflictNeatTaskStatusRowExt
         Expr<Uint8List>? status,
         Expr<String>? etag,
         Expr<DateTime>? updatedAt,
-      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatusRow>([
+      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatus>([
         taskName,
         runtimeVersion,
         status,
@@ -9583,7 +9579,7 @@ extension InsertOnConflictNeatTaskStatusRowExt
   );
 }
 
-extension InsertSingleNeatTaskStatusRowExt on InsertSingle<NeatTaskStatusRow> {
+extension InsertSingleNeatTaskStatusExt on InsertSingle<NeatTaskStatus> {
   /// Build an `INSERT` statement with an `ON CONFLICT` clause.
   ///
   /// The [target] argument specifies the _conflict target_ to be
@@ -9593,7 +9589,7 @@ extension InsertSingleNeatTaskStatusRowExt on InsertSingle<NeatTaskStatusRow> {
   /// If a row to be inserted violates the _conflict target_ constraint,
   /// then the conflict action is triggered:
   /// * `.doNothing()` to skip insertion of the new row, and,
-  /// * `.update((neatTaskStatusRow, excluded, set) => set(...))` to
+  /// * `.update((neatTaskStatus, excluded, set) => set(...))` to
   ///   update the conflicting row.
   ///
   /// If a row to be inserted violates a constraint other than the one
@@ -9601,20 +9597,20 @@ extension InsertSingleNeatTaskStatusRowExt on InsertSingle<NeatTaskStatusRow> {
   /// will fail.
   ///
   /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
-  InsertOnConflictSingle<NeatTaskStatusRow> onConflict(
-    NeatTaskStatusRowConflict target,
+  InsertOnConflictSingle<NeatTaskStatus> onConflict(
+    NeatTaskStatusConflict target,
   ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
 }
 
-extension InsertOnConflictSingleNeatTaskStatusRowExt
-    on InsertOnConflictSingle<NeatTaskStatusRow> {
+extension InsertOnConflictSingleNeatTaskStatusExt
+    on InsertOnConflictSingle<NeatTaskStatus> {
   /// Build an `INSERT` statement an [upsert-clause][1].
   ///
   /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
   /// constraint previously specified as _conflict target_, the existing
   /// row is updated using the expressions defined with the
   /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
-  ///   * `neatTaskStatusRow` an [Expr] representing the existing row in
+  ///   * `neatTaskStatus` an [Expr] representing the existing row in
   ///     the database,
   ///   * `excluded` an [Expr] representing the row to be inserted in the
   ///     database, and,
@@ -9648,11 +9644,11 @@ extension InsertOnConflictSingleNeatTaskStatusRowExt
   /// > be returned immediately.
   ///
   /// [1]: https://www.sqlite.org/lang_upsert.html
-  UpsertSingle<NeatTaskStatusRow> update(
-    UpdateSet<NeatTaskStatusRow> Function(
-      Expr<NeatTaskStatusRow> neatTaskStatusRow,
-      Expr<NeatTaskStatusRow> excluded,
-      UpdateSet<NeatTaskStatusRow> Function({
+  UpsertSingle<NeatTaskStatus> update(
+    UpdateSet<NeatTaskStatus> Function(
+      Expr<NeatTaskStatus> neatTaskStatus,
+      Expr<NeatTaskStatus> excluded,
+      UpdateSet<NeatTaskStatus> Function({
         Expr<String> taskName,
         Expr<String> runtimeVersion,
         Expr<Uint8List> status,
@@ -9662,10 +9658,10 @@ extension InsertOnConflictSingleNeatTaskStatusRowExt
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateOnConflictSingle<NeatTaskStatusRow>(
+  ) => $ForGeneratedCode.updateOnConflictSingle<NeatTaskStatus>(
     this,
-    (neatTaskStatusRow, excluded) => updateBuilder(
-      neatTaskStatusRow,
+    (neatTaskStatus, excluded) => updateBuilder(
+      neatTaskStatus,
       excluded,
       ({
         Expr<String>? taskName,
@@ -9673,7 +9669,7 @@ extension InsertOnConflictSingleNeatTaskStatusRowExt
         Expr<Uint8List>? status,
         Expr<String>? etag,
         Expr<DateTime>? updatedAt,
-      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatusRow>([
+      }) => $ForGeneratedCode.buildUpdate<NeatTaskStatus>([
         taskName,
         runtimeVersion,
         status,
@@ -14847,8 +14843,8 @@ extension InsertOnConflictSinglePackageTombstoneExt
   );
 }
 
-final class _$ReservedPackageRow extends ReservedPackageRow {
-  _$ReservedPackageRow._(this.name, this.createdAt, this.emailsJson);
+final class _$ReservedPackage extends ReservedPackage {
+  _$ReservedPackage._(this.name, this.createdAt, this.emailsJson);
 
   @override
   final String name;
@@ -14889,31 +14885,31 @@ final class _$ReservedPackageRow extends ReservedPackageRow {
     unique: <List<String>>[],
     foreignKeys: [],
     indexes: [],
-    readRow: _$ReservedPackageRow._$fromDatabase,
+    readRow: _$ReservedPackage._$fromDatabase,
   );
 
-  static ReservedPackageRow? _$fromDatabase(RowReader row) {
+  static ReservedPackage? _$fromDatabase(RowReader row) {
     final name = row.readString();
     final createdAt = row.readDateTime();
     final emailsJson = row.readJsonValue();
     if (name == null && createdAt == null && emailsJson == null) {
       return null;
     }
-    return _$ReservedPackageRow._(name!, createdAt!, emailsJson!);
+    return _$ReservedPackage._(name!, createdAt!, emailsJson!);
   }
 
   @override
   String toString() =>
-      'ReservedPackageRow(name: "$name", createdAt: "$createdAt", emailsJson: "$emailsJson")';
+      'ReservedPackage(name: "$name", createdAt: "$createdAt", emailsJson: "$emailsJson")';
 }
 
-/// Extension methods for table defined in [ReservedPackageRow].
-extension TableReservedPackageRowExt on Table<ReservedPackageRow> {
+/// Extension methods for table defined in [ReservedPackage].
+extension TableReservedPackageExt on Table<ReservedPackage> {
   /// Insert row into the `reservedPackages` table.
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
-  InsertSingle<ReservedPackageRow> insert({
+  InsertSingle<ReservedPackage> insert({
     required Expr<String> name,
     required Expr<DateTime> createdAt,
     required Expr<JsonValue> emailsJson,
@@ -14932,7 +14928,7 @@ extension TableReservedPackageRowExt on Table<ReservedPackageRow> {
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
   /// called for the row to be inserted or updated.
-  UpsertSingle<ReservedPackageRow> upsert({
+  UpsertSingle<ReservedPackage> upsert({
     required Expr<String> name,
     required Expr<DateTime> createdAt,
     required Expr<JsonValue> emailsJson,
@@ -14947,7 +14943,7 @@ extension TableReservedPackageRowExt on Table<ReservedPackageRow> {
   ///
   /// Returns a [InsertSingle] statement on which `.execute` must be
   /// called for the row to be inserted.
-  InsertSingle<ReservedPackageRow> insertValue({
+  InsertSingle<ReservedPackage> insertValue({
     required String name,
     required DateTime createdAt,
     required JsonValue emailsJson,
@@ -14966,7 +14962,7 @@ extension TableReservedPackageRowExt on Table<ReservedPackageRow> {
   ///
   /// Returns an [UpsertSingle] statement on which `.execute()` must be
   /// called for the row to be inserted or updated.
-  UpsertSingle<ReservedPackageRow> upsertValue({
+  UpsertSingle<ReservedPackage> upsertValue({
     required String name,
     required DateTime createdAt,
     required JsonValue emailsJson,
@@ -14994,7 +14990,7 @@ extension TableReservedPackageRowExt on Table<ReservedPackageRow> {
   ///
   /// Returns a [Insert] statement on which `.execute` must be
   /// called for the rows to be inserted.
-  Insert<ReservedPackageRow> insertValuesMapped<T>(
+  Insert<ReservedPackage> insertValuesMapped<T>(
     Iterable<T> rows, {
     required String Function(T row) name,
     required DateTime Function(T row) createdAt,
@@ -15014,19 +15010,18 @@ extension TableReservedPackageRowExt on Table<ReservedPackageRow> {
   /// To delete multiple rows, using `.where()` to filter which rows
   /// should be deleted. If you wish to delete all rows, use
   /// `.where((_) => toExpr(true)).delete()`.
-  DeleteSingle<ReservedPackageRow> delete(String name) =>
-      $ForGeneratedCode.deleteSingle(byKey(name), _$ReservedPackageRow._$table);
+  DeleteSingle<ReservedPackage> delete(String name) =>
+      $ForGeneratedCode.deleteSingle(byKey(name), _$ReservedPackage._$table);
 }
 
 /// Extension methods for building queries against the `reservedPackages` table.
-extension QueryReservedPackageRowExt on Query<(Expr<ReservedPackageRow>,)> {
+extension QueryReservedPackageExt on Query<(Expr<ReservedPackage>,)> {
   /// Lookup a single row in `reservedPackages` table using the _primary key_.
   ///
   /// Returns a [QuerySingle] object, which returns at-most one row,
   /// when `.fetch()` is called.
-  QuerySingle<(Expr<ReservedPackageRow>,)> byKey(String name) => where(
-    (reservedPackageRow) => reservedPackageRow.name.equalsValue(name),
-  ).first;
+  QuerySingle<(Expr<ReservedPackage>,)> byKey(String name) =>
+      where((reservedPackage) => reservedPackage.name.equalsValue(name)).first;
 
   /// Update all rows in the `reservedPackages` table matching this [Query].
   ///
@@ -15055,10 +15050,10 @@ extension QueryReservedPackageRowExt on Query<(Expr<ReservedPackageRow>,)> {
   /// > the expressions for updating the rows. You should **never** invoke
   /// > the `set` function more than once, and the result should always
   /// > be returned immediately.
-  Update<ReservedPackageRow> update(
-    UpdateSet<ReservedPackageRow> Function(
-      Expr<ReservedPackageRow> reservedPackageRow,
-      UpdateSet<ReservedPackageRow> Function({
+  Update<ReservedPackage> update(
+    UpdateSet<ReservedPackage> Function(
+      Expr<ReservedPackage> reservedPackage,
+      UpdateSet<ReservedPackage> Function({
         Expr<String> name,
         Expr<DateTime> createdAt,
         Expr<JsonValue> emailsJson,
@@ -15066,16 +15061,16 @@ extension QueryReservedPackageRowExt on Query<(Expr<ReservedPackageRow>,)> {
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.update<ReservedPackageRow>(
+  ) => $ForGeneratedCode.update<ReservedPackage>(
     this,
-    _$ReservedPackageRow._$table,
-    (reservedPackageRow) => updateBuilder(
-      reservedPackageRow,
+    _$ReservedPackage._$table,
+    (reservedPackage) => updateBuilder(
+      reservedPackage,
       ({
         Expr<String>? name,
         Expr<DateTime>? createdAt,
         Expr<JsonValue>? emailsJson,
-      }) => $ForGeneratedCode.buildUpdate<ReservedPackageRow>([
+      }) => $ForGeneratedCode.buildUpdate<ReservedPackage>([
         name,
         createdAt,
         emailsJson,
@@ -15087,13 +15082,13 @@ extension QueryReservedPackageRowExt on Query<(Expr<ReservedPackageRow>,)> {
   ///
   /// Returns a [Delete] statement on which `.execute()` must be called
   /// for the rows to be deleted.
-  Delete<ReservedPackageRow> delete() =>
-      $ForGeneratedCode.delete(this, _$ReservedPackageRow._$table);
+  Delete<ReservedPackage> delete() =>
+      $ForGeneratedCode.delete(this, _$ReservedPackage._$table);
 }
 
 /// Extension methods for building point queries against the `reservedPackages` table.
-extension QuerySingleReservedPackageRowExt
-    on QuerySingle<(Expr<ReservedPackageRow>,)> {
+extension QuerySingleReservedPackageExt
+    on QuerySingle<(Expr<ReservedPackage>,)> {
   /// Update the row (if any) in the `reservedPackages` table matching this
   /// [QuerySingle].
   ///
@@ -15123,10 +15118,10 @@ extension QuerySingleReservedPackageRowExt
   /// > the expressions for updating the rows. You should **never** invoke
   /// > the `set` function more than once, and the result should always
   /// > be returned immediately.
-  UpdateSingle<ReservedPackageRow> update(
-    UpdateSet<ReservedPackageRow> Function(
-      Expr<ReservedPackageRow> reservedPackageRow,
-      UpdateSet<ReservedPackageRow> Function({
+  UpdateSingle<ReservedPackage> update(
+    UpdateSet<ReservedPackage> Function(
+      Expr<ReservedPackage> reservedPackage,
+      UpdateSet<ReservedPackage> Function({
         Expr<String> name,
         Expr<DateTime> createdAt,
         Expr<JsonValue> emailsJson,
@@ -15134,16 +15129,16 @@ extension QuerySingleReservedPackageRowExt
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateSingle<ReservedPackageRow>(
+  ) => $ForGeneratedCode.updateSingle<ReservedPackage>(
     this,
-    _$ReservedPackageRow._$table,
-    (reservedPackageRow) => updateBuilder(
-      reservedPackageRow,
+    _$ReservedPackage._$table,
+    (reservedPackage) => updateBuilder(
+      reservedPackage,
       ({
         Expr<String>? name,
         Expr<DateTime>? createdAt,
         Expr<JsonValue>? emailsJson,
-      }) => $ForGeneratedCode.buildUpdate<ReservedPackageRow>([
+      }) => $ForGeneratedCode.buildUpdate<ReservedPackage>([
         name,
         createdAt,
         emailsJson,
@@ -15156,12 +15151,12 @@ extension QuerySingleReservedPackageRowExt
   /// Returns a [DeleteSingle] statement on which `.execute()` must be called
   /// for the row to be deleted. The resulting statement will **not**
   /// fail, if there are no rows matching this query exists.
-  DeleteSingle<ReservedPackageRow> delete() =>
-      $ForGeneratedCode.deleteSingle(this, _$ReservedPackageRow._$table);
+  DeleteSingle<ReservedPackage> delete() =>
+      $ForGeneratedCode.deleteSingle(this, _$ReservedPackage._$table);
 }
 
 /// Extension methods for expressions on a row in the `reservedPackages` table.
-extension ExpressionReservedPackageRowExt on Expr<ReservedPackageRow> {
+extension ExpressionReservedPackageExt on Expr<ReservedPackage> {
   Expr<String> get name =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
@@ -15174,7 +15169,7 @@ extension ExpressionReservedPackageRowExt on Expr<ReservedPackageRow> {
       $ForGeneratedCode.field(this, 2, $ForGeneratedCode.jsonValue);
 }
 
-extension ExpressionNullableReservedPackageRowExt on Expr<ReservedPackageRow?> {
+extension ExpressionNullableReservedPackageExt on Expr<ReservedPackage?> {
   Expr<String?> get name =>
       $ForGeneratedCode.field(this, 0, $ForGeneratedCode.text);
 
@@ -15203,20 +15198,20 @@ extension ExpressionNullableReservedPackageRowExt on Expr<ReservedPackageRow?> {
   Expr<bool> isNull() => isNotNull().not();
 }
 
-/// `Table<ReservedPackageRow>` conflict targets for use with `.onConflict`.
-enum ReservedPackageRowConflict {
+/// `Table<ReservedPackage>` conflict targets for use with `.onConflict`.
+enum ReservedPackageConflict {
   /// Conflict with an existing row that has a matching primary key.
   ///
   /// Thus, the other row has matching values for:
   /// `name`.
   primaryKey(['name']);
 
-  const ReservedPackageRowConflict(this._fields);
+  const ReservedPackageConflict(this._fields);
 
   final List<String> _fields;
 }
 
-extension InsertReservedPackageRowExt on Insert<ReservedPackageRow> {
+extension InsertReservedPackageExt on Insert<ReservedPackage> {
   /// Build an `INSERT` statement with an `ON CONFLICT` clause.
   ///
   /// The [target] argument specifies the _conflict target_ to be
@@ -15226,7 +15221,7 @@ extension InsertReservedPackageRowExt on Insert<ReservedPackageRow> {
   /// If a row to be inserted violates the _conflict target_ constraint,
   /// then the conflict action is triggered:
   /// * `.doNothing()` to skip insertion of the new row, and,
-  /// * `.update((reservedPackageRow, excluded, set) => set(...))` to
+  /// * `.update((reservedPackage, excluded, set) => set(...))` to
   ///   update the conflicting row.
   ///
   /// If a row to be inserted violates a constraint other than the one
@@ -15234,20 +15229,20 @@ extension InsertReservedPackageRowExt on Insert<ReservedPackageRow> {
   /// will fail.
   ///
   /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
-  InsertOnConflict<ReservedPackageRow> onConflict(
-    ReservedPackageRowConflict target,
+  InsertOnConflict<ReservedPackage> onConflict(
+    ReservedPackageConflict target,
   ) => $ForGeneratedCode.insertOnConflict(this, target._fields);
 }
 
-extension InsertOnConflictReservedPackageRowExt
-    on InsertOnConflict<ReservedPackageRow> {
+extension InsertOnConflictReservedPackageExt
+    on InsertOnConflict<ReservedPackage> {
   /// Build an `INSERT` statement an [upsert-clause][1].
   ///
   /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
   /// constraint previously specified as _conflict target_, the existing
   /// row is updated using the expressions defined with the
   /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
-  ///   * `reservedPackageRow` an [Expr] representing the existing row in
+  ///   * `reservedPackage` an [Expr] representing the existing row in
   ///     the database,
   ///   * `excluded` an [Expr] representing the row to be inserted in the
   ///     database, and,
@@ -15281,11 +15276,11 @@ extension InsertOnConflictReservedPackageRowExt
   /// > be returned immediately.
   ///
   /// [1]: https://www.sqlite.org/lang_upsert.html
-  Upsert<ReservedPackageRow> update(
-    UpdateSet<ReservedPackageRow> Function(
-      Expr<ReservedPackageRow> reservedPackageRow,
-      Expr<ReservedPackageRow> excluded,
-      UpdateSet<ReservedPackageRow> Function({
+  Upsert<ReservedPackage> update(
+    UpdateSet<ReservedPackage> Function(
+      Expr<ReservedPackage> reservedPackage,
+      Expr<ReservedPackage> excluded,
+      UpdateSet<ReservedPackage> Function({
         Expr<String> name,
         Expr<DateTime> createdAt,
         Expr<JsonValue> emailsJson,
@@ -15293,16 +15288,16 @@ extension InsertOnConflictReservedPackageRowExt
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateOnConflict<ReservedPackageRow>(
+  ) => $ForGeneratedCode.updateOnConflict<ReservedPackage>(
     this,
-    (reservedPackageRow, excluded) => updateBuilder(
-      reservedPackageRow,
+    (reservedPackage, excluded) => updateBuilder(
+      reservedPackage,
       excluded,
       ({
         Expr<String>? name,
         Expr<DateTime>? createdAt,
         Expr<JsonValue>? emailsJson,
-      }) => $ForGeneratedCode.buildUpdate<ReservedPackageRow>([
+      }) => $ForGeneratedCode.buildUpdate<ReservedPackage>([
         name,
         createdAt,
         emailsJson,
@@ -15311,8 +15306,7 @@ extension InsertOnConflictReservedPackageRowExt
   );
 }
 
-extension InsertSingleReservedPackageRowExt
-    on InsertSingle<ReservedPackageRow> {
+extension InsertSingleReservedPackageExt on InsertSingle<ReservedPackage> {
   /// Build an `INSERT` statement with an `ON CONFLICT` clause.
   ///
   /// The [target] argument specifies the _conflict target_ to be
@@ -15322,7 +15316,7 @@ extension InsertSingleReservedPackageRowExt
   /// If a row to be inserted violates the _conflict target_ constraint,
   /// then the conflict action is triggered:
   /// * `.doNothing()` to skip insertion of the new row, and,
-  /// * `.update((reservedPackageRow, excluded, set) => set(...))` to
+  /// * `.update((reservedPackage, excluded, set) => set(...))` to
   ///   update the conflicting row.
   ///
   /// If a row to be inserted violates a constraint other than the one
@@ -15330,20 +15324,20 @@ extension InsertSingleReservedPackageRowExt
   /// will fail.
   ///
   /// This is equivalent to `INSERT ... ON CONFLICT (...)` in SQL.
-  InsertOnConflictSingle<ReservedPackageRow> onConflict(
-    ReservedPackageRowConflict target,
+  InsertOnConflictSingle<ReservedPackage> onConflict(
+    ReservedPackageConflict target,
   ) => $ForGeneratedCode.insertOnConflictSingle(this, target._fields);
 }
 
-extension InsertOnConflictSingleReservedPackageRowExt
-    on InsertOnConflictSingle<ReservedPackageRow> {
+extension InsertOnConflictSingleReservedPackageExt
+    on InsertOnConflictSingle<ReservedPackage> {
   /// Build an `INSERT` statement an [upsert-clause][1].
   ///
   /// When a row to be inserted violates the `UNIQUE` or `PRIMARY KEY`
   /// constraint previously specified as _conflict target_, the existing
   /// row is updated using the expressions defined with the
   /// [updateBuilder]. The [updateBuilder] is given 3 parameters:
-  ///   * `reservedPackageRow` an [Expr] representing the existing row in
+  ///   * `reservedPackage` an [Expr] representing the existing row in
   ///     the database,
   ///   * `excluded` an [Expr] representing the row to be inserted in the
   ///     database, and,
@@ -15377,11 +15371,11 @@ extension InsertOnConflictSingleReservedPackageRowExt
   /// > be returned immediately.
   ///
   /// [1]: https://www.sqlite.org/lang_upsert.html
-  UpsertSingle<ReservedPackageRow> update(
-    UpdateSet<ReservedPackageRow> Function(
-      Expr<ReservedPackageRow> reservedPackageRow,
-      Expr<ReservedPackageRow> excluded,
-      UpdateSet<ReservedPackageRow> Function({
+  UpsertSingle<ReservedPackage> update(
+    UpdateSet<ReservedPackage> Function(
+      Expr<ReservedPackage> reservedPackage,
+      Expr<ReservedPackage> excluded,
+      UpdateSet<ReservedPackage> Function({
         Expr<String> name,
         Expr<DateTime> createdAt,
         Expr<JsonValue> emailsJson,
@@ -15389,16 +15383,16 @@ extension InsertOnConflictSingleReservedPackageRowExt
       set,
     )
     updateBuilder,
-  ) => $ForGeneratedCode.updateOnConflictSingle<ReservedPackageRow>(
+  ) => $ForGeneratedCode.updateOnConflictSingle<ReservedPackage>(
     this,
-    (reservedPackageRow, excluded) => updateBuilder(
-      reservedPackageRow,
+    (reservedPackage, excluded) => updateBuilder(
+      reservedPackage,
       excluded,
       ({
         Expr<String>? name,
         Expr<DateTime>? createdAt,
         Expr<JsonValue>? emailsJson,
-      }) => $ForGeneratedCode.buildUpdate<ReservedPackageRow>([
+      }) => $ForGeneratedCode.buildUpdate<ReservedPackage>([
         name,
         createdAt,
         emailsJson,

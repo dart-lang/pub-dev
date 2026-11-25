@@ -12,16 +12,9 @@ import 'package:ulid/ulid.dart';
 
 import '../../database/database.dart';
 import '../../database/schema.dart';
-import '../../shared/datastore.dart' as db;
 import '../../shared/versions.dart' as versions show runtimeVersion;
 
-final _logger = Logger('datastore_neat_status_provider');
-
-/// `neat_periodic_task` statuses are now stored in SQL, this entity is only
-/// kept around to delete leftover entities from Datastore.
-@db.Kind(name: 'NeatTaskStatus', idType: db.IdType.String)
-@Deprecated('No longer in use.')
-class NeatTaskStatus extends db.ExpandoModel<String> {}
+final _logger = Logger('database_neat_status_provider');
 
 String _runtimeVersion(String name, {required bool isRuntimeVersioned}) {
   return isRuntimeVersioned ? versions.runtimeVersion : '-';

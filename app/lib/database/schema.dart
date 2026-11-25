@@ -69,7 +69,7 @@ abstract final class PrimarySchema extends Schema {
 
   // neat periodic task status table
 
-  Table<NeatTaskStatusRow> get neatTaskStatuses;
+  Table<NeatTaskStatus> get neatTaskStatuses;
 
   // package tables
 
@@ -83,7 +83,7 @@ abstract final class PrimarySchema extends Schema {
 
   Table<PackageTombstone> get packageTombstones;
 
-  Table<ReservedPackageRow> get reservedPackages;
+  Table<ReservedPackage> get reservedPackages;
 
   Table<DownloadCount> get downloadCounts;
 

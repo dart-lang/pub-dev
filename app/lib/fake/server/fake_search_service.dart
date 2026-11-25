@@ -68,7 +68,7 @@ class FakeSearchService {
         });
         _logger.info('running on port $port');
 
-        await generateFakeDownloadCountsInDatastore();
+        await generateFakeDownloadCounts();
         // ignore: invalid_use_of_visible_for_testing_member
         await indexUpdater.updateAllPackages();
 
@@ -87,7 +87,7 @@ class FakeSearchService {
 Future<IOServer> setupLocalSnapshotServer() async {
   final snapshotServer = await IOServer.bind('localhost', 0);
   serveRequests(snapshotServer.server, (request) async {
-    await generateFakeDownloadCountsInDatastore();
+    await generateFakeDownloadCounts();
     final snapshot = SearchSnapshot.fromDocuments(
       // ignore: invalid_use_of_visible_for_testing_member
       await indexUpdater.loadAllPackageDocuments(),

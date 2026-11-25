@@ -11,7 +11,6 @@ import '../../package/models.dart';
 import '../../publisher/models.dart';
 import '../../shared/datastore.dart';
 import '../../shared/env_config.dart';
-import '../../tool/neat_task/datastore_status_provider.dart';
 
 final _argParser = ArgParser()
   ..addOption(
@@ -54,10 +53,8 @@ Future<String> executeDeleteAllStaging(List<String> args) async {
     dbService.query<PackageVersion>(): 500,
     dbService.query<Package>(): 500,
     dbService.query<PublisherMember>(): 500,
-    dbService.query<PublisherInfo>(): 500,
     dbService.query<Publisher>(): 500,
     dbService.query<ModeratedPackage>(): 500,
-    dbService.query<NeatTaskStatus>(): 500,
   };
 
   final pool = Pool(concurrency);

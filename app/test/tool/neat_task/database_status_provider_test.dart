@@ -5,7 +5,7 @@
 import 'package:pub_dev/database/database.dart';
 import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/shared/versions.dart';
-import 'package:pub_dev/tool/neat_task/datastore_status_provider.dart';
+import 'package:pub_dev/tool/neat_task/database_status_provider.dart';
 import 'package:test/test.dart';
 import 'package:typed_sql/typed_sql.dart';
 
@@ -13,7 +13,7 @@ import '../../shared/test_services.dart';
 
 void main() {
   group('DatastoreStatusProvider', () {
-    Future<NeatTaskStatusRow?> lookupSqlRow(
+    Future<NeatTaskStatus?> lookupSqlRow(
       String name, {
       required bool isRuntimeVersioned,
     }) async {

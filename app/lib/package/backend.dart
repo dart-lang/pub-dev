@@ -345,7 +345,7 @@ class PackageBackend {
   /// Looks up a reserved package by name.
   ///
   /// Returns `null` if the package doesn't exist.
-  Future<ReservedPackageRow?> lookupReservedPackage(String packageName) async {
+  Future<ReservedPackage?> lookupReservedPackage(String packageName) async {
     return await primaryDatabase.withRetry(
       (db) => db.reservedPackages.byKey(packageName).fetch(),
     );
