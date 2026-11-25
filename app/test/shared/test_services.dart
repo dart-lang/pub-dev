@@ -138,7 +138,7 @@ final class FakeAppengineEnv {
                   );
                 }
                 if (processJobsWithFakeRunners) {
-                  await generateFakeDownloadCountsInDatastore();
+                  await generateFakeDownloadCounts();
                   await processTasksWithFakePanaAndDartdoc();
                 }
                 await nameTracker.reloadFromDatastore();

@@ -332,10 +332,8 @@ extension PackageTombstoneExt on PackageTombstone {
 
 /// Entity representing a reserved package: the name is available only for a
 /// subset of the users (`@google.com` + a list of emails).
-///
-/// TODO: rename to `ReservedPackage` after fully migrated to SQL.
 @PrimaryKey(['name'])
-abstract final class ReservedPackageRow extends Row {
+abstract final class ReservedPackage extends Row {
   String get name;
 
   DateTime get createdAt;
@@ -345,7 +343,7 @@ abstract final class ReservedPackageRow extends Row {
   JsonValue get emailsJson;
 }
 
-extension ReservedPackageRowExt on ReservedPackageRow {
+extension ReservedPackageExt on ReservedPackage {
   /// The list of email addresses allowed to claim this package name.
   List<String> get emails => (emailsJson.value as List).cast<String>();
 }

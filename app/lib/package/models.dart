@@ -913,12 +913,6 @@ class ModeratedPackage extends db.ExpandoModel<String> {
   List<String>? versions;
 }
 
-/// Legacy Datastore entity: reserved packages have moved to SQL, only the id
-/// remains so that the leftover entities can be deleted.
-@db.Kind(name: 'ReservedPackage', idType: db.IdType.String)
-@Deprecated('No longer in use.')
-class ReservedPackage extends db.ExpandoModel<String> {}
-
 /// An identifier to point to a specific [package] and [version].
 class QualifiedVersionKey {
   final String? package;

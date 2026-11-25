@@ -46,7 +46,7 @@ class FakeAnalyzerService {
       cloudCompute: _cloudCompute,
       primaryDatabase: _database,
       fn: () async {
-        await generateFakeDownloadCountsInDatastore();
+        await generateFakeDownloadCounts();
 
         final handler = wrapHandler(_logger, analyzerServiceHandler);
         final server = await IOServer.bind('localhost', port);

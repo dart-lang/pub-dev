@@ -104,11 +104,6 @@ class Publisher extends db.ExpandoModel<String> {
   }
 }
 
-/// TODO: Remove this class after the entities are deleted from Datastore.
-@Deprecated('Only used to delete the remaining entities from Datastore.')
-@db.Kind(name: 'PublisherInfo', idType: db.IdType.String)
-class PublisherInfo extends db.ExpandoModel<String> {}
-
 /// Values for [PublisherMember.role]
 abstract class PublisherMemberRole {
   /// Administrator of the publisher.

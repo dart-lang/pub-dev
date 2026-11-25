@@ -31,7 +31,7 @@ import '../../task/global_lock.dart';
 import '../../tool/backfill/backfill_new_fields.dart';
 import '../maintenance/remove_orphaned_likes.dart';
 import '../maintenance/update_package_likes.dart';
-import 'datastore_status_provider.dart';
+import 'database_status_provider.dart';
 
 final _logger = Logger('pub_dev_tasks');
 

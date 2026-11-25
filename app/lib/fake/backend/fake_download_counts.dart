@@ -14,11 +14,11 @@ import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/storage.dart';
 import 'package:pub_dev/shared/utils.dart';
 
-/// Scans the datastore for packages and generates download count values with a
-/// deterministic random seed.
+/// Scans the known packages and stores generated download count values (in
+/// the SQL database) with a deterministic random seed.
 ///
 /// TODO: generate download counts in bucket first
-Future<void> generateFakeDownloadCountsInDatastore() async {
+Future<void> generateFakeDownloadCounts() async {
   await for (final p in packageBackend.allPackages()) {
     final r = math.Random(p.name.hashCode.abs());
     final count = (math.min(p.likesCount * p.likesCount, 50) + r.nextInt(50));

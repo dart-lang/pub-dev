@@ -6,10 +6,8 @@ part of 'schema.dart';
 
 /// Stores the status of a `neat_periodic_task`, keyed by the task's name
 /// and (optionally) the `runtimeVersion` it is scoped to.
-///
-/// TODO: rename to `NeatTaskStatus` after the Datastore migration is completed.
 @PrimaryKey(['taskName', 'runtimeVersion'])
-abstract final class NeatTaskStatusRow extends Row {
+abstract final class NeatTaskStatus extends Row {
   /// The name of the task.
   String get taskName;
 
