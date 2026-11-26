@@ -260,13 +260,11 @@ class TaskBackend {
 
     // Check that all [Task] rows have a matching [Package] entity.
     final candidates = <String>{};
-    await _database.withRetry((db) async {
-      await for (final state in db.taskListAllForCurrentRuntime()) {
-        if (!packageNames.contains(state.package)) {
-          candidates.add(state.package);
-        }
+    await for (final package in _allTrackedPackages()) {
+      if (!packageNames.contains(package)) {
+        candidates.add(package);
       }
-    });
+    }
     final packagesToDelete = <String>{};
     for (final package in candidates) {
       if (await packageBackend.packageExists(package) ||
@@ -1095,19 +1093,38 @@ class TaskBackend {
     Future<void> Function(Payload payload) processPayload,
   ) async {
     await backfillTrackingState();
-    await _database.withRetry((db) async {
-      await for (final state in db.taskListAllForCurrentRuntime()) {
-        final zone = taskWorkerCloudCompute.zones.first;
-        final payload = await updatePackageStateWithPendingVersions(
-          _database,
-          state.package,
-          zone,
-          taskWorkerCloudCompute.generateInstanceName(),
-        );
-        if (payload == null) continue;
-        await processPayload(payload);
-      }
-    });
+    // Note: the pages are fetched with short-lived DB access, so processing
+    // the payloads does not hold a connection or get re-run on a retry.
+    await for (final package in _allTrackedPackages()) {
+      final zone = taskWorkerCloudCompute.zones.first;
+      final payload = await updatePackageStateWithPendingVersions(
+        _database,
+        package,
+        zone,
+        taskWorkerCloudCompute.generateInstanceName(),
+      );
+      if (payload == null) continue;
+      await processPayload(payload);
+    }
+  }
+
+  /// Lists the names of all packages with a [Task] row in the current runtime.
+  Stream<String> _allTrackedPackages() {
+    return fetchAllPaginated<String, String>(
+      initialCursor: '',
+      batchSize: 1000,
+      fetchPage: (db, after, batchSize) => db.tasks
+          .where(
+            (t) =>
+                t.runtimeVersion.equalsValue(runtimeVersion) &
+                t.package.greaterThanValue(after),
+          )
+          .orderBy((t) => [(t.package, Order.ascending)])
+          .limit(batchSize)
+          .select((t) => (t.package,))
+          .fetch(),
+      cursorOf: (package) => package,
+    );
   }
 
   /// Trigger an immediate analysis scheduling or priority bump for [packageName].
@@ -1576,14 +1593,6 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
         .where((task) => task.runtimeVersion < gcBeforeRuntimeVersion.asExpr)
         .delete()
         .execute();
-  }
-
-  Stream<({String package})> taskListAllForCurrentRuntime() {
-    return tasks
-        .where((task) => task.runtimeVersion.equalsValue(runtimeVersion))
-        .select((task) => (task.package,))
-        .stream()
-        .map((row) => (package: row));
   }
 
   Stream<({String package, DateTime finished})> taskListFinishedSince(
