@@ -202,10 +202,19 @@ class CachePatterns {
       .withTTL(Duration(minutes: 10))
       .withCodec(utf8)[package];
 
-  Entry<String> closestFinishedVersion(String package, String version) => _cache
-      .withPrefix('closest-finished-version/')
+  /// Finished task versions of a package.
+  Entry<FinishedTaskVersions> finishedTaskVersions(String package) => _cache
+      .withPrefix('finished-task-versions/')
       .withTTL(Duration(minutes: 10))
-      .withCodec(utf8)['$package/$version'];
+      .withCodec(utf8)
+      .withCodec(json)
+      .withCodec(
+        wrapAsCodec(
+          encode: (FinishedTaskVersions v) => v.toJson(),
+          decode: (d) =>
+              FinishedTaskVersions.fromJson(d as Map<String, dynamic>),
+        ),
+      )[package];
 
   Entry<PackageView> packageView(String package) => _cache
       .withPrefix('package-view/')

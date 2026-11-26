@@ -50,3 +50,28 @@ Map<String, dynamic> _$PackageStateInfoToJson(PackageStateInfo instance) =>
       'package': instance.package,
       'versions': instance.versions,
     };
+
+FinishedTaskVersion _$FinishedTaskVersionFromJson(Map<String, dynamic> json) =>
+    FinishedTaskVersion(
+      version: json['version'] as String,
+      hasDocs: json['hasDocs'] as bool,
+    );
+
+Map<String, dynamic> _$FinishedTaskVersionToJson(
+  FinishedTaskVersion instance,
+) => <String, dynamic>{
+  'version': instance.version,
+  'hasDocs': instance.hasDocs,
+};
+
+FinishedTaskVersions _$FinishedTaskVersionsFromJson(
+  Map<String, dynamic> json,
+) => FinishedTaskVersions(
+  versions: (json['versions'] as List<dynamic>)
+      .map((e) => FinishedTaskVersion.fromJson(e as Map<String, dynamic>))
+      .toList(),
+);
+
+Map<String, dynamic> _$FinishedTaskVersionsToJson(
+  FinishedTaskVersions instance,
+) => <String, dynamic>{'versions': instance.versions};
