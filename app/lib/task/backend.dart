@@ -479,21 +479,11 @@ class TaskBackend {
       };
 
       _log.info('Update state tracking for $packageName');
-      await db.tasks
-          .byKey(runtimeVersion, packageName)
-          .update(
-            (_, set) => set(
-              pendingAt: derivePendingAt(
-                versions: newVersions,
-                lastDependencyChanged: task.lastDependencyChanged,
-              ).asExpr,
-            ),
-          )
-          .execute();
-      await db.updateTaskVersions(
+      await db.updateTaskVersionsAndPendingAt(
         packageName,
         versions: newVersions,
         oldVersions: oldVersions,
+        lastDependencyChanged: task.lastDependencyChanged,
       );
       await db.updateTaskAbortedTokens(
         packageName,
@@ -767,24 +757,12 @@ class TaskBackend {
 
       // Ensure that we update [state.pendingAt], otherwise it might be
       // re-scheduled way too soon.
-      final pendingAt = derivePendingAt(
-        versions: newVersions,
-        lastDependencyChanged: task.lastDependencyChanged,
-      );
-
-      await db.tasks
-          .byKey(runtimeVersion, package)
-          .update(
-            (_, set) => set(
-              pendingAt: pendingAt.asExpr,
-              finished: clock.now().toUtc().asExpr,
-            ),
-          )
-          .execute();
-      await db.updateTaskVersions(
+      await db.updateTaskVersionsAndPendingAt(
         package,
         versions: newVersions,
         oldVersions: oldVersions,
+        lastDependencyChanged: task.lastDependencyChanged,
+        finished: clock.now().toUtc(),
       );
     });
 
@@ -1668,6 +1646,37 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
           .delete()
           .execute();
     }
+  }
+
+  /// Stores [versions] of [package] (see [updateTaskVersions]) and updates the
+  /// derived `pendingAt` of its [Task] row, so that the two never go out of sync.
+  ///
+  /// If [finished] is given, it is stored in the [Task] row too.
+  Future<void> updateTaskVersionsAndPendingAt(
+    String package, {
+    required Map<String, PackageVersionStateInfo> versions,
+    required Map<String, PackageVersionStateInfo> oldVersions,
+    required DateTime lastDependencyChanged,
+    DateTime? finished,
+  }) async {
+    final pendingAt = derivePendingAt(
+      versions: versions,
+      lastDependencyChanged: lastDependencyChanged,
+    );
+    await tasks
+        .byKey(runtimeVersion, package)
+        .update(
+          (task, set) => set(
+            pendingAt: pendingAt.asExpr,
+            finished: finished == null ? task.finished : finished.asExpr,
+          ),
+        )
+        .execute();
+    await updateTaskVersions(
+      package,
+      versions: versions,
+      oldVersions: oldVersions,
+    );
   }
 
   /// Stores [abortedTokens] of [package], skipping those unchanged from
