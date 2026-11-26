@@ -661,10 +661,10 @@ packages:
     dependency: transitive
     description:
       name: postgres
-      sha256: f2571f6f4256e94d87334d7189fcf28407500c34cd0ebcb74cff21fab5f4e988
+      sha256: b4461cc5eb5043759b16217925f0ea76b14a7549732488d55d7293bc3078a414
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.20"
+    version: "3.7.0"
   protobuf:
     dependency: transitive
     description:
@@ -861,10 +861,10 @@ packages:
     dependency: transitive
     description:
       name: tar
-      sha256: af61a6382fb7a702b93a7b400492405793e0ebf3d2bea5d698d5ca39823ca46f
+      sha256: "79ce92538b975085b75ed0b39a627981531f401d9f2a962dae2efe32cccb080c"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.3"
+    version: "2.1.0"
   term_glyph:
     dependency: transitive
     description:
@@ -925,10 +925,10 @@ packages:
     dependency: transitive
     description:
       name: ulid
-      sha256: "3c5fde1c499961fc75c0dc527e9d95a47dda78209bf7d7f015c11fb760e99dc6"
+      sha256: "4bfbb40fb561ba70d60f9613b1815c013f795b0d652d769397035e88852ec47a"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.0"
+    version: "2.2.1"
   uuid:
     dependency: transitive
     description:
