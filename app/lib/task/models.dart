@@ -384,6 +384,30 @@ class PackageStateInfo {
   Map<String, dynamic> toJson() => _$PackageStateInfoToJson(this);
 }
 
+@JsonSerializable()
+class FinishedTaskVersion {
+  final String version;
+  final bool hasDocs;
+
+  FinishedTaskVersion({required this.version, required this.hasDocs});
+
+  factory FinishedTaskVersion.fromJson(Map<String, dynamic> m) =>
+      _$FinishedTaskVersionFromJson(m);
+  Map<String, dynamic> toJson() => _$FinishedTaskVersionToJson(this);
+}
+
+/// Finished versions of a package, as stored in the cache.
+@JsonSerializable()
+class FinishedTaskVersions {
+  final List<FinishedTaskVersion> versions;
+
+  FinishedTaskVersions({required this.versions});
+
+  factory FinishedTaskVersions.fromJson(Map<String, dynamic> m) =>
+      _$FinishedTaskVersionsFromJson(m);
+  Map<String, dynamic> toJson() => _$FinishedTaskVersionsToJson(this);
+}
+
 enum PackageVersionStatus {
   pending,
   running,

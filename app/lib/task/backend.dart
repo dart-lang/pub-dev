@@ -52,6 +52,8 @@ import 'package:pub_dev/task/loops/scan_packages_updated.dart';
 import 'package:pub_dev/task/models.dart'
     show
         AbortedTokenInfo,
+        FinishedTaskVersion,
+        FinishedTaskVersions,
         PackageStateInfo,
         PackageVersionStateInfo,
         PackageVersionStatus,
@@ -856,6 +858,7 @@ class TaskBackend {
     await Future.wait([
       cache.taskPackageStatus(package).purge(),
       cache.latestFinishedVersion(package).purge(),
+      cache.finishedTaskVersions(package).purge(),
       for (final version in versions) ...[
         cache.taskResultIndex(package, version).purge(),
         purgeScorecardData(package, version, isLatest: true),
@@ -1206,22 +1209,20 @@ class TaskBackend {
   Future<String?> latestFinishedVersion(String package) async {
     final cachedValue = await cache.latestFinishedVersion(package).get(
       () async {
-        for (final rt in acceptedRuntimeVersions) {
-          final finishedVersions = await _database.withRetry(
-            (db) => db._listFinishedVersions(package, runtimeVersion: rt),
+        final finished = await _database.withRetry(
+          (db) => db._listFinishedVersions(package),
+        );
+        final bestVersion = finished.versions
+            .map((e) => Version.parse(e.version))
+            .latestVersion;
+        if (bestVersion != null) {
+          // sanity check: the version is not deleted
+          final pv = await packageBackend.lookupPackageVersion(
+            package,
+            bestVersion.toString(),
           );
-          final bestVersion = finishedVersions
-              .map((e) => Version.parse(e.version))
-              .latestVersion;
-          if (bestVersion != null) {
-            // sanity check: the version is not deleted
-            final pv = await packageBackend.lookupPackageVersion(
-              package,
-              bestVersion.toString(),
-            );
-            if (pv != null) {
-              return bestVersion.toString();
-            }
+          if (pv != null) {
+            return bestVersion.toString();
           }
         }
         return '';
@@ -1244,48 +1245,41 @@ class TaskBackend {
     String version, {
     bool preferDocsCompleted = false,
   }) async {
-    final cachedValue = await cache
-        .closestFinishedVersion(package, version)
-        .get(() async {
-          final semanticVersion = Version.parse(version);
-          for (final rt in acceptedRuntimeVersions) {
-            final finishedVersions = await _database.withRetry(
-              (db) => db._listFinishedVersions(package, runtimeVersion: rt),
-            );
-            if (finishedVersions.isEmpty) {
-              continue;
-            }
-            List<Version>? candidates;
-            if (preferDocsCompleted) {
-              final finishedDocCandidates = finishedVersions
-                  .where((e) => e.hasDocs)
-                  .map((e) => Version.parse(e.version))
-                  .toList();
-              if (finishedDocCandidates.isNotEmpty) {
-                candidates = finishedDocCandidates;
-              }
-            }
+    final cached = await cache
+        .finishedTaskVersions(package)
+        .get(
+          () => _database.withRetry((db) => db._listFinishedVersions(package)),
+        );
+    final finishedVersions = cached?.versions;
+    if (finishedVersions == null || finishedVersions.isEmpty) {
+      return null;
+    }
+    final semanticVersion = Version.parse(version);
+    List<Version>? candidates;
+    if (preferDocsCompleted) {
+      final finishedDocCandidates = finishedVersions
+          .where((e) => e.hasDocs)
+          .map((e) => Version.parse(e.version))
+          .toList();
+      if (finishedDocCandidates.isNotEmpty) {
+        candidates = finishedDocCandidates;
+      }
+    }
 
-            candidates ??= finishedVersions
-                .map((e) => Version.parse(e.version))
-                .toList();
-            if (candidates.contains(semanticVersion)) {
-              return version;
-            }
-            final newerCandidates = candidates
-                .where((e) => isNewer(semanticVersion, e))
-                .toList();
-            if (newerCandidates.isNotEmpty) {
-              // Return the earliest finished that is newer than [version].
-              return newerCandidates
-                  .reduce((a, b) => isNewer(a, b) ? a : b)
-                  .toString();
-            }
-            return candidates.latestVersion!.toString();
-          }
-          return '';
-        });
-    return (cachedValue == null || cachedValue.isEmpty) ? null : cachedValue;
+    candidates ??= finishedVersions
+        .map((e) => Version.parse(e.version))
+        .toList();
+    if (candidates.contains(semanticVersion)) {
+      return version;
+    }
+    final newerCandidates = candidates
+        .where((e) => isNewer(semanticVersion, e))
+        .toList();
+    if (newerCandidates.isNotEmpty) {
+      // Return the earliest finished that is newer than [version].
+      return newerCandidates.reduce((a, b) => isNewer(a, b) ? a : b).toString();
+    }
+    return candidates.latestVersion!.toString();
   }
 
   Future<List<({String package, DateTime finished})>> listFinishedSince(
@@ -1466,23 +1460,32 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
     return {for (final row in rows) row.version: row.asPackageVersionStateInfo};
   }
 
-  /// Returns the versions of [package] with a finished analysis, and whether
-  /// each has dartdoc output.
-  Future<List<({String version, bool hasDocs})>> _listFinishedVersions(
-    String package, {
-    String? runtimeVersion,
-  }) async {
-    final rv = runtimeVersion ?? shared_versions.runtimeVersion;
+  /// Returns the finished versions of [package] from the first accepted
+  /// runtime version that has any, using a single query.
+  Future<FinishedTaskVersions> _listFinishedVersions(String package) async {
+    final runtimeVersions = acceptedRuntimeVersions;
     final rows = await taskVersions
         .where(
           (tv) =>
-              tv.runtimeVersion.equalsValue(rv) &
+              runtimeVersions
+                  .map((rv) => tv.runtimeVersion.equalsValue(rv))
+                  .reduce((a, b) => a | b) &
               tv.package.equalsValue(package) &
               tv.isFinished,
         )
-        .select((tv) => (tv.version, tv.hasDocs))
+        .select((tv) => (tv.runtimeVersion, tv.version, tv.hasDocs))
         .fetch();
-    return [for (final row in rows) (version: row.$1, hasDocs: row.$2)];
+    for (final rv in runtimeVersions) {
+      final versions = [
+        for (final row in rows)
+          if (row.$1 == rv)
+            FinishedTaskVersion(version: row.$2, hasDocs: row.$3),
+      ];
+      if (versions.isNotEmpty) {
+        return FinishedTaskVersions(versions: versions);
+      }
+    }
+    return FinishedTaskVersions(versions: []);
   }
 
   /// Returns an [AbortedTokenInfo] for each running version of [package]
