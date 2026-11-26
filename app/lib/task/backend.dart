@@ -260,13 +260,11 @@ class TaskBackend {
 
     // Check that all [Task] rows have a matching [Package] entity.
     final candidates = <String>{};
-    await _database.withRetry((db) async {
-      await for (final state in db.taskListAllForCurrentRuntime()) {
-        if (!packageNames.contains(state.package)) {
-          candidates.add(state.package);
-        }
+    await for (final package in _allTrackedPackages()) {
+      if (!packageNames.contains(package)) {
+        candidates.add(package);
       }
-    });
+    }
     final packagesToDelete = <String>{};
     for (final package in candidates) {
       if (await packageBackend.packageExists(package) ||
@@ -481,21 +479,11 @@ class TaskBackend {
       };
 
       _log.info('Update state tracking for $packageName');
-      await db.tasks
-          .byKey(runtimeVersion, packageName)
-          .update(
-            (_, set) => set(
-              pendingAt: derivePendingAt(
-                versions: newVersions,
-                lastDependencyChanged: task.lastDependencyChanged,
-              ).asExpr,
-            ),
-          )
-          .execute();
-      await db.updateTaskVersions(
+      await db.updateTaskVersionsAndPendingAt(
         packageName,
         versions: newVersions,
         oldVersions: oldVersions,
+        lastDependencyChanged: task.lastDependencyChanged,
       );
       await db.updateTaskAbortedTokens(
         packageName,
@@ -769,24 +757,12 @@ class TaskBackend {
 
       // Ensure that we update [state.pendingAt], otherwise it might be
       // re-scheduled way too soon.
-      final pendingAt = derivePendingAt(
-        versions: newVersions,
-        lastDependencyChanged: task.lastDependencyChanged,
-      );
-
-      await db.tasks
-          .byKey(runtimeVersion, package)
-          .update(
-            (_, set) => set(
-              pendingAt: pendingAt.asExpr,
-              finished: clock.now().toUtc().asExpr,
-            ),
-          )
-          .execute();
-      await db.updateTaskVersions(
+      await db.updateTaskVersionsAndPendingAt(
         package,
         versions: newVersions,
         oldVersions: oldVersions,
+        lastDependencyChanged: task.lastDependencyChanged,
+        finished: clock.now().toUtc(),
       );
     });
 
@@ -1095,19 +1071,38 @@ class TaskBackend {
     Future<void> Function(Payload payload) processPayload,
   ) async {
     await backfillTrackingState();
-    await _database.withRetry((db) async {
-      await for (final state in db.taskListAllForCurrentRuntime()) {
-        final zone = taskWorkerCloudCompute.zones.first;
-        final payload = await updatePackageStateWithPendingVersions(
-          _database,
-          state.package,
-          zone,
-          taskWorkerCloudCompute.generateInstanceName(),
-        );
-        if (payload == null) continue;
-        await processPayload(payload);
-      }
-    });
+    // Note: the pages are fetched with short-lived DB access, so processing
+    // the payloads does not hold a connection or get re-run on a retry.
+    await for (final package in _allTrackedPackages()) {
+      final zone = taskWorkerCloudCompute.zones.first;
+      final payload = await updatePackageStateWithPendingVersions(
+        _database,
+        package,
+        zone,
+        taskWorkerCloudCompute.generateInstanceName(),
+      );
+      if (payload == null) continue;
+      await processPayload(payload);
+    }
+  }
+
+  /// Lists the names of all packages with a [Task] row in the current runtime.
+  Stream<String> _allTrackedPackages() {
+    return fetchAllPaginated<String, String>(
+      initialCursor: '',
+      batchSize: 1000,
+      fetchPage: (db, after, batchSize) => db.tasks
+          .where(
+            (t) =>
+                t.runtimeVersion.equalsValue(runtimeVersion) &
+                t.package.greaterThanValue(after),
+          )
+          .orderBy((t) => [(t.package, Order.ascending)])
+          .limit(batchSize)
+          .select((t) => (t.package,))
+          .fetch(),
+      cursorOf: (package) => package,
+    );
   }
 
   /// Trigger an immediate analysis scheduling or priority bump for [packageName].
@@ -1578,14 +1573,6 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
         .execute();
   }
 
-  Stream<({String package})> taskListAllForCurrentRuntime() {
-    return tasks
-        .where((task) => task.runtimeVersion.equalsValue(runtimeVersion))
-        .select((task) => (task.package,))
-        .stream()
-        .map((row) => (package: row));
-  }
-
   Stream<({String package, DateTime finished})> taskListFinishedSince(
     DateTime since,
   ) {
@@ -1659,6 +1646,37 @@ extension TaskDatabaseExt on Database<PrimarySchema> {
           .delete()
           .execute();
     }
+  }
+
+  /// Stores [versions] of [package] (see [updateTaskVersions]) and updates the
+  /// derived `pendingAt` of its [Task] row, so that the two never go out of sync.
+  ///
+  /// If [finished] is given, it is stored in the [Task] row too.
+  Future<void> updateTaskVersionsAndPendingAt(
+    String package, {
+    required Map<String, PackageVersionStateInfo> versions,
+    required Map<String, PackageVersionStateInfo> oldVersions,
+    required DateTime lastDependencyChanged,
+    DateTime? finished,
+  }) async {
+    final pendingAt = derivePendingAt(
+      versions: versions,
+      lastDependencyChanged: lastDependencyChanged,
+    );
+    await tasks
+        .byKey(runtimeVersion, package)
+        .update(
+          (task, set) => set(
+            pendingAt: pendingAt.asExpr,
+            finished: finished == null ? task.finished : finished.asExpr,
+          ),
+        )
+        .execute();
+    await updateTaskVersions(
+      package,
+      versions: versions,
+      oldVersions: oldVersions,
+    );
   }
 
   /// Stores [abortedTokens] of [package], skipping those unchanged from

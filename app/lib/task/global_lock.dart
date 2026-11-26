@@ -21,6 +21,9 @@ class GlobalLock {
   final Duration _expiration;
   final PrimaryDatabase _primaryDatabase;
 
+  // always sleep at-least 10% of _expiration
+  late final _minDelayInLoop = _expiration * 0.1;
+
   GlobalLock._(this._lockId, this._expiration, this._primaryDatabase);
 
   // Note: [primaryDatabase] is resolved here once, and then held onto
@@ -187,15 +190,17 @@ class GlobalLock {
     while (!_hasClaim(state, claimId) &&
         (timeout == null || s.elapsed < timeout) &&
         !abort.isCompleted) {
+      var delay = _minDelayInLoop;
       if (state != null) {
         // Sleep till lockedUntil, and always sleep at-least 10% of _expiration
-        var delay = state.lockedUntil.difference(clock.now().toUtc());
-        if (delay < _expiration * 0.1) {
-          delay = _expiration * 0.1;
+        delay = state.lockedUntil.difference(clock.now().toUtc());
+        if (delay < _minDelayInLoop) {
+          delay = _minDelayInLoop;
         }
-        // Wait for delay or abort
-        await abort.future.timeout(delay, onTimeout: () => null);
       }
+      // Wait for delay or abort
+      await abort.future.timeout(delay, onTimeout: () => null);
+
       state = await _tryClaimOrGet(claimId);
     }
 

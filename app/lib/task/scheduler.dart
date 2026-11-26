@@ -11,11 +11,9 @@ import 'package:pub_dev/database/schema.dart';
 import 'package:pub_dev/package/backend.dart';
 import 'package:pub_dev/shared/configuration.dart';
 import 'package:pub_dev/shared/utils.dart';
-import 'package:pub_dev/shared/versions.dart';
 import 'package:pub_dev/task/backend.dart';
 import 'package:pub_dev/task/cloudcompute/cloudcompute.dart';
 import 'package:pub_dev/task/models.dart';
-import 'package:typed_sql/typed_sql.dart';
 
 final _log = Logger('pub.task.schedule');
 
@@ -271,21 +269,11 @@ Future<SchedulePackageResult?> schedulePackageInstance({
               .map((e) => MapEntry(e.key, e.value.resetAfterFailedAttempt())),
         );
 
-        await db.tasks
-            .byKey(runtimeVersion, package)
-            .update(
-              (_, set) => set(
-                pendingAt: derivePendingAt(
-                  versions: versions,
-                  lastDependencyChanged: s.lastDependencyChanged,
-                ).asExpr,
-              ),
-            )
-            .execute();
-        await db.updateTaskVersions(
+        await db.updateTaskVersionsAndPendingAt(
           package,
           versions: versions,
           oldVersions: oldVersions,
+          lastDependencyChanged: s.lastDependencyChanged,
         );
       });
     }
@@ -334,21 +322,11 @@ Future<Payload?> updatePackageStateWithPendingVersions(
           secretToken: createUuid(),
         ),
     };
-    await db.tasks
-        .byKey(runtimeVersion, package)
-        .update(
-          (_, set) => set(
-            pendingAt: derivePendingAt(
-              versions: newVersions,
-              lastDependencyChanged: task.lastDependencyChanged,
-            ).asExpr,
-          ),
-        )
-        .execute();
-    await db.updateTaskVersions(
+    await db.updateTaskVersionsAndPendingAt(
       package,
       versions: newVersions,
       oldVersions: oldVersions,
+      lastDependencyChanged: task.lastDependencyChanged,
     );
 
     // Create payload
